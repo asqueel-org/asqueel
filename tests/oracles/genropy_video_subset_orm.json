@@ -1,0 +1,103 @@
+{
+  "provenance": {
+    "generated_at": "2026-08-21T18:06:32+02:00",
+    "generator": "gnr.sql.gnrsqlmigration.orm_extractor.OrmExtractor",
+    "genropy_commit": "773455a01ef7c390da08aec8d337c743aed5ddc7",
+    "source": "gnrpy/tests/sql/common.py::configurePackage",
+    "source_ranges": [
+      "168-173",
+      "178-180",
+      "185-186"
+    ]
+  },
+  "structure": {
+    "root": {
+      "entity": "db",
+      "entity_name": "mydb",
+      "event_triggers": {},
+      "extensions": {},
+      "schemas": {
+        "video": {
+          "entity": "schema",
+          "entity_name": "video",
+          "schema_name": "video",
+          "tables": {
+            "video_cast": {
+              "attributes": {
+                "pkeys": "id"
+              },
+              "columns": {
+                "id": {
+                  "attributes": {
+                    "dtype": "L",
+                    "notnull": "_auto_"
+                  },
+                  "column_name": "id",
+                  "entity": "column",
+                  "entity_name": "id",
+                  "schema_name": "video",
+                  "table_name": "video_cast"
+                },
+                "person_id": {
+                  "attributes": {
+                    "dtype": "L"
+                  },
+                  "column_name": "person_id",
+                  "entity": "column",
+                  "entity_name": "person_id",
+                  "schema_name": "video",
+                  "table_name": "video_cast"
+                }
+              },
+              "constraints": {},
+              "entity": "table",
+              "entity_name": "video_cast",
+              "indexes": {
+                "idx_acb35585": {
+                  "attributes": {
+                    "columns": {
+                      "person_id": null
+                    },
+                    "index_name": "idx_acb35585"
+                  },
+                  "entity": "index",
+                  "entity_name": "idx_acb35585",
+                  "schema_name": "video",
+                  "table_name": "video_cast"
+                }
+              },
+              "relations": {},
+              "schema_name": "video",
+              "table_name": "video_cast"
+            },
+            "video_people": {
+              "attributes": {
+                "pkeys": "id"
+              },
+              "columns": {
+                "id": {
+                  "attributes": {
+                    "dtype": "L",
+                    "notnull": "_auto_"
+                  },
+                  "column_name": "id",
+                  "entity": "column",
+                  "entity_name": "id",
+                  "schema_name": "video",
+                  "table_name": "video_people"
+                }
+              },
+              "constraints": {},
+              "entity": "table",
+              "entity_name": "video_people",
+              "indexes": {},
+              "relations": {},
+              "schema_name": "video",
+              "table_name": "video_people"
+            }
+          }
+        }
+      }
+    }
+  }
+}

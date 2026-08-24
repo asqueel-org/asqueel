@@ -1,46 +1,54 @@
 # Genro SQL
 
-SQL model builder for the Genro framework — describe databases,
-schemas, tables and columns in Python through a
-[genro-builders](https://github.com/genropy/genro-builders) dialect,
-and project the model tree into DDL, migrations and (later) query
-compilation.
+SQL model builder for the Genro framework. It describes databases, schemas,
+tables and columns through a
+[genro-builders](https://github.com/genropy/genro-builders) dialect and projects
+the source tree into the normalized `genro-sqlmigration` structure.
 
-**Status**: Alpha — full rewrite in progress. The model source tree is
-the single pivot: DDL rendering (partial or total), the migration
-projection (genro-sqlmigration) and the round-trip (reader from a live
-database, emitter to idiomatic Python) are all projections from/to the
-same tree. The previous experimental ORM (GenroMicroDb) has been
-removed; it remains available in git history.
+**Status**: Alpha. The model source tree is the single pivot for migration
+projection, database inspection and round-tripping back to an editable Python
+recipe. Direct DDL rendering remains a reserved placeholder.
 
-## Design documentation
+Repeated structure is explicit in the authoring grammar:
 
-The rewrite is driven by the documents in [`roadmap/`](roadmap/):
+```python
+db = root.db("billing")
+schemas = db.schemas()
+invc = schemas.schema("invc")
+tables = invc.tables()
+invoice = tables.table("invoice", pkey="id")
+columns = invoice.columns()
+customer_id = columns.column("customer_id", dtype="L")
+customer_id.relation("invc.customer.id", foreign_key=True)
+```
 
-- [`00_INDEX.md`](roadmap/00_INDEX.md) — documentation set index
-- `01`–`04` — exhaustive inventories of the legacy engine (model
-  grammar, query compiler, migration/adapters, test suite)
-- [`05_grammar_design.md`](roadmap/05_grammar_design.md) — the grammar
-  design document: vision, agreed decisions, open questions,
-  implementation plan in slices
+The source relation belongs to its column. The migration renderer projects the
+same physical foreign key under the table's normalized JSON `relations` map.
 
 ## Layout
 
 ```
 src/genro_sql/
-├── sql_builder.py    # SqlBuilder (dialect) + renderer_sql property
-├── sql_elements.py   # grammar elements (under design)
-├── sql_renderer.py   # DDL renderer (placeholder)
-└── examples/         # numbered examples (three-view format)
+├── builder.py        # SqlBuilder and source-path rules
+├── elements.py       # canonical explicit grammar
+├── migration.py      # source tree to normalized migration JSON
+├── reader.py         # normalized migration JSON to source tree
+├── emitter.py        # source tree to an importable Python recipe
+└── renderer.py       # reserved direct-DDL surface
 ```
 
 ## Development
 
 ```bash
-pip install -e .[dev]
+pip install -e "../genro-sqlmigration[postgresql,validation]" -e ".[dev]"
 pytest tests/
 ruff check src/
+mypy src/genro_sql
 ```
+
+The sibling checkout is currently required because `genro-sqlmigration` has
+not published the commits used by the inspection and writer regressions. See
+the [external delivery gate](docs/delivery.md) for the exact release sequence.
 
 ## License
 

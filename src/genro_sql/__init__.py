@@ -1,25 +1,45 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
-"""genro-sql — describe a database pythonically, render it as SQL.
+"""Canonical explicit SQL-model grammar and migration projections.
 
-A dialect family of genro-builders, one sub-package per grammar dialect
-(see ``roadmap/05_grammar_design.md`` §5.1):
-
-- :mod:`genro_sql.modern` — the optimized grammar: :class:`SqlBuilder`
-  carries the vocabulary (db, schema, table, column, relation, index, …),
-  :class:`SqlRenderer` emits DDL from the source tree.
-- :mod:`genro_sql.legacy` — the backward-compatible grammar:
-  :class:`LegacySqlBuilder` mirrors the legacy GenroPy ``DbModelSrc``
-  vocabulary so existing models port almost verbatim.
-- :mod:`genro_sql.base` — shared base classes (minimal for now).
-
-The same source tree is the pivot for the migration tooling
-(genro-sqlmigration) and, later, for the round-trip: a reader (live
-database -> tree) and an emitter (tree -> idiomatic .py).
+The source tree is the pivot for migration tooling and round-tripping:
+:class:`SqlMigrationRenderer` projects it to normalized migration JSON,
+:class:`SqlModelReader` reads that structure back, and
+:class:`SqlPythonEmitter` emits an editable Python recipe.
 """
 
-from .legacy import LegacySqlBuilder
-from .modern import SqlBuilder, SqlRenderer
+from __future__ import annotations
+
+from importlib import import_module
+
+from .builder import SqlBuilder
+from .emitter import SqlPythonEmitter
+from .renderer import SqlRenderer
 
 __version__ = "0.1.0"
 
-__all__ = ["LegacySqlBuilder", "SqlBuilder", "SqlRenderer"]
+__all__ = [
+    "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
+]
+
+_MIGRATION_EXTRA = (
+    "genro-sqlmigration is required for {name}: install genro-sql[migration]"
+)
+
+_MIGRATION_NAMES = {
+    "SqlMigrationRenderer": ".migration",
+    "SqlModelReader": ".reader",
+}
+
+
+def __getattr__(name: str):
+    """Resolve the names that need an optional dependency, on first use."""
+    module_name = _MIGRATION_NAMES.get(name)
+    if module_name is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    try:
+        module = import_module(module_name, __name__)
+    except ModuleNotFoundError as error:
+        if error.name != "genro_sqlmigration":
+            raise
+        raise ImportError(_MIGRATION_EXTRA.format(name=name)) from error
+    return getattr(module, name)

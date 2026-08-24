@@ -1,0 +1,1 @@
+"""Reusable SQL model fixtures."""
