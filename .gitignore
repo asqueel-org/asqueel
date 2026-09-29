@@ -43,3 +43,6 @@ ENV/
 temp/
 tmp/
 *.tmp
+
+# Sphinx documentation
+docs/_build/

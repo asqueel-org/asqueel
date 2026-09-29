@@ -14,6 +14,11 @@ Install the PostgreSQL runtime with `pip install "genro-sql[postgresql]"`.
 The model and compiler work without a database driver. Migration is a separate
 optional extra: `genro-sql[migration]`.
 
+Documentation uses Sphinx with the Read the Docs theme. Run
+`pip install -e ".[docs]"` followed by
+`python -m sphinx -W --keep-going -b html docs docs/_build/html`.
+See [documentation builds and publishing](docs/documentation.md).
+
 ```python
 from genro_sql import PostgresCompiler, PostgresDatabase, resolve_model
 

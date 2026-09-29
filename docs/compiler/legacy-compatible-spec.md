@@ -25,7 +25,7 @@ Documenti complementari:
 
 - [Casi di conformità e dataset di riferimento](compatibility-cases.md).
 - [Analisi di codice e conversazioni](../legacy-sql-compiler-analysis.md).
-- [Inventario precedente](../../roadmap/02_legacy_compiler_query.md), utile come
+- [Inventario precedente](https://github.com/genropy/genro-sql/blob/225ecb43d41336d4dec271abefa0bda055358945/roadmap/02_legacy_compiler_query.md), utile come
   materiale storico: in caso di divergenza fa fede la baseline qui indicata.
 
 ## 1. Obiettivo, significato di equivalenza e perimetro
