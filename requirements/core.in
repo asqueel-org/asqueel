@@ -10,5 +10,6 @@ mypy>=1.0
 build
 hatchling
 editables
-# No PyPI release: exact public revision; two known upstream regressions remain.
-genro-sqlmigration[postgresql,validation] @ git+https://github.com/genropy/genro-sqlmigration.git@e64fa00b22b304263f515765bb44e5b74d9e9534
+# Published stable migrator; old Git-only baseline remains in historical reports.
+genro-sqlmigration[postgresql,validation]==0.1.0
+psycopg[binary]>=3.3.6

@@ -53,7 +53,17 @@ def main():
         rebuilt = namespace['ImportedDatabase']()
         rebuilt.create()
         rebuilt.validate_model()
-        print('Core-only build, validation and Python emission passed')
+        resolved = package.resolve_model(rebuilt)
+        query = package.PostgresCompiler(resolved).select(
+            'public.customer', where='$id = :id', params={'id': 7},
+        )
+        assert query.params == {'id': 7}
+        assert '"public"."customer"' in query.sql
+        generic = package.QueryCompiler(
+            resolved, package.PostgresDialect(), package.PsycopgDriver(),
+        ).select('public.customer', where='$id = :id', params={'id': 7})
+        assert generic == query
+        print('Core-only build, validation, emission, model and adapter pipeline passed')
         return
     with tempfile.TemporaryDirectory(prefix='genro-sql-wheel-') as directory:
         destination = Path(directory)

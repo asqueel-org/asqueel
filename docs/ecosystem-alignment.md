@@ -1,5 +1,9 @@
 # Allineamento al remoto e all'ecosistema — 29 settembre 2026
 
+Aggiornamento successivo: il [rapporto V1 nativo](native-v1-delivery.md) verifica
+il migratore pubblicato su PyPI 0.1.0 e supera i precedenti expected failure.
+Il testo seguente conserva la baseline storica, non lo stato corrente.
+
 ## Base e perimetro
 
 Questo intervento parte da `origin/main` a `64e53af`, che contiene la pipeline

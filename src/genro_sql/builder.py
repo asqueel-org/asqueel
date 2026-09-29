@@ -48,9 +48,9 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements,
     """SQL model dialect builder.
 
     One dialect, one flat namespace: the grammar is split into mixins by
-    containment level for readability, never into sub-dialects — a mounted
-    sub-dialect loses the name-keyed addressing (``db.public.author.id``)
-    the whole model rests on.
+    containment level for readability. Mounted dialects preserve name paths,
+    but root-signature validation and serialization of dynamic configuration
+    are not yet compatible with every mount; see docs/native-composition.md.
     """
 
     _name = "sqlmodel"

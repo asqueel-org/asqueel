@@ -1,0 +1,123 @@
+# 05 — Decisioni acquisite e questioni aperte
+
+## Vincoli acquisiti, da non rimettere fra le alternative
+
+- PostgreSQL è prioritario in lettura e scrittura; altri dialetti possono essere parziali.
+- Modello ottenibile dal DB e da package/applicazioni legacy, oltre alla via nativa.
+- Componenti/mixin di adattamento legacy sono ammessi.
+- aggregateRows e la ricomposizione Python implicita sono eliminati anche nel bridge.
+- Informazioni UI nel modello o in entità parallele collegate alla medesima colonna.
+- VirtualRelation della proposta GEP incluse nell'obiettivo.
+- View, trigger e funzioni native previsti in prospettiva, con supporto del migratore.
+- Subtable, scope partition e partizioni fisiche devono essere distinti.
+- Schema come prefisso del nome tabella e mapping legacy devono essere supportati.
+
+Aggiornamento del perimetro iniziale: la V1 è destinata ad applicazioni nuove.
+Le applicazioni saranno probabilmente async; il lavoro DB in thread è ammesso.
+Il [piano versioni](07-release-proposal.md) propone quindi una facciata awaitable
+sopra worker sincroni, con contratto esplicito di transazione e cancellazione.
+Importazione e bridge legacy passano alle versioni successive.
+
+## Decisioni da chiudere al momento opportuno
+
+Ogni voce indica una raccomandazione, non un consenso già acquisito. Non è
+necessario rispondere a tutte prima di iniziare: il piano indica quando diventano vincolanti.
+
+### D-01 — Dominio e applicazione campione
+
+**Scelta:** database e package/app rappresentativi, accesso e ambiente di prova.
+**Raccomandazione:** iniziare dal dominio cliente/fattura/righe del corpus,
+poi un'app reale con subtable, policy e almeno un hook di scrittura.
+**Tradeoff:** dominio piccolo dà risposte esatte; app reale rivela accoppiamenti nascosti.
+**Da chiudere:** P0. Non usare un database di produzione come fixture modificabile.
+
+### D-02 — Versioni server e driver
+
+**Scelta:** minimo PostgreSQL, driver e matrice delle estensioni.
+**Raccomandazione:** un solo driver iniziale con contratto completo; ampliare
+dopo la prima prova verticale. Rispettare le versioni stabili dell'ecosistema
+Genro quando si aggiornano dipendenze, verificandole al momento dell'implementazione.
+**Tradeoff:** più varianti aumentano immediatamente la matrice dei comportamenti.
+**Da chiudere:** prima di P3; i documenti PostgreSQL 18 non impongono quella versione minima.
+
+### D-03 — Identità e forma del modello
+
+**Scelta:** formato sorgente, identità persistenti, descrittori runtime e versionamento.
+**Raccomandazione:** identità distinta dai nomi, source serializzabile e vista
+runtime risolta; provenienza per contributo, oggetti fisici separati dai semantici.
+**Tradeoff:** più struttura iniziale, minore ambiguità di rename/import/cache.
+**Da chiudere:** P1, prima di fissare i formati di esportazione.
+
+### D-04 — Grammatiche e composizione
+
+**Scelta:** dove montare grammatiche e come dichiarare override/rimozioni.
+**Raccomandazione:** vocabolario SQL fondamentale comune, estensioni distribuite
+quando cambiano gli elementi; merge per famiglia con conflitti espliciti.
+**Tradeoff:** montare una grammatica per ogni tabella può essere inutile complessità.
+**Da chiudere:** P1 dopo un prototipo che coinvolga anche validatori ed emitter.
+
+### D-05 — UI e profili
+
+**Scelta:** forma concreta dei metadati inline/paralleli, namespace ed editor provider.
+**Raccomandazione:** stessa vista risolta, profili per contesto, layout di schermata
+separato; nessuna dipendenza obbligatoria da widget nel compiler.
+**Tradeoff:** permettere tutte le forme senza precedenze chiare crea duplicazioni.
+**Da chiudere:** contratto in P1, integrazione reale GUI in P5.
+
+### D-06 — Frontend nativo delle query
+
+**Scelta:** sintassi testuale iniziale, API strutturata e nomi delle operazioni.
+**Raccomandazione:** mantenere riferimenti familiari, un solo resolver, QuerySpec
+esplicito e result plan; niente secondo motore semantico per Bag o oggetti Python.
+**Tradeoff:** API a oggetti completa troppo presto rallenta la verifica della semantica.
+**Da chiudere:** forma minima in P1/P3; estensioni in P4 con esempi comparativi.
+
+### D-07 — Profilo legacy e anomalie
+
+**Scelta:** quali ingressi/consumer supportare e quali anomalie emulare.
+**Raccomandazione:** perimetro misurabile e diagnostiche; adapter sottili deleganti.
+**Vincolo:** A07/aggregateRows è già risolta con rimozione. Non è riapribile
+come opzione per «completare la compatibilità».
+**Da chiudere:** perimetro iniziale in P0, comportamenti specifici prima di P5.
+
+### D-08 — Dettagli delle virtualRelation e aggregati
+
+**Scelta:** derivazione da relazioni limitate, inverse filtrate, namespace ask,
+forma di raccolte, ordine, default sugli insiemi vuoti e aggregati annidati.
+**Raccomandazione:** NULL SQL espliciti, order totale per limit=1, sola lettura
+e binding di sorgente/target distinti; non sovraccaricare SUM come concatenazione.
+**Tradeoff:** sintassi compatta può nascondere la cardinalità o lo scope.
+**Da chiudere:** P4, prima delle implementazioni che dipendono dal singolo punto.
+
+### D-09 — Scritture e hook
+
+**Scelta:** transazioni, callback, record-cluster, bulk, errori e concorrenza.
+**Raccomandazione:** primitive SQL e operazioni di dominio esplicite, niente
+transaction manager concorrenti nello stesso flusso; un ordine documentato degli hook.
+**Tradeoff:** supportare tutto il legacy subito renderebbe il primo prototipo troppo ampio.
+**Da chiudere:** primitive in P3, contratti di dominio prima di P5.
+
+### D-10 — Obiettivi prestazionali
+
+**Scelta:** carichi, dataset, cardinalità, metriche e limiti accettabili.
+**Raccomandazione:** prima baseline e correttezza, poi obiettivi per compilazione,
+query count, DB, p95 e memoria. Niente soglie arbitrarie nel dossier.
+**Tradeoff:** un solo dataset uniforme favorisce ottimizzazioni poco generalizzabili.
+**Da chiudere:** prima di P6; raccogliere misure già da P3.
+
+### D-11 — Oggetti nativi e migrazioni evolute
+
+**Scelta:** formato versionato e ordine delle famiglie da implementare.
+**Raccomandazione:** contratto predisposto in P1; implementazione differita,
+con dipendenze esplicite, preservazione SQL, capability e test end-to-end.
+Materialized view e procedure distinte dalle funzioni richiedono una scelta di perimetro.
+**Tradeoff:** un campo SQL libero da solo non gestisce identità, diff e dipendenze.
+**Da chiudere:** formato prima di P7, caratteristiche precise all'avvio dei sottointerventi.
+
+### D-12 — Dialetti ulteriori e rilascio
+
+**Scelta:** secondo backend, packaging del bridge, profili pubblici e requisiti di supporto.
+**Raccomandazione:** SQLite per verifiche portabili iniziali; altri in base a
+utilizzo reale. Un adapter deve dichiarare ciò che non supporta.
+**Tradeoff:** copertura nominale larga senza test reali dà falsa portabilità.
+**Da chiudere:** sottoinsieme iniziale in P0, matrice di rilascio in P8.

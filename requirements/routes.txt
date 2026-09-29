@@ -32,9 +32,9 @@ genro-bag==0.27.0
     #   genro-builders
 genro-builders==0.27.0
     # via -r requirements/core.in
-genro-routes==0.30.0
+genro-routes==0.30.1
     # via -r requirements/routes.in
-genro-sqlmigration @ git+https://github.com/genropy/genro-sqlmigration.git@e64fa00b22b304263f515765bb44e5b74d9e9534
+genro-sqlmigration==0.1.0
     # via -r requirements/core.in
 genro-toolbox==0.14.0
     # via
@@ -86,7 +86,9 @@ pluggy==1.6.0
     #   pytest
     #   pytest-cov
 psycopg==3.3.6
-    # via genro-sqlmigration
+    # via
+    #   -r requirements/core.in
+    #   genro-sqlmigration
 psycopg-binary==3.3.6 ; implementation_name != 'pypy'
     # via psycopg
 pydantic==2.13.5

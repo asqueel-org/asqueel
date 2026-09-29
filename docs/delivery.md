@@ -1,5 +1,9 @@
 # External delivery gate
 
+Aggiornamento successivo: il [rapporto V1 nativo](native-v1-delivery.md) verifica
+il migratore pubblicato su PyPI 0.1.0 e supera i precedenti expected failure.
+Il testo seguente conserva la baseline storica, non lo stato corrente.
+
 Status checked on 2026-08-24. This record describes local verified work; it
 does not claim that an upstream release is available.
 

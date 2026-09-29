@@ -1,2 +1,2 @@
 -r core.in
-genro-routes==0.30.0
+genro-routes==0.30.1

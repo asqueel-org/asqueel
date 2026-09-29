@@ -5,9 +5,48 @@ tables and columns through a
 [genro-builders](https://github.com/genropy/genro-builders) dialect and projects
 the source tree into the normalized `genro-sqlmigration` structure.
 
-**Status**: Alpha. The model source tree is the single pivot for migration
-projection, database inspection and round-tripping back to an editable Python
-recipe. Direct DDL rendering remains a reserved placeholder.
+**Status**: Alpha. The native PostgreSQL profile adds a resolved model, query
+compiler, read-only catalog import and an awaitable runtime using dedicated
+threads. It targets new applications. Legacy application compatibility and
+advanced Genro semantics remain later milestones. Direct DDL rendering remains
+a reserved placeholder; physical migration uses `genro-sqlmigration`.
+
+Install the PostgreSQL runtime with `pip install "genro-sql[postgresql]"`.
+The model and compiler work without a database driver. Migration is a separate
+optional extra: `genro-sql[migration]`.
+
+```python
+from genro_sql import PostgresCompiler, PostgresDatabase, resolve_model
+
+# builder is a built SqlBuilder recipe; SQL fragments are trusted application code.
+compiler = PostgresCompiler(resolve_model(builder))
+query = compiler.select("invc.invoice", columns="$id, $total",
+                        where="$total >= :minimum", params={"minimum": 100})
+
+async def read_invoices(conninfo):
+    async with PostgresDatabase(conninfo, max_workers=4, max_pending=16) as db:
+        async with db.transaction() as tx:
+            result = await tx.execute(query)
+            return result.rows
+```
+
+A transaction pins one connection to one worker. PostgreSQL I/O, materialization,
+commit, rollback and close happen off the event loop. Cancellation waits for
+ongoing synchronous work and cleanup; it does not instantly stop the server query.
+Use PostgreSQL timeouts for bounded server execution. Thread count and admission
+queue are bounded; connections are fresh per transaction, not persistently pooled.
+
+See [native model](docs/native-model.md), [compiler](docs/native-compiler.md),
+[runtime](docs/native-runtime.md), [V1 verification](docs/native-v1-delivery.md)
+and [version roadmap](docs/design/07-release-proposal.md).
+`aggregateRows` is explicitly unsupported in every native entry point.
+
+The [data adapter architecture](docs/data-adapters-delivery.md) separates
+`QueryCompiler` (resolved plans), `PostgresDialect` (SQL), `PsycopgDriver`
+(binding and client calls), and `ThreadedDatabase` (session lifecycle).
+The PostgreSQL classes shown above remain convenience facades. Structural
+catalog providers and the adapters in sqlmigration remain separate from
+data execution; only PostgreSQL data execution is currently implemented.
 
 Repeated structure is explicit in the authoring grammar:
 
@@ -34,6 +73,16 @@ src/genro_sql/
 ├── migration.py      # source tree to normalized migration JSON
 ├── reader.py         # normalized migration JSON to source tree
 ├── emitter.py        # source tree to an importable Python recipe
+├── contracts.py      # native model, compiled query and result contracts
+├── model.py          # logical/physical naming and UI resolution
+├── compiler.py       # common query planner and PostgreSQL facade
+├── query_plan.py     # resolved plans and structured SQL fragments
+├── dialects/         # data SQL dialects, independent of drivers
+├── drivers/          # binding and optional DB client implementations
+├── runtime.py        # awaitable transaction-pinned thread execution
+├── catalog_provider.py # structural introspection boundary
+├── importers.py      # read-only PostgreSQL catalog import
+├── projection.py     # resolved physical model to migration grammar
 └── renderer.py       # reserved direct-DDL surface
 ```
 
@@ -46,14 +95,14 @@ both APIs. The legacy/modern split has been replaced by the canonical grammar
 shown above; it is not reintroduced by this update.
 
 The test profiles additionally verify coinstallation and SQL behavior with
-routes **0.30.0** and ASGI **0.46.3**. They do not certify an ASGI server or add
+routes **0.30.1** and ASGI **0.46.3**. They do not certify an ASGI server or add
 web dependencies to the SQL runtime.
 
 ## Development
 
-Use an isolated environment and the complete pinned test profile. The migration
-package has no PyPI release, so the profile pins its public Git revision instead
-of relying on an arbitrary sibling checkout:
+Use an isolated environment and the complete pinned test profile. It uses the
+published `genro-sqlmigration` 0.1.0 release and psycopg 3.3.6, without relying
+on a sibling checkout:
 
 ```bash
 python3.12 -m venv venv
@@ -72,12 +121,10 @@ Regenerate a profile deliberately, for example:
 uv pip compile requirements/core.in --universal --python-version 3.11 --output-file requirements/core.txt
 ```
 
-Two upstream index regressions remain in the pinned migrator. Their assertions
-still execute and are marked **strict expected failures only for that exact Git
-revision**. `pytest --runxfail` exposes them as ordinary failures; another
-revision or an editable migrator checkout receives no exemption. An unexpected
-pass fails CI and requires removing the expectation. See
-[delivery status](docs/delivery.md) and [alignment results](docs/ecosystem-alignment.md).
+The current published migrator passes the former index-name/DESC and identifier
+quoting regression tests. Their assertions run normally; historical expected
+failure markers have been removed. Earlier results remain recorded in
+[alignment history](docs/ecosystem-alignment.md).
 
 For a local migration checkout carrying the missing upstream fixes, the original
 development command remains available:

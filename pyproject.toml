@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 [project]
 name = "genro-sql"
 version = "0.1.0"
-description = "Explicit SQL model grammar and normalized migration projections"
+description = "SQL model, PostgreSQL compiler and asynchronous threaded runtime"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
@@ -41,11 +41,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+postgresql = [
+    "psycopg[binary]>=3.3.6",
+]
 migration = [
     "genro-sqlmigration>=0.1.0",
 ]
 dev = [
     "genro-sqlmigration[postgresql,validation]>=0.1.0",
+    "psycopg[binary]>=3.3.6",
     "pytest>=8.4",
     "pytest-cov>=4.0",
     "ruff>=0.1.0",
