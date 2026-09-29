@@ -41,3 +41,29 @@ The current GitHub default branch was `main` at
    `pip install -e ".[dev]"`.
 
 No publish, pull request, merge or release action is part of this workflow.
+
+
+## Verification on 2026-09-29
+
+The public migration repository still points to
+`e64fa00b22b304263f515765bb44e5b74d9e9534`; no tag or additional branch carries
+the fixes above. The final cited commit is not retrievable from GitHub, and
+issue #8 remains open. The dependency is therefore fixed to the available
+public SHA in `requirements/*.txt` for reproducible tests.
+
+The SQL source now uses Bag/Builders 0.27. With the public migrator, the two
+remaining integration regressions are:
+
+- authored index names and DESC inspection (PostgreSQL);
+- missing `quote_identifier` in the dialect writer API.
+
+The original regression assertions remain intact. Tests mark exactly these two
+cases as strict expected failures only when installed migration metadata records
+the SHA above. No exemption applies to another revision or an editable install;
+`pytest --runxfail` disables the expectations. These failures are not fixed by
+this SQL update, and the index behavior is not certified. There is no SQL-side
+quoting workaround, monkeypatch of production writers or invented release.
+
+Replace the pinned revision and remove the expectations after the upstream
+fixes become available. The original local commit identifiers above remain
+historical evidence, not installable dependency references.

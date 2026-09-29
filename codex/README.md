@@ -87,3 +87,10 @@ SqlBuilder recipe
 
 Dimostra immediatamente il valore del modello, riusa l'infrastruttura esistente
 e consente di creare o allineare database reali a partire da ricette Python.
+
+## Stato corrente — 29 settembre 2026
+
+Questo dossier conserva le analisi precedenti alla pipeline canonica introdotta
+nel commit remoto `64e53af`. Per lo stato effettivo dopo l’allineamento vedere
+[risultati e limiti verificati](../docs/ecosystem-alignment.md). Non ripristinare
+i dialetti legacy/modern descritti dai documenti storici.

@@ -58,7 +58,7 @@ class SqlModelCatalog:
         return None
 
     def _collect(self) -> None:
-        for path, node in self.builder.source.walk():
+        for path, node in self.builder.source.query("#p,#n", deep=True, iter=True):
             self.nodes.append((path, node))
             self._paths[id(node)] = path
             parent = getattr(node, "parent_node", None)

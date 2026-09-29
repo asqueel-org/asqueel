@@ -1,0 +1,68 @@
+name: Tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  wheel:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+        profile: [core]
+        include:
+          - python: '3.12'
+            profile: routes
+          - python: '3.12'
+            profile: asgi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r requirements/${{ matrix.profile }}.txt
+      - run: python -m build --no-isolation
+      - run: python -m pip install --no-deps dist/*.whl
+      - run: python -m pip check
+      - run: python scripts/check_installed.py
+      - run: ruff check src tests scripts
+      - run: mypy src/genro_sql
+  postgresql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      GNR_TEST_PG_HOST: 127.0.0.1
+      GNR_TEST_PG_PORT: '5432'
+      GNR_TEST_PG_USER: postgres
+      GNR_TEST_PG_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements/core.txt
+      - run: python -m build --no-isolation
+      - run: python -m pip install --no-deps dist/*.whl
+      - run: python scripts/check_installed.py --postgresql
+  core-latest:
+    # No migration installed: core runtime and newest allowed Genro releases.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install build
+      - run: python -m build
+      - run: python -m pip install dist/*.whl
+      - run: python -m pip check
+      - run: python scripts/check_installed.py --core-only

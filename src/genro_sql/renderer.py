@@ -12,3 +12,5 @@ from genro_builders.renderer import RendererBase
 
 class SqlRenderer(RendererBase):
     """Placeholder with no direct-DDL implementation."""
+
+    mode = "sql"

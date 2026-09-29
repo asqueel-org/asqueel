@@ -11,7 +11,7 @@ version = "0.1.0"
 description = "Explicit SQL model grammar and normalized migration projections"
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "Genropy Team"}
 ]
@@ -29,7 +29,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -37,7 +36,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "genro-builders>=0.18.0",
+    "genro-builders>=0.27.0",
+    "genro-bag>=0.27.0",
 ]
 
 [project.optional-dependencies]
@@ -46,7 +46,7 @@ migration = [
 ]
 dev = [
     "genro-sqlmigration[postgresql,validation]>=0.1.0",
-    "pytest>=7.0",
+    "pytest>=8.4",
     "pytest-cov>=4.0",
     "ruff>=0.1.0",
     "mypy>=1.0",
@@ -60,6 +60,9 @@ Issues = "https://github.com/genropy/genro-sql/issues"
 [tool.hatch.build.targets.wheel]
 packages = ["src/genro_sql"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"docs/grammar.md" = "genro_sql/grammar.md"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --cov=genro_sql --cov-report=term-missing"
@@ -68,7 +71,7 @@ markers = [
 ]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 100
 src = ["src"]
 
@@ -92,7 +95,7 @@ ignore = [
 ".phased/**/test_wf_phase*.py" = ["F841"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

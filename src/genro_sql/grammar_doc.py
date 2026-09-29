@@ -22,7 +22,9 @@ from typing import Any, cast
 from .builder import SqlBuilder
 
 #: Written by ``python -m genro_sql.grammar_doc``.
-DOC_PATH = Path(__file__).resolve().parents[2] / "docs" / "grammar.md"
+DOC_PATH = Path(__file__).with_name("grammar.md")
+if not DOC_PATH.exists():  # Source checkout; wheels carry their own reference.
+    DOC_PATH = Path(__file__).resolve().parents[2] / "docs" / "grammar.md"
 
 _ROOT_TAG = "db"
 
@@ -101,7 +103,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
     """Signature rows ``(name, type, default, plane, description)``."""
     marker = _marker(tag)
     signature = inspect.signature(marker._func)
-    descriptions = _arg_docs(marker.__doc__)
+    descriptions = _arg_docs(inspect.getdoc(marker._func) or "")
     rows: list[tuple[str, str, str, str, str]] = []
     open_signature = False
     for name, param in signature.parameters.items():
@@ -202,9 +204,9 @@ def generate_grammar_md() -> str:
         rows, open_signature = _parameters(tag)
         out.append(f"### `{tag}`")
         out.append("")
-        out.append(_prose(_summary(marker.__doc__)))
+        out.append(_prose(_summary(inspect.getdoc(marker._func) or "")))
         out.append("")
-        body = _body(marker.__doc__)
+        body = _body(inspect.getdoc(marker._func) or "")
         if body:
             out.extend(_prose(line) for line in body)
             out.append("")

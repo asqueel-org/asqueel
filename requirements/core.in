@@ -1,0 +1,14 @@
+# Published ecosystem baseline, verified 2026-09-29. SQL is installed separately.
+genro-builders==0.27.0
+genro-bag==0.27.0
+genro-tytx==0.16.0
+genro-toolbox==0.14.0
+pytest>=8.4
+pytest-cov>=4.0
+ruff>=0.1.0
+mypy>=1.0
+build
+hatchling
+editables
+# No PyPI release: exact public revision; two known upstream regressions remain.
+genro-sqlmigration[postgresql,validation] @ git+https://github.com/genropy/genro-sqlmigration.git@e64fa00b22b304263f515765bb44e5b74d9e9534

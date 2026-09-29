@@ -34,6 +34,8 @@ defaulting to the local trust-authenticated server on 127.0.0.1:5432.
 from __future__ import annotations
 
 import os
+import json
+from importlib.metadata import distribution
 
 import psycopg
 import pytest
@@ -44,6 +46,41 @@ from genro_sqlmigration.adapters import PgDatabase, SqliteDatabase
 APPLICATION_SCHEMAS = ["library_public"]
 DB_PREFIX = "test_genro_sql_"
 RECIPE_DB_NAME = "library"
+
+
+def pytest_collection_modifyitems(items):
+    """Keep known upstream regressions executable against the pinned public SHA.
+
+    Only this exact revision has these expectations. Another revision, a local
+    editable checkout, or ``pytest --runxfail`` runs the original assertions
+    normally. Unexpected passes are failures so the expectations cannot linger
+    unnoticed after an upstream repair.
+    """
+    direct_url = json.loads(
+        distribution("genro-sqlmigration").read_text("direct_url.json") or "{}"
+    )
+    if direct_url.get("vcs_info", {}).get("commit_id") != (
+        "e64fa00b22b304263f515765bb44e5b74d9e9534"
+    ):
+        return
+    known = {
+        "tests/test_wf_phase21_delivery.py::"
+        "test_authored_index_names_are_dialect_quoted_at_the_writer_boundary": (
+            pytest.RaisesExc(
+                AttributeError, match="^'PgWriter' object has no attribute 'quote_identifier'$",
+            ),
+            "public migrator lacks writer.quote_identifier; docs/delivery.md",
+        ),
+        "tests/test_wf_phase16_genropy_oracles.py::"
+        "test_live_inspection_preserves_descending_order_and_builds_a_recipe": (
+            pytest.RaisesExc(AssertionError, match=r"^\{'idx_0419f7f4':"),
+            "genro-sqlmigration#8: physical index names / DESC introspection",
+        ),
+    }
+    for item in items:
+        if item.nodeid in known:
+            expected_error, reason = known[item.nodeid]
+            item.add_marker(pytest.mark.xfail(reason=reason, raises=expected_error, strict=True))
 
 
 @pytest.fixture
