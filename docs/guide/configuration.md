@@ -125,8 +125,8 @@ session and do not commit individually.
 
 ## Add native table behavior
 
-A table can select a `SqlTable` subclass with `x_table_class`. The initial hook
-profile supports only insertion:
+A table can select a `SqlTable` subclass with `x_table_class`. The native hook
+profile supports insertion, update and deletion:
 
 ```python
 from genro_sql import SqlTable
@@ -159,9 +159,33 @@ database; those operations participate in the same session. A hook failure marks
 the unit of work rollback-only, including a failure before any SQL. Hooks cannot
 commit, roll back or close the database during a write.
 
-Update/delete hooks require a record and locking contract that is not present in
-this profile; declaring them causes those write paths to fail explicitly. This
-native extension mechanism does not load legacy package mixins or implement the
+For updates, override `trigger_onUpdating(record, old_record=None)` and/or
+`trigger_onUpdated(record, old_record=None)`. For physical deletion, override
+`trigger_onDeleting(record)` and/or `trigger_onDeleted(record)`.
+
+When an update or delete hook is overridden, the table first reads and locks the
+matching record with PostgreSQL `FOR UPDATE OF` the base table. A declared primary
+key and exactly one matching row are required; missing or multiple matches raise
+`RecordNotFoundError` or `RecordMultipleRowsError` before any hook runs. Locks last
+until commit or rollback. Without overridden hooks, explicit predicates retain
+the existing set-based update/delete behavior.
+
+The update before-hook receives the complete physical row overlaid with the
+caller's changes. It may modify that record. Both update hooks receive independent
+copies of the original locked row as `old_record`. SQL targets the saved old key,
+so changing a key in the new record does not redirect the update. Delete hooks
+share the loaded record, but changing its key cannot redirect deletion either.
+Returned physical fields are mapped back by column identity before the update
+after-hook; returning aliases do not rename record fields.
+
+Draft and logical-deletion read filters do not hide the row being written;
+partition restrictions still apply. `soft_delete()` and `restore()` follow the
+update hook lifecycle. An unexpected affected-row count makes the unit of work
+rollback-only, as does any hook error. Related SQL writes share this rollback;
+external side effects, such as sending messages, cannot be undone by it.
+
+This native extension mechanism does not load legacy package mixins or implement
+field triggers, protection callbacks, counters, related-record cascades or the
 full legacy trigger/selection system.
 
 ## Ownership and advanced integration

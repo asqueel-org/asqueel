@@ -85,7 +85,7 @@ class PostgresDialect:
     capabilities = frozenset({
         'select', 'insert', 'update', 'delete', 'returning_insert',
         'returning_update', 'returning_delete', 'left_join', 'limit', 'offset',
-        'default_values',
+        'default_values', 'for_update',
     })
 
     def __init__(self, *, capabilities: frozenset[str] | None = None):
@@ -137,6 +137,12 @@ class PostgresDialect:
         if operation not in {'select', 'insert', 'update', 'delete'}:
             raise UnsupportedFeatureError(f'Unsupported operation: {operation}')
         self._require(operation)
+        if type(plan.for_update) is not bool:
+            raise ValueError('for_update must be a boolean')
+        if plan.for_update:
+            if operation != 'select':
+                raise UnsupportedFeatureError('FOR UPDATE is only supported for SELECT')
+            self._require('for_update')
         if plan.where is not None and not self._has_expression(plan.where):
             raise ValueError('WHERE needs an expression, not whitespace or comments')
         if operation in {'update', 'delete'} and plan.where is None:
@@ -211,6 +217,8 @@ class PostgresDialect:
                 if isinstance(value, bool) or not isinstance(value, int) or value < 0:
                     raise ValueError(f'{clause.upper()} must be a nonnegative integer')
                 statement = concat(statement, f' {clause.upper()} {value}')
+        if plan.for_update:
+            statement = concat(statement, ' FOR UPDATE OF ', Identifier(plan.table.alias))
         if operation != 'select' and plan.projections:
             self._require('returning_' + operation)
             statement = concat(statement, ' RETURNING ', projections)

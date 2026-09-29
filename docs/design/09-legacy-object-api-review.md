@@ -296,3 +296,21 @@ scope, zero, empty allowed sets, draft and logical deletion. Ruff, mypy and the
 strict English Sphinx build passed; the published quickstart ran against the
 disposable PostgreSQL server. A locally built wheel also rendered and compiled
 on Python 3.11 without the optional PostgreSQL or migration dependencies.
+
+## 9. Update/delete lifecycle increment
+
+Following the first vertical, native update and delete hooks now acquire a
+PostgreSQL base-row lock before receiving the old record. Hooked operations
+require exactly one row and a primary key; the lock query reads at most two rows
+to detect ambiguity. They target the saved old key, including composite and zero
+keys. Update hooks receive detached old snapshots and a complete physical new
+record; soft deletion and restoration use the same update path. Tables without
+overridden hooks retain their existing set-based operations.
+
+This implements the core old-record/lock/hook contract of stage C. It does not
+implement legacy protection callbacks, field triggers, external package mixins,
+counters or cascades. The public `for_update=True` option is supported by the
+compiler and dialect as a capability, not appended by the application layer.
+Locks remain owned by the shared session, and related hook writes roll back
+together on failure. The integration suite checks lock contention using a second
+PostgreSQL connection with a bounded lock timeout.

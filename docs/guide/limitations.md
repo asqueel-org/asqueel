@@ -12,7 +12,7 @@ runtime. This page describes behavior you can rely on when choosing APIs.
 | Results | Materialized dictionary rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
 | Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | Not a complete legacy query language or a universal SQL parser. |
 | Formulas | Supported SQL formula columns. | Python providers, legacy select/exists virtual forms and advanced macros are outside the native profile. |
-| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after insert hooks on application tables. | No update/delete hooks, record-cluster writes, automatic retry or implicit save of related records. |
+| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after insert, update and delete hooks on application tables. | Hooked updates/deletes require exactly one row and a declared primary key. No record-cluster writes, automatic retry or implicit save of related records. |
 | Environment | Nested scopes, detached snapshots and guarded contextual queries. | Not a permissions system; direct SQL does not acquire model policy predicates automatically. |
 | Row policies | Declared partition scopes, draft and logical-deletion handling. | Tenant/store routing and legacy subtable behavior are not provided. Read policies are not complete write authorization. |
 | Model/UI | Native declarations, resolved naming and linked column metadata. | No UI renderer/editor; UI visibility and read-only metadata do not enforce database permissions. |

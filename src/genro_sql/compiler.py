@@ -437,12 +437,15 @@ class QueryCompiler:
 
     def plan_select(self, table, columns='*', where=None, params=None, order_by=None,
                     limit=None, offset=None, *, exclude_draft=True,
-                    exclude_logical_deleted=True, ignore_partition=False, **options) -> QueryPlan:
+                    exclude_logical_deleted=True, ignore_partition=False,
+                    for_update=False, **options) -> QueryPlan:
         """Resolve a select without rendering SQL or formatting parameters."""
         if options:
             if 'aggregateRows' in options:
                 raise UnsupportedFeatureError('aggregateRows has been removed; use explicit SQL aggregates')
             raise UnsupportedFeatureError(f'Unsupported query options: {sorted(options)}')
+        if type(for_update) is not bool:
+            raise ValueError('for_update must be a boolean')
         context = self._context(table, params)
         projections = context.projection(columns)
         if not projections:
@@ -459,15 +462,17 @@ class QueryCompiler:
         return QueryPlan('select', context.table_ref(context.table), projections,
                          tuple(context.joins.values()), predicate, ordering, limit, offset,
                          params=context.params, dialect=self.dialect.name,
-                         environment=context.environment_binding())
+                         environment=context.environment_binding(), for_update=for_update)
 
     def select(self, table, columns='*', where=None, params=None, order_by=None,
                limit=None, offset=None, *, exclude_draft=True,
-               exclude_logical_deleted=True, ignore_partition=False, **options):
+               exclude_logical_deleted=True, ignore_partition=False,
+               for_update=False, **options):
         return self.compile_plan(self.plan_select(table, columns, where, params, order_by,
                                                   limit, offset, exclude_draft=exclude_draft,
                                                   exclude_logical_deleted=exclude_logical_deleted,
-                                                  ignore_partition=ignore_partition, **options))
+                                                  ignore_partition=ignore_partition,
+                                                  for_update=for_update, **options))
 
     def _values(self, context, values):
         if not isinstance(values, Mapping):

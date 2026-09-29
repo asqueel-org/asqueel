@@ -90,6 +90,7 @@ class QueryPlan:
     params: Mapping[str, Any] = field(default_factory=dict)
     dialect: str = 'postgresql'
     environment: EnvironmentBinding | None = None
+    for_update: bool = False
 
     def __post_init__(self):
         object.__setattr__(self, 'params', MappingProxyType(dict(self.params)))

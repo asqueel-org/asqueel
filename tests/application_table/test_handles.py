@@ -123,7 +123,7 @@ def test_detached_parameters_and_legacy_keyword_bindings(db):
         db.table('customer').query(nonsense=True).compiled
 
 
-@pytest.mark.parametrize('option', ['aggregateRows', '_aggregateRows', 'group_by', 'for_update', 'addPkeyColumn'])
+@pytest.mark.parametrize('option', ['aggregateRows', '_aggregateRows', 'group_by', 'addPkeyColumn'])
 def test_unsupported_options_are_not_silently_treated_as_bindings(db, option):
     with pytest.raises(UnsupportedFeatureError):
         db.table('customer').query(**{option: True})
@@ -221,15 +221,75 @@ def test_insert_hooks_share_session_and_failure_propagates_without_mutating_inpu
     assert len(db.executions) == 2 and db.failed and db.depth == 0
 
 
-def test_update_hook_override_is_not_silently_ignored(db):
+def test_update_hooks_receive_locked_old_record_and_detached_complete_values(db):
+    seen = []
+
     class Customer(SqlTable):
         def trigger_onUpdating(self, record, old_record=None):
-            raise AssertionError('must not be called without its promised contract')
+            seen.append(('before', dict(record), dict(old_record)))
+            old_record['name'] = 'must not escape'
+            record['name'] = record['name'].upper()
+
+        def trigger_onUpdated(self, record, old_record=None):
+            seen.append(('after', dict(record), dict(old_record)))
 
     db.table_classes['app.customer'] = Customer
-    with pytest.raises(UnsupportedFeatureError, match='hooks require'):
-        db.table('customer').update({'id': 0, 'name': 'x'})
-    assert not db.executions
+    db.results = [[{'id': 0, 'name': 'old'}], [{'id': 0, 'name': 'NEW'}]]
+    values = {'id': 0, 'name': 'new'}
+    db.table('customer').update(values)
+    assert values == {'id': 0, 'name': 'new'}
+    assert seen == [
+        ('before', {'id': 0, 'name': 'new'}, {'id': 0, 'name': 'old'}),
+        ('after', {'id': 0, 'name': 'NEW'}, {'id': 0, 'name': 'old'}),
+    ]
+    assert 'FOR UPDATE' in db.executions[0].sql
+    assert '$label' not in db.executions[0].sql
+    assert len(db.executions) == 2
+
+
+@pytest.mark.parametrize('rows, error', [([], RecordNotFoundError),
+    ([{'id': 0, 'name': 'a'}, {'id': 1, 'name': 'b'}], RecordMultipleRowsError)])
+def test_hooked_write_rejects_missing_or_multiple_records_before_hooks(db, rows, error):
+    class Customer(SqlTable):
+        def trigger_onDeleting(self, record):
+            raise AssertionError('must not run')
+
+    db.table_classes['app.customer'] = Customer
+    db.results = [rows]
+    with pytest.raises(error):
+        db.table('customer').delete(where='TRUE')
+    assert len(db.executions) == 1 and db.failed
+
+
+@pytest.mark.parametrize('operation', ['update', 'delete'])
+def test_locked_write_rowcount_mismatch_fails_before_after_hook(db, operation):
+    class Customer(SqlTable):
+        def trigger_onUpdated(self, record, old_record=None):
+            raise AssertionError('after hook must not run')
+
+        def trigger_onDeleted(self, record):
+            raise AssertionError('after hook must not run')
+
+    db.table_classes['app.customer'] = Customer
+    db.results = [[{'id': 0, 'name': 'old'}], []]
+    with pytest.raises(RecordNotFoundError, match='exactly one'):
+        if operation == 'update':
+            db.table('customer').update({'id': 0, 'name': 'new'})
+        else:
+            db.table('customer').delete(0)
+    assert len(db.executions) == 2 and db.failed
+
+
+def test_delete_hook_cannot_redirect_the_saved_key(db):
+    class Customer(SqlTable):
+        def trigger_onDeleting(self, record):
+            record['id'] = 123
+
+    db.table_classes['app.customer'] = Customer
+    db.results = [[{'id': 0, 'name': 'old'}], [{'id': 0, 'name': 'old'}]]
+    db.table('customer').delete(0)
+    assert 0 in db.executions[-1].params.values()
+    assert 123 not in db.executions[-1].params.values()
 
 
 def test_cycles_resolve_relation_target_only_after_handle_registration():

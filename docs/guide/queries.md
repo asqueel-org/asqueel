@@ -18,6 +18,15 @@ database session and return `QueryResult`; they do not commit individually.
 use an explicit `where` and `params` to change a key. `delete(key)` physically
 deletes the selected row; soft deletion is a separate operation.
 
+Use `query(..., for_update=True)` or `record(key, for_update=True)` inside a
+transaction to lock the base-table rows until commit or rollback. PostgreSQL
+`FOR UPDATE OF` targets only the base table, including when the query joins other
+tables. Aggregate projections and other SQL forms that PostgreSQL cannot lock
+are rejected by the server; NOWAIT, SKIP LOCKED and other lock modes are not
+provided by this API. A cached record output does not acquire a new lock after
+the original transaction ends; use a fresh record or `refresh()` in the new
+transaction.
+
 ## Compiler and low-level execution examples
 
 The remaining examples expose the components used internally by `SqlDatabase`.

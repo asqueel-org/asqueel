@@ -21,7 +21,7 @@ except Exception:
 ```
 
 Both inserts use the same transaction. Other table operations on `db`, including
-reads and work performed by insertion hooks, join that transaction. After commit
+reads and work performed by table hooks, join that transaction. After commit
 or rollback, the next executed statement starts a new transaction lazily.
 
 `db.close()` rolls back pending work and closes the session. Likewise, leaving

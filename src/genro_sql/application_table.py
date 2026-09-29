@@ -23,7 +23,7 @@ class RecordMultipleRowsError(LookupError):
 
 _SELECT_OPTIONS = frozenset({
     'order_by', 'limit', 'offset', 'exclude_draft', 'exclude_logical_deleted',
-    'ignore_partition',
+    'ignore_partition', 'for_update',
 })
 _ALIASES = {
     'excludeDraft': 'exclude_draft',
@@ -32,7 +32,7 @@ _ALIASES = {
 }
 _UNSUPPORTED = frozenset({
     'aggregateRows', '_aggregateRows', 'distinct', 'group_by', 'having',
-    'for_update', 'relationDict', 'joinConditions', 'sqlContextName',
+    'relationDict', 'joinConditions', 'sqlContextName',
     'addPkeyColumn', 'ignoreTableOrderBy', 'subtable', 'bagFields',
     '_storename', 'storename', 'locale', 'mode', 'checkPermissions', 'aliasPrefix',
     'lazy', 'eager', 'virtual_columns', 'ignoreMissing', 'ignoreDuplicate',
@@ -254,11 +254,42 @@ class SqlTable:
     def trigger_onInserted(self, record):
         """Override to react to input values overlaid with available returned fields."""
 
-    def _unsupported_write_hooks(self, operation):
+    def trigger_onUpdating(self, record, old_record=None):
+        """Override to prepare a complete record using its locked old snapshot."""
+
+    def trigger_onUpdated(self, record, old_record=None):
+        """Override to react after updating within the same unit of work."""
+
+    def trigger_onDeleting(self, record):
+        """Override to validate a locked record before physical deletion."""
+
+    def trigger_onDeleted(self, record):
+        """Override to react after physical deletion."""
+
+    def _has_write_hooks(self, operation):
         names = ('trigger_onUpdating', 'trigger_onUpdated') if operation == 'update' else (
             'trigger_onDeleting', 'trigger_onDeleted')
-        if any(callable(getattr(self, name, None)) for name in names):
-            raise UnsupportedFeatureError(f'{operation} hooks require a record/locking contract not available in this profile')
+        return any(getattr(type(self), name) is not getattr(SqlTable, name) for name in names)
+
+    def _locked_record(self, where, params, ignore_partition):
+        if not self.model.pkey:
+            raise ValueError('Write hooks require a declared primary key')
+        columns = ', '.join(_reference(name) for name, column in self.model.columns.items()
+                            if column.formula is None)
+        query = self.query(columns=columns, where=where, params=params, for_update=True, limit=2,
+                           exclude_draft=False, exclude_logical_deleted=False,
+                           ignore_partition=ignore_partition)
+        return SqlRecord(query).output()
+
+    def _overlay_returned(self, record, result):
+        if result.rows:
+            sources = {column.identity or f'{self.fullname}.{name}': name
+                       for name, column in self.model.columns.items()}
+            returned = result.rows[0]
+            for column in result.columns:
+                name = sources.get(column.source)
+                if name is not None and column.name in returned:
+                    record[name] = _copy(returned[column.name])
 
     def insert(self, values, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
@@ -268,46 +299,67 @@ class SqlTable:
             self.trigger_onInserting(record)
             result = self.db.execute(self.db.compiler.insert(
                 self.fullname, record, returning, ignore_partition=ignore_partition))
-            if result.rows:
-                sources = {column.identity or f'{self.fullname}.{name}': name
-                           for name, column in self.model.columns.items()}
-                returned = result.rows[0]
-                for column in result.columns:
-                    name = sources.get(column.source)
-                    if name is not None and column.name in returned:
-                        record[name] = _copy(returned[column.name])
+            self._overlay_returned(record, result)
             self.trigger_onInserted(record)
             return result
 
     def update(self, values, where=None, params=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
-            self._unsupported_write_hooks('update')
             if not isinstance(values, Mapping):
                 raise TypeError('Update values must be a mapping')
             record = _copy(dict(values))
             if where is None:
                 where, params = self._key_selector(record, params)
-            return self.db.execute(self.db.compiler.update(
-                self.fullname, record, where, params, returning, ignore_partition=ignore_partition))
+            # Validate the caller's write predicate and values before acquiring locks.
+            compiled = self.db.compiler.update(
+                self.fullname, record, where, params, returning, ignore_partition=ignore_partition)
+            if not self._has_write_hooks('update'):
+                return self.db.execute(compiled)
+            old_record = self._locked_record(where, params, ignore_partition)
+            key_where, key_params = self._key_selector(old_record)
+            merged = _copy(old_record)
+            merged.update(record)
+            self.trigger_onUpdating(merged, old_record=_copy(old_record))
+            result = self.db.execute(self.db.compiler.update(
+                self.fullname, merged, key_where, key_params, returning,
+                ignore_partition=ignore_partition))
+            if result.rowcount != 1:
+                raise RecordNotFoundError('Locked update did not affect exactly one record')
+            self._overlay_returned(merged, result)
+            self.trigger_onUpdated(merged, old_record=_copy(old_record))
+            return result
 
     def delete(self, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
         with self.db._write_operation():
-            self._unsupported_write_hooks('delete')
             if where is None:
                 if record_or_pkey is None:
                     raise ValueError('Delete requires a primary key, record, or explicit where')
                 where, params = self._key_selector(record_or_pkey, params)
-            return self.db.execute(self.db.compiler.delete(
-                self.fullname, where, params, returning, ignore_partition=ignore_partition))
+            compiled = self.db.compiler.delete(
+                self.fullname, where, params, returning, ignore_partition=ignore_partition)
+            if not self._has_write_hooks('delete'):
+                return self.db.execute(compiled)
+            record = self._locked_record(where, params, ignore_partition)
+            key_where, key_params = self._key_selector(record)
+            self.trigger_onDeleting(record)
+            result = self.db.execute(self.db.compiler.delete(
+                self.fullname, key_where, key_params, returning,
+                ignore_partition=ignore_partition))
+            if result.rowcount != 1:
+                raise RecordNotFoundError('Locked delete did not affect exactly one record')
+            self.trigger_onDeleted(record)
+            return result
 
     def soft_delete(self, value, where, params=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
-            self._unsupported_write_hooks('update')
-            return self.db.execute(self.db.compiler.soft_delete(
-                self.fullname, value, where, params, returning, ignore_partition=ignore_partition))
+            if value is None:
+                raise ValueError('soft_delete requires a non-None tombstone value')
+            field = self.db.compiler._tombstone(self.fullname)
+            return self.update({field: value}, where, params, returning,
+                               ignore_partition=ignore_partition)
 
     def restore(self, where, params=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
-            self._unsupported_write_hooks('update')
-            return self.db.execute(self.db.compiler.restore(
-                self.fullname, where, params, returning, ignore_partition=ignore_partition))
+            field = self.db.compiler._tombstone(self.fullname)
+            return self.update({field: None}, where, params, returning,
+                               ignore_partition=ignore_partition)
