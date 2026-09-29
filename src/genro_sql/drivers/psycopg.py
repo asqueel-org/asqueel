@@ -41,7 +41,8 @@ class PsycopgDriver:
             else:
                 raise TypeError(f'Unsupported SQL statement part: {type(part).__name__}')
         return CompiledQuery(''.join(text), params, statement.columns,
-                             dialect=self.dialect, binding=self.binding)
+                             dialect=self.dialect, binding=self.binding,
+                             environment=statement.environment)
 
     def validate(self, query: CompiledQuery) -> None:
         if not isinstance(query, CompiledQuery):

@@ -1,5 +1,4 @@
 """Cross-component acceptance tests, independent of the migration facade."""
-import asyncio
 import os
 from uuid import uuid4
 
@@ -9,7 +8,6 @@ import pytest
 
 from genro_sql import SqlBuilder
 from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import CompiledQuery
 from genro_sql.importers import inspect_postgres
 from genro_sql.model import resolve_model
 from genro_sql.runtime import PostgresDatabase
@@ -77,45 +75,45 @@ def test_native_model_compiler_runtime_and_import(native_database):
     model = resolve_model(recipe(schema), ui={'crm.customer.name': {'placeholder': 'Nome'}})
     compiler = PostgresCompiler(model)
 
-    async def scenario():
-        async with PostgresDatabase(connect_kwargs=params, max_workers=2) as db:
-            async with db.transaction() as tx:
-                customer = await tx.execute(compiler.insert('crm.customer', {
+    def scenario():
+        with PostgresDatabase(connect_kwargs=params) as db:
+            with db.transaction() as tx:
+                customer = tx.execute(compiler.insert('crm.customer', {
                     'id': 1, 'name': "L'impresa 50%",
                 }))
                 assert customer.rows[0]['name'] == "L'impresa 50%"
-                await tx.execute(compiler.insert('crm.invoice', {
+                tx.execute(compiler.insert('crm.invoice', {
                     'id': 11, 'customer_id': 1, 'total': 10,
                 }))
-                await tx.execute(compiler.insert('crm.invoice', {
+                tx.execute(compiler.insert('crm.invoice', {
                     'id': 12, 'customer_id': None, 'total': None,
                 }))
             query = compiler.select(
                 'crm.invoice', columns='$id, @customer_id.name AS customer, $double_total',
                 where='$id >= :start', params={'start': 11}, order_by='$id',
             )
-            result = await db.execute(query)
+            result = db.execute(query)
             assert [(r['id'], r['customer'], r['double_total']) for r in result.rows] == [
                 (11, "L'impresa 50%", 20), (12, None, None),
             ]
             assert result.columns[1].ui['label'] == 'Cliente'
             assert result.columns[1].ui['placeholder'] == 'Nome'
-            updated = await db.execute(compiler.update(
+            updated = db.execute(compiler.update(
                 'crm.invoice', {'total': 15}, where='$id = :id', params={'id': 11},
             ))
             assert updated.rows[0]['total'] == 15
             with pytest.raises(psycopg.errors.UniqueViolation):
-                async with db.transaction() as tx:
-                    await tx.execute(compiler.insert('crm.customer', {'id': 2, 'name': 'Rollback'}))
-                    await tx.execute(compiler.insert('crm.customer', {'id': 1, 'name': 'Duplicate'}))
-            assert not (await db.execute(compiler.select(
+                with db.transaction() as tx:
+                    tx.execute(compiler.insert('crm.customer', {'id': 2, 'name': 'Rollback'}))
+                    tx.execute(compiler.insert('crm.customer', {'id': 1, 'name': 'Duplicate'}))
+            assert not (db.execute(compiler.select(
                 'crm.customer', where='$id = :id', params={'id': 2},
             ))).rows
-            deleted = await db.execute(compiler.delete(
+            deleted = db.execute(compiler.delete(
                 'crm.invoice', where='$id = :id', params={'id': 12},
             ))
             assert deleted.rowcount == 1
-    asyncio.run(scenario())
+    scenario()
     imported = inspect_postgres(connection, [schema], ui={
         f'{schema}.crm_customer.display name': {'label': 'Cliente'},
     })
@@ -127,67 +125,29 @@ def test_native_model_compiler_runtime_and_import(native_database):
         assert cursor.fetchall() == [(11, 15)]
 
 
-def test_cancellation_drains_rollback_without_blocking_loop(native_database):
+
+def test_python_error_rolls_back_transaction_and_database_remains_usable(native_database):
     params, schema, connection = native_database
     compiler = PostgresCompiler(resolve_model(recipe(schema)))
-
-    async def scenario():
-        async with PostgresDatabase(connect_kwargs=params, max_workers=1, max_pending=2) as db:
-            started = asyncio.Event()
-            heartbeat = 0
-
-            async def beat():
-                nonlocal heartbeat
-                while True:
-                    heartbeat += 1
-                    await asyncio.sleep(.01)
-
-            async def work():
-                async with db.transaction() as tx:
-                    await tx.execute(compiler.insert('crm.customer', {'id': 9, 'name': 'Cancelled'}))
-                    started.set()
-                    await tx.execute(CompiledQuery('SELECT pg_sleep(0.25)'))
-
-            ticker = asyncio.create_task(beat())
-            task = asyncio.create_task(work())
-            await started.wait()
-            await asyncio.sleep(.05)
-            task.cancel()
-            with pytest.raises(asyncio.CancelledError):
-                await task
-            ticker.cancel()
-            with pytest.raises(asyncio.CancelledError):
-                await ticker
-            assert heartbeat >= 5
-            assert not (await db.execute(compiler.select('crm.customer'))).rows
-    asyncio.run(scenario())
-    assert connection.execute(sql.SQL('SELECT count(*) FROM {}.crm_customer').format(
-        sql.Identifier(schema))).fetchone() == (0,)
+    with PostgresDatabase(connect_kwargs=params) as db:
+        with pytest.raises(RuntimeError, match='abort transaction'):
+            with db.transaction() as tx:
+                tx.execute(compiler.insert('crm.customer', {'id': 9, 'name': 'Aborted'}))
+                raise RuntimeError('abort transaction')
+        assert not db.execute(compiler.select('crm.customer')).rows
+        db.execute(compiler.insert('crm.customer', {'id': 10, 'name': 'Committed'}))
+        assert db.execute(compiler.select('crm.customer', columns='$id')).rows == [{'id': 10}]
+    assert connection.execute(sql.SQL('SELECT id FROM {}.crm_customer').format(
+        sql.Identifier(schema))).fetchall() == [(10,)]
 
 
-def test_concurrent_transactions_have_independent_commit_and_rollback(native_database):
+def test_separate_database_transactions_keep_independent_commit_and_rollback(native_database):
     params, schema, _ = native_database
     compiler = PostgresCompiler(resolve_model(recipe(schema)))
-
-    async def scenario():
-        async with PostgresDatabase(connect_kwargs=params, max_workers=2) as db:
-            written = asyncio.Event()
-            committed = asyncio.Event()
-
-            async def abort_one():
-                with pytest.raises(RuntimeError, match='abort first'):
-                    async with db.transaction() as tx:
-                        await tx.execute(compiler.insert('crm.customer', {'id': 31, 'name': 'Abort'}))
-                        written.set()
-                        await committed.wait()
-                        raise RuntimeError('abort first')
-
-            async def commit_other():
-                await written.wait()
-                await db.execute(compiler.insert('crm.customer', {'id': 32, 'name': 'Commit'}))
-                committed.set()
-
-            await asyncio.wait_for(asyncio.gather(abort_one(), commit_other()), timeout=5)
-            result = await db.execute(compiler.select('crm.customer', columns='$id'))
-            assert result.rows == [{'id': 32}]
-    asyncio.run(scenario())
+    with PostgresDatabase(connect_kwargs=params) as first, PostgresDatabase(connect_kwargs=params) as second:
+        with pytest.raises(RuntimeError, match='abort first'):
+            with first.transaction() as tx:
+                tx.execute(compiler.insert('crm.customer', {'id': 31, 'name': 'Abort'}))
+                second.execute(compiler.insert('crm.customer', {'id': 32, 'name': 'Commit'}))
+                raise RuntimeError('abort first')
+        assert first.execute(compiler.select('crm.customer', columns='$id')).rows == [{'id': 32}]

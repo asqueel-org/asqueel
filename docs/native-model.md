@@ -36,8 +36,9 @@ provider Python e colonne subquery sono respinti dal resolver. Le relazioni
 forward devono puntare a una chiave primaria o univoca dichiarata: `one_one`
 non sostituisce questa garanzia. Il nome navigabile è la colonna/composito
 proprietario, oppure `x_name` sulla relazione. Non vengono generate inverse.
-Scope partition/subtable/tenant/store dichiarati tramite estensioni `x_` sono
-respinti: non vengono silenziosamente ignorati.
+Le [policy di riga](row-policies.md) dichiarano partition logiche, draft e
+cancellazione logica. Subtable, tenant, store e altre estensioni partition
+non riconosciute sono respinti: non vengono silenziosamente ignorati.
 
 ## Importazione read-only
 

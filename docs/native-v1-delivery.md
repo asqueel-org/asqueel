@@ -1,5 +1,10 @@
 # V1 nativa PostgreSQL — implementazione e verifiche
 
+> Rapporto storico della prima consegna. La scelta successiva è un runtime
+> interamente sincrono: [contratto corrente](native-runtime.md). I riferimenti
+> a worker e API async sotto descrivono la versione precedente.
+
+
 29 settembre 2026. Profilo alpha per **applicazioni nuove**, sviluppato da tre
 agenti con integrazione e revisione incrociata. Non è un rilascio pubblicato
 né una promessa di sostituzione del runtime legacy. V1 è il nome del traguardo;

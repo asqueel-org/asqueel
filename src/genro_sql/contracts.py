@@ -6,12 +6,53 @@ are authored application code; values belong exclusively in query parameters.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from types import MappingProxyType
 from typing import Any, Mapping
 
 
 class UnsupportedFeatureError(ValueError):
     """The requested feature is outside the declared native profile."""
+
+
+class EnvironmentMismatchError(ValueError):
+    """A context-bound query cannot be reused in a different environment."""
+
+
+@dataclass(frozen=True, init=False)
+class EnvironmentBinding:
+    keys: tuple[str, ...]
+    _values: Mapping[str, Any] = field(repr=False)
+
+    def __init__(self, keys: tuple[str, ...], values: Mapping[str, Any]):
+        object.__setattr__(self, 'keys', tuple(keys))
+        object.__setattr__(self, '_values', MappingProxyType(deepcopy(dict(values))))
+
+    @property
+    def values(self) -> Mapping[str, Any]:
+        """A detached snapshot; nested edits cannot change the bound context."""
+        return MappingProxyType(deepcopy(dict(self._values)))
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+            raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+
+
+@dataclass(frozen=True)
+class PartitionScope:
+    field: str
+    current: str
+    allowed: str | None = None
+    include_null: bool = True
+
+
+@dataclass(frozen=True)
+class RowPolicies:
+    partitions: tuple[PartitionScope, ...] = ()
+    draft_field: str | None = None
+    logical_deletion_field: str | None = None
 
 
 @dataclass(frozen=True)
@@ -53,6 +94,7 @@ class Table:
     sql_prefix: str = ""
     identity: str | None = None
     attributes: Mapping[str, Any] = field(default_factory=dict)
+    policies: RowPolicies = field(default_factory=RowPolicies)
 
     def __post_init__(self):
         for name in ("columns", "relations", "attributes"):
@@ -106,6 +148,7 @@ class CompiledQuery:
     # Existing positional constructors remain PostgreSQL/psycopg statements.
     dialect: str = 'postgresql'
     binding: str = 'psycopg_named'
+    environment: EnvironmentBinding | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "params", MappingProxyType(dict(self.params)))

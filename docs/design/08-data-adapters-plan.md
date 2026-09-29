@@ -14,7 +14,7 @@ la semantica verificata. Gli altri dialetti arrivano successivamente.
 | Compiler comune | Risoluzione dei riferimenti, join richiesti, cardinalità, scope, alias, dipendenze delle formule e descrizione dei risultati. | Incorporare peculiarità PostgreSQL nella semantica Genro. |
 | Adapter dati del dialetto | Sintassi SQL per letture/scritture e traduzione delle operazioni logiche supportate. | Aprire connessioni, ricostruire il modello, inventare join o applicare hook. |
 | Driver | Binding concreto, adattamento dei valori, connessioni, cursori, primitive transazionali, risultati ed errori del client DB. | Risolvere relazioni o tradurre sintassi Genro. |
-| Runtime | Proprietà della sessione, ordine delle operazioni, worker/async, ammissione, cancellazione e pulizia. | Comporre SQL di SELECT/DML o duplicare il driver. |
+| Runtime | Proprietà della sessione, ordine delle operazioni, esecuzione sincrona sul thread chiamante e pulizia. | Comporre SQL di SELECT/DML o duplicare il driver. |
 | Adapter strutturali di sqlmigration | Introspezione, rappresentazione fisica, confronto, DDL e operazioni strutturali. | Diventare dipendenza obbligatoria per leggere e scrivere dati. |
 
 Il flusso proposto è:
@@ -135,12 +135,11 @@ messaggi. Retry e recupero dagli errori non sono compiti impliciti dell'adapter.
 ### DR-03 — Primitive e proprietà della connessione
 
 Fornire commit, rollback e chiusura, senza possedere il ciclo di vita della
-transazione applicativa. La V1 conserva worker dedicato, connessione nuova
-per transazione, operazioni serializzate e risultati materializzati.
+transazione applicativa. La V1 usa il thread chiamante, una connessione nuova
+per transazione e risultati materializzati.
 
-Il runtime mantiene ammissione limitata, rollback-only, rifiuto delle
-transazioni annidate non supportate, chiusura prima del rilascio e gestione
-della cancellazione. Un errore durante commit può lasciare esito sconosciuto;
+Il runtime mantiene rollback-only, rifiuto delle transazioni annidate non
+supportate, proprietà del thread e chiusura prima del rilascio. Un errore durante commit può lasciare esito sconosciuto;
 nessun adapter deve trasformarlo in rollback certo o retry automatico.
 
 ## 4. Rapporto con sqlmigration e importazione
@@ -175,7 +174,7 @@ equivalente e viceversa. La matrice pubblica deve distinguere le due coperture.
 | `compiler.py`: `select`, DML e composizione SQL | Piano comune + adapter dati PostgreSQL | Conservare wildcard, predicati, binding e RETURNING della V1. |
 | `compiler.py`: quoting e `%` | Quoting nell'adapter; `%` nel formatter del driver | Eliminare l'attuale accoppiamento SQL/psycopg senza doppio escaping. |
 | `runtime.py`: `_open`, `_execute`, `_finish` | Primitive del driver psycopg invocate dal runtime | Thread, ordine e cleanup invariati; il runtime conserva lo stato transazionale. |
-| `runtime.py`: ammissione, lock, `_drain`, lifecycle | Runtime comune per driver sincroni su worker | Nessuna duplicazione per ogni dialetto. |
+| `runtime.py`: proprietà del thread, lifecycle | Runtime comune sincrono per driver iniettati | Nessuna duplicazione per ogni dialetto. |
 | `importers.py`, `projection.py` | Confine strutturale/provider, separato dall'adapter dati | Warning e rifiuti di proiezioni non fedeli preservati. |
 
 Nomi di moduli proposti: `dialects/base.py`, `dialects/postgres.py`,
@@ -203,7 +202,7 @@ resta tre, con un integratore; si lavora in parallelo dopo il primo gate.
 | Fase | Attività e assegnazione | Risultato e gate |
 |---|---|---|
 | A0 — Contratti | Integratore: piano minimo, statement/binding, protocolli dialetto/driver, facciate e matrice delle capacità. Agenti: review dei contratti e inventario delle dipendenze. | Firme concordate e esempi completi per SELECT/CRUD; nessun secondo resolver. |
-| A1 — Estrazione parallela | Agente A: compiler comune, piano e riferimenti. Agente B: adapter PostgreSQL, rendering e quoting. Agente C: driver psycopg e runtime su worker. | Ogni componente passa test propri contro gli stessi contratti; file condivisi modificati solo dall'integratore. |
+| A1 — Estrazione parallela | Agente A: compiler comune, piano e riferimenti. Agente B: adapter PostgreSQL, rendering e quoting. Agente C: driver psycopg e runtime sincrono. | Ogni componente passa test propri contro gli stessi contratti; file condivisi modificati solo dall'integratore. |
 | A2 — Integrazione | Integratore collega le facciate. A/B verificano metadati e SQL; C verifica transazioni e risorse. | Suite V1 e demo passano; SQL/risultati restano equivalenti, nessuna regressione di cancellazione. |
 | A3 — Confine strutturale | A inventaria il catalog provider e i tipi; B confronta naming/quoting dati-DDL; C verifica installazione senza sqlmigration. | Nessuna dipendenza inversa e nessuna perdita nei gate di import/proiezione. Il trasferimento di codice fra repo, se necessario, diventa un lavoro separato. |
 | A4 — Consegna | Revisione incrociata, documentazione capacità e test del wheel. | PostgreSQL è un'implementazione dell'interfaccia; nessun altro dialetto è dichiarato supportato. |

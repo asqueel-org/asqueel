@@ -1,5 +1,5 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
-"""SQL-model grammar, native PostgreSQL compiler and awaitable runtime.
+"""SQL-model grammar, native PostgreSQL compiler and synchronous runtime.
 
 The source tree is the pivot for migration tooling and round-tripping:
 :class:`SqlMigrationRenderer` projects it to normalized migration JSON,
@@ -20,13 +20,14 @@ from .dialects.postgres import PostgresDialect
 from .drivers.psycopg import PsycopgDriver
 from .contracts import (
     Column, CompiledQuery, QueryResult, Relation, ResolvedModel, ResultColumn,
-    Table, UnsupportedFeatureError,
+    Table, UnsupportedFeatureError, EnvironmentMismatchError, PartitionScope, RowPolicies,
 )
+from .environment import SqlEnvironment
 from .importers import ImportResult, inspect_postgres
 from .model import resolve_model
 from .projection import to_physical_builder
 from .runtime import (
-    DatabaseClosedError, DatabaseSaturatedError, PostgresDatabase, ThreadedDatabase,
+    DatabaseClosedError, Database, PostgresDatabase,
     TransactionStateError,
 )
 
@@ -36,11 +37,12 @@ __all__ = [
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
     "Column", "CompiledQuery", "QueryResult", "Relation", "ResolvedModel",
     "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",
-    "PostgresDatabase", "DatabaseClosedError", "DatabaseSaturatedError",
+    "PostgresDatabase", "DatabaseClosedError",
     "TransactionStateError", "resolve_model", "ImportResult", "inspect_postgres",
     "to_physical_builder",
-    "QueryCompiler", "PostgresDialect", "PsycopgDriver", "ThreadedDatabase",
+    "QueryCompiler", "PostgresDialect", "PsycopgDriver", "Database",
     "CatalogProvider", "PostgresCatalogProvider",
+    "SqlEnvironment", "EnvironmentMismatchError", "PartitionScope", "RowPolicies",
 ]
 
 _MIGRATION_EXTRA = (

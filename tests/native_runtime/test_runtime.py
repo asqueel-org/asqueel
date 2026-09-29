@@ -1,20 +1,16 @@
-import asyncio
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import pytest
 
 from genro_sql.contracts import CompiledQuery, ResultColumn
-from genro_sql.runtime import (
-    DatabaseClosedError, DatabaseSaturatedError, PostgresDatabase, TransactionStateError,
-)
+from genro_sql.runtime import DatabaseClosedError, PostgresDatabase, TransactionStateError
 
 
 class FakeConnection:
-    def __init__(self, calls, started, proceed):
+    def __init__(self, calls):
         self.calls = calls
-        self.started = started
-        self.proceed = proceed
         self.description = [SimpleNamespace(name='value')]
         self.rowcount = 1
 
@@ -33,9 +29,6 @@ class FakeConnection:
 
     def execute(self, sql, params):
         self.record(sql)
-        if sql == 'slow':
-            self.started.set()
-            assert self.proceed.wait(5)
         if sql == 'error':
             raise ValueError('statement failed')
 
@@ -57,309 +50,202 @@ class FakeConnection:
 def fake(monkeypatch):
     import psycopg
     calls = []
-    started = threading.Event()
-    proceed = threading.Event()
 
     def connect(*args, **kwargs):
-        connection = FakeConnection(calls, started, proceed)
+        connection = FakeConnection(calls)
         connection.record('connect')
         return connection
 
     monkeypatch.setattr(psycopg, 'connect', connect)
-    return calls, started, proceed
+    return calls
 
 
-async def wait_started(event):
-    for _ in range(500):
-        if event.is_set():
-            return
-        await asyncio.sleep(.001)
-    raise AssertionError('worker did not start')
-
-
-def test_transaction_pins_every_operation_to_worker(fake):
-    async def scenario():
-        async with PostgresDatabase(max_workers=1) as db:
-            async with db.transaction() as tx:
-                result = await tx.execute(CompiledQuery('select'))
-                assert result.rows == [{'value': 42}]
-                assert result.columns[0].name == 'value'
-            assert tx.outcome == 'committed'
-        calls = fake[0]
-        assert len({thread for _, thread in calls}) == 1
-        assert calls[0][1] != threading.get_ident()
-        assert [name for name, _ in calls][-2:] == ['commit', 'close']
-    asyncio.run(scenario())
-
-
-def test_error_is_rollback_only_even_when_caught(fake):
-    async def scenario():
-        async with PostgresDatabase() as db:
-            with pytest.raises(TransactionStateError, match='rolled back'):
-                async with db.transaction() as tx:
-                    with pytest.raises(ValueError):
-                        await tx.execute(CompiledQuery('error'))
-                    with pytest.raises(TransactionStateError):
-                        await tx.execute(CompiledQuery('select'))
-            assert tx.outcome == 'rolled_back'
-        assert 'commit' not in [name for name, _ in fake[0]]
-    asyncio.run(scenario())
-
-
-def test_cancelled_query_drains_before_slot_release(fake):
-    async def scenario():
-        calls, started, proceed = fake
-        async with PostgresDatabase(max_workers=1, max_pending=0) as db:
-            task = asyncio.create_task(db.execute(CompiledQuery('slow')))
-            await wait_started(started)
-            task.cancel()
-            await asyncio.sleep(.01)
-            task.cancel()
-            with pytest.raises(DatabaseSaturatedError):
-                await db.execute(CompiledQuery('select'))
-            assert not task.done()
-            proceed.set()
-            with pytest.raises(asyncio.CancelledError):
-                await task
-            assert [name for name, _ in calls][-2:] == ['rollback', 'close']
-            assert (await db.execute(CompiledQuery('select'))).rowcount == 1
-    asyncio.run(scenario())
-
-
-def test_bounded_admission_and_cancelled_waiter(fake):
-    async def scenario():
-        async with PostgresDatabase(max_workers=1, max_pending=1) as db:
-            async with db.transaction():
-                waiting = asyncio.create_task(db.execute(CompiledQuery('select')))
-                await asyncio.sleep(0)
-                with pytest.raises(DatabaseSaturatedError):
-                    await asyncio.create_task(db.execute(CompiledQuery('select')))
-                waiting.cancel()
-                with pytest.raises(asyncio.CancelledError):
-                    await waiting
-            assert (await db.execute(CompiledQuery('select'))).rowcount == 1
-    asyncio.run(scenario())
-
-
-def test_close_waits_for_active_work_and_rejects_admission(fake):
-    async def scenario():
-        db = PostgresDatabase(max_workers=1)
-        task = asyncio.create_task(db.execute(CompiledQuery('slow')))
-        await wait_started(fake[1])
-        closing = asyncio.create_task(db.aclose())
-        await asyncio.sleep(0)
-        assert not closing.done()
-        with pytest.raises(DatabaseClosedError):
-            await db.execute(CompiledQuery('select'))
-        fake[2].set()
-        await task
-        await closing
-        await db.aclose()
-    asyncio.run(scenario())
-
-
-def test_close_inside_owned_transaction_fails_instead_of_deadlocking(fake):
-    async def scenario():
-        async with PostgresDatabase() as db:
-            async with db.transaction():
-                with pytest.raises(TransactionStateError):
-                    await db.aclose()
-    asyncio.run(scenario())
-
-
-def test_cancelled_exit_waits_for_commit_and_reports_actual_outcome(fake, monkeypatch):
-    started, proceed = threading.Event(), threading.Event()
-    original = FakeConnection.commit
-
-    def slow_commit(self):
-        started.set()
-        assert proceed.wait(5)
-        original(self)
-
-    monkeypatch.setattr(FakeConnection, 'commit', slow_commit)
-
-    async def scenario():
-        db = PostgresDatabase(max_workers=1, max_pending=0)
-        tx = db.transaction()
-
-        async def transaction():
-            async with tx:
-                await tx.execute(CompiledQuery('select'))
-
-        task = asyncio.create_task(transaction())
-        await wait_started(started)
-        task.cancel()
-        await asyncio.sleep(.01)
-        task.cancel()
-        assert not task.done()
-        with pytest.raises(DatabaseSaturatedError):
-            await db.execute(CompiledQuery('select'))
-        proceed.set()
-        with pytest.raises(asyncio.CancelledError):
-            await task
+def test_sync_transaction_runs_entirely_on_calling_thread(fake):
+    with PostgresDatabase() as db:
+        with db.transaction() as tx:
+            result = tx.execute(CompiledQuery('select'))
+            assert result.rows == [{'value': 42}]
+            assert result.columns[0].name == 'value'
         assert tx.outcome == 'committed'
-        assert fake[0][-1][0] == 'close'
-        await db.aclose()
-    asyncio.run(scenario())
+    assert {thread for _, thread in fake} == {threading.get_ident()}
+    assert [name for name, _ in fake][-2:] == ['commit', 'close']
 
 
-def test_commit_failure_has_unknown_outcome(fake, monkeypatch):
-    def broken_commit(self):
-        raise OSError('connection lost while committing')
-    monkeypatch.setattr(FakeConnection, 'commit', broken_commit)
-
-    async def scenario():
-        async with PostgresDatabase() as db:
-            tx = db.transaction()
-            with pytest.raises(OSError):
-                async with tx:
-                    await tx.execute(CompiledQuery('select'))
-            assert tx.outcome == 'unknown'
-            assert fake[0][-1][0] == 'close'
-    asyncio.run(scenario())
+def test_caught_error_is_rollback_only_and_exit_is_not_silent(fake):
+    with PostgresDatabase() as db:
+        with pytest.raises(TransactionStateError, match='rolled back'):
+            with db.transaction() as tx:
+                with pytest.raises(ValueError):
+                    tx.execute(CompiledQuery('error'))
+                with pytest.raises(TransactionStateError):
+                    tx.execute(CompiledQuery('select'))
+        assert tx.outcome == 'rolled_back'
+        assert db.execute(CompiledQuery('select')).rowcount == 1
 
 
-def test_constructor_limits():
-    for kwargs in ({'max_workers': 0}, {'max_pending': -1}, {'connect_kwargs': {'autocommit': True}}):
-        with pytest.raises(ValueError):
-            PostgresDatabase(**kwargs)
+def test_body_exception_rolls_back_and_closes(fake):
+    with PostgresDatabase() as db:
+        with pytest.raises(RuntimeError, match='application failed'):
+            with db.transaction() as tx:
+                tx.execute(CompiledQuery('select'))
+                raise RuntimeError('application failed')
+        assert tx.outcome == 'rolled_back'
+    assert [name for name, _ in fake][-2:] == ['rollback', 'close']
 
 
-def test_cancelled_open_closes_connection_before_reusing_worker(fake, monkeypatch):
+def test_close_and_nested_transactions_fail_closed(fake):
+    with PostgresDatabase() as db:
+        with db.transaction() as tx:
+            with pytest.raises(TransactionStateError, match='active transaction'):
+                db.close()
+            with pytest.raises(TransactionStateError, match='Nested'):
+                db.execute(CompiledQuery('select'))
+            with pytest.raises(TransactionStateError, match='Nested'):
+                with db.transaction():
+                    pass
+            assert tx.execute(CompiledQuery('select')).rowcount == 1
+    db.close()
+    with pytest.raises(DatabaseClosedError):
+        db.execute(CompiledQuery('select'))
+
+
+def test_transaction_is_single_use_and_cannot_execute_after_exit(fake):
+    with PostgresDatabase() as db:
+        tx = db.transaction()
+        with pytest.raises(TransactionStateError):
+            tx.execute(CompiledQuery('select'))
+        with tx:
+            pass
+        with pytest.raises(TransactionStateError):
+            tx.execute(CompiledQuery('select'))
+        with pytest.raises(TransactionStateError):
+            tx.__exit__(None, None, None)
+        with pytest.raises(TransactionStateError, match='single-use'):
+            with tx:
+                pass
+
+
+def test_cross_thread_database_and_transaction_use_is_rejected(fake):
+    with PostgresDatabase() as db, ThreadPoolExecutor(max_workers=1) as executor:
+        with db.transaction() as tx:
+            for operation in (lambda: tx.execute(CompiledQuery('select')),
+                              lambda: db.execute(CompiledQuery('select')),
+                              db.close, lambda: tx.__exit__(None, None, None)):
+                with pytest.raises(TransactionStateError, match='constructing thread'):
+                    executor.submit(operation).result()
+            assert tx.execute(CompiledQuery('select')).rowcount == 1
+    assert {thread for _, thread in fake} == {threading.get_ident()}
+
+
+def test_failed_open_releases_database_for_another_attempt(fake, monkeypatch):
     import psycopg
     original = psycopg.connect
-    started, proceed = threading.Event(), threading.Event()
-
-    def slow_open(*args, **kwargs):
-        started.set()
-        assert proceed.wait(5)
-        return original(*args, **kwargs)
-
-    monkeypatch.setattr(psycopg, 'connect', slow_open)
-
-    async def scenario():
-        async with PostgresDatabase(max_workers=1, max_pending=0) as db:
-            task = asyncio.create_task(db.execute(CompiledQuery('select')))
-            await wait_started(started)
-            task.cancel()
-            await asyncio.sleep(.01)
-            assert not task.done()
-            proceed.set()
-            with pytest.raises(asyncio.CancelledError):
-                await task
-            assert [name for name, _ in fake[0]] == ['connect', 'rollback', 'close']
-            assert (await db.execute(CompiledQuery('select'))).rows == [{'value': 42}]
-    asyncio.run(scenario())
+    with PostgresDatabase() as db:
+        monkeypatch.setattr(psycopg, 'connect', lambda *a, **kw: (_ for _ in ()).throw(OSError('open failed')))
+        with pytest.raises(OSError, match='open failed'):
+            db.execute(CompiledQuery('select'))
+        monkeypatch.setattr(psycopg, 'connect', original)
+        assert db.execute(CompiledQuery('select')).rowcount == 1
 
 
-def test_cancelled_exit_drains_rollback(fake, monkeypatch):
-    started, proceed = threading.Event(), threading.Event()
-    original = FakeConnection.rollback
+@pytest.mark.parametrize('operation', ['commit', 'rollback'])
+def test_cleanup_after_transaction_control_failure(fake, monkeypatch, operation):
+    failure = OSError(f'{operation} failed')
 
-    def slow_rollback(self):
-        started.set()
-        assert proceed.wait(5)
-        original(self)
+    def fail(self):
+        raise failure
 
-    monkeypatch.setattr(FakeConnection, 'rollback', slow_rollback)
-
-    async def scenario():
-        async with PostgresDatabase(max_workers=1, max_pending=0) as db:
-            tx = db.transaction()
-
-            async def operation():
-                async with tx:
-                    raise ValueError('rollback required')
-
-            task = asyncio.create_task(operation())
-            await wait_started(started)
-            task.cancel()
-            await asyncio.sleep(.01)
-            task.cancel()
-            assert not task.done()
-            proceed.set()
-            with pytest.raises(asyncio.CancelledError):
-                await task
-            assert tx.outcome == 'rolled_back'
-            assert fake[0][-1][0] == 'close'
-    asyncio.run(scenario())
+    monkeypatch.setattr(FakeConnection, operation, fail)
+    with PostgresDatabase() as db:
+        tx = db.transaction()
+        with pytest.raises(OSError) as caught:
+            with tx:
+                if operation == 'rollback':
+                    raise RuntimeError('body error')
+        assert caught.value is failure
+        assert tx.outcome == 'unknown'
+        assert fake[-1][0] == 'close'
 
 
-def test_nested_acquisition_is_rejected_without_waiting(fake):
-    async def scenario():
-        async with PostgresDatabase(max_workers=1) as db:
-            async with db.transaction() as tx:
-                with pytest.raises(TransactionStateError, match='Nested'):
-                    await db.execute(CompiledQuery('select'))
-                with pytest.raises(TransactionStateError, match='Nested'):
-                    async with db.transaction():
-                        pass
-                assert (await tx.execute(CompiledQuery('select'))).rows == [{'value': 42}]
-    asyncio.run(scenario())
+def test_commit_error_is_not_masked_by_cleanup_error(fake, monkeypatch):
+    failure = OSError('commit failed')
+
+    def fail_commit(self):
+        raise failure
+
+    def fail_close(self):
+        raise RuntimeError('close failed')
+
+    monkeypatch.setattr(FakeConnection, 'commit', fail_commit)
+    monkeypatch.setattr(FakeConnection, 'close', fail_close)
+    with PostgresDatabase() as db:
+        with pytest.raises(OSError) as caught:
+            with db.transaction() as tx:
+                pass
+        assert caught.value is failure
+        assert tx.outcome == 'unknown'
+        assert 'cleanup' in failure.__notes__[0]
 
 
-def test_exit_started_rejects_late_statement_before_cleanup_task_runs(fake):
-    async def scenario():
-        async with PostgresDatabase(max_workers=1) as db:
-            tx = await db.transaction().__aenter__()
-            exiting = asyncio.create_task(tx.__aexit__(None, None, None))
-            # __aexit__ starts and schedules its cancellation-protected cleanup.
-            # This task resumes before that cleanup task has acquired the lock.
-            await asyncio.sleep(0)
-            try:
-                with pytest.raises(TransactionStateError):
-                    await tx.execute(CompiledQuery('late_statement'))
-            finally:
-                await exiting
-            assert 'late_statement' not in [name for name, _ in fake[0]]
-            with pytest.raises(TransactionStateError):
-                await tx.__aexit__(None, None, None)
-    asyncio.run(scenario())
+def test_close_error_after_successful_commit_preserves_outcome(fake, monkeypatch):
+    def fail(self):
+        raise OSError('close failed')
+    monkeypatch.setattr(FakeConnection, 'close', fail)
+    with PostgresDatabase() as db:
+        with pytest.raises(OSError, match='close failed'):
+            with db.transaction() as tx:
+                pass
+        assert tx.outcome == 'committed'
 
 
-@pytest.mark.parametrize('columns', [
-    (ResultColumn('wrong'),),
-    (ResultColumn('value'), ResultColumn('extra')),
-])
+@pytest.mark.parametrize('columns', [(ResultColumn('wrong'),), (ResultColumn('value'), ResultColumn('extra'))])
 def test_mismatched_result_metadata_rolls_back_before_fetch(fake, columns):
-    async def scenario():
-        async with PostgresDatabase() as db:
-            tx = db.transaction()
-            with pytest.raises(ValueError, match='Compiled result columns'):
-                async with tx:
-                    await tx.execute(CompiledQuery('select', columns=columns))
-            assert tx.outcome == 'rolled_back'
-        names = [name for name, _ in fake[0]]
-        assert 'fetch' not in names
-        assert names[-3:] == ['cursor_close', 'rollback', 'close']
-    asyncio.run(scenario())
+    with PostgresDatabase() as db:
+        with pytest.raises(ValueError, match='Compiled result columns'):
+            with db.transaction() as tx:
+                tx.execute(CompiledQuery('select', columns=columns))
+        assert tx.outcome == 'rolled_back'
+    assert 'fetch' not in [name for name, _ in fake]
 
 
 def test_supplied_result_metadata_is_preserved_when_names_match(fake):
-    async def scenario():
-        column = ResultColumn('value', 'I', 'sample.value', {'label': 'The value'})
-        async with PostgresDatabase() as db:
-            result = await db.execute(CompiledQuery('select', columns=(column,)))
-        assert result.columns == (column,)
-        assert result.columns[0] is column
-        assert result.rows == [{'value': 42}]
-    asyncio.run(scenario())
+    column = ResultColumn('value', 'I', 'sample.value', {'label': 'The value'})
+    with PostgresDatabase() as db:
+        result = db.execute(CompiledQuery('select', columns=(column,)))
+    assert result.columns[0] is column
+    assert result.rows == [{'value': 42}]
 
 
-def test_metadata_on_nonreturning_statement_fails_and_rolls_back(fake, monkeypatch):
+def test_metadata_without_result_set_fails(fake, monkeypatch):
     original = FakeConnection.execute
-
     def no_result(self, sql, params):
         original(self, sql, params)
         self.description = None
-
     monkeypatch.setattr(FakeConnection, 'execute', no_result)
+    with PostgresDatabase() as db:
+        with pytest.raises(ValueError, match='without a result set'):
+            db.execute(CompiledQuery('update', columns=(ResultColumn('value'),)))
+    assert [name for name, _ in fake][-2:] == ['rollback', 'close']
 
-    async def scenario():
-        async with PostgresDatabase() as db:
-            with pytest.raises(ValueError, match='without a result set'):
-                await db.execute(CompiledQuery('update', columns=(ResultColumn('value'),)))
-        names = [name for name, _ in fake[0]]
-        assert 'fetch' not in names
-        assert names[-2:] == ['rollback', 'close']
-    asyncio.run(scenario())
+
+def test_autocommit_rejected():
+    with pytest.raises(ValueError):
+        PostgresDatabase(connect_kwargs={'autocommit': True})
+
+
+def test_driver_callback_cannot_reenter_execute_or_finish_active_statement(fake, monkeypatch):
+    original = FakeConnection.execute
+    with PostgresDatabase() as db:
+        with db.transaction() as tx:
+            def callback(self, sql, params):
+                original(self, sql, params)
+                with pytest.raises(TransactionStateError, match='executing'):
+                    tx.execute(CompiledQuery('recursive'))
+                with pytest.raises(TransactionStateError, match='executing'):
+                    tx.__exit__(None, None, None)
+            monkeypatch.setattr(FakeConnection, 'execute', callback)
+            assert tx.execute(CompiledQuery('select')).rowcount == 1
+        assert tx.outcome == 'committed'
+    names = [name for name, _ in fake]
+    assert 'recursive' not in names
+    assert names.count('commit') == names.count('close') == 1

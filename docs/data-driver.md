@@ -6,8 +6,8 @@ sono già quotati dal dialetto; il driver non analizza nuovamente l'SQL.
 
 `BindingFormatter.prepare(statement)` restituisce un `CompiledQuery` con
 `dialect` e `binding` espliciti. `SyncDriver` estende il contratto con `validate`,
-`connect`, `execute`, `commit`, `rollback` e `close`. Il runtime `ThreadedDatabase`
-invoca il driver su thread dedicati e non interpreta l'SQL.
+`connect`, `execute`, `commit`, `rollback` e `close`. Il runtime `Database`
+invoca il driver sul thread chiamante e non interpreta l'SQL.
 
 ## PsycopgDriver
 
@@ -51,7 +51,7 @@ riscrive né riparsa l'SQL diretto. Il percorso compiler → statement → forma
 fornisce invece il trattamento strutturale dei parametri.
 
 La mappa viene copiata dal contratto; oggetti mutabili contenuti nei valori
-restano dell'applicazione e non vanno modificati prima del completamento dell'await.
+restano dell'applicazione e non vanno modificati durante la chiamata sincrona.
 
 ## Esecuzione e risultati
 
@@ -63,7 +63,7 @@ Se presenti, i metadati compilati devono corrispondere a numero, nomi e ordine
 delle colonne del cursore: la verifica precede il fetch. Una discrepanza o
 metadati su uno statement senza result set produce errore e rollback nel runtime.
 Tipo, UI e provenienza dei metadati coerenti restano invariati.
-Nessun cursore lazy esce dal worker.
+Nessun cursore lazy esce dalla chiamata.
 
 Il driver non decide quando aprire o chiudere una transazione: runtime e contesto
 sono proprietari di quel ciclo di vita. `commit`, `rollback` e `close` delegano
@@ -77,5 +77,5 @@ errori del driver. `autocommit=True` è rifiutato dal percorso transazionale.
 profili incompatibili, esecuzione con driver fittizio senza psycopg, affinità del
 thread e propagazione degli errori. Un processo separato blocca ogni import di
 psycopg e verifica formatter offline e runtime con driver iniettato.
-I test lifecycle di `tests/native_runtime/` restano invariati: cancellazioni,
-chiusura, saturazione e rollback continuano a essere responsabilità del runtime.
+I test lifecycle di `tests/native_runtime/` verificano transazioni sincrone,
+chiusura, proprietà del thread, esiti del commit e rollback.

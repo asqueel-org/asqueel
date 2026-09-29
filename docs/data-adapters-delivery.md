@@ -1,5 +1,7 @@
 # Adapter dati — estrazione dalla V1
 
+**Aggiornamento:** il runtime corrente è sincrono; i risultati di verifica qui riportati descrivono la consegna adapter precedente. Vedi [runtime attuale](native-runtime.md).
+
 29 settembre 2026. Implementazione del [piano 08](design/08-data-adapters-plan.md).
 PostgreSQL rimane l'unico dialetto dati concreto; psycopg rimane l'unico driver
 DB concreto. I fake dei test verificano le interfacce, non certificano supporto
@@ -13,7 +15,7 @@ di ulteriori backend.
 | `QueryPlan` e frammenti | Tabelle fisiche, join, proiezioni, assegnazioni, clausole, parametri e descrizione dei risultati; identificatori e binding restano nodi distinti dal testo SQL. |
 | `PostgresDialect` | Scanner PostgreSQL, quoting SQL, resa SELECT/CRUD/RETURNING, LEFT JOIN, paginazione, capacità del profilo e validazione dei piani. |
 | `PsycopgDriver` | Preparazione offline dei parametri, escaping del protocollo, client psycopg, cursori, fetch e primitive transazionali. |
-| `ThreadedDatabase` | Proprietà della sessione, worker, ammissione, serializzazione, cancellazione e pulizia, tramite driver iniettato. |
+| `Database` | Proprietà della sessione, transazioni e pulizia sincrone sul thread chiamante, tramite driver iniettato. |
 | `PostgresCatalogProvider` | Introspezione strutturale read-only, conservando le verifiche di fedeltà dell'importatore V1. |
 
 I protocolli `DataDialect`, `BindingFormatter`, `SyncDriver` e `CatalogProvider`
@@ -25,7 +27,7 @@ modello + richiesta Genro
     → QueryCompiler.plan_* → QueryPlan
     → PostgresDialect.render → SqlStatement
     → PsycopgDriver.prepare → CompiledQuery
-    → ThreadedDatabase → PsycopgDriver.execute → QueryResult
+    → Database → PsycopgDriver.execute → QueryResult
 ```
 
 Il piano risolto non contiene placeholder psycopg e non applica l'escaping
@@ -37,16 +39,16 @@ o sostituito testo simile a un placeholder nell'SQL finale.
 ## Uso e compatibilità
 
 ```python
-from genro_sql import QueryCompiler, PostgresDialect, PsycopgDriver, ThreadedDatabase
+from genro_sql import QueryCompiler, PostgresDialect, PsycopgDriver, Database
 
 driver = PsycopgDriver()
 compiler = QueryCompiler(model, PostgresDialect(), driver)
 query = compiler.select('sales.invoice', columns='$id, $total',
                         where='$total >= :minimum', params={'minimum': 100})
 
-async def read(conninfo):
-    async with ThreadedDatabase(conninfo, driver=driver) as database:
-        return (await database.execute(query)).rows
+def read(conninfo):
+    with Database(conninfo, driver=driver) as database:
+        return (database.execute(query)).rows
 ```
 
 Per ispezionare i passaggi si usano `plan_select`, `plan_insert`, `plan_update`,

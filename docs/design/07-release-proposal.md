@@ -1,7 +1,7 @@
 # 07 — Proposta di versioni e lavoro degli agenti
 
 29 settembre 2026. **Indirizzo V1 concordato: applicazioni nuove, PostgreSQL,
-utilizzo da applicazioni probabilmente async; esecuzione in thread ammessa.**
+nucleo e runtime sincroni. Async da valutare solo a nucleo terminato.**
 I dettagli tecnici sotto restano proposte da verificare. V1–V4 indicano traguardi di
 prodotto; non fissano ancora numeri di versione del package né date di consegna.
 Tre agenti hanno analizzato perimetro iniziale, dipendenze e distribuzione
@@ -9,6 +9,13 @@ degli obiettivi. Dopo l’indicazione «procediamo», tre agenti hanno implement
 il profilo V1 con integrazione e revisione incrociata. Stato, verifiche e limiti
 sono nel [rapporto V1](../native-v1-delivery.md); il piano seguente conserva
 il perimetro concordato e le versioni successive.
+
+**Estensione successiva concordata:** ambiente isolato per task (`current_env`,
+`temp_env`), partition logiche esplicite, draft e cancellazione logica entrano
+nel nucleo per applicazioni nuove. Le regole e i limiti implementativi sono in
+[policy di riga](../row-policies.md) e [ambiente SQL](../sql-environment.md).
+Store e tenant possono seguire. Subtable e partizionamento fisico restano
+distinti e non sono implementati da questa estensione.
 
 ## V1 — Genro SQL autonomo, utilizzabile su PostgreSQL
 
@@ -24,7 +31,7 @@ Non è ancora una sostituzione del runtime nelle applicazioni legacy.
 | Naming | Schema logico, schema SQL, prefisso e nome fisico esplicito distinti. | Stesso mapping per query, import e proiezione migration; identificatori quotati correttamente. |
 | Import DB | PostgreSQL: tabelle, colonne, PK/FK, default e indici del sottoinsieme dichiarato. | Round-trip su fixture e report degli oggetti non gestiti; overlay UI preservato. |
 | Compiler | SELECT, riferimenti a colonne, parametri, filtri, alias, ordine, limit/offset, attraversamento di relazioni to-one e formule SQL semplici. | Valori, binding, ordine, NULL e metadati verificati su PostgreSQL; costrutti fuori profilo rifiutati esplicitamente. |
-| Scritture | INSERT/UPDATE/DELETE, RETURNING, transazioni esplicite e rollback, un driver sincrono iniziale con accesso awaitable tramite worker dedicati. | Persistenza, errore a metà transazione, vincoli, rollback e event loop non bloccato su DB reale. |
+| Scritture | INSERT/UPDATE/DELETE, RETURNING, transazioni esplicite e rollback, un driver e un runtime sincroni sul thread chiamante. | Persistenza, errore a metà transazione, vincoli, rollback e proprietà del thread su DB reale. |
 | Migrazioni di base | Integrazione con gli strumenti esistenti per il sottoinsieme gestito. | Riproduzione dei difetti #8/#9 sulla baseline scelta, correzione dei percorsi dichiarati supportati; nessun oggetto esterno eliminato implicitamente. |
 | Qualità | Corpus V1, matrice capacità, diagnostica, installazione riproducibile e misure iniziali. | Suite esistente preservata, test V1 e packaging riusciti, limiti pubblicati. |
 
@@ -44,32 +51,18 @@ La V1 copre inizialmente O-01/O-02/O-04/O-06/O-07/O-08/O-09/O-10/O-15/O-18
 nel profilo descritto; prepara O-11/O-12/O-14 e raccoglie la baseline O-17.
 O-16 viene valutato sugli esempi minimi, senza fissare tutte le API future.
 
-## Contratto async proposto per V1
+## Contratto sincrono per V1
 
-L'utente ammette il lavoro in thread: non richiede un driver async nativo.
-Si propone un nucleo sincrono con facciata awaitable; il compiler e il modello
-restano indipendenti dal meccanismo di esecuzione.
+La decisione aggiornata rinvia async. Bag, modello, compiler, connessione e
+transazione lavorano nel contesto chiamante. `Database` e `PostgresDatabase`
+espongono `with`, `execute()` e `close()` sincroni, senza worker o executor.
+Un database appartiene al thread che lo crea; accessi da altri thread sono errori.
+Una transazione apre una connessione, esegue commit/rollback e la chiude.
 
-- Una sessione/transazione riserva un worker e una connessione per tutta la
-  propria durata; le operazioni vengono serializzate su quel worker. Non usare
-  chiamate indipendenti a un executor generico per i singoli statement della
-  stessa transazione senza garantirne proprietà e ordinamento.
-- Apertura della connessione, query, fetch, commit, rollback e chiusura non
-  bloccano l'event loop. Nessun cursore lazy viene consumato sul thread chiamante.
-- Numero di worker/connessioni e richieste in attesa limitati; comportamento
-  esplicito quando la capacità è esaurita, senza creare un thread per query.
-- Cancellare l'await non interrompe automaticamente il lavoro nel thread.
-  La sessione resta occupata fino alla conclusione e alla pulizia; rollback
-  ove possibile e connessione mai riutilizzata mentre una query è ancora attiva.
-  Una cancellazione durante commit non consente di promettere che non sia avvenuto.
-- Parametri e contesto applicativo sono acquisiti esplicitamente per l'operazione;
-  nessuna contaminazione fra richieste o transazioni concorrenti.
-- Test di accettazione: query lenta con event loop responsivo, più transazioni
-  isolate, errore/rollback, cancellazione durante query, chiusura e saturazione.
-
-Il backend async nativo potrà arrivare mantenendo gli stessi contratti pubblici.
-Le firme delle API e il meccanismo dei worker saranno fissati prima di assegnare
-l'implementazione parallela, con prove sul driver scelto.
+Il driver resta separato da compiler e dialetto. Un futuro livello async sarà
+valutato sui casi reali, dopo aver definito proprietà delle Bag e materializzazione
+dei valori. Non viene promesso come semplice wrapper thread-safe.
+Vedi [contratto runtime corrente](../native-runtime.md).
 
 ## V2 — Compiler avanzato e prima applicazione legacy
 
@@ -120,7 +113,7 @@ distinte. La disponibilità di agenti non elimina le dipendenze fra contratti.
 | Passaggio | Agente A | Agente B | Agente C | Gate dell'integratore |
 |---|---|---|---|---|
 | 1. Contratti | Modello risolto, naming e UI | Corpus V1 e fixture DB indipendenti | Import PostgreSQL e ricognizione migratore | Firme minime, ownership e limiti fissati; prove di composizione. |
-| 2. Verticale | Compiler sul contratto condiviso | Runtime PostgreSQL, worker e transazioni | Importatori e mapping verso gli strumenti esistenti | Un modello, una SELECT e CRUD reali con rollback. |
+| 2. Verticale | Compiler sul contratto condiviso | Runtime PostgreSQL e transazioni sincrone | Importatori e mapping verso gli strumenti esistenti | Un modello, una SELECT e CRUD reali con rollback. |
 | 3. Completamento | Casi limite compiler e diagnostica | DML, risorse e integrazione | Round-trip PostgreSQL e report perdite | Corpus V1 completo e regressioni esistenti. |
 | 4. Consegna | Revisione incrociata | Revisione incrociata | Guida e matrice capacità | Installazione, packaging e demo riproducibile. |
 
@@ -134,15 +127,8 @@ sqlmigration hanno checkout e verifiche distinti da genro-sql.
 
 Prima dell'ampliamento V2 è stata realizzata l'[estrazione degli adapter dati](../data-adapters-delivery.md):
 compiler comune, adapter SQL PostgreSQL e driver psycopg distinti, preservando
-il runtime su thread e le facciate V1. Il [piano 08](08-data-adapters-plan.md)
+il runtime sincrono e le facciate V1. Il [piano 08](08-data-adapters-plan.md)
 conserva compiti e gate assegnati agli agenti; il rapporto distingue risultati e limiti.
 
 La V1 serve applicazioni nuove. Importazione dei package e adozione applicativa
-legacy restano obiettivi successivi e non bloccano questa consegna. L'uso async
-è un requisito di integrazione da preparare ora; il driver async nativo non è
-un prerequisito, perché l'utente ammette l'esecuzione in thread.
-
-I contratti condivisi sono implementati in `genro_sql.contracts`; modello,
-compiler e runtime sono stati sviluppati in parallelo dopo averli definiti.
-Le fixture clienti/fatture e gli scenari di transazione verificano il profilo
-iniziale; il rapporto V1 distingue ciò che è collaudato dalle estensioni future.
+legacy restano obiettivi successivi e non bloccano questa consegna. L'eventuale uso async è rinviato fino al completamento e alla valutazione del nucleo sincrono.

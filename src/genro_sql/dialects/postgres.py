@@ -229,4 +229,5 @@ class PostgresDialect:
             else:
                 raise TypeError(f'Invalid SQL fragment part: {type(part).__name__}')
         return SqlStatement(tuple(parts), plan.params,
-                            tuple(p.column for p in plan.projections), self.name)
+                            tuple(p.column for p in plan.projections), self.name,
+                            environment=plan.environment)

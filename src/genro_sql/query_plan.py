@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Mapping, TypeAlias
 
-from .contracts import ResultColumn
+from .contracts import EnvironmentBinding, ResultColumn
 
 
 @dataclass(frozen=True)
@@ -89,6 +89,7 @@ class QueryPlan:
     assignments: tuple[Assignment, ...] = ()
     params: Mapping[str, Any] = field(default_factory=dict)
     dialect: str = 'postgresql'
+    environment: EnvironmentBinding | None = None
 
     def __post_init__(self):
         object.__setattr__(self, 'params', MappingProxyType(dict(self.params)))
@@ -101,6 +102,7 @@ class SqlStatement:
     params: Mapping[str, Any] = field(default_factory=dict)
     columns: tuple[ResultColumn, ...] = ()
     dialect: str = 'postgresql'
+    environment: EnvironmentBinding | None = None
 
     def __post_init__(self):
         object.__setattr__(self, 'params', MappingProxyType(dict(self.params)))

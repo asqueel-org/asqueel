@@ -1,6 +1,5 @@
 """Verify the interfaces between planner, dialect, binding and structure."""
 import ast
-import asyncio
 from pathlib import Path
 import subprocess
 import sys
@@ -12,7 +11,7 @@ from genro_sql.contracts import Column, CompiledQuery, ResolvedModel, Table
 from genro_sql.dialects.postgres import PostgresDialect
 from genro_sql.drivers.psycopg import PsycopgDriver
 from genro_sql.query_plan import Parameter, SqlStatement
-from genro_sql.runtime import ThreadedDatabase
+from genro_sql.runtime import Database
 
 
 def test_offline_postgres_facade_and_generic_pipeline_without_optional_dependencies():
@@ -28,7 +27,7 @@ from genro_sql.compiler import PostgresCompiler, QueryCompiler
 from genro_sql.contracts import Column, ResolvedModel, Table
 from genro_sql.dialects.postgres import PostgresDialect
 from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.runtime import ThreadedDatabase
+from genro_sql.runtime import Database
 table = Table('sample', columns={'id': Column('id', 'L')})
 model = ResolvedModel({table.key: table})
 facade = PostgresCompiler(model).select('sample', where='$id = :id', params={'id': 7})
@@ -68,12 +67,12 @@ def test_incompatible_statement_is_rejected_before_connection(field, value):
         def connect(self, *args, **kwargs):
             raise AssertionError('A mismatched statement must not open a connection')
 
-    async def scenario():
-        async with ThreadedDatabase(driver=NoConnect()) as db:
+    def scenario():
+        with Database(driver=NoConnect()) as db:
             query = CompiledQuery('SELECT 1', **{field: value})
             with pytest.raises(ValueError):
-                await db.execute(query)
-    asyncio.run(scenario())
+                db.execute(query)
+    scenario()
 
 
 def test_runtime_has_no_client_or_sql_compiler_dependency():

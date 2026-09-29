@@ -6,12 +6,14 @@ placeholder syntax and escaping. Authored SQL fragments remain trusted code.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 
-from .contracts import CompiledQuery, ResolvedModel, ResultColumn, UnsupportedFeatureError
+from .contracts import (CompiledQuery, EnvironmentBinding, ResolvedModel, ResultColumn,
+                        UnsupportedFeatureError)
+from .environment import SqlEnvironment
 from .dialects.base import DataDialect
 from .drivers.base import BindingFormatter
-from .model import _unique_target
+from .model import _unique_target, validate_row_policies
 from .query_plan import (
     Assignment, Identifier, Join, Parameter, Projection, QueryPlan,
     SqlStatement, TableRef, concat, separated,
@@ -119,9 +121,12 @@ def _projection_alias(expression, tokens):
 
 
 class _Context:
-    def __init__(self, model, table, params, dialect, joins=True):
+    def __init__(self, model, table, params, dialect, snapshot, joins=True):
         self.model, self.table = model, table
         self.dialect = dialect
+        self.snapshot = snapshot
+        self.environment_keys = set()
+        self.policy_parameter_index = 0
         self.available = dict(params or {})
         self.params = {}
         self.joins = {}
@@ -134,9 +139,155 @@ class _Context:
 
     def binding(self, name):
         if name not in self.available:
-            raise ValueError(f'Missing query parameter: {name}')
+            if name.startswith('env_'):
+                key = name[4:]
+                self.environment_keys.add(key)
+                if key in self.snapshot:
+                    self.available[name] = self.snapshot[key]
+            if name not in self.available:
+                raise ValueError(f'Missing query parameter: {name}')
         self.params[name] = self.available[name]
         return Parameter(name)
+
+    def environment_binding(self):
+        if not self.environment_keys:
+            return None
+        keys = tuple(sorted(self.environment_keys))
+        return EnvironmentBinding(keys, {k: self.snapshot[k] for k in keys if k in self.snapshot})
+
+    def policy_binding(self, value):
+        name = f'__policy_{self.policy_parameter_index}'
+        self.policy_parameter_index += 1
+        while name in self.available:
+            name = '_' + name
+        self.available[name] = value
+        return self.binding(name)
+
+    def policy_field(self, field, *, write=False):
+        if field.startswith('@'):
+            if write:
+                raise UnsupportedFeatureError('Relational partition writes require ignore_partition=True in this profile')
+            match = _PATH.fullmatch(field)
+            if match is None:
+                raise ValueError(f'Invalid partition relation path: {field}')
+            expression, owner, name = self.related(match.group(1), self.table, 't0')
+        else:
+            name = _reference(field) if field.startswith('$') else field
+            owner = self.table
+            expression = self.field(owner, 't0', name)
+        if owner.columns[name].formula is not None:
+            raise UnsupportedFeatureError('Row policies require physical columns')
+        return expression, name
+
+    @staticmethod
+    def scalar(value):
+        if isinstance(value, Collection) and not isinstance(value, (str, bytes)):
+            raise ValueError('Partition values must be scalars, not nested collections')
+        if isinstance(value, Mapping):
+            raise ValueError('Partition values must be scalars, not mappings')
+        return value
+
+    def scope_values(self, scope):
+        keys = [scope.current] + ([scope.allowed] if scope.allowed is not None else [])
+        self.environment_keys.update(keys)
+        has_current = scope.current in self.snapshot
+        has_allowed = scope.allowed is not None and scope.allowed in self.snapshot
+        if not has_current and not has_allowed:
+            raise ValueError(f'Missing partition context for {scope.field}')
+        current = self.scalar(self.snapshot[scope.current]) if has_current else None
+        allowed = None
+        if has_allowed:
+            value = self.snapshot[scope.allowed]
+            if not isinstance(value, Collection) or isinstance(value, (str, bytes, Mapping)):
+                raise ValueError(f'Allowed partition values for {scope.field} must be a collection')
+            allowed = tuple(self.scalar(v) for v in value)
+        return has_current, current, allowed
+
+    def partition_predicates(self, ignore_partition=False, *, write=False):
+        if type(ignore_partition) is not bool:
+            raise ValueError('ignore_partition must be boolean')
+        if ignore_partition:
+            return []
+        conditions = []
+        for scope in self.table.policies.partitions:
+            field, _ = self.policy_field(scope.field, write=write)
+            has_current, current, allowed = self.scope_values(scope)
+            if has_current:
+                conditions.append(concat(field, ' IS NULL') if current is None else
+                                  concat(field, ' = ', self.policy_binding(current)))
+            if allowed is not None:
+                if not allowed:
+                    conditions.append(concat('FALSE'))
+                    continue
+                terms = []
+                nonnull = [v for v in allowed if v is not None]
+                if nonnull:
+                    terms.append(concat(field, ' IN (', separated(self.policy_binding(v) for v in nonnull), ')'))
+                if scope.include_null or None in allowed:
+                    terms.append(concat(field, ' IS NULL'))
+                conditions.append(concat('(', separated(terms, ' OR '), ')'))
+        return conditions
+
+    @staticmethod
+    def combine_where(predicate, conditions):
+        if not conditions:
+            return predicate
+        fragments = ([predicate] if predicate is not None else []) + conditions
+        return separated((concat('(', fragment, ')') for fragment in fragments), ' AND ')
+
+    def guard_values(self, values, *, insert=False, ignore_partition=False):
+        if not isinstance(values, Mapping):
+            raise TypeError('DML values must be a mapping of logical column names')
+        values = dict(values)
+        if type(ignore_partition) is not bool:
+            raise ValueError('ignore_partition must be boolean')
+        if ignore_partition:
+            return values
+        for scope in self.table.policies.partitions:
+            _, name = self.policy_field(scope.field, write=True)
+            has_current, current, allowed = self.scope_values(scope)
+            if name not in values:
+                if not insert:
+                    continue
+                if not has_current:
+                    raise ValueError(f'INSERT requires partition value {name} without a current value')
+                values[name] = current
+            value = self.scalar(values[name])
+            current_ok = not has_current or value == current
+            allowed_ok = (allowed is None or bool(allowed) and (
+                value in allowed or value is None and scope.include_null))
+            if not current_ok or not allowed_ok:
+                raise ValueError(f'Value for partition {scope.field} is outside the active scope')
+        return values
+
+    def select_policies(self, projections, predicate, *, exclude_draft,
+                        exclude_logical_deleted, ignore_partition):
+        if type(exclude_draft) is not bool:
+            raise ValueError('exclude_draft must be boolean')
+        if exclude_logical_deleted is not True and exclude_logical_deleted is not False and exclude_logical_deleted != 'mark':
+            raise ValueError('exclude_logical_deleted must be True, False or mark')
+        conditions = self.partition_predicates(ignore_partition)
+        policy = self.table.policies
+        if policy.draft_field and exclude_draft:
+            field, _ = self.policy_field(policy.draft_field)
+            conditions.append(concat(field, ' IS NOT TRUE'))
+        if policy.logical_deletion_field:
+            field, name = self.policy_field(policy.logical_deletion_field)
+            if exclude_logical_deleted is True:
+                conditions.append(concat(field, ' IS NULL'))
+            elif exclude_logical_deleted == 'mark':
+                if any(p.alias == '_isdeleted' for p in projections):
+                    raise ValueError('The _isdeleted result alias is reserved in mark mode')
+                for projection in projections:
+                    parts = projection.expression.parts
+                    if not (len(parts) == 3 and isinstance(parts[0], Identifier)
+                            and parts[1] == '.' and isinstance(parts[2], Identifier)):
+                        raise UnsupportedFeatureError('mark requires physical column projections; opaque expressions/formulas are unsupported')
+                column = self.table.columns[name]
+                metadata = ResultColumn('_isdeleted', column.dtype,
+                                        column.identity or self.table.key + '.' + name, column.ui)
+                projections += (Projection(field, '_isdeleted', metadata),)
+        return projections, self.combine_where(predicate, conditions)
 
     def field(self, table, alias, name):
         try:
@@ -265,12 +416,14 @@ class _Context:
 class QueryCompiler:
     """Resolve Genro syntax, then delegate SQL and binding to explicit adapters."""
 
-    def __init__(self, model: ResolvedModel, dialect: DataDialect, formatter: BindingFormatter):
+    def __init__(self, model: ResolvedModel, dialect: DataDialect, formatter: BindingFormatter,
+                 *, environment: SqlEnvironment | None = None):
         if dialect.name != formatter.dialect:
             raise ValueError('The data dialect and binding formatter are incompatible')
-        self.model = model
+        self.model = validate_row_policies(model)
         self.dialect = dialect
         self.formatter = formatter
+        self.environment = environment if environment is not None else SqlEnvironment()
 
     def compile_plan(self, plan: QueryPlan) -> CompiledQuery:
         """Ask the configured dialect to render and formatter to prepare bindings."""
@@ -279,10 +432,12 @@ class QueryCompiler:
         return self.formatter.prepare(self.dialect.render(plan))
 
     def _context(self, table, params=None, joins=True):
-        return _Context(self.model, self.model.table(table), params, self.dialect, joins=joins)
+        return _Context(self.model, self.model.table(table), params, self.dialect,
+                        self.environment.snapshot(), joins=joins)
 
     def plan_select(self, table, columns='*', where=None, params=None, order_by=None,
-                    limit=None, offset=None, **options) -> QueryPlan:
+                    limit=None, offset=None, *, exclude_draft=True,
+                    exclude_logical_deleted=True, ignore_partition=False, **options) -> QueryPlan:
         """Resolve a select without rendering SQL or formatting parameters."""
         if options:
             if 'aggregateRows' in options:
@@ -294,18 +449,25 @@ class QueryCompiler:
             raise ValueError('SELECT needs result columns')
         predicate = context.expression(where) if where is not None else None
         ordering = context.expression(order_by) if order_by is not None else None
+        projections, predicate = context.select_policies(
+            projections, predicate, exclude_draft=exclude_draft,
+            exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition)
         for clause, value in [('LIMIT', limit), ('OFFSET', offset)]:
             if value is not None:
                 if isinstance(value, bool) or not isinstance(value, int) or value < 0:
                     raise ValueError(f'{clause} must be a nonnegative integer')
         return QueryPlan('select', context.table_ref(context.table), projections,
                          tuple(context.joins.values()), predicate, ordering, limit, offset,
-                         params=context.params, dialect=self.dialect.name)
+                         params=context.params, dialect=self.dialect.name,
+                         environment=context.environment_binding())
 
     def select(self, table, columns='*', where=None, params=None, order_by=None,
-               limit=None, offset=None, **options):
+               limit=None, offset=None, *, exclude_draft=True,
+               exclude_logical_deleted=True, ignore_partition=False, **options):
         return self.compile_plan(self.plan_select(table, columns, where, params, order_by,
-                                                  limit, offset, **options))
+                                                  limit, offset, exclude_draft=exclude_draft,
+                                                  exclude_logical_deleted=exclude_logical_deleted,
+                                                  ignore_partition=ignore_partition, **options))
 
     def _values(self, context, values):
         if not isinstance(values, Mapping):
@@ -333,49 +495,78 @@ class QueryCompiler:
             raise ValueError('A comment is not a write predicate')
         return context.expression(where)
 
-    def plan_insert(self, table, values, returning='*') -> QueryPlan:
+    def plan_insert(self, table, values, returning='*', *, ignore_partition=False) -> QueryPlan:
         """Resolve insert assignments and returning metadata into a plan."""
         context = self._context(table, joins=False)
+        values = context.guard_values(values, insert=True, ignore_partition=ignore_partition)
         assignments = self._values(context, values)
         projections = context.projection(returning)
         return QueryPlan('insert', context.table_ref(context.table), projections,
-                         assignments=assignments, params=context.params, dialect=self.dialect.name)
+                         assignments=assignments, params=context.params, dialect=self.dialect.name,
+                         environment=context.environment_binding())
 
-    def insert(self, table, values, returning='*'):
-        return self.compile_plan(self.plan_insert(table, values, returning))
+    def insert(self, table, values, returning='*', *, ignore_partition=False):
+        return self.compile_plan(self.plan_insert(table, values, returning, ignore_partition=ignore_partition))
 
-    def plan_update(self, table, values, where, params=None, returning='*') -> QueryPlan:
+    def plan_update(self, table, values, where, params=None, returning='*', *, ignore_partition=False) -> QueryPlan:
         """Resolve a guarded update without executing or rendering SQL."""
         context = self._context(table, params, joins=False)
+        values = context.guard_values(values, ignore_partition=ignore_partition)
         assignments = self._values(context, values)
         if not assignments:
             raise ValueError('UPDATE requires at least one value')
         predicate = self._where(context, where)
+        predicate = context.combine_where(predicate, context.partition_predicates(ignore_partition, write=True))
         projections = context.projection(returning)
         return QueryPlan('update', context.table_ref(context.table), projections,
                          where=predicate, assignments=assignments, params=context.params,
-                         dialect=self.dialect.name)
+                         dialect=self.dialect.name, environment=context.environment_binding())
 
-    def update(self, table, values, where, params=None, returning='*'):
-        return self.compile_plan(self.plan_update(table, values, where, params, returning))
+    def update(self, table, values, where, params=None, returning='*', *, ignore_partition=False):
+        return self.compile_plan(self.plan_update(table, values, where, params, returning,
+                                                   ignore_partition=ignore_partition))
 
-    def plan_delete(self, table, where, params=None, returning='*') -> QueryPlan:
+    def plan_delete(self, table, where, params=None, returning='*', *, ignore_partition=False) -> QueryPlan:
         """Resolve a guarded delete without executing or rendering SQL."""
         context = self._context(table, params, joins=False)
         predicate = self._where(context, where)
+        predicate = context.combine_where(predicate, context.partition_predicates(ignore_partition, write=True))
         projections = context.projection(returning)
         return QueryPlan('delete', context.table_ref(context.table), projections,
-                         where=predicate, params=context.params, dialect=self.dialect.name)
+                         where=predicate, params=context.params, dialect=self.dialect.name,
+                         environment=context.environment_binding())
 
-    def delete(self, table, where, params=None, returning='*'):
-        return self.compile_plan(self.plan_delete(table, where, params, returning))
+    def delete(self, table, where, params=None, returning='*', *, ignore_partition=False):
+        return self.compile_plan(self.plan_delete(table, where, params, returning, ignore_partition=ignore_partition))
+
+
+    def _tombstone(self, table):
+        owner = self.model.table(table)
+        name = owner.policies.logical_deletion_field
+        if name and name.startswith('$'):
+            name = _reference(name)
+        if not name or name not in owner.columns or owner.columns[name].formula is not None:
+            raise ValueError('Soft deletion requires a physical logical_deletion_field')
+        return name
+
+    def soft_delete(self, table, value, where, params=None, returning='*', *, ignore_partition=False):
+        """Write the explicit tombstone value; normal partition write guards apply."""
+        if value is None:
+            raise ValueError('soft_delete requires a non-None tombstone value')
+        return self.update(table, {self._tombstone(table): value}, where, params, returning,
+                           ignore_partition=ignore_partition)
+
+    def restore(self, table, where, params=None, returning='*', *, ignore_partition=False):
+        """Clear the tombstone without applying draft/deleted read filters."""
+        return self.update(table, {self._tombstone(table): None}, where, params, returning,
+                           ignore_partition=ignore_partition)
 
 
 class PostgresCompiler(QueryCompiler):
     """Compatible convenience facade selecting PostgreSQL and psycopg adapters."""
 
-    def __init__(self, model: ResolvedModel):
+    def __init__(self, model: ResolvedModel, *, environment: SqlEnvironment | None = None):
         from .dialects.postgres import PostgresDialect
         from .drivers.psycopg import PsycopgDriver
 
-        super().__init__(model, PostgresDialect(), PsycopgDriver())
+        super().__init__(model, PostgresDialect(), PsycopgDriver(), environment=environment)

@@ -1,5 +1,4 @@
 """Offline binding contracts and driver-independent runtime integration."""
-import asyncio
 from pathlib import Path
 import subprocess
 import sys
@@ -10,7 +9,7 @@ import pytest
 from genro_sql.contracts import CompiledQuery, QueryResult, ResultColumn
 from genro_sql.drivers.psycopg import PsycopgDriver
 from genro_sql.query_plan import Identifier, Parameter, SqlStatement
-from genro_sql.runtime import PostgresDatabase, ThreadedDatabase
+from genro_sql.runtime import PostgresDatabase, Database
 
 
 def test_formatter_preserves_literal_percent_and_structural_parameter_boundaries():
@@ -93,33 +92,33 @@ class RecordingDriver:
 
 
 def test_generic_runtime_injected_driver_affinity_and_original_errors():
-    async def scenario():
+    def scenario():
         driver = RecordingDriver()
-        async with ThreadedDatabase(driver=driver, max_workers=1) as db:
-            result = await db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
+        with Database(driver=driver) as db:
+            result = db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
             assert result.rows == [{'answer': 42}]
             with pytest.raises(LookupError, match='original driver error'):
-                await db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
+                db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
         assert [name for name, _ in driver.calls] == [
             'connect', 'execute', 'commit', 'close', 'connect', 'execute', 'rollback', 'close']
         assert len({thread for _, thread in driver.calls}) == 1
-        assert driver.calls[0][1] != threading.get_ident()
-    asyncio.run(scenario())
+        assert driver.calls[0][1] == threading.get_ident()
+    scenario()
 
 
-def test_runtime_rejects_profile_before_connect_or_worker_dispatch():
-    async def scenario():
+def test_runtime_rejects_profile_before_connect_or_execute():
+    def scenario():
         driver = RecordingDriver()
-        async with ThreadedDatabase(driver=driver) as db:
+        with Database(driver=driver) as db:
             with pytest.raises(ValueError, match='profile'):
-                await db.execute(CompiledQuery('SELECT 1'))
+                db.execute(CompiledQuery('SELECT 1'))
             assert not driver.calls
-            async with db.transaction() as tx:
+            with db.transaction() as tx:
                 with pytest.raises(ValueError, match='profile'):
-                    await tx.execute(CompiledQuery('SELECT 1'))
+                    tx.execute(CompiledQuery('SELECT 1'))
                 assert [name for name, _ in driver.calls] == ['connect']
         assert [name for name, _ in driver.calls] == ['connect', 'commit', 'close']
-    asyncio.run(scenario())
+    scenario()
 
 
 def test_postgres_facade_rejects_other_profiles():
@@ -138,9 +137,8 @@ def guarded(name, *args, **kwargs):
 builtins.__import__ = guarded
 from genro_sql.drivers.psycopg import PsycopgDriver
 from genro_sql.query_plan import SqlStatement, Parameter
-from genro_sql.runtime import ThreadedDatabase, PostgresDatabase
+from genro_sql.runtime import Database, PostgresDatabase
 from genro_sql.contracts import CompiledQuery, QueryResult
-import asyncio
 query = PsycopgDriver().prepare(SqlStatement(('SELECT ', Parameter('x')), {'x': 3}))
 assert query.sql == 'SELECT %(x)s'
 class Driver:
@@ -152,12 +150,12 @@ class Driver:
     def commit(self, conn): pass
     def rollback(self, conn): pass
     def close(self, conn): pass
-async def main():
-    async with ThreadedDatabase(driver=Driver()) as db:
-        await db.execute(CompiledQuery('x', dialect='fake', binding='fake'))
-    async with PostgresDatabase():
+def main():
+    with Database(driver=Driver()) as db:
+        db.execute(CompiledQuery('x', dialect='fake', binding='fake'))
+    with PostgresDatabase():
         pass
-asyncio.run(main())
+main()
 '''
     result = subprocess.run([sys.executable, '-c', script], cwd=Path(__file__).parents[2],
                             capture_output=True, text=True)

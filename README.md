@@ -6,8 +6,7 @@ tables and columns through a
 the source tree into the normalized `genro-sqlmigration` structure.
 
 **Status**: Alpha. The native PostgreSQL profile adds a resolved model, query
-compiler, read-only catalog import and an awaitable runtime using dedicated
-threads. It targets new applications. Legacy application compatibility and
+compiler, read-only catalog import and a synchronous runtime on the calling thread. It targets new applications. Legacy application compatibility and
 advanced Genro semantics remain later milestones. Direct DDL rendering remains
 a reserved placeholder; physical migration uses `genro-sqlmigration`.
 
@@ -23,18 +22,18 @@ compiler = PostgresCompiler(resolve_model(builder))
 query = compiler.select("invc.invoice", columns="$id, $total",
                         where="$total >= :minimum", params={"minimum": 100})
 
-async def read_invoices(conninfo):
-    async with PostgresDatabase(conninfo, max_workers=4, max_pending=16) as db:
-        async with db.transaction() as tx:
-            result = await tx.execute(query)
+def read_invoices(conninfo):
+    with PostgresDatabase(conninfo) as db:
+        with db.transaction() as tx:
+            result = tx.execute(query)
             return result.rows
 ```
 
-A transaction pins one connection to one worker. PostgreSQL I/O, materialization,
-commit, rollback and close happen off the event loop. Cancellation waits for
-ongoing synchronous work and cleanup; it does not instantly stop the server query.
-Use PostgreSQL timeouts for bounded server execution. Thread count and admission
-queue are bounded; connections are fresh per transaction, not persistently pooled.
+Each transaction owns a fresh connection on the calling thread. Database calls
+are synchronous and results are eagerly materialized. Database instances reject
+use from another thread. No worker pool or async API is included: async support
+will be evaluated after the synchronous core is complete. Bags are never moved
+to a background worker by this runtime.
 
 See [native model](docs/native-model.md), [compiler](docs/native-compiler.md),
 [runtime](docs/native-runtime.md), [V1 verification](docs/native-v1-delivery.md)
@@ -43,10 +42,16 @@ and [version roadmap](docs/design/07-release-proposal.md).
 
 The [data adapter architecture](docs/data-adapters-delivery.md) separates
 `QueryCompiler` (resolved plans), `PostgresDialect` (SQL), `PsycopgDriver`
-(binding and client calls), and `ThreadedDatabase` (session lifecycle).
+(binding and client calls), and `Database` (session lifecycle).
 The PostgreSQL classes shown above remain convenience facades. Structural
 catalog providers and the adapters in sqlmigration remain separate from
 data execution; only PostgreSQL data execution is currently implemented.
+
+The native profile also supports a task-local [SQL environment](docs/sql-environment.md)
+and explicit [row policies](docs/row-policies.md): logical partitions, draft visibility,
+soft deletion and restore. Store/tenant routing and physical partitioning remain deferred.
+See the [synchronous runtime and policy verification](docs/synchronous-policies-delivery.md)
+for the current delivery and the alpha API changes.
 
 Repeated structure is explicit in the authoring grammar:
 
@@ -79,7 +84,7 @@ src/genro_sql/
 ├── query_plan.py     # resolved plans and structured SQL fragments
 ├── dialects/         # data SQL dialects, independent of drivers
 ├── drivers/          # binding and optional DB client implementations
-├── runtime.py        # awaitable transaction-pinned thread execution
+├── runtime.py        # synchronous transaction execution
 ├── catalog_provider.py # structural introspection boundary
 ├── importers.py      # read-only PostgreSQL catalog import
 ├── projection.py     # resolved physical model to migration grammar
