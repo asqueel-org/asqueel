@@ -1,58 +1,52 @@
 Genro SQL
 =========
 
-Modello SQL dichiarativo, compiler PostgreSQL e runtime sincrono per applicazioni
-Genro nuove. Lo stato corrente è alpha; la compatibilità completa con le
-applicazioni legacy resta un obiettivo successivo.
+Declare a database configuration and render it into live Python objects. Use
+``db.table('sales.customer').query(...).fetch()`` for synchronous PostgreSQL
+access. Genro SQL keeps logical table and column names, physical database names,
+and UI metadata together in one resolved model.
 
-Le guide native descrivono il codice disponibile. I dossier di analisi e le
-specifiche legacy distinguono comportamento storico e obiettivi futuri.
-Il runtime corrente è **sincrono**, sul thread chiamante.
+Start with :doc:`guide/installation` and the runnable :doc:`guide/quickstart`.
+If you already have a database, see :doc:`guide/importing`.
+
+The package is **alpha**. PostgreSQL is the supported execution backend.
+The runtime runs on the calling thread; it does not provide an async API.
+See :doc:`guide/limitations` before choosing features for your application.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Guida al nucleo nativo
+   :caption: Getting started
 
-   native-model
-   native-composition
-   native-compiler
-   native-runtime
-   sql-environment
-   row-policies
+   guide/installation
+   guide/quickstart
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Application development
+
+   guide/configuration
+   guide/models
+   guide/queries
+   guide/transactions
+   guide/environment
+   guide/row-policies
+   guide/importing
+   guide/migrations
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   guide/adapters
+   guide/limitations
+   api
    grammar
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Adapter e API
+The grammar reference covers the declarative vocabulary. Not every declaration
+has runtime support: the model and query guides describe the supported subset.
 
-   data-dialects
-   data-driver
-   api
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Stato e verifiche
-
-   synchronous-policies-delivery
-   data-adapters-delivery
-   native-v1-delivery
-   delivery
-   ecosystem-alignment
-   documentation
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Analisi e progetto
-   :glob:
-
-   genro-sql-target-architecture
-   legacy-sql-compiler-analysis
-   compiler/*
-   design/README
-   design/0*
-
-Indici
-======
+Reference indexes
+=================
 
 * :ref:`genindex`
 * :ref:`modindex`

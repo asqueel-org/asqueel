@@ -12,6 +12,12 @@ from __future__ import annotations
 from importlib import import_module
 
 from .builder import SqlBuilder
+from .application import SqlDatabase
+from .application_table import (
+    SqlTable, SqlColumn, SqlRelation, SqlQuery, SqlRecord,
+    RecordNotFoundError, RecordMultipleRowsError,
+)
+from .configuration import SqlDatabaseConfig, ConfigurationView, build_database
 from .emitter import SqlPythonEmitter
 from .renderer import SqlRenderer
 from .compiler import PostgresCompiler, QueryCompiler
@@ -34,6 +40,9 @@ from .runtime import (
 __version__ = "0.1.0"
 
 __all__ = [
+    "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
+    "SqlTable", "SqlColumn", "SqlRelation", "SqlQuery", "SqlRecord",
+    "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
     "Column", "CompiledQuery", "QueryResult", "Relation", "ResolvedModel",
     "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",

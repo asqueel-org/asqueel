@@ -1,171 +1,96 @@
 # Genro SQL
 
-SQL model builder for the Genro framework. It describes databases, schemas,
-tables and columns through a
-[genro-builders](https://github.com/genropy/genro-builders) dialect and projects
-the source tree into the normalized `genro-sqlmigration` structure.
+Define SQL models in Python, compile parameterized queries, and work with
+PostgreSQL through a synchronous API. Genro SQL keeps logical names, physical
+database names, relationships, and column UI metadata in a shared model.
 
-**Status**: Alpha. The native PostgreSQL profile adds a resolved model, query
-compiler, read-only catalog import and a synchronous runtime on the calling thread. It targets new applications. Legacy application compatibility and
-advanced Genro semantics remain later milestones. Direct DDL rendering remains
-a reserved placeholder; physical migration uses `genro-sqlmigration`.
+**Status: alpha.** Python 3.11–3.13 is tested. PostgreSQL is the supported
+execution backend. The runtime uses the calling thread; there is no async API.
 
-Install the PostgreSQL runtime with `pip install "genro-sql[postgresql]"`.
-The model and compiler work without a database driver. Migration is a separate
-optional extra: `genro-sql[migration]`.
+## Install
 
-Documentation uses Sphinx with the Read the Docs theme. Run
-`pip install -e ".[docs]"` followed by
-`python -m sphinx -W --keep-going -b html docs docs/_build/html`.
-See [documentation builds and publishing](docs/documentation.md).
+```sh
+python -m pip install "genro-sql[postgresql]"
+```
+
+Use `genro-sql` for model building and offline compilation only. Add the
+`migration` extra to use the separate schema migration integration. From a
+checkout, run `python -m pip install -e ".[postgresql]"` in the repository root.
+
+## Build an application database
+
+Declare the model and connection configuration in one recipe:
 
 ```python
-from genro_sql import PostgresCompiler, PostgresDatabase, resolve_model
+from genro_sql import SqlDatabaseConfig, build_database
 
-# builder is a built SqlBuilder recipe; SQL fragments are trusted application code.
-compiler = PostgresCompiler(resolve_model(builder))
-query = compiler.select("invc.invoice", columns="$id, $total",
-                        where="$total >= :minimum", params={"minimum": 100})
 
-def read_invoices(conninfo):
-    with PostgresDatabase(conninfo) as db:
-        with db.transaction() as tx:
-            result = tx.execute(query)
-            return result.rows
+class Shop(SqlDatabaseConfig):
+    def main(self, root):
+        db = root.db("shop", conninfo="dbname=shop")
+        customer = db.schemas().schema("sales").tables().table("customer", pkey="id")
+        columns = customer.columns()
+        columns.column("id", dtype="L")
+        columns.column("name", dtype="T", x_ui={"label": "Customer name"})
+
+
+with build_database(Shop) as db:
+    customer = db.table("sales.customer")
+    query = customer.query(
+        columns="$id, $name", where="$id >= :minimum_id",
+        params={"minimum_id": 1}, order_by="$id",
+    )
+    print(query.sqltext)  # Compiles without opening a connection.
 ```
 
-Each transaction owns a fresh connection on the calling thread. Database calls
-are synchronous and results are eagerly materialized. Database instances reject
-use from another thread. No worker pool or async API is included: async support
-will be evaluated after the synchronous core is complete. Bags are never moved
-to a background worker by this runtime.
+Against an existing `sales.customer` table, call `query.fetch()` to get a list
+of dictionaries. Table writes and reads share a lazy session. Use `db.commit()`
+and `db.rollback()`, or group operations with `with db.transaction():`.
+Closing the database rolls back pending work; `with db:` does not commit it.
 
-See [native model](docs/native-model.md), [compiler](docs/native-compiler.md),
-[runtime](docs/native-runtime.md), [V1 verification](docs/native-v1-delivery.md)
-and [version roadmap](docs/design/07-release-proposal.md).
-`aggregateRows` is explicitly unsupported in every native entry point.
+Construction does not connect or create tables. The
+[runnable quickstart](docs/guide/quickstart.md) includes explicit disposable
+schema setup and cleanup. [Configuration](docs/guide/configuration.md) explains
+layered recipes and live table objects. The separate compiler and low-level
+runtime remain available for advanced integrations.
 
-The [data adapter architecture](docs/data-adapters-delivery.md) separates
-`QueryCompiler` (resolved plans), `PostgresDialect` (SQL), `PsycopgDriver`
-(binding and client calls), and `Database` (session lifecycle).
-The PostgreSQL classes shown above remain convenience facades. Structural
-catalog providers and the adapters in sqlmigration remain separate from
-data execution; only PostgreSQL data execution is currently implemented.
+Query expressions are application code; pass external values through parameters
+rather than SQL interpolation. This native profile returns dictionaries; legacy
+Selection/Bag output is not implemented.
 
-The native profile also supports a task-local [SQL environment](docs/sql-environment.md)
-and explicit [row policies](docs/row-policies.md): logical partitions, draft visibility,
-soft deletion and restore. Store/tenant routing and physical partitioning remain deferred.
-See the [synchronous runtime and policy verification](docs/synchronous-policies-delivery.md)
-for the current delivery and the alpha API changes.
+## Application developer guides
 
-Repeated structure is explicit in the authoring grammar:
+- [Installation](docs/guide/installation.md) and [quickstart](docs/guide/quickstart.md)
+- [Configuration and application objects](docs/guide/configuration.md)
+- [Models, relationships, naming and UI metadata](docs/guide/models.md)
+- [Queries, formulas and writes](docs/guide/queries.md)
+- [Transactions and error handling](docs/guide/transactions.md)
+- [Environment scopes](docs/guide/environment.md)
+- [Partitions, drafts and soft deletion](docs/guide/row-policies.md)
+- [Importing an existing database](docs/guide/importing.md)
+- [Schema migration integration](docs/guide/migrations.md)
+- [Using adapters](docs/guide/adapters.md) and [supported features](docs/guide/limitations.md)
 
-```python
-db = root.db("billing")
-schemas = db.schemas()
-invc = schemas.schema("invc")
-tables = invc.tables()
-invoice = tables.table("invoice", pkey="id")
-columns = invoice.columns()
-customer_id = columns.column("customer_id", dtype="L")
-customer_id.relation("invc.customer.id", foreign_key=True)
+The public Sphinx site contains these English guides and the API reference.
+To build it locally:
+
+```sh
+python -m pip install -e ".[docs]"
+python -m sphinx -W --keep-going -b html docs docs/_build/html
 ```
 
-The source relation belongs to its column. The migration renderer projects the
-same physical foreign key under the table's normalized JSON `relations` map.
+Open `docs/_build/html/index.html`. Internal design notes remain in the repository
+and are excluded from the public documentation build.
 
-## Layout
+## Development checkout
 
-```
-src/genro_sql/
-├── builder.py        # SqlBuilder and source-path rules
-├── elements.py       # canonical explicit grammar
-├── migration.py      # source tree to normalized migration JSON
-├── reader.py         # normalized migration JSON to source tree
-├── emitter.py        # source tree to an importable Python recipe
-├── contracts.py      # native model, compiled query and result contracts
-├── model.py          # logical/physical naming and UI resolution
-├── compiler.py       # common query planner and PostgreSQL facade
-├── query_plan.py     # resolved plans and structured SQL fragments
-├── dialects/         # data SQL dialects, independent of drivers
-├── drivers/          # binding and optional DB client implementations
-├── runtime.py        # synchronous transaction execution
-├── catalog_provider.py # structural introspection boundary
-├── importers.py      # read-only PostgreSQL catalog import
-├── projection.py     # resolved physical model to migration grammar
-└── renderer.py       # reserved direct-DDL surface
-```
+When developing alongside the sibling migration repository, install both working
+checkouts and the SQL development dependencies:
 
-## Supported ecosystem
-
-Python **3.11–3.13**. The verified baseline uses genro-builders **0.27.0**,
-genro-bag **0.27.0**, genro-tytx **0.16.0** and genro-toolbox **0.14.0**.
-Builders and Bag are direct dependencies because the SQL implementation imports
-both APIs. The legacy/modern split has been replaced by the canonical grammar
-shown above; it is not reintroduced by this update.
-
-The test profiles additionally verify coinstallation and SQL behavior with
-routes **0.30.1** and ASGI **0.46.3**. They do not certify an ASGI server or add
-web dependencies to the SQL runtime.
-
-## Development
-
-Use an isolated environment and the complete pinned test profile. It uses the
-published `genro-sqlmigration` 0.1.0 release and psycopg 3.3.6, without relying
-on a sibling checkout:
-
-```bash
-python3.12 -m venv venv
-. venv/bin/activate
-python -m pip install -r requirements/core.txt
-python -m pip install --no-deps --no-build-isolation -e .
-pytest -m "not postgresql" -ra
-ruff check src tests scripts
-mypy src/genro_sql
-```
-
-`requirements/routes.txt` and `requirements/asgi.txt` add the ecosystem profiles.
-Regenerate a profile deliberately, for example:
-
-```bash
-uv pip compile requirements/core.in --universal --python-version 3.11 --output-file requirements/core.txt
-```
-
-The current published migrator passes the former index-name/DESC and identifier
-quoting regression tests. Their assertions run normally; historical expected
-failure markers have been removed. Earlier results remain recorded in
-[alignment history](docs/ecosystem-alignment.md).
-
-For a local migration checkout carrying the missing upstream fixes, the original
-development command remains available:
-
-```bash
+```sh
 pip install -e "../genro-sqlmigration[postgresql,validation]" -e ".[dev]"
 ```
 
-PostgreSQL tests create and drop dedicated `test_genro_sql_*` databases. Run them
-only against a disposable server via `GNR_TEST_PG_HOST`, `GNR_TEST_PG_PORT`,
-`GNR_TEST_PG_USER` and `GNR_TEST_PG_PASSWORD`. CI provides its own PostgreSQL 17
-service.
-
-## Distribution verification
-
-```bash
-python -m build --no-isolation
-python -m pip install --no-deps --force-reinstall dist/*.whl
-python -m pip check
-python scripts/check_installed.py
-```
-
-Use a fresh environment for wheel verification. The script checks import origins,
-`py.typed` and the packaged grammar reference, then runs the suite outside the
-checkout. Add `--postgresql` for the dedicated database integration tests.
-`--core-only` verifies model construction, validation and Python emission in an
-environment where the optional migrator is absent.
-
-CI covers Python 3.11–3.13, the routes/ASGI profiles, PostgreSQL and a separate
-core-only install with the newest allowed dependencies.
-
 ## License
 
-Apache License 2.0 — Copyright 2025 Softwell S.r.l.
+Apache License 2.0 — Copyright Softwell S.r.l.

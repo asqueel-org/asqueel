@@ -149,7 +149,7 @@ def test_validator_still_checks_cross_module_relations():
         build(MissingDependency).validate_model()
 
 
-def test_mounted_signature_is_not_used_by_domain_attribute_validator():
+def test_indirect_mounted_grammar_override_is_not_resolved_by_builders():
     class CustomTableGrammar(TableGrammar):
         @element(parent_tags='columns', _meta={'projects_column': True})
         def column(self, name: str, dtype: str, domain_hint: str = ''):
@@ -165,7 +165,7 @@ def test_mounted_signature_is_not_used_by_domain_attribute_validator():
             table.columns().column(name='id', dtype='I', domain_hint='local grammar field')
 
     model = build(CustomMountedModel)
-    # Builders accepts this mounted grammar signature. SQL's domain validator
-    # still consults the root SqlBuilder signature, so the local extension fails.
+    # The mounted subclass's indirect grammar override is not retained by
+    # Builders 0.27 node ownership; the node resolves the base column signature.
     with pytest.raises(SqlModelValidationError, match="unknown attribute 'domain_hint'"):
         model.validate_model()

@@ -17,6 +17,14 @@ nel nucleo per applicazioni nuove. Le regole e i limiti implementativi sono in
 Store e tenant possono seguire. Subtable e partizionamento fisico restano
 distinti e non sono implementati da questa estensione.
 
+**Correzione architetturale successiva:** la [revisione 09](09-legacy-object-api-review.md)
+mostra che la V1 consegnata è un nucleo tecnico, privo dell'object model operativo
+richiesto. Prima di ampliare il compiler vanno realizzati configurazione con le
+relative grammatiche → rendering a oggetti → DB/tabella/query/fetch, con sessioni
+e scritture coerenti con i contratti legacy selezionati. Il livello oggetti non
+è rinviato alla V2; le tabelle sotto conservano la proposta storica e vanno lette
+con questa correzione e i gate applicativi del documento 09.
+
 ## V1 — Genro SQL autonomo, utilizzabile su PostgreSQL
 
 **Risultato:** dichiarare o importare un modello semplice, interrogare e

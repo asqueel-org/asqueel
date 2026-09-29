@@ -103,12 +103,11 @@ class SqlModelValidator:
 
     def _check_attributes(self, builder) -> None:
         """D2: any attribute outside the signature must start with ``x_``."""
-        schema = type(builder)._class_schema
         for path, node in self._catalog.nodes:
-            element = schema.get_node(node.node_tag)
-            if element is None:
-                continue
-            declared = element.get_attr("declared_names") or set()
+            owner = (node.parent_bag._builder if node._get_meta("subbuilder")
+                     else node._resolve_builder())
+            info = owner._get_schema_info(node.node_tag)
+            declared = info.get("declared_names") or set()
             for key in node.attr:
                 if key == _META_KEY or key in declared or key.startswith("x_"):
                     continue

@@ -44,6 +44,8 @@ extensions = [
 
 templates_path = []
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+# Publish application-developer documentation only. Internal notes stay in Git.
+include_patterns = ["index.rst", "api.rst", "grammar.md", "guide/**"]
 
 # MyST: the guides and narrative pages are Markdown; the toctree skeleton is rst.
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
@@ -56,7 +58,7 @@ myst_fence_as_directive = ["mermaid"]
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_css_files = ["readability.css"]
-language = "it"
+language = "en"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),

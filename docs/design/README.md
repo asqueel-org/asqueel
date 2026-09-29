@@ -3,6 +3,17 @@
 Stesura: 29 settembre 2026. Il dossier separa osservazioni sul software,
 requisiti acquisiti e proposte. Non avvia un'implementazione né una migrazione.
 
+## Revisione corrente
+
+La [revisione dell'architettura a oggetti](09-legacy-object-api-review.md)
+riesamina il prodotto implementato rispetto al legacy e alla configurazione
+con grammatiche richiesta dall'utente. Comprende quattro approfondimenti:
+[modello e oggetti](09a-legacy-object-model.md),
+[query/record/selection](09b-legacy-query-record-lifecycle.md),
+[sessioni e scritture](09c-legacy-session-write-lifecycle.md),
+[Builders e rendering a oggetti](09d-builders-configuration-and-object-rendering.md).
+È analisi interna, esclusa dalla documentazione pubblica Sphinx.
+
 ## Ordine di lettura
 
 | Documento | Contenuto |

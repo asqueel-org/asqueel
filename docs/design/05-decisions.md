@@ -12,11 +12,17 @@
 - Subtable, scope partition e partizioni fisiche devono essere distinti.
 - Schema come prefisso del nome tabella e mapping legacy devono essere supportati.
 
-Aggiornamento del perimetro iniziale: la V1 è destinata ad applicazioni nuove.
-Le applicazioni saranno probabilmente async; il lavoro DB in thread è ammesso.
-Il [piano versioni](07-release-proposal.md) propone quindi una facciata awaitable
-sopra worker sincroni, con contratto esplicito di transazione e cancellazione.
-Importazione e bridge legacy passano alle versioni successive.
+Aggiornamento del perimetro iniziale: la V1 è destinata ad applicazioni nuove,
+con nucleo e runtime **sincroni**. L'eventuale async si valuterà a nucleo terminato.
+La configurazione tramite grammatiche deve produrre oggetti vivi: `db` è la
+radice e l'utilizzo applicativo passa da `db.table(...).query(...).fetch()`.
+La logica del legacy guida lifecycle, responsabilità e contratti applicativi;
+non è soltanto un riferimento sintattico del compiler. Store e tenant possono
+seguire; partition, draft e cancellazione logica restano nel perimetro acquisito.
+
+La [revisione architetturale 09](09-legacy-object-api-review.md) distingue il
+nucleo tecnico già implementato dal livello prodotto ancora mancante. I report
+di consegna precedenti non certificano il completamento di quel livello.
 
 ## Decisioni da chiudere al momento opportuno
 
@@ -53,7 +59,9 @@ runtime risolta; provenienza per contributo, oggetti fisici separati dai semanti
 **Scelta:** dove montare grammatiche e come dichiarare override/rimozioni.
 **Raccomandazione:** vocabolario SQL fondamentale comune, estensioni distribuite
 quando cambiano gli elementi; merge per famiglia con conflitti espliciti.
-**Tradeoff:** montare una grammatica per ogni tabella può essere inutile complessità.
+**Vincolo aggiornato:** risolvere la grammatica effettiva di ogni nodo e integrare
+il rendering a oggetti; i limiti attuali di validatore/emitter sono lavoro da
+correggere, non motivi per rinviare questo contratto.
 **Da chiudere:** P1 dopo un prototipo che coinvolga anche validatori ed emitter.
 
 ### D-05 — UI e profili
@@ -69,7 +77,9 @@ separato; nessuna dipendenza obbligatoria da widget nel compiler.
 **Scelta:** sintassi testuale iniziale, API strutturata e nomi delle operazioni.
 **Raccomandazione:** mantenere riferimenti familiari, un solo resolver, QuerySpec
 esplicito e result plan; niente secondo motore semantico per Bag o oggetti Python.
-**Tradeoff:** API a oggetti completa troppo presto rallenta la verifica della semantica.
+**Vincolo aggiornato:** il percorso DB → tabella → query → fetch appartiene alla
+prima verticale del prodotto. Non è un adapter legacy opzionale; occorre
+verificare tempi di compilazione, ambiente, sessione e forma dei risultati.
 **Da chiudere:** forma minima in P1/P3; estensioni in P4 con esempi comparativi.
 
 ### D-07 — Profilo legacy e anomalie
