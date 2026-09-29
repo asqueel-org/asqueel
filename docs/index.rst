@@ -26,6 +26,7 @@ See :doc:`guide/limitations` before choosing features for your application.
 
    guide/configuration
    guide/models
+   guide/formulas
    guide/queries
    guide/transactions
    guide/environment

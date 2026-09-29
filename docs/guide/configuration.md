@@ -85,6 +85,10 @@ using their declaration paths. For example, `customer.config('pkey')` reads
 `schemas.sales.tables.customer.pkey`. These views do not maintain independent
 copies of configuration attributes.
 
+Alias-column configuration views additionally fall back to their target column
+for missing values. The alias's `model` retains resolved metadata and its own
+identity; `originalColumn` links to the live target. See [alias columns](models.md).
+
 Defaults from the effective grammar are resolved on a separate source copy before
 building the semantic model. A mounted column grammar's default dtype therefore
 also reaches `.model.dtype`; it is not merely a display-time configuration value.

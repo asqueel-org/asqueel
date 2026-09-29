@@ -1,5 +1,13 @@
 # 07 — Proposta di versioni e lavoro degli agenti
 
+**Stato storico del piano:** questa proposta precede il completamento del primo
+percorso a oggetti e il [riesame della copertura](10-legacy-coverage-reassessment.md).
+Configurazione/DB/tabella/query e hook di tabella sono ora implementati, ma
+primitive fondamentali quali aliasColumn, formule con sottoquery e parte del
+linguaggio restano incomplete. Le esclusioni V1 elencate sotto non costituiscono
+una dichiarazione di completezza del prodotto richiesto; per priorità e lacune
+correnti leggere il documento 10.
+
 29 settembre 2026. **Indirizzo V1 concordato: applicazioni nuove, PostgreSQL,
 nucleo e runtime sincroni. Async da valutare solo a nucleo terminato.**
 I dettagli tecnici sotto restano proposte da verificare. V1–V4 indicano traguardi di

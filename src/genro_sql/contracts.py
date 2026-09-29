@@ -64,10 +64,28 @@ class Column:
     ui: Mapping[str, Any] = field(default_factory=dict)
     identity: str | None = None
     attributes: Mapping[str, Any] = field(default_factory=dict)
+    relation_path: str | None = None
+    alias_target: tuple[str, str] | None = None
+    select: Mapping[str, Any] | None = None
+    exists: Mapping[str, Any] | None = None
+    subqueries: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
+
+    @property
+    def is_virtual(self) -> bool:
+        return (self.formula is not None or self.relation_path is not None
+                or self.select is not None or self.exists is not None
+                or bool(self.subqueries))
 
     def __post_init__(self):
         object.__setattr__(self, "ui", MappingProxyType(dict(self.ui)))
         object.__setattr__(self, "attributes", MappingProxyType(dict(self.attributes)))
+        for name in ('select', 'exists'):
+            value = getattr(self, name)
+            if value is not None:
+                object.__setattr__(self, name, MappingProxyType(deepcopy(dict(value))))
+        object.__setattr__(self, 'subqueries', MappingProxyType({
+            name: MappingProxyType(deepcopy(dict(spec))) for name, spec in self.subqueries.items()
+        }))
 
     @property
     def physical_name(self) -> str:
@@ -149,6 +167,8 @@ class CompiledQuery:
     dialect: str = 'postgresql'
     binding: str = 'psycopg_named'
     environment: EnvironmentBinding | None = None
+    # Original caller parameter names consumed before scoped SQL renaming.
+    input_parameters: tuple[str, ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "params", MappingProxyType(dict(self.params)))

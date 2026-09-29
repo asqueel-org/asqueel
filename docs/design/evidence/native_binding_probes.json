@@ -1,0 +1,67 @@
+[
+  {
+    "case": "legacy_in_list",
+    "predicate": "$id IN :ids",
+    "value": [
+      1,
+      2
+    ],
+    "status": "error",
+    "error_type": "SyntaxError",
+    "sqlstate": "42601"
+  },
+  {
+    "case": "legacy_in_tuple",
+    "predicate": "$id IN :ids",
+    "value": [
+      1,
+      2
+    ],
+    "status": "error",
+    "error_type": "SyntaxError",
+    "sqlstate": "42601"
+  },
+  {
+    "case": "parenthesized_list",
+    "predicate": "$id IN (:ids)",
+    "value": [
+      1,
+      2
+    ],
+    "status": "error",
+    "error_type": "UndefinedFunction",
+    "sqlstate": "42883"
+  },
+  {
+    "case": "native_any_list",
+    "predicate": "$id = ANY(:ids)",
+    "value": [
+      1,
+      2
+    ],
+    "rows": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ],
+    "status": "executed"
+  },
+  {
+    "case": "legacy_in_empty",
+    "predicate": "$id IN :ids",
+    "value": [],
+    "status": "error",
+    "error_type": "SyntaxError",
+    "sqlstate": "42601"
+  },
+  {
+    "case": "native_any_empty",
+    "predicate": "$id = ANY(:ids)",
+    "value": [],
+    "rows": [],
+    "status": "executed"
+  }
+]

@@ -73,8 +73,22 @@ class SqlColumn:
         self.model = model
         self.name = model.name
         self.fullname = f'{table.fullname}.{self.name}'
-        collection = 'virtual_columns' if model.formula is not None else 'columns'
-        self.config = ConfigurationView(self.db.config, f'{table._config_prefix}.{collection}.{self.name}')
+        collection = 'virtual_columns' if model.is_virtual else 'columns'
+        fallback = (lambda: self.originalColumn.config) if model.alias_target is not None else None
+        self.config = ConfigurationView(self.db.config, f'{table._config_prefix}.{collection}.{self.name}',
+                                        fallback=fallback)
+
+    @property
+    def originalColumn(self):
+        """Legacy-style link to an alias's target live column, if it is an alias."""
+        if self.model.alias_target is None:
+            return None
+        table_name, column_name = self.model.alias_target
+        return self.db.table(table_name).column(column_name)
+
+    @property
+    def relation_path(self):
+        return self.model.relation_path
 
 
 class SqlRelation:
@@ -106,7 +120,7 @@ class SqlQuery:
         self.db._check_open()
         query = self.db.compiler.select(self.table.fullname, params=_copy(self._params),
                                         **_copy(self._options))
-        unused = set(self._keyword_bindings) - query.params.keys()
+        unused = set(self._keyword_bindings) - set(query.input_parameters)
         if unused:
             raise UnsupportedFeatureError(
                 f'Unknown query options or unused keyword bindings: {sorted(unused)}; '
@@ -275,7 +289,7 @@ class SqlTable:
         if not self.model.pkey:
             raise ValueError('Write hooks require a declared primary key')
         columns = ', '.join(_reference(name) for name, column in self.model.columns.items()
-                            if column.formula is None)
+                            if not column.is_virtual)
         query = self.query(columns=columns, where=where, params=params, for_update=True, limit=2,
                            exclude_draft=False, exclude_logical_deleted=False,
                            ignore_partition=ignore_partition)

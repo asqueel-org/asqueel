@@ -40,7 +40,7 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                 table_nodes[table.key] = node
                 cols = node.columns()
                 for column in table.columns.values():
-                    if column.formula is not None:
+                    if column.is_virtual:
                         continue
                     metadata = column.attributes
                     if metadata.get('identity_kind') or metadata.get('generated'):

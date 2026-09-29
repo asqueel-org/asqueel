@@ -11,7 +11,8 @@ runtime. This page describes behavior you can rely on when choosing APIs.
 | Ownership | One active transaction per database instance. | Construct and use an instance on the same thread; no nested transactions or savepoints. |
 | Results | Materialized dictionary rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
 | Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | Not a complete legacy query language or a universal SQL parser. |
-| Formulas | Supported SQL formula columns. | Python providers, legacy select/exists virtual forms and advanced macros are outside the native profile. |
+| Formulas | SQL expressions, scalar select/exists dictionaries and named correlated subqueries. | Python providers, method callbacks, formula variants, subquery collections and advanced macros are outside the native profile. Partition filtering remains explicit inside subqueries. |
+| Alias columns | Declared aliases inherit target metadata, allow local overrides, and resolve through supported to-one paths, including alias/formula targets. | Read-only; no to-many/virtualRelation. Default RETURNING excludes aliases; explicit relational aliases cannot be returned by DML. |
 | Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after insert, update and delete hooks on application tables. | Hooked updates/deletes require exactly one row and a declared primary key. No record-cluster writes, automatic retry or implicit save of related records. |
 | Environment | Nested scopes, detached snapshots and guarded contextual queries. | Not a permissions system; direct SQL does not acquire model policy predicates automatically. |
 | Row policies | Declared partition scopes, draft and logical-deletion handling. | Tenant/store routing and legacy subtable behavior are not provided. Read policies are not complete write authorization. |
@@ -65,9 +66,12 @@ application; the compiler does not decide who may use them.
 
 ## Transaction and value boundaries
 
-Each transaction opens a fresh connection and closes it on exit. Session state
-is not retained across separate `db.execute()` calls. Keep dependent operations
-inside the same explicit transaction.
+The application `SqlDatabase` keeps a shared transaction across table operations
+and `db.execute()` calls until commit or rollback. Its connection is opened
+lazily and closed when that transaction ends. Closing the database rolls back
+pending work. The separate low-level `Database`/`PostgresDatabase.execute()`
+convenience instead opens and completes a transaction per call; use an explicit
+transaction when combining dependent operations through those components.
 
 A statement error makes that transaction rollback-only. An uncertain commit
 outcome does not mean the write failed; retries require application-specific

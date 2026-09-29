@@ -91,6 +91,7 @@ class QueryPlan:
     dialect: str = 'postgresql'
     environment: EnvironmentBinding | None = None
     for_update: bool = False
+    input_parameters: tuple[str, ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, 'params', MappingProxyType(dict(self.params)))

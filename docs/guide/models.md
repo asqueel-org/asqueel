@@ -124,8 +124,42 @@ Inverse collections are not generated automatically.
 
 `formulaColumn(sql_formula=...)` defines a read-only SQL expression. References
 such as `$total` resolve against the model. Use trusted application SQL for the
-formula; data values belong in query parameters. Python columns, virtual alias
-columns and subquery columns are not supported by this resolver.
+formula; data values belong in query parameters. Structured `select`/`exists`
+and named subqueries are described in [correlated formulas](formulas.md).
+Python columns and the separate subquery collection columns remain unsupported.
+
+`aliasColumn` names an existing column reached through a relation, following the
+legacy model's target-and-override behavior:
+
+```python
+# table is the invoice declaration above.
+table.virtual_columns().aliasColumn(
+    'customer_name', relation_path='@customer.name', name_long='Customer',
+    x_ui={'label': 'Customer name'},
+)
+```
+
+Read the alias as `$customer_name` in projections, filters, ordering or another
+formula. Its dtype and descriptive metadata are inherited from the destination;
+non-None local attributes and UI overrides take precedence. Its own identity is
+preserved in result metadata. The target may itself be an alias or a formula.
+For multiple relations, both legacy `@customer.@country.name` and
+`@customer.country.name` are accepted. Local `name`/`$name` alias targets are also
+accepted as a native convenience. Cycles and missing targets raise errors.
+
+With a rendered application, `db.table('sales.invoice').column('customer_name')`
+is a stable live handle. Its `originalColumn` links to the target column and its
+`relation_path` preserves the declaration. Configuration reads fall back to the
+target when no local value is declared. `model.ui` exposes the merged UI metadata.
+Inherited `notnull` metadata describes the target column; a LEFT JOIN can still
+produce NULL when the source record has no related row.
+
+Aliases are read-only and never become physical columns in migration output.
+Writes with an alias in their value mapping fail explicitly. `RETURNING '*'`
+includes only physical columns; explicitly returning an alias is supported only when its
+expression requires no relation JOIN. SELECT `*` still expands all resolved
+columns, including aliases and SQL formulas; this is not the legacy static-only
+wildcard convention. To-many aliases and virtualRelation are not implemented.
 
 See [Queries](queries.md) for projections, parameters and relation traversal,
 and [Row policies](row-policies.md) for explicit partition, draft and deletion

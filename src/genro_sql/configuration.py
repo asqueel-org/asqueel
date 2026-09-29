@@ -14,20 +14,33 @@ _MISSING = object()
 class ConfigurationView:
     """A relative read view over one ConfigHandler, without copied attributes."""
 
-    def __init__(self, handler: ConfigHandler, prefix: str = ''):
+    def __init__(self, handler: ConfigHandler, prefix: str = '', *, fallback=None):
         self.handler = handler
         self.prefix = prefix.strip('.')
+        self._fallback = fallback
 
     def __call__(self, path: str, default=_MISSING):
         if not isinstance(path, str) or not path:
             raise ValueError('configuration path must be a non-empty string')
         fullpath = f'{self.prefix}.{path}' if self.prefix else path
-        if default is _MISSING:
+        if self._fallback is None and default is not _MISSING:
+            return self.handler(fullpath, default=default)
+        try:
             return self.handler(fullpath)
-        return self.handler(fullpath, default=default)
+        except KeyError:
+            if self._fallback is not None:
+                try:
+                    return self._fallback()(path)
+                except KeyError:
+                    pass
+            if default is _MISSING:
+                raise
+            return default
 
     def scope(self, prefix: str) -> ConfigurationView:
-        return ConfigurationView(self.handler, '.'.join(filter(None, (self.prefix, prefix))))
+        fallback = (lambda: self._fallback().scope(prefix)) if self._fallback is not None else None
+        return ConfigurationView(self.handler, '.'.join(filter(None, (self.prefix, prefix))),
+                                 fallback=fallback)
 
 
 class SqlDatabaseElements:
@@ -86,6 +99,11 @@ def _effective_model_builder(config):
         info = owner._get_schema_info(node.node_tag)
         relative = path.split('.', 1)[1] if '.' in path else ''
         for name in info.get('call_args_validations') or {}:
+            # indexed is a physical-FK default. Materializing it on a logical
+            # relation would turn an omitted option into a forbidden declaration.
+            if (node.node_tag == 'relation' and name == 'indexed' and name not in node.attr
+                    and not config(f'{relative}.foreign_key', default=False)):
+                continue
             key = f'{relative}.{name}' if relative else name
             try:
                 value = config(key)

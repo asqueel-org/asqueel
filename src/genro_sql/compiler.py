@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import re
 from collections.abc import Collection, Mapping
+from dataclasses import replace
 
 from .contracts import (CompiledQuery, EnvironmentBinding, ResolvedModel, ResultColumn,
                         UnsupportedFeatureError)
 from .environment import SqlEnvironment
 from .dialects.base import DataDialect
 from .drivers.base import BindingFormatter
-from .model import _unique_target, validate_row_policies
+from .model import _resolve_aliases, _unique_target, validate_row_policies
 from .query_plan import (
     Assignment, Identifier, Join, Parameter, Projection, QueryPlan,
     SqlStatement, TableRef, concat, separated,
@@ -22,7 +23,9 @@ from .query_plan import (
 _IDENT = r"[A-Za-z_][A-Za-z_0-9]*"
 _PARAM = re.compile(r":" + _IDENT)
 _FIELD = re.compile(r"\$(" + _IDENT + r")")
-_PATH = re.compile(r"@(" + _IDENT + r"(?:\." + _IDENT + r")+)")
+_PATH = re.compile(r"@(" + _IDENT + r"(?:\.@?" + _IDENT + r")*\." + _IDENT + r")")
+_THIS = re.compile(r"#THIS\.(@?" + _IDENT + r"(?:\.@?" + _IDENT + r")*)")
+_MACRO = re.compile(r"#(" + _IDENT + r")")
 
 
 def quote_identifier(name: str) -> str:
@@ -121,23 +124,34 @@ def _projection_alias(expression, tokens):
 
 
 class _Context:
-    def __init__(self, model, table, params, dialect, snapshot, joins=True):
+    def __init__(self, model, table, params, dialect, snapshot, joins=True,
+                 *, parent=None, outer=None, namespace=''):
         self.model, self.table = model, table
         self.dialect = dialect
         self.snapshot = snapshot
-        self.environment_keys = set()
+        self.environment_keys = parent.environment_keys if parent else set()
         self.policy_parameter_index = 0
         self.available = dict(params or {})
-        self.params = {}
+        self.params = parent.params if parent else {}
         self.joins = {}
         self.allow_joins = joins
-        self.formulas = set()
+        self.formulas = parent.formulas if parent else set()
+        self.state = parent.state if parent else {'counter': 0, 'names': set(self.available)}
+        self.state['names'].update(self.available)
+        self.binding_names = {}
+        self.namespace = namespace
+        self.basealias = namespace + 't0'
+        self.outer = outer
+        self.input_origins = set(parent.input_origins) if parent else set(self.available)
+        self.consumed_inputs = parent.consumed_inputs if parent else set()
 
     @staticmethod
     def table_ref(table, alias='t0'):
         return TableRef(table.physical_schema, table.physical_name, alias)
 
     def binding(self, name):
+        if name in self.input_origins:
+            self.consumed_inputs.add(name)
         if name not in self.available:
             if name.startswith('env_'):
                 key = name[4:]
@@ -146,8 +160,16 @@ class _Context:
                     self.available[name] = self.snapshot[key]
             if name not in self.available:
                 raise ValueError(f'Missing query parameter: {name}')
-        self.params[name] = self.available[name]
-        return Parameter(name)
+        if name not in self.binding_names:
+            bound_name = self.namespace + name
+            if self.namespace:
+                while bound_name in self.state['names']:
+                    bound_name = '_' + bound_name
+            self.state['names'].add(bound_name)
+            self.binding_names[name] = bound_name
+        bound_name = self.binding_names[name]
+        self.params[bound_name] = self.available[name]
+        return Parameter(bound_name)
 
     def environment_binding(self):
         if not self.environment_keys:
@@ -170,12 +192,12 @@ class _Context:
             match = _PATH.fullmatch(field)
             if match is None:
                 raise ValueError(f'Invalid partition relation path: {field}')
-            expression, owner, name = self.related(match.group(1), self.table, 't0')
+            expression, owner, name = self.related(match.group(1), self.table, self.basealias)
         else:
             name = _reference(field) if field.startswith('$') else field
             owner = self.table
-            expression = self.field(owner, 't0', name)
-        if owner.columns[name].formula is not None:
+            expression = self.field(owner, self.basealias, name)
+        if owner.columns[name].is_virtual:
             raise UnsupportedFeatureError('Row policies require physical columns')
         return expression, name
 
@@ -289,26 +311,131 @@ class _Context:
                 projections += (Projection(field, '_isdeleted', metadata),)
         return projections, self.combine_where(predicate, conditions)
 
+    def subquery(self, definition, owner, outer_alias, *, exists=False):
+        if not self.allow_joins:
+            raise UnsupportedFeatureError('Subquery columns are not supported in native DML')
+        if not isinstance(definition, Mapping):
+            raise ValueError('A subquery must be a mapping')
+        options = dict(definition)
+        for old, new in [('excludeDraft', 'exclude_draft'),
+                         ('excludeLogicalDeleted', 'exclude_logical_deleted'),
+                         ('ignorePartition', 'ignore_partition')]:
+            if old in options:
+                if new in options:
+                    raise ValueError(f'Conflicting subquery options: {old}, {new}')
+                options[new] = options.pop(old)
+        for name, value in [('subtable', '*'), ('addPkeyColumn', False),
+                            ('ignoreTableOrderBy', True)]:
+            if name in options:
+                actual = options.pop(name)
+                if type(actual) is not type(value) or actual != value:
+                    raise UnsupportedFeatureError(f'Unsupported subquery option: {name}={actual!r}')
+        known = {'table', 'columns', 'where', 'params', 'sqlparams', 'order_by',
+                 'limit', 'offset', 'exclude_draft', 'exclude_logical_deleted',
+                 'ignore_partition', 'cast'}
+        if options.keys() - known:
+            raise UnsupportedFeatureError(f'Unsupported subquery options: {sorted(options.keys() - known)}')
+        if exists and 'cast' in options:
+            raise UnsupportedFeatureError('Cast applies to scalar subqueries, not EXISTS')
+        if not isinstance(options.get('table'), str) or not options['table']:
+            raise ValueError('A subquery requires a table')
+        if not isinstance(options.get('where'), str) or not options['where'].strip():
+            raise ValueError('A subquery requires an explicit WHERE expression')
+        available = dict(self.available)
+        local = {}
+        for name in ('params', 'sqlparams'):
+            values = options.get(name)
+            if values is not None:
+                if not isinstance(values, Mapping):
+                    raise ValueError(f'Subquery {name} must be a mapping')
+                if local.keys() & values.keys():
+                    raise ValueError('Duplicate subquery parameter declarations')
+                local.update(values)
+        available.update(local)
+        self.state['counter'] += 1
+        namespace = f's{self.state["counter"]}_'
+        child = _Context(self.model, self.model.table(options['table']), available,
+                         self.dialect, self.snapshot, parent=self,
+                         outer=(self, owner, outer_alias), namespace=namespace)
+        child.input_origins.difference_update(local)
+        columns = options.get('columns', '1 AS __exists' if exists else '*')
+        expressions = _split(columns, self.dialect.tokens) if isinstance(columns, str) else list(columns)
+        # Subquery expressions need no public output alias. Give opaque scalar
+        # expressions a deterministic internal one while preserving field metadata.
+        normalized = []
+        for index, expression in enumerate(expressions):
+            value, output_name = _projection_alias(expression, self.dialect.tokens)
+            if (output_name is None and value != '*' and _reference(value) is None
+                    and _PATH.fullmatch(value) is None):
+                expression = value + f' AS __value_{index}'
+            normalized.append(expression)
+        projections = child.projection(normalized)
+        if not exists and len(projections) != 1:
+            raise ValueError('A scalar subquery requires exactly one result column')
+        predicate = child.expression(options['where'])
+        ordering = child.expression(options['order_by']) if options.get('order_by') is not None else None
+        projections, predicate = child.select_policies(
+            projections, predicate, exclude_draft=options.get('exclude_draft', False),
+            exclude_logical_deleted=options.get('exclude_logical_deleted', False),
+            ignore_partition=options.get('ignore_partition', False))
+        if not exists and len(projections) != 1:
+            raise ValueError('A scalar subquery requires exactly one result column')
+        plan = QueryPlan('select', child.table_ref(child.table, child.basealias), projections,
+                         tuple(child.joins.values()), predicate, ordering,
+                         options.get('limit'), options.get('offset'), params=child.params,
+                         dialect=self.dialect.name, environment=child.environment_binding())
+        statement = self.dialect.render(plan)
+        result = concat('(', *statement.parts, ')')
+        if 'cast' in options:
+            cast = options['cast']
+            # Type names are authored SQL but not arbitrary statement fragments.
+            if (not isinstance(cast, str) or not re.fullmatch(
+                    r'[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)?'
+                    r'(?:\s+[A-Za-z_][A-Za-z_0-9]*)*(?:\(\s*\d+(?:\s*,\s*\d+)?\s*\))?(?:\[\])*', cast)):
+                raise ValueError('Unsupported subquery cast type')
+            result = concat('CAST(', result, ' AS ', cast, ')')
+        return result
+
     def field(self, table, alias, name):
         try:
             column = table.columns[name]
         except KeyError:
             raise ValueError(f'Unknown column {table.key}.{name}') from None
-        if column.formula is None:
+        if sum(value is not None for value in
+               (column.formula, column.relation_path, column.select, column.exists)) > 1:
+            raise ValueError(f'Column has conflicting virtual definitions: {table.key}.{name}')
+        if column.subqueries and column.formula is None:
+            raise ValueError(f'Named subqueries require a formula: {table.key}.{name}')
+        if not column.is_virtual:
             return concat(Identifier(alias), '.', Identifier(column.physical_name))
         key = (table.key, name)
         if key in self.formulas:
-            raise ValueError(f'Cyclic formula: {table.key}.{name}')
+            raise ValueError(f'Cyclic formula/alias: {table.key}.{name}')
         self.formulas.add(key)
         try:
-            return concat('(', self.expression(column.formula, table, alias), ')')
+            if column.relation_path is not None:
+                path = column.relation_path
+                if match := _PATH.fullmatch(path):
+                    return self.related(match.group(1), table, alias)[0]
+                name = _reference(path) if path.startswith('$') else path
+                if name not in table.columns:
+                    raise ValueError(f'Invalid alias relation path: {path}')
+                return self.field(table, alias, name)
+            if column.select is not None or column.exists is not None:
+                is_exists = column.exists is not None
+                query = self.subquery(column.exists if is_exists else column.select, table, alias,
+                                      exists=is_exists)
+                return concat('EXISTS ' if is_exists else '', query)
+            return concat('(', self.expression(column.formula, table, alias,
+                                               subqueries=column.subqueries,
+                                               this_owner=(self, table, alias)), ')')
         finally:
             self.formulas.remove(key)
 
     def related(self, path, table, alias):
         if not self.allow_joins:
             raise UnsupportedFeatureError('Relation paths are not supported in native DML')
-        parts = path.split('.')
+        parts = path.replace('@', '').split('.')
         for name in parts[:-1]:
             try:
                 relation = table.relations[name]
@@ -317,7 +444,7 @@ class _Context:
             target = self.model.table(relation.target)
             key = (alias, name)
             if key not in self.joins:
-                target_alias = f't{len(self.joins) + 1}'
+                target_alias = f'{self.namespace}t{len(self.joins) + 1}'
                 if not relation.columns or len(relation.columns) != len(relation.target_columns):
                     raise ValueError(f'Invalid join columns for {table.key}.{name}')
                 if any(column not in table.columns for column in relation.columns) or any(
@@ -327,8 +454,8 @@ class _Context:
                     raise UnsupportedFeatureError(f'{table.key}.{name}: target must have a unique key')
                 terms = []
                 for source, dest in zip(relation.columns, relation.target_columns):
-                    if table.columns[source].formula or target.columns[dest].formula:
-                        raise UnsupportedFeatureError('Formula join keys are outside native V1')
+                    if table.columns[source].is_virtual or target.columns[dest].is_virtual:
+                        raise UnsupportedFeatureError('Virtual join keys are outside native V1')
                     terms.append(concat(self.field(table, alias, source), ' = ',
                                         self.field(target, target_alias, dest)))
                 self.joins[key] = Join(self.table_ref(target, target_alias),
@@ -337,11 +464,14 @@ class _Context:
             table = target
         return self.field(table, alias, parts[-1]), table, parts[-1]
 
-    def expression(self, expression, table=None, alias='t0'):
+    def expression(self, expression, table=None, alias=None, *, subqueries=None,
+                   this_owner=None):
         if not isinstance(expression, str) or not expression.strip():
             raise ValueError('Expected nonempty SQL expression')
         table = table or self.table
+        alias = alias or self.basealias
         result = []
+        used_subqueries = set()
         for kind, code in _runs(expression, self.dialect.tokens):
             if kind == 'field':
                 result.append(self.field(table, alias, code[2:-1].replace('""', '"')))
@@ -355,7 +485,20 @@ class _Context:
                 raise UnsupportedFeatureError('aggregateRows has been removed; use explicit SQL aggregates')
             i = 0
             while i < len(code):
-                if match := _PARAM.match(code, i):
+                if match := _THIS.match(code, i):
+                    owner_context = this_owner or self.outer
+                    if owner_context is None:
+                        raise UnsupportedFeatureError('#THIS requires a correlated subquery')
+                    context, owner, outer_alias = owner_context
+                    path = match.group(1)
+                    result.append(context.related(path.lstrip('@'), owner, outer_alias)[0]
+                                  if '.' in path else context.field(owner, outer_alias, path))
+                    i = match.end()
+                elif (match := _MACRO.match(code, i)) and subqueries and match.group(1) in subqueries:
+                    used_subqueries.add(match.group(1))
+                    result.append(self.subquery(subqueries[match.group(1)], table, alias))
+                    i = match.end()
+                elif match := _PARAM.match(code, i):
                     result.append(self.binding(match.group()[1:]))
                     i = match.end()
                 elif match := _FIELD.match(code, i):
@@ -371,6 +514,8 @@ class _Context:
                 else:
                     result.append(code[i])
                     i += 1
+        if subqueries and subqueries.keys() - used_subqueries:
+            raise ValueError(f'Unused named subqueries: {sorted(subqueries.keys() - used_subqueries)}')
         return concat(*result)
 
     def projection(self, columns):
@@ -383,7 +528,9 @@ class _Context:
         expanded = []
         for expression in expressions:
             if expression.strip() == '*':
-                expanded.extend('$"' + name.replace('"', '""') + '"' for name in self.table.columns)
+                expanded.extend('$"' + name.replace('"', '""') + '"'
+                                for name, column in self.table.columns.items()
+                                if self.allow_joins or not column.is_virtual)
             else:
                 expanded.append(expression)
         if not expanded:
@@ -392,16 +539,17 @@ class _Context:
         for expression in expanded:
             value, name = _projection_alias(expression, self.dialect.tokens)
             source = column = None
+            resolved_value = None
             if (field_name := _reference(value)) is not None:
                 column = self.table.columns.get(field_name)
                 if column is not None:
                     source = column.identity or self.table.key + '.' + column.name
                 name = name or field_name
             elif match := _PATH.fullmatch(value):
-                _, owner, field = self.related(match.group(1), self.table, 't0')
+                resolved_value, owner, field = self.related(match.group(1), self.table, self.basealias)
                 column = owner.columns[field]
                 source = column.identity or owner.key + '.' + column.name
-                name = name or match.group(1).replace('.', '_')
+                name = name or match.group(1).replace('@', '').replace('.', '_')
             if name is None:
                 raise ValueError('Computed SQL expressions require an explicit AS alias')
             if name in names:
@@ -409,7 +557,8 @@ class _Context:
             names.add(name)
             metadata = ResultColumn(name, column.dtype if column else None,
                                     source, column.ui if column else {})
-            projections.append(Projection(self.expression(value), name, metadata))
+            projections.append(Projection(resolved_value if resolved_value is not None
+                                          else self.expression(value), name, metadata))
         return tuple(projections)
 
 
@@ -420,6 +569,9 @@ class QueryCompiler:
                  *, environment: SqlEnvironment | None = None):
         if dialect.name != formatter.dialect:
             raise ValueError('The data dialect and binding formatter are incompatible')
+        if any(column.relation_path is not None and column.alias_target is None
+               for table in model.tables.values() for column in table.columns.values()):
+            model = replace(model, tables=_resolve_aliases(dict(model.tables)))
         self.model = validate_row_policies(model)
         self.dialect = dialect
         self.formatter = formatter
@@ -429,7 +581,8 @@ class QueryCompiler:
         """Ask the configured dialect to render and formatter to prepare bindings."""
         if plan.dialect != self.dialect.name:
             raise ValueError('Query plan belongs to a different data dialect')
-        return self.formatter.prepare(self.dialect.render(plan))
+        query = self.formatter.prepare(self.dialect.render(plan))
+        return replace(query, input_parameters=plan.input_parameters)
 
     def _context(self, table, params=None, joins=True):
         return _Context(self.model, self.model.table(table), params, self.dialect,
@@ -439,7 +592,11 @@ class QueryCompiler:
                     limit=None, offset=None, *, exclude_draft=True,
                     exclude_logical_deleted=True, ignore_partition=False,
                     for_update=False, **options) -> QueryPlan:
-        """Resolve a select without rendering SQL or formatting parameters."""
+        """Resolve a select without rendering the root or formatting parameters.
+
+        Correlated child plans are rendered by the dialect into structured
+        fragments; driver parameter formatting happens only at compile_plan.
+        """
         if options:
             if 'aggregateRows' in options:
                 raise UnsupportedFeatureError('aggregateRows has been removed; use explicit SQL aggregates')
@@ -462,7 +619,8 @@ class QueryCompiler:
         return QueryPlan('select', context.table_ref(context.table), projections,
                          tuple(context.joins.values()), predicate, ordering, limit, offset,
                          params=context.params, dialect=self.dialect.name,
-                         environment=context.environment_binding(), for_update=for_update)
+                         environment=context.environment_binding(), for_update=for_update,
+                         input_parameters=tuple(sorted(context.consumed_inputs)))
 
     def select(self, table, columns='*', where=None, params=None, order_by=None,
                limit=None, offset=None, *, exclude_draft=True,
@@ -482,8 +640,9 @@ class QueryCompiler:
             column = context.table.columns.get(name)
             if column is None:
                 raise ValueError(f'Unknown column {context.table.key}.{name}')
-            if column.formula is not None:
-                raise ValueError(f'Cannot write formula column {name}')
+            if column.is_virtual:
+                kind = 'formula' if column.formula is not None else 'alias'
+                raise ValueError(f'Cannot write {kind} column {name}')
             parameter = f'__value_{index}'
             while parameter in context.available:
                 parameter = '_' + parameter
@@ -508,7 +667,8 @@ class QueryCompiler:
         projections = context.projection(returning)
         return QueryPlan('insert', context.table_ref(context.table), projections,
                          assignments=assignments, params=context.params, dialect=self.dialect.name,
-                         environment=context.environment_binding())
+                         environment=context.environment_binding(),
+                         input_parameters=tuple(sorted(context.consumed_inputs)))
 
     def insert(self, table, values, returning='*', *, ignore_partition=False):
         return self.compile_plan(self.plan_insert(table, values, returning, ignore_partition=ignore_partition))
@@ -525,7 +685,8 @@ class QueryCompiler:
         projections = context.projection(returning)
         return QueryPlan('update', context.table_ref(context.table), projections,
                          where=predicate, assignments=assignments, params=context.params,
-                         dialect=self.dialect.name, environment=context.environment_binding())
+                         dialect=self.dialect.name, environment=context.environment_binding(),
+                         input_parameters=tuple(sorted(context.consumed_inputs)))
 
     def update(self, table, values, where, params=None, returning='*', *, ignore_partition=False):
         return self.compile_plan(self.plan_update(table, values, where, params, returning,
@@ -539,7 +700,8 @@ class QueryCompiler:
         projections = context.projection(returning)
         return QueryPlan('delete', context.table_ref(context.table), projections,
                          where=predicate, params=context.params, dialect=self.dialect.name,
-                         environment=context.environment_binding())
+                         environment=context.environment_binding(),
+                         input_parameters=tuple(sorted(context.consumed_inputs)))
 
     def delete(self, table, where, params=None, returning='*', *, ignore_partition=False):
         return self.compile_plan(self.plan_delete(table, where, params, returning, ignore_partition=ignore_partition))
@@ -550,7 +712,7 @@ class QueryCompiler:
         name = owner.policies.logical_deletion_field
         if name and name.startswith('$'):
             name = _reference(name)
-        if not name or name not in owner.columns or owner.columns[name].formula is not None:
+        if not name or name not in owner.columns or owner.columns[name].is_virtual:
             raise ValueError('Soft deletion requires a physical logical_deletion_field')
         return name
 

@@ -15,6 +15,7 @@ the whole story instead of stopping at the first offence.
 from __future__ import annotations
 
 from collections import Counter
+import re
 
 from .catalog import SqlModelCatalog
 from .common import split_names
@@ -109,7 +110,9 @@ class SqlModelValidator:
             info = owner._get_schema_info(node.node_tag)
             declared = info.get("declared_names") or set()
             for key in node.attr:
-                if key == _META_KEY or key in declared or key.startswith("x_"):
+                if (key == _META_KEY or key in declared or key.startswith("x_")
+                        or (node.node_tag == "formulaColumn"
+                            and re.fullmatch(r"select_[A-Za-z_][A-Za-z0-9_]*", key))):
                     continue
                 self._error(
                     path,

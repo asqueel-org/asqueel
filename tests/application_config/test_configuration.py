@@ -116,3 +116,31 @@ def test_repeated_render_does_not_copy_live_products_or_reuse_context():
     assert recipe.materialized['objects'] == [second]
     for database in (first, second, third):
         database.close()
+
+
+def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits():
+    class LogicalRecipe(SqlDatabaseConfig):
+        def main(self, root):
+            tables = root.db('demo').schemas().schema('app').tables()
+            target = tables.table('target', pkey='id').columns()
+            target.column('id', dtype='I')
+            target.column('label', dtype='A', size='30', name_long='Original')
+            source = tables.table('source', pkey='id')
+            columns = source.columns()
+            columns.column('id', dtype='I')
+            columns.column('target_id', dtype='I').relation('app.target.id', x_name='target')
+            source.virtual_columns().aliasColumn(
+                'label', relation_path='@target.label', name_long='Local')
+
+    with build_database(LogicalRecipe) as db:
+        alias = db.table('source').column('label')
+        target = db.table('target').column('label')
+        assert alias.originalColumn is target
+        assert alias.relation_path == '@target.label'
+        assert alias.config('dtype') == 'A'
+        assert alias.config('size') == '30'
+        assert alias.config('name_long') == 'Local'
+        assert alias.config('missing', default=False) is False
+        assert alias.config.scope('missing')('value', default=0) == 0
+        assert alias.model.dtype == 'A'
+        assert 'LEFT JOIN' in db.table('source').query(columns='$label').sqltext

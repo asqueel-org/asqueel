@@ -167,12 +167,13 @@ def test_returning_formula_that_requires_join_is_rejected():
                                       'display': Column('display', formula='@customer.id')},
                     relations={'customer': Relation('customer', customer.key, ('id',), ('id',))})
     compiler = PostgresCompiler(ResolvedModel({customer.key: customer, invoice.key: invoice}))
-    for action in [lambda: compiler.insert('invoice', {'id': 1}),
-                   lambda: compiler.update('invoice', {'id': 1}, 'TRUE'),
-                   lambda: compiler.delete('invoice', 'TRUE')]:
+    for action in [lambda: compiler.insert('invoice', {'id': 1}, returning='$display'),
+                   lambda: compiler.update('invoice', {'id': 1}, 'TRUE', returning='$display'),
+                   lambda: compiler.delete('invoice', 'TRUE', returning='$display')]:
         with pytest.raises(UnsupportedFeatureError, match='DML'):
             action()
     assert compiler.insert('invoice', {'id': 1}, returning='$id').columns[0].name == 'id'
+    assert [c.name for c in compiler.insert('invoice', {'id': 1}).columns] == ['id']
 
 
 def test_manual_relation_without_unique_target_rejected():

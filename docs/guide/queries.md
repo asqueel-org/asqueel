@@ -18,6 +18,11 @@ database session and return `QueryResult`; they do not commit individually.
 use an explicit `where` and `params` to change a key. `delete(key)` physically
 deletes the selected row; soft deletion is a separate operation.
 
+Writes return physical columns by default (`returning='*'`). Request a simple
+SQL formula explicitly when needed. Structured subquery formulas must be read
+with a separate query. Value mappings must contain writable columns; passing a
+fetched row containing virtual columns directly to `update()` is not supported.
+
 Use `query(..., for_update=True)` or `record(key, for_update=True)` inside a
 transaction to lock the base-table rows until commit or rollback. PostgreSQL
 `FOR UPDATE OF` targets only the base table, including when the query joins other

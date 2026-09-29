@@ -1,0 +1,119 @@
+[
+  {
+    "case": "formula",
+    "phase": "terminal",
+    "executed_sql": false,
+    "sql": "SELECT (\"t0\".\"amount\" * 2) AS \"double\" FROM \"app\".\"invoice\" AS \"t0\"",
+    "status": "compiled_only"
+  },
+  {
+    "case": "formula_chain",
+    "phase": "terminal",
+    "executed_sql": false,
+    "sql": "SELECT ((\"t0\".\"amount\" * 2) * 2) AS \"quad\" FROM \"app\".\"invoice\" AS \"t0\"",
+    "status": "compiled_only"
+  },
+  {
+    "case": "alias",
+    "phase": "resolution",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "app.invoice.customer_name: aliasColumn"
+  },
+  {
+    "case": "formula_select",
+    "phase": "resolution",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "app.invoice.value: formulaColumn"
+  },
+  {
+    "case": "formula_exists",
+    "phase": "resolution",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "app.invoice.value: formulaColumn"
+  },
+  {
+    "case": "subquery",
+    "phase": "resolution",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "app.invoice.value: subQueryColumn"
+  },
+  {
+    "case": "python",
+    "phase": "resolution",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "app.invoice.value: pyColumn"
+  },
+  {
+    "case": "composite_value",
+    "phase": "terminal",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "ValueError",
+    "error": "Unknown column app.invoice.key_pair"
+  },
+  {
+    "case": "to_one",
+    "phase": "terminal",
+    "executed_sql": false,
+    "sql": "SELECT \"t1\".\"name\" AS \"customer_name\" FROM \"app\".\"invoice\" AS \"t0\" LEFT JOIN \"app\".\"customer\" AS \"t1\" ON \"t0\".\"customer_id\" = \"t1\".\"id\"",
+    "status": "compiled_only"
+  },
+  {
+    "case": "group_by",
+    "phase": "query_construction",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "Unsupported query options: ['group_by']"
+  },
+  {
+    "case": "distinct",
+    "phase": "query_construction",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "Unsupported query options: ['distinct']"
+  },
+  {
+    "case": "count",
+    "phase": "terminal",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "The count terminal is not implemented; select an explicit SQL aggregate"
+  },
+  {
+    "case": "selection",
+    "phase": "terminal",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "Selection and Bag output are outside this application profile"
+  },
+  {
+    "case": "relation_function",
+    "phase": "terminal",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "ValueError",
+    "error": "Unknown column app.customer.count"
+  },
+  {
+    "case": "aggregate_rows",
+    "phase": "query_construction",
+    "executed_sql": false,
+    "status": "error",
+    "error_type": "UnsupportedFeatureError",
+    "error": "Unsupported query options: ['aggregateRows']"
+  }
+]

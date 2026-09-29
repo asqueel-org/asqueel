@@ -5,6 +5,23 @@ requisiti acquisiti e proposte. Non avvia un'implementazione né una migrazione.
 
 ## Revisione corrente
 
+Le [formule correlate select/exists](12-correlated-formulas-delivery.md) estendono
+il percorso con sottoquery nominate, correlazione #THIS, scope dei parametri e
+prove tratte da dichiarazioni legacy reali. Il rapporto distingue la semantica
+recuperata dalle differenze deliberate sulle partition e dai requisiti aperti.
+
+Il [completamento aliasColumn](11-alias-columns-delivery.md) implementa il primo
+gruppo di requisiti del riesame: ereditarietà dei metadati, risoluzione operativa,
+percorsi legacy multi-hop e prove PostgreSQL. Descrive esplicitamente i limiti
+ancora aperti e la prova mirata contro la classe originale legacy.
+
+Il [riesame della copertura reale](10-legacy-coverage-reassessment.md) corregge
+la valutazione del prodotto dopo la verifica di aliasColumn e delle altre
+primitive legacy. Contiene una matrice delle lacune, prove riproducibili e nuove
+priorità, con approfondimenti su [modello](10a-model-feature-audit.md),
+[compiler](10b-compiler-feature-audit.md) e [runtime](10c-runtime-feature-audit.md).
+La copertura dei test del nuovo codice non va confusa con conformità al legacy.
+
 La [revisione dell'architettura a oggetti](09-legacy-object-api-review.md)
 riesamina il prodotto implementato rispetto al legacy e alla configurazione
 con grammatiche richiesta dall'utente. Comprende quattro approfondimenti:

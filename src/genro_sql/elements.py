@@ -256,6 +256,7 @@ class TableElements:
 
     @element(parent_tags="virtual_columns", sub_tags="")
     def aliasColumn(self, name: str, relation_path: str,
+                    dtype: DTYPE | None = None,
                     name_long: str | None = None,
                     group: str | None = None, **extra):
         """A virtual column projecting a related column. Never physical.
@@ -272,9 +273,9 @@ class TableElements:
         ...
 
     @element(parent_tags="virtual_columns", sub_tags="")
-    def formulaColumn(self, name: str, sql_formula: str | None = None,
-                      select: str | None = None,
-                      exists: str | None = None,
+    def formulaColumn(self, name: str, sql_formula: str | bool | None = None,
+                      select: dict | str | None = None,
+                      exists: dict | str | None = None,
                       dtype: DTYPE | None = None,
                       name_long: str | None = None,
                       group: str | None = None, **extra):

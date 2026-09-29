@@ -211,6 +211,7 @@ carries one of its own.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the alias name. |
 | relation_path | `str` | *required* | physical | `@relation.column` path to the source column. |
+| dtype | `DTYPE \| None` | `None` | physical |  |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 
@@ -226,9 +227,9 @@ A virtual column defined by SQL. Never physical.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
-| sql_formula | `str \| None` | `None` | physical | an expression over the row's own columns. |
-| select | `str \| None` | `None` | physical | a scalar sub-select. |
-| exists | `str \| None` | `None` | physical | an EXISTS predicate. |
+| sql_formula | `str \| bool \| None` | `None` | physical | an expression over the row's own columns. |
+| select | `dict \| str \| None` | `None` | physical | a scalar sub-select. |
+| exists | `dict \| str \| None` | `None` | physical | an EXISTS predicate. |
 | dtype | `DTYPE \| None` | `None` | physical | the resulting type code. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
