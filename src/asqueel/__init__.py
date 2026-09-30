@@ -39,7 +39,7 @@ from .runtime import (
 from .session import DeferredCommitError
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
     "AsqueelDb", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",

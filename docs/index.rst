@@ -102,6 +102,7 @@ Choose your starting point
    :maxdepth: 1
    :caption: Release information
 
+   guide/release-notes
    guide/limitations
 
 The API reference describes Python interfaces. The grammar reference describes
