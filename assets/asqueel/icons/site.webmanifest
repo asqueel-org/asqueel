@@ -1,0 +1,21 @@
+{
+  "name": "Asqueel",
+  "short_name": "Asqueel",
+  "icons": [
+    {
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#571F2B",
+  "background_color": "#F5EBDD",
+  "display": "standalone"
+}

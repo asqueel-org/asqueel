@@ -5,6 +5,21 @@ requisiti acquisiti e proposte. Non avvia un'implementazione né una migrazione.
 
 ## Revisione corrente
 
+La [consegna F1 — sessioni](17-f1-sessions-delivery.md) introduce connessioni
+nominate persistenti, rollback SQL automatico e currentEnv/tempEnv applicativi.
+Include oracle legacy su PostgreSQL e 532 test superati; distingue ciò che resta
+aperto, in particolare localizzazione completa e code pending F4.
+
+Il [piano operativo 15](15-operational-plan.md) traduce l’audit in fasi F0–F10,
+dipendenze, criteri di accettazione e traguardi V1–V4. È pianificazione,
+non avvio dell’implementazione.
+
+L'[audit dei test SQL legacy](13-legacy-test-audit.md) censisce 37 file e 968
+definizioni sorgente, distingue prove reali, mock e casi non raccolti, e collega
+42 contratti alla distanza dal prodotto attuale. La [proposta di tappe](14-legacy-target-and-stages.md)
+definisce il traguardo e i criteri di accettazione senza introdurre nuove decisioni.
+L'[indice analitico](evidence/legacy-sql-tests-index.md) rimanda a ogni test.
+
 Le [formule correlate select/exists](12-correlated-formulas-delivery.md) estendono
 il percorso con sottoquery nominate, correlazione #THIS, scope dei parametri e
 prove tratte da dichiarazioni legacy reali. Il rapporto distingue la semantica
@@ -80,3 +95,9 @@ rimozione di aggregateRows. Gli esempi delle API nuove restano proposte.
 Le nuove decisioni vanno aggiornate in obiettivi/decisioni e nei relativi casi
 di accettazione. Le osservazioni storiche non vanno riscritte per farle coincidere
 con l'obiettivo futuro: si aggiunge una nuova evidenza o si indica il superamento.
+
+- [Ripresa e riesame del lifecycle interrotto](18-interrupted-lifecycle-review.md):
+  provenienza della bozza, difetti riprodotti e prerequisiti di chiusura F1.
+
+- [Correzioni al lifecycle deferred](19-deferred-lifecycle-fixes.md):
+  comportamento verificato, confronto legacy e limiti residui di F1.

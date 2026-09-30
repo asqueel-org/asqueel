@@ -1,9 +1,27 @@
-# Formulas with correlated subqueries
+# Define computed columns and correlated formulas
 
 `formulaColumn` supports a SQL expression, a scalar `select` definition or an
 `exists` definition. Structured definitions follow the legacy dictionary shape;
 `#THIS` refers to the row owning the formula, including when that formula is
 reached through a relation or an alias.
+
+## Choose an expression, an alias or a subquery
+
+| Need | Declaration | Read it as |
+|---|---|---|
+| Calculate from fields in this row | `formulaColumn(sql_formula='$total * 2', ...)` | `$double_total` |
+| Expose a related column with inherited metadata | `aliasColumn(relation_path='@customer.name', ...)` | `$customer_name` |
+| Calculate one value from another table | `formulaColumn(select={...}, ...)` | `$line_total` |
+| Test whether matching rows exist | `formulaColumn(exists={...}, dtype='B', ...)` | `$has_lines` |
+| Combine several scalar subqueries | `sql_formula` plus `select_<name>` definitions | A single formula column |
+
+These are query-time expressions, not stored/generated database columns. They
+are read-only in application writes and excluded from physical schema projection.
+Set the dtype for expressions explicitly; arbitrary SQL does not infer it. An
+alias inherits its target dtype and UI metadata, as described in [models](models.md).
+
+For a first working example, use the [invoice tutorial](tutorial.md). This page
+then expands the correlation and visibility rules you need for larger formulas.
 
 ## Declare scalar and EXISTS formulas
 
@@ -102,26 +120,23 @@ For a visible-rows total, declare both `excludeDraft=True` and
 `excludeLogicalDeleted=True` in its definition. Conditions, order and parameters
 belong to the subquery; outer query options do not silently replace them.
 
-## Options and current boundaries
+## Formula inputs and result shapes
 
-Definitions accept `table`, `columns`, `where`, `params`/`sqlparams`, `order_by`,
-`limit`, `offset`, the policy options above, and `cast`. Explicit `limit=1` with
-an order is supported when the application intentionally selects one row.
-`cast='numeric(14,2)'`, for example, casts the scalar result. Cast names use a
-restricted SQL type syntax; quoted custom type names are not currently supported.
+A scalar select definition specifies its table, projection, predicate, parameters
+and ordering. Use `limit=1` with an explicit order when the formula intentionally
+selects one row. A cast specifies the SQL type of the scalar result. Policy and
+subtable options belong to the subquery's own context.
 
-The compatibility values `subtable='*'`, `addPkeyColumn=False` and
-`ignoreTableOrderBy=True` are accepted; other values are unsupported. They do not
-add subtable behavior, implicit primary-key projection or a table default order.
-Unknown options, including currently unsupported GROUP BY/HAVING/DISTINCT, fail
-explicitly.
+Formula providers can supply definitions through application methods. Variants
+and `var_*` inputs specialize reusable calculations. A Python column computes
+an application value; a Bag-item column extracts a value from structured data.
+These forms have different execution responsibilities from an SQL expression.
 
-String definitions naming `subquery_*` methods, `sql_formula=True` callbacks,
-`var_*`/formula variants, Python columns, and the separate `subQueryColumn`
-collection API remain unimplemented. Do not confuse a formula with a scalar
-subquery with automatic to-many collection shaping or virtualRelation.
+A collection subquery returns related data with an explicit shape, rather than
+a scalar. A virtual relation defines navigable model semantics. Keep those
+contracts distinct even when both start from the same related table.
 
 Computed columns are read-only and excluded from physical migration output and
 from DML `RETURNING '*'`. Explicit simple SQL formulas can still be returned by
-DML; structured subquery formulas are currently limited to reads. Read them in a
-separate query in the same transaction when needed after a write.
+DML when their expression is valid there. A separate query in the same
+transaction can obtain a computed view of the record after a write.

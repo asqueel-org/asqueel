@@ -34,8 +34,7 @@ with recipe.render() as db:
 ```
 
 The default renderer is an object renderer. `render()` returns a database, not
-DDL or serialized configuration. `target=False` is a string-renderer convention
-and is not accepted here. Explicit delivery targets are not supported.
+DDL or serialized configuration. Structural changes belong to the migration integration.
 
 The root declares `name`, `implementation='postgresql'`, `conninfo=''`, and
 optional `connect_kwargs`. An empty connection string uses the driver's normal
@@ -92,11 +91,12 @@ identity; `originalColumn` links to the live target. See [alias columns](models.
 Defaults from the effective grammar are resolved on a separate source copy before
 building the semantic model. A mounted column grammar's default dtype therefore
 also reaches `.model.dtype`; it is not merely a display-time configuration value.
-The authored configuration remains unchanged. Standard SQL grammar declarations
-and supported schema/table mounts can be used; the model still rejects unsupported
-executable features. Builders 0.27 has a limitation with indirectly inherited
-grammar overrides: use explicit grammar mixins and test the effective declaration
-before relying on such overrides.
+The authored configuration remains unchanged. Compose SQL declarations and
+schema/table grammar mounts to define the effective application vocabulary.
+
+For a complete schema-to-table grammar mount, see
+[cascading configuration grammars](configuration-grammars.md). Value layering
+and grammar selection are separate choices.
 
 ## Read and write through a table
 
@@ -127,70 +127,11 @@ Insert, update, delete, soft-delete and restore return `QueryResult`. Read the
 [transaction guide](transactions.md) before using writes: operations share a
 session and do not commit individually.
 
-## Add native table behavior
+## Add business behavior
 
-A table can select a `SqlTable` subclass with `x_table_class`. The native hook
-profile supports insertion, update and deletion:
-
-```python
-from genro_sql import SqlTable
-
-
-class CustomerTable(SqlTable):
-    def trigger_onInserting(self, record):
-        record["name"] = record["name"].strip()
-        if not record["name"]:
-            raise ValueError("Customer name is required")
-
-    def trigger_onInserted(self, record):
-        # Returned fields, when requested, are available in this record.
-        pass
-
-
-class ShopWithBehavior(SqlDatabaseConfig):
-    def main(self, root):
-        customer = root.db("shop", conninfo="dbname=shop").schemas().schema(
-            "sales",
-        ).tables().table("customer", pkey="id", x_table_class=CustomerTable)
-        columns = customer.columns()
-        columns.column("id", dtype="L")
-        columns.column("name", dtype="T")
-```
-
-The input mapping is copied before the before-insert hook. Returned fields are
-overlaid before the after-insert hook. Hooks may use other tables on the same
-database; those operations participate in the same session. A hook failure marks
-the unit of work rollback-only, including a failure before any SQL. Hooks cannot
-commit, roll back or close the database during a write.
-
-For updates, override `trigger_onUpdating(record, old_record=None)` and/or
-`trigger_onUpdated(record, old_record=None)`. For physical deletion, override
-`trigger_onDeleting(record)` and/or `trigger_onDeleted(record)`.
-
-When an update or delete hook is overridden, the table first reads and locks the
-matching record with PostgreSQL `FOR UPDATE OF` the base table. A declared primary
-key and exactly one matching row are required; missing or multiple matches raise
-`RecordNotFoundError` or `RecordMultipleRowsError` before any hook runs. Locks last
-until commit or rollback. Without overridden hooks, explicit predicates retain
-the existing set-based update/delete behavior.
-
-The update before-hook receives the complete physical row overlaid with the
-caller's changes. It may modify that record. Both update hooks receive independent
-copies of the original locked row as `old_record`. SQL targets the saved old key,
-so changing a key in the new record does not redirect the update. Delete hooks
-share the loaded record, but changing its key cannot redirect deletion either.
-Returned physical fields are mapped back by column identity before the update
-after-hook; returning aliases do not rename record fields.
-
-Draft and logical-deletion read filters do not hide the row being written;
-partition restrictions still apply. `soft_delete()` and `restore()` follow the
-update hook lifecycle. An unexpected affected-row count makes the unit of work
-rollback-only, as does any hook error. Related SQL writes share this rollback;
-external side effects, such as sending messages, cannot be undone by it.
-
-This native extension mechanism does not load legacy package mixins or implement
-field triggers, protection callbacks, counters, related-record cascades or the
-full legacy trigger/selection system.
+Configure `x_table_class=YourTableSubclass` to attach before/after insert, update
+and deletion hooks. See [table hooks](hooks.md) for the complete example, locking
+semantics and transaction rules.
 
 ## Ownership and advanced integration
 

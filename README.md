@@ -1,11 +1,17 @@
 # Genro SQL
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/asqueel/svg/asqueel-wordmark-inverse.svg">
+  <img src="assets/asqueel/svg/asqueel-wordmark-primary.svg" alt="Asqueel — Genro SQL" width="360">
+</picture>
+
 Define SQL models in Python, compile parameterized queries, and work with
 PostgreSQL through a synchronous API. Genro SQL keeps logical names, physical
 database names, relationships, and column UI metadata in a shared model.
 
-**Status: alpha.** Python 3.11–3.13 is tested. PostgreSQL is the supported
-execution backend. The runtime uses the calling thread; there is no async API.
+The developer manual describes the intended delivery contract, including designed
+features. See [Current status](docs/guide/limitations.md) for implementation
+availability and open decisions.
 
 ## Install
 
@@ -55,21 +61,36 @@ layered recipes and live table objects. The separate compiler and low-level
 runtime remain available for advanced integrations.
 
 Query expressions are application code; pass external values through parameters
-rather than SQL interpolation. This native profile returns dictionaries; legacy
-Selection/Bag output is not implemented.
+rather than SQL interpolation.
 
-## Application developer guides
+## Learn and use Genro SQL
 
-- [Installation](docs/guide/installation.md) and [quickstart](docs/guide/quickstart.md)
-- [Configuration and application objects](docs/guide/configuration.md)
-- [Models, relationships, naming and UI metadata](docs/guide/models.md)
-- [Queries, formulas and writes](docs/guide/queries.md)
-- [Transactions and error handling](docs/guide/transactions.md)
-- [Environment scopes](docs/guide/environment.md)
-- [Partitions, drafts and soft deletion](docs/guide/row-policies.md)
-- [Importing an existing database](docs/guide/importing.md)
-- [Schema migration integration](docs/guide/migrations.md)
-- [Using adapters](docs/guide/adapters.md) and [supported features](docs/guide/limitations.md)
+Start with [What is Genro SQL?](docs/guide/overview.md) and
+[the object model](docs/guide/concepts.md), run the
+[quickstart](docs/guide/quickstart.md), then follow the
+[customers and invoices tutorial](docs/guide/tutorial.md). The tutorial includes a
+[complete runnable script](docs/guide/_examples/shop_tutorial.py) with assertions,
+transaction examples and disposable-schema cleanup.
+
+| You want to… | Read |
+|---|---|
+| Configure an application and render live objects | [Configuration](docs/guide/configuration.md) |
+| Declare names, relations, aliases and UI metadata | [Models](docs/guide/models.md) |
+| Read data or load exactly one record | [Queries](docs/guide/queries.md) |
+| Insert, update or delete | [Writes](docs/guide/writes.md) and [transactions](docs/guide/transactions.md) |
+| Add business behavior | [Table hooks](docs/guide/hooks.md) |
+| Define computed values and correlated subqueries | [Formulas](docs/guide/formulas.md) |
+| Scope data by organization, draft or deletion state | [Environment](docs/guide/environment.md) and [row policies](docs/guide/row-policies.md) |
+| Start from an existing database or manage its schema | [Importing](docs/guide/importing.md) and [migrations](docs/guide/migrations.md) |
+| Come from Genropy | [For Genropy users](docs/guide/legacy.md), including agreed differences |
+| Come from SQLAlchemy | [For SQLAlchemy users](docs/guide/for-sqlalchemy.md) |
+| Come from Django | [For Django users](docs/guide/for-django.md) |
+| Come from Peewee | [For Peewee users](docs/guide/for-peewee.md) |
+| Look up a call or diagnose a problem | [API cheat sheet](docs/guide/cheatsheet.md) and [troubleshooting](docs/guide/troubleshooting.md) |
+
+For advanced integration, see [cascading grammars](docs/guide/configuration-grammars.md),
+[the compiler](docs/guide/compiler.md), [low-level execution](docs/guide/low-level-runtime.md)
+and [adapters](docs/guide/adapters.md).
 
 The public Sphinx site contains these English guides and the API reference.
 To build it locally:

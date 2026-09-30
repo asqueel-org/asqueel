@@ -36,6 +36,8 @@ from .runtime import (
     DatabaseClosedError, Database, PostgresDatabase,
     TransactionStateError,
 )
+from .session import DeferredCommitError
+from .triggers import TriggerStack, TriggerStackItem
 
 __version__ = "0.1.0"
 
@@ -52,6 +54,8 @@ __all__ = [
     "QueryCompiler", "PostgresDialect", "PsycopgDriver", "Database",
     "CatalogProvider", "PostgresCatalogProvider",
     "SqlEnvironment", "EnvironmentMismatchError", "PartitionScope", "RowPolicies",
+    "TriggerStack", "TriggerStackItem",
+    "DeferredCommitError",
 ]
 
 _MIGRATION_EXTRA = (

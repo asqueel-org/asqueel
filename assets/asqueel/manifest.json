@@ -1,0 +1,351 @@
+{
+  "brand": "Asqueel",
+  "design": "a anguilla tipografica, scritta compatta",
+  "files": [
+    {
+      "path": "icons/android-chrome-192x192.png",
+      "bytes": 4764,
+      "sha256": "7e15aec2a57d1f005198911bfcbac6a96a92192afad54a99d703349eba714fa3"
+    },
+    {
+      "path": "icons/android-chrome-512x512.png",
+      "bytes": 16913,
+      "sha256": "0ed62d1be70c1a398faf854fc62853ea3bd04a5681c19d7eb8c49a7c3c5c2ec6"
+    },
+    {
+      "path": "icons/app-icon.svg",
+      "bytes": 950,
+      "sha256": "3e32ae080734d805b2de3f1f65021278904f79983f94906e06787535454ff9f7"
+    },
+    {
+      "path": "icons/apple-touch-icon.png",
+      "bytes": 4336,
+      "sha256": "17c06fe4f8d5f22d408b335575397b6f9bb22ee0d0893791fe997aa62f12894a"
+    },
+    {
+      "path": "icons/favicon-16x16.png",
+      "bytes": 462,
+      "sha256": "4acd8776857ecd347f51d94f9c498ba559ffd2137110d0257e6d976d0b2366ff"
+    },
+    {
+      "path": "icons/favicon-32x32.png",
+      "bytes": 908,
+      "sha256": "0187921643ea0c274c4036146507ded3bf08abfcbbb59ce5d38dc56fb804c49f"
+    },
+    {
+      "path": "icons/favicon-48x48.png",
+      "bytes": 1359,
+      "sha256": "6f68ac5a1c02489dddc14324f82f22ea413212a7f4744556a80ba711d0ae6c6c"
+    },
+    {
+      "path": "icons/favicon.ico",
+      "bytes": 4229,
+      "sha256": "425d50aa8b8a4f02093de89450d4ba79232249264c6d9f2baf2e6d511d1ddead"
+    },
+    {
+      "path": "icons/favicon.svg",
+      "bytes": 952,
+      "sha256": "bd5a73e4e6ebb0534ad3ff165d4098fdba3dffa76e368aecc684251b55d5c318"
+    },
+    {
+      "path": "icons/site.webmanifest",
+      "bytes": 420,
+      "sha256": "79bd3afadec361d8ad087366e6d617a08f9ff941750ffc8342c2074de3370163"
+    },
+    {
+      "path": "index.html",
+      "bytes": 5492,
+      "sha256": "4b1536b474203bb5d82b385849445b4880fdc72ba8e9398479c9e4cbce3bfa3f"
+    },
+    {
+      "path": "palette/asqueel-palette.css",
+      "bytes": 209,
+      "sha256": "5fddfeef8fcc0cec89a67930a5e5a2079be77ddfc53ae81355d3875bacfb7996"
+    },
+    {
+      "path": "palette/asqueel-palette.gpl",
+      "bytes": 176,
+      "sha256": "bfde144d5ebeac50010bd5770f4dbb1fb7c8c5cb22346da84eddd0f7a2015b95"
+    },
+    {
+      "path": "palette/asqueel-palette.json",
+      "bytes": 235,
+      "sha256": "ae7071f62ca72df82de000bd6a1d594f895b9d7dd3286b9a5b44813d79f9aa8b"
+    },
+    {
+      "path": "palette/asqueel-palette.svg",
+      "bytes": 1784,
+      "sha256": "b0c573660bb9cd628160c63f4f2c3f73d93c499c6a13b6c53f28d6e43c270079"
+    },
+    {
+      "path": "png/asqueel-monogram-black-1024.png",
+      "bytes": 26318,
+      "sha256": "b5b76fb9e22d39deb78358ca3f89fd7a7e86c6ac6bc6024d75a334f47912472b"
+    },
+    {
+      "path": "png/asqueel-monogram-black-128.png",
+      "bytes": 2201,
+      "sha256": "c6d0184045dee8918f3c899737e90685015b68ba1ca0a8590bf66f8f8b78ad9b"
+    },
+    {
+      "path": "png/asqueel-monogram-black-256.png",
+      "bytes": 4812,
+      "sha256": "0c70ee1fe08f3336ef6413158051fcba5a95f657b5b34092ecf47b9a9fba6564"
+    },
+    {
+      "path": "png/asqueel-monogram-black-512.png",
+      "bytes": 10955,
+      "sha256": "ddc4610572f643f8c66139b9cf6feeef38dcb7f744848ed83ba50e0ac6d8a736"
+    },
+    {
+      "path": "png/asqueel-monogram-black-64.png",
+      "bytes": 1100,
+      "sha256": "b2b2a385300f897b98499fa260a01a4b6ea59064995e44fb44175f8bd223037a"
+    },
+    {
+      "path": "png/asqueel-monogram-burgundy-1024.png",
+      "bytes": 33469,
+      "sha256": "4102e5769d4084542a34a0c3c7aa7269a1b80f9fcd7d9c27667c05111e1e8a27"
+    },
+    {
+      "path": "png/asqueel-monogram-burgundy-128.png",
+      "bytes": 2827,
+      "sha256": "4506fbb460325584cc4bcd8303d7988d6d2a79413410e4e231e1ea0de579e3b8"
+    },
+    {
+      "path": "png/asqueel-monogram-burgundy-256.png",
+      "bytes": 6080,
+      "sha256": "ebbf34a0505d3441adecfaa8ce54bff969d390bf00d585dd688098e510571dcf"
+    },
+    {
+      "path": "png/asqueel-monogram-burgundy-512.png",
+      "bytes": 13868,
+      "sha256": "c7249a5fda2c1c4d422c27020366eaffe17dc413f01f63fae99088d28ebcdc69"
+    },
+    {
+      "path": "png/asqueel-monogram-burgundy-64.png",
+      "bytes": 1457,
+      "sha256": "c7c92048a8db96ef1f8322ed6ee234282e813cc934f104b8990c5467a9837fdf"
+    },
+    {
+      "path": "png/asqueel-monogram-inverse-1024.png",
+      "bytes": 34618,
+      "sha256": "4dbf2aa69e34ecded851839582c8042e75fa970bd6b221ba40f82ebad4860589"
+    },
+    {
+      "path": "png/asqueel-monogram-inverse-128.png",
+      "bytes": 3031,
+      "sha256": "e16a64f1d80dc7b5e4a031684a3f58504a61418ef14429af2a86605e1826eb67"
+    },
+    {
+      "path": "png/asqueel-monogram-inverse-256.png",
+      "bytes": 6434,
+      "sha256": "825358df1f61ecbb0e7cd355fec8dfc4793b16a518ea8531d30fe9e9ef86f65f"
+    },
+    {
+      "path": "png/asqueel-monogram-inverse-512.png",
+      "bytes": 14572,
+      "sha256": "05912ebe21ea20ba5af4a976199f6bc370fd3d1ef711872a7c6d66929eb4e76a"
+    },
+    {
+      "path": "png/asqueel-monogram-inverse-64.png",
+      "bytes": 1559,
+      "sha256": "0aac2f93ae8b80962cccec59f6f3b8a960340b09eb352622a1e51da20ba0fb00"
+    },
+    {
+      "path": "png/asqueel-monogram-primary-1024.png",
+      "bytes": 34545,
+      "sha256": "8fbc435b846570c104170e505b89bb2bdca2ccac91b5e1001fbf4c18a541211e"
+    },
+    {
+      "path": "png/asqueel-monogram-primary-128.png",
+      "bytes": 3015,
+      "sha256": "04570dfd93c6b4f14c35d7530176e1d7c47dd274a6ea0bc620e1ccdba31aab68"
+    },
+    {
+      "path": "png/asqueel-monogram-primary-256.png",
+      "bytes": 6435,
+      "sha256": "82fb3d6b30f68b6d44a3fff754e6eb8c6e4b1c2b3854e30750f25f2249600958"
+    },
+    {
+      "path": "png/asqueel-monogram-primary-512.png",
+      "bytes": 14511,
+      "sha256": "08065514acd2b1df420953f20976fba8578ead5758c0a2730f69d929aacf5e4e"
+    },
+    {
+      "path": "png/asqueel-monogram-primary-64.png",
+      "bytes": 1548,
+      "sha256": "b00f4afa3dd89eafdd5a98b79d1420de5312a83bccbf4e98178efdc975d67e11"
+    },
+    {
+      "path": "png/asqueel-monogram-white-1024.png",
+      "bytes": 24145,
+      "sha256": "0a0633d87d8c4d409f54f243b256b72a8b6ea1585a77f627c5fa9f195a1ee73a"
+    },
+    {
+      "path": "png/asqueel-monogram-white-128.png",
+      "bytes": 2254,
+      "sha256": "725066513bba0bb72c5e474c2b8779e34a201b44e27273a03509e99713a16981"
+    },
+    {
+      "path": "png/asqueel-monogram-white-256.png",
+      "bytes": 4812,
+      "sha256": "35d6d50d0f1e3a4e64991d4167d9943c50047ef10737088dec93ddade414b453"
+    },
+    {
+      "path": "png/asqueel-monogram-white-512.png",
+      "bytes": 10637,
+      "sha256": "26187bf976fa1267a4a6be1dfd372e6bf7e2ad1501649347d0a819113c78c1fb"
+    },
+    {
+      "path": "png/asqueel-monogram-white-64.png",
+      "bytes": 1141,
+      "sha256": "bae0e4b3de2962d52a443020eaf9f80fade108fcd99d9a38a8d57a9f707d71a2"
+    },
+    {
+      "path": "png/asqueel-wordmark-black-1024.png",
+      "bytes": 17743,
+      "sha256": "fb13fda2e5022443c5d644e06e0f98cb88618c9b046a2afa0b439c3bb3abf5a9"
+    },
+    {
+      "path": "png/asqueel-wordmark-black-2048.png",
+      "bytes": 42944,
+      "sha256": "16a59b0c930f859439489dab0a98aaa753dd9ff48a96bdf7d80539a2a5e5d82b"
+    },
+    {
+      "path": "png/asqueel-wordmark-black-512.png",
+      "bytes": 8050,
+      "sha256": "26206d2aaf7f9cdf3269e426b7315b83453e3c6c857f4b960f96b319d6620a48"
+    },
+    {
+      "path": "png/asqueel-wordmark-burgundy-1024.png",
+      "bytes": 22370,
+      "sha256": "56517f1a4b7cf01aa4cb9fde6b2388119283326eccaf8991e8e742932d5d59f9"
+    },
+    {
+      "path": "png/asqueel-wordmark-burgundy-2048.png",
+      "bytes": 53872,
+      "sha256": "376cb54bf63a6a8aa984a47d38d03fb442944830ecfbfd866f8212acbf05a203"
+    },
+    {
+      "path": "png/asqueel-wordmark-burgundy-512.png",
+      "bytes": 10004,
+      "sha256": "2ecadf8b6da9d718da7eccbeba491e04df5bc32a4d8a94f1b2bc4616c82f4a0d"
+    },
+    {
+      "path": "png/asqueel-wordmark-inverse-1024.png",
+      "bytes": 22823,
+      "sha256": "343cf563d6a3748a6abee78cdd3da03c3ac9719e2bef0cc00b0c731969f1689d"
+    },
+    {
+      "path": "png/asqueel-wordmark-inverse-2048.png",
+      "bytes": 54673,
+      "sha256": "7595a7e9f7440712e5b6c4973caba4324e7d2133886cecaa17fb4d7ae8aae67c"
+    },
+    {
+      "path": "png/asqueel-wordmark-inverse-512.png",
+      "bytes": 10181,
+      "sha256": "2c864897add521f237afb0e5b0bd503aa8c4d499a4880e8be492f387626c4eb1"
+    },
+    {
+      "path": "png/asqueel-wordmark-primary-1024.png",
+      "bytes": 22735,
+      "sha256": "f6ef18f293dbf4cf02a8212be292566fc5489e5784b9f9ba99da5dc9e3f2e9d1"
+    },
+    {
+      "path": "png/asqueel-wordmark-primary-2048.png",
+      "bytes": 54652,
+      "sha256": "25d65764a1d41371858dcce4b7ac480eb5e49d380fde65f1ec3271fea48dea74"
+    },
+    {
+      "path": "png/asqueel-wordmark-primary-512.png",
+      "bytes": 10212,
+      "sha256": "5a5e5ba1fa7f95f9d8b8857ce8ef6c12e0376d53033b0e8bb5ec5b748584adca"
+    },
+    {
+      "path": "png/asqueel-wordmark-white-1024.png",
+      "bytes": 18244,
+      "sha256": "3520e0a2ec3d6ee7d7abfbf70acd8fd8af38e9c910054aee3ec8cdb38b855842"
+    },
+    {
+      "path": "png/asqueel-wordmark-white-2048.png",
+      "bytes": 41162,
+      "sha256": "edebb8b1401d7b70f46dd6e18b564b218e2275aeedf65a1bbe1d3a536e3c43d8"
+    },
+    {
+      "path": "png/asqueel-wordmark-white-512.png",
+      "bytes": 8288,
+      "sha256": "5d3b3d527284a7f93ded92b7c891c52762111c59a760622909700c6d3b9aaa3e"
+    },
+    {
+      "path": "preview/asqueel-identity.png",
+      "bytes": 59752,
+      "sha256": "42fd2cc3a4bdae01d86d83746d9945c0acf8d4d94e261924e0ce43458f0a2079"
+    },
+    {
+      "path": "preview/asqueel-identity.svg",
+      "bytes": 6469,
+      "sha256": "8d34a2d078838e4e4271de19d5547c890c3850118b2934097a91000b4dde7741"
+    },
+    {
+      "path": "social/asqueel-social.png",
+      "bytes": 42247,
+      "sha256": "ddec4cb9a740ef1c0724ed255358caf25321142bd2a7c426cd553e924977cbc3"
+    },
+    {
+      "path": "social/asqueel-social.svg",
+      "bytes": 4924,
+      "sha256": "fe13e7b7e221207280401412cf36ce0c628362eb8346ee1380352b1484fbfa3f"
+    },
+    {
+      "path": "svg/asqueel-monogram-black.svg",
+      "bytes": 881,
+      "sha256": "f3973888ee28fd19513f00dc92f84ec6a18a8b4e8e0db330be65d483c2b59504"
+    },
+    {
+      "path": "svg/asqueel-monogram-burgundy.svg",
+      "bytes": 881,
+      "sha256": "e0161293c640ff73e6171ef3b9c56fde9cbcb1456024e09b01faf81fd19e5051"
+    },
+    {
+      "path": "svg/asqueel-monogram-inverse.svg",
+      "bytes": 881,
+      "sha256": "8ff6458517257ca7aca84889606bfaa4c6b0141972982599d6de612c190b2384"
+    },
+    {
+      "path": "svg/asqueel-monogram-primary.svg",
+      "bytes": 883,
+      "sha256": "f95d0827f3d24a5e00d0646d1bf76f87d298c8a5d5f9dede75ccde83b3449927"
+    },
+    {
+      "path": "svg/asqueel-monogram-white.svg",
+      "bytes": 881,
+      "sha256": "1b6425544d371f9632ccef8e947b84cba3d4da0323047018e977e32fe3ab294d"
+    },
+    {
+      "path": "svg/asqueel-wordmark-black.svg",
+      "bytes": 4588,
+      "sha256": "819b5a38ebc315bca33c0211cffc8bbac0c78b8d4f0d1ba73261608a338d048b"
+    },
+    {
+      "path": "svg/asqueel-wordmark-burgundy.svg",
+      "bytes": 4588,
+      "sha256": "94bf08735431ac359736b0c10803678a3d7b7e24f71d7f5332eef39f03d29840"
+    },
+    {
+      "path": "svg/asqueel-wordmark-inverse.svg",
+      "bytes": 4588,
+      "sha256": "10c5fcb6da74dc1888bbde35f90a8abda6007938b880db7366d77046d4529d52"
+    },
+    {
+      "path": "svg/asqueel-wordmark-primary.svg",
+      "bytes": 4590,
+      "sha256": "5f658938ab5757430637531e66cd1b401aa5dd959b5ec752dad71fa021eee82f"
+    },
+    {
+      "path": "svg/asqueel-wordmark-white.svg",
+      "bytes": 4588,
+      "sha256": "abeb14fcd5100b71bf39f25a1f6e1ef68be13697c437f7706aa55d20ac5605c2"
+    }
+  ]
+}

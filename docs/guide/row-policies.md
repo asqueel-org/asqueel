@@ -12,32 +12,36 @@ create PostgreSQL partitions or route queries to other databases.
 ## Declare policies in a model
 
 ```python
-from genro_sql import SqlBuilder, resolve_model
+from genro_sql import SqlDatabaseConfig, build_database
 
-builder = SqlBuilder()
-columns = (
-    builder.source.db('example')
-    .schemas().schema('app')
-    .tables().table(
-        'document', pkey='id',
-        x_partition={
-            'field': 'organization_id',
-            'current': 'organization',
-            'allowed': 'allowed_organizations',
-            'include_null': True,
-        },
-        x_draft_field='draft',
-        x_logical_deletion_field='deleted_at',
-    )
-    .columns()
-)
-columns.column('id', dtype='I')
-columns.column('organization_id', dtype='I')
-columns.column('title', dtype='T')
-columns.column('draft', dtype='B')
-columns.column('deleted_at', dtype='DHZ')
-model = resolve_model(builder)
+
+class Documents(SqlDatabaseConfig):
+    def main(self, root):
+        table = root.db("documents", conninfo="dbname=example").schemas().schema(
+            "app",
+        ).tables().table(
+            "document", pkey="id",
+            x_partition={
+                "field": "organization_id",
+                "current": "organization",
+                "allowed": "allowed_organizations",
+                "include_null": True,
+            },
+            x_draft_field="draft",
+            x_logical_deletion_field="deleted_at",
+        )
+        columns = table.columns()
+        columns.column("id", dtype="I")
+        columns.column("organization_id", dtype="I")
+        columns.column("title", dtype="T")
+        columns.column("draft", dtype="B")
+        columns.column("deleted_at", dtype="DHZ")
 ```
+
+Build with `db = build_database(Documents)` and close it when finished. The
+following examples assume that live database and an existing physical
+`app.document` table. Examples that inspect `query.sqltext` only compile and need no connection.
+The examples using `fetch()` or table write methods execute against PostgreSQL.
 
 A draft field must be a local physical boolean column. A logical-deletion field
 must be a local physical nullable column, distinct from the draft field, and
@@ -52,24 +56,6 @@ Use `x_partitions=[{...}, {...}]` for multiple dimensions. Do not combine
 `x_partition` and `x_partitions`. Each dimension has its own field and environment
 keys; their predicates are combined with AND.
 
-For a directly constructed resolved model, the equivalent declaration is:
-
-```python
-from genro_sql import PartitionScope, RowPolicies
-
-policies = RowPolicies(
-    partitions=(PartitionScope(
-        field='organization_id',
-        current='organization',
-        allowed='allowed_organizations',
-        include_null=True,
-    ),),
-    draft_field='draft',
-    logical_deletion_field='deleted_at',
-)
-# Supply policies=policies when constructing Table(...).
-```
-
 Inspection does not infer policies from suggestive database column names. Add
 application policies explicitly to an imported model. See [importing](importing.md).
 
@@ -83,21 +69,6 @@ shared environment:
 with db.temp_env(organization=0):
     with db.transaction():
         documents = db.table('app.document').query(columns='$id, $title', order_by='$id').fetch()
-```
-
-When using the low-level components directly, share one environment between
-the compiler and database:
-
-```python
-from genro_sql import PostgresCompiler, PostgresDatabase, SqlEnvironment
-
-env = SqlEnvironment()
-compiler = PostgresCompiler(model, environment=env)
-
-with PostgresDatabase('dbname=myapp user=myapp', environment=env) as db:
-    with env.temp_env(organization=0):
-        query = compiler.select('app.document', '$id, $title', order_by='$id')
-        documents = db.execute(query).rows
 ```
 
 This SELECT restricts `organization_id` to `0`, includes only rows whose draft
@@ -132,19 +103,22 @@ explicitly contains `None`. An empty collection always matches no rows,
 regardless of `include_null`.
 
 ```python
-with env.temp_env(allowed_organizations=[10, 20]):
+with db.temp_env(allowed_organizations=[10, 20]):
     # With include_null=True: organization_id IN (10, 20) OR organization_id IS NULL.
-    query = compiler.select('app.document', '$id')
+    query = db.table('app.document').query(columns='$id')
+    print(query.sqltext)
 
-with env.temp_env(organization=10, allowed_organizations=[20]):
+with db.temp_env(organization=10, allowed_organizations=[20]):
     # The current value is outside the allowed set, so the SELECT matches no rows.
-    query = compiler.select('app.document', '$id')
+    query = db.table('app.document').query(columns='$id')
+    print(query.sqltext)
 
-with env.temp_env(allowed_organizations=[]):
-    query = compiler.select('app.document', '$id')  # Matches no rows.
+with db.temp_env(allowed_organizations=[]):
+    query = db.table('app.document').query(columns='$id')
+    print(query.sqltext)  # Matches no rows.
 ```
 
-These examples assume that `env` has no default current organization. Temporary
+These examples assume that `db.environment` has no default current organization. Temporary
 scopes overlay existing values; they do not remove an inherited current key.
 Assigning `None` requests NULL rows rather than removing the key.
 
@@ -152,7 +126,8 @@ Assigning `None` requests NULL rows rather than removing the key.
 required context:
 
 ```python
-query = compiler.select('app.document', '$id', ignore_partition=True)
+query = db.table('app.document').query(columns='$id', ignore_partition=True)
+print(query.sqltext)
 ```
 
 It does not disable draft or logical-deletion filtering. The same option exists
@@ -179,7 +154,8 @@ With a declared draft field, SELECT defaults to `exclude_draft=True` and adds
 `draft IS NOT TRUE`. Both FALSE and NULL values remain visible.
 
 ```python
-query = compiler.select('app.document', exclude_draft=False, ignore_partition=True)
+query = db.table('app.document').query(exclude_draft=False, ignore_partition=True)
+print(query.sqltext)
 ```
 
 The option is boolean. It does not change the stored draft value, and it does
@@ -197,8 +173,8 @@ With a declared deletion field, `exclude_logical_deleted` controls SELECT:
 | `'mark'` | Includes both and appends the `_isdeleted` result column. |
 
 ```python
-query = compiler.select(
-    'app.document', '$id, $title',
+query = db.table('app.document').query(
+    columns='$id, $title',
     exclude_logical_deleted='mark',
     ignore_partition=True,
 )
@@ -231,14 +207,17 @@ cannot be used to insert a new row. A supplied out-of-scope replacement value
 is rejected before execution.
 
 ```python
-with env.temp_env(organization=10):
-    created = compiler.insert(
+with db.temp_env(organization=10):
+    # Compile only, without executing a write.
+    created = db.compiler.insert(
         'app.document', {'id': 100, 'title': 'Draft', 'draft': True},
     )  # organization_id is filled with 10.
-    published = compiler.update(
-        'app.document', {'draft': False}, where='$id = :id', params={'id': 100},
-    )
+    print(created.sql, dict(created.params))
 ```
+
+Here `db.compiler` is used explicitly to inspect the generated write before
+executing anything. Ordinary application calls to `table.insert()` and
+`table.update()` execute immediately.
 
 A SQL guard that matches no rows produces a normal zero-row update/delete;
 it is not an authorization exception. Update and delete still require an
@@ -254,22 +233,23 @@ both retain the normal partition write guards.
 ```python
 from datetime import datetime, timezone
 
-with env.temp_env(organization=10):
-    deleted = compiler.soft_delete(
-        'app.document',
-        value=datetime.now(timezone.utc),
-        where='$id = :id', params={'id': 100},
-        returning='$id, $deleted_at',
-    )
-    restored = compiler.restore(
-        'app.document', where='$id = :id', params={'id': 100},
-        returning='$id, $deleted_at',
-    )
+with db.temp_env(organization=10):
+    with db.transaction():
+        document = db.table('app.document')
+        deleted = document.soft_delete(
+            value=datetime.now(timezone.utc),
+            where='$id = :id', params={'id': 100},
+            returning='$id, $deleted_at',
+        )
+        restored = document.restore(
+            where='$id = :id', params={'id': 100},
+            returning='$id, $deleted_at',
+        )
 ```
 
-Execute the compiled operation through the database or an explicit transaction.
-These calls do not execute immediately. `compiler.delete(...)` remains a
-physical DELETE even when the model declares a logical-deletion field.
+These table methods execute immediately in the shared transaction. They require
+an existing row to affect any data. `document.delete(...)` remains a physical
+DELETE even when the model declares a logical-deletion field.
 
 See [environment scopes](environment.md) for query reuse checks and
 [transactions](transactions.md) for grouping changes atomically.

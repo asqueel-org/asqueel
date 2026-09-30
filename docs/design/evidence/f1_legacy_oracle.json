@@ -1,0 +1,26 @@
+{
+  "source_sha256": {
+    "gnrpy/gnr/sql/gnrsql/helpers.py": "ff33b1079fc90156789ac640c7731ef5173c93d91c5eeaab42a23299c6e15fad",
+    "gnrpy/gnr/sql/gnrsql/env.py": "35ec7e23652fe0cffc379e9f5fe821ebd6edfdec70942b44e031ebb484452394",
+    "gnrpy/gnr/sql/gnrsql/connections.py": "2ba31361e635a54a98893f5efdab99f2588fdf00c7ca7708ea4d617cd66daf1c",
+    "gnrpy/gnr/sql/gnrsql/execute.py": "435d408b4e77f53896c4d79d000564026a9faf695e5ecc87b65b6c1f08de8861",
+    "gnrpy/gnr/sql/gnrsql/transactions.py": "7d13522189896b95e83004e9cbc94297e3e717a518f7ac149bc1dcdeddab7745"
+  },
+  "environment_after_scope": {
+    "user": "original",
+    "items": [
+      1
+    ],
+    "introduced": 2,
+    "other": "keep"
+  },
+  "distinct_connections": true,
+  "connection_retained_after_commit": true,
+  "connection_retained_after_rollback": true,
+  "automatic_sql_rollback": true,
+  "retry_without_manual_rollback": true,
+  "only_committed_rows": [
+    3
+  ],
+  "method": "AST-extracted legacy methods; real PostgreSQL; app/deferred hooks excluded"
+}

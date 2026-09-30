@@ -27,3 +27,19 @@ GitHub e abilitare il branch/versione desiderato. Il file di configurazione
 nel repository non crea automaticamente il progetto o il webhook sul servizio.
 
 La CI GitHub esegue inoltre la stessa build Sphinx a ogni push e pull request.
+
+## Esempi verificabili
+
+Il tutorial pubblico include porzioni di `guide/_examples/shop_tutorial.py` con
+`literalinclude`: codice mostrato e file scaricabile provengono dalla stessa fonte.
+I test in `tests/documentation/test_examples.py` eseguono il tutorial, il quickstart,
+le query e gli esempi di environment su PostgreSQL, oltre agli esempi offline e
+alla verifica sintattica dei frammenti Python delle guide. Usano schemi temporanei.
+
+```sh
+GNR_TEST_PG_PORT=5432 python -m pytest tests/documentation tests/test_wf_phase8_doc.py
+```
+
+In alternativa impostare `GENRO_SQL_TEST_DSN` per il database di test. Le nuove
+pagine pubbliche vanno in `docs/guide/` e nel toctree di `index.rst`; mantenere le
+note interne fuori dall'indice pubblico. Le guide utente restano in inglese.

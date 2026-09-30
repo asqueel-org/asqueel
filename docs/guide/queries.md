@@ -1,296 +1,230 @@
-# Querying and changing data
+# Read data through application tables
 
-For application code, build a database from [configuration](configuration.md)
-and use its table objects:
+Start with a database built from a `SqlDatabaseConfig` recipe. All examples on
+this page use the `sales.customer`, `sales.invoice` and `sales.line` model in the
+[tutorial](tutorial.md). They assume its physical tables and seed data exist.
+Run each independent example inside `with db.transaction():` so the read
+transaction is completed when the block ends.
+
+## Select, filter and order
 
 ```python
-# db is a SqlDatabase built from your application recipe.
 with db.transaction():
-    customer = db.table('sales.customer')
-    customer.insert({'id': 1, 'name': 'Ada'})
-    rows = customer.query(columns='$id, $name', where='$id=:wanted', wanted=1).fetch()
-    customer.update({'id': 1, 'name': 'Ada Lovelace'})
+    invoice = db.table("sales.invoice")
+    rows = invoice.query(
+        columns="$id, @customer.name AS customer_name, $total",
+        where="$total >= :minimum",
+        params={"minimum": 100},
+        order_by="$total DESC, $id",
+        limit=20,
+    ).fetch()
 ```
 
-`query()` is lazy and each `fetch()` executes again. Table writes share the
-database session and return `QueryResult`; they do not commit individually.
-`update(record)` uses the complete declared primary key to identify the row;
-use an explicit `where` and `params` to change a key. `delete(key)` physically
-deletes the selected row; soft deletion is a separate operation.
+`rows` is a list of dictionaries. With the tutorial data it contains one invoice:
+`{'id': 10, 'customer_name': 'Ada', 'total': Decimal('125.00')}`.
+The decimal value comes from PostgreSQL numeric adaptation; it is not a float.
 
-Writes return physical columns by default (`returning='*'`). Request a simple
-SQL formula explicitly when needed. Structured subquery formulas must be read
-with a separate query. Value mappings must contain writable columns; passing a
-fetched row containing virtual columns directly to `update()` is not supported.
+A query is lazy. Constructing it validates some options but does not execute
+SQL; model references and expressions are compiled when you inspect or execute
+it. Each `.fetch()` or `.execute()` compiles and executes again.
 
-Use `query(..., for_update=True)` or `record(key, for_update=True)` inside a
-transaction to lock the base-table rows until commit or rollback. PostgreSQL
-`FOR UPDATE OF` targets only the base table, including when the query joins other
-tables. Aggregate projections and other SQL forms that PostgreSQL cannot lock
-are rejected by the server; NOWAIT, SKIP LOCKED and other lock modes are not
-provided by this API. A cached record output does not acquire a new lock after
-the original transaction ends; use a fresh record or `refresh()` in the new
-transaction.
-
-## Compiler and low-level execution examples
-
-The remaining examples expose the components used internally by `SqlDatabase`.
-`PostgresCompiler` turns model-based queries into SQL and bound parameters;
-`PostgresDatabase` executes them synchronously. Its standalone `execute()` commits
-each operation, unlike the shared application session. Compilation does not
-connect to a database, create tables, or apply migrations.
-
-This page uses a small resolved model. You can obtain the same kind of model
-from [builder declarations](models.md) or [database inspection](importing.md).
-
-```python
-from genro_sql import (
-    Column, PostgresCompiler, Relation, ResolvedModel, Table,
-)
-
-customer = Table(
-    'customer', schema='sales', pkey=('id',),
-    columns={
-        'id': Column('id', 'I'),
-        'name': Column('name', ui={'label': 'Customer'}),
-    },
-)
-invoice = Table(
-    'invoice', schema='sales', pkey=('id',),
-    columns={
-        'id': Column('id', 'I'),
-        'customer_id': Column('customer_id', 'I'),
-        'total': Column('total', 'N'),
-        'note': Column('note'),
-        'doubled_total': Column('doubled_total', 'N', formula='$total * 2'),
-    },
-    relations={
-        'customer': Relation(
-            'customer', 'sales.customer', ('customer_id',), ('id',),
-        ),
-    },
-)
-model = ResolvedModel({customer.key: customer, invoice.key: invoice})
-compiler = PostgresCompiler(model)
-```
-
-## Select rows
-
-```python
-query = compiler.select(
-    'sales.invoice',
-    columns='$id, @customer.name AS customer_name, $total',
-    where='$total >= :minimum',
-    params={'minimum': 100},
-    order_by='$id',
-    limit=20,
-    offset=0,
-)
-
-assert [column.name for column in query.columns] == [
-    'id', 'customer_name', 'total',
-]
-```
-
-The main arguments are:
-
-| Argument | Meaning |
+| Option | Meaning and default |
 |---|---|
-| `table` | Logical `schema.table` name; a short table name is accepted only when unambiguous. |
-| `columns` | A comma-separated string or sequence of projection expressions. Defaults to `'*'`. |
-| `where` | A trusted SQL expression with Genro column references and named data parameters. |
-| `params` | A mapping of parameter names to Python values. |
-| `order_by` | A trusted ordering expression, such as `'$total DESC, $id'`. |
-| `limit`, `offset` | Nonnegative integers. `limit=0` returns no rows. |
-| `exclude_draft` | Defaults to `True`; applies a declared draft policy. |
-| `exclude_logical_deleted` | `True`, `False`, or `'mark'`; defaults to `True`. |
-| `ignore_partition` | Defaults to `False`; `True` explicitly bypasses declared partition filters. |
+| `columns` | Projection string or sequence; `'*'` by default. |
+| `where` | Trusted SQL predicate using model references and value parameters. |
+| `params` | Mapping of bound values. `sqlparams` is also accepted. |
+| `order_by` | SQL ordering expression using model references. Overrides the model’s default table ordering. |
+| `limit`, `offset` | Nonnegative integers; `limit=0` returns no rows. |
+| `for_update` | `False`; when true, lock base-table rows until transaction completion. |
+| `exclude_draft` | `True`; applies a declared draft policy. |
+| `exclude_logical_deleted` | `True`; also accepts `False` or `'mark'`. |
+| `ignore_partition` | `False`; enforce declared partition scopes. |
 
-See [row policies](row-policies.md) for the last three options. If a table has a
-partition policy, its required [environment](environment.md) must be available
-even when the query's explicit `where` already restricts that column.
+The table is chosen by `db.table(...)`, not by a query option. Short names such
+as `'invoice'` work only when unambiguous. Use qualified names in reusable code.
+[Row policies](row-policies.md) explains the last three options. Their camel-case
+spellings `excludeDraft`, `excludeLogicalDeleted` and `ignorePartition` are also
+accepted; do not supply both spellings of the same option.
 
-### Column references and names
+## Read the expression vocabulary
 
-`$total` names a logical column in the selected table. The compiler uses the
-model's physical schema, table, and column names and quotes them separately.
-Application queries therefore do not need to embed naming prefixes.
+| Syntax | Meaning | Example |
+|---|---|---|
+| `$name` | Local logical column, including a declared virtual column. | `$total >= :minimum` |
+| `@relation.column` | Column on a declared to-one target. | `@customer.name` |
+| `AS name` | Result dictionary key. | `$id AS invoice_id` |
+| `:name` | Bound data value. | `params={'minimum': 100}` |
+| `:env_name` | Explicit parameter, or environment fallback for `name`. | `:env_customer_id` |
+| SQL expression | Trusted PostgreSQL expression. | `COALESCE($total, 0) AS amount` |
 
-For logical names containing spaces, punctuation, or non-ASCII characters, use
-`$"display name"`. Double an embedded double quote: `$"a""b"` refers to the
-logical name `a"b`. The same syntax works in projections, filters, ordering, and
-formulas. Wildcards also handle these names.
+A direct column keeps its logical name. A relation projection defaults to a
+path-derived name such as `_customer_id_name`; prefer explicit `AS` when defining
+a public result shape. Give computed projections explicit aliases for clarity.
+Result names must be unique.
 
-A direct projection retains its logical name unless you provide `AS`:
+For unusual logical column names use `$"display name"`; double embedded quotes,
+as in `$"a""b"`. Result aliases containing spaces also need double quotes.
+Quoted SQL strings, comments, quoted identifiers and dollar-quoted bodies protect
+their contents from reference expansion.
+
+`*` follows the model's physical/static-column selection rules. Choose dynamic
+virtual columns explicitly when they belong in the result. Prefer explicit projections for lists and other stable interfaces:
+new formulas can otherwise change both the output and the cost of a query.
+
+## Bind values, including collections
 
 ```python
-query = compiler.select(
-    'sales.invoice',
-    columns='$id AS invoice_id, $total AS amount',
+with db.transaction():
+    rows = db.table("sales.customer").query(
+        columns="$id, $name",
+        where="$name ILIKE :pattern",
+        params={"pattern": "%ad%"},
+        order_by="$id",
+    ).fetch()
+```
+
+Parameters bind values, not identifiers or SQL fragments. Choose ordering and
+column expressions from application-controlled options. Do not interpolate
+external values into SQL. Missing parameters raise an error; unused entries in
+an explicit `params` mapping are omitted from the compiled statement.
+
+The shorthand `query(where='$id=:wanted', wanted=1)` is supported. Unknown
+keywords that are not consumed as parameters fail, helping catch misspelled
+query options. Prefer the explicit mapping for reusable application code.
+
+For PostgreSQL list membership, use `ANY` with a Python list:
+
+```python
+with db.transaction():
+    rows = db.table("sales.customer").query(
+        columns="$id, $name", where="$id = ANY(:ids)",
+        params={"ids": [1, 2]}, order_by="$id",
+    ).fetch()
+```
+
+An empty array matches no rows. For the PostgreSQL `ANY` expression, use a cast
+such as `:ids::bigint[]` if the surrounding SQL cannot infer the array type.
+Lists containing `None` retain PostgreSQL NULL semantics. Genro's collection
+binding syntax also supports `IN :ids` and `NOT IN :ids`: the compiler prepares
+the required bindings rather than interpolating values into the SQL text.
+
+Use `IS NULL` for a NULL test. `column = :value` with `value=None` does not mean
+`IS NULL`. PostgreSQL casts such as `:minimum::numeric` are preserved.
+
+## Navigate relations without writing joins
+
+```python
+with db.transaction():
+    rows = db.table("sales.invoice").query(
+        columns="$id, @customer.name AS customer_name",
+        where="@customer.name = :name", params={"name": "Ada"},
+        order_by="$id",
+    ).fetch()
+```
+
+The relation is declared by the model, and its target must be a recognized
+primary or unique key. The compiler creates a LEFT JOIN and reuses it for the
+same path across projections, filters and ordering. A missing target produces
+NULL values. A WHERE condition on the target can still exclude that row.
+
+Several to-one relations can be chained, using `@customer.@country.name` or
+`@customer.country.name` when those relations exist. Reverse paths describe
+collection relationships: choose their cardinality and result shape explicitly. Related-table policies are not automatically added to a
+plain join; the root table's policies govern the query.
+
+## Use aliases, formulas and aggregates
+
+```python
+with db.transaction():
+    rows = db.table("sales.invoice").query(
+        columns="$id, $customer_name, $double_total, $line_total, $has_lines",
+        order_by="$id",
+    ).fetch()
+```
+
+All five names are model columns. `customer_name` is an alias to a related column;
+`double_total` is a SQL expression; `line_total` and `has_lines` are correlated
+formulas. Their declaration and scope rules are in [models](models.md) and
+[formulas](formulas.md). They are read-only.
+
+For a count, use an explicit SQL aggregate:
+
+```python
+with db.transaction():
+    rows = db.table("sales.invoice").query(columns="COUNT(*) AS n").fetch()
+    count = rows[0]["n"]
+```
+
+Use `query.count()` when you want the count of a query result. Use `group_by`,
+`having` and `distinct` to express grouping and uniqueness. Counting grouped
+results is different from counting base rows: define the query shape before
+choosing its terminal. An SQL aggregate does not assemble related collections;
+those have an explicit result shape.
+
+## Fetch exactly one record
+
+```python
+with db.transaction():
+    customer = db.table("sales.customer")
+    reader = customer.record(1)
+    first = reader.output("dict")
+    again = reader.output("dict")  # A copy of the same cached snapshot.
+    immediate = customer.record(2, mode="dict")
+```
+
+`record()` enforces exactly one visible match. It raises `RecordNotFoundError`
+for no match and `RecordMultipleRowsError` for several. It is not a `fetch()[0]`
+shortcut that silently ignores additional rows.
+
+Supply a complete key mapping or an ordered sequence for composite primary keys.
+A scalar is accepted for a single-column key, including zero. Key values cannot
+be `None`. Alternatively, supply `where` and `params` for a unique selector.
+Record reads select the complete resolved row; custom projections, `limit` and
+`offset` are rejected. Use `query()` for partial rows.
+
+`reader.refresh()` discards and reloads its snapshot in the current environment.
+A reader does not automatically refresh after a write, commit or scope change.
+Choose a record output for the consumer: dictionary data, a Bag representation
+or serialized data. A Selection adds result operations and metadata around a
+query result, rather than turning a table into a tracked row object.
+
+## Inspect SQL and result metadata
+
+```python
+query = db.table("sales.invoice").query(
+    columns="$id, $total", where="$id=:wanted", params={"wanted": 10},
 )
+compiled = query.compiled  # No connection required.
+print(compiled.sql)
+print(dict(compiled.params))
+
+with db.transaction():
+    result = query.execute()
+    assert result.rows[0]["id"] == 10
+    assert [column.name for column in result.columns] == ["id", "total"]
 ```
 
-Computed SQL expressions require an explicit alias:
+`QueryResult` has `rows`, `rowcount` and `columns`. Direct model projections carry
+dtype, UI and source identity metadata. Arbitrary SQL expressions do not acquire
+inferred dtype or UI metadata. Results are fully materialized; pagination limits
+memory use when fetching large datasets.
+
+`compiled.sql` is prepared for the driver, not for Python string interpolation.
+Parameters may contain sensitive application data; log selectively. For direct
+execution and parameter formatting, see [the compiler interface](compiler.md).
+
+## Lock rows during a change
 
 ```python
-query = compiler.select(
-    'sales.invoice',
-    columns='COALESCE($total, 0) AS amount',
-)
+with db.transaction():
+    row = db.table("sales.customer").record(1, for_update=True).output("dict")
+    db.table("sales.customer").update({"id": row["id"], "name": "Ada Lovelace"})
 ```
 
-Aliases must be unique. An alias containing spaces must be quoted, for example
-`'$total AS "Invoice amount"'`. `*` expands all declared columns, including
-formula columns; it is not forwarded as a database wildcard.
+PostgreSQL locks only the base table with `FOR UPDATE OF`. Locks end at commit or
+rollback. A cached reader does not acquire a new lock in another transaction;
+use a fresh reader or refresh it. PostgreSQL rejects locking incompatible SELECT
+forms, including aggregate projections.
 
-### Relations
-
-`@customer.name` resolves the model relation named `customer`, then its target
-column `name`. The relation target must have a recognized unique key for the
-join columns. Traversal uses a LEFT JOIN and reuses that join when the same path
-appears in projections, filters, and ordering. Multiple declared relation
-segments can be chained.
-
-A missing related row therefore produces NULL target values. A target condition
-placed in `where`, such as `@customer.name = :name`, still excludes rows where
-that condition is not true; the LEFT JOIN does not override your filter.
-
-Without an explicit alias, `@customer.name` is returned as `customer_name`.
-Relation path segments currently use ASCII identifier names. This syntax does
-not implement inverse one-to-many collections or arbitrary join declarations.
-
-### Parameters, literals, and expressions
-
-```python
-query = compiler.select(
-    'sales.invoice',
-    where='$note ILIKE :pattern AND $total >= :minimum',
-    params={'pattern': '%overdue%', 'minimum': 0},
-)
-```
-
-Values are bound separately from SQL. Missing referenced parameters raise
-`ValueError`; unused supplied parameters are omitted from the executable query.
-`:env_name` can fall back to an environment value, as described in
-[the environment guide](environment.md).
-
-Use `IS NULL` for a NULL test; binding `None` to an equality expression does not
-change SQL's NULL comparison rules. PostgreSQL casts such as `:minimum::numeric`
-are preserved. SQL strings, quoted identifiers, dollar quotes, and comments
-protect their contents from Genro reference expansion.
-
-SQL expressions are trusted application code. Parameters bind data values;
-they do not make user-supplied column names, operators, ordering clauses, or SQL
-fragments safe. Choose such expressions from application-controlled options.
-Do not interpolate values into `where` or `columns`.
-
-### Formulas and aggregates
-
-The model's `doubled_total` formula can be selected like any other column:
-
-```python
-query = compiler.select('sales.invoice', '$id, $doubled_total')
-```
-
-Formula references are expanded and cycles are rejected. A formula is read-only
-for insert/update values.
-
-An explicit SQL aggregate is supported as an expression:
-
-```python
-query = compiler.select('sales.invoice', 'COUNT(*) AS invoice_count')
-```
-
-This returns a normal compiled SELECT with the applicable read filters. There
-is no separate `count()` method or `group_by`/`having` query option. Aggregate
-SQL expressions do not enable automatic grouping, row deduplication, or collection
-assembly. The `aggregateRows` option is rejected.
-
-## Execute and read results
-
-With the corresponding tables already present in PostgreSQL:
-
-```python
-from genro_sql import PostgresDatabase
-
-with PostgresDatabase('dbname=myapp user=myapp') as db:
-    result = db.execute(query)
-    for row in result.rows:
-        print(row)
-```
-
-`QueryResult.rows` is an eagerly materialized list of dictionaries.
-`QueryResult.rowcount` is the driver's affected/returned-row count, and
-`QueryResult.columns` describes the result columns. For direct columns,
-metadata includes the model dtype, UI metadata, and the stable column identity
-in `source` when one is declared. Otherwise `source` is the logical column path.
-Arbitrary computed expressions do not acquire inferred dtype or UI metadata.
-
-Each `db.execute()` runs in its own transaction. For several statements that
-must succeed together, use [an explicit transaction](transactions.md).
-
-`query.sql` and `query.params` are available for diagnostics. The SQL is already
-prepared for psycopg parameter binding: literal percent signs are doubled.
-If executing directly through psycopg, always pass the mapping, even when empty:
-
-```python
-# `connection` is an existing psycopg connection owned by your application.
-# connection.execute(query.sql, dict(query.params))
-```
-
-Do not use Python string interpolation or omit the mapping. Bound values may
-contain application data; choose what to record in diagnostic logs accordingly.
-
-## Insert, update, and delete
-
-```python
-inserted = compiler.insert(
-    'sales.invoice',
-    {'id': 10, 'customer_id': 2, 'total': 125, 'note': 'Initial invoice'},
-    returning='$id, $total',
-)
-updated = compiler.update(
-    'sales.invoice',
-    {'total': 150},
-    where='$id = :id',
-    params={'id': 10},
-    returning='$id, $total',
-)
-deleted = compiler.delete(
-    'sales.invoice',
-    where='$id = :id',
-    params={'id': 10},
-    returning='$id',
-)
-```
-
-Keys in `values` are logical column names. Values are bound parameters, not SQL
-expressions. Unknown columns and writes to formulas are rejected. Database
-constraints still govern generated columns, identity columns, and other
-server-side restrictions.
-
-`returning` defaults to `'*'`; use `None` when no returned rows are needed. An
-empty insert mapping emits DEFAULT VALUES, although partition policies may fill
-in required columns first. Update needs at least one value. Update and delete
-require a nonempty predicate; use `where='TRUE'` deliberately when all rows in
-the active partition scope should be affected.
-
-DML does not support relation traversal, including formulas in RETURNING that
-need a join. Choose an explicit list of local returning columns in that case.
-A subsequent SELECT can read the related/formula value.
-
-`delete()` is a physical deletion. [Soft deletion and restoration](row-policies.md)
-are separate operations. Declared partition guards apply to writes; draft and
-logical-deletion read filters do not automatically restrict them.
-
-## Supported expression scope
-
-The compiler resolves column references, declared to-one relation paths,
-formulas, aliases, and named parameters. It does not implement legacy macros,
-Bag query input, virtualRelation declarations, record/selection APIs, or
-store/tenant routing. Unsupported options raise errors rather than being
-silently ignored. PostgreSQL SQL fragments remain PostgreSQL-specific even when
-the surrounding model uses logical names.
-
-Continue with [row policies](row-policies.md), [environment scopes](environment.md),
-or [transactions](transactions.md).
+Next: [write data](writes.md), [understand transactions](transactions.md), or
+[diagnose a query](troubleshooting.md).

@@ -56,8 +56,10 @@ myst_enable_extensions = ["colon_fence"]
 myst_fence_as_directive = ["mermaid"]
 
 html_theme = "sphinx_rtd_theme"
+html_logo = "../assets/asqueel/svg/asqueel-wordmark-inverse.svg"
+html_favicon = "../assets/asqueel/icons/favicon.ico"
 html_static_path = ["_static"]
-html_css_files = ["readability.css"]
+html_css_files = ["readability.css", "brand.css"]
 language = "en"
 
 intersphinx_mapping = {

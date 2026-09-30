@@ -1,53 +1,106 @@
 Genro SQL
 =========
 
-Declare a database configuration and render it into live Python objects. Use
-``db.table('sales.customer').query(...).fetch()`` for synchronous PostgreSQL
-access. Genro SQL keeps logical table and column names, physical database names,
-and UI metadata together in one resolved model.
+.. image:: ../assets/asqueel/svg/asqueel-wordmark-primary.svg
+   :alt: Asqueel — Genro SQL
+   :width: 360px
 
-Start with :doc:`guide/installation` and the runnable :doc:`guide/quickstart`.
-If you already have a database, see :doc:`guide/importing`.
+Build a database model from configuration, render it into live Python objects,
+and work with PostgreSQL through a synchronous application API:
 
-The package is **alpha**. PostgreSQL is the supported execution backend.
-The runtime runs on the calling thread; it does not provide an async API.
-See :doc:`guide/limitations` before choosing features for your application.
+.. code-block:: python
+
+   rows = db.table('sales.customer').query(
+       columns='$id, $name', order_by='$id',
+   ).fetch()
+
+The model brings together logical and physical names, relations, computed columns
+and UI metadata. The database object owns the environment and transaction session.
+Construction never connects or creates tables.
+
+This manual presents the intended delivery contract. Implementation availability
+and open decisions are collected in :doc:`guide/limitations`.
+
+Choose your starting point
+--------------------------
+
+* **New to Genro SQL?** Read :doc:`guide/overview` and :doc:`guide/concepts`, then run the
+  :doc:`guide/quickstart` and the step-by-step :doc:`guide/tutorial`.
+* **Building an application?** Start with :doc:`guide/configuration` and
+  :doc:`guide/models`, then use :doc:`guide/queries` and :doc:`guide/writes`.
+* **Already have PostgreSQL tables?** Start with :doc:`guide/importing`.
+* **Coming from Genropy legacy?** Read :doc:`guide/legacy` before porting code.
+* **Diagnosing unexpected behavior?** See :doc:`guide/troubleshooting`.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Getting started
+   :maxdepth: 1
+   :caption: Learn
 
+   guide/overview
    guide/installation
+   guide/concepts
    guide/quickstart
+   guide/tutorial
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Application development
+   :maxdepth: 1
+   :caption: Build applications
 
    guide/configuration
    guide/models
-   guide/formulas
    guide/queries
+   guide/writes
    guide/transactions
+   guide/hooks
+   guide/formulas
    guide/environment
    guide/row-policies
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Work with existing databases
+
    guide/importing
    guide/migrations
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Reference
+   :maxdepth: 1
+   :caption: Coming from another data layer
 
+   guide/legacy
+   guide/for-sqlalchemy
+   guide/for-django
+   guide/for-peewee
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced integration
+
+   guide/configuration-grammars
+   guide/compiler
+   guide/low-level-runtime
    guide/adapters
-   guide/limitations
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Look up and troubleshoot
+
+   guide/cheatsheet
+   guide/troubleshooting
    api
    grammar
 
-The grammar reference covers the declarative vocabulary. Not every declaration
-has runtime support: the model and query guides describe the supported subset.
+.. toctree::
+   :maxdepth: 1
+   :caption: Release information
+
+   guide/limitations
+
+The API reference describes Python interfaces. The grammar reference describes
+the declarative vocabulary.
 
 Reference indexes
-=================
+-----------------
 
 * :ref:`genindex`
 * :ref:`modindex`

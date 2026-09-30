@@ -1,13 +1,14 @@
 # Define an application model
 
-A `SqlBuilder` recipe declares your tables and their application metadata.
-`resolve_model()` turns the built recipe into the model used by the compiler.
-Building or resolving a model does not create tables or open a connection.
+A `SqlDatabaseConfig` recipe declares tables and application metadata. Rendering
+it produces a live database with a resolved `.model`. Building or resolving a
+model does not create tables or open a connection. For a runnable application,
+start with the [tutorial](tutorial.md); this page explains the declaration choices.
 
 ## Start with a recipe
 
 ```python
-from genro_sql import SqlBuilder, resolve_model
+from genro_sql import SqlDatabaseConfig, resolve_model
 
 
 def customer_table(tables):
@@ -30,14 +31,15 @@ def invoice_table(tables):
         'sales.customer.id', foreign_key=True, x_name='customer',
     )
     columns.column('total', dtype='N', size='12,2', notnull=True)
-    table.virtual_columns().formulaColumn(
+    virtuals = table.virtual_columns()
+    virtuals.formulaColumn(
         'double_total', dtype='N', sql_formula='$total * 2',
     )
     table.indexes().index('invoice_total', columns={'total': 'DESC'})
     return table
 
 
-class SalesModel(SqlBuilder):
+class SalesModel(SqlDatabaseConfig):
     def main(self, root):
         tables = root.db('sales_app').schemas().schema(
             'sales', x_sql_schema='public', x_sql_prefix=True,
@@ -48,7 +50,8 @@ class SalesModel(SqlBuilder):
 
 builder = SalesModel()
 builder.create()
-model = resolve_model(builder)
+with builder.render() as db:
+    model = db.model
 
 assert model.table('sales.invoice').physical_name == 'sales_invoice'
 assert model.table('sales.invoice').physical_schema == 'public'
@@ -126,14 +129,16 @@ Inverse collections are not generated automatically.
 such as `$total` resolve against the model. Use trusted application SQL for the
 formula; data values belong in query parameters. Structured `select`/`exists`
 and named subqueries are described in [correlated formulas](formulas.md).
-Python columns and the separate subquery collection columns remain unsupported.
+Python columns express application-side computations. Collection subqueries
+represent related results with an explicit shape; they are distinct from scalar
+formulas that return one value.
 
 `aliasColumn` names an existing column reached through a relation, following the
 legacy model's target-and-override behavior:
 
 ```python
-# table is the invoice declaration above.
-table.virtual_columns().aliasColumn(
+# Add inside invoice_table(), before returning; reuse its virtuals handle.
+virtuals.aliasColumn(
     'customer_name', relation_path='@customer.name', name_long='Customer',
     x_ui={'label': 'Customer name'},
 )
@@ -157,14 +162,15 @@ produce NULL when the source record has no related row.
 Aliases are read-only and never become physical columns in migration output.
 Writes with an alias in their value mapping fail explicitly. `RETURNING '*'`
 includes only physical columns; explicitly returning an alias is supported only when its
-expression requires no relation JOIN. SELECT `*` still expands all resolved
-columns, including aliases and SQL formulas; this is not the legacy static-only
-wildcard convention. To-many aliases and virtualRelation are not implemented.
+expression is valid in the database's RETURNING clause. The model distinguishes
+physical/static columns from dynamic virtuals when expanding SELECT `*`.
+Virtual relations describe model relationships derived from queries or conditions;
+their cardinality remains part of their contract.
 
 See [Queries](queries.md) for projections, parameters and relation traversal,
 and [Row policies](row-policies.md) for explicit partition, draft and deletion
-metadata. Policy attributes belong on tables; tenant/store routing and subtable
-semantics are not part of the current native profile.
+metadata. Policy attributes belong on tables. A subtable supplies a named logical
+subset; a store selects a database context. Neither is a physical partition.
 
 ## Read resolved metadata or save a recipe
 

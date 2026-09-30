@@ -156,5 +156,5 @@ import cannot reconstruct application-only UI or Python behavior. Migration
 rendering and application remain separate from both catalog inspection and
 query execution; a catalog provider does not make a new backend migratable.
 
-See [transactions](transactions.md) for lifecycle rules and
+See [low-level transactions](low-level-runtime.md) for lifecycle rules and
 [current limitations](limitations.md) before implementing against an extension seam.

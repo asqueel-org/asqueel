@@ -1,0 +1,10 @@
+/* Asqueel identity; source assets live in assets/asqueel/. */
+.wy-side-nav-search {
+  background-color: #571f2b;
+}
+
+.wy-side-nav-search > a img.logo {
+  width: 220px;
+  max-width: 100%;
+  height: auto;
+}

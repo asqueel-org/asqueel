@@ -1,209 +1,188 @@
-# Using an SQL environment
+# Work with a current environment
 
-`SqlEnvironment` supplies scoped values to query parameters and
-[row policies](row-policies.md). A compiler takes one detached snapshot when it
-builds a query plan. The database checks the query's recorded dependencies before
-executing it, preventing accidental reuse under a different scope.
+An environment is a scoped mapping of application context: current organization,
+request language or a value used by several query predicates. `SqlDatabase`
+shares an application environment between its compiler and named sessions.
+Changing `connectionName` selects a separate connection lazily; other context
+changes do not select a different database. Store selection and tenant routing
+are separate application/database concerns.
 
-The database API is synchronous. Environment scopes do not start transactions,
-open connections, or select another database.
+## Set context for an operation
 
-## Application environment
-
-An application `SqlDatabase` already shares one environment with its compiler
-and session:
+With the [tutorial](tutorial.md) database:
 
 ```python
-# db comes from build_database(YourRecipe).
-query = db.table('sales.customer').query(where='$id=:env_customer_id')
+query = db.table("sales.customer").query(
+    columns="$id, $name", where="$id=:env_customer_id",
+)
 with db.temp_env(customer_id=1):
-    with db.transaction():
-        rows = query.fetch()
+    rows = query.fetch()
+    assert rows[0]["name"] == "Ada"
+    db.rollback()  # Finish this read-only transaction.
 ```
 
-The terminal call uses the current environment even when the query was created
-earlier. Inspecting `query.compiled` or `query.sqltext` does not freeze subsequent
-fetches. A saved compiled statement still carries the dependency checks described
-below.
+The parameter `:env_customer_id` uses the environment key `customer_id`. The query
+was constructed before entering the scope, but compiles inside it at `.fetch()`.
+`tempEnv` is the legacy spelling of `temp_env`. `currentEnv` exposes the live
+mutable mapping; `current_env` returns a detached snapshot.
 
-## Create and share an environment with low-level components
+For defaults, supply an environment when building your database:
+
+```python
+from genro_sql import SqlEnvironment, build_database
+
+# Shop is the application recipe from the tutorial.
+with build_database(Shop, environment=SqlEnvironment({"language": "en"})) as configured_db:
+    assert configured_db.current_env["language"] == "en"
+    with configured_db.temp_env(language="it", organization=10):
+        assert configured_db.current_env["language"] == "it"
+        with configured_db.temp_env(organization=20):
+            assert configured_db.current_env["organization"] == 20
+        assert configured_db.current_env["organization"] == 10
+    assert configured_db.current_env["language"] == "en"
+    assert "organization" not in configured_db.current_env
+```
+
+Application scopes follow legacy `tempEnv`: keys that existed on entry are
+restored on exit, including on exception. A newly introduced key is removed if
+its value is still equal to the supplied temporary value; if replaced with a
+different value, it remains. Changes to unrelated keys remain as well. Temporary
+values are not deep-copied. These details matter for mutable context and pending
+application state.
+
+`None` is a value, not removal of a key. For a partition, `organization=None`
+means the NULL partition; absence is different. Use `del db.currentEnv['key']`
+or `.pop()` to remove a key. `db.updateEnv(...)` updates values; with
+`_excludeNoneValues=True` it skips only None, preserving 0 and False.
+`db.currentEnv = mapping` replaces the live dictionary, retaining its identity;
+`db.clearCurrentEnv()` replaces it with an empty dictionary. Neither operation
+commits or closes named connections.
+
+`db.workdate` defaults to today's date. `db.locale` falls back to `GNR_LOCALE`,
+the system locale, then `en_GB`. Both properties can be set explicitly. Application
+compiler snapshots resolve these defaults for `:env_workdate` and `:env_locale`.
+Localization services belong to the application-linked layer; business-date
+and locale context are available to queries without requiring a web page.
+
+## Bind explicit values or fall back to context
+
+Explicit parameters take precedence over environment lookup:
+
+```python
+with db.temp_env(minimum_total=100):
+    query = db.table("sales.invoice").query(
+        columns="$id, $total", where="$total >= :env_minimum_total",
+    )
+    assert query.compiled.params["env_minimum_total"] == 100
+    explicit = db.table("sales.invoice").query(
+        columns="$id, $total", where="$total >= :env_minimum_total",
+        params={"env_minimum_total": 250},
+    )
+    assert explicit.compiled.params["env_minimum_total"] == 250
+```
+
+A normal `:minimum_total` parameter does not fall back to the environment; the
+`env_` prefix activates that convention. Missing values raise `ValueError` during
+compilation. Context values are bound data, never SQL fragments. The same lookup
+works in projections, formulas, ordering and write predicates.
+
+Overriding a placeholder does not change the environment or bypass a separate
+partition policy. Policies read their declared context keys independently.
+
+## Live context and detached snapshots
+
+Use `db.currentEnv` when deliberately changing application context, and
+`db.current_env` for a detached snapshot with a read-only outer mapping.
+`db.environment.snapshot()` additionally resolves workdate/locale defaults for
+compilation. Snapshot nested values are copied.
+
+The standalone `SqlEnvironment` remains a separate low-level API with copied,
+context-local scopes, useful when constructing compiler/executor components
+independently:
+
+```python
+from genro_sql import SqlEnvironment
+
+source = [10, 20]
+environment = SqlEnvironment({"allowed_organizations": source})
+source.append(30)
+snapshot = environment.snapshot()
+snapshot["allowed_organizations"].append(40)
+assert environment.current_env["allowed_organizations"] == [10, 20]
+```
+
+Custom values used in snapshots must support `deepcopy`. The mutable application
+mapping and its temporary scopes do not provide async or thread-safe sharing;
+use them synchronously on the database's constructing thread.
+
+## Distinguish a lazy query from a compiled statement
+
+```python
+from genro_sql import EnvironmentMismatchError
+
+query = db.table("sales.customer").query(
+    columns="$id, $name", where="$id=:env_customer_id",
+)
+with db.temp_env(customer_id=1):
+    compiled = query.compiled
+
+with db.temp_env(customer_id=2):
+    try:
+        db.execute(compiled)
+    except EnvironmentMismatchError:
+        pass  # Rejected before execution: it captured customer_id=1.
+    with db.transaction():
+        rows = query.fetch()  # Fresh compilation now uses customer_id=2.
+```
+
+Compilation captures values; a saved `CompiledQuery` does not automatically
+rebind. By contrast, every terminal call on `SqlQuery` recompiles. Inspecting
+`query.sqltext` or `query.compiled` does not change the behavior of its next fetch.
+
+Only relevant context keys are recorded. Unrelated keys do not invalidate a
+statement. Partition guards record relevant absent keys too: adding an allowed
+set can change the intended restriction. Returning to the same values and key
+presence permits reuse. Explicit parameter values do not by themselves create
+environment dependencies.
+
+`ignore_partition=True` removes partition dependencies but does not remove any
+other `:env_*` dependency. Direct psycopg execution does not perform Genro SQL's
+environment checks.
+
+## Combine context scopes with one transaction
+
+For `app.document` from the [row-policy guide](row-policies.md):
+
+```python
+with db.transaction():
+    with db.temp_env(organization=10):
+        db.table("app.document").insert({"id": 100, "title": "First organization"})
+    with db.temp_env(organization=20):
+        db.table("app.document").insert({"id": 101, "title": "Second organization"})
+```
+
+Both operations share one transaction. Their partition columns are filled using
+their respective current organization. Switching context does not switch databases.
+The mutable application environment, named sessions and model graph
+belong to the constructing thread. They are not an async or thread-safe
+execution interface.
+
+## Advanced: share context between independent components
+
+When constructing a compiler and low-level executor yourself, supply the same
+instance to both:
 
 ```python
 from genro_sql import PostgresCompiler, PostgresDatabase, SqlEnvironment
 
-env = SqlEnvironment({'language': 'en'})
-# `model` is a resolved model from builder declarations or database inspection.
-compiler = PostgresCompiler(model, environment=env)
-db = PostgresDatabase('dbname=myapp user=myapp', environment=env)
+# model is a resolved model; no database connection is needed for compilation.
+environment = SqlEnvironment()
+compiler = PostgresCompiler(model, environment=environment)
+with PostgresDatabase("dbname=example", environment=environment) as executor:
+    with environment.temp_env(customer_id=1):
+        compiled = compiler.select("sales.customer", where="$id=:env_customer_id")
+        rows = executor.execute(compiled).rows
 ```
 
-Use the same instance for compilation and execution. Creating a compiler and a
-database without `environment=` gives each its own environment, so values added
-to one are not automatically visible to the other.
-
-For a complete model and executable query, start with the
-[quickstart](quickstart.md) or [query guide](queries.md).
-
-## Temporary scopes
-
-```python
-assert env.current_env['language'] == 'en'
-
-with env.temp_env(language='it', organization=10):
-    assert env.current_env['language'] == 'it'
-    assert env.current_env['organization'] == 10
-
-    with env.temp_env(organization=20):
-        assert env.current_env['organization'] == 20
-
-    assert env.current_env['organization'] == 10
-
-assert env.current_env['language'] == 'en'
-assert 'organization' not in env.current_env
-```
-
-Each scope overlays the current values and restores the previous scope on exit,
-including when an exception is raised. `None` is a value, not a request to remove
-a key. This matters for partitions: `organization=None` selects a NULL partition;
-it does not mean that the current organization is absent.
-
-`db.temp_env(...)` and `db.current_env` delegate to the database's environment.
-The compatibility spellings `tempEnv(...)` and `currentEnv` are also available
-on both the environment and database.
-
-```python
-with db.temp_env(organization=10):
-    assert compiler.environment.current_env['organization'] == 10
-```
-
-This works because `compiler` and `db` share `env`. An environment scope itself
-is not a database transaction. See [transactions](transactions.md) when several
-statements need one commit or rollback boundary.
-
-## Read snapshots instead of mutating context
-
-`current_env` and `snapshot()` return detached snapshots with read-only outer
-mappings. Defaults and temporary values are copied when they enter the
-environment. Values must support Python's `deepcopy` protocol.
-
-```python
-source = [10, 20]
-scoped = SqlEnvironment({'allowed_organizations': source})
-source.append(30)
-assert scoped.current_env['allowed_organizations'] == [10, 20]
-
-snapshot = scoped.snapshot()
-snapshot['allowed_organizations'].append(40)
-assert scoped.current_env['allowed_organizations'] == [10, 20]
-```
-
-Nested values in a returned snapshot may be mutable, but changing them does not
-change the environment. To alter context, enter another `temp_env` scope. The
-API has no key-removal operation; choose defaults so that a value intended to be
-absent in some scopes is not always installed at the outer level.
-
-## Environment-backed parameters
-
-A missing query parameter whose name begins with `env_` is looked up in the
-environment after removing that prefix. An explicitly supplied parameter takes
-precedence.
-
-With the model from the [query guide](queries.md):
-
-```python
-with env.temp_env(minimum_total=100):
-    query = compiler.select(
-        'sales.invoice', '$id, $total',
-        where='$total >= :env_minimum_total',
-    )
-    assert query.params['env_minimum_total'] == 100
-
-    explicit = compiler.select(
-        'sales.invoice', '$id, $total',
-        where='$total >= :env_minimum_total',
-        params={'env_minimum_total': 250},
-    )
-    assert explicit.params['env_minimum_total'] == 250
-```
-
-The environment key is `minimum_total`, not `env_minimum_total`. A missing
-parameter without the `env_` prefix does not fall back to the environment.
-If neither an explicit parameter nor the corresponding environment value
-exists, compilation raises `ValueError`.
-
-The same resolution applies where expressions use named parameters in
-projections, ordering, formulas, and update/delete predicates. Environment
-values are bound as data; they are never inserted as SQL fragments. Parameter
-values still need to be acceptable for their database expressions.
-
-An explicit `params` override affects that placeholder only. It does not change
-the environment or override a partition policy that separately reads an
-environment key.
-
-## Reuse compiled queries in compatible scopes
-
-Only environment keys actually used by a query are recorded. Partition
-policies also record the relevant keys that were absent, because adding one
-can change which rows should be visible.
-
-For example, with an organization partition that names both `organization`
-and `allowed_organizations`:
-
-```python
-# This example uses the policy model from row-policies.md.
-with env.temp_env(organization=10):
-    query = compiler.select('app.document', '$id, $title')
-    rows = db.execute(query).rows
-
-# Entering organization=20 and executing the previous `query` would raise
-# EnvironmentMismatchError. Compile a new query inside the new scope instead.
-with env.temp_env(organization=20):
-    new_query = compiler.select('app.document', '$id, $title')
-    rows = db.execute(new_query).rows
-```
-
-Changing a recorded value, removing a recorded present key, or introducing a
-previously absent recorded key raises `EnvironmentMismatchError` at execution.
-Adding an unrelated environment key does not invalidate the query. Returning
-to the same relevant values and key presence allows reuse.
-
-A placeholder resolved entirely from explicit `params` does not by itself
-create an environment dependency. Likewise, `ignore_partition=True` removes
-partition dependencies, although other `:env_*` parameters can still bind the
-query to its environment.
-
-Compilation captures values; it does not defer parameter lookup until execution.
-There is no automatic rebinding or recompilation when a scope changes. Keep
-compilation near execution when working with request-specific values.
-
-These checks happen through `Database`/`PostgresDatabase` and their transaction
-objects. Executing `query.sql` directly through psycopg does not perform an
-environment compatibility check.
-
-## Environment scopes and transactions
-
-Share the environment and compile each operation under its intended scope:
-
-```python
-# Uses the policy model from row-policies.md and an existing app.document table.
-with db.transaction() as tx:
-    with env.temp_env(organization=10):
-        tx.execute(compiler.insert(
-            'app.document', {'id': 100, 'title': 'First organization'},
-        ))
-    with env.temp_env(organization=20):
-        tx.execute(compiler.insert(
-            'app.document', {'id': 101, 'title': 'Second organization'},
-        ))
-```
-
-The scopes control query compilation and validation while both operations use
-the same database transaction. They do not switch the connection or provide
-tenant/store routing. Use `tx.execute()` inside an active transaction rather
-than `db.execute()`.
-
-Database and transaction objects are owned by the thread that created the
-database. Environment values are context-local, but that does not make these
-objects shareable across threads. Close a database with its context manager or
-`db.close()` when finished; detailed lifecycle rules are in
-[transactions](transactions.md).
+Independent default environments do not share values. The low-level executor's
+transaction behavior differs from `SqlDatabase`; see [low-level execution](low-level-runtime.md).

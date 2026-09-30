@@ -24,6 +24,43 @@ La [revisione architetturale 09](09-legacy-object-api-review.md) distingue il
 nucleo tecnico già implementato dal livello prodotto ancora mancante. I report
 di consegna precedenti non certificano il completamento di quel livello.
 
+## Costrutti Genro nella compilazione — accordo del 30 settembre 2026
+
+`#` seguito da un nome maiuscolo, come `#IN_RANGE`, identifica un costrutto
+proprio del linguaggio Genro, riconosciuto ed elaborato durante la compilazione.
+Si conserva questa sintassi con un'implementazione interna strutturata: non si
+riduce il contratto a una sostituzione testuale preliminare.
+
+L'elaborazione può generare SQL, preparare parametri, risolvere riferimenti al
+contesto o predisporre trasformazioni del risultato dopo la lettura. Esempi:
+`#IN_RANGE`, `#PERIOD`, `#THIS`, `#BAG`. Il compiler può quindi predisporre una
+trasformazione senza eseguirla nella fase di compilazione.
+
+Questo accordo definisce il significato della sintassi e l'impostazione del
+compiler; non certifica l'implementazione di tutte le macro legacy e non cambia
+le priorità di consegna. Non impone inoltre il maiuscolo a ogni uso storico di
+`#`: i riferimenti alle sottoquery nominate, come `#nome`, restano distinti.
+
+## Conoscenza e destinazione di ogni contratto legacy — 30 settembre 2026
+
+Requisito esplicito dell'utente: ogni singolo aspetto di Genro SQL legacy deve
+essere conosciuto prima di decidere come trattarlo. Per ogni comportamento
+occorre indicare se viene implementato nel nucleo con la stessa semantica,
+implementato diversamente con adattamento di compatibilità, oppure delegato
+all'adapter legacy. L'adapter di compatibilità è distinto dagli adapter di
+dialetto SQL e non deve essere un contenitore di comportamenti non analizzati.
+
+Il censimento dei test è una fonte, non una dimostrazione di completezza.
+L'analisi deve comprendere sorgenti, API, default, opzioni, effetti collaterali,
+errori, lifecycle, estensioni, consumer applicativi, GEP e conversazioni pertinenti.
+Ogni area non studiata resta esplicitamente «da analizzare». Un requisito
+rinviato non è un requisito escluso né implicitamente delegato.
+
+Ogni diversa semantica o esclusione richiede una decisione esplicita. Restano
+valide le decisioni già acquisite: aggregateRows non viene reintrodotto nemmeno
+nell'adapter; i bisogni coperti vanno ricondotti a raccolte esplicite. La semantica
+partition esplicita concordata non viene annullata dal ponte di compatibilità.
+
 ## Decisioni da chiudere al momento opportuno
 
 Ogni voce indica una raccomandazione, non un consenso già acquisito. Non è

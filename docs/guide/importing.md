@@ -62,7 +62,7 @@ the ordinary tables that were imported. They **do prevent projecting the
 model for migrations**: a partial catalog must not be presented as a complete
 desired schema. See [Migrations](migrations.md).
 
-The importer currently records:
+The catalog inspection records:
 
 | Catalog information | Location in the model |
 |---|---|
@@ -109,18 +109,16 @@ updates are explicit application responsibilities. Define application
 [policies](row-policies.md) deliberately; an imported `draft` or `deleted_at`
 column does not activate filtering automatically.
 
-## Understand the limits
+## Preserve database and application meaning
 
-Views, materialized views, foreign tables, inherited/partitioned tables and
-partitions are not imported as queryable tables in this profile. Sequences,
-application triggers, routines, row-level security and external FK targets are
-reported as unsupported or unmanaged. The importer is not an inventory of all
-PostgreSQL objects: roles, grants and extended dependencies are not modeled.
+Treat native views, functions, triggers and physical partitions as their own
+structural objects, with explicit dependencies and migration ownership. A view
+is not an ordinary table merely because it can be queried. Catalog inspection
+cannot reconstruct Python hooks, package behavior or UI intentions.
 
-A preserved SQL definition is metadata, not proof that the migration bridge
-can recreate it. In particular, generated columns, sequence-backed defaults,
-custom collations and advanced indexes can be readable in the model while
-remaining unsuitable for migration projection.
+A preserved SQL definition is metadata, not proof that a migration projection
+can recreate it. Review diagnostics and leave unmanaged objects under explicit
+external ownership until their lifecycle can be represented faithfully.
 
 ## Use the provider interface
 
@@ -136,5 +134,5 @@ def inspect_catalog(connection):
 
 `CatalogProvider` describes this read-only interface. The supplied provider
 is PostgreSQL-specific; it is separate from the [data dialect](adapters.md)
-that renders SELECT and DML. Importing legacy application packages is not
-supported by this importer.
+that renders SELECT and DML. Importing legacy application packages is a separate
+path: it must recover declarations and application contributions, not just catalogs.

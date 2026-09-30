@@ -164,3 +164,43 @@ def test_database_constraint_failure_rolls_back_previous_operations(application)
             db.table('item').insert({'id': 1, 'name': 'duplicate'})
     assert rows('item') == rows('audit') == []
     assert db.outcome == 'rolled_back'
+
+
+def test_named_connections_have_independent_visibility_and_physical_identity(application):
+    from genro_sql.contracts import CompiledQuery
+    db, rows = application
+    def pid():
+        return db.execute(CompiledQuery('SELECT pg_backend_pid() AS pid')).rows[0]['pid']
+    main_pid = pid()
+    db.table('item').insert({'id': 10, 'name': 'main pending'})
+    with db.tempEnv(connectionName='independent'):
+        other_pid = pid()
+        assert other_pid != main_pid
+        assert db.table('item').query().fetch() == []
+        db.table('item').insert({'id': 20, 'name': 'other committed'})
+        db.commit()
+        assert pid() == other_pid
+        assert rows('item') == [(20, 'other committed')]
+        db.rollback()
+    assert pid() == main_pid
+    db.rollback()
+    assert rows('item') == [(20, 'other committed')]
+    assert rows('audit') == [(20, 20)]
+    assert pid() == main_pid
+
+
+def test_sql_error_in_named_connection_rolls_back_hooks_and_allows_reuse(application):
+    db, rows = application
+    db.table('item').insert({'id': 10, 'name': 'main pending'})
+    with db.tempEnv(connectionName='independent'):
+        db.table('item').insert({'id': 20, 'name': 'must disappear'})
+        with pytest.raises(psycopg.errors.UniqueViolation):
+            db.table('item').insert({'id': 20, 'name': 'duplicate'})
+        assert db.outcome == 'rolled_back'
+        assert db.table('item').query().fetch() == []
+        db.table('item').insert({'id': 30, 'name': 'recovered'})
+        db.commit()
+    assert rows('item') == [(30, 'recovered')]
+    db.commit()
+    assert rows('item') == [(10, 'main pending'), (30, 'recovered')]
+    assert rows('audit') == [(10, 10), (30, 30)]

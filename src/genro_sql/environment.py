@@ -69,3 +69,64 @@ class SqlEnvironment:
     def tempEnv(self, **values: Any):
         """Compatibility spelling of ``temp_env``."""
         return self.temp_env(**values)
+
+
+class ApplicationEnvironment(SqlEnvironment):
+    """Mutable synchronous application context with legacy tempEnv semantics.
+
+    The application DB guards thread ownership. ``current_env`` is a detached
+    snapshot; ``currentEnv`` is the live mapping. Do not share it between tasks
+    or threads. Compiler snapshots include workdate/locale defaults only.
+    """
+
+    def __init__(self, source: SqlEnvironment | None = None):
+        if source is None:
+            super().__init__()
+        else:
+            self._values = source._values
+
+    @property
+    def current_env(self) -> Mapping[str, Any]:
+        return super().snapshot()
+
+    @property
+    def currentEnv(self) -> dict[str, Any]:
+        return self._values.get()
+
+    @currentEnv.setter
+    def currentEnv(self, values: dict[str, Any]) -> None:
+        if not isinstance(values, dict):
+            raise TypeError('currentEnv must be a dictionary')
+        self._values.set(values)
+
+    @property
+    def workdate(self):
+        from datetime import date
+        return self.currentEnv.get('workdate') or date.today()
+
+    @property
+    def locale(self):
+        import locale
+        import os
+        return self.currentEnv.get('locale') or os.environ.get('GNR_LOCALE') or locale.getlocale()[0] or 'en_GB'
+
+    def snapshot(self) -> Mapping[str, Any]:
+        values = dict(super().snapshot())
+        values['workdate'] = self.workdate
+        values['locale'] = self.locale
+        return MappingProxyType(values)
+
+    @contextmanager
+    def temp_env(self, **values: Any) -> Iterator[ApplicationEnvironment]:
+        current = self.currentEnv
+        saved = {key: current[key] for key in values if key in current}
+        added = {key: value for key, value in values.items() if key not in current}
+        current.update(values)
+        try:
+            yield self
+        finally:
+            current = self.currentEnv
+            for key, value in added.items():
+                if current.get(key) == value:
+                    current.pop(key, None)
+            current.update(saved)

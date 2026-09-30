@@ -6,6 +6,7 @@ not open connections, commit, or emulate legacy Bag/selection result objects.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from contextlib import contextmanager
 from copy import deepcopy
 from types import MappingProxyType
 
@@ -280,6 +281,20 @@ class SqlTable:
     def trigger_onDeleted(self, record):
         """Override to react after physical deletion."""
 
+    @property
+    def currentTrigger(self):
+        """Current write operation with ``parent`` and zero-based ``level``."""
+        return getattr(self.db, 'currentTrigger', None)
+
+    @contextmanager
+    def _trigger_operation(self, event, record=None, old_record=None):
+        operation = getattr(self.db, '_trigger_operation', None)
+        if operation is None:
+            yield None
+            return
+        with operation(event, self, record=record, old_record=old_record) as item:
+            yield item
+
     def _has_write_hooks(self, operation):
         names = ('trigger_onUpdating', 'trigger_onUpdated') if operation == 'update' else (
             'trigger_onDeleting', 'trigger_onDeleted')
@@ -310,12 +325,13 @@ class SqlTable:
             if not isinstance(values, Mapping):
                 raise TypeError('Insert values must be a mapping')
             record = _copy(dict(values))
-            self.trigger_onInserting(record)
-            result = self.db.execute(self.db.compiler.insert(
-                self.fullname, record, returning, ignore_partition=ignore_partition))
-            self._overlay_returned(record, result)
-            self.trigger_onInserted(record)
-            return result
+            with self._trigger_operation('insert', record=record):
+                self.trigger_onInserting(record)
+                result = self.db.execute(self.db.compiler.insert(
+                    self.fullname, record, returning, ignore_partition=ignore_partition))
+                self._overlay_returned(record, result)
+                self.trigger_onInserted(record)
+                return result
 
     def update(self, values, where=None, params=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
@@ -327,21 +343,25 @@ class SqlTable:
             # Validate the caller's write predicate and values before acquiring locks.
             compiled = self.db.compiler.update(
                 self.fullname, record, where, params, returning, ignore_partition=ignore_partition)
-            if not self._has_write_hooks('update'):
-                return self.db.execute(compiled)
-            old_record = self._locked_record(where, params, ignore_partition)
-            key_where, key_params = self._key_selector(old_record)
-            merged = _copy(old_record)
-            merged.update(record)
-            self.trigger_onUpdating(merged, old_record=_copy(old_record))
-            result = self.db.execute(self.db.compiler.update(
-                self.fullname, merged, key_where, key_params, returning,
-                ignore_partition=ignore_partition))
-            if result.rowcount != 1:
-                raise RecordNotFoundError('Locked update did not affect exactly one record')
-            self._overlay_returned(merged, result)
-            self.trigger_onUpdated(merged, old_record=_copy(old_record))
-            return result
+            with self._trigger_operation('update', record=record) as trigger:
+                if not self._has_write_hooks('update'):
+                    return self.db.execute(compiled)
+                old_record = self._locked_record(where, params, ignore_partition)
+                key_where, key_params = self._key_selector(old_record)
+                merged = _copy(old_record)
+                merged.update(record)
+                if trigger is not None:
+                    trigger.record = merged
+                    trigger.old_record = old_record
+                self.trigger_onUpdating(merged, old_record=_copy(old_record))
+                result = self.db.execute(self.db.compiler.update(
+                    self.fullname, merged, key_where, key_params, returning,
+                    ignore_partition=ignore_partition))
+                if result.rowcount != 1:
+                    raise RecordNotFoundError('Locked update did not affect exactly one record')
+                self._overlay_returned(merged, result)
+                self.trigger_onUpdated(merged, old_record=_copy(old_record))
+                return result
 
     def delete(self, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
         with self.db._write_operation():
@@ -352,17 +372,19 @@ class SqlTable:
             compiled = self.db.compiler.delete(
                 self.fullname, where, params, returning, ignore_partition=ignore_partition)
             if not self._has_write_hooks('delete'):
-                return self.db.execute(compiled)
+                with self._trigger_operation('delete', record=record_or_pkey):
+                    return self.db.execute(compiled)
             record = self._locked_record(where, params, ignore_partition)
             key_where, key_params = self._key_selector(record)
-            self.trigger_onDeleting(record)
-            result = self.db.execute(self.db.compiler.delete(
-                self.fullname, key_where, key_params, returning,
-                ignore_partition=ignore_partition))
-            if result.rowcount != 1:
-                raise RecordNotFoundError('Locked delete did not affect exactly one record')
-            self.trigger_onDeleted(record)
-            return result
+            with self._trigger_operation('delete', record=record):
+                self.trigger_onDeleting(record)
+                result = self.db.execute(self.db.compiler.delete(
+                    self.fullname, key_where, key_params, returning,
+                    ignore_partition=ignore_partition))
+                if result.rowcount != 1:
+                    raise RecordNotFoundError('Locked delete did not affect exactly one record')
+                self.trigger_onDeleted(record)
+                return result
 
     def soft_delete(self, value, where, params=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():

@@ -46,6 +46,7 @@ class Driver:
         if self.commit_error:
             raise self.commit_error
         self.persisted.extend(connection)
+        connection.clear()
 
     def rollback(self, connection):
         self.calls.append('rollback')
@@ -103,21 +104,19 @@ def test_context_commits_atomically_or_rolls_back_on_python_error():
     session.close()
 
 
-def test_failed_ambient_session_requires_explicit_rollback():
+def test_failed_ambient_session_rolls_back_immediately_and_is_reusable():
     driver = Driver()
     session = Session(driver)
     session.execute(CompiledQuery('parent'))
     with pytest.raises(LookupError):
         session.execute(CompiledQuery('fail'))
-    with pytest.raises(TransactionStateError, match='rollback-only'):
-        session.commit()
-    with pytest.raises(TransactionStateError, match='rollback-only'):
-        session.execute(CompiledQuery('later'))
+    assert session.outcome == 'rolled_back'
+    assert driver.calls[-1] == 'rollback'
     assert driver.persisted == []
-    session.rollback()
     session.execute(CompiledQuery('recovered'))
     session.commit()
     assert driver.persisted == ['recovered']
+    assert driver.calls.count('connect') == 1
     session.close()
 
 
@@ -131,7 +130,7 @@ def test_mark_failed_prevents_silent_context_success(with_sql):
                 session.execute(CompiledQuery('first'))
             session.mark_failed()
     assert driver.persisted == []
-    assert driver.calls == (['connect', 'first', 'rollback', 'close'] if with_sql else [])
+    assert driver.calls == (['connect', 'first', 'rollback'] if with_sql else [])
     with session.transaction():
         session.execute(CompiledQuery('healthy'))
     assert driver.persisted == ['healthy']
@@ -259,11 +258,11 @@ def test_caught_driver_error_cannot_commit_context_as_success():
                 session.execute(CompiledQuery('fail'))
     assert driver.persisted == []
     assert session.outcome == 'rolled_back'
-    assert driver.calls[-2:] == ['rollback', 'close']
+    assert driver.calls[-1] == 'rollback'
     session.close()
 
 
-def test_failed_connection_requires_rollback_but_never_retains_active_runtime_transaction():
+def test_failed_connection_is_not_cached_and_can_be_retried():
     driver = Driver()
     original = driver.connect
     def fail(*args, **kwargs):
@@ -272,10 +271,26 @@ def test_failed_connection_requires_rollback_but_never_retains_active_runtime_tr
     session = Session(driver)
     with pytest.raises(OSError, match='connect failed'):
         session.execute(CompiledQuery('first'))
-    with pytest.raises(TransactionStateError, match='rollback-only'):
-        session.execute(CompiledQuery('second'))
-    session.rollback()
+    assert session._connection is None
     driver.connect = original
+    session.execute(CompiledQuery('recovered'))
+    session.commit()
+    assert driver.persisted == ['recovered']
+    session.close()
+
+
+def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
+    driver = Driver()
+    session = Session(driver)
+    driver.rollback_error = OSError('rollback failed')
+    with pytest.raises(LookupError):
+        with session.transaction():
+            session.execute(CompiledQuery('fail'))
+    assert session.outcome == 'unknown'
+    with pytest.raises(TransactionStateError, match='rollback-only'):
+        session.execute(CompiledQuery('unsafe retry'))
+    driver.rollback_error = None
+    session.rollback()
     session.execute(CompiledQuery('recovered'))
     session.commit()
     assert driver.persisted == ['recovered']

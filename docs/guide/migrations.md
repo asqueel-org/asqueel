@@ -113,19 +113,9 @@ must be reproduced exactly, this projection is not suitable for that import.
 ## Handle rejected projections
 
 `to_physical_builder()` raises `UnsupportedFeatureError` when it cannot safely
-represent the supplied model. In particular:
-
-- Any `model.warnings` blocks projection, including unmanaged objects or a
-  requested schema that was not found. There is no general ignore-warnings flag.
-- Imported identity/generated columns, sequence ownership or sequence-dependent
-  defaults, custom column collations and known lossy type conversions are rejected.
-- Unsupported constraints, unvalidated constraints, external FK targets and
-  column-subset `SET NULL`/`SET DEFAULT` actions are rejected.
-- Imported expression indexes, INCLUDE columns, custom opclasses/collations,
-  unsupported NULL ordering and advanced index options are rejected when their
-  semantics cannot be represented. This also applies to indexes owned by constraints.
-- CHECK expressions or partial-index predicates with remapped column names are
-  rejected when the projection cannot safely rewrite their SQL.
+represent the supplied model. A projection must preserve types, defaults,
+constraints, index semantics and dependencies. Diagnostics identify objects
+requiring a richer representation or separate migration ownership.
 
 Do not clear warnings or delete preserved metadata simply to make the projection
 succeed. Resolve the unsupported feature or manage that schema through a tool

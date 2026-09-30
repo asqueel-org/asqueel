@@ -1,0 +1,73 @@
+{
+  "legacy_commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "legacy": {
+    "source": {
+      "transactions_sha256": "7d13522189896b95e83004e9cbc94297e3e717a518f7ac149bc1dcdeddab7745",
+      "bag_sha256": "5de12bbdbc3bab4b8a3941ec0dd76adf3f4d3635861e3f1b187e33fbce5e1584"
+    },
+    "results": {
+      "block_and_insertion_order": [
+        "first",
+        "second",
+        "last"
+      ],
+      "shared_kwargs": true,
+      "deduplicated_values": [
+        "merged"
+      ],
+      "normalized_id": true,
+      "false_ids_are_unique": [
+        "one",
+        "two",
+        "one",
+        "two",
+        "one",
+        "two",
+        "one",
+        "two"
+      ],
+      "recursive_False": [
+        "call"
+      ],
+      "recursive_True": [
+        "call",
+        "call",
+        "call"
+      ]
+    }
+  },
+  "native": {
+    "source": {},
+    "results": {
+      "block_and_insertion_order": [
+        "first",
+        "second",
+        "last"
+      ],
+      "shared_kwargs": true,
+      "deduplicated_values": [
+        "merged"
+      ],
+      "normalized_id": true,
+      "false_ids_are_unique": [
+        "one",
+        "two",
+        "one",
+        "two",
+        "one",
+        "two",
+        "one",
+        "two"
+      ],
+      "recursive_False": [
+        "call"
+      ],
+      "recursive_True": [
+        "call",
+        "call",
+        "call"
+      ]
+    }
+  },
+  "equal": true
+}

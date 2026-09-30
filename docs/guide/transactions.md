@@ -1,7 +1,8 @@
 # Transactions and database access
 
 Application objects use a shared, lazy synchronous session. `SqlDatabase` table
-operations and `db.execute()` retain one transaction until explicit completion.
+operations and `db.execute()` retain the selected named connection’s transaction
+until explicit completion.
 A connection is opened only when a statement is executed.
 
 The examples below assume `db = build_database(YourRecipe)` and existing tables.
@@ -22,14 +23,15 @@ except Exception:
 
 Both inserts use the same transaction. Other table operations on `db`, including
 reads and work performed by table hooks, join that transaction. After commit
-or rollback, the next executed statement starts a new transaction lazily.
+or rollback, the next executed statement starts a new transaction lazily on the
+same physical connection.
 
 `db.close()` rolls back pending work and closes the session. Likewise, leaving
 `with build_database(YourRecipe) as db:` closes the database; it does **not**
 commit pending writes on a successful exit. Use an explicit commit or the
 transaction scope below. Database operations must run on the constructing thread.
 
-## Use an atomic scope
+## Optional atomic scope
 
 ```python
 with db.transaction():
@@ -64,10 +66,17 @@ except psycopg.errors.UniqueViolation:
     pass
 ```
 
-An executed SQL error or failed table write/hook marks the session rollback-only.
-With manual transaction management, call `db.rollback()` before reuse. Inside an
-atomic scope, catching a failed operation does not make it successful: normal
-scope exit rolls back and raises `TransactionStateError`.
+An executed SQL error automatically rolls back the selected connection before
+propagating the original error. Previous writes on that connection are discarded;
+with ordinary implicit transactions, a later operation can start new work without
+an additional manual rollback. Other named connections remain independent.
+
+A Python domain error in a table write/hook still marks that session rollback-only;
+call `db.rollback()` before reuse. Inside the optional atomic scope, a caught SQL
+error also prevents successful scope completion: exit raises `TransactionStateError`.
+If automatic rollback itself fails, the connection is discarded, the outcome is
+`unknown`, and explicit recovery is required. The original SQL error is preserved
+with the rollback failure as its cause.
 
 A hook cannot commit, roll back or close the database during its enclosing write.
 This ensures its changes and the primary write have one transaction boundary.
@@ -79,6 +88,90 @@ write is treated as a failed domain operation, even before SQL has run.
 `unknown`. Unknown commit outcomes must be reconciled with application-specific
 identifiers before retrying a write: the server may already have committed it.
 Driver errors propagate without being wrapped, and cleanup is still attempted.
+
+## Independent named connections
+
+The same database object can keep several connections to the same database:
+
+```python
+customer = db.table('sales.customer')
+customer.insert({'id': 10, 'name': 'Pending on main'})
+with db.tempEnv(connectionName='independent'):
+    customer.insert({'id': 20, 'name': 'Committed separately'})
+    db.commit()
+db.rollback()  # Discards id=10; id=20 remains committed.
+```
+
+The default name is `_main_connection`. Each name opens a connection lazily and
+retains it after commit/rollback. `db.currentConnectionName` identifies the
+selection; `db.outcome` describes that name's session. Changing names does not
+commit, roll back or close anything. Database isolation and locks still apply;
+an independent connection cannot assume it can read the main connection's
+uncommitted rows. Avoid making it wait on locks held by the suspended work.
+
+`db.closeConnection()` rolls back and closes every named connection, while keeping
+the database object usable. `db.close()` also closes every name and permanently
+closes the object. Cleanup attempts all connections even if one fails.
+
+The optional `db.transaction()` scope owns only the name selected on entry.
+Work on other names is independent and requires its own completion. An empty
+scope opens no connection. Selecting another store changes the database context;
+selecting another connection name separates transactional work within it.
+
+## Work around commit
+
+`deferToCommit()` registers work to run before the database commit.
+`deferAfterCommit()` registers work after a successful commit. Grouping and
+identifiers organize and deduplicate deferred work. Keep that work associated
+with its connection context: committing one name must not drain another name's
+callbacks.
+
+Callbacks run with `onCommittingStep=True` and the connection name whose
+transaction is being completed. They can execute queries, perform table writes
+and register more deferred work. They cannot explicitly call commit, rollback
+or close on the session already being completed.
+
+Blocks named by `_deferredBlock` execute in sorted order; callbacks within a
+block execute in registration order. `_deferredId` deduplicates registrations
+of the **same callable object** within that block. The registration method
+returns the stored kwargs dictionary, so a later registration can update it.
+False-valued IDs request separate entries. Nonempty IDs are compared as strings.
+Retain a bound method reference if its identity must remain stable across calls.
+
+Re-registering a callback under the same ID while it runs does not run it again
+unless the callable has `deferredCommitRecursion=True`. Such callbacks must
+provide their own termination condition. Registration alone does not open a
+connection or begin a transaction; callbacks wait for transactional work.
+
+```python
+def record_committed(table, pkey):
+    print(f"Committed {table}: {pkey}")
+
+customer = db.table('sales.customer')
+customer.insert({'id': 101, 'name': 'Ada'})
+db.deferAfterCommit(record_committed, table=customer.fullname, pkey=101)
+db.commit()
+```
+
+`deferredRaise(exception)` queues an error for the commit boundary and raises
+`DeferredCommitError` there. A pre-commit Python failure prevents commit and
+requires rollback with the implicit transaction API; the optional transaction
+scope performs that rollback automatically. A caught SQL failure still aborts
+the active commit dispatch, so it cannot resume and publish a successful outcome.
+Rollback, SQL rollback, closure and uncertain commit discard queued work.
+
+A successful after-commit callback may issue SQL and thereby start a new
+transaction, which the commit loop then completes as in Genropy. If that callback
+fails, already committed work stays committed. Roll back any new work explicitly,
+or let the optional transaction scope roll it back on exit.
+
+Deferred errors prevent successful commit. Application events are collected
+within the write lifecycle and handed to the application integration after
+commit; a database event is not itself a web notification. A rollback must not
+publish an event claiming that the discarded write succeeded.
+
+A failure after the server has committed cannot undo that commit. Applications
+must distinguish failed database work from a failure to publish its outcome.
 
 ## Environment scopes
 
@@ -97,165 +190,17 @@ instead returns a fixed compiled statement with environment bindings. Executing
 that statement after a relevant environment value changes raises
 `EnvironmentMismatchError`. See [environment scopes](environment.md).
 
-## Advanced: independent low-level runtime
 
-`PostgresDatabase` and `Database` remain separate lower-level executors. Their
-transaction behavior differs from the application session: `db.execute()` owns
-and completes a transaction for one operation. Use `tx.execute()` to join an
-explicit low-level transaction. The following examples use these low-level
-classes, not `SqlDatabase`.
+## Choose one transaction API
 
-### Execute one statement
+| Object you constructed | Execute inside an atomic scope | Standalone execute |
+|---|---|---|
+| `build_database(Recipe)` → `SqlDatabase` | `db.table(...).query(...).fetch()` or `db.execute(...)` | Keeps the session transaction pending. |
+| `PostgresDatabase(...)` / `Database(...)` | `with db.transaction() as tx:` then `tx.execute(...)` | Owns and completes a transaction for that statement. |
 
-This example needs a reachable PostgreSQL database but no application tables:
+For ordinary application code, use the first row throughout. The second is an
+integration interface for callers managing compiled statements. Its complete
+lifecycle is documented in [low-level execution](low-level-runtime.md).
 
-```python
-from genro_sql import CompiledQuery, PostgresDatabase
-
-with PostgresDatabase('dbname=example') as db:
-    result = db.execute(CompiledQuery(
-        'SELECT %(message)s AS message',
-        {'message': 'Hello'},
-    ))
-    print(result.rows)  # [{'message': 'Hello'}]
-```
-
-`db.execute()` opens a connection, executes the statement, commits and closes
-that connection before returning. Use compiler-generated queries for model-aware
-field resolution and row policies. Direct `CompiledQuery` SQL is a lower-level
-interface; see [adapters and binding](adapters.md).
-
-Results are materialized: `rows` is a list of dictionaries, `rowcount` is the
-driver's affected/returned row count, and `columns` contains result metadata.
-There is no cursor to consume or close after `execute()` returns.
-
-### Group operations atomically
-
-The following function assumes an existing model and database with `customer`
-and `invoice` tables, generated `id` keys, and the fields shown. Neither compiler
-construction nor runtime construction creates tables.
-
-```python
-from decimal import Decimal
-
-
-def create_customer_and_invoice(db, compiler, name):
-    with db.transaction() as tx:
-        customer = tx.execute(compiler.insert(
-            'customer', {'name': name}, returning='$id',
-        ))
-        customer_id = customer.rows[0]['id']
-        invoice = tx.execute(compiler.insert(
-            'invoice',
-            {'customer_id': customer_id, 'total': Decimal('25.00')},
-            returning='$id',
-        ))
-    # Both inserts have committed before control reaches this point.
-    return customer_id, invoice.rows[0]['id']
-```
-
-All `tx.execute()` calls use the same connection. Normal exit commits; an
-exception leaving the block rolls back. A Python exception from your own
-application code also causes rollback.
-
-Inside the block, call `tx.execute()`, not `db.execute()`. Nested transactions
-on the same database instance are rejected; there are no nested savepoints.
-Transactions are single-use and cannot execute after their context has exited.
-
-### Handle errors outside the transaction
-
-Catch the errors your application can handle around the entire transaction:
-
-```python
-import psycopg
-
-
-def try_create_customer(db, compiler, name):
-    try:
-        with db.transaction() as tx:
-            result = tx.execute(compiler.insert(
-                'customer', {'name': name}, returning='$id',
-            ))
-    except psycopg.errors.UniqueViolation:
-        return None
-    return result.rows[0]['id']
-```
-
-An execution error makes the transaction **rollback-only**. Catching that error
-inside the block does not repair the transaction: further statements raise
-`TransactionStateError`, and an otherwise normal exit rolls back and raises
-`TransactionStateError` instead of appearing to commit successfully. Start a
-new transaction to retry an operation.
-
-Profile and environment checks occur before dispatch. A rejected query that
-never reaches the driver does not, by itself, mark the transaction rollback-only.
-Other executed statements still commit on normal exit.
-
-The runtime propagates driver exceptions rather than wrapping them. A failure
-during commit or rollback still attempts to close the connection. If both the
-transaction operation and connection cleanup fail, the first exception is
-preserved and receives a note about the cleanup failure.
-
-### Understand the transaction outcome
-
-`tx.outcome` describes the observed lifecycle:
-
-| Value | Meaning |
-|---|---|
-| `not_started` | The connection has not been opened successfully. |
-| `active` | The transaction is open. |
-| `committed` | The driver's commit call completed successfully. |
-| `rolled_back` | The driver's rollback call completed successfully. |
-| `unknown` | Commit or rollback raised; the final server state is not confirmed. |
-
-Do not automatically retry a write after an unknown commit outcome: it may
-already have committed. Resolve that uncertainty using application-specific
-identifiers or reconciliation. A connection-close error after a successful
-commit leaves the outcome as `committed`.
-
-### Keep compiler and runtime environments aligned
-
-Pass the same `SqlEnvironment` to both components when queries use contextual
-parameters or partition scopes. For an existing `customer` model:
-
-```python
-from genro_sql import EnvironmentMismatchError, PostgresCompiler
-from genro_sql import PostgresDatabase, SqlEnvironment
-
-
-def read_customer(model, conninfo):
-    environment = SqlEnvironment()
-    compiler = PostgresCompiler(model, environment=environment)
-    with PostgresDatabase(conninfo, environment=environment) as db:
-        with db.temp_env(customer_id=7):
-            query = compiler.select('customer', where='$id = :env_customer_id')
-            result = db.execute(query)
-        try:
-            db.execute(query)
-        except EnvironmentMismatchError:
-            # Compile a new query inside the intended environment scope.
-            pass
-    return result
-```
-
-A query bound to an environment cannot be reused after its relevant context
-changes. The runtime rejects that mismatch before opening a connection, or
-before executing a statement in an existing transaction. Unrelated environment
-keys do not invalidate a query that does not depend on them.
-
-### Ownership and closing
-
-A database instance belongs to the thread that constructed it. Its database
-operations, transaction operations and `close()` must run on that thread;
-cross-thread use raises `TransactionStateError`. If an application uses multiple
-threads, construct and close a separate database instance within each thread.
-
-`with db:` closes the database wrapper on exit. You can also call `db.close()`
-explicitly; repeated close calls are harmless. Closing while a transaction is
-active raises an error: exit the transaction first. A closed database cannot be
-reopened.
-
-There is no async runtime, worker pool, persistent connection pool, streaming,
-automatic retry or driver-level timeout wrapper in this API. PostgreSQL
-connection options can be passed through `connect_kwargs`; `autocommit=True`
-is rejected because the runtime owns transaction completion.
+Continue with [table hooks](hooks.md) for business rules in the same transaction,
+or [troubleshooting](troubleshooting.md) for common session errors.

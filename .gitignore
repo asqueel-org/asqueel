@@ -46,3 +46,6 @@ tmp/
 
 # Sphinx documentation
 docs/_build/
+
+# macOS filesystem metadata
+.DS_Store

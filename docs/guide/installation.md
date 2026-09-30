@@ -43,8 +43,7 @@ To use the code checked out from Git, install from the repository root:
 python -m pip install -e ".[postgresql]"
 ```
 
-Use the documentation built for the same version as your installation. A
-checkout may contain APIs that are not yet present in a published package.
+Use the documentation built for the same version as your installation.
 
 To read these guides locally, install the documentation extra and build HTML:
 

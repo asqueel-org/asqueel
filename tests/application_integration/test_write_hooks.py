@@ -193,3 +193,75 @@ def test_hook_key_change_uses_saved_old_key_and_plain_tables_keep_batch_writes(h
     assert (0, 7, 'moved') in persisted(observer, schema)
     assert (0, 0, 'original') not in persisted(observer, schema)
     assert audit_events(observer, schema) == [('batch',), ('batch',)]
+
+
+def test_deferred_registered_in_hook_shares_commit_and_observer_visibility(hooked_database):
+    db, observer, schema = hooked_database
+    table = db.table('item')
+    events = []
+
+    def before():
+        assert db.currentEnv['onCommittingStep'] is True
+        assert persisted(observer, schema)[0][2] == 'original'
+        db.table('audit').insert({'event': 'deferred'})
+
+    def after():
+        events.append((db.currentEnv['onCommittingStep'], persisted(observer, schema)[0][2],
+                       audit_events(observer, schema)))
+
+    def updated(record, old_record=None):
+        assert table.currentTrigger.event == 'update'
+        assert table.currentTrigger.old_record['name'] == 'original'
+        db.deferToCommit(before)
+        db.deferAfterCommit(after)
+
+    table.trigger_onUpdated = updated
+    table.update({'org': 0, 'id': 0, 'name': 'changed'})
+    assert events == []
+    db.commit()
+    assert events == [(True, 'changed', [('updating',), ('deferred',)])]
+    assert 'onCommittingStep' not in db.currentEnv
+    assert db.currentTrigger is None
+
+
+def test_precommit_exception_rolls_back_real_writes_and_skips_after(hooked_database):
+    db, observer, schema = hooked_database
+    events = []
+
+    def fail():
+        db.table('audit').insert({'event': 'must rollback'})
+        raise ValueError('pre-commit failure')
+
+    with pytest.raises(ValueError, match='pre-commit failure'):
+        with db.transaction():
+            db.table('item').update({'org': 0, 'id': 0, 'name': 'changed'})
+            db.deferToCommit(fail)
+            db.deferAfterCommit(lambda: events.append('after'))
+    assert persisted(observer, schema)[0][2] == 'original'
+    assert audit_events(observer, schema) == []
+    assert events == []
+    db.table('item').update({'org': 0, 'id': 0, 'name': 'recovered'})
+    db.commit()
+    assert persisted(observer, schema)[0][2] == 'recovered'
+
+
+def test_caught_precommit_sql_failure_cannot_announce_commit(hooked_database):
+    from genro_sql import CompiledQuery, TransactionStateError
+    db, observer, schema = hooked_database
+    events = []
+
+    def fail():
+        try:
+            db.execute(CompiledQuery('SELECT 1 / 0'))
+        except psycopg.errors.DivisionByZero:
+            pass
+
+    db.table('item').update({'org': 0, 'id': 0, 'name': 'changed'})
+    db.deferToCommit(fail)
+    db.deferAfterCommit(lambda: events.append('after'))
+    with pytest.raises(TransactionStateError):
+        db.commit()
+    db.rollback()
+    assert persisted(observer, schema)[0][2] == 'original'
+    assert audit_events(observer, schema) == []
+    assert events == []
