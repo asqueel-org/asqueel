@@ -40,7 +40,7 @@ contents have been reviewed. Uploaded PyPI files cannot be replaced in place.
 Publish **asqueel-migration first**. Asqueel's `migration` and `dev` extras depend
 on its public distribution. Before that first migration release, Asqueel CI uses
 an explicit source revision for the migration dependency; wheel metadata keeps
-the normal `asqueel-migration>=0.1.0` requirement.
+the normal `asqueel-migration>=0.1.2` requirement.
 
 No PyPI upload is performed by the rename itself. Read the Docs project/account
 configuration is independent of the checked-in Sphinx configuration.

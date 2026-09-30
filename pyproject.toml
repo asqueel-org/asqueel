@@ -52,10 +52,10 @@ postgresql = [
     "psycopg[binary]>=3.3.6",
 ]
 migration = [
-    "asqueel-migration>=0.1.0",
+    "asqueel-migration>=0.1.2",
 ]
 dev = [
-    "asqueel-migration[postgresql,validation]>=0.1.0",
+    "asqueel-migration[postgresql,validation]>=0.1.2",
     "psycopg[binary]>=3.3.6",
     "pytest>=8.4",
     "pytest-cov>=4.0",

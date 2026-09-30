@@ -34,7 +34,7 @@ genro-builders==0.27.0
     # via -r requirements/core.in
 genro-routes==0.30.1
     # via -r requirements/routes.in
-asqueel-migration @ git+https://github.com/asqueel-org/asqueel-migration.git@ff2865e78b84a5a8bdc678fcfb818f6fdeca4147
+asqueel-migration @ git+https://github.com/asqueel-org/asqueel-migration.git@c12390d06712a2c4f1a3cc0303a5c278402382e2
     # via -r requirements/core.in
 genro-toolbox==0.14.0
     # via
