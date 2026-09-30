@@ -47,7 +47,7 @@ checkout, run `python -m pip install -e ".[postgresql]"` in the repository root.
 Declare the model and connection configuration in one recipe:
 
 ```python
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 
 
 class Shop(SqlDatabaseConfig):
@@ -59,13 +59,15 @@ class Shop(SqlDatabaseConfig):
         columns.column("name", dtype="T", x_ui={"label": "Customer name"})
 
 
-with build_database(Shop) as db:
-    customer = db.table("sales.customer")
-    query = customer.query(
-        columns="$id, $name", where="$id >= :minimum_id",
-        params={"minimum_id": 1}, order_by="$id",
-    )
-    print(query.sqltext)  # Compiles without opening a connection.
+db = AsqueelDb(Shop)
+customer = db.table("sales.customer")
+query = customer.query(
+    columns="$id, $name", where="$id >= :minimum_id",
+    params={"minimum_id": 1}, order_by="$id",
+)
+print(query.sqltext)  # Compiles without opening a connection.
+db.close()
+
 ```
 
 Against an existing `sales.customer` table, call `query.fetch()` to get a list
@@ -103,7 +105,7 @@ asqueel shell gestionale
 Set the example's `PG*` environment variables for your PostgreSQL server before
 `plan`/`apply`; the database account must have the required privileges. `check`
 is offline. The registry in `~/.asqueel` stores the folder path, not credentials.
-The console provides `db`; the same name works with `build_database("gestionale")`
+The console provides `db`; the same name works with `AsqueelDb("gestionale")`
 in Python. See the [complete walkthrough](docs/guide/two-schemas.md) and
 [CLI reference](docs/guide/cli.md) for setup, migrations and transaction behavior.
 

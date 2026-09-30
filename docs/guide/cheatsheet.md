@@ -8,7 +8,7 @@ exist. Calls below are alternatives, not one script to execute in sequence.
 
 | Task | API | Result / timing |
 |---|---|---|
-| Build from configuration | `build_database(Recipe, parents=[Base])` | `SqlDatabase`; no I/O. |
+| Build from configuration | `AsqueelDb(Recipe, parents=[Base])` | `SqlDatabase`; no I/O. |
 | Get a table | `db.table('sales.customer')` | Stable `SqlTable`; no I/O. |
 | Get a column | `table.column('name')` | Stable `SqlColumn`; no I/O. |
 | Read metadata | `table.column('name').model.ui` | Resolved UI mapping. |
@@ -61,10 +61,14 @@ requires exactly one row. See [writes](writes.md) for the detailed contract.
 ## Lifecycle and context
 
 ```python
-with build_database(Recipe) as db:          # Owns close; not an implicit commit.
+db = AsqueelDb(Recipe)
+try:
     with db.temp_env(organization=10):     # Context only; does not open a connection.
         with db.transaction():            # Commits on success, rolls back on error.
             db.table("app.document").insert({"id": 100, "title": "Example"})
+finally:
+    db.close()
+
 ```
 
 Use `db.commit()` / `db.rollback()` for manual completion outside atomic scopes.

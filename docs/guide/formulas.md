@@ -26,7 +26,7 @@ then expands the correlation and visibility rules you need for larger formulas.
 ## Declare scalar and EXISTS formulas
 
 ```python
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 
 
 class Accounting(SqlDatabaseConfig):
@@ -50,9 +50,13 @@ class Accounting(SqlDatabaseConfig):
         ))
 
 
-with build_database(Accounting) as db:
+db = AsqueelDb(Accounting)
+try:
     # Compiles without connecting. Physical tables must exist before fetch().
     print(db.table('app.invoice').query(columns='$id, $total, $has_lines').sqltext)
+finally:
+    db.close()
+
 ```
 
 `$amount` and `$invoice_id` belong to the subquery's table. `#THIS.id` belongs to

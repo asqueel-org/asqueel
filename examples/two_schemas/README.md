@@ -89,25 +89,29 @@ In the console, `db` is already available. Call `db.commit()` to save writes;
 uncommitted changes are rolled back on exit. The same name works in Python:
 
 ```python
-from asqueel import build_database
+from asqueel import AsqueelDb
 
-with build_database("gestionale") as db:
-    rows = db.table("sales.customer").query().fetch()
+db = AsqueelDb("gestionale")
+rows = db.table("sales.customer").query().fetch()
+db.close()
+
 ```
 
 The same configuration can be used by an application:
 
 ```python
-from asqueel import build_database
+from asqueel import AsqueelDb
 from examples.two_schemas.configure import DatabaseConfiguration
 
-with build_database(DatabaseConfiguration) as db:
-    query = db.table("sales.invoice").rows_query(100)
-    print(query.compiled.sql)  # No connection
-    # rows = query.fetch()     # Requires an existing matching PostgreSQL schema
+db = AsqueelDb(DatabaseConfiguration)
+query = db.table("sales.invoice").rows_query(100)
+print(query.compiled.sql)  # No connection
+# rows = query.fetch()     # Requires an existing matching PostgreSQL schema
+db.close()
+
 ```
 
-Deployment customization can also use the existing `build_database(...,
+Deployment customization can also use the existing `AsqueelDb(...,
 parents=[...])` configuration layers. Imported schema/table contributors do not
 own credentials or connections. There is no package/subapplication loader in
 this first example.

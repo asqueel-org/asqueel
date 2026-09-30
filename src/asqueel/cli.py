@@ -5,7 +5,8 @@ import argparse
 import code
 import sys
 
-from .configuration import build_database, connection_settings
+from .application import AsqueelDb
+from .configuration import connection_settings
 from .registry import DatabaseRegistry, RegistrationError
 
 
@@ -123,7 +124,8 @@ def run(options):
     if options.target and options.config:
         raise CliError('Choose either a target or --config')
     source = options.config or options.target or '.'
-    with build_database(source) as db:
+    db = AsqueelDb(source)
+    try:
         if options.command == 'check':
             # Read through the handler to validate resolvers without database I/O.
             connection_settings(db.config)
@@ -137,6 +139,8 @@ def run(options):
             )
             return 0
         return run_migration(db, options.operation, allow_removals=options.allow_removals)
+    finally:
+        db.close()
 
 
 def main(argv=None):

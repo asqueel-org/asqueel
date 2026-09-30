@@ -1,11 +1,12 @@
 """Run from the repository root: python -m examples.two_schemas."""
-from asqueel import build_database
+from asqueel import AsqueelDb
 
 from .configure import DatabaseConfiguration
 
 
 def main():
-    with build_database(DatabaseConfiguration) as db:
+    db = AsqueelDb(DatabaseConfiguration)
+    try:
         for name in ("identity.user", "identity.access", "sales.customer",
                      "sales.product", "sales.invoice", "sales.invoice_row"):
             print(name)
@@ -18,6 +19,8 @@ def main():
         rows = db.table("sales.invoice").rows_query(100).compiled
         print(rows.sql)
         print(rows.params)
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

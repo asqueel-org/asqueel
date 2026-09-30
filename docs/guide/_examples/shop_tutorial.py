@@ -8,7 +8,7 @@ import os
 from decimal import Decimal
 from uuid import uuid4
 
-from asqueel import CompiledQuery, SqlDatabaseConfig, build_database
+from asqueel import CompiledQuery, SqlDatabaseConfig, AsqueelDb
 # imports-end
 
 
@@ -59,7 +59,7 @@ def open_shop(dsn, physical_schema):
                 "sales", x_sql_schema=physical_schema,
             )
 
-    return build_database(Deployment, parents=[Shop])
+    return AsqueelDb(Deployment, parents=[Shop])
 # deployment-end
 
 

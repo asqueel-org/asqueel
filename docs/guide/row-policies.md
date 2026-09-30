@@ -12,7 +12,7 @@ create PostgreSQL partitions or route queries to other databases.
 ## Declare policies in a model
 
 ```python
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 
 
 class Documents(SqlDatabaseConfig):
@@ -38,7 +38,7 @@ class Documents(SqlDatabaseConfig):
         columns.column("deleted_at", dtype="DHZ")
 ```
 
-Build with `db = build_database(Documents)` and close it when finished. The
+Build with `db = AsqueelDb(Documents)` and close it when finished. The
 following examples assume that live database and an existing physical
 `app.document` table. Examples that inspect `query.sqltext` only compile and need no connection.
 The examples using `fetch()` or table write methods execute against PostgreSQL.

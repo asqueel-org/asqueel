@@ -29,10 +29,11 @@ mutable mapping; `current_env` returns a detached snapshot.
 For defaults, supply an environment when building your database:
 
 ```python
-from asqueel import SqlEnvironment, build_database
+from asqueel import SqlEnvironment, AsqueelDb
 
 # Shop is the application recipe from the tutorial.
-with build_database(Shop, environment=SqlEnvironment({"language": "en"})) as configured_db:
+configured_db = AsqueelDb(Shop, environment=SqlEnvironment({"language": "en"}))
+try:
     assert configured_db.current_env["language"] == "en"
     with configured_db.temp_env(language="it", organization=10):
         assert configured_db.current_env["language"] == "it"
@@ -41,6 +42,9 @@ with build_database(Shop, environment=SqlEnvironment({"language": "en"})) as con
         assert configured_db.current_env["organization"] == 10
     assert configured_db.current_env["language"] == "en"
     assert "organization" not in configured_db.current_env
+finally:
+    configured_db.close()
+
 ```
 
 Application scopes follow legacy `tempEnv`: keys that existed on entry are

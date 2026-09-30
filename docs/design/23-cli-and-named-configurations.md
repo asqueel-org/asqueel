@@ -9,7 +9,7 @@ l'utente; non introduce la sottoapplicazione Genropy né chiude F1.
   Il registro usa `~/.asqueel/databases/<nome>.json`, rilocabile con
   `ASQUEEL_HOME`, sul modello delle schede locali di Kajenn. Salva soltanto il
   percorso assoluto; sorgenti e credenziali rimangono nel loro contesto.
-- `build_database("gestionale")` risolve la scheda e carica la ricetta tramite
+- `AsqueelDb("gestionale")` risolve la scheda e carica la ricetta tramite
   `ConfigHandler`. Restano disponibili classi, istanze e file; si aggiungono
   cartelle e riferimenti standard `module:Class`. Le ricette su file usano
   import assoluti; la radice del package Python contenente la ricetta viene
@@ -33,6 +33,15 @@ l'utente; non introduce la sottoapplicazione Genropy né chiude F1.
   nome simbolico o dall'etichetta della radice della ricetta. Dopo apply viene
   eseguito un confronto nuovo. Nessun codice DDL duplicato nella CLI.
 
+## Punto di ingresso Python
+
+`AsqueelDb` è la classe pubblica configurata, derivata da `SqlDatabase`.
+L'uso ordinario è `db = AsqueelDb("gestionale")`, seguito da operazioni su
+`db.table(...)`, commit/rollback espliciti e `db.close()`. Le tabelle e la loro
+logica appartengono a questa stessa istanza, senza proxy o copia di un altro DB.
+`build_database(...)` resta una factory compatibile che restituisce `AsqueelDb`.
+CLI, guida ed esempi usano il nome pubblico e l'accesso diretto.
+
 ## Limiti espliciti
 
 Il runtime della CLI è attualmente PostgreSQL. SQLite è richiesto e pianificato;
@@ -53,13 +62,15 @@ mostrano, quando disponibili, gli indicatori di rollback e stato parziale.
 
 ## Verifiche
 
-- Suite completa su PostgreSQL 17 isolato: **582 superati**, nessuno saltato o
+- Suite completa su PostgreSQL 17 isolato: **584 superati**, nessuno saltato o
   xfail, copertura **95%**.
 - Accettazione: registrazione, check offline, piano di creazione senza effetti,
   creazione di un database assente con due schemi/sei tabelle, scritture e join
   fra schemi, formula numerica, REPL con commit e rollback all'uscita, successivo
   piano senza comandi; opt-in delle rimozioni di colonne e preservazione di
   tabelle/schema estranei secondo il contratto del migratore.
+- Costruttore `AsqueelDb` verificato come classe reale, istanza proprietaria
+  delle tabelle, sottoclassabile e compatibile con la factory precedente.
 - Test subprocess da una directory diversa dal progetto e test delle
   credenziali/resolver, sovrapposizione delle ricette, nomi invalidi e duplicati.
 - Ruff, mypy (35 file sorgente), Sphinx con warning come errori; wheel e

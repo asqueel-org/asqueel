@@ -1,7 +1,7 @@
 # Configuration and application objects
 
 `SqlDatabaseConfig` declares connection settings and a SQL model in the same
-Builders recipe. `build_database()` produces a synchronous `SqlDatabase` with
+Builders recipe. `AsqueelDb()` produces a synchronous `SqlDatabase` with
 stable table, column and relation objects. Construction validates and binds the
 model without connecting, executing SQL, or applying migrations.
 
@@ -10,10 +10,15 @@ The [CLI and named configurations](cli.md) guide covers the singleton
 migration commands and a Python console with `db` available. The older root
 connection attributes shown below remain supported.
 
-## Build or render a recipe
+`AsqueelDb("gestionale")` loads a registered configuration and returns a
+persistent database object. Use `db.commit()`, `db.rollback()` and `db.close()`
+explicitly. The previous `build_database(...)` function remains available as a
+compatibility factory returning an `AsqueelDb` instance.
+
+## Construct a database or render a recipe
 
 ```python
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 
 
 class Shop(SqlDatabaseConfig):
@@ -27,15 +32,16 @@ class Shop(SqlDatabaseConfig):
         columns.column("name", dtype="T", x_ui={"label": "Name"})
 
 
-db = build_database(Shop)
+db = AsqueelDb(Shop)
 assert db.table("customer") is db.table("sales.customer")
 assert db.table("customer").config("name_long") == "Customers"
 db.close()
 
 recipe = Shop()
 recipe.create()
-with recipe.render() as db:
-    print(db.table("customer").query(columns="$id, $name").sqltext)
+db = recipe.render()
+print(db.table("customer").query(columns="$id, $name").sqltext)
+db.close()
 ```
 
 The default renderer is an object renderer. `render()` returns a database, not
@@ -46,7 +52,7 @@ optional `connect_kwargs`. An empty connection string uses the driver's normal
 connection defaults when an operation is eventually executed. PostgreSQL is the
 only supported implementation. `connect_kwargs={'autocommit': True}` is rejected.
 
-`build_database(source, *, parents=None, driver=None, dialect=None,
+`AsqueelDb(source, *, parents=None, driver=None, dialect=None,
 environment=None)` accepts a recipe class, an existing builder instance, or a
 configuration recipe file as supported by Builders' `ConfigHandler`. Recipe
 classes and paths are instantiated by the handler. Existing instances are copied
@@ -65,9 +71,13 @@ class Deployment(SqlDatabaseConfig):
         root.db("shop", conninfo="host=localhost dbname=shop_test")
 
 
-with build_database(Deployment, parents=[Shop]) as db:
+db = AsqueelDb(Deployment, parents=[Shop])
+try:
     assert db.config("conninfo") == "host=localhost dbname=shop_test"
     assert db.table("sales.customer").config("pkey") == "id"
+finally:
+    db.close()
+
 ```
 
 Configuration reads use the handler's read stack: written values, annotated
@@ -76,12 +86,16 @@ a default raises `KeyError`. `None` means missing in this stack; `False`, zero
 and empty strings remain values.
 
 ```python
-with build_database(Shop) as db:
+db = AsqueelDb(Shop)
+try:
     assert db.config("implementation") == "postgresql"
     customer = db.table("customer")
     assert customer.config("pkey") == "id"
     assert customer.column("name").config("dtype") == "T"
     assert customer.config("optional_hint", default=False) is False
+finally:
+    db.close()
+
 ```
 
 `db.config` is the single global handler. Table and column views delegate to it
@@ -108,12 +122,16 @@ and grammar selection are separate choices.
 Against an existing database with the example table:
 
 ```python
-with build_database(Shop) as db:
+db = AsqueelDb(Shop)
+try:
     customer = db.table("customer")
     with db.transaction():
         customer.insert({"id": 1, "name": "Ada"})
         rows = customer.query(where="$id = :wanted", wanted=1).fetch()
         assert rows[0]["name"] == "Ada"
+finally:
+    db.close()
+
 ```
 
 `query()` creates detached query intent; `.sqltext` compiles it, and `.fetch()`

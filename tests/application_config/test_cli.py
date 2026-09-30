@@ -136,3 +136,46 @@ def test_missing_connection_name_and_invalid_resolved_type_are_rejected(monkeypa
     monkeypatch.setenv('ASQUEEL_BAD_PORT', 'not-an-integer')
     with pytest.raises(ValueError, match='invalid type'):
         build_database(Invalid)
+
+
+def test_asqueel_db_is_a_real_persistent_class_with_owned_handles(tmp_path, monkeypatch):
+    import psycopg
+    from asqueel import AsqueelDb, SqlDatabase
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Constructing AsqueelDb must not connect')
+
+    monkeypatch.setattr(psycopg, 'connect', forbidden)
+    monkeypatch.setenv('ASQUEEL_HOME', str(tmp_path))
+    monkeypatch.setenv('PGPORT', '5432')
+    DatabaseRegistry().register('shop', EXAMPLE)
+    db = AsqueelDb('shop')
+    try:
+        assert type(db) is AsqueelDb
+        assert isinstance(db, SqlDatabase)
+        assert db.table('sales.invoice').db is db
+        assert db.table('sales.invoice').rows_query(7).compiled.params == {'invoice_id': 7}
+        assert not db._sessions
+    finally:
+        db.close()
+    assert db._closed
+
+
+def test_asqueel_db_supports_subclassing_and_compatibility_factory(monkeypatch):
+    from asqueel import AsqueelDb
+
+    class ApplicationDb(AsqueelDb):
+        def customers(self):
+            return self.table('sales.customer')
+
+    monkeypatch.setenv('PGPORT', '5432')
+    db = ApplicationDb(EXAMPLE)
+    legacy = build_database(EXAMPLE)
+    try:
+        assert db.customers().db is db
+        assert isinstance(legacy, AsqueelDb)
+        assert db.table('sales.customer') is not legacy.table('sales.customer')
+        assert legacy.table('sales.customer').db is legacy
+    finally:
+        db.close()
+        legacy.close()

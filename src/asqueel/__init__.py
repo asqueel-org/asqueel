@@ -12,7 +12,7 @@ from __future__ import annotations
 from importlib import import_module
 
 from .builder import SqlBuilder
-from .application import SqlDatabase
+from .application import AsqueelDb, SqlDatabase
 from .application_table import (
     SqlTable, SqlColumn, SqlRelation, SqlQuery, SqlRecord,
     RecordNotFoundError, RecordMultipleRowsError,
@@ -42,7 +42,7 @@ from .triggers import TriggerStack, TriggerStackItem
 __version__ = "0.1.1"
 
 __all__ = [
-    "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
+    "AsqueelDb", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
     "SqlTable", "SqlColumn", "SqlRelation", "SqlQuery", "SqlRecord",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",

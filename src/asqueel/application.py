@@ -19,8 +19,8 @@ from .triggers import TriggerStack
 class SqlDatabase:
     """A synchronous application database constructed from a configuration.
 
-    Use ``build_database(recipe)`` or a configuration's object renderer to
-    construct this class. Table operations share a lazy session until explicit
+    Use ``AsqueelDb(recipe)`` for application code. A configuration's object
+    renderer also supports this base class. Operations share a lazy session until explicit
     commit/rollback. Closing rolls back pending work; it never commits it.
     """
 
@@ -290,3 +290,20 @@ class SqlDatabase:
                 raise
             error.add_note(f'Database cleanup failed: {type(cleanup_error).__name__}')
             raise error from cleanup_error
+
+
+class AsqueelDb(SqlDatabase):
+    """Load a configured database by registered name, recipe, folder or file.
+
+    Construction validates the model without connecting. Use table(), commit(),
+    rollback() and close() directly on this long-lived database object.
+    """
+
+    def __init__(self, source, *, parents=None, driver=None, dialect=None, environment=None):
+        from .configuration import _effective_model_builder, _owned_handler
+        from .model import resolve_model
+
+        config = _owned_handler(source, parents)
+        model = resolve_model(_effective_model_builder(config))
+        super().__init__(model=model, config=config, driver=driver,
+                         dialect=dialect, environment=environment)

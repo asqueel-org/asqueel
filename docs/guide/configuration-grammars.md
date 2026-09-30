@@ -24,7 +24,7 @@ does not include every option of the standard column grammar.
 
 ```python
 from genro_builders.builder import element
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.elements import ColumnElements, SchemaElements, TableElements
 
 
@@ -65,17 +65,21 @@ class App(SqlDatabaseConfig):
         columns.column(name='rank')
 
 
-with build_database(App) as db:
+db = AsqueelDb(App)
+try:
     rank = db.table('sales.customer').column('rank')
     assert rank.config('dtype') == 'I'
     assert rank.model.dtype == 'I'
     assert rank.config('ui_hint') == 'Number'
     assert db.table('customer').column('id').config('ui_hint') == 'Identifier'
+finally:
+    db.close()
+
 ```
 
 The schema mount selects `SchemaConfig.grammar`. Its table declaration selects
 `TableConfig.grammar`. The column's `projects_column` metadata tells SQL model
-resolution that it describes a column. `build_database()` follows the same
+resolution that it describes a column. `AsqueelDb()` follows the same
 rendering process as a standard recipe and performs no database I/O.
 
 Use the supported SQL element tags and retain relevant projection metadata when

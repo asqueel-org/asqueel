@@ -5,7 +5,7 @@ operations and `db.execute()` retain the selected named connection’s transacti
 until explicit completion.
 A connection is opened only when a statement is executed.
 
-The examples below assume `db = build_database(YourRecipe)` and existing tables.
+The examples below assume `db = AsqueelDb(YourRecipe)` and existing tables.
 Building a recipe never creates or migrates tables.
 
 ## Complete a unit of work explicitly
@@ -26,13 +26,9 @@ reads and work performed by table hooks, join that transaction. After commit
 or rollback, the next executed statement starts a new transaction lazily on the
 same physical connection.
 
-`db.close()` rolls back pending work and closes the session. Likewise, leaving
-`with build_database(YourRecipe) as db:` closes the database; it does **not**
-commit pending writes on a successful exit. Use an explicit commit or the
-transaction scope below. If the body raises and database cleanup also fails,
-the body exception remains the raised error; the cleanup failure is attached as
-its cause. A cleanup failure without a body exception is raised directly.
-Database operations must run on the constructing thread.
+`db.close()` rolls back pending work and closes the sessions. It never commits
+pending writes; call `db.commit()` explicitly to save them. Database operations
+must run on the constructing thread.
 
 ## Optional atomic scope
 
@@ -209,7 +205,7 @@ that statement after a relevant environment value changes raises
 
 | Object you constructed | Execute inside an atomic scope | Standalone execute |
 |---|---|---|
-| `build_database(Recipe)` → `SqlDatabase` | `db.table(...).query(...).fetch()` or `db.execute(...)` | Keeps the session transaction pending. |
+| `AsqueelDb(Recipe)` → `SqlDatabase` | `db.table(...).query(...).fetch()` or `db.execute(...)` | Keeps the session transaction pending. |
 | `PostgresDatabase(...)` / `Database(...)` | `with db.transaction() as tx:` then `tx.execute(...)` | Owns and completes a transaction for that statement. |
 
 For ordinary application code, use the first row throughout. The second is an

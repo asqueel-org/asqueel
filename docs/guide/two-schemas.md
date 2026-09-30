@@ -117,28 +117,30 @@ After applying the structure, run this once on the fresh example database:
 
 ```python
 from decimal import Decimal
-from asqueel import build_database
+from asqueel import AsqueelDb
 
-with build_database("gestionale") as db:
-    db.table("identity.user").insert({"id": 1, "username": "ada"})
-    db.table("identity.access").insert({"id": 1, "user_id": 1, "successful": True})
-    db.table("sales.customer").insert({"id": 1, "name": "Ada"})
-    db.table("sales.product").insert({"id": 1, "code": "P1", "description": "Widget"})
-    db.table("sales.invoice").insert({
-        "id": 1, "number": "INV-1", "customer_id": 1, "created_by": 1,
-    })
-    db.table("sales.invoice_row").insert({
-        "id": 1, "invoice_id": 1, "product_id": 1, "description": "Widget",
-        "quantity": Decimal("2"), "unit_price": Decimal("12.50"),
-    })
-    db.commit()
+db = AsqueelDb("gestionale")
+db.table("identity.user").insert({"id": 1, "username": "ada"})
+db.table("identity.access").insert({"id": 1, "user_id": 1, "successful": True})
+db.table("sales.customer").insert({"id": 1, "name": "Ada"})
+db.table("sales.product").insert({"id": 1, "code": "P1", "description": "Widget"})
+db.table("sales.invoice").insert({
+    "id": 1, "number": "INV-1", "customer_id": 1, "created_by": 1,
+})
+db.table("sales.invoice_row").insert({
+    "id": 1, "invoice_id": 1, "product_id": 1, "description": "Widget",
+    "quantity": Decimal("2"), "unit_price": Decimal("12.50"),
+})
+db.commit()
 
-    invoice = db.table("sales.invoice").query(
-        columns="$number, @customer_id.name AS customer, @created_by.username AS author",
-    ).fetch()[0]
-    assert invoice["customer"] == "Ada"
-    assert invoice["author"] == "ada"
-    assert db.table("sales.invoice").rows_query(1).fetch()[0]["amount"] == Decimal("25")
+invoice = db.table("sales.invoice").query(
+    columns="$number, @customer_id.name AS customer, @created_by.username AS author",
+).fetch()[0]
+assert invoice["customer"] == "Ada"
+assert invoice["author"] == "ada"
+assert db.table("sales.invoice").rows_query(1).fetch()[0]["amount"] == Decimal("25")
+db.close()
+
 ```
 
 The example supplies integer IDs explicitly. Repeating those inserts in the

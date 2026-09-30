@@ -18,7 +18,7 @@ example finishes.
 import os
 from uuid import uuid4
 
-from asqueel import CompiledQuery, SqlDatabaseConfig, build_database
+from asqueel import CompiledQuery, SqlDatabaseConfig, AsqueelDb
 
 schema_name = "genro_example_" + uuid4().hex
 
@@ -33,7 +33,8 @@ class Shop(SqlDatabaseConfig):
                        x_ui={"label": "Customer name"})
 
 
-with build_database(Shop) as db:
+db = AsqueelDb(Shop)
+try:
     customer = db.table("sales.customer")
     assert customer is db.table("customer")
 
@@ -62,6 +63,9 @@ with build_database(Shop) as db:
         db.rollback()  # Finish pending work before cleanup.
         db.execute(CompiledQuery(f'DROP SCHEMA "{schema_name}" CASCADE'))
         db.commit()
+finally:
+    db.close()
+
 ```
 
 Run it with `python quickstart.py`.
@@ -69,7 +73,7 @@ Run it with `python quickstart.py`.
 ## What the objects do
 
 - `SqlDatabaseConfig` combines declaration grammar and connection configuration.
-  `build_database()` validates the model and creates the live object graph.
+  `AsqueelDb()` validates the model and creates the live object graph.
 - `SqlDatabase` owns the model, compiler, environment and lazy session. It connects
   on the first executed operation, not during construction or SQL compilation.
 - `db.table()` returns a stable operational table. Its `.model` is the resolved

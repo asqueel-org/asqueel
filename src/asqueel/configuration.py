@@ -159,17 +159,10 @@ def connection_settings(config):
 
 
 def build_database(source, *, parents=None, driver=None, dialect=None, environment=None):
-    """Build a live SQL application without connecting or applying migrations.
-
-    Recipe instances are copied before ConfigHandler merges parent layers.
-    Paths and recipe classes are instantiated by ConfigHandler itself.
-    """
-    from .object_renderer import SqlObjectRenderer
-    config = _owned_handler(source, parents)
-    renderer = SqlObjectRenderer(config.builder)
-    result = renderer.render_children(config.builder.source, config=config,
-                                      driver=driver, dialect=dialect, environment=environment)
-    return renderer.finalize(result, None)
+    """Compatibility factory; new application code can instantiate AsqueelDb."""
+    from .application import AsqueelDb
+    return AsqueelDb(source, parents=parents, driver=driver, dialect=dialect,
+                     environment=environment)
 
 
 def _effective_model_builder(config):

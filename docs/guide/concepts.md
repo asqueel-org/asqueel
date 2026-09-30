@@ -18,7 +18,7 @@ construct a compiler or a driver to use it.
 
 ```mermaid
 flowchart LR
-    A["Configuration recipe<br/>grammar and layered values"] --> B["build_database<br/>validate and resolve"]
+    A["Configuration recipe<br/>grammar and layered values"] --> B["AsqueelDb<br/>validate and resolve"]
     B --> C["Live database<br/>tables, columns, relations"]
     C --> D["Query intent"]
     D --> E["Compiled SQL<br/>and bound values"]
@@ -29,7 +29,7 @@ flowchart LR
    schemas, tables and columns. Builders grammars define which declarations and
    attributes are allowed. Parent recipes and an application or deployment recipe
    can contribute to the same configuration.
-2. **Render live objects.** `build_database(Recipe)` resolves the configuration,
+2. **Render live objects.** `AsqueelDb(Recipe)` resolves the configuration,
    checks the model and constructs a `SqlDatabase`. Tables, columns and relations
    are stable objects attached to it. No connection is opened and no DDL is run.
 3. **Execute operations.** `table.query(...)` records intent. `.fetch()` compiles
@@ -103,8 +103,8 @@ Operations start a transaction implicitly. Finish the unit of work with
 when needed, a named connection. An environment scope does not conclude a
 transaction.
 
-`with build_database(Recipe) as db:` owns closing. It rolls back pending work
-on exit; successful exit alone does not commit. The API is synchronous and the
+`db = AsqueelDb(Recipe)` creates a persistent database object. Call
+`db.close()` when finished; closing rolls back pending work and never commits. The API is synchronous and the
 database must be constructed, used and closed on the same thread.
 
 ## A model is not a migration

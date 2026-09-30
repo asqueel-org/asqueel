@@ -138,14 +138,14 @@ persistent console history file is installed by this command.
 The same symbolic name works in an ordinary Python terminal:
 
 ```python
-from asqueel import build_database
+from asqueel import AsqueelDb
 
-db = build_database("gestionale")
+db = AsqueelDb("gestionale")
 rows = db.table("sales.customer").query().fetch()
 db.close()
 ```
 
-For scripts, use `with build_database("gestionale") as db:` for cleanup. This
+Call `db.close()` when finished; it rolls back pending work. This constructor
 loads the SQL configuration directly; it does not instantiate a Genropy
 application or load GUI/services.
 
@@ -161,5 +161,5 @@ asqueel check --config ./examples/two_schemas/configure.py
 asqueel check --config examples.two_schemas.configure:DatabaseConfiguration
 ```
 
-The same source forms are accepted by `build_database`, alongside existing
+The same source forms are accepted by `AsqueelDb`, alongside existing
 recipe classes, instances and parent configuration layers.
