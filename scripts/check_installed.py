@@ -8,13 +8,17 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--postgresql', action='store_true', help='include the dedicated PostgreSQL tests')
     parser.add_argument('--core-only', action='store_true', help='verify installation without migration')
+    parser.add_argument('--coverage-xml', type=Path, help='save coverage with repository source paths')
     args = parser.parse_args()
+    if args.core_only and args.coverage_xml:
+        parser.error('--coverage-xml requires the test suite')
     repository = Path(__file__).resolve().parents[1]
     package = import_module('asqueel')
     installed = Path(package.__file__).resolve().parent
@@ -75,9 +79,30 @@ def main():
         environment.pop('PYTHONPATH', None)
         command = [sys.executable, '-m', 'pytest', 'tests', '-q', '-ra', '-o', 'addopts=',
                    '--cov=asqueel', '--cov-report=term-missing']
+        if args.coverage_xml:
+            command += [f'--cov-report=xml:{destination / "coverage.xml"}']
         if not args.postgresql:
             command += ['-m', 'not postgresql']
         subprocess.run(command, cwd=directory, env=environment, check=True)
+        if args.coverage_xml:
+            report = ET.parse(destination / 'coverage.xml')
+            sources = report.find('sources')
+            if sources is None:
+                raise RuntimeError('Coverage report has no source paths')
+            sources.clear()
+            ET.SubElement(sources, 'source').text = '.'
+            for entry in report.iter('class'):
+                filename = Path(entry.attrib['filename'])
+                if filename.is_absolute():
+                    filename = filename.relative_to(installed)
+                relative = Path('src/asqueel') / filename
+                if not (repository / relative).is_file():
+                    raise RuntimeError(f'Coverage source not found: {relative}')
+                entry.set('filename', relative.as_posix())
+            output = args.coverage_xml.resolve()
+            output.parent.mkdir(parents=True, exist_ok=True)
+            report.write(output, encoding='utf-8', xml_declaration=True)
+            print(f'Coverage report: {output}', flush=True)
 
 
 if __name__ == '__main__':
