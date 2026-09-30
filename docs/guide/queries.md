@@ -151,12 +151,12 @@ Several to-one relations can be chained, using `@customer.@country.name` or
 collection relationships: choose their cardinality and result shape explicitly. Related-table policies are not automatically added to a
 plain join; the root table's policies govern the query.
 
-## Use aliases, formulas and aggregates
+## Use relations, formulas and aggregates
 
 ```python
 try:
     rows = db.table("sales.invoice").query(
-        columns="$id, $customer_name, $double_total, $line_total, $has_lines",
+        columns="$id, @customer.name AS customer_name, $double_total, $line_total, $has_lines",
         order_by="$id",
     ).fetch()
     db.commit()
@@ -166,7 +166,7 @@ except Exception:
 
 ```
 
-All five names are model columns. `customer_name` is an alias to a related column;
+`customer_name` is the result name for the related column `@customer.name`;
 `double_total` is a SQL expression; `line_total` and `has_lines` are correlated
 formulas. Their declaration and scope rules are in [models](models.md) and
 [formulas](formulas.md). They are read-only.

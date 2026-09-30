@@ -16,13 +16,18 @@ from asqueel import CompiledQuery, SqlDatabaseConfig, AsqueelDb
 class Shop(SqlDatabaseConfig):
     def main(self, root):
         tables = root.db("shop").schemas().schema("sales").tables()
+        self.customer(tables)
+        self.invoice(tables)
+        self.line(tables)
 
+    def customer(self, tables):
         customer = tables.table("customer", pkey="id")
         columns = customer.columns()
         columns.column("id", dtype="L")
         columns.column("name", dtype="T", notnull=True,
                        x_ui={"label": "Customer name"})
 
+    def invoice(self, tables):
         invoice = tables.table("invoice", pkey="id")
         columns = invoice.columns()
         columns.column("id", dtype="L")
@@ -32,7 +37,6 @@ class Shop(SqlDatabaseConfig):
         columns.column("total", dtype="N", size="12,2", notnull=True)
         columns.column("note", dtype="T")
         virtuals = invoice.virtual_columns()
-        virtuals.aliasColumn("customer_name", relation_path="@customer.name")
         virtuals.formulaColumn("double_total", dtype="N", sql_formula="$total * 2")
         virtuals.formulaColumn("line_total", dtype="N", select=dict(
             table="sales.line", columns="SUM($amount)",
@@ -42,6 +46,7 @@ class Shop(SqlDatabaseConfig):
             table="sales.line", where="$invoice_id=#THIS.id",
         ))
 
+    def line(self, tables):
         columns = tables.table("line", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("invoice_id", dtype="L").relation(
@@ -103,7 +108,7 @@ def seed(db):
 def read_invoices(db):
     invoice = db.table("sales.invoice")
     query = invoice.query(
-        columns="$id, $customer_name, $total, $line_total, $has_lines",
+        columns="$id, @customer.name AS customer_name, $total, $line_total, $has_lines",
         order_by="$id",
     )
     assert "SELECT" in query.sqltext  # Compilation performs no I/O.

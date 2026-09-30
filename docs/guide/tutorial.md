@@ -1,6 +1,6 @@
 # Tutorial: customers, invoices and computed columns
 
-Build a small application using configuration, live tables, relations, an alias
+Build a small application using configuration, live tables, relations
 and correlated formulas. Then insert data, read it back, commit a change and
 verify a rollback. The example uses ordinary dictionary results throughout.
 
@@ -56,8 +56,9 @@ Import the public application interfaces and standard Python value types:
 :end-before: "# imports-end"
 :::
 
-Define the model in a recipe. The `columns()` and `virtual_columns()` handles
-are each created once per table and then reused:
+Define the model in a recipe. `main()` creates the schema and calls one method
+per table. Each method defines that table's columns, relations and formulas,
+reusing its `columns()` and `virtual_columns()` handles:
 
 :::{literalinclude} _examples/shop_tutorial.py
 :language: python
@@ -65,12 +66,11 @@ are each created once per table and then reused:
 :end-before: "# model-end"
 :::
 
-Notice the four different invoice column definitions:
+Notice the three kinds of invoice column definitions:
 
 | Column | Definition | Stored in PostgreSQL? |
 |---|---|---|
 | `total` | Ordinary numeric column. | Yes |
-| `customer_name` | Alias to `@customer.name`, inheriting target dtype and metadata. | No |
 | `double_total` | SQL expression over a local column. | No |
 | `line_total`, `has_lines` | Scalar SUM and EXISTS correlated with this invoice. | No |
 
@@ -101,7 +101,7 @@ unique generated name. This is the same mechanism you can use to target a test
 or production schema. [Configuration](configuration.md) explains the read stack.
 
 `open_shop()` returns a live database without connecting. It has already resolved
-the model, so missing alias targets and invalid declarations can fail here.
+the model, so invalid declarations can fail here.
 
 ## 3. Create the disposable physical tables
 
@@ -132,7 +132,7 @@ satisfy their foreign keys. All writes share an implicit transaction. The explic
 all of them; an error rolls the unit of work back. `Decimal` represents the
 amounts without introducing binary floating-point rounding.
 
-## 5. Read through aliases and correlated formulas
+## 5. Read through relations and correlated formulas
 
 :::{literalinclude} _examples/shop_tutorial.py
 :language: python
@@ -141,8 +141,14 @@ amounts without introducing binary floating-point rounding.
 :::
 
 The result has two rows, one per invoice. The two lines of invoice 10 do not
-multiply its outer result: their SUM is a scalar subquery. The alias generates
-a join to the unique customer. No Python row aggregation is involved.
+multiply its outer result: their SUM is a scalar subquery. `@customer.name`
+follows the declared relation and generates a join to the customer, without
+requiring an `aliasColumn` in the model. `AS customer_name` names the result
+field. No Python row aggregation is involved.
+
+An `aliasColumn` is useful when a deeper relation path or a frequently reused
+path deserves a name in the model. For this direct relation, the query can use
+`@customer.name` as it is.
 
 `query.sqltext` compiles without executing. `.fetch()` executes within the
 transaction and returns dictionaries. For binding, filtering and pagination,
