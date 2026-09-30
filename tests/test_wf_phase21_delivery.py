@@ -32,7 +32,7 @@ def test_documented_development_extra_can_collect_the_complete_suite():
     # wf:contract: validation and PostgreSQL support.
     metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert 'asqueel-migration[postgresql,validation]>=0.1.0' in metadata
+    assert 'asqueel-migration[postgresql,validation]>=0.1.2' in metadata
     assert (
         'pip install -e "../asqueel-migration[postgresql,validation]" '
         '-e ".[dev]"'
