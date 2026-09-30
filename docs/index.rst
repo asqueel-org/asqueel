@@ -5,8 +5,10 @@ Asqueel
    :alt: Asqueel
    :width: 360px
 
-Build a database model from configuration, render it into live Python objects,
-and work with PostgreSQL through a synchronous application API:
+Asqueel is a Python database layer that makes your application's data model
+reusable across queries, business logic and user interfaces. Declare relations,
+calculated fields and UI metadata once, then reuse them from your application's
+queries and components. Work through a live database object:
 
 .. code-block:: python
 
@@ -14,9 +16,13 @@ and work with PostgreSQL through a synchronous application API:
        columns='$id, $name', order_by='$id',
    ).fetch()
 
-The model brings together logical and physical names, relations, computed columns
-and UI metadata. The database object owns the environment and transaction session.
-Construction never connects or creates tables.
+A related value or calculation can be a named model column, so lists, filters
+and exports can share its definition. UI consumers can inspect the same field's
+metadata. SQL expressions remain part of the query language; Asqueel resolves
+model names and relation paths and binds values.
+
+The current alpha runs synchronously on PostgreSQL. Writes and transaction
+completion are explicit. Construction never connects or creates tables.
 
 This manual presents the intended delivery contract. Implementation availability
 and open decisions are collected in :doc:`guide/limitations`.

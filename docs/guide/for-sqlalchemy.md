@@ -1,34 +1,39 @@
 # For SQLAlchemy users
 
-Start by distinguishing SQLAlchemy Core from its ORM. Core provides SQL and
-schema constructs; the ORM adds mapped classes and a Session with identity-map
-and unit-of-work behavior. This guide compares the ORM workflow with Asqueel;
-it does not imply that SQLAlchemy requires ORM mapping for every query.
-See the official [SQLAlchemy architecture](https://www.sqlalchemy.org/features.html)
-and [Session basics](https://docs.sqlalchemy.org/en/20/orm/session_basics.html).
+The largest change from SQLAlchemy ORM is what happens to the data you fetch.
+Asqueel returns projected rows and provides table operations for writes. You do
+not attach returned objects to a Session, track their dirty state or flush an
+object graph. Relationships, reusable calculations and field metadata belong
+to a shared configuration model.
 
-## Translate the objects, not just the method names
+This suits applications organized around queries, explicit commands and shared
+model metadata. If your application relies on an identity map, relationship
+loading strategies or persistence cascades, keeping SQLAlchemy ORM avoids
+reimplementing those behaviors. Asqueel's current alpha has a synchronous
+PostgreSQL runtime and a smaller implemented query surface; review
+[Current status](limitations.md) before planning a port.
 
-| SQLAlchemy concept | Asqueel concept |
-|---|---|
-| Table metadata and mapped-class declarations | Configuration recipe and resolved model. |
-| Mapped entity class | Live table obtained with `db.table('sales.customer')`. |
-| A mapped entity instance | Record data; use explicit table writes. |
-| Relationship expressions | Declared relation paths such as `@customer_id.name`. |
-| Session transaction | Transaction on the selected named DB connection. |
-| SQL expression and bound parameter | SQL expression with `$field`, `@path` and `:parameter`. |
+## Fetch the values a caller needs
 
-This is a conceptual mapping, not a mechanical API substitution. In particular,
-a Asqueel table object represents the table's operations and metadata, not a
-Python class whose instances participate in an identity map.
-
-## Query a projection
-
-For a declared invoice/customer relation:
+For mapped SQLAlchemy classes with an `Invoice.customer` relationship, a
+projection can look like this:
 
 ```python
-invoice = db.table('sales.invoice')
-rows = invoice.query(
+from sqlalchemy import select
+
+stmt = (
+    select(Invoice.id, Customer.name.label('customer_name'), Invoice.total)
+    .join(Invoice.customer)
+    .where(Invoice.total >= 100)
+    .order_by(Invoice.total.desc())
+)
+rows = session.execute(stmt).mappings().all()
+```
+
+With an Asqueel relation declared on `customer_id`:
+
+```python
+rows = db.table('sales.invoice').query(
     columns='$id, @customer_id.name AS customer_name, $total',
     where='$total >= :minimum',
     minimum=100,
@@ -36,37 +41,55 @@ rows = invoice.query(
 ).fetch()
 ```
 
-The model supplies the relationship used by the query. An alias column can give
-`@customer_id.name` a reusable local name; a formula column can give a related
-aggregate a reusable identity. Choose the projected columns and result shape
-explicitly when defining a service boundary.
+Both queries choose a projection. In Asqueel the path supplies the join from
+the model, and SQL expressions supply the filter and ordering. Values use
+parameters; the returned rows are dictionaries. An alias column can name the
+customer path once, while a formula column can centralize a calculation used
+by several queries. See [queries](queries.md) and [formulas](formulas.md).
 
-## Write explicitly
+This is a comparison with explicit projections. SQLAlchemy can also load mapped
+entities and relationships; the Asqueel result above does not create that object
+graph. See the official [SQLAlchemy SELECT tutorial](https://docs.sqlalchemy.org/en/20/tutorial/data_select.html).
 
-SQLAlchemy's ORM tracks changes to mapped instances and flushes work through
-its Session. Asqueel table methods execute writes; commit concludes the
-transaction. There is no need to wait for an object-state flush before the SQL
-is sent. See [SQLAlchemy's unit-of-work description](https://docs.sqlalchemy.org/en/20/tutorial/orm_data_manipulation.html).
+## A write happens at the table call
+
+With SQLAlchemy ORM, changing a tracked attribute marks work for a later flush;
+a flush can also happen automatically before a query or commit. In Asqueel:
 
 ```python
 customer = db.table('sales.customer')
-record = customer.record(101).output('dict')
-record['name'] = 'Ada Lovelace'
-customer.update(record)
-db.commit()
+try:
+    values = customer.record(101).output('dict')
+    values['name'] = 'Ada Lovelace'
+    customer.update(values)  # Execute UPDATE now, inside the transaction.
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
 ```
 
-Changing `record['name']` alone does not update the database. Likewise, a cached
-record reader is a snapshot and must be refreshed when you want another read.
+Changing `values` alone schedules nothing. `update()` executes SQL and
+`commit()` completes the transaction. There is no implicit flush of other
+modified dictionaries and no automatic persistence of related objects. A record
+reader keeps a snapshot until `refresh()`; ordinary query fetches execute again.
 
-## Keep the model above the dialect
+An Asqueel named connection owns an independent transaction, not an identity map.
+Choosing another connection does not merge object state or coordinate commits.
+Both libraries require deliberate transaction boundaries, but Session lifecycle
+rules are not a substitute for Asqueel's [transaction contract](transactions.md).
+See SQLAlchemy's [Session basics](https://docs.sqlalchemy.org/en/20/orm/session_basics.html).
 
-The model is shared by the query compiler, introspection and application
-metadata consumers. Backend-specific SQL belongs to the dialect or an explicit
-SQL expression. UI metadata and package contributions belong to model
-configuration, not to the connection driver.
+## If you use SQLAlchemy Core
 
-An independent named connection has an independent transaction. It does not
-provide object-session merging or a distributed commit. Start with
-[configuration](configuration.md), [queries](queries.md) and
-[transactions](transactions.md), then read [formulas](formulas.md).
+Explicit projections and writes will already be familiar. The difference is
+what you build queries from: Core uses Python SQL expression objects; Asqueel
+uses SQL expressions enriched with logical fields, relation paths and model
+formulas. The same Asqueel model exposes labels and other UI metadata to
+application components and supports layered configuration recipes.
+
+Choose Asqueel when that shared model and expression language simplify repeated
+application work. Core remains a natural choice when composable Python SQL
+expressions and its established backend support are the main requirement.
+Asqueel does not interpret every SQL construct or offer equivalent dialect
+coverage. Start with [configuration](configuration.md) to see how its model is
+built and [adapters](adapters.md) for backend boundaries.

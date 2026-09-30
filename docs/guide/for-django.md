@@ -1,27 +1,30 @@
 # For Django users
 
-Django describes data with Model subclasses and exposes queries through managers
-and QuerySets. Fields also carry information used by forms and the admin.
-Asqueel puts data declarations and linked UI metadata in configuration, then
-renders a live database/table graph. See Django's official
-[model guide](https://docs.djangoproject.com/en/5.2/topics/db/models/).
+Moving from Django to Asqueel changes how you organize data access and how much
+application infrastructure you supply. You work with a configured `db` and its
+tables, select values with SQL expressions and model paths, and explicitly
+complete transactions. The model can serve a script, service or custom UI.
 
-## Translate the model and query vocabulary
+Django's integration between models, forms and admin is a reason to keep Django
+when those components already meet your needs. Asqueel exposes field metadata
+for your own consumers; it does not supply replacements for Django's admin,
+ModelForms or migration history. It is currently an alpha with a synchronous
+PostgreSQL runtime. Check [Current status](limitations.md) before planning a port.
 
-| Django concept | Asqueel concept |
-|---|---|
-| Model fields and Meta configuration | Table/column declarations and their effective configuration. |
-| `Invoice.objects` | `db.table('sales.invoice')`. |
-| Relation lookup such as `customer__name` | Declared path such as `@customer_id.name`. |
-| Projecting selected values | `query(columns=...).fetch()`. |
-| Row instance and `save()` | Record data followed by explicit `insert()` or `update()`. |
-| Django application integration | Separate application-linked database services. |
+## Read the same related value
 
-Django QuerySets are lazy and provide projected-value APIs as well as model
-instances. Asqueel also separates query construction from execution; a query
-terminal compiles against the current environment and executes. This mapping
-explains the concepts rather than equating every evaluation/caching rule.
-See [Django's query documentation](https://docs.djangoproject.com/en/5.2/topics/db/queries/).
+Suppose an invoice has a foreign key to a customer. In Django, a projected query
+can use relation lookups without loading customer instances:
+
+```python
+rows = list(
+    Invoice.objects.filter(customer__name='Ada')
+    .order_by('id')
+    .values('id', 'customer__name')
+)
+```
+
+In Asqueel, assuming the relation is declared on `customer_id`:
 
 ```python
 rows = db.table('sales.invoice').query(
@@ -32,38 +35,59 @@ rows = db.table('sales.invoice').query(
 ).fetch()
 ```
 
-The path follows the relationship declared on `customer_id`. An alias or formula
-column lets you name a reusable related value or calculation once in the model.
+Both ask the database for selected values across a relationship. The change is
+the expression language: Django lookup keywords become SQL expressions with
+model references and bound parameters. Asqueel returns dictionaries using the
+projection names, here `id` and `customer_name`. Each `fetch()` executes again;
+reusing the query does not reuse a QuerySet-style result cache.
 
-## Make the transaction difference explicit
+If many screens and exports need `customer_name`, declare an alias column for
+that path. Queries can then use `$customer_name`, and UI code can inspect its
+label from the same model. SQL formula columns similarly give a calculation a
+shared name. See [models](models.md) and [formulas](formulas.md).
 
-Django normally uses autocommit outside an active transaction; `atomic()` defines
-transactional blocks. Asqueel's application DB retains an implicit transaction
-until explicit completion. See [Django transactions](https://docs.djangoproject.com/en/5.2/topics/db/transactions/).
+The Django examples follow its official [query guide](https://docs.djangoproject.com/en/5.2/topics/db/queries/).
+
+## Save through the table and choose the commit boundary
+
+A Django row is commonly changed with `customer.name = ...` followed by
+`customer.save()`. With Asqueel you read record data and pass the update to the
+table:
 
 ```python
 customer = db.table('sales.customer')
 try:
-    customer.insert({'id': 101, 'name': 'Ada'})
-    customer.insert({'id': 102, 'name': 'Grace'})
+    values = customer.record(101).output('dict')
+    values['name'] = 'Ada Lovelace'
+    customer.update(values)
     db.commit()
 except Exception:
     db.rollback()
     raise
 ```
 
-Do not assume that a successful insert is already committed. Select a named
-connection when you need independent transactional work, and manage its completion
-separately. Environment scopes select context; they are not transaction blocks.
+Editing the dictionary only changes local data. `update()` sends the write;
+`commit()` makes the transaction durable. Django normally uses autocommit
+outside `atomic()` blocks. Asqueel's application DB keeps a transaction open
+until commit or rollback, including after reads. A successful write alone does
+not commit. See [Django transactions](https://docs.djangoproject.com/en/5.2/topics/db/transactions/)
+and the Asqueel [transaction guide](transactions.md).
 
-## Separate application services from the database model
+Do not translate nested `atomic()` blocks mechanically: Asqueel does not currently
+provide nested transactions or savepoints. `tempEnv()` changes query context;
+it is not a transaction block.
 
-Asqueel's standalone database can be used by scripts, jobs or services.
-Application integration supplies resources, localization, policies and events.
-UI consumers can use labels and other column metadata without making a web
-request object a requirement of the SQL compiler.
+## Share model information with your own application components
 
-Rendering configuration builds objects; it does not apply a database migration.
-Inspect and apply structural changes through the
-[migration integration](migrations.md). Continue with [models](models.md),
-[row policies](row-policies.md) and [hooks](hooks.md).
+Django field declarations already carry information useful to forms and admin.
+In Asqueel, configuration recipes collect the physical mapping, relationships,
+formulas and linked UI metadata. Your components consume that configuration
+through live tables and columns. This is useful when different application
+components need the same definition of a field without depending on a Django
+model class or request lifecycle.
+
+Labels and formatting do not build a form or enforce permissions by themselves.
+You implement those consumers and authorization rules. Schema evolution is also
+a separate step: rendering configuration creates Python objects; the
+[migration integration](migrations.md) compares supported structures and prepares
+changes. It does not translate existing Django migration files.

@@ -12,13 +12,25 @@
   <img src="https://raw.githubusercontent.com/asqueel-org/asqueel/main/assets/asqueel/svg/asqueel-wordmark-primary.svg" alt="Asqueel" width="360">
 </picture>
 
-Define SQL models in Python, compile parameterized queries, and work with
-PostgreSQL through a synchronous API. Asqueel keeps logical names, physical
-database names, relationships, and column UI metadata in a shared model.
+**Asqueel is a Python database layer that makes your application's data model
+reusable across queries, business logic and user interfaces.** Declare tables,
+relationships, calculated fields and UI metadata together, then work with that
+model through a live `db` object.
 
-The developer manual describes the intended delivery contract, including designed
-features. See [Current status](docs/guide/limitations.md) for implementation
-availability and open decisions.
+It addresses a common source of duplication in database applications: the same
+relationship, calculation or field description gets rewritten in queries,
+service code and screens. In Asqueel, a related customer name or an invoice
+calculation can be defined once as a model column and reused wherever you query
+it. UI code can read the field's label and formatting from the same model.
+SQL remains available for expressions; Asqueel resolves model names and relation
+paths and binds query parameters.
+
+Asqueel brings Genropy's approach to database applications into a standalone
+library. The current alpha runs synchronously on PostgreSQL, with explicit
+writes and transaction completion. Start with [What is Asqueel?](docs/guide/overview.md)
+for the approach and an example. The manual also covers planned capabilities;
+[Current status](docs/guide/limitations.md) identifies what works today and what
+remains to be implemented.
 
 ## Install
 

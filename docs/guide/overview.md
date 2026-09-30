@@ -1,10 +1,23 @@
 # What is Asqueel?
 
-Asqueel is a Python database layer for building applications around a shared,
-declarative data model. The model describes tables, columns, relationships,
-computed values and the metadata that application interfaces need. Asqueel
-turns that configuration into live database objects and compiles operations on
-those objects into SQL.
+Asqueel is a Python database layer that makes your application's data model
+reusable across queries, business logic and user interfaces. You declare tables,
+relationships, calculated fields and UI metadata together. Asqueel turns those
+declarations into a live `db` object whose tables can query and change data.
+
+Consider an invoicing application. The customer's display name appears in a
+list, a search filter and an export; each field also needs a label for the UI.
+Repeating the join, calculation and field description in each consumer makes
+them harder to keep consistent. Asqueel lets the model own that knowledge:
+a related value or SQL calculation can become a named column, and consumers
+can query it or inspect its metadata.
+
+The project brings Genropy's approach to database applications into a standalone
+library. Its purpose is to keep a rich application model reusable while retaining
+SQL expressions, visible query results and explicit control over writes and
+transactions. The current alpha executes synchronously on PostgreSQL. See
+[Current status](limitations.md) for the boundary between implemented behavior
+and the broader design described in this manual.
 
 The main object is `db`. Application code works through its tables:
 
@@ -145,31 +158,23 @@ solve different problems. They should be chosen and declared independently.
 
 ## How it relates to other Python ORMs
 
-The useful comparison is where each library places its main abstraction.
-This table describes their usual entry points, not exclusive capabilities or
-performance rankings.
+The practical question is what changes in your application code. These are
+comparisons with typical usage; the alternatives also support other styles.
 
-| Library | Usual entry point | What to translate when learning Asqueel |
+| Coming from | What changes in daily use | When that change is useful |
 |---|---|---|
-| Asqueel | A configured `db` and its live table/model graph. | Query model paths, keep shared metadata in configuration, and write records explicitly. |
-| SQLAlchemy ORM | Mapped Python classes and a Session tracking object state. | Move from tracked row objects to table operations; keep transaction ownership explicit. |
-| Django ORM | Model classes, managers and QuerySets integrated with Django. | Move field declarations into model configuration and distinguish the standalone DB from app services. |
-| Peewee | Model classes, fields and query objects. | Use the database's table graph and model paths in place of class-based query expressions. |
+| Django | Query a configured table using SQL expressions and model paths; fetch dictionaries and finish transactions explicitly. You supply the web and UI integration. | You want the same model in scripts, services and custom interfaces, with shared field metadata independent of Django's application stack. |
+| SQLAlchemy ORM | Select the values you need through a table object and issue writes explicitly. Returned rows do not enter an identity map or a unit of work. | Your operations revolve around projections and reusable model formulas, and you want each write to be visible at its call site. |
+| Peewee | Declare a shared configuration model and reuse relation paths, aliases and formulas across queries. Results are dictionaries. | Repeated joins, calculations and field descriptions have become a maintenance concern across application components. |
 
-SQLAlchemy also provides Core, which can be used without ORM object tracking;
-Django and Peewee can return projected values rather than model instances.
-There is overlap in capability. Asqueel's particular emphasis is the shared,
-extensible application model and its query language. See the official
-[SQLAlchemy overview](https://www.sqlalchemy.org/features.html),
-[Django model guide](https://docs.djangoproject.com/en/5.2/topics/db/models/)
-and [Peewee query guide](https://docs.peewee-orm.com/en/latest/peewee/querying.html)
-for those libraries' own descriptions.
+A form generator or admin application is not included: UI metadata is input to
+your own consumer. Asqueel also has a smaller implemented query and backend
+surface than these established libraries. Adopting it means choosing its model
+and query style while accounting for the [current limits](limitations.md).
 
-Asqueel is a natural fit when packages contribute to a model, related values
-and calculations should be reusable as columns, and data and UI consumers need
-shared metadata. A project built around tracked Python entity graphs, Django's
-application stack or a small class-based mapper may prefer those corresponding
-abstractions. No execution-speed advantage follows from this comparison.
+The guides below show the same task in familiar code and Asqueel, explain what
+happens on a read or write, and identify reasons to keep the existing library.
+SQLAlchemy Core users can start with the SQLAlchemy guide's separate Core note.
 
 ## Choose your learning path
 
