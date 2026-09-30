@@ -1,7 +1,7 @@
 import pytest
 
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
 
 
 @pytest.fixture

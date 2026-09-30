@@ -1,4 +1,4 @@
-# 15 — Piano operativo di completamento Genro SQL
+# 15 — Piano operativo di completamento Asqueel
 
 Stato aggiornato al 30 settembre 2026: F1 è **aperta**. Sessioni nominate ed
 environment hanno verifiche; i difetti della bozza trigger/deferred censiti nel
@@ -14,7 +14,7 @@ Fonti: [audit dei 42 contratti](13-legacy-test-audit.md),
 
 ## Obiettivo e regola di lavoro
 
-Consegnare un Genro SQL sincrono per nuove applicazioni PostgreSQL, configurato
+Consegnare un Asqueel sincrono per nuove applicazioni PostgreSQL, configurato
 tramite grammatiche in cascata e utilizzato attraverso gli oggetti vivi:
 `db.table('cont.cliente').query(...).fetch()`.
 Il legacy guida sintassi, default e lifecycle. Il lavoro parte dal nucleo già
@@ -34,7 +34,7 @@ Non promettono equivalenza con l'intero framework Genropy.
 
 Come richiesto il 30 settembre 2026, nessun aspetto legacy può sparire dal
 perimetro di conoscenza perché manca nei test o non entra nella prima versione.
-F0 avvia il censimento dell'intera superficie Genro SQL; ogni fase lo approfondisce
+F0 avvia il censimento dell'intera superficie Asqueel; ogni fase lo approfondisce
 fino ai singoli contratti della propria area. Le 42 famiglie LT sono l'indice
 iniziale, non la granularità finale né una certificazione di completezza.
 

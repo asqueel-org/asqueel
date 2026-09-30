@@ -4,7 +4,7 @@ Gli obiettivi derivano dalle indicazioni dell'utente (S08). I criteri di
 accettazione sono la loro traduzione tecnica proposta; esempi e nomi di API
 non sono approvati per il solo fatto di comparire nel documento.
 
-## O-01 — Un Genro SQL moderno e autonomo
+## O-01 — Un Asqueel moderno e autonomo
 
 **Richiesta:** conservare il meglio del legacy in un prodotto moderno.
 **Risultato:** modello, compiler e runtime con confini dichiarati e utilizzabili
@@ -130,7 +130,7 @@ nessuna duplicazione delle regole fra trigger e Python.
 
 ## O-15 — Migrazioni coerenti con l'intero modello fisico supportato
 
-**Richiesta:** genro-sqlmigration deve poter sostenere l'evoluzione.
+**Richiesta:** asqueel-migration deve poter sostenere l'evoluzione.
 **Risultato:** contratto versionato, reader/validator/diff/planner/writer coerenti;
 separazione di oggetti gestiti, esterni e ignoti.
 **Accettazione:** difetti noti riesaminati e corretti per la release; round-trip,

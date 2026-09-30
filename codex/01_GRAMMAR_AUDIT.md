@@ -2,7 +2,7 @@
 
 ## 1. Risultato sintetico
 
-`genro-sql` è già predisposto correttamente. Non manca l'idea della grammar:
+`asqueel` è già predisposto correttamente. Non manca l'idea della grammar:
 mancano il completamento del contratto dei parametri, i validatori semantici e
 i consumer principali.
 
@@ -120,7 +120,7 @@ come:
 - unicità dei back reference;
 - dipendenze e ordine di view, function, type e trigger.
 
-### 5.3 Nessuna proiezione verso `genro-sqlmigration`
+### 5.3 Nessuna proiezione verso `asqueel-migration`
 
 Il contratto è progettato ma il renderer manca. Questo impedisce alla nuova
 grammar di raggiungere il percorso già funzionante diff → DDL → apply.
@@ -183,7 +183,7 @@ normalizzato devono avere una sola semantica canonica.
 View, function, sequence, type e trigger sono previsti dalle roadmap ma non
 tutti appartengono al contratto stabile corrente. Ogni nuova famiglia richiede
 versionamento, capability flag, factory, reader, validator, writer e test di
-idempotenza in `genro-sqlmigration`.
+idempotenza in `asqueel-migration`.
 
 ## 7. Criterio di grammar completa
 

@@ -5,7 +5,7 @@ capabilities. This chapter is the single implementation-status reference for
 the checkout: it separates working behavior, planned contracts and open decisions.
 Do not infer that every documented contract executes in the installed revision.
 
-Genro SQL currently provides a native, synchronous PostgreSQL path for new
+Asqueel currently provides a native, synchronous PostgreSQL path for new
 applications. It is not a drop-in replacement for the complete Genropy legacy
 runtime. This page describes behavior you can rely on when choosing APIs.
 

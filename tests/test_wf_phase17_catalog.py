@@ -1,10 +1,10 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 """Phase 17 contract — one internal catalog, no observable change."""
 
-from genro_sqlmigration.structures import json_equal
+from asqueel_migration.structures import json_equal
 
-from genro_sql import SqlBuilder, SqlMigrationRenderer, SqlPythonEmitter
-from genro_sql.catalog import SqlModelCatalog
+from asqueel import SqlBuilder, SqlMigrationRenderer, SqlPythonEmitter
+from asqueel.catalog import SqlModelCatalog
 
 
 class _CatalogRecipe(SqlBuilder):

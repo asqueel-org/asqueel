@@ -1,12 +1,12 @@
-# Genro SQL
+# Asqueel
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/asqueel/svg/asqueel-wordmark-inverse.svg">
-  <img src="assets/asqueel/svg/asqueel-wordmark-primary.svg" alt="Asqueel — Genro SQL" width="360">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/asqueel-org/asqueel/main/assets/asqueel/svg/asqueel-wordmark-inverse.svg">
+  <img src="https://raw.githubusercontent.com/asqueel-org/asqueel/main/assets/asqueel/svg/asqueel-wordmark-primary.svg" alt="Asqueel" width="360">
 </picture>
 
 Define SQL models in Python, compile parameterized queries, and work with
-PostgreSQL through a synchronous API. Genro SQL keeps logical names, physical
+PostgreSQL through a synchronous API. Asqueel keeps logical names, physical
 database names, relationships, and column UI metadata in a shared model.
 
 The developer manual describes the intended delivery contract, including designed
@@ -16,10 +16,10 @@ availability and open decisions.
 ## Install
 
 ```sh
-python -m pip install "genro-sql[postgresql]"
+python -m pip install "asqueel[postgresql]"
 ```
 
-Use `genro-sql` for model building and offline compilation only. Add the
+Use `asqueel` for model building and offline compilation only. Add the
 `migration` extra to use the separate schema migration integration. From a
 checkout, run `python -m pip install -e ".[postgresql]"` in the repository root.
 
@@ -28,7 +28,7 @@ checkout, run `python -m pip install -e ".[postgresql]"` in the repository root.
 Declare the model and connection configuration in one recipe:
 
 ```python
-from genro_sql import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, build_database
 
 
 class Shop(SqlDatabaseConfig):
@@ -63,9 +63,9 @@ runtime remain available for advanced integrations.
 Query expressions are application code; pass external values through parameters
 rather than SQL interpolation.
 
-## Learn and use Genro SQL
+## Learn and use Asqueel
 
-Start with [What is Genro SQL?](docs/guide/overview.md) and
+Start with [What is Asqueel?](docs/guide/overview.md) and
 [the object model](docs/guide/concepts.md), run the
 [quickstart](docs/guide/quickstart.md), then follow the
 [customers and invoices tutorial](docs/guide/tutorial.md). The tutorial includes a
@@ -105,11 +105,11 @@ and are excluded from the public documentation build.
 
 ## Development checkout
 
-When developing alongside the sibling migration repository, install both working
-checkouts and the SQL development dependencies:
+For development with the migration integration, install its checkout and Asqueel
+with the development dependencies (replace the example path with your checkout):
 
 ```sh
-pip install -e "../genro-sqlmigration[postgresql,validation]" -e ".[dev]"
+pip install -e "../asqueel-migration[postgresql,validation]" -e ".[dev]"
 ```
 
 ## License

@@ -12,7 +12,7 @@ create PostgreSQL partitions or route queries to other databases.
 ## Declare policies in a model
 
 ```python
-from genro_sql import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, build_database
 
 
 class Documents(SqlDatabaseConfig):

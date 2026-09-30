@@ -8,7 +8,7 @@ non nuove funzionalità del runtime.
 
 Il codice attuale realizza un nucleo PostgreSQL sincrono e un primo percorso
 applicativo coerente. **Non realizza ancora il nucleo funzionale completo del
-Genro SQL richiesto.** L'assenza operativa di aliasColumn non è un dettaglio di
+Asqueel richiesto.** L'assenza operativa di aliasColumn non è un dettaglio di
 compatibilità periferico: riguarda il modello che il compiler deve interpretare.
 Lo stesso vale per famiglie di formule, sintassi delle relazioni, binding delle
 collezioni e aggregazioni di uso ordinario.
@@ -32,7 +32,7 @@ la rendono incompleta.
   `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea`. I file SQL esaminati non risultano
   modificati localmente. Tre file di `projects/test_invoice` modificati dal
   proprietario non sono usati come prova della baseline.
-- Sorgenti nuovi: `src/genro_sql`, test e guide al commit sopra.
+- Sorgenti nuovi: `src/asqueel`, test e guide al commit sopra.
 - Specifica precedente: [legacy-compatible-spec](../compiler/legacy-compatible-spec.md)
   e [corpus](../compiler/compatibility-cases.md). La loro baseline storica
   `e12f2ce...` non viene confusa con il checkout legacy letto ora.
@@ -110,7 +110,7 @@ non una funzionalità da recuperare. Non è una percentuale di conformità.
 
 [evidence/native_binding_probes.py](evidence/native_binding_probes.py) crea uno
 schema temporaneo univoco, lo elimina al termine e usa solo un DB di test indicato
-in `GENRO_SQL_TEST_DSN`. L'[output](evidence/native_binding_probes.json) riporta:
+in `ASQUEEL_TEST_DSN`. L'[output](evidence/native_binding_probes.json) riporta:
 
 | Input | Risultato nativo PostgreSQL |
 |---|---|

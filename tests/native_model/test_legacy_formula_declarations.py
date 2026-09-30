@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from genro_sql import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, build_database
 
 
 def literal(node):

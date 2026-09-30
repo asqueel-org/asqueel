@@ -4,8 +4,8 @@ Run from the repository root with PYTHONPATH=. and the development Python.
 Uses only the in-memory test driver; no database or external effects.
 These observations are not passing acceptance tests.
 """
-from genro_sql import build_database, CompiledQuery
-from genro_sql.session import Session
+from asqueel import build_database, CompiledQuery
+from asqueel.session import Session
 from tests.application_config.test_application import Recipe
 from tests.application_session.test_session import Driver
 

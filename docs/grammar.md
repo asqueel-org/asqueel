@@ -1,6 +1,6 @@
 # SQL model grammar reference
 
-Generated from the live grammar by `genro_sql.grammar_doc.generate_grammar_md()`. Do not edit by hand: regenerate with `python -m genro_sql.grammar_doc`.
+Generated from the live grammar by `asqueel.grammar_doc.generate_grammar_md()`. Do not edit by hand: regenerate with `python -m asqueel.grammar_doc`.
 
 Domain element signatures are **semi-closed**: they declare their physical and enumerated semantic parameters. Where `**extra` is accepted, each extra key must start with `x_`.
 

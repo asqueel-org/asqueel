@@ -1,6 +1,6 @@
 # Modello nativo e importazione PostgreSQL V1
 
-`resolve_model(builder, *, ui=None)` in `genro_sql.model` risolve una ricetta
+`resolve_model(builder, *, ui=None)` in `asqueel.model` risolve una ricetta
 `SqlBuilder` già costruita e validata nei contratti `ResolvedModel`, `Table`,
 `Column`, `Relation`. Non modifica la ricetta e non richiede il migratore.
 
@@ -42,7 +42,7 @@ non riconosciute sono respinti: non vengono silenziosamente ignorati.
 
 ## Importazione read-only
 
-`inspect_postgres(connection, schemas, *, ui=None)` in `genro_sql.importers`
+`inspect_postgres(connection, schemas, *, ui=None)` in `asqueel.importers`
 restituisce `ImportResult(model, warnings)`. La connessione è psycopg sincrona;
 il chiamante possiede transazione, snapshot e chiusura. Per una fotografia
 coerente con DDL concorrente usare una transazione con isolamento appropriato.
@@ -85,13 +85,13 @@ importazione legacy è inclusa in questa V1 per nuove applicazioni.
 
 I test in `tests/native_model` controllano naming, overlay e provenienza,
 rifiuto di semantiche non supportate e cardinalità non garantite. Il test
-PostgreSQL, attivabile con `GENRO_SQL_TEST_DSN`, crea uno schema univoco dentro
+PostgreSQL, attivabile con `ASQUEEL_TEST_DSN`, crea uno schema univoco dentro
 una transazione e annulla tutto alla fine: verifica PK/FK composite, default,
 indice DESC/parziale, warning per viste e reimport stabile con overlay.
 
 ## Bridge verso il migratore
 
-`genro_sql.projection.to_physical_builder(model)` crea una nuova ricetta con
+`asqueel.projection.to_physical_builder(model)` crea una nuova ricetta con
 nomi fisici risolti, da passare a `SqlMigrationRenderer`. Proietta colonne,
 PK/FK, UNIQUE, default e indici semplici anche DESC/parziali. Formule e UI non
 sono DDL. Gli indici del catalogo con espressioni, INCLUDE, collazioni/opclass

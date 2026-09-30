@@ -42,10 +42,10 @@ relative to that revision when inspected.
 | L11 | [gnrsqltable/helpers.py](https://github.com/genropy/genropy/blob/fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea/gnrpy/gnr/sql/gnrsqltable/helpers.py) |
 | L12 | [adapters/gnrpostgres.py](https://github.com/genropy/genropy/blob/fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea/gnrpy/gnr/sql/adapters/gnrpostgres.py) |
 | L13 | [adapters/_gnrbaseadapter.py](https://github.com/genropy/genropy/blob/fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py) |
-| N1 | [runtime.py](../../src/genro_sql/runtime.py) |
-| N2 | [environment.py](../../src/genro_sql/environment.py) |
-| N3 | [drivers/psycopg.py](../../src/genro_sql/drivers/psycopg.py) |
-| N4 | [contracts.py](../../src/genro_sql/contracts.py) |
+| N1 | [runtime.py](../../src/asqueel/runtime.py) |
+| N2 | [environment.py](../../src/asqueel/environment.py) |
+| N3 | [drivers/psycopg.py](../../src/asqueel/drivers/psycopg.py) |
+| N4 | [contracts.py](../../src/asqueel/contracts.py) |
 
 Evidence labels: **COD** means direct inspection of executable source;
 **PRO** means a targeted source-extraction probe run during this audit;

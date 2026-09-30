@@ -10,18 +10,18 @@ node internals.
 from copy import deepcopy
 
 import pytest
-from genro_sqlmigration import JsonStructureProducer, SqlMigrator
-from genro_sqlmigration.structures import json_equal, nested_defaultdict
+from asqueel_migration import JsonStructureProducer, SqlMigrator
+from asqueel_migration.structures import json_equal, nested_defaultdict
 
-from genro_sql import (
+from asqueel import (
     SqlBuilder,
     SqlMigrationRenderer,
     SqlModelReader,
     SqlPythonEmitter,
 )
-from genro_sql.grammar_doc import generate_grammar_md
-from genro_sql.reader import SqlModelReadError
-from genro_sql.validators import SqlModelValidationError
+from asqueel.grammar_doc import generate_grammar_md
+from asqueel.reader import SqlModelReadError
+from asqueel.validators import SqlModelValidationError
 
 
 class _Model(SqlBuilder):

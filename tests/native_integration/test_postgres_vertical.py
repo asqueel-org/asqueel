@@ -6,11 +6,11 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from genro_sql import SqlBuilder
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.importers import inspect_postgres
-from genro_sql.model import resolve_model
-from genro_sql.runtime import PostgresDatabase
+from asqueel import SqlBuilder
+from asqueel.compiler import PostgresCompiler
+from asqueel.importers import inspect_postgres
+from asqueel.model import resolve_model
+from asqueel.runtime import PostgresDatabase
 
 
 pytestmark = pytest.mark.postgresql

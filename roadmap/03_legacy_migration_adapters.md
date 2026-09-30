@@ -2,7 +2,7 @@
 
 **Version**: 0.2.0 · **Last Updated**: 2026-07-08 · **Status**: 🔴 DA REVISIONARE
 
-Part of the genro-sql design documentation set (see `00_INDEX.md`).
+Part of the asqueel design documentation set (see `00_INDEX.md`).
 Scope: the normalized JSON contract, the ORM→JSON projection (the
 contract between model grammar and migration), the DB extractor, diff
 engine, command builder and the adapter DDL surface. §7 (addendum

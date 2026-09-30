@@ -63,7 +63,7 @@ def scenarios(backend):
 
 
 def native_backend():
-    from genro_sql.session import Session
+    from asqueel.session import Session
     from tests.application_session.test_session import Driver
     session = Session(Driver())
     session.defer = session.defer_to_commit

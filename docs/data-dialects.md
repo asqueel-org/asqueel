@@ -16,7 +16,7 @@ distinti: nessun componente deve cercare placeholder già formattati nel testo.
 
 ## Dialetto PostgreSQL
 
-`genro_sql.dialects.postgres.PostgresDialect` implementa il protocollo
+`asqueel.dialects.postgres.PostgresDialect` implementa il protocollo
 `DataDialect`. È l'unico dialetto dati fornito in questa versione; l'esistenza
 del protocollo non implica supporto runtime per SQLite o altri backend.
 

@@ -3,7 +3,7 @@
 
 The last leg of the reverse pipeline: a live database read as normalized
 JSON becomes a source tree through
-:class:`~genro_sql.reader.SqlModelReader`, and a source tree becomes
+:class:`~asqueel.reader.SqlModelReader`, and a source tree becomes
 a module a person can open and maintain here. The law is the same one the
 reader answers to, one step further out::
 
@@ -48,14 +48,14 @@ _RESERVED = frozenset({"self", "root", "db"})
 #: Maximum width of an emitted line, ``[tool.ruff] line-length``.
 _WIDTH = 100
 
-_HEADER = '''"""SqlBuilder recipe emitted by genro_sql.emitter.
+_HEADER = '''"""SqlBuilder recipe emitted by asqueel.emitter.
 
 Literal projection of a normalized SQL structure: ordinary source, meant
 to be edited by hand from here on.
 """
 from __future__ import annotations
 
-from genro_sql import SqlBuilder
+from asqueel import SqlBuilder
 '''
 
 
@@ -108,13 +108,13 @@ class SqlPythonEmitter:
     """Emit the Python recipe that rebuilds a SQL model tree.
 
     There is deliberately no ``# TODO`` path for "preserved but
-    unrepresentable" features: :class:`~genro_sql.reader.SqlModelReader`
+    unrepresentable" features: :class:`~asqueel.reader.SqlModelReader`
     rejects unsupported schema features before they reach the tree. Readable FK
     names are explicitly non-semantic migration metadata, not preserved recipe
     features.
 
     Args:
-        builder: a created :class:`~genro_sql.builder.SqlBuilder`.
+        builder: a created :class:`~asqueel.builder.SqlBuilder`.
     """
 
     def __init__(self, builder) -> None:

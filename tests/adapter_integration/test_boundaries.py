@@ -6,12 +6,12 @@ import sys
 
 import pytest
 
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import Column, CompiledQuery, ResolvedModel, Table
-from genro_sql.dialects.postgres import PostgresDialect
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.query_plan import Parameter, SqlStatement
-from genro_sql.runtime import Database
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import Column, CompiledQuery, ResolvedModel, Table
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.query_plan import Parameter, SqlStatement
+from asqueel.runtime import Database
 
 
 def test_offline_postgres_facade_and_generic_pipeline_without_optional_dependencies():
@@ -19,15 +19,15 @@ def test_offline_postgres_facade_and_generic_pipeline_without_optional_dependenc
 import builtins
 original = builtins.__import__
 def no_clients(name, *args, **kwargs):
-    if name.startswith(('psycopg', 'genro_sqlmigration')):
+    if name.startswith(('psycopg', 'asqueel_migration')):
         raise ModuleNotFoundError(name=name)
     return original(name, *args, **kwargs)
 builtins.__import__ = no_clients
-from genro_sql.compiler import PostgresCompiler, QueryCompiler
-from genro_sql.contracts import Column, ResolvedModel, Table
-from genro_sql.dialects.postgres import PostgresDialect
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.runtime import Database
+from asqueel.compiler import PostgresCompiler, QueryCompiler
+from asqueel.contracts import Column, ResolvedModel, Table
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.runtime import Database
 table = Table('sample', columns={'id': Column('id', 'L')})
 model = ResolvedModel({table.key: table})
 facade = PostgresCompiler(model).select('sample', where='$id = :id', params={'id': 7})
@@ -42,7 +42,7 @@ assert dict(generic.params) == {'id': 7}
 
 @pytest.mark.parametrize('name', ['order', 'a"b', '50%', 'ümlaut', 'with space'])
 def test_data_and_structure_share_sql_quoting_but_not_driver_escaping(name):
-    from genro_sqlmigration.writers.pg_writer import PgWriter
+    from asqueel_migration.writers.pg_writer import PgWriter
 
     dialect = PostgresDialect()
     quoted = dialect.quote_identifier(name)
@@ -76,7 +76,7 @@ def test_incompatible_statement_is_rejected_before_connection(field, value):
 
 
 def test_runtime_has_no_client_or_sql_compiler_dependency():
-    import genro_sql.runtime as runtime
+    import asqueel.runtime as runtime
 
     tree = ast.parse(Path(runtime.__file__).read_text())
     imports = []

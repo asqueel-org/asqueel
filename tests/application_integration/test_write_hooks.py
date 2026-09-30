@@ -7,7 +7,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from genro_sql import (
+from asqueel import (
     RecordMultipleRowsError, RecordNotFoundError, SqlDatabaseConfig, SqlTable,
     build_database,
 )
@@ -246,7 +246,7 @@ def test_precommit_exception_rolls_back_real_writes_and_skips_after(hooked_datab
 
 
 def test_caught_precommit_sql_failure_cannot_announce_commit(hooked_database):
-    from genro_sql import CompiledQuery, TransactionStateError
+    from asqueel import CompiledQuery, TransactionStateError
     db, observer, schema = hooked_database
     events = []
 

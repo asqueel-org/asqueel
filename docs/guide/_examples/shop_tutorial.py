@@ -1,6 +1,6 @@
 """Runnable documentation example; uses and removes its own PostgreSQL schema.
 
-Run with GENRO_SQL_DSN set to a disposable PostgreSQL database connection string.
+Run with ASQUEEL_DSN set to a disposable PostgreSQL database connection string.
 Only the randomly named genro_tutorial_* schema is created and removed.
 """
 # imports-start
@@ -8,7 +8,7 @@ import os
 from decimal import Decimal
 from uuid import uuid4
 
-from genro_sql import CompiledQuery, SqlDatabaseConfig, build_database
+from asqueel import CompiledQuery, SqlDatabaseConfig, build_database
 # imports-end
 
 
@@ -157,5 +157,5 @@ def run(dsn):
 
 
 if __name__ == "__main__":
-    run(os.environ["GENRO_SQL_DSN"])
+    run(os.environ["ASQUEEL_DSN"])
 # run-end

@@ -4,12 +4,12 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql.application_table import (
+from asqueel.application_table import (
     RecordMultipleRowsError, RecordNotFoundError, SqlRecord, SqlTable,
 )
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import Column, QueryResult, Relation, ResolvedModel, Table, UnsupportedFeatureError
-from genro_sql.environment import SqlEnvironment
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import Column, QueryResult, Relation, ResolvedModel, Table, UnsupportedFeatureError
+from asqueel.environment import SqlEnvironment
 
 
 class Config:
@@ -335,8 +335,8 @@ def test_post_insert_hook_does_not_treat_computed_alias_as_a_record_field(db):
 
 
 def test_poisoned_application_session_rejects_insert_before_running_hooks():
-    from genro_sql.application import SqlDatabase
-    from genro_sql.runtime import TransactionStateError
+    from asqueel.application import SqlDatabase
+    from asqueel.runtime import TransactionStateError
 
     seen = []
 

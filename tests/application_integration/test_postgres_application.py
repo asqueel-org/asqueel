@@ -5,9 +5,9 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from genro_sql import SqlDatabaseConfig, SqlTable, TransactionStateError, build_database
-from genro_sql.application_table import RecordMultipleRowsError, RecordNotFoundError
-from genro_sql.contracts import EnvironmentMismatchError
+from asqueel import SqlDatabaseConfig, SqlTable, TransactionStateError, build_database
+from asqueel.application_table import RecordMultipleRowsError, RecordNotFoundError
+from asqueel.contracts import EnvironmentMismatchError
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -167,7 +167,7 @@ def test_database_constraint_failure_rolls_back_previous_operations(application)
 
 
 def test_named_connections_have_independent_visibility_and_physical_identity(application):
-    from genro_sql.contracts import CompiledQuery
+    from asqueel.contracts import CompiledQuery
     db, rows = application
     def pid():
         return db.execute(CompiledQuery('SELECT pg_backend_pid() AS pid')).rows[0]['pid']

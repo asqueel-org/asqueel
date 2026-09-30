@@ -2,11 +2,11 @@
 import pytest
 from genro_builders.builder import element
 
-from genro_sql import SqlBuilder, SqlMigrationRenderer, SqlPythonEmitter
-from genro_sql.catalog import SqlModelCatalog
-from genro_sql.elements import ColumnElements, SchemaElements, TableElements
-from genro_sql.model import resolve_model
-from genro_sql.validators import SqlModelValidationError
+from asqueel import SqlBuilder, SqlMigrationRenderer, SqlPythonEmitter
+from asqueel.catalog import SqlModelCatalog
+from asqueel.elements import ColumnElements, SchemaElements, TableElements
+from asqueel.model import resolve_model
+from asqueel.validators import SqlModelValidationError
 
 
 class TableGrammar(TableElements, ColumnElements):
@@ -92,7 +92,7 @@ class ModularModel(SqlBuilder):
 
 
 def test_modular_recipes_emit_rebuild_and_keep_all_consumer_contracts():
-    from genro_sql.projection import to_physical_builder
+    from asqueel.projection import to_physical_builder
 
     model = build(ModularModel)
     model.validate_model()
@@ -122,7 +122,7 @@ def test_modular_recipes_emit_rebuild_and_keep_all_consumer_contracts():
 
 
 def test_ui_overlay_does_not_change_physical_projection():
-    from genro_sql.projection import to_physical_builder
+    from asqueel.projection import to_physical_builder
 
     model = build(ModularModel)
     base = resolve_model(model)

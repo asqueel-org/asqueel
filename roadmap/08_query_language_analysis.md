@@ -2,7 +2,7 @@
 
 **Version**: 0.1.0 · **Date**: 2026-07-11 · **Status**: 🔴 DA REVISIONARE
 
-Part of the genro-sql design documentation set (see `00_INDEX.md`).
+Part of the asqueel design documentation set (see `00_INDEX.md`).
 Purpose: an exhaustive, verified inventory of the legacy GenroPy
 query-language options, the 2026 compiler experiments, and reform
 proposals for the new query grammar — so the project owner can decide

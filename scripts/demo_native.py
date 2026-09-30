@@ -1,21 +1,21 @@
 """Run the native PostgreSQL vertical in an isolated, disposable schema.
 
-Set GENRO_SQL_DEMO_DSN to a test database. No existing schema is modified.
+Set ASQUEEL_DEMO_DSN to a test database. No existing schema is modified.
 """
 import argparse
 import os
 from uuid import uuid4
 
-from genro_sql import (
+from asqueel import (
     CompiledQuery, PostgresCompiler, PostgresDatabase, PostgresDialect, PsycopgDriver,
     QueryCompiler, SqlBuilder, Database, resolve_model,
 )
 
 
 def main(*, explicit_adapters=False):
-    dsn = os.environ.get('GENRO_SQL_DEMO_DSN')
+    dsn = os.environ.get('ASQUEEL_DEMO_DSN')
     if not dsn:
-        raise SystemExit('Set GENRO_SQL_DEMO_DSN to a test PostgreSQL database')
+        raise SystemExit('Set ASQUEEL_DEMO_DSN to a test PostgreSQL database')
     schema = 'genro_demo_' + uuid4().hex
     builder = SqlBuilder()
     columns = builder.source.db('demo').schemas().schema(

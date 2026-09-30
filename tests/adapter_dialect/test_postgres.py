@@ -3,9 +3,9 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql.contracts import ResultColumn, UnsupportedFeatureError
-from genro_sql.dialects.postgres import PostgresDialect
-from genro_sql.query_plan import (
+from asqueel.contracts import ResultColumn, UnsupportedFeatureError
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.query_plan import (
     Assignment, Fragment, Identifier, Join, Parameter, Projection, QueryPlan,
     TableRef, concat,
 )

@@ -2,13 +2,13 @@ import threading
 
 import pytest
 
-from genro_sql.contracts import (
+from asqueel.contracts import (
     CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult,
 )
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.environment import SqlEnvironment
-from genro_sql.query_plan import SqlStatement
-from genro_sql.runtime import PostgresDatabase, Database
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.environment import SqlEnvironment
+from asqueel.query_plan import SqlStatement
+from asqueel.runtime import PostgresDatabase, Database
 
 
 class ContextDriver:

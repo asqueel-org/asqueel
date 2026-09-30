@@ -3,7 +3,7 @@
 ## 1. Obiettivo della prima release utile
 
 Permettere di descrivere un database con una ricetta `SqlBuilder`, ottenere un
-normalized JSON valido e usare `genro-sqlmigration` per creare o allineare un
+normalized JSON valido e usare `asqueel-migration` per creare o allineare un
 database reale.
 
 Non è necessario completare contemporaneamente runtime model, query compiler,
@@ -14,14 +14,14 @@ DDL totale e round-trip idiomatico.
 ```text
 genro-builders
       ↑
-  genro-sql ─────────────→ genro-sqlmigration
+  asqueel ─────────────→ asqueel-migration
  grammar + renderer          contratto + diff + writer
 ```
 
-- `genro-sql` dipende da `genro-builders`.
-- L'integrazione migration di `genro-sql` può dipendere da
-  `genro-sqlmigration`, preferibilmente tramite extra opzionale.
-- `genro-sqlmigration` non deve dipendere da `genro-sql`.
+- `asqueel` dipende da `genro-builders`.
+- L'integrazione migration di `asqueel` può dipendere da
+  `asqueel-migration`, preferibilmente tramite extra opzionale.
+- `asqueel-migration` non deve dipendere da `asqueel`.
 
 ## 3. Slice A — contratto fisico minimo
 
@@ -57,14 +57,14 @@ Limitare il primo verticale a:
 
 ## 4. Slice B — `SqlMigrationRenderer`
 
-Il renderer vive in `genro-sql`, perché conosce la semantica degli elementi.
+Il renderer vive in `asqueel`, perché conosce la semantica degli elementi.
 Deve produrre un dizionario normalizzato, non necessariamente una stringa JSON.
 
 ### Regole
 
 - Creare una struttura nuova a ogni render: il migratore può annotare
   transitoriamente l'input.
-- Usare le factory pubbliche di `genro-sqlmigration`.
+- Usare le factory pubbliche di `asqueel-migration`.
 - Non duplicare `clean_attributes`, `hashed_name` o le regole pkey.
 - Esportare soltanto elementi fisici.
 - Ignorare correttamente aliasColumn, formulaColumn, subQueryColumn e pyColumn.
@@ -178,7 +178,7 @@ Ordine consigliato, coerente con le dipendenze:
 Per view e CHECK, PostgreSQL riscrive le espressioni durante l'introspezione:
 non confrontare ingenuamente il testo originale con quello restituito dal
 catalogo. Seguire la strategia di canonicalizzazione definita nella roadmap di
-`genro-sqlmigration`.
+`asqueel-migration`.
 
 ## 9. Matrice di test
 

@@ -4,7 +4,7 @@ Data: 29 settembre 2026. Analisi interna, non manuale utente.
 
 ## Conclusione
 
-Il nuovo nucleo non è ancora equivalente al Genro SQL legacy. Esistono già una
+Il nuovo nucleo non è ancora equivalente al livello SQL legacy di Genropy. Esistono già una
 base sincrona, configurazione con grammatiche e rendering a oggetti, query con
 path to-one, aliasColumn, formule SQL e sottoquery correlate, CRUD PostgreSQL,
 environment e policy sulle righe. Manca ancora una parte sostanziale dei
@@ -145,7 +145,7 @@ sollevata da un hook senza analizzarne il relativo chiamante.
 | ID | Contratto emerso | Stato e conseguenza | Fonti principali |
 |---|---|---|---|
 | LT36 | Adapter dati: parametri, tipi, cursor, funzioni, differenze boolean/cast/locking | Separazione compiler/dialetto/driver presente, PostgreSQL primario. Importare otto adapter non prova otto implementazioni funzionanti. | adapterinheritance, gnrbaseadapter, sqlite_boolean_rewrite |
-| LT37 | Estrarre DB, configurare modello, diff/apply e secondo diff vuoto | Profilo strutturale nativo limitato; verificare roundtrip senza perdita e rifiuti espliciti. Il migratore completo è responsabilità anche di sqlmigration, non tutto di genro-sql. | gnrsqlmigration, gnrsqlutils |
+| LT37 | Estrarre DB, configurare modello, diff/apply e secondo diff vuoto | Profilo strutturale nativo limitato; verificare roundtrip senza perdita e rifiuti espliciti. Il migratore completo è responsabilità anche di sqlmigration, non tutto di asqueel. | gnrsqlmigration, gnrsqlutils |
 | LT38 | PK/FK/unique compositi, indici GIN/TSV, deferrable e ordine DDL | Requisiti di integrazione con sqlmigration: colonna prima di PK/index/FK, conservare unique indipendenti, nomi dei constraint corretti. Audit corrente non certifica il repo sqlmigration. | gnrsqlmigration |
 | LT39 | Conversioni con dati, force/backup e protezione dalle perdite | Non copiare automaticamente comportamenti distruttivi. Legacy prova default che blocca conversioni incompatibili popolate, force che converte invalidi in NULL, backup che conserva originali. | gnrsqlmigration |
 | LT40 | Extension già installata non rimossa/reinstallata; idempotenza | Da includere negli acceptance di migrazione. I test legacy backup saltano talvolta il secondo diff perché le colonne di backup risultano estranee al modello. | gnrsqlmigration |

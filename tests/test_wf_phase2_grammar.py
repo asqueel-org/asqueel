@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from genro_sql import SqlBuilder
-from genro_sql.validators import SqlModelValidationError
+from asqueel import SqlBuilder
+from asqueel.validators import SqlModelValidationError
 
 
 def _recipe():

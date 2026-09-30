@@ -4,11 +4,11 @@ Declare a database recipe, build its live objects, and use `db.table()` for
 synchronous reads and writes. This example creates a disposable PostgreSQL
 schema explicitly; building the application does not create database objects.
 
-Install `genro-sql[postgresql]` and set a connection string for a **test database**
+Install `asqueel[postgresql]` and set a connection string for a **test database**
 where your user can create schemas:
 
 ```sh
-export GENRO_SQL_DSN="host=localhost dbname=example user=example"
+export ASQUEEL_DSN="host=localhost dbname=example user=example"
 ```
 
 Save the following as `quickstart.py`. Its generated schema is removed when the
@@ -18,14 +18,14 @@ example finishes.
 import os
 from uuid import uuid4
 
-from genro_sql import CompiledQuery, SqlDatabaseConfig, build_database
+from asqueel import CompiledQuery, SqlDatabaseConfig, build_database
 
 schema_name = "genro_example_" + uuid4().hex
 
 
 class Shop(SqlDatabaseConfig):
     def main(self, root):
-        database = root.db("example", conninfo=os.environ["GENRO_SQL_DSN"])
+        database = root.db("example", conninfo=os.environ["ASQUEEL_DSN"])
         tables = database.schemas().schema("sales", x_sql_schema=schema_name).tables()
         columns = tables.table("customer", pkey="id").columns()
         columns.column("id", dtype="L")

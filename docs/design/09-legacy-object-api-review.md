@@ -2,7 +2,7 @@
 
 Internal architecture review, 29 September 2026. **The implemented package is a
 useful SQL model/compiler/execution core, but it does not yet implement the
-Genro SQL application object model requested by the user.** This is a product
+Asqueel application object model requested by the user.** This is a product
 architecture gap, not a documentation or method-naming problem.
 
 This review does not change the Python implementation or claim that the API
@@ -252,7 +252,7 @@ compiler feature before that vertical would repeat the current mismatch.
 The 337-test result remains evidence for the implemented component contracts.
 It does not demonstrate the application API above: those tests mostly construct
 a compiler and executor separately. The prior V1 delivery reports should be read
-as delivery of a low-level native core, not completion of the requested Genro SQL
+as delivery of a low-level native core, not completion of the requested Asqueel
 product. Their passing results are not withdrawn; their scope is corrected.
 
 The earlier choice to defer the operational object layer and accept only recipe

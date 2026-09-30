@@ -2,7 +2,7 @@
 
 **Version**: 0.1.0 · **Last Updated**: 2026-07-06 · **Status**: 🔴 DA REVISIONARE
 
-Part of the genro-sql design documentation set (see `00_INDEX.md`).
+Part of the asqueel design documentation set (see `00_INDEX.md`).
 Scope: exhaustive inventory of the legacy `DbModelSrc` grammar and the
 runtime model objects, as input to the design of the new SqlBuilder
 grammar. Source: Genropy worktree `develop` (branch

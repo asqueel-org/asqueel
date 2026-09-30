@@ -2,14 +2,14 @@
 
 Start by distinguishing SQLAlchemy Core from its ORM. Core provides SQL and
 schema constructs; the ORM adds mapped classes and a Session with identity-map
-and unit-of-work behavior. This guide compares the ORM workflow with Genro SQL;
+and unit-of-work behavior. This guide compares the ORM workflow with Asqueel;
 it does not imply that SQLAlchemy requires ORM mapping for every query.
 See the official [SQLAlchemy architecture](https://www.sqlalchemy.org/features.html)
 and [Session basics](https://docs.sqlalchemy.org/en/20/orm/session_basics.html).
 
 ## Translate the objects, not just the method names
 
-| SQLAlchemy concept | Genro SQL concept |
+| SQLAlchemy concept | Asqueel concept |
 |---|---|
 | Table metadata and mapped-class declarations | Configuration recipe and resolved model. |
 | Mapped entity class | Live table obtained with `db.table('sales.customer')`. |
@@ -19,7 +19,7 @@ and [Session basics](https://docs.sqlalchemy.org/en/20/orm/session_basics.html).
 | SQL expression and bound parameter | SQL expression with `$field`, `@path` and `:parameter`. |
 
 This is a conceptual mapping, not a mechanical API substitution. In particular,
-a Genro SQL table object represents the table's operations and metadata, not a
+a Asqueel table object represents the table's operations and metadata, not a
 Python class whose instances participate in an identity map.
 
 ## Query a projection
@@ -44,7 +44,7 @@ explicitly when defining a service boundary.
 ## Write explicitly
 
 SQLAlchemy's ORM tracks changes to mapped instances and flushes work through
-its Session. Genro SQL table methods execute writes; commit concludes the
+its Session. Asqueel table methods execute writes; commit concludes the
 transaction. There is no need to wait for an object-state flush before the SQL
 is sent. See [SQLAlchemy's unit-of-work description](https://docs.sqlalchemy.org/en/20/tutorial/orm_data_manipulation.html).
 

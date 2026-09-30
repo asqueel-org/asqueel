@@ -6,7 +6,7 @@ I risultati numerici del dataset base sono controllabili con SQL diretto; i
 comportamenti ambigui del legacy devono essere catturati dall'oracle fissato.
 
 Il corpus verifica il profilo di compatibilità descritto nella
-[proposta architetturale](../genro-sql-target-architecture.md). Non richiede
+[proposta architetturale](../asqueel-target-architecture.md). Non richiede
 all'API nativa di riprodurre i difetti legacy. Il progetto completo richiederà
 anche corpus specifici per importazione del modello e scritture/transazioni.
 

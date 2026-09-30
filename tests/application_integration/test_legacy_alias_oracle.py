@@ -12,7 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from genro_sql import Column, PostgresCompiler, Relation, ResolvedModel, Table
+from asqueel import Column, PostgresCompiler, Relation, ResolvedModel, Table
 
 
 def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype():

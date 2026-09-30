@@ -60,10 +60,10 @@ raggiungibile nel codice, non una nuova prova PostgreSQL effettuata in questo au
 | UI e identità colonna | x_ui/x_identity e overlay resolve | Sì | ResultColumn trasporta UI/source | Disponibili a lettura e oggetti; escluse DDL |
 | Partition/draft/deletion logici | Attributi x_ del profilo nativo | Sì, RowPolicies | Guard e predicati | Non equivalgono alle partition fisiche SQL |
 
-Fonti nuove principali: `N:src/genro_sql/elements.py:258`, `:275`, `:295`, `:312`,
-`:390`; `N:src/genro_sql/model.py:32`, `:45`, `:54`, `:63`, `:105`;
-`N:src/genro_sql/compiler.py:292`, `:308`, `:410`, `:479`;
-`N:src/genro_sql/projection.py:11`, `:43`, `:146`.
+Fonti nuove principali: `N:src/asqueel/elements.py:258`, `:275`, `:295`, `:312`,
+`:390`; `N:src/asqueel/model.py:32`, `:45`, `:54`, `:63`, `:105`;
+`N:src/asqueel/compiler.py:292`, `:308`, `:410`, `:479`;
+`N:src/asqueel/projection.py:11`, `:43`, `:146`.
 
 ## Prove riproducibili sul percorso dichiarazione → compiler
 
@@ -118,9 +118,9 @@ Quest'ultimo punto è trasversale: attualmente SqlColumn decide il percorso di
 configurazione usando proprio `model.formula`; il compiler e la proiezione usano
 lo stesso discriminante per distinguere fisico e virtuale. Introdurre altri tipi
 richiede un contratto esplicito, non solo un nuovo ramo nel parser.
-Fonti: `N:src/genro_sql/application_table.py:67`;
-`N:src/genro_sql/compiler.py:295`, `:485`;
-`N:src/genro_sql/projection.py:43`.
+Fonti: `N:src/asqueel/application_table.py:67`;
+`N:src/asqueel/compiler.py:295`, `:485`;
+`N:src/asqueel/projection.py:43`.
 
 ## Formule e subquery: non confondere testo SQL e specifica strutturata
 
@@ -147,7 +147,7 @@ in xmlagg con cast a testo; le altre modalità passano a select/subquery_aggr.
 Il nuovo elemento tipizza query come stringa: già la forma della dichiarazione
 non rappresenta direttamente quel contratto a dizionario.
 Fonti: `L:gnrpy/gnr/sql/gnrsqlmodel/model.py:1184`;
-`N:src/genro_sql/elements.py:295`.
+`N:src/asqueel/elements.py:295`.
 
 I requisiti prossimi devono comprendere scalar subquery ed EXISTS correlati,
 con contratto esplicito per cardinalità, parametri senza collisioni e metadati
@@ -206,10 +206,10 @@ collisioni e conservato nella dichiarazione, senza creare una Relation inversa.
 `one_one` non va presentato come dimostrazione di unicità della chiave sorgente:
 non esiste in quel flag un contratto operativo completo di cardinalità.
 
-Fonti: `N:src/genro_sql/contracts.py:78`;
-`N:src/genro_sql/model.py:105`;
-`N:src/genro_sql/validators.py:350`;
-`N:src/genro_sql/compiler.py:308`.
+Fonti: `N:src/asqueel/contracts.py:78`;
+`N:src/asqueel/model.py:105`;
+`N:src/asqueel/validators.py:350`;
+`N:src/asqueel/compiler.py:308`.
 
 Relazioni senza FK fisica sono già possibili: foreign_key=False non significa
 assenza di navigabilità. Questo è diverso da virtual relation con chiavi
@@ -254,8 +254,8 @@ migrazione devono continuare a condividere il mapping risolto.
 
 Fonti: `L:gnrpy/gnr/sql/gnrsqlmodel/obj.py:200`;
 `L:gnrpy/gnr/sql/gnrsqlmodel/table.py:151`;
-`N:src/genro_sql/model.py:84`;
-`N:src/genro_sql/contracts.py:104`.
+`N:src/asqueel/model.py:84`;
+`N:src/asqueel/contracts.py:104`.
 
 ## Grammatica, configurazione e UI: cosa è già utile
 
@@ -265,16 +265,16 @@ e default effettivi prima di pubblicare il database operativo. Questo passaggio
 semantica. I quattro tipi virtuali della grammatica devono avere capability
 riconoscibili, diagnosi anticipata e prove fino al risultato.
 
-Fonti: `N:src/genro_sql/configuration.py:32`, `:70`;
-`N:src/genro_sql/object_renderer.py:14`.
+Fonti: `N:src/asqueel/configuration.py:32`, `:70`;
+`N:src/asqueel/object_renderer.py:14`.
 
 Il nuovo modello mantiene attributi, identità e provenance; UI inline e overlay
 hanno precedenza esplicita. La UI non può sovrascrivere dtype/formula/constraint.
 È una buona base, ma per alias mancano ereditarietà della metadata target e doppia
 provenienza. I metadata name_long/name_short legacy non vengono automaticamente
 tradotti tutti in x_ui: l'adattatore deve dichiarare quella mappa.
-Fonti: `N:src/genro_sql/model.py:18`, `:72`;
-`N:src/genro_sql/contracts.py:59`.
+Fonti: `N:src/asqueel/model.py:18`, `:72`;
+`N:src/asqueel/contracts.py:59`.
 
 ## Priorità operative proposte
 

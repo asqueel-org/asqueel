@@ -14,7 +14,7 @@ facade is what carries the recipe name:
   while every artifact lands in the temp directory.
 - PostgreSQL: a facade subclass reports the recipe's own label and
   schemas while connections stay on the dedicated D10 test database
-  (``test_genro_sql_*``), created empty here and dropped in teardown.
+  (``test_asqueel_*``), created empty here and dropped in teardown.
   Pre-creating it also keeps the migrator away from CREATE DATABASE,
   which targets the label name. The facade learns the label from the
   structure it is asked to migrate — one recipe per test, each with its
@@ -38,11 +38,11 @@ import os
 import psycopg
 import pytest
 
-from genro_sqlmigration import SqlMigrator
-from genro_sqlmigration.adapters import PgDatabase, SqliteDatabase
+from asqueel_migration import SqlMigrator
+from asqueel_migration.adapters import PgDatabase, SqliteDatabase
 
 APPLICATION_SCHEMAS = ["library_public"]
-DB_PREFIX = "test_genro_sql_"
+DB_PREFIX = "test_asqueel_"
 RECIPE_DB_NAME = "library"
 
 

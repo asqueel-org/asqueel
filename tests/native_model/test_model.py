@@ -1,9 +1,9 @@
 import pytest
 
-from genro_sql import SqlBuilder
-from genro_sql.contracts import UnsupportedFeatureError
-from genro_sql.model import resolve_model
-from genro_sql.importers import inspect_postgres
+from asqueel import SqlBuilder
+from asqueel.contracts import UnsupportedFeatureError
+from asqueel.model import resolve_model
+from asqueel.importers import inspect_postgres
 
 
 class Example(SqlBuilder):
@@ -90,8 +90,8 @@ def test_nonunique_relation_cannot_silently_explode_rows():
 
 
 def test_physical_projection_uses_resolved_naming():
-    from genro_sql.projection import to_physical_builder
-    from genro_sql.catalog import SqlModelCatalog
+    from asqueel.projection import to_physical_builder
+    from asqueel.catalog import SqlModelCatalog
     model = resolve_model(example())
     physical = SqlModelCatalog(to_physical_builder(model))
     assert set(physical.tables) == {('public', 'sales_customer'), ('public', 'invoices')}

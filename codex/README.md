@@ -1,14 +1,14 @@
-# Codex dossier — completamento di genro-sql
+# Codex dossier — completamento di asqueel
 
 **Data dell'analisi:** 20 agosto 2026
-**Perimetro:** grammar SQL, proiezione verso `genro-sqlmigration`, creazione di
+**Perimetro:** grammar SQL, proiezione verso `asqueel-migration`, creazione di
 database da ricette Builder e round-trip JSON → Python.
 
 ## Scopo
 
-Questa cartella raccoglie il contesto operativo per completare `genro-sql`
+Questa cartella raccoglie il contesto operativo per completare `asqueel`
 senza ripartire da zero e senza duplicare responsabilità già implementate in
-`genro-builders` o `genro-sqlmigration`.
+`genro-builders` o `asqueel-migration`.
 
 La visione da preservare è:
 
@@ -21,7 +21,7 @@ source tree semantico unico
       ├──→ modello runtime
       ├──→ DDL per dialetto
       ├──→ documentazione / GUI / introspezione
-      └──→ normalized JSON per genro-sqlmigration
+      └──→ normalized JSON per asqueel-migration
                          ↓
           confronto con il database reale
                          ↓
@@ -48,8 +48,8 @@ consumer o rappresentazioni differenti dello stesso modello.
 
 1. test e codice correnti dei tre repository;
 2. contratti versionati, soprattutto
-   `genro-sqlmigration/schemas/structure-1.0.json`;
-3. factory e `StructureValidator` di `genro-sqlmigration`;
+   `asqueel-migration/schemas/structure-1.0.json`;
+3. factory e `StructureValidator` di `asqueel-migration`;
 4. decisioni approvate in `roadmap/05_grammar_design.md`;
 5. inventari legacy `roadmap/01`–`04`;
 6. documentazione ufficiale PostgreSQL della versione minima supportata;
@@ -61,9 +61,9 @@ esponga la divergenza e registrare la decisione.
 ## Regole di lavoro per un LLM
 
 - Non generare una seconda grammar parallela: completare `modern/elements.py`.
-- Non far dipendere `genro-sqlmigration` da `genro-sql`.
-- Il renderer di proiezione vive in `genro-sql` e consuma le API pubbliche di
-  `genro-sqlmigration`.
+- Non far dipendere `asqueel-migration` da `asqueel`.
+- Il renderer di proiezione vive in `asqueel` e consuma le API pubbliche di
+  `asqueel-migration`.
 - Non copiare a mano hashing e normalizzazione: usare le factory `new_*_item`.
 - Non mescolare attributi fisici e metadati applicativi.
 - Non modellare tutta la sintassi PostgreSQL nel core portabile.
@@ -82,7 +82,7 @@ SqlBuilder recipe
     → source tree
     → SqlMigrationRenderer
     → normalized JSON valido
-    → diff di genro-sqlmigration
+    → diff di asqueel-migration
 ```
 
 Dimostra immediatamente il valore del modello, riusa l'infrastruttura esistente

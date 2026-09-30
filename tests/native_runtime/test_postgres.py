@@ -1,10 +1,10 @@
-"""Optional real PostgreSQL checks; GENRO_SQL_TEST_DSN selects a disposable database."""
+"""Optional real PostgreSQL checks; ASQUEEL_TEST_DSN selects a disposable database."""
 from uuid import uuid4
 
 import pytest
 
-from genro_sql.contracts import CompiledQuery, ResultColumn
-from genro_sql.runtime import PostgresDatabase
+from asqueel.contracts import CompiledQuery, ResultColumn
+from asqueel.runtime import PostgresDatabase
 
 from tests.native_support import postgres_dsn
 

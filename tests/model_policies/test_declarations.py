@@ -3,9 +3,9 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql import SqlBuilder
-from genro_sql.contracts import Column, PartitionScope, Relation, ResolvedModel, RowPolicies, Table
-from genro_sql.model import resolve_model, validate_row_policies
+from asqueel import SqlBuilder
+from asqueel.contracts import Column, PartitionScope, Relation, ResolvedModel, RowPolicies, Table
+from asqueel.model import resolve_model, validate_row_policies
 
 
 def declared(**attributes):
@@ -110,8 +110,8 @@ def test_manual_contract_relation_must_be_to_one():
 
 
 def test_policy_metadata_changes_no_physical_ddl():
-    from genro_sql.projection import to_physical_builder
-    from genro_sql.catalog import SqlModelCatalog
+    from asqueel.projection import to_physical_builder
+    from asqueel.catalog import SqlModelCatalog
     plain = resolve_model(declared())
     scoped = resolve_model(declared(x_partition={'field': 'organization_id', 'current': 'org'},
                                     x_draft_field='draft', x_logical_deletion_field='deleted_at'))

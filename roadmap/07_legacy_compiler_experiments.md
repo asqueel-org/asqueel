@@ -119,7 +119,7 @@ current legacy behavior):
 selection / `CREATE TABLE AS SELECT`. They live only in the branches
 and PRs above (PRs #542 and #544 still open).
 
-## 4. Relevance for the genro-sql rewrite (pillar 4 inputs)
+## 4. Relevance for the asqueel rewrite (pillar 4 inputs)
 
 1. **Subquery-to-JOIN as a first-class compile strategy.** The legacy
    compiles every `formulaColumn(select=...)` as a correlated inline

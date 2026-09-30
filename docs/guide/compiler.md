@@ -14,7 +14,7 @@ This page uses a small resolved model. You can obtain the same kind of model
 from [builder declarations](models.md) or [database inspection](importing.md).
 
 ```python
-from genro_sql import (
+from asqueel import (
     Column, PostgresCompiler, Relation, ResolvedModel, Table,
 )
 
@@ -181,7 +181,7 @@ assembly. The `aggregateRows` option is rejected.
 With the corresponding tables already present in PostgreSQL:
 
 ```python
-from genro_sql import PostgresDatabase
+from asqueel import PostgresDatabase
 
 with PostgresDatabase('dbname=myapp user=myapp') as db:
     result = db.execute(query)

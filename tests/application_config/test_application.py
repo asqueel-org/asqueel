@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from genro_sql import (
+from asqueel import (
     DatabaseClosedError, SqlDatabaseConfig, SqlTable, TransactionStateError,
     UnsupportedFeatureError, build_database,
 )

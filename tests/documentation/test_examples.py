@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from genro_sql import CompiledQuery
+from asqueel import CompiledQuery
 from tests.native_support import postgres_dsn
 
 GUIDE = Path(__file__).resolve().parents[2] / 'docs' / 'guide'
@@ -62,7 +62,7 @@ def test_application_query_guide_against_tutorial_data():
 
 @pytest.mark.postgresql
 def test_quickstart_as_published(monkeypatch):
-    monkeypatch.setenv('GENRO_SQL_DSN', postgres_dsn())
+    monkeypatch.setenv('ASQUEEL_DSN', postgres_dsn())
     exec(compile(python_blocks('quickstart.md')[0], 'quickstart.md', 'exec'), {})
 
 

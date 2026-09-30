@@ -1,9 +1,9 @@
-# genro-sql — SQL Model Grammar Design
+# asqueel — SQL Model Grammar Design
 
 **Version**: 0.2.0 · **Last Updated**: 2026-07-10 · **Status**: 🔴 DA REVISIONARE
 
 The design document for the new SQL model grammar, built as a
-genro-builders dialect in the `genro-sql` package. It is grounded in
+genro-builders dialect in the `asqueel` package. It is grounded in
 the legacy inventories `01`–`04` (see `00_INDEX.md`): every legacy
 behavior referenced here has a file:line source in those documents.
 
@@ -23,7 +23,7 @@ projection from/to the tree:
    (reader, introspect)    └────────────────────────┘        the object tree the app uses
                                       │  │
                 normalized JSON ◀─────┘  └────▶ query compiler (later phase)
-                (genro-sqlmigration)
+                (asqueel-migration)
 ```
 
 - **Dual rendering** — the tree renders to two targets (see §1.1): a
@@ -33,7 +33,7 @@ projection from/to the tree:
 - **Renderer** (tree → DDL): partial (one table → its CREATE TABLE) or
   total; one renderer per SQL dialect.
 - **Migration**: the tree projects into the normalized JSON of
-  genro-sqlmigration (doc `03` §1), replacing the legacy
+  asqueel-migration (doc `03` §1), replacing the legacy
   `orm_extractor`; diff engine and command builder are reused as-is.
 - **Round-trip** (like the XSD dialect): a reader (introspection → tree,
   the `db_extractor` queries already exist) and an emitter (tree →
@@ -373,7 +373,7 @@ Ordered; each is a separate decision to take one at a time.
    validated against the exact-SQL expectations of
    `test_gnrsqlmigration.py`.
 3. **Slice 3 — migration projection** (tree → normalized JSON),
-   plugging into genro-sqlmigration.
+   plugging into asqueel-migration.
 4. **Slice 4 — beyond-legacy entities** (view, function, sequence,
    dbtype, trigger, extension, eventTrigger, CHECK, comments).
 5. **Slice 5 — round-trip** (reader + emitter).
@@ -388,7 +388,7 @@ not replace, §2–§4).
 
 ### 5.1 Folder layout per grammar dialect
 
-`src/genro_sql/` is organised in one sub-package per grammar dialect,
+`src/asqueel/` is organised in one sub-package per grammar dialect,
 plus a shared base:
 
 - **`base/`** — shared base classes (a common builder base and/or a

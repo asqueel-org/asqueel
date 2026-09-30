@@ -4,7 +4,7 @@ A table can select a `SqlTable` subclass with `x_table_class`. The native hook
 profile supports insertion, update and deletion:
 
 ```python
-from genro_sql import SqlDatabaseConfig, SqlTable
+from asqueel import SqlDatabaseConfig, SqlTable
 
 
 class CustomerTable(SqlTable):

@@ -2,7 +2,7 @@
 
 **Version**: 0.1.0 · **Last Updated**: 2026-07-06 · **Status**: 🔴 DA REVISIONARE
 
-Part of the genro-sql design documentation set (see `00_INDEX.md`).
+Part of the asqueel design documentation set (see `00_INDEX.md`).
 Scope: map of the legacy test suite, the model-definition fixtures
 (canonical grammar usage examples), the behaviors pinned by tests, and
 the oracle shortlist for the new grammar's acceptance suite. Source:

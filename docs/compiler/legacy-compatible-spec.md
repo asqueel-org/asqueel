@@ -6,7 +6,7 @@ con il corpus differenziale prima di dichiarare compatibilità completa.
 **Ruolo nel progetto:** dopo la definizione degli obiettivi di lungo termine,
 questa specifica descrive il contratto del frontend/adattatore legacy, non
 impone tutti i comportamenti storici all'API nativa. La
-[proposta architetturale](../genro-sql-target-architecture.md) comprende modello
+[proposta architetturale](../asqueel-target-architecture.md) comprende modello
 da database e applicazioni legacy, sintassi moderna, lettura e scrittura con
 priorità PostgreSQL. Le anomalie restano decisioni del profilo di compatibilità.
 
@@ -25,7 +25,7 @@ Documenti complementari:
 
 - [Casi di conformità e dataset di riferimento](compatibility-cases.md).
 - [Analisi di codice e conversazioni](../legacy-sql-compiler-analysis.md).
-- [Inventario precedente](https://github.com/genropy/genro-sql/blob/225ecb43d41336d4dec271abefa0bda055358945/roadmap/02_legacy_compiler_query.md), utile come
+- [Inventario precedente](https://github.com/asqueel-org/asqueel/blob/225ecb43d41336d4dec271abefa0bda055358945/roadmap/02_legacy_compiler_query.md), utile come
   materiale storico: in caso di divergenza fa fede la baseline qui indicata.
 
 ## 1. Obiettivo, significato di equivalenza e perimetro
@@ -303,7 +303,7 @@ definizione tecnica/semantica e alle informazioni d'interfaccia. Queste ultime
 sono dichiarabili nella colonna o in un descrittore parallelo collegato, con
 accesso unificato ai metadati risolti. Nessuna duplicazione indipendente di tipo,
 formula o vincoli. Vedere il contratto di composizione e UI nella
-[proposta architetturale, §4.4](../genro-sql-target-architecture.md).
+[proposta architetturale, §4.4](../asqueel-target-architecture.md).
 
 **MOD-07 — Decisione acquisita.** La mappatura fisica supporta prefissi delle
 tabelle derivati dallo schema logico, distinti dallo schema SQL. Nel bridge
@@ -745,7 +745,7 @@ Il modello legacy distingue subtable di tabella (condizione nominata più
 virtuale booleana) e subtable di package (specializzazione con maintable,
 sql_inherited e __subtable). La seconda non è una partizione fisica né una
 view SQL. Importazione, default e scritture richiedono il contratto dedicato
-nella [proposta architetturale, §5.2](../genro-sql-target-architecture.md).
+nella [proposta architetturale, §5.2](../asqueel-target-architecture.md).
 
 **POL-06.** Se esiste `logicalDeletionField`, `excludeLogicalDeleted is True`
 aggiunge `field IS NULL`. `False` include tutti; `'mark'` aggiunge `_isdeleted`
@@ -1099,7 +1099,7 @@ Genro presenti nel SQL opaco devono essere identificati senza alterare letterali
 
 **NEW-04.** Il `ModelProvider` risolve i contratti MOD senza esporre le classi
 legacy. Un primo provider può adattare il modello esistente; un secondo può
-consumare il modello prodotto da genro-sql e da grammatiche distribuite.
+consumare il modello prodotto da asqueel e da grammatiche distribuite.
 
 **NEW-05.** Il piano dei join identifica percorso, scope, condizioni e cardinalità;
 ordina le dipendenze e non deduplica join soltanto perché condividono la tabella.

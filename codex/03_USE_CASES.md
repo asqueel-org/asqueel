@@ -6,7 +6,7 @@ complete, validator e `SqlMigrationRenderer` devono ancora essere implementati.
 ## 1. Database minimale
 
 ```python
-from genro_sql import SqlBuilder
+from asqueel import SqlBuilder
 
 
 class RecipeDatabase(SqlBuilder):
@@ -87,8 +87,8 @@ API indicativa:
 
 ```python
 from genro_builders.builder import BuilderHandler
-from genro_sql.renderers import SqlMigrationRenderer
-from genro_sqlmigration import PgDatabase, SqlMigrator, StructureValidator
+from asqueel.renderers import SqlMigrationRenderer
+from asqueel_migration import PgDatabase, SqlMigrator, StructureValidator
 
 
 model = RecipeDatabase()
@@ -191,7 +191,7 @@ recipe.column(name="title", dtype="A", size="0:240", notnull=True)
 recipe.index(name="ix_recipe_title", columns={"title": None})
 ```
 
-La recipe descrive lo stato desiderato. `genro-sqlmigration` confronta tale
+La recipe descrive lo stato desiderato. `asqueel-migration` confronta tale
 stato con il database e produce le sole operazioni necessarie. Il builder non
 deve contenere una sequenza manuale di migration imperative.
 

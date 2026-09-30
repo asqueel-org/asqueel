@@ -8,7 +8,7 @@ start with the [tutorial](tutorial.md); this page explains the declaration choic
 ## Start with a recipe
 
 ```python
-from genro_sql import SqlDatabaseConfig, resolve_model
+from asqueel import SqlDatabaseConfig, resolve_model
 
 
 def customer_table(tables):
@@ -112,7 +112,7 @@ is metadata, not an automatic database-rename migration.
 UI metadata cannot redefine the column type, formula, SQL name, nullability,
 uniqueness or primary-key status. No GUI library is needed to resolve or query
 the model. Labels, placeholders and formats are data for your application;
-Genro SQL does not instantiate editors or render forms.
+Asqueel does not instantiate editors or render forms.
 
 ## Declare relations and formulas
 
@@ -183,7 +183,7 @@ provenance. Outer mappings are read-only; treat nested metadata as immutable too
 `SqlPythonEmitter` emits an editable Python module from a built recipe:
 
 ```python
-from genro_sql import SqlPythonEmitter
+from asqueel import SqlPythonEmitter
 
 source = SqlPythonEmitter(builder).emit(class_name='GeneratedSalesModel')
 # Save source in your application if you want to maintain the emitted recipe.

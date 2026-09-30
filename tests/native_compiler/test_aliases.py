@@ -3,8 +3,8 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
 
 
 @pytest.fixture
@@ -123,7 +123,7 @@ def test_alias_key_not_allowed_in_join(model):
 
 @pytest.mark.parametrize('kind', ['partition', 'draft', 'deleted'])
 def test_alias_cannot_stand_in_for_physical_policy_field(model, kind):
-    from genro_sql.contracts import PartitionScope, RowPolicies
+    from asqueel.contracts import PartitionScope, RowPolicies
     policy = (RowPolicies(partitions=(PartitionScope('local_id', 'current'),)) if kind == 'partition'
               else RowPolicies(draft_field='local_id') if kind == 'draft'
               else RowPolicies(logical_deletion_field='local_id'))
@@ -141,7 +141,7 @@ def test_alias_cycle_has_explicit_diagnostic():
 
 
 def test_mark_allows_alias_value_that_resolves_to_physical_column(model):
-    from genro_sql.contracts import RowPolicies
+    from asqueel.contracts import RowPolicies
     invoice = model.table('invoice')
     invoice = replace(invoice, columns={**invoice.columns, 'deleted': Column('deleted', 'DH')},
                       policies=RowPolicies(logical_deletion_field='deleted'))

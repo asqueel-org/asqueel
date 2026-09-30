@@ -1,7 +1,7 @@
 """Independent regression probes for subquery declaration loss."""
 import pytest
 
-from genro_sql import Column, PostgresCompiler, ResolvedModel, SqlBuilder, Table, resolve_model
+from asqueel import Column, PostgresCompiler, ResolvedModel, SqlBuilder, Table, resolve_model
 
 
 @pytest.mark.parametrize('formula', ["'#total'", "1 /* #total */", "1 -- #total\n"])

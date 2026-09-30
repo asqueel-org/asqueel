@@ -5,8 +5,8 @@ from psycopg.conninfo import make_conninfo
 
 
 def postgres_dsn():
-    if os.environ.get('GENRO_SQL_TEST_DSN'):
-        return os.environ['GENRO_SQL_TEST_DSN']
+    if os.environ.get('ASQUEEL_TEST_DSN'):
+        return os.environ['ASQUEEL_TEST_DSN']
     parameters = {
         'host': os.environ.get('GNR_TEST_PG_HOST', '127.0.0.1'),
         'port': os.environ.get('GNR_TEST_PG_PORT', '5432'),

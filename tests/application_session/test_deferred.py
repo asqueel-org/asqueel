@@ -1,8 +1,8 @@
 """Commit lifecycle contracts, including failures hidden inside callbacks."""
 import pytest
 
-from genro_sql import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, build_database
-from genro_sql.session import Session
+from asqueel import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, build_database
+from asqueel.session import Session
 from tests.application_config.test_application import Recipe
 from tests.application_session.test_session import Driver
 

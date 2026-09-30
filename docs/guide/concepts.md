@@ -1,6 +1,6 @@
 # From configuration to a working database
 
-Genro SQL lets an application describe a database once and use logical names
+Asqueel lets an application describe a database once and use logical names
 throughout its queries. The main object is `db`. Its tables know their columns,
 relations, configuration and shared transaction context:
 

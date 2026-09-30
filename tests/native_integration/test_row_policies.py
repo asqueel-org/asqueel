@@ -6,7 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from genro_sql import (
+from asqueel import (
     EnvironmentMismatchError, PostgresCompiler, PostgresDatabase,
     SqlBuilder, SqlEnvironment, resolve_model,
 )

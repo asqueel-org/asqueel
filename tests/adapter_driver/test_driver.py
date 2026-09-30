@@ -6,10 +6,10 @@ import threading
 
 import pytest
 
-from genro_sql.contracts import CompiledQuery, QueryResult, ResultColumn
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.query_plan import Identifier, Parameter, SqlStatement
-from genro_sql.runtime import PostgresDatabase, Database
+from asqueel.contracts import CompiledQuery, QueryResult, ResultColumn
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.query_plan import Identifier, Parameter, SqlStatement
+from asqueel.runtime import PostgresDatabase, Database
 
 
 def test_formatter_preserves_literal_percent_and_structural_parameter_boundaries():
@@ -135,10 +135,10 @@ def guarded(name, *args, **kwargs):
         raise AssertionError('unexpected psycopg dependency')
     return original(name, *args, **kwargs)
 builtins.__import__ = guarded
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.query_plan import SqlStatement, Parameter
-from genro_sql.runtime import Database, PostgresDatabase
-from genro_sql.contracts import CompiledQuery, QueryResult
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.query_plan import SqlStatement, Parameter
+from asqueel.runtime import Database, PostgresDatabase
+from asqueel.contracts import CompiledQuery, QueryResult
 query = PsycopgDriver().prepare(SqlStatement(('SELECT ', Parameter('x')), {'x': 3}))
 assert query.sql == 'SELECT %(x)s'
 class Driver:

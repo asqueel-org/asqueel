@@ -1,12 +1,12 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 """Reverse projection: normalized migration JSON back into a model tree.
 
-The inverse of :class:`~genro_sql.migration.SqlMigrationRenderer`,
-and the analogue of :func:`genro_sqlmigration.xml_producer.struct_to_xml`
+The inverse of :class:`~asqueel.migration.SqlMigrationRenderer`,
+and the analogue of :func:`asqueel_migration.xml_producer.struct_to_xml`
 for the recipe form: it de-normalizes ``structure-1.0`` into the grammar
-of :class:`~genro_sql.builder.SqlBuilder`, so a database that only
+of :class:`~asqueel.builder.SqlBuilder`, so a database that only
 exists as introspected JSON becomes a source tree — and, through
-:class:`~genro_sql.emitter.SqlPythonEmitter`, a Python recipe.
+:class:`~asqueel.emitter.SqlPythonEmitter`, a Python recipe.
 
 The law it answers to is migration-equivalent round-tripping::
 
@@ -42,7 +42,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from genro_sqlmigration.structures import COL_JSON_KEYS
+from asqueel_migration.structures import COL_JSON_KEYS
 
 from .builder import SqlBuilder
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
@@ -115,7 +115,7 @@ class SqlModelReader:
         """De-normalize the structure into a created, validated model.
 
         Returns:
-            A created :class:`~genro_sql.builder.SqlBuilder` whose
+            A created :class:`~asqueel.builder.SqlBuilder` whose
             source tree projects back to the structure it was read from.
 
         Raises:

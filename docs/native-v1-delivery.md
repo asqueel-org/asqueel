@@ -100,16 +100,16 @@ python -m pip install -r requirements/asgi.txt
 python -m pip install --no-deps -e .
 GNR_TEST_PG_PORT=55449 python -m pytest
 ruff check src tests scripts
-mypy src/genro_sql
+mypy src/asqueel
 python -m build --no-isolation
-GENRO_SQL_DEMO_DSN='host=127.0.0.1 port=55449 user=postgres dbname=postgres' \
+ASQUEEL_DEMO_DSN='host=127.0.0.1 port=55449 user=postgres dbname=postgres' \
   python scripts/demo_native.py
 ```
 
 I test PostgreSQL richiedono un servizio di prova: non si dichiarano riusciti
 saltandoli quando il servizio manca. `pytest -m 'not postgresql'` è il profilo
 unitario, distinto dal collaudo completo. È disponibile anche l'override
-`GENRO_SQL_TEST_DSN` per i test dei singoli componenti.
+`ASQUEEL_TEST_DSN` per i test dei singoli componenti.
 
 ## Limiti e versioni successive
 

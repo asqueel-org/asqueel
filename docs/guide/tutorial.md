@@ -4,7 +4,7 @@ Build a small application using configuration, live tables, relations, an alias
 and correlated formulas. Then insert data, read it back, commit a change and
 verify a rollback. The example uses ordinary dictionary results throughout.
 
-You need Python, `genro-sql[postgresql]` from this checkout, and a reachable
+You need Python, `asqueel[postgresql]` from this checkout, and a reachable
 PostgreSQL **test database** whose role can create schemas. Nothing installs or
 starts PostgreSQL automatically. The script creates a uniquely named schema and
 removes it in its cleanup block; an interrupted process may leave that schema.
@@ -12,7 +12,7 @@ removes it in its cleanup block; an interrupted process may leave that schema.
 Download {download}`shop_tutorial.py <_examples/shop_tutorial.py>` and run:
 
 ```sh
-export GENRO_SQL_DSN="host=localhost dbname=example user=example"
+export ASQUEEL_DSN="host=localhost dbname=example user=example"
 python shop_tutorial.py
 ```
 

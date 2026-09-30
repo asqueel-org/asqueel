@@ -13,11 +13,11 @@ sources cited below have no working-tree differences from that revision. Dirty
 `e12f2ce54245e57e48371ae0f47e928e0d55b960` are a historical baseline, not the
 revision used here.
 
-Modern checkout: `genro-sql`, HEAD `bf66bcacfeededc7f0ce82cd5c48f6437aa174df`.
+Modern checkout: `asqueel`, HEAD `bf66bcacfeededc7f0ce82cd5c48f6437aa174df`.
 References to modern code describe the working source at audit time; concurrent
 public documentation edits do not affect the inspected implementation. Builders
 observations use the installed `genro-builders` 0.27.0 source in
-`/private/tmp/genro-sql-v1-venv/lib/python3.12/site-packages/genro_builders`.
+`/private/tmp/asqueel-v1-venv/lib/python3.12/site-packages/genro_builders`.
 A sibling repository checkout is a separate baseline.
 
 Source notation below: `legacy:` means a path relative to the legacy checkout;
@@ -44,8 +44,8 @@ rewritten.
 Sources: `legacy:gnrpy/gnr/sql/gnrsqlmodel/table.py:105`,
 `legacy:gnrpy/gnr/sql/gnrsqltable/table.py:74`,
 `legacy:gnrpy/gnr/sql/gnrsql/query.py:232`;
-`modern:src/genro_sql/contracts.py:86`, `:117`,
-`modern:src/genro_sql/runtime.py:20`.
+`modern:src/asqueel/contracts.py:86`, `:117`,
+`modern:src/asqueel/runtime.py:20`.
 
 ## Concrete legacy lifecycle
 
@@ -233,7 +233,7 @@ object output should be evaluated before inventing another generic tree walker.
 The SQL-specific lifecycle, identity ownership, two-phase relation resolution and
 behavior binding still require explicit design.
 
-Sources: `modern:src/genro_sql/builder.py:23`, `:46`, `:68`, `:86`, `:113`, `:123`.
+Sources: `modern:src/asqueel/builder.py:23`, `:46`, `:68`, `:86`, `:113`, `:123`.
 
 ## What exists now and what is missing
 
@@ -249,17 +249,17 @@ Sources: `modern:src/genro_sql/builder.py:23`, `:46`, `:68`, `:86`, `:113`, `:12
 | Configuration mixins | None equivalent in native model resolution | Explicit extension/hook contracts and a separate legacy adapter |
 | Schema management | Physical projection and migration integration | Must stay an explicit action, separate from object startup |
 
-Modern source evidence: `src/genro_sql/catalog.py:19`, `:60`;
-`src/genro_sql/model.py:32`, `:54`, `:105`;
-`src/genro_sql/contracts.py:59`, `:78`, `:86`, `:117`;
-`src/genro_sql/compiler.py:416`, `:498`;
-`src/genro_sql/runtime.py:20`, `:106`.
+Modern source evidence: `src/asqueel/catalog.py:19`, `:60`;
+`src/asqueel/model.py:32`, `:54`, `:105`;
+`src/asqueel/contracts.py:59`, `:78`, `:86`, `:117`;
+`src/asqueel/compiler.py:416`, `:498`;
+`src/asqueel/runtime.py:20`, `:106`.
 
 The resolved dataclasses are frozen and wrap their outer mappings in read-only
 proxies, but nested attribute values are not deeply frozen. They are not
 execution contexts. Their provenance is useful input for diagnostics but does
 not reconstruct application methods from imported declarations.
-Source: `modern:src/genro_sql/contracts.py:68`, `:99`, `:122`.
+Source: `modern:src/asqueel/contracts.py:68`, `:99`, `:122`.
 
 ## Recommended boundary for the next design, not implemented API
 

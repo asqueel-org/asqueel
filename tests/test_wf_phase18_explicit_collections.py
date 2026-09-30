@@ -3,10 +3,10 @@
 
 import pytest
 
-from genro_sqlmigration import JsonStructureProducer
-from genro_sqlmigration.structures import json_equal
+from asqueel_migration import JsonStructureProducer
+from asqueel_migration.structures import json_equal
 
-from genro_sql import (
+from asqueel import (
     SqlBuilder,
     SqlMigrationRenderer,
     SqlModelReader,

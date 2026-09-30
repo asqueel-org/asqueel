@@ -1,11 +1,11 @@
 """Compile-only audit probes; these do not establish legacy equivalence.
 
-Run with an installed genro-sql checkout. No connection or SQL is executed.
+Run with an installed asqueel checkout. No connection or SQL is executed.
 The output records the last successful phase, errors, and emitted SQL.
 """
 import json
 
-from genro_sql import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, build_database
 
 
 def recipe_for(feature):

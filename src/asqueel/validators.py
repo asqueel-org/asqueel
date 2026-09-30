@@ -1,7 +1,7 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 """Domain validation of a complete SQL model tree.
 
-The grammar (:mod:`genro_sql.elements`) enforces containment and
+The grammar (:mod:`asqueel.elements`) enforces containment and
 types at build time; it cannot know whether a name refers to something.
 This module walks the finished tree and checks the referential rules —
 pkey members, relation targets, composite members, constraint and index
@@ -44,7 +44,7 @@ class SqlModelValidator:
         """Validate ``builder``'s source tree.
 
         Args:
-            builder: a created :class:`~genro_sql.builder.SqlBuilder`.
+            builder: a created :class:`~asqueel.builder.SqlBuilder`.
 
         Returns:
             The same builder, so the call chains.

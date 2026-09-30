@@ -8,15 +8,15 @@ incremental commands.
 
 The pg fixtures (connection params, test-database lifecycle) come from
 tests/conftest.py — the phase writes them following
-../genro-sqlmigration/tests/conftest.py.
+../asqueel-migration/tests/conftest.py.
 """
 from __future__ import annotations
 
 import pytest
 
-from genro_sqlmigration import SqlMigrator
+from asqueel_migration import SqlMigrator
 
-from genro_sql import SqlBuilder, SqlMigrationRenderer
+from asqueel import SqlBuilder, SqlMigrationRenderer
 
 
 class LibraryV1(SqlBuilder):
@@ -62,7 +62,7 @@ def _prepare(database, structure):
 
 def test_sqlite_create_apply_idempotent(sqlite_database):
     # wf:contract: sqlite_database is a conftest fixture yielding a
-    # wf:contract: genro_sqlmigration SqliteDatabase on a temp path with
+    # wf:contract: asqueel_migration SqliteDatabase on a temp path with
     # wf:contract: application_schemas=["library_public"].
     migrator = _prepare(sqlite_database, _desired(LibraryV1))
     assert migrator.getChanges()
@@ -74,7 +74,7 @@ def test_sqlite_create_apply_idempotent(sqlite_database):
 @pytest.mark.postgresql
 def test_pg_create_apply_idempotent(pg_database):
     # wf:contract: pg_database is a conftest fixture yielding a PgDatabase on
-    # wf:contract: a dedicated test db (test_genro_sql_*), created for the
+    # wf:contract: a dedicated test db (test_asqueel_*), created for the
     # wf:contract: test and dropped in teardown, connection from
     # wf:contract: GNR_TEST_PG_* env with D10 defaults.
     migrator = _prepare(pg_database, _desired(LibraryV1))

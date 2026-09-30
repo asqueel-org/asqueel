@@ -37,10 +37,10 @@ executed during this audit.
 | L8 | Record-specific compiled shape/result map | [gnrsqldata/compiler.py:1106](/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/sql/gnrsqldata/compiler.py:1106) |
 | L9 | Materialized selection and output pipeline | [gnrsqldata/selection.py:82](/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/sql/gnrsqldata/selection.py:82) |
 | L10 | Named/positional legacy row access | [gnrlist.py:173](/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/core/gnrlist.py:173) |
-| N1 | Current compiler/plan construction | [compiler.py:416](/Users/gporcari/Sviluppo/genro_ng/meta-genro-modules/sub-projects/genro-sql/src/genro_sql/compiler.py:416) |
-| N2 | Current transaction and execution facade | [runtime.py:20](/Users/gporcari/Sviluppo/genro_ng/meta-genro-modules/sub-projects/genro-sql/src/genro_sql/runtime.py:20) |
-| N3 | Current row materialization and metadata validation | [drivers/psycopg.py](/Users/gporcari/Sviluppo/genro_ng/meta-genro-modules/sub-projects/genro-sql/src/genro_sql/drivers/psycopg.py) |
-| N4 | Current model, result, and environment contracts | [contracts.py](/Users/gporcari/Sviluppo/genro_ng/meta-genro-modules/sub-projects/genro-sql/src/genro_sql/contracts.py) |
+| N1 | Current compiler/plan construction | [compiler.py:416](/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:416) |
+| N2 | Current transaction and execution facade | [runtime.py:20](/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/runtime.py:20) |
+| N3 | Current row materialization and metadata validation | [drivers/psycopg.py](/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/drivers/psycopg.py) |
+| N4 | Current model, result, and environment contracts | [contracts.py](/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/contracts.py) |
 
 ## 1. Public call trace: table → query → fetch
 

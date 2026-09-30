@@ -8,7 +8,7 @@ model without connecting, executing SQL, or applying migrations.
 ## Build or render a recipe
 
 ```python
-from genro_sql import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, build_database
 
 
 class Shop(SqlDatabaseConfig):

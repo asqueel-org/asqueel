@@ -6,7 +6,7 @@ operazioni avvengono sul thread chiamante, senza executor, worker o API async.
 L'eventuale supporto async verrà valutato dopo il completamento del nucleo.
 
 ```python
-from genro_sql import PostgresDatabase, CompiledQuery
+from asqueel import PostgresDatabase, CompiledQuery
 
 with PostgresDatabase("dbname=example") as db:
     with db.transaction() as tx:
@@ -64,7 +64,7 @@ altrimenti solleva `EnvironmentMismatchError`. Gli alias `currentEnv` e `tempEnv
 restano disponibili. Vedi [ambiente SQL](sql-environment.md).
 
 ```python
-from genro_sql import Database
+from asqueel import Database
 
 with Database(driver=my_sync_driver) as db:
     result = db.execute(compiled_query)

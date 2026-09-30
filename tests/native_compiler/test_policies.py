@@ -3,13 +3,13 @@ from datetime import datetime, timezone
 
 import pytest
 
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import (
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import (
     Column, EnvironmentMismatchError, PartitionScope, Relation, ResolvedModel,
     RowPolicies, Table, UnsupportedFeatureError,
 )
-from genro_sql.environment import SqlEnvironment
-from genro_sql.query_plan import Identifier, Parameter
+from asqueel.environment import SqlEnvironment
+from asqueel.query_plan import Identifier, Parameter
 
 
 def model(*, partitions=(), draft='draft', deleted='deleted_at', formulas=False):

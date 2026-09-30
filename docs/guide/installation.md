@@ -1,6 +1,6 @@
 # Installation
 
-Genro SQL requires Python 3.11 or later. The supported Python test matrix is
+Asqueel requires Python 3.11 or later. The supported Python test matrix is
 3.11–3.13. PostgreSQL is the only implemented database execution backend.
 The package is alpha; check the API and feature limits when upgrading.
 
@@ -9,17 +9,17 @@ The package is alpha; check the API and feature limits when upgrading.
 For a PostgreSQL application:
 
 ```sh
-python -m pip install "genro-sql[postgresql]"
+python -m pip install "asqueel[postgresql]"
 ```
 
 This includes psycopg 3 and its binary distribution. The application supplies a
-PostgreSQL connection string; Genro SQL does not install or start a database.
+PostgreSQL connection string; Asqueel does not install or start a database.
 
 For model definitions, query compilation, or generating Python recipes without
 executing queries:
 
 ```sh
-python -m pip install genro-sql
+python -m pip install asqueel
 ```
 
 The core depends on genro-builders and genro-bag. It does not require psycopg
@@ -29,7 +29,7 @@ client library because it does not perform I/O.
 For the bridge to the separate migration engine, add the migration extra:
 
 ```sh
-python -m pip install "genro-sql[postgresql,migration]"
+python -m pip install "asqueel[postgresql,migration]"
 ```
 
 See [migrations](migrations.md) before using a model to plan schema changes.

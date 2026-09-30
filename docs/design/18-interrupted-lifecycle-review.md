@@ -51,7 +51,7 @@ Sorgenti consultati in Genropy, commit `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea
 
 - 51 test esistenti di sessione e table: superati. Non coprono le nuove code.
 - Ruff sui quattro moduli interessati: superato.
-- Mypy su src/genro_sql: superato, 32 file (note preesistenti sui corpi non annotati).
+- Mypy su src/asqueel: superato, 32 file (note preesistenti sui corpi non annotati).
 - Quattro prove mirate: riproducono i problemi sopra.
 - Nessuna nuova dichiarazione di equivalenza legacy o di accettazione PostgreSQL.
 

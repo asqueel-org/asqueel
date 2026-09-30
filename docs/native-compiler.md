@@ -1,6 +1,6 @@
 # Compiler PostgreSQL nativo — profilo iniziale
 
-`genro_sql.compiler.PostgresCompiler` compila il modello risolto condiviso in
+`asqueel.compiler.PostgresCompiler` compila il modello risolto condiviso in
 `CompiledQuery(sql, params, columns)`. Non apre connessioni e non esegue query.
 È un primo profilo nativo, non il compiler compatibile con tutto il legacy.
 

@@ -39,7 +39,7 @@ o sostituito testo simile a un placeholder nell'SQL finale.
 ## Uso e compatibilità
 
 ```python
-from genro_sql import QueryCompiler, PostgresDialect, PsycopgDriver, Database
+from asqueel import QueryCompiler, PostgresDialect, PsycopgDriver, Database
 
 driver = PsycopgDriver()
 compiler = QueryCompiler(model, PostgresDialect(), driver)
@@ -122,7 +122,7 @@ temporanea usa la porta 55449 e non coinvolge database applicativi esistenti.
 La demo mantiene il percorso con le facciate e offre quello con adapter iniettati:
 
 ```bash
-GENRO_SQL_DEMO_DSN='host=127.0.0.1 port=55449 user=postgres dbname=postgres' \
+ASQUEEL_DEMO_DSN='host=127.0.0.1 port=55449 user=postgres dbname=postgres' \
   python scripts/demo_native.py --explicit-adapters
 ```
 

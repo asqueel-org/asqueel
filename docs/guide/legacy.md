@@ -1,6 +1,6 @@
 # For Genropy users
 
-Genro SQL carries forward the database-centered application model of Genropy.
+Asqueel carries forward the database-centered application model of Genropy.
 The familiar entry point remains:
 
 ```python
@@ -11,7 +11,7 @@ rows = db.table('sales.invoice').query(
 ).fetch()
 ```
 
-Use this chapter to understand the relationship with legacy Genro SQL and the
+Use this chapter to understand the relationship with Genropy’s legacy database layer and the
 intentional differences. It is organized around application behavior rather
 than the internal modules of either implementation.
 

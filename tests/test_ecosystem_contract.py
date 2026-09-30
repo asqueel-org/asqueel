@@ -4,9 +4,9 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from genro_sql import SqlBuilder
-from genro_sql.catalog import SqlModelCatalog
-from genro_sql.grammar_doc import generate_grammar_md
+from asqueel import SqlBuilder
+from asqueel.catalog import SqlModelCatalog
+from asqueel.grammar_doc import generate_grammar_md
 
 
 def test_catalog_paths_and_typed_extension_metadata():

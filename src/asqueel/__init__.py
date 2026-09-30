@@ -59,7 +59,7 @@ __all__ = [
 ]
 
 _MIGRATION_EXTRA = (
-    "genro-sqlmigration is required for {name}: install genro-sql[migration]"
+    "asqueel-migration is required for {name}: install asqueel[migration]"
 )
 
 _MIGRATION_NAMES = {
@@ -76,7 +76,7 @@ def __getattr__(name: str):
     try:
         module = import_module(module_name, __name__)
     except ModuleNotFoundError as error:
-        if error.name != "genro_sqlmigration":
+        if error.name != "asqueel_migration":
             raise
         raise ImportError(_MIGRATION_EXTRA.format(name=name)) from error
     return getattr(module, name)

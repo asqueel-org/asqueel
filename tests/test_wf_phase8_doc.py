@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from genro_sql import SqlBuilder
-from genro_sql.grammar_doc import generate_grammar_md
+from asqueel import SqlBuilder
+from asqueel.grammar_doc import generate_grammar_md
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOC_PATH = REPO_ROOT / "docs" / "grammar.md"

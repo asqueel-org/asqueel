@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import pytest
 
-from genro_sqlmigration import JsonStructureProducer
-from genro_sqlmigration.structures import DTYPE_CODES, json_equal
+from asqueel_migration import JsonStructureProducer
+from asqueel_migration.structures import DTYPE_CODES, json_equal
 
-from genro_sql import SqlMigrationRenderer, SqlModelReader
+from asqueel import SqlMigrationRenderer, SqlModelReader
 
 
 def _roundtrip(human_json):

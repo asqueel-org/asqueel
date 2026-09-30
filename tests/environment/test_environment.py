@@ -4,7 +4,7 @@ from contextvars import copy_context
 
 import pytest
 
-from genro_sql.environment import SqlEnvironment
+from asqueel.environment import SqlEnvironment
 
 
 def test_defaults_snapshots_and_scope_arguments_are_detached():

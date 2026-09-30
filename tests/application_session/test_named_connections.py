@@ -3,8 +3,8 @@ from datetime import date
 
 import pytest
 
-from genro_sql import build_database
-from genro_sql.contracts import CompiledQuery
+from asqueel import build_database
+from asqueel.contracts import CompiledQuery
 from tests.application_config.test_application import Recipe
 from tests.application_session.test_session import Driver
 
@@ -79,7 +79,7 @@ def test_legacy_environment_scope_preserves_unrelated_changes():
 
 
 def test_store_switch_is_explicitly_unsupported_not_silently_same_database():
-    from genro_sql import UnsupportedFeatureError
+    from asqueel import UnsupportedFeatureError
     driver = Driver()
     db = build_database(Recipe, driver=driver)
     with db.tempEnv(storename='another_store'):
@@ -117,7 +117,7 @@ def test_repeated_commits_never_replay_prior_writes():
 
 
 def test_rollback_failure_preserves_sql_error_and_requires_explicit_recovery():
-    from genro_sql import TransactionStateError
+    from asqueel import TransactionStateError
     driver = Driver()
     db = build_database(Recipe, driver=driver)
     driver.rollback_error = OSError('rollback failed')
@@ -152,7 +152,7 @@ def test_close_connection_releases_all_names_and_database_can_reopen():
 
 
 def test_default_workdate_binding_and_stale_snapshot_rejection():
-    from genro_sql import EnvironmentMismatchError
+    from asqueel import EnvironmentMismatchError
     driver = Driver()
     db = build_database(Recipe, driver=driver)
     query = db.table('item').query(columns=':env_workdate AS day').compiled

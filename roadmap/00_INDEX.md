@@ -1,8 +1,8 @@
-# genro-sql — Design Documentation Set
+# asqueel — Design Documentation Set
 
 **Version**: 0.2.0 · **Last Updated**: 2026-07-08 · **Status**: 🔴 DA REVISIONARE
 
-Documentation set for the rewrite of the Genro SQL engine as a
+Documentation set for the rewrite of the Asqueel engine as a
 genro-builders dialect. Documents keep the 🔴 status until reviewed
 and approved (🟡 / 🟢).
 

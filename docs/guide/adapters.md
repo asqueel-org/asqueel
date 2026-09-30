@@ -11,8 +11,8 @@ Given a resolved `model`, the explicit pipeline is equivalent to the PostgreSQL
 compiler facade:
 
 ```python
-from genro_sql import PostgresDialect, PsycopgDriver, QueryCompiler
-from genro_sql import Database, SqlEnvironment
+from asqueel import PostgresDialect, PsycopgDriver, QueryCompiler
+from asqueel import Database, SqlEnvironment
 
 
 def find_customer(model, conninfo, customer_id):
@@ -47,7 +47,7 @@ Each stage has a different responsibility:
 For debugging or tooling, stop after planning:
 
 ```python
-from genro_sql import PostgresCompiler
+from asqueel import PostgresCompiler
 
 
 def inspect_query(model):
@@ -68,8 +68,8 @@ dialect/formatter profiles.
 already been quoted by the dialect. Only parameter nodes become placeholders:
 
 ```python
-from genro_sql import PsycopgDriver
-from genro_sql.query_plan import Parameter, SqlStatement
+from asqueel import PsycopgDriver
+from asqueel.query_plan import Parameter, SqlStatement
 
 statement = SqlStatement(
     ('SELECT 12 % 5 AS remainder WHERE ', Parameter('enabled')),
@@ -111,11 +111,11 @@ to it. Direct SQL remains trusted application code.
 
 The interfaces live in these modules:
 
-- `genro_sql.dialects.base.DataDialect`: `name`, `capabilities`,
+- `asqueel.dialects.base.DataDialect`: `name`, `capabilities`,
   `quote_identifier(name)`, `tokens(expression)` and `render(plan)`.
-- `genro_sql.drivers.base.BindingFormatter`: `dialect`, `binding` and
+- `asqueel.drivers.base.BindingFormatter`: `dialect`, `binding` and
   `prepare(statement)`.
-- `genro_sql.drivers.base.SyncDriver`: the formatter contract plus `validate`,
+- `asqueel.drivers.base.SyncDriver`: the formatter contract plus `validate`,
   `connect`, `execute`, `commit`, `rollback` and `close`.
 
 The compiler's expression resolution uses the dialect tokenizer to distinguish
@@ -142,7 +142,7 @@ or transaction. `PostgresCatalogProvider` implements PostgreSQL inspection;
 
 ```python
 import psycopg
-from genro_sql import PostgresCatalogProvider
+from asqueel import PostgresCatalogProvider
 
 
 def inspect_application_schema(conninfo):

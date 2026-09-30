@@ -1,13 +1,13 @@
 # Project and migrate a physical schema
 
-Query execution and schema migration are separate operations. Genro SQL builds
-a physical description; `genro-sqlmigration` compares that description with a
+Query execution and schema migration are separate operations. Asqueel builds
+a physical description; `asqueel-migration` compares that description with a
 database and prepares migration commands.
 
 Install the migration and PostgreSQL dependencies when you need this path:
 
 ```sh
-pip install 'genro-sql[postgresql,migration]'
+pip install 'asqueel[postgresql,migration]'
 ```
 
 ## Resolve names before producing migration data
@@ -16,7 +16,7 @@ For a model returned by `resolve_model()` or `inspect_postgres()`, use
 `to_physical_builder()` before rendering:
 
 ```python
-from genro_sql import SqlMigrationRenderer, to_physical_builder
+from asqueel import SqlMigrationRenderer, to_physical_builder
 
 
 def desired_structure(model):
@@ -43,8 +43,8 @@ and returns the migrator and its prepared command text:
 
 ```python
 from psycopg.conninfo import conninfo_to_dict
-from genro_sql import SqlMigrationRenderer, to_physical_builder
-from genro_sqlmigration import PgDatabase, SqlMigrator
+from asqueel import SqlMigrationRenderer, to_physical_builder
+from asqueel_migration import PgDatabase, SqlMigrator
 
 
 def prepare_migration(dsn, model):
@@ -86,8 +86,8 @@ loss of naming fidelity. To compare structural equivalence while ignoring
 constraint-name differences, opt in at both boundaries:
 
 ```python
-from genro_sql import SqlMigrationRenderer, to_physical_builder
-from genro_sqlmigration import SqlMigrator
+from asqueel import SqlMigrationRenderer, to_physical_builder
+from asqueel_migration import SqlMigrator
 
 
 def prepare_imported_structure(database, imported_model):
@@ -132,7 +132,7 @@ projects the indexes present in the catalog. In native declarations,
 `SqlModelReader` accepts normalized migration data, not a database connection:
 
 ```python
-from genro_sql import SqlModelReader, SqlPythonEmitter
+from asqueel import SqlModelReader, SqlPythonEmitter
 
 
 def recipe_source(normalized_structure):

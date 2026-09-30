@@ -1,4 +1,4 @@
-"""Execute isolated PostgreSQL binding probes; use GENRO_SQL_TEST_DSN.
+"""Execute isolated PostgreSQL binding probes; use ASQUEEL_TEST_DSN.
 
 Creates and drops one uniquely named schema. Requires a disposable database.
 Records native behavior only; this is not an executed legacy oracle.
@@ -9,11 +9,11 @@ from uuid import uuid4
 
 import psycopg
 from psycopg import sql
-from genro_sql import Column, PostgresCompiler, PostgresDatabase, ResolvedModel, Table
+from asqueel import Column, PostgresCompiler, PostgresDatabase, ResolvedModel, Table
 
 
 def run():
-    dsn = os.environ['GENRO_SQL_TEST_DSN']
+    dsn = os.environ['ASQUEEL_TEST_DSN']
     schema = 'binding_audit_' + uuid4().hex
     results = []
     with psycopg.connect(dsn, autocommit=True) as setup:

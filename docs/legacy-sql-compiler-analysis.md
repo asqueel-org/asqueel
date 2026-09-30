@@ -1,13 +1,13 @@
-# Genro SQL legacy, compiler e grammatiche distribuite
+# Asqueel legacy, compiler e grammatiche distribuite
 
-Analisi del 29 settembre 2026. Riferimenti: `genro-sql` ad
+Analisi del 29 settembre 2026. Riferimenti: `asqueel` ad
 `adba5d52174d166c59b4b364c9721b2e92837c5c`; legacy `origin/develop` ad
 `e12f2ce54245e57e48371ae0f47e928e0d55b960`. Il checkout legacy locale era più
 vecchio: per questa analisi sono stati letti i file del riferimento remoto,
 senza cambiare branch o modificare quel checkout.
 
 Il [dossier organizzato](design/README.md) collega questa ricostruzione storica
-ai finding, agli obiettivi e al piano del nuovo Genro SQL.
+ai finding, agli obiettivi e al piano del nuovo Asqueel.
 
 ## Conclusioni
 
@@ -81,7 +81,7 @@ bisogna comprenderne cardinalità, tipo, ambito e dipendenze.
 |---|---|
 | Esperimenti `compiler_new`, v2/v3 e `sq_as_join` | Lavori precedenti su alias, subquery, compound query e riscrittura delle sottoquery come join. Sono documentati nella roadmap locale; non descrivono automaticamente il compiler su develop. La PR #544 risulta ancora aperta. |
 | `compiler_next` di settembre | Copia indipendente selezionabile per istanza. La PR #1361 ha introdotto il percorso alternativo; #1409 ha spostato il flag sotto `experimental`. |
-| Nuova grammatica GEP / compiler di `genro-sql` | Proposta di funzioni sui percorsi e relazioni nominate; la roadmap di questo repository propone inoltre source query → rappresentazione SQL → renderer. Non sono componenti già consegnati dal nostro schema builder. |
+| Nuova grammatica GEP / compiler di `asqueel` | Proposta di funzioni sui percorsi e relazioni nominate; la roadmap di questo repository propone inoltre source query → rappresentazione SQL → renderer. Non sono componenti già consegnati dal nostro schema builder. |
 
 Configurazione attuale del legacy:
 

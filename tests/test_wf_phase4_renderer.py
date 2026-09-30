@@ -12,12 +12,12 @@ import typing
 
 import pytest
 
-from genro_sqlmigration import JsonStructureProducer, StructureValidator
-from genro_sqlmigration.structures import DTYPE_CODES, json_equal
+from asqueel_migration import JsonStructureProducer, StructureValidator
+from asqueel_migration.structures import DTYPE_CODES, json_equal
 
-from genro_sql import SqlBuilder, SqlMigrationRenderer
-from genro_sql import elements
-from genro_sql.validators import SqlModelValidationError
+from asqueel import SqlBuilder, SqlMigrationRenderer
+from asqueel import elements
+from asqueel.validators import SqlModelValidationError
 
 
 class GoldenRecipe(SqlBuilder):
@@ -240,7 +240,7 @@ def test_indexed_true_materializes_an_index_item():
 
 def test_dtype_and_fk_action_literals_match_the_installed_contract():
     # wf:contract: the Literal aliases declared in elements.py must
-    # wf:contract: enumerate exactly genro_sqlmigration.structures.DTYPE_CODES
+    # wf:contract: enumerate exactly asqueel_migration.structures.DTYPE_CODES
     # wf:contract: and the fk_action enum of schemas/structure-1.0.json
     # wf:contract: (RESTRICT, CASCADE, SET NULL, SET DEFAULT).
     assert set(typing.get_args(elements.DTYPE)) == set(DTYPE_CODES)

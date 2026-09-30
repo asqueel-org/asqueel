@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from genro_sql import grammar_doc
+from asqueel import grammar_doc
 
 
 def test_grammar_doc_imports_no_private_genro_builders_module():

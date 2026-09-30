@@ -1,6 +1,6 @@
 """Complete modular invoicing recipe."""
 
-from genro_sql import SqlBuilder
+from asqueel import SqlBuilder
 
 from .tables import customer, invoice, invoice_row
 

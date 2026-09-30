@@ -6,7 +6,7 @@ restano separati, senza thread-local globali. L'ambiente non costituisce da solo
 un sistema di autorizzazione.
 
 ```python
-from genro_sql.environment import SqlEnvironment
+from asqueel.environment import SqlEnvironment
 
 env = SqlEnvironment({'language': 'it', 'allowed_company_ids': [1, 2]})
 

@@ -10,14 +10,14 @@ connection. The connection must be a synchronous psycopg connection.
 Install the PostgreSQL extra for database access:
 
 ```sh
-pip install 'genro-sql[postgresql]'
+pip install 'asqueel[postgresql]'
 ```
 
 Keep connection settings outside the recipe:
 
 ```python
 import psycopg
-from genro_sql import inspect_postgres
+from asqueel import inspect_postgres
 
 
 def load_model(dsn):
@@ -43,7 +43,7 @@ policies from column names.
 ## Examine the result before using it
 
 ```python
-from genro_sql import PostgresCompiler
+from asqueel import PostgresCompiler
 
 
 def imported_query(result):
@@ -92,7 +92,7 @@ or application intent. Keep UI overlays under application control and pass the
 same overlay on every import:
 
 ```python
-from genro_sql import inspect_postgres
+from asqueel import inspect_postgres
 
 CUSTOMER_UI = {
     'sales.customer.name': {'label': 'Customer name', 'placeholder': 'Full name'},
@@ -125,7 +125,7 @@ external ownership until their lifecycle can be represented faithfully.
 For applications that inject adapters, the equivalent provider call is:
 
 ```python
-from genro_sql import PostgresCatalogProvider
+from asqueel import PostgresCatalogProvider
 
 
 def inspect_catalog(connection):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sphinx configuration for the genro-sql documentation."""
+"""Sphinx configuration for the asqueel documentation."""
 
 import sys
 from importlib.metadata import PackageNotFoundError
@@ -23,11 +23,11 @@ from pathlib import Path
 # ``src`` to the path as a fallback so autodoc resolves imports either way.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-project = "genro-sql"
+project = "Asqueel"
 copyright = "2025-2026, Softwell S.r.l."
 author = "Genropy Team"
 try:
-    release = _pkg_version("genro-sql")
+    release = _pkg_version("asqueel")
 except PackageNotFoundError:
     release = "0.0.0.dev0"
 version = release
@@ -56,6 +56,15 @@ myst_enable_extensions = ["colon_fence"]
 myst_fence_as_directive = ["mermaid"]
 
 html_theme = "sphinx_rtd_theme"
+html_title = "Asqueel — Developer documentation"
+html_theme_options = {"logo_only": True}
+html_context = {
+    "display_github": True,
+    "github_user": "asqueel-org",
+    "github_repo": "asqueel",
+    "github_version": "main",
+    "conf_py_path": "/docs/",
+}
 html_logo = "../assets/asqueel/svg/asqueel-wordmark-inverse.svg"
 html_favicon = "../assets/asqueel/icons/favicon.ico"
 html_static_path = ["_static"]
@@ -90,11 +99,11 @@ mermaid_init_config = {
     "themeVariables": {
         "fontFamily": "Arial, sans-serif",
         "fontSize": "16px",
-        "primaryColor": "#FFF8E8",
-        "primaryTextColor": "#24262B",
-        "primaryBorderColor": "#AD7410",
-        "lineColor": "#526174",
-        "secondaryColor": "#EDF1F5",
+        "primaryColor": "#F5EBDD",
+        "primaryTextColor": "#2C2223",
+        "primaryBorderColor": "#79323D",
+        "lineColor": "#79323D",
+        "secondaryColor": "#F5EBDD",
         "tertiaryColor": "#FFFFFF",
     },
     "flowchart": {"nodeSpacing": 24, "rankSpacing": 28, "useMaxWidth": False},

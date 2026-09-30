@@ -96,7 +96,7 @@ il nome renderer_sql come prova di generazione SQL completa.
 
 ## F-G03 — Nomi degli indici e ordinamento DESC hanno difetti riprodotti
 
-**Evidenza:** PRE/DIS, S05, [issue #8](https://github.com/genropy/genro-sqlmigration/issues/8):
+**Evidenza:** PRE/DIS, S05, [issue #8](https://github.com/asqueel-org/asqueel-migration/issues/8):
 nome fisico esplicito perso a favore del nome generato; lettura PostgreSQL DESC
 con indicizzazione errata di indoption nel caso riprodotto.
 **Conseguenza:** round-trip e diff degli indici non certificati per quei casi.
@@ -104,7 +104,7 @@ con indicizzazione errata di indoption nel caso riprodotto.
 
 ## F-G04 — Quoting degli identificatori non è completo
 
-**Evidenza:** PRE/DIS, S05, [issue #9](https://github.com/genropy/genro-sqlmigration/issues/9):
+**Evidenza:** PRE/DIS, S05, [issue #9](https://github.com/asqueel-org/asqueel-migration/issues/9):
 quote_identifier assente e nomi di indice non gestiti uniformemente dai writer.
 **Conseguenza:** nomi riservati, caratteri speciali e quote richiedono un contratto
 centrale; prefissi e nomi importati rendono il caso parte del progetto, non marginale.

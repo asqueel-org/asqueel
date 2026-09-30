@@ -7,7 +7,7 @@ proposta da concordare prima di introdurre differenze di comportamento.
 
 ## Traguardo
 
-Un Genro SQL sincrono per nuove applicazioni, centrato su `db`, ottenuto dal
+Un Asqueel sincrono per nuove applicazioni, centrato su `db`, ottenuto dal
 rendering della configurazione dichiarativa con grammatiche in cascata.
 L'esperienza quotidiana deve conservare il meglio del legacy:
 

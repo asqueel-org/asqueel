@@ -1,12 +1,12 @@
 # For Peewee users
 
 Peewee uses Model classes, fields and query objects; queries can return model
-instances or projected dictionaries/tuples. Genro SQL's usual entry point is a
+instances or projected dictionaries/tuples. Asqueel's usual entry point is a
 database object whose tables and metadata come from configuration. See the
 [Peewee model guide](https://docs.peewee-orm.com/en/latest/peewee/models.html)
 and [query guide](https://docs.peewee-orm.com/en/latest/peewee/querying.html).
 
-| Familiar idea | Genro SQL expression |
+| Familiar idea | Asqueel expression |
 |---|---|
 | A model class representing a table | `db.table('sales.customer')`. |
 | Model field expressions | `$name`, `$total`, and other model references in SQL. |

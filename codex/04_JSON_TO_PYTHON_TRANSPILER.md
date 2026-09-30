@@ -2,7 +2,7 @@
 
 ## 1. Obiettivo
 
-Partire dal JSON normalizzato prodotto dai reader di `genro-sqlmigration` e
+Partire dal JSON normalizzato prodotto dai reader di `asqueel-migration` e
 generare una recipe Python `SqlBuilder` semanticamente equivalente alla
 struttura fisica del database.
 
@@ -10,7 +10,7 @@ Pipeline:
 
 ```text
 database reale
-    ↓ reader genro-sqlmigration
+    ↓ reader asqueel-migration
 normalized JSON
     ↓ SqlModelReader
 source tree SqlBuilder
@@ -57,7 +57,7 @@ normalized = StructureValidator().validate(reader.get_json_struct(...))
 ```
 
 Non legare il transpiler alle righe grezze dei cataloghi PostgreSQL. I reader di
-`genro-sqlmigration` sono già il livello responsabile delle differenze fra
+`asqueel-migration` sono già il livello responsabile delle differenze fra
 dialetti.
 
 ## 4. Mapping verso il source tree
@@ -145,7 +145,7 @@ Due passaggi consigliati:
 Output minimo:
 
 ```python
-from genro_sql import SqlBuilder
+from asqueel import SqlBuilder
 
 
 class ImportedDatabase(SqlBuilder):

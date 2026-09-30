@@ -30,7 +30,7 @@ scelta definitiva di classi, ereditarietà o protocollo.
 - `gnr/sql/gnrsql/connections.py`, `transactions.py`: percorsi di connessioni,
   commit, code deferred, eventi pendenti e rollback già letti nel riesame.
 - `gnr/sql/gnrsql/write.py:294`: dipendenza dai permessi dell'app nel delete.
-- Nuovo `src/genro_sql/application.py`: responsabilità attuali di SqlDatabase.
+- Nuovo `src/asqueel/application.py`: responsabilità attuali di SqlDatabase.
 
 I provider chiamati da questi metodi, la gestione completa degli store,
 le risorse di tabella e tutti i consumer esterni richiedono ancora approfondimento.

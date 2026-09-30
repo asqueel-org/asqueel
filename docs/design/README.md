@@ -1,4 +1,4 @@
-# Genro SQL moderno — dossier di analisi e progettazione
+# Asqueel moderno — dossier di analisi e progettazione
 
 Stesura: 29 settembre 2026. Il dossier separa osservazioni sul software,
 requisiti acquisiti e proposte. Non avvia un'implementazione né una migrazione.
@@ -81,7 +81,7 @@ passaggio successivo, con compiler, dialetto e driver separati.
   requisiti puntuali di sintassi, modello, parametri e risultati.
 - [Corpus di conformità](../compiler/compatibility-cases.md): casi da implementare,
   dataset e risultati di riferimento; comprende anche contratti nativi nuovi.
-- [Proposta architetturale estesa](../genro-sql-target-architecture.md): esempi,
+- [Proposta architetturale estesa](../asqueel-target-architecture.md): esempi,
   alternative di sintassi, motivazioni e prospettiva degli oggetti nativi.
 - [Analisi del legacy e delle conversazioni](../legacy-sql-compiler-analysis.md):
   ricostruzione storica delle intenzioni e dei diversi compiler.

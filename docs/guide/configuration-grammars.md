@@ -24,8 +24,8 @@ does not include every option of the standard column grammar.
 
 ```python
 from genro_builders.builder import element
-from genro_sql import SqlDatabaseConfig, build_database
-from genro_sql.elements import ColumnElements, SchemaElements, TableElements
+from asqueel import SqlDatabaseConfig, build_database
+from asqueel.elements import ColumnElements, SchemaElements, TableElements
 
 
 class AppColumns(TableElements, ColumnElements):

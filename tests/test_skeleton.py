@@ -1,7 +1,7 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 """Skeleton smoke tests: the package imports and the dialect mounts."""
 
-from genro_sql import SqlBuilder, SqlRenderer
+from asqueel import SqlBuilder, SqlRenderer
 
 
 class _EmptyModel(SqlBuilder):

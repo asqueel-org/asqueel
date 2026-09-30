@@ -10,6 +10,6 @@ mypy>=1.0
 build
 hatchling
 editables
-# Published stable migrator; old Git-only baseline remains in historical reports.
-genro-sqlmigration[postgresql,validation]==0.1.0
+# Bootstrap the renamed migrator until its first PyPI release; pin its reviewed commit.
+asqueel-migration[postgresql,validation] @ git+https://github.com/asqueel-org/asqueel-migration.git@ff2865e78b84a5a8bdc678fcfb818f6fdeca4147
 psycopg[binary]>=3.3.6

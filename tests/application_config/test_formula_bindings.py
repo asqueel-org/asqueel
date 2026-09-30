@@ -1,6 +1,6 @@
 import pytest
 
-from genro_sql import SqlDatabaseConfig, UnsupportedFeatureError, build_database
+from asqueel import SqlDatabaseConfig, UnsupportedFeatureError, build_database
 
 
 def recipe(local=None):

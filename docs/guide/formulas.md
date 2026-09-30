@@ -26,7 +26,7 @@ then expands the correlation and visibility rules you need for larger formulas.
 ## Declare scalar and EXISTS formulas
 
 ```python
-from genro_sql import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, build_database
 
 
 class Accounting(SqlDatabaseConfig):

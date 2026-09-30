@@ -84,7 +84,7 @@ for naming fidelity, projection limits and command preparation.
 
 ## Prepare a useful bug report
 
-Include the installed Genro SQL version, Python/PostgreSQL versions, a minimal
+Include the installed Asqueel version, Python/PostgreSQL versions, a minimal
 recipe, the API call and full exception, plus relevant generated SQL and sanitized
 parameters. State whether the issue occurs without execution. Describe the
 expected rows and the actual result, including NULL and empty-collection cases.

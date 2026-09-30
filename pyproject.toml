@@ -6,7 +6,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "genro-sql"
+name = "asqueel"
 version = "0.1.0"
 description = "SQL model, PostgreSQL compiler and synchronous runtime"
 readme = "README.md"
@@ -52,10 +52,10 @@ postgresql = [
     "psycopg[binary]>=3.3.6",
 ]
 migration = [
-    "genro-sqlmigration>=0.1.0",
+    "asqueel-migration>=0.1.0",
 ]
 dev = [
-    "genro-sqlmigration[postgresql,validation]>=0.1.0",
+    "asqueel-migration[postgresql,validation]>=0.1.0",
     "psycopg[binary]>=3.3.6",
     "pytest>=8.4",
     "pytest-cov>=4.0",
@@ -64,19 +64,25 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/genropy/genro-sql"
-Repository = "https://github.com/genropy/genro-sql"
-Issues = "https://github.com/genropy/genro-sql/issues"
+Documentation = "https://github.com/asqueel-org/asqueel/tree/main/docs"
+Homepage = "https://github.com/asqueel-org/asqueel"
+Repository = "https://github.com/asqueel-org/asqueel"
+Issues = "https://github.com/asqueel-org/asqueel/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/genro_sql"]
+packages = ["src/asqueel"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"docs/grammar.md" = "genro_sql/grammar.md"
+"docs/grammar.md" = "asqueel/grammar.md"
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/scripts", "/docs", "/assets", "/requirements",
+           "/README.md", "/LICENSE", "/NOTICE", "/pyproject.toml", "/.readthedocs.yaml"]
+exclude = ["/docs/_build"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --cov=genro_sql --cov-report=term-missing"
+addopts = "-v --cov=asqueel --cov-report=term-missing"
 markers = [
     "postgresql: integration test requiring a reachable PostgreSQL server",
 ]
@@ -110,5 +116,5 @@ python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
-files = ["src/genro_sql"]
+files = ["src/asqueel"]
 exclude = "/examples/"

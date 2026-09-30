@@ -3,11 +3,11 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql.compiler import PostgresCompiler, QueryCompiler
-from genro_sql.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
-from genro_sql.dialects.postgres import PostgresDialect
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.query_plan import TableRef
+from asqueel.compiler import PostgresCompiler, QueryCompiler
+from asqueel.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.query_plan import TableRef
 
 
 @pytest.fixture

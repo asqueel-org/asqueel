@@ -2,7 +2,7 @@
 """SQL model grammar — explicit structural collections.
 
 Four grammar mixins, one per containment level, composed into
-:class:`~genro_sql.builder.SqlBuilder`:
+:class:`~asqueel.builder.SqlBuilder`:
 
 - :class:`DbElements` — ``db``, ``extension``
 - :class:`SchemaElements` — ``schema``
@@ -21,7 +21,7 @@ Hierarchy::
     │   └── indexes → index
     └── extensions → extension
 
-Two planes. The **physical** plane projects into the genro-sqlmigration
+Two planes. The **physical** plane projects into the asqueel-migration
 JSON (``structure-1.0``): ``db``/``schema``/``table``, physical ``column``
 attributes, ``foreign_key`` relations, ``constraint``, ``index``. The
 **semantic** plane (``name_*``, ``group``, ``caption_field``, …) travels as
@@ -52,7 +52,7 @@ from typing import Literal
 from genro_builders.builder import element
 
 #: Genro normalized type codes. Mirrors
-#: ``genro_sqlmigration.structures.DTYPE_CODES`` — declared locally because
+#: ``asqueel_migration.structures.DTYPE_CODES`` — declared locally because
 #: the grammar must not import the migration package (the dependency is
 #: one-way). The renderer's golden test asserts the two stay in step.
 DTYPE = Literal[

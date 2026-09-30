@@ -1,8 +1,8 @@
-Genro SQL
+Asqueel
 =========
 
 .. image:: ../assets/asqueel/svg/asqueel-wordmark-primary.svg
-   :alt: Asqueel — Genro SQL
+   :alt: Asqueel
    :width: 360px
 
 Build a database model from configuration, render it into live Python objects,
@@ -24,7 +24,7 @@ and open decisions are collected in :doc:`guide/limitations`.
 Choose your starting point
 --------------------------
 
-* **New to Genro SQL?** Read :doc:`guide/overview` and :doc:`guide/concepts`, then run the
+* **New to Asqueel?** Read :doc:`guide/overview` and :doc:`guide/concepts`, then run the
   :doc:`guide/quickstart` and the step-by-step :doc:`guide/tutorial`.
 * **Building an application?** Start with :doc:`guide/configuration` and
   :doc:`guide/models`, then use :doc:`guide/queries` and :doc:`guide/writes`.

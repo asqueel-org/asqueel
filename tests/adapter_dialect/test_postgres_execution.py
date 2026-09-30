@@ -3,9 +3,9 @@ import uuid
 
 import pytest
 
-from genro_sql.dialects.postgres import PostgresDialect
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.query_plan import Assignment, QueryPlan, TableRef, concat
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.query_plan import Assignment, QueryPlan, TableRef, concat
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql

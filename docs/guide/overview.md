@@ -1,8 +1,8 @@
-# What is Genro SQL?
+# What is Asqueel?
 
-Genro SQL is a Python database layer for building applications around a shared,
+Asqueel is a Python database layer for building applications around a shared,
 declarative data model. The model describes tables, columns, relationships,
-computed values and the metadata that application interfaces need. Genro SQL
+computed values and the metadata that application interfaces need. Asqueel
 turns that configuration into live database objects and compiles operations on
 those objects into SQL.
 
@@ -39,7 +39,7 @@ These definitions can be reused in filters, projections and ordering. A UI
 consumer can inspect the same column metadata used by the data layer; it does
 not need to maintain an unrelated description of the field.
 
-Genro SQL supplies this information to applications. Rendering a form and
+Asqueel supplies this information to applications. Rendering a form and
 choosing its widgets belong to the application or UI framework.
 
 ## Configuration becomes an object graph
@@ -68,7 +68,7 @@ requiring every query to adopt those physical names.
 
 ## SQL remains part of the language
 
-Genro SQL combines SQL expressions with model references:
+Asqueel combines SQL expressions with model references:
 
 | Form | Meaning |
 |---|---|
@@ -135,7 +135,7 @@ with application meaning. Legacy package declarations provide another source
 of model information through the compatibility integration.
 
 Rendering a model does not apply DDL. Schema changes are planned and applied
-through the separate `genro-sqlmigration` integration. The structural model
+through the separate `asqueel-migration` integration. The structural model
 includes the distinction between tables, native views, database functions,
 native triggers and physical partitions. Python hooks and native SQL triggers
 have different execution boundaries and can coexist.
@@ -149,23 +149,23 @@ The useful comparison is where each library places its main abstraction.
 This table describes their usual entry points, not exclusive capabilities or
 performance rankings.
 
-| Library | Usual entry point | What to translate when learning Genro SQL |
+| Library | Usual entry point | What to translate when learning Asqueel |
 |---|---|---|
-| Genro SQL | A configured `db` and its live table/model graph. | Query model paths, keep shared metadata in configuration, and write records explicitly. |
+| Asqueel | A configured `db` and its live table/model graph. | Query model paths, keep shared metadata in configuration, and write records explicitly. |
 | SQLAlchemy ORM | Mapped Python classes and a Session tracking object state. | Move from tracked row objects to table operations; keep transaction ownership explicit. |
 | Django ORM | Model classes, managers and QuerySets integrated with Django. | Move field declarations into model configuration and distinguish the standalone DB from app services. |
 | Peewee | Model classes, fields and query objects. | Use the database's table graph and model paths in place of class-based query expressions. |
 
 SQLAlchemy also provides Core, which can be used without ORM object tracking;
 Django and Peewee can return projected values rather than model instances.
-There is overlap in capability. Genro SQL's particular emphasis is the shared,
+There is overlap in capability. Asqueel's particular emphasis is the shared,
 extensible application model and its query language. See the official
 [SQLAlchemy overview](https://www.sqlalchemy.org/features.html),
 [Django model guide](https://docs.djangoproject.com/en/5.2/topics/db/models/)
 and [Peewee query guide](https://docs.peewee-orm.com/en/latest/peewee/querying.html)
 for those libraries' own descriptions.
 
-Genro SQL is a natural fit when packages contribute to a model, related values
+Asqueel is a natural fit when packages contribute to a model, related values
 and calculations should be reusable as columns, and data and UI consumers need
 shared metadata. A project built around tracked Python entity graphs, Django's
 application stack or a small class-based mapper may prefer those corresponding

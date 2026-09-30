@@ -21,7 +21,7 @@ colorama==0.4.6 ; os_name == 'nt' or sys_platform == 'win32'
 coverage==7.16.2
     # via pytest-cov
 dictdiffer==0.10.0
-    # via genro-sqlmigration
+    # via asqueel-migration
 editables==0.6
     # via -r requirements/core.in
 genro-bag==0.27.0
@@ -30,7 +30,7 @@ genro-bag==0.27.0
     #   genro-builders
 genro-builders==0.27.0
     # via -r requirements/core.in
-genro-sqlmigration==0.1.0
+asqueel-migration @ git+https://github.com/asqueel-org/asqueel-migration.git@ff2865e78b84a5a8bdc678fcfb818f6fdeca4147
     # via -r requirements/core.in
 genro-toolbox==0.14.0
     # via
@@ -57,7 +57,7 @@ idna==3.20
 iniconfig==2.3.0
     # via pytest
 jsonschema==4.26.0
-    # via genro-sqlmigration
+    # via asqueel-migration
 jsonschema-specifications==2025.9.1
     # via jsonschema
 librt==0.16.0 ; platform_python_implementation != 'PyPy'
@@ -83,7 +83,7 @@ pluggy==1.6.0
 psycopg==3.3.6
     # via
     #   -r requirements/core.in
-    #   genro-sqlmigration
+    #   asqueel-migration
 psycopg-binary==3.3.6 ; implementation_name != 'pypy'
     # via psycopg
 pygments==2.21.0

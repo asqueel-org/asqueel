@@ -8,47 +8,47 @@ to a database.
 Application configuration and objects
 -------------------------------------
 
-.. automodule:: genro_sql.configuration
+.. automodule:: asqueel.configuration
    :members: SqlDatabaseConfig, ConfigurationView, build_database
 
-.. automodule:: genro_sql.application
+.. automodule:: asqueel.application
    :members: SqlDatabase
 
-.. automodule:: genro_sql.application_table
+.. automodule:: asqueel.application_table
    :members: SqlTable, SqlColumn, SqlRelation, SqlQuery, SqlRecord, RecordNotFoundError, RecordMultipleRowsError
 
 Compiler
 --------
 
-.. automodule:: genro_sql.compiler
+.. automodule:: asqueel.compiler
    :members: QueryCompiler, PostgresCompiler
 
 Synchronous runtime
 -------------------
 
-.. automodule:: genro_sql.runtime
+.. automodule:: asqueel.runtime
    :members: Database, PostgresDatabase, Transaction, DatabaseClosedError, TransactionStateError
 
 Environment
 -----------
 
-.. automodule:: genro_sql.environment
+.. automodule:: asqueel.environment
    :members: SqlEnvironment
 
 Model and query contracts
 -------------------------
 
-.. automodule:: genro_sql.model
+.. automodule:: asqueel.model
    :members: resolve_model
 
-.. automodule:: genro_sql.contracts
+.. automodule:: asqueel.contracts
    :members: Column, Relation, Table, ResolvedModel, PartitionScope, RowPolicies, CompiledQuery, QueryResult, ResultColumn, EnvironmentMismatchError
 
 Database inspection
 -------------------
 
-.. automodule:: genro_sql.importers
+.. automodule:: asqueel.importers
    :members: inspect_postgres, ImportResult
 
-.. automodule:: genro_sql.projection
+.. automodule:: asqueel.projection
    :members: to_physical_builder

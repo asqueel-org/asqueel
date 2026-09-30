@@ -1,8 +1,8 @@
 from genro_builders.builder import element
 import pytest
 
-from genro_sql.configuration import ConfigurationView, SqlDatabaseConfig, build_database
-from genro_sql.elements import ColumnElements, SchemaElements, TableElements
+from asqueel.configuration import ConfigurationView, SqlDatabaseConfig, build_database
+from asqueel.elements import ColumnElements, SchemaElements, TableElements
 
 
 class Recipe(SqlDatabaseConfig):

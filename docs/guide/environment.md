@@ -29,7 +29,7 @@ mutable mapping; `current_env` returns a detached snapshot.
 For defaults, supply an environment when building your database:
 
 ```python
-from genro_sql import SqlEnvironment, build_database
+from asqueel import SqlEnvironment, build_database
 
 # Shop is the application recipe from the tutorial.
 with build_database(Shop, environment=SqlEnvironment({"language": "en"})) as configured_db:
@@ -101,7 +101,7 @@ context-local scopes, useful when constructing compiler/executor components
 independently:
 
 ```python
-from genro_sql import SqlEnvironment
+from asqueel import SqlEnvironment
 
 source = [10, 20]
 environment = SqlEnvironment({"allowed_organizations": source})
@@ -118,7 +118,7 @@ use them synchronously on the database's constructing thread.
 ## Distinguish a lazy query from a compiled statement
 
 ```python
-from genro_sql import EnvironmentMismatchError
+from asqueel import EnvironmentMismatchError
 
 query = db.table("sales.customer").query(
     columns="$id, $name", where="$id=:env_customer_id",
@@ -146,7 +146,7 @@ presence permits reuse. Explicit parameter values do not by themselves create
 environment dependencies.
 
 `ignore_partition=True` removes partition dependencies but does not remove any
-other `:env_*` dependency. Direct psycopg execution does not perform Genro SQL's
+other `:env_*` dependency. Direct psycopg execution does not perform Asqueel's
 environment checks.
 
 ## Combine context scopes with one transaction
@@ -173,7 +173,7 @@ When constructing a compiler and low-level executor yourself, supply the same
 instance to both:
 
 ```python
-from genro_sql import PostgresCompiler, PostgresDatabase, SqlEnvironment
+from asqueel import PostgresCompiler, PostgresDatabase, SqlEnvironment
 
 # model is a resolved model; no database connection is needed for compilation.
 environment = SqlEnvironment()

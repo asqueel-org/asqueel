@@ -2,7 +2,7 @@
 """SqlBuilder — SQL model dialect for genro-builders.
 
 Grammar only: the vocabulary lives in the four mixins of
-:mod:`genro_sql.elements`, rendering in :class:`SqlRenderer` exposed
+:mod:`asqueel.elements`, rendering in :class:`SqlRenderer` exposed
 via the ``renderer_sql`` property.
 """
 
@@ -114,7 +114,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements,
         """Run the domain validation on this model and return it.
 
         Convenience over ``SqlModelValidator().validate(self)``; raises
-        :class:`~genro_sql.validators.SqlModelValidationError`
+        :class:`~asqueel.validators.SqlModelValidationError`
         listing every violation.
         """
         return SqlModelValidator().validate(self)
@@ -128,6 +128,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements,
 
         Today ``SqlRenderer`` is a placeholder that renders nothing: DDL
         rendering is out of scope until its own slice lands. Database work
-        goes through :class:`~genro_sql.migration.SqlMigrationRenderer`.
+        goes through :class:`~asqueel.migration.SqlMigrationRenderer`.
         """
         return SqlRenderer(builder=self)

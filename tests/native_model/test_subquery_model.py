@@ -2,9 +2,9 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql import SqlBuilder, resolve_model
-from genro_sql.contracts import UnsupportedFeatureError
-from genro_sql.validators import SqlModelValidationError
+from asqueel import SqlBuilder, resolve_model
+from asqueel.contracts import UnsupportedFeatureError
+from asqueel.validators import SqlModelValidationError
 
 
 def declaration(**attributes):

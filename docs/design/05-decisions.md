@@ -43,7 +43,7 @@ le priorità di consegna. Non impone inoltre il maiuscolo a ogni uso storico di
 
 ## Conoscenza e destinazione di ogni contratto legacy — 30 settembre 2026
 
-Requisito esplicito dell'utente: ogni singolo aspetto di Genro SQL legacy deve
+Requisito esplicito dell'utente: ogni singolo aspetto di Asqueel legacy deve
 essere conosciuto prima di decidere come trattarlo. Per ogni comportamento
 occorre indicare se viene implementato nel nucleo con la stessa semantica,
 implementato diversamente con adattamento di compatibilità, oppure delegato

@@ -35,7 +35,7 @@ jobs:
       - run: python -m pip check
       - run: python scripts/check_installed.py
       - run: ruff check src tests scripts
-      - run: mypy src/genro_sql
+      - run: mypy src/asqueel
   postgresql:
     runs-on: ubuntu-latest
     services:

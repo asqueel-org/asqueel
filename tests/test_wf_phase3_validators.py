@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from genro_sql import SqlBuilder
-from genro_sql.validators import SqlModelValidationError, SqlModelValidator
+from asqueel import SqlBuilder
+from asqueel.validators import SqlModelValidationError, SqlModelValidator
 
 
 def _build(main_fn):

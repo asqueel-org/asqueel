@@ -1,4 +1,4 @@
-# Genro SQL moderno: obiettivi e proposta architetturale
+# Asqueel moderno: obiettivi e proposta architetturale
 
 29 settembre 2026. Documento di indirizzo, non descrizione di funzionalità
 già implementate. Gli obiettivi della sezione 1 sono indicazioni dell'utente;
@@ -11,7 +11,7 @@ questo documento conserva il dettaglio delle proposte architetturali.
 
 ## 1. Obiettivi acquisiti
 
-1. Costruire un Genro SQL moderno che conservi i punti migliori del legacy.
+1. Costruire un Asqueel moderno che conservi i punti migliori del legacy.
 2. PostgreSQL è il database principale, in lettura e scrittura. Gli altri
    dialetti possono avere copertura inferiore, purché esplicita.
 3. Ricostruire il modello sia da database esistenti sia da package/applicazioni
@@ -28,7 +28,7 @@ questo documento conserva il dettaglio delle proposte architetturali.
 8. Includere nel modello obiettivo le `virtualRelation` della nuova proposta
    GEP, secondo il contratto della discussione di settembre e i punti aperti dichiarati.
 9. Prevedere, in prospettiva, view, trigger e funzioni native del database,
-   accanto a hook e funzioni Python. Il contratto di genro-sqlmigration deve
+   accanto a hook e funzioni Python. Il contratto di asqueel-migration deve
    evolvere per gestirli; non sono richiesti nella prima implementazione.
 10. Modellare esplicitamente subtable e partition del legacy, distinguendole
     da view, virtualRelation, tenant/store e partizionamento fisico del database.
@@ -339,7 +339,7 @@ Convivenza con gli hook Python:
 
 [Comportamento dei trigger PostgreSQL](https://www.postgresql.org/docs/18/trigger-definition.html).
 
-Per genro-sqlmigration propongo un'estensione versionata del contratto che
+Per asqueel-migration propongo un'estensione versionata del contratto che
 comprenda reader, strutture normalizzate, validazione, diff, piano e writer.
 Requisiti: creazione/modifica/rimozione, identità delle funzioni per firma,
 dipendenze fra funzioni/view/tabelle/trigger e ordinamento delle operazioni.

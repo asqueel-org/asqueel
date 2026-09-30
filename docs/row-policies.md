@@ -29,7 +29,7 @@ obbligatoria nella dichiarazione, `allowed` è opzionale. La loro presenza nel
 contesto è distinta dal valore. Le policy non ereditano dallo schema.
 
 ```python
-from genro_sql import SqlEnvironment, PostgresCompiler, PostgresDatabase
+from asqueel import SqlEnvironment, PostgresCompiler, PostgresDatabase
 
 environment = SqlEnvironment()
 compiler = PostgresCompiler(model, environment=environment)

@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import pytest
 
-from genro_sqlmigration import JsonStructureProducer, StructureValidator
+from asqueel_migration import JsonStructureProducer, StructureValidator
 
-from genro_sql import (
+from asqueel import (
     SqlBuilder,
     SqlMigrationRenderer,
     SqlModelReader,
     SqlPythonEmitter,
 )
-from genro_sql.grammar_doc import generate_grammar_md
-from genro_sql.validators import SqlModelValidationError
+from asqueel.grammar_doc import generate_grammar_md
+from asqueel.validators import SqlModelValidationError
 
 
 class _Model(SqlBuilder):

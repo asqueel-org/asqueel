@@ -61,7 +61,7 @@ Prima di classificare le regressioni note, la suite completa dava 119 passati
 e 2 falliti; i tre nuovi casi di regressione portano i passati a 122.
 I fallimenti sono nel migratore pubblico, non sono stati corretti qui:
 
-1. nome fisico dell'indice e introspezione DESC (`genro-sqlmigration#8`);
+1. nome fisico dell'indice e introspezione DESC (`asqueel-migration#8`);
 2. quoting degli identificatori: manca `writer.quote_identifier`.
 
 I test originali continuano a eseguire le proprie asserzioni. Sono xfail strict

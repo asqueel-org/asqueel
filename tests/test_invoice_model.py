@@ -1,8 +1,8 @@
 """Readable acceptance checks for the modular invoicing model."""
 
-from genro_sqlmigration.structures import json_equal
+from asqueel_migration.structures import json_equal
 
-from genro_sql import SqlMigrationRenderer, SqlPythonEmitter
+from asqueel import SqlMigrationRenderer, SqlPythonEmitter
 
 from tests.invc_model.schema import InvoiceModel
 

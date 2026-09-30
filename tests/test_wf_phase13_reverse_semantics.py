@@ -6,11 +6,11 @@ from copy import deepcopy
 
 import pytest
 
-from genro_sqlmigration import JsonStructureProducer
-from genro_sqlmigration.structures import json_equal
+from asqueel_migration import JsonStructureProducer
+from asqueel_migration.structures import json_equal
 
-from genro_sql import SqlMigrationRenderer, SqlModelReader
-from genro_sql.reader import SqlModelReadError
+from asqueel import SqlMigrationRenderer, SqlModelReader
+from asqueel.reader import SqlModelReadError
 
 
 def _normalized(tables):

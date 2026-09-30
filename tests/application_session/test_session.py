@@ -3,11 +3,11 @@ import threading
 
 import pytest
 
-from genro_sql.contracts import CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.environment import SqlEnvironment
-from genro_sql.runtime import DatabaseClosedError, TransactionStateError
-from genro_sql.session import Session
+from asqueel.contracts import CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.environment import SqlEnvironment
+from asqueel.runtime import DatabaseClosedError, TransactionStateError
+from asqueel.session import Session
 
 
 class Driver:

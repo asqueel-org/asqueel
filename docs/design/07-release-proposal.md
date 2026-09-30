@@ -33,7 +33,7 @@ e scritture coerenti con i contratti legacy selezionati. Il livello oggetti non
 è rinviato alla V2; le tabelle sotto conservano la proposta storica e vanno lette
 con questa correzione e i gate applicativi del documento 09.
 
-## V1 — Genro SQL autonomo, utilizzabile su PostgreSQL
+## V1 — Asqueel autonomo, utilizzabile su PostgreSQL
 
 **Risultato:** dichiarare o importare un modello semplice, interrogare e
 modificare i dati con il nuovo nucleo, mantenendo nomi e metadati coerenti.
@@ -137,7 +137,7 @@ Prima delle modifiche si assegnano file/moduli in proprietà esclusiva; gli
 agent non riscrivono contemporaneamente builder, catalogo o API pubbliche.
 Le modifiche ai contratti comuni passano dall'integratore. I test d'integrazione
 non usano scritture concorrenti sullo stesso schema PostgreSQL. Le correzioni in
-sqlmigration hanno checkout e verifiche distinti da genro-sql.
+sqlmigration hanno checkout e verifiche distinti da asqueel.
 
 ## Indirizzo acquisito e prossimo passaggio
 

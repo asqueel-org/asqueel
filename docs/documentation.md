@@ -3,7 +3,7 @@
 La configurazione deriva da `kajenn/kajenn`: Sphinx, tema Read the Docs,
 MyST per Markdown, autodoc, Napoleon, type hints, intersphinx e Mermaid.
 Il CSS di leggibilità è condiviso con quell'impostazione; identità e indice
-sono specifici di genro-sql.
+sono specifici di asqueel.
 
 ## Build locale
 
@@ -40,6 +40,6 @@ alla verifica sintattica dei frammenti Python delle guide. Usano schemi temporan
 GNR_TEST_PG_PORT=5432 python -m pytest tests/documentation tests/test_wf_phase8_doc.py
 ```
 
-In alternativa impostare `GENRO_SQL_TEST_DSN` per il database di test. Le nuove
+In alternativa impostare `ASQUEEL_TEST_DSN` per il database di test. Le nuove
 pagine pubbliche vanno in `docs/guide/` e nel toctree di `index.rst`; mantenere le
 note interne fuori dall'indice pubblico. Le guide utente restano in inglese.

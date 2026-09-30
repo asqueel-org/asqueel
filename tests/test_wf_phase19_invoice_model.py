@@ -5,11 +5,11 @@ from importlib import import_module
 from pathlib import Path
 
 import pytest
-from genro_sqlmigration import SqlMigrator
-from genro_sqlmigration.structures import json_equal
+from asqueel_migration import SqlMigrator
+from asqueel_migration.structures import json_equal
 
-import genro_sql
-from genro_sql import (
+import asqueel
+from asqueel import (
     SqlBuilder,
     SqlMigrationRenderer,
     SqlModelReader,
@@ -36,17 +36,17 @@ def _exec(source):
 
 def test_only_the_canonical_top_level_dialect_remains():
     # wf:contract: SqlBuilder, SqlMigrationRenderer, SqlModelReader and
-    # wf:contract: SqlPythonEmitter import from genro_sql; LegacySqlBuilder and
-    # wf:contract: executable genro_sql.legacy/genro_sql.modern packages do not.
+    # wf:contract: SqlPythonEmitter import from asqueel; LegacySqlBuilder and
+    # wf:contract: executable asqueel.legacy/asqueel.modern packages do not.
     assert all((SqlBuilder, SqlMigrationRenderer, SqlModelReader, SqlPythonEmitter))
-    assert not hasattr(genro_sql, "LegacySqlBuilder")
-    package = Path(genro_sql.__file__).resolve().parent
+    assert not hasattr(asqueel, "LegacySqlBuilder")
+    package = Path(asqueel.__file__).resolve().parent
     assert not (package / "legacy").exists()
     assert not (package / "modern").exists()
     with pytest.raises(ModuleNotFoundError):
-        import_module("genro_sql.legacy")
+        import_module("asqueel.legacy")
     with pytest.raises(ModuleNotFoundError):
-        import_module("genro_sql.modern")
+        import_module("asqueel.modern")
 
 
 def test_modular_invoice_model_closes_the_complete_pipeline():

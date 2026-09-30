@@ -1,8 +1,8 @@
 import pytest
 
-from genro_sql import SqlBuilder, resolve_model
-from genro_sql.contracts import Column, Table
-from genro_sql.model import _unique_target
+from asqueel import SqlBuilder, resolve_model
+from asqueel.contracts import Column, Table
+from asqueel.model import _unique_target
 
 
 def recipe():
@@ -114,7 +114,7 @@ def test_alias_is_excluded_from_physical_name_collision_check():
 
 
 def test_manual_alias_normalization_keeps_ui_and_rejects_ambiguous_kind():
-    from genro_sql.model import _resolve_aliases
+    from asqueel.model import _resolve_aliases
     table = Table('t', columns={
         'id': Column('id', dtype='I', ui={'label': 'Id', 'width': 10}),
         'alias': Column('alias', relation_path='id', ui={'label': 'Alias'}),

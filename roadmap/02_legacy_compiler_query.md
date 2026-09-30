@@ -2,7 +2,7 @@
 
 **Version**: 0.2.0 · **Last Updated**: 2026-07-08 · **Status**: 🔴 DA REVISIONARE
 
-Part of the genro-sql design documentation set (see `00_INDEX.md`).
+Part of the asqueel design documentation set (see `00_INDEX.md`).
 Scope: exhaustive inventory of the legacy query language, compiler,
 query/selection/record surface — the future consumer of the new model
 tree. §7 (addendum 2026-07-08) adds sizes, consumers, the dialect

@@ -88,7 +88,7 @@ unbound child objects and bind their DB/parent in finalization, or to allocate
 an object context before the walk and resolve references afterward. In either
 case, relations may refer to later tables or form cycles: allocate/register
 objects before linking all relations. This recommendation is an inference from
-the renderer contract, not functionality already supplied by genro-sql.
+the renderer contract, not functionality already supplied by asqueel.
 
 ## B04 — The current SQL renderer is the wrong product boundary
 

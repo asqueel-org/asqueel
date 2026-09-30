@@ -3,10 +3,10 @@ from dataclasses import replace
 
 import pytest
 
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import Column, PartitionScope, Relation, ResolvedModel, RowPolicies
-from genro_sql.contracts import Table, UnsupportedFeatureError
-from genro_sql.environment import SqlEnvironment
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import Column, PartitionScope, Relation, ResolvedModel, RowPolicies
+from asqueel.contracts import Table, UnsupportedFeatureError
+from asqueel.environment import SqlEnvironment
 
 
 def spec(**options):
@@ -200,9 +200,9 @@ def test_this_relation_path_allocates_outer_join_not_inner_join(model):
 
 
 def test_driver_formats_only_final_statement(model):
-    from genro_sql.compiler import QueryCompiler
-    from genro_sql.dialects.postgres import PostgresDialect
-    from genro_sql.drivers.psycopg import PsycopgDriver
+    from asqueel.compiler import QueryCompiler
+    from asqueel.dialects.postgres import PostgresDialect
+    from asqueel.drivers.psycopg import PsycopgDriver
 
     class CountingFormatter(PsycopgDriver):
         calls = 0

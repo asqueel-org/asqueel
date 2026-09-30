@@ -1,12 +1,12 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 """Projection of a SQL model tree into the normalized migration JSON.
 
-The twin of :class:`genro_sqlmigration.JsonStructureProducer`: that one
+The twin of :class:`asqueel_migration.JsonStructureProducer`: that one
 reads the ergonomic human JSON, this one reads a built
-:class:`~genro_sql.builder.SqlBuilder` tree, and the two converge
+:class:`~asqueel.builder.SqlBuilder` tree, and the two converge
 on the same ``structure-1.0`` dict for the same physical model. The
 normalization rules are not reimplemented here — every entity is built
-by the ``genro_sqlmigration.structures`` factories, which own the
+by the ``asqueel_migration.structures`` factories, which own the
 structural hashes and the attribute cleaning.
 
 Only the physical plane travels. Virtual columns project nothing, a
@@ -29,8 +29,8 @@ from __future__ import annotations
 
 from typing import cast
 
-from genro_sqlmigration import StructureValidator
-from genro_sqlmigration.structures import (
+from asqueel_migration import StructureValidator
+from asqueel_migration.structures import (
     COL_JSON_KEYS,
     new_column_item,
     new_constraint_item,
@@ -55,7 +55,7 @@ class SqlMigrationRenderer:
     """Render a built SQL model as the normalized ``structure-1.0`` JSON.
 
     Args:
-        builder: a created :class:`~genro_sql.builder.SqlBuilder`.
+        builder: a created :class:`~asqueel.builder.SqlBuilder`.
     """
 
     def __init__(self, builder) -> None:
@@ -65,7 +65,7 @@ class SqlMigrationRenderer:
         """Project the model, a fresh structure each call.
 
         The model is domain-validated first and the result is passed
-        through :class:`genro_sqlmigration.StructureValidator` before it
+        through :class:`asqueel_migration.StructureValidator` before it
         is handed out, so nothing leaves this method that the migrator
         would refuse.
 

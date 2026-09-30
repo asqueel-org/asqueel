@@ -1,9 +1,9 @@
-"""Run with GENRO_SQL_TEST_DSN against a disposable PostgreSQL database."""
+"""Run with ASQUEEL_TEST_DSN against a disposable PostgreSQL database."""
 import uuid
 
 import pytest
 
-from genro_sql.importers import inspect_postgres
+from asqueel.importers import inspect_postgres
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -38,9 +38,9 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
         assert relation.columns == relation.target_columns == ('first', 'second')
         assert any('labels' in w and 'unmanaged' in w for w in result.warnings)
         assert inspect_postgres(connection, [schema], ui=overlay).model == result.model
-        from genro_sql.projection import to_physical_builder
-        from genro_sql import SqlMigrationRenderer
-        from genro_sql.contracts import UnsupportedFeatureError
+        from asqueel.projection import to_physical_builder
+        from asqueel import SqlMigrationRenderer
+        from asqueel.contracts import UnsupportedFeatureError
         assert result.model.warnings == result.warnings
         with pytest.raises(UnsupportedFeatureError, match='import warnings'):
             to_physical_builder(result.model, allow_constraint_rename=True)
@@ -57,8 +57,8 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
         assert any(i['attributes']['columns'].get('label') == 'DESC'
                    for i in tables['parent']['indexes'].values())
         assert parent.columns['first'].dtype == 'I'
-        from genro_sqlmigration import PgDatabase, SqlMigrator
-        from genro_sqlmigration.readers.pg_reader import PgReader
+        from asqueel_migration import PgDatabase, SqlMigrator
+        from asqueel_migration.readers.pg_reader import PgReader
         database = PgDatabase(connection.info.get_parameters(), application_schemas=[schema])
         reader = PgReader()
         reader._conn = connection
@@ -85,8 +85,8 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
 def test_unsupported_catalog_semantics_cannot_become_a_partial_migration(ddl, error):
     import psycopg
     from psycopg import sql
-    from genro_sql.projection import to_physical_builder
-    from genro_sql.contracts import UnsupportedFeatureError
+    from asqueel.projection import to_physical_builder
+    from asqueel.contracts import UnsupportedFeatureError
     schema = 'v1_model_' + uuid.uuid4().hex[:12]
     with psycopg.connect(postgres_dsn()) as connection:
         connection.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
@@ -100,8 +100,8 @@ def test_unsupported_catalog_semantics_cannot_become_a_partial_migration(ddl, er
 
 def test_missing_requested_schema_blocks_projection():
     import psycopg
-    from genro_sql.projection import to_physical_builder
-    from genro_sql.contracts import UnsupportedFeatureError
+    from asqueel.projection import to_physical_builder
+    from asqueel.contracts import UnsupportedFeatureError
     schema = 'v1_model_missing_' + uuid.uuid4().hex[:12]
     with psycopg.connect(postgres_dsn()) as connection:
         result = inspect_postgres(connection, [schema])

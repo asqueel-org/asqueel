@@ -20,7 +20,7 @@ prodotto; esecuzione sincrona confermata, store/tenant fuori da questo increment
 Baseline verificata il 29 settembre 2026:
 
 - Legacy locale: `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea`.
-- genro-sql: HEAD `b023a9bb25f3135ad1a10fb17a485eac27cf4237`; include
+- asqueel: HEAD `b023a9bb25f3135ad1a10fb17a485eac27cf4237`; include
   `for_update` e application handles. Questo incremento modifica solo documenti
   e sonde di audit, non il codice del prodotto.
 - GEP locali: documenti in stato **Discussion**, letti come proposte, senza
@@ -41,11 +41,11 @@ il riferimento anche dopo ulteriori modifiche.
 | LM | `/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/sql/gnrsqlmodel/table.py` |
 | LP | `/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/sql/adapters/gnrpostgres.py` |
 | LB | `/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py` |
-| NC | `src/genro_sql/compiler.py` |
-| NQ | `src/genro_sql/query_plan.py` |
-| ND | `src/genro_sql/dialects/postgres.py` |
-| NP | `src/genro_sql/drivers/psycopg.py` |
-| NA | `src/genro_sql/application_table.py` |
+| NC | `src/asqueel/compiler.py` |
+| NQ | `src/asqueel/query_plan.py` |
+| ND | `src/asqueel/dialects/postgres.py` |
+| NP | `src/asqueel/drivers/psycopg.py` |
+| NA | `src/asqueel/application_table.py` |
 | G1 | `/Users/gporcari/Sviluppo/Genropy/genropy_meta/gep/GEP-0001-relation-aggregates.md` |
 | G2 | `/Users/gporcari/Sviluppo/Genropy/genropy_meta/gep/GEP-0002-many-relations.md` |
 
@@ -91,7 +91,7 @@ pertinenti sono gli adapter, in particolare `LB:208` e `LP:147`.
 | C04 | Legacy `@customer.@country.name` | Rifiutato | `LC:273`, `LC:456`; `_PATH` in `NC:25` ammette un solo `@` iniziale. Nuova forma `@customer.country.name` funziona ma è una sintassi diversa. |
 | C05 | Chiave relazionale composta fisica | Supportato con limiti | `LC:586` circa usa composed_of; `NC:321` associa tuple di campi e verifica unicità target. Non implementa una compositeColumn virtuale legacy. |
 | C06 | To-many e inversa automatica | Rifiutato/assente | `LC:559` e `LC:663` marcano row explosion; `NC:327` rifiuta target non univoco. Nessun inferimento di inverse nel resolver del compiler. |
-| C07 | `aliasColumn(relation_path=...)` | Rifiutato nel modello; valore esprimibile diversamente | `LC:372` risolve relazione ricorsivamente. `NC:292` accetta formula stringa, quindi una formula `@customer.name` può esprimere il valore, ma non legge un attributo relation_path né attua quel protocollo del modello. `src/genro_sql/model.py:63` rifiuta aliasColumn in risoluzione (probe root confermato). |
+| C07 | `aliasColumn(relation_path=...)` | Rifiutato nel modello; valore esprimibile diversamente | `LC:372` risolve relazione ricorsivamente. `NC:292` accetta formula stringa, quindi una formula `@customer.name` può esprimere il valore, ma non legge un attributo relation_path né attua quel protocollo del modello. `src/asqueel/model.py:63` rifiuta aliasColumn in risoluzione (probe root confermato). |
 | C08 | Alias di tabella/relazione per percorsi | Assente | `LC:488` espande table_aliases; `NC:314` cerca esclusivamente table.relations. |
 | C09 | `cnd`, `join_on`, between, case_insensitive | Assente | Rami `LC:604`; nuovo ON solo uguaglianze fra chiavi fisiche `NC:330`. Attributi descrittivi non diventano condizioni. |
 | C10 | Query setJoinCondition/one_one/$tbl | Rifiutato/assente | `LQ:194`, `LC:670`; `NA:33` rifiuta joinConditions/sqlContextName e non offre il metodo. |
@@ -281,8 +281,8 @@ Questo snippet non apre connessioni e distingue i due spelling sullo stesso
 modello, eliminando differenze di schema come possibile causa:
 
 ```python
-from genro_sql.compiler import PostgresCompiler
-from genro_sql.contracts import Column, Relation, ResolvedModel, Table
+from asqueel.compiler import PostgresCompiler
+from asqueel.contracts import Column, Relation, ResolvedModel, Table
 
 leaf = Table('leaf', schema='p', pkey=('id',), columns={'id': Column('id')})
 mid = Table('mid', schema='p', pkey=('id',), columns={'id': Column('id')},

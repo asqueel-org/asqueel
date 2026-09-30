@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import pytest
 
-from genro_sqlmigration import JsonStructureProducer, SqlMigrator
-from genro_sqlmigration.structures import json_equal
+from asqueel_migration import JsonStructureProducer, SqlMigrator
+from asqueel_migration.structures import json_equal
 
-from genro_sql import SqlMigrationRenderer, SqlModelReader, SqlPythonEmitter
+from asqueel import SqlMigrationRenderer, SqlModelReader, SqlPythonEmitter
 
 
 HUMAN_FIXTURE = {
@@ -88,7 +88,7 @@ def test_emitted_module_shape():
     source_code = SqlPythonEmitter(builder).emit(class_name="MyDb")
     assert source_code.startswith("# ") or source_code.startswith('"""') or \
         source_code.startswith("from ")
-    assert "from genro_sql import SqlBuilder" in source_code
+    assert "from asqueel import SqlBuilder" in source_code
     assert "class MyDb(SqlBuilder):" in source_code
     assert "def main(self, root):" in source_code
     # no structural hashes as names

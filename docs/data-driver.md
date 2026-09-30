@@ -16,8 +16,8 @@ preparazione del binding funzionano senza installare/importare psycopg; il
 pacchetto esterno viene caricato soltanto in `connect` ed `execute`.
 
 ```python
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.query_plan import Parameter, SqlStatement
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.query_plan import Parameter, SqlStatement
 
 statement = SqlStatement(
     ('SELECT 12 % 5 AS remainder WHERE ', Parameter('enabled')),

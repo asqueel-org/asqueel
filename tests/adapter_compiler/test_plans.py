@@ -1,9 +1,9 @@
 """Compiler contracts proven independently of PostgreSQL SQL and binding syntax."""
 import pytest
 
-from genro_sql.compiler import PostgresCompiler, QueryCompiler, quote_identifier
-from genro_sql.contracts import Column, CompiledQuery, Relation, ResolvedModel, ResultColumn, Table
-from genro_sql.query_plan import Fragment, Identifier, Parameter, SqlStatement, TableRef
+from asqueel.compiler import PostgresCompiler, QueryCompiler, quote_identifier
+from asqueel.contracts import Column, CompiledQuery, Relation, ResolvedModel, ResultColumn, Table
+from asqueel.query_plan import Fragment, Identifier, Parameter, SqlStatement, TableRef
 
 
 class SentinelDialect:

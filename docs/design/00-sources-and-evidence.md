@@ -4,11 +4,11 @@
 
 | ID | Fonte | Perimetro |
 |---|---|---|
-| S01 | genro-sql `adba5d52174d166c59b4b364c9721b2e92837c5c` | Package canonico attuale: builder, elementi, catalogo, validatori, reader, emitter e proiezione migration. |
+| S01 | asqueel `adba5d52174d166c59b4b364c9721b2e92837c5c` | Package canonico attuale: builder, elementi, catalogo, validatori, reader, emitter e proiezione migration. |
 | S02 | Genropy legacy `e12f2ce54245e57e48371ae0f47e928e0d55b960` | Sorgenti letti dal riferimento develop, non dal checkout legacy locale più vecchio. |
 | S03 | Builders 0.27.0 e documentazione Configuration consultata | Montaggio di sotto-grammatiche e composizione delle ricette. |
-| S04 | genro-sqlmigration locale `2f9b965314d71915afbac79a40960c0c65462d31` | Ispezione di strutture, validazione e handler degli event trigger. Nessun collaudo completo nuovo di questo checkout. |
-| S05 | genro-sqlmigration `e64fa00b22b304263f515765bb44e5b74d9e9534` | Versione fissata nei precedenti test d'integrazione; non va confusa con S04. |
+| S04 | asqueel-migration locale `2f9b965314d71915afbac79a40960c0c65462d31` | Ispezione di strutture, validazione e handler degli event trigger. Nessun collaudo completo nuovo di questo checkout. |
+| S05 | asqueel-migration `e64fa00b22b304263f515765bb44e5b74d9e9534` | Versione fissata nei precedenti test d'integrazione; non va confusa con S04. |
 | S06 | GEP 1, GEP 2 e discussione virtualRelation | Proposte e intenzioni; non prove di codice consegnato. |
 | S07 | Conversazioni SQL/Builders di luglio e settembre reperite | Contesto delle scelte, ricostruito nel rapporto storico. |
 | S08 | Indicazioni dell'utente in questa conversazione | Obiettivi e vincoli del progetto moderno. |
@@ -16,9 +16,9 @@
 
 Root verificabili dei sorgenti:
 
-- [genro-sql S01](https://github.com/genropy/genro-sql/tree/adba5d52174d166c59b4b364c9721b2e92837c5c).
+- [asqueel S01](https://github.com/asqueel-org/asqueel/tree/adba5d52174d166c59b4b364c9721b2e92837c5c).
 - [Genropy S02](https://github.com/genropy/genropy/tree/e12f2ce54245e57e48371ae0f47e928e0d55b960/gnrpy).
-- [Migratore S05](https://github.com/genropy/genro-sqlmigration/tree/e64fa00b22b304263f515765bb44e5b74d9e9534).
+- [Migratore S05](https://github.com/asqueel-org/asqueel-migration/tree/e64fa00b22b304263f515765bb44e5b74d9e9534).
 - [GEP e discussione virtualRelation](https://github.com/genropy/genropy_meta/issues/1).
 
 Quando un finding cita `S02:gnrsqldata/compiler.py`, il percorso completo è

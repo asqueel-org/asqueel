@@ -2,14 +2,14 @@
 
 import pytest
 
-from genro_sql.catalog_provider import PostgresCatalogProvider
-from genro_sql.compiler import QueryCompiler
-from genro_sql.contracts import CompiledQuery
-from genro_sql.dialects.postgres import PostgresDialect
-from genro_sql.drivers.psycopg import PsycopgDriver
-from genro_sql.model import resolve_model
-from genro_sql.query_plan import Parameter
-from genro_sql.runtime import Database
+from asqueel.catalog_provider import PostgresCatalogProvider
+from asqueel.compiler import QueryCompiler
+from asqueel.contracts import CompiledQuery
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.model import resolve_model
+from asqueel.query_plan import Parameter
+from asqueel.runtime import Database
 from tests.native_integration.test_postgres_vertical import (
     native_database as native_database, recipe,
 )

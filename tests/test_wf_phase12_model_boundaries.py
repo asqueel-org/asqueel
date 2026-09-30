@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from genro_sql import SqlBuilder, SqlMigrationRenderer
-from genro_sql.grammar_doc import generate_grammar_md
-from genro_sql.validators import SqlModelValidationError
+from asqueel import SqlBuilder, SqlMigrationRenderer
+from asqueel.grammar_doc import generate_grammar_md
+from asqueel.validators import SqlModelValidationError
 
 
 class _Model(SqlBuilder):

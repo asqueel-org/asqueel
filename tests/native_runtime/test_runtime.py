@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from genro_sql.contracts import CompiledQuery, ResultColumn
-from genro_sql.runtime import DatabaseClosedError, PostgresDatabase, TransactionStateError
+from asqueel.contracts import CompiledQuery, ResultColumn
+from asqueel.runtime import DatabaseClosedError, PostgresDatabase, TransactionStateError
 
 
 class FakeConnection:

@@ -5,7 +5,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from genro_sql import PostgresCompiler, PostgresDatabase, SqlBuilder, SqlEnvironment, resolve_model
+from asqueel import PostgresCompiler, PostgresDatabase, SqlBuilder, SqlEnvironment, resolve_model
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql

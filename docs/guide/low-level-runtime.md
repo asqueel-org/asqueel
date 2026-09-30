@@ -11,7 +11,7 @@ classes, not `SqlDatabase`.
 This example needs a reachable PostgreSQL database but no application tables:
 
 ```python
-from genro_sql import CompiledQuery, PostgresDatabase
+from asqueel import CompiledQuery, PostgresDatabase
 
 with PostgresDatabase('dbname=example') as db:
     result = db.execute(CompiledQuery(
@@ -120,8 +120,8 @@ Pass the same `SqlEnvironment` to both components when queries use contextual
 parameters or partition scopes. For an existing `customer` model:
 
 ```python
-from genro_sql import EnvironmentMismatchError, PostgresCompiler
-from genro_sql import PostgresDatabase, SqlEnvironment
+from asqueel import EnvironmentMismatchError, PostgresCompiler
+from asqueel import PostgresDatabase, SqlEnvironment
 
 
 def read_customer(model, conninfo):
