@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/asqueel)](https://pypi.org/project/asqueel/)
 [![Tests](https://github.com/asqueel-org/asqueel/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/asqueel-org/asqueel/actions/workflows/tests.yml)
 [![Codecov](https://codecov.io/gh/asqueel-org/asqueel/branch/main/graph/badge.svg)](https://app.codecov.io/gh/asqueel-org/asqueel)
-[![Documentation](https://readthedocs.org/projects/asqueel/badge/?version=latest)](https://asqueel.readthedocs.io/en/latest/)
+[![Documentation](https://img.shields.io/readthedocs/asqueel?version=latest)](https://asqueel.readthedocs.io/en/latest/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://github.com/asqueel-org/asqueel/blob/main/pyproject.toml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/asqueel-org/asqueel/blob/main/LICENSE)
 

@@ -107,6 +107,7 @@ mermaid_init_config = {
         "tertiaryColor": "#FFFFFF",
     },
     "flowchart": {"nodeSpacing": 24, "rankSpacing": 28, "useMaxWidth": False},
+    "er": {"useMaxWidth": False},
 }
 
 mermaid_width = "auto"

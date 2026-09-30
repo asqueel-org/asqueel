@@ -20,4 +20,5 @@
   width: 100%;
   box-sizing: border-box;
 }
+/* Preserve Mermaid's explicit natural width; only shrink to fit the page. */
 .rst-content .mermaid svg { width: auto; height: auto; max-width: 100%; }
