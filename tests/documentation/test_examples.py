@@ -1,4 +1,5 @@
 """Execute published examples so the guide and its downloadable tutorial agree."""
+from tests.unit_of_work import completed
 from pathlib import Path
 import re
 import runpy
@@ -50,13 +51,13 @@ def test_application_query_guide_against_tutorial_data():
             for index, block in enumerate(python_blocks('queries.md')):
                 exec(compile(block, f'queries.md:block-{index + 1}', 'exec'), namespace)
             # Document the empty-list case too, not just the nonempty ANY example.
-            with db.transaction():
+            with completed(db):
                 assert db.table('sales.customer').query(
                     where='$id = ANY(:ids)', params={'ids': []},
                 ).fetch() == []
         finally:
             db.rollback()
-            with db.transaction():
+            with completed(db):
                 db.execute(CompiledQuery(f'DROP SCHEMA "{schema}" CASCADE'))
 
 
@@ -81,5 +82,5 @@ def test_application_environment_examples():
                 exec(compile(block, f'environment.md:block-{index + 1}', 'exec'), namespace)
         finally:
             db.rollback()
-            with db.transaction():
+            with completed(db):
                 db.execute(CompiledQuery(f'DROP SCHEMA "{schema}" CASCADE'))

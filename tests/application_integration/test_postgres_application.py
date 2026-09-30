@@ -1,4 +1,5 @@
 """Public application API acceptance against PostgreSQL, with independent observers."""
+from tests.unit_of_work import completed
 from uuid import uuid4
 
 import psycopg
@@ -91,14 +92,14 @@ def test_manual_rollback_and_close_discard_cross_table_writes(application):
 
 def test_transaction_context_commits_hooks_together_and_rolls_back_hook_failure(application):
     db, rows = application
-    with db.transaction() as transaction:
-        assert transaction is db
+    with completed(db) as connection:
+        assert connection is db
         db.table('item').insert({'id': 1, 'name': 'success'})
         assert rows('item') == rows('audit') == []
     assert rows('item') == [(1, 'success')]
     assert rows('audit') == [(1, 1)]
     with pytest.raises(ValueError, match='post-insert hook'):
-        with db.transaction():
+        with completed(db):
             db.table('item').insert({'id': 2, 'name': 'fail'})
     assert rows('item') == [(1, 'success')]
     assert rows('audit') == [(1, 1)]
@@ -120,7 +121,7 @@ def test_caught_hook_error_remains_rollback_only_and_cannot_commit(application):
 
 def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(application):
     db, rows = application
-    with db.transaction():
+    with completed(db):
         db.table('item').insert({'id': 1, 'name': 'same'})
         db.table('item').insert({'id': 2, 'name': 'same'})
     query = db.table('item').query(where='$id=:env_item')
@@ -147,8 +148,8 @@ def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(
 
 def test_caught_hook_error_cannot_turn_context_exit_into_success(application):
     db, rows = application
-    with pytest.raises(TransactionStateError, match='rolled back after a failed operation'):
-        with db.transaction():
+    with pytest.raises(TransactionStateError, match='rollback-only'):
+        with completed(db):
             db.table('item').insert({'id': 1, 'name': 'first'})
             with pytest.raises(ValueError, match='post-insert hook'):
                 db.table('item').insert({'id': 2, 'name': 'fail'})
@@ -159,7 +160,7 @@ def test_caught_hook_error_cannot_turn_context_exit_into_success(application):
 def test_database_constraint_failure_rolls_back_previous_operations(application):
     db, rows = application
     with pytest.raises(psycopg.errors.UniqueViolation):
-        with db.transaction():
+        with completed(db):
             db.table('item').insert({'id': 1, 'name': 'first'})
             db.table('item').insert({'id': 1, 'name': 'duplicate'})
     assert rows('item') == rows('audit') == []
@@ -204,3 +205,37 @@ def test_sql_error_in_named_connection_rolls_back_hooks_and_allows_reuse(applica
     db.commit()
     assert rows('item') == [(10, 'main pending'), (30, 'recovered')]
     assert rows('audit') == [(10, 10), (30, 30)]
+
+
+def test_shared_database_threads_have_independent_postgres_connections(application):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    db, rows = application
+    barrier = Barrier(2)
+
+    def worker(key, commit):
+        try:
+            db.updateEnv(worker=key)
+            with db.tempEnv(connectionName='worker'):
+                db.table('item').insert({'id': key, 'name': f'worker {key}'})
+                barrier.wait(timeout=10)
+                assert db.currentEnv['worker'] == key
+                if commit:
+                    with completed(db):
+                        pass  # Includes the insert and its audit hook already pending.
+                else:
+                    db.rollback()
+        finally:
+            db.closeConnection()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(worker, 301, True), pool.submit(worker, 302, False)]
+        for future in futures:
+            future.result()
+    assert rows('item') == [(301, 'worker 301')]
+    assert rows('audit') == [(301, 301)]
+    assert db.currentEnv == {}
+    with completed(db):
+        db.table('item').insert({'id': 303, 'name': 'main'})
+    assert rows('audit') == [(301, 301), (303, 303)]

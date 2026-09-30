@@ -111,9 +111,10 @@ can leave a separately created database behind; the CLI reports the migrator's
 rollback/partial-state flags when available. Arbitrary configuration/driver
 exception text is not echoed, because it can contain resolved credentials.
 
-These CLI database commands currently use the PostgreSQL Asqueel runtime.
-The migrator already has SQLite, MySQL and SQL Server adapters; the corresponding
-Asqueel runtime support is separate work. SQLite is a planned required adapter.
+These CLI database commands support PostgreSQL and SQLite.
+The migrator also has MySQL and SQL Server adapters.
+The SQLite runtime and CLI are available; see the [SQLite guide](sqlite.md) for
+file layout, locking and migration limitations. MySQL/SQL Server execution remains separate work.
 
 ## Python console and ordinary Python
 

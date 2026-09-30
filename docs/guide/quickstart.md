@@ -83,7 +83,7 @@ Run it with `python quickstart.py`.
 - `record(key).output('dict')` loads exactly one visible record. Missing and
   multiple matches raise explicit errors. The record caches its loaded snapshot
   until `refresh()`.
-- `with db.transaction():` commits on normal exit and rolls back on error.
+- `db.commit()` saves pending work; `db.rollback()` discards it. Both are explicit.
   `with db:` only owns closing; pending work is rolled back on close.
 
 Pass external values through `params` or write value mappings. SQL fragments,

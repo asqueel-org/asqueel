@@ -2,18 +2,23 @@
 
 Table writes execute immediately and return `QueryResult`. They join the
 application database's pending transaction; they do not commit independently.
-Use `with db.transaction():` for each unit of work. Examples below use the
+Use `db.commit()` / `db.rollback()` for each unit of work. Examples below use the
 [tutorial model](tutorial.md) and are independent operations, not another seed
 script to run against the same identifiers.
 
 ## Insert a record and read returned values
 
 ```python
-with db.transaction():
+try:
     result = db.table("sales.customer").insert(
         {"id": 3, "name": "Katherine"}, returning="$id, $name",
     )
     saved = result.rows[0]
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 Mapping keys are logical column names without `$`. Values are data, not SQL
@@ -34,10 +39,15 @@ manage the database's generation strategy explicitly if keys are not supplied.
 ## Update by primary key
 
 ```python
-with db.transaction():
+try:
     result = db.table("sales.customer").update(
         {"id": 3, "name": "Katherine Johnson"}, returning="$id, $name",
     )
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 Without `where`, the mapping must contain the complete declared primary key.
@@ -52,11 +62,16 @@ is display information; it is not write authorization.
 ## Update using a predicate
 
 ```python
-with db.transaction():
+try:
     result = db.table("sales.invoice").update(
         {"note": "Reviewed"}, where="$total >= :minimum",
         params={"minimum": 100}, returning="$id, $note",
     )
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 Without overridden update hooks, this is a set-based update: all matching rows
@@ -76,8 +91,13 @@ active partition scope is intended. Values are bound data: a value such as
 ## Delete physically
 
 ```python
-with db.transaction():
+try:
     result = db.table("sales.customer").delete(3, returning="$id")
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 A complete key mapping or a full record containing the key can also identify
@@ -95,13 +115,18 @@ For a table declaring `x_logical_deletion_field='deleted_at'`:
 ```python
 from datetime import datetime, timezone
 
-with db.transaction():
+try:
     document = db.table("app.document")
     document.soft_delete(
         value=datetime.now(timezone.utc),
         where="$id=:wanted", params={"wanted": 100},
     )
     document.restore(where="$id=:wanted", params={"wanted": 100})
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 These operations update the marker and follow update hooks. Soft deletion requires
@@ -117,7 +142,7 @@ hooked update/deletion reads the physical row with those read filters disabled,
 while keeping partition restrictions.
 
 A SQL or hook failure makes the shared unit of work rollback-only. Catch errors
-outside `with db.transaction():`, or call `db.rollback()` before reuse when
+outside `db.commit()` / `db.rollback()`, or call `db.rollback()` before reuse when
 managing completion manually. Do not interpret zero affected rows as an access
 exception or silently retry an unknown commit outcome.
 

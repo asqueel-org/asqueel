@@ -21,6 +21,10 @@ class PsycopgDriver:
     dialect = 'postgresql'
     binding = 'psycopg_named'
 
+    def prepare_sql(self, sql, sqlargs, snapshot):
+        from .sql import prepare_text
+        return prepare_text(self, sql, sqlargs, snapshot)
+
     def prepare(self, statement: SqlStatement) -> CompiledQuery:
         if not isinstance(statement, SqlStatement):
             raise TypeError('prepare requires a SqlStatement')

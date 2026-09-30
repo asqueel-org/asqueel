@@ -5,27 +5,28 @@ capabilities. This chapter is the single implementation-status reference for
 the checkout: it separates working behavior, planned contracts and open decisions.
 Do not infer that every documented contract executes in the installed revision.
 
-Asqueel currently provides a native, synchronous PostgreSQL path for new
+Asqueel currently provides a native PostgreSQL and SQLite execution path for new
 applications. It is not a drop-in replacement for the complete Genropy legacy
 runtime. This page describes behavior you can rely on when choosing APIs.
 
 | Area | Available now | Boundary to account for |
 |---|---|---|
-| Data backend | PostgreSQL through psycopg 3. | No other data backend is shipped. Dialect and driver protocols are extension points. |
+| Data backend | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and BEGIN IMMEDIATE; PostgreSQL-specific SQL is not translated. |
 | Runtime | Synchronous execution, implicit transaction start and explicit completion. | No async API, worker pool, general-purpose connection pool or automatic retries; named connections are retained until closed. |
-| Ownership | Independent named connections, one active transaction per name. | Construct and use an instance on the same thread; no nested transactions or savepoints. |
+| Ownership | Independent named connections per thread, one active transaction per name. | Share the DB graph; each worker closes its own connections. No nested transactions or savepoints; no async task isolation. |
 | Results | Materialized dictionary rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
 | Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | No GROUP BY/HAVING/DISTINCT options, count terminal or legacy IN-list expansion; not a universal SQL parser. |
 | Formulas | SQL expressions, scalar select/exists dictionaries and named correlated subqueries. | Python providers, method callbacks, formula variants, subquery collections and advanced macros are outside the native profile. Partition filtering remains explicit inside subqueries. |
 | Alias columns | Declared aliases inherit target metadata, allow local overrides, and resolve through supported to-one paths, including alias/formula targets. | Read-only; no to-many/virtualRelation. Default RETURNING excludes aliases; explicit relational aliases cannot be returned by DML. |
-| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after insert, update and delete hooks on application tables. | Hooked updates/deletes require exactly one row and a declared primary key. No record-cluster writes, automatic retry or implicit save of related records. |
+| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after table hooks, database write hooks, and raw commands that retain change tracking. | Hooked updates/deletes require exactly one row and a declared primary key. No record-cluster writes, automatic retry or implicit save of related records. |
 | Environment | Nested scopes, detached snapshots and guarded contextual queries. | Not a permissions system; direct SQL does not acquire model policy predicates automatically. |
 | Row policies | Declared partition scopes, draft and logical-deletion handling. | Tenant/store routing and legacy subtable behavior are not provided. Read policies are not complete write authorization. |
 | Model/UI | Native declarations, resolved naming and linked column metadata. | No UI renderer/editor; UI visibility and read-only metadata do not enforce database permissions. |
 | Import | PostgreSQL inspection with an explicit schema list and warnings. | No legacy application/package importer. Unsupported or application-only semantics must be reviewed separately. |
 | Native objects | Ordinary supported table structures can be projected for migration tooling. | View/function/trigger lifecycle and physical partition management are not supported as a complete native-object workflow. |
 
-For porting guidance, see [legacy compatibility](legacy.md). For errors and
+For porting guidance, see [legacy compatibility](legacy.md) and
+[legacy adaptations](../adattamenti-legacy.md). SQLite boundaries are in the [SQLite guide](sqlite.md). For errors and
 unexpected results, see [troubleshooting](troubleshooting.md).
 
 ## Query and result boundaries

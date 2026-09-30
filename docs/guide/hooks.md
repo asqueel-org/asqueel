@@ -81,7 +81,7 @@ the originating write has left the stack. Pass needed identifiers to the callbac
 rather than relying on `currentTrigger` to retain the old write.
 
 Hooks can register `deferToCommit`, `deferAfterCommit` and `deferredRaise`.
-Use the [commit lifecycle](transactions.md#work-around-commit) to choose the
+Use the [commit lifecycle](transactions.md#deferred-work) to choose the
 correct boundary and understand callback ordering and failure handling.
 
 ## Choose the right layer for a rule
@@ -120,3 +120,35 @@ Review callers when introducing those hooks.
 
 See [writes](writes.md) for selectors and returned values, and
 [transactions](transactions.md) for failure recovery.
+
+## Database-level write lifecycle and raw commands
+
+Table commands delegate to `db.insert(table, values)`, `db.update(table, ...)`
+and `db.delete(table, ...)`. The DB accepts a table handle belonging to it or a
+logical table name. Its cycle is:
+
+1. `onWriting(table, event, record, old_record=None, raw=False)`.
+2. The table's before-hook, unless raw.
+3. `onExecutingWrite(...)`, immediately before compilation/execution of the write.
+4. `db.execute(...)`, followed by mapping RETURNING values to the record.
+5. `_onDbChange(table, event, record, old_record=None, _raw=False)`.
+6. The table's after-hook, unless raw.
+7. `onWritten(...)`, after the write cycle and still before commit.
+
+Override the shared hooks on an `AsqueelDb` subclass. Events are `I`, `U` and
+`D`; the raw flag is a keyword argument. The `_raw` spelling on `_onDbChange`
+follows the legacy extension point. Default shared hooks do nothing. They can
+perform nested writes or defer callbacks, but cannot commit/rollback inside a
+write. Any Python failure makes the selected connection rollback-only.
+
+`table.raw_insert`, `raw_update` and `raw_delete` have the corresponding ordinary
+method signatures and also exist on `db`, with the table as first argument.
+They bypass table triggers, not DB hooks, policies, parameterization or change
+tracking. Overriding a shared hook makes update/delete use a locked single record
+so the hook receives complete data; a predicate selecting zero or multiple rows
+fails before the hook. Without shared/table hooks, predicate writes may affect
+multiple rows.
+
+The native shared hooks do not implement Genropy field/package dispatch,
+counters, totalizers or notifications. Their mapping is tracked in
+[Adattamenti legacy](../adattamenti-legacy.md).

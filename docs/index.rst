@@ -88,6 +88,7 @@ Choose your starting point
    guide/compiler
    guide/low-level-runtime
    guide/adapters
+   guide/sqlite
 
 .. toctree::
    :maxdepth: 1
@@ -104,6 +105,7 @@ Choose your starting point
 
    guide/release-notes
    guide/limitations
+   adattamenti-legacy
 
 The API reference describes Python interfaces. The grammar reference describes
 the declarative vocabulary.

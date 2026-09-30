@@ -1,3 +1,4 @@
+from tests.unit_of_work import completed
 import threading
 
 import pytest
@@ -65,11 +66,11 @@ def test_stale_environment_rejected_before_connect_and_before_transaction_dispat
             with pytest.raises(EnvironmentMismatchError):
                 db.execute(query)
         assert not driver.calls
-        with db.transaction() as tx:
+        with completed(db) as tx:
             with env.temp_env(company=2):
                 with pytest.raises(EnvironmentMismatchError):
                     tx.execute(query)
-            assert [method for method, _, _ in driver.calls] == ['connect']
+            assert not driver.calls
             assert tx.execute(query).rows == [{'company': 1}]
 
 
@@ -80,13 +81,13 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
         assert db.environment is env
         with db.tempEnv(company=2):
             assert db.currentEnv == db.current_env == {'company': 2}
-            with db.transaction() as tx:
+            with completed(db) as tx:
                 with db.temp_env(company=3):
                     assert tx.execute(CompiledQuery('select')).rows == [{'company': 3}]
         assert db.execute(CompiledQuery('select')).rows == [{'company': 1}]
     assert [(method, values['company']) for method, values, _ in driver.calls] == [
-        ('connect', 2), ('execute', 3), ('commit', 2), ('close', 2),
-        ('connect', 1), ('execute', 1), ('commit', 1), ('close', 1)]
+        ('connect', 3), ('execute', 3), ('commit', 2),
+        ('execute', 1), ('rollback', 1), ('close', 1)]
     assert {thread for _, _, thread in driver.calls} == {threading.get_ident()}
     assert env.current_env == {'company': 1}
 

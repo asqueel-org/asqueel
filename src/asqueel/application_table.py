@@ -321,70 +321,24 @@ class SqlTable:
                     record[name] = _copy(returned[column.name])
 
     def insert(self, values, returning='*', *, ignore_partition=False):
-        with self.db._write_operation():
-            if not isinstance(values, Mapping):
-                raise TypeError('Insert values must be a mapping')
-            record = _copy(dict(values))
-            with self._trigger_operation('insert', record=record):
-                self.trigger_onInserting(record)
-                result = self.db.execute(self.db.compiler.insert(
-                    self.fullname, record, returning, ignore_partition=ignore_partition))
-                self._overlay_returned(record, result)
-                self.trigger_onInserted(record)
-                return result
+        return self.db.insert(self, values, returning, ignore_partition=ignore_partition)
+
+    def raw_insert(self, values, returning='*', *, ignore_partition=False):
+        return self.db.raw_insert(self, values, returning, ignore_partition=ignore_partition)
 
     def update(self, values, where=None, params=None, returning='*', *, ignore_partition=False):
-        with self.db._write_operation():
-            if not isinstance(values, Mapping):
-                raise TypeError('Update values must be a mapping')
-            record = _copy(dict(values))
-            if where is None:
-                where, params = self._key_selector(record, params)
-            # Validate the caller's write predicate and values before acquiring locks.
-            compiled = self.db.compiler.update(
-                self.fullname, record, where, params, returning, ignore_partition=ignore_partition)
-            with self._trigger_operation('update', record=record) as trigger:
-                if not self._has_write_hooks('update'):
-                    return self.db.execute(compiled)
-                old_record = self._locked_record(where, params, ignore_partition)
-                key_where, key_params = self._key_selector(old_record)
-                merged = _copy(old_record)
-                merged.update(record)
-                if trigger is not None:
-                    trigger.record = merged
-                    trigger.old_record = old_record
-                self.trigger_onUpdating(merged, old_record=_copy(old_record))
-                result = self.db.execute(self.db.compiler.update(
-                    self.fullname, merged, key_where, key_params, returning,
-                    ignore_partition=ignore_partition))
-                if result.rowcount != 1:
-                    raise RecordNotFoundError('Locked update did not affect exactly one record')
-                self._overlay_returned(merged, result)
-                self.trigger_onUpdated(merged, old_record=_copy(old_record))
-                return result
+        return self.db.update(self, values, where, params, returning, ignore_partition=ignore_partition)
+
+    def raw_update(self, values, where=None, params=None, returning='*', *, ignore_partition=False):
+        return self.db.raw_update(self, values, where, params, returning, ignore_partition=ignore_partition)
 
     def delete(self, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
-        with self.db._write_operation():
-            if where is None:
-                if record_or_pkey is None:
-                    raise ValueError('Delete requires a primary key, record, or explicit where')
-                where, params = self._key_selector(record_or_pkey, params)
-            compiled = self.db.compiler.delete(
-                self.fullname, where, params, returning, ignore_partition=ignore_partition)
-            if not self._has_write_hooks('delete'):
-                with self._trigger_operation('delete', record=record_or_pkey):
-                    return self.db.execute(compiled)
-            record = self._locked_record(where, params, ignore_partition)
-            key_where, key_params = self._key_selector(record)
-            with self._trigger_operation('delete', record=record):
-                self.trigger_onDeleting(record)
-                result = self.db.execute(self.db.compiler.delete(
-                    self.fullname, key_where, key_params, returning,
-                    ignore_partition=ignore_partition))
-                if result.rowcount != 1:
-                    raise RecordNotFoundError('Locked delete did not affect exactly one record')
-                self.trigger_onDeleted(record)
-                return result
+        return self.db.delete(self, record_or_pkey, where=where, params=params,
+                              returning=returning, ignore_partition=ignore_partition)
+
+    def raw_delete(self, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
+        return self.db.raw_delete(self, record_or_pkey, where=where, params=params,
+                                  returning=returning, ignore_partition=ignore_partition)
 
     def soft_delete(self, value, where, params=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():

@@ -24,6 +24,8 @@ from .compiler import PostgresCompiler, QueryCompiler
 from .catalog_provider import CatalogProvider, PostgresCatalogProvider
 from .dialects.postgres import PostgresDialect
 from .drivers.psycopg import PsycopgDriver
+from .drivers.sqlite import SqliteDriver
+from .dialects.sqlite import SqliteDialect
 from .contracts import (
     Column, CompiledQuery, QueryResult, Relation, ResolvedModel, ResultColumn,
     Table, UnsupportedFeatureError, EnvironmentMismatchError, PartitionScope, RowPolicies,
@@ -39,7 +41,7 @@ from .runtime import (
 from .session import DeferredCommitError
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "AsqueelDb", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
@@ -53,6 +55,7 @@ __all__ = [
     "to_physical_builder",
     "QueryCompiler", "PostgresDialect", "PsycopgDriver", "Database",
     "CatalogProvider", "PostgresCatalogProvider",
+    "SqliteDialect", "SqliteDriver",
     "SqlEnvironment", "EnvironmentMismatchError", "PartitionScope", "RowPolicies",
     "TriggerStack", "TriggerStackItem",
     "DeferredCommitError",

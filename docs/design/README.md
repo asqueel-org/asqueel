@@ -121,3 +121,6 @@ con l'obiettivo futuro: si aggiunge una nuova evidenza o si indica il superament
 
 - [Correzioni al lifecycle deferred](19-deferred-lifecycle-fixes.md):
   comportamento verificato, confronto legacy e limiti residui di F1.
+
+- [Adattamenti legacy](../adattamenti-legacy.md): comportamenti SQL portati,
+  differenze del ciclo di scrittura e requisiti per l’integrazione Genropy.

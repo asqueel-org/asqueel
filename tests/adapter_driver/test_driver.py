@@ -1,4 +1,5 @@
 """Offline binding contracts and driver-independent runtime integration."""
+from tests.unit_of_work import completed
 from pathlib import Path
 import subprocess
 import sys
@@ -100,7 +101,7 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
             with pytest.raises(LookupError, match='original driver error'):
                 db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
         assert [name for name, _ in driver.calls] == [
-            'connect', 'execute', 'commit', 'close', 'connect', 'execute', 'rollback', 'close']
+            'connect', 'execute', 'execute', 'rollback', 'close']
         assert len({thread for _, thread in driver.calls}) == 1
         assert driver.calls[0][1] == threading.get_ident()
     scenario()
@@ -113,11 +114,11 @@ def test_runtime_rejects_profile_before_connect_or_execute():
             with pytest.raises(ValueError, match='profile'):
                 db.execute(CompiledQuery('SELECT 1'))
             assert not driver.calls
-            with db.transaction() as tx:
+            with completed(db) as tx:
                 with pytest.raises(ValueError, match='profile'):
                     tx.execute(CompiledQuery('SELECT 1'))
-                assert [name for name, _ in driver.calls] == ['connect']
-        assert [name for name, _ in driver.calls] == ['connect', 'commit', 'close']
+                assert not driver.calls
+        assert not driver.calls
     scenario()
 
 

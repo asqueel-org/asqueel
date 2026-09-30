@@ -1,188 +1,297 @@
-"""Synchronous, thread-owned database runtime over an injected data driver."""
+"""Shared execution path, thread-local named connections and explicit completion."""
 from __future__ import annotations
 
-from threading import get_ident
+from contextlib import contextmanager
+from threading import local
 from typing import Any
 
-from .contracts import CompiledQuery, QueryResult
-from .drivers.base import SyncDriver
-from .environment import SqlEnvironment
+from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError
+from .environment import ApplicationEnvironment
+from .errors import DatabaseClosedError, TransactionStateError
+from .session import Session
+from .triggers import TriggerStack
 
 
-class DatabaseClosedError(RuntimeError):
-    """The database has been closed."""
-
-
-class TransactionStateError(RuntimeError):
-    """The database or transaction cannot accept this operation."""
+class _ThreadState(local):
+    def __init__(self) -> None:
+        self.sessions: dict[str, Session] = {}
+        self.write_depth = 0
+        self.trigger_stack = TriggerStack()
+        self.closed = False
 
 
 class Database:
-    """Synchronous database facade owned by its constructing thread.
+    """Shared execution service. Statements remain pending until commit/rollback.
 
-    One transaction may be active at a time. Each transaction opens a fresh
-    connection and closes it on exit. Results are eagerly materialized.
+    Handles can be shared between threads; each worker releases its own named
+    connections. Use tempEnv for context selection, never automatic completion.
     """
 
-    def __init__(self, conninfo: str = '', *, driver: SyncDriver,
-                 connect_kwargs: dict[str, Any] | None = None,
-                 environment: SqlEnvironment | None = None):
-        self.conninfo = conninfo
+    def __init__(self, conninfo='', *, driver, connect_kwargs=None, environment=None):
+        self._ready = True
+        self._thread_state = _ThreadState()
         self.driver = driver
-        self.environment = environment if environment is not None else SqlEnvironment()
+        self.conninfo = conninfo
         self.connect_kwargs = dict(connect_kwargs or {})
         if self.connect_kwargs.get('autocommit'):
             raise ValueError('autocommit is incompatible with explicit transactions')
-        self._owner = get_ident()
-        self._active: Transaction | None = None
-        self._closed = False
+        self.environment = environment if environment is not None else ApplicationEnvironment()
+
+    def _connection_settings(self):
+        return self.conninfo, self.connect_kwargs
+
+    def _check_open(self) -> None:
+        if not self._ready:
+            raise TransactionStateError('Database object graph is not ready')
+        if self._closed:
+            raise DatabaseClosedError('Database is closed')
+
+    @property
+    def _sessions(self) -> dict[str, Session]:
+        sessions: dict[str, Session] = self._thread_state.sessions
+        return sessions
+
+    @property
+    def _trigger_stack(self):
+        return self._thread_state.trigger_stack
+
+    @property
+    def _write_depth(self):
+        return self._thread_state.write_depth
+
+    @_write_depth.setter
+    def _write_depth(self, value):
+        self._thread_state.write_depth = value
+
+    @property
+    def _closed(self):
+        return self._thread_state.closed
+
+    @_closed.setter
+    def _closed(self, value):
+        self._thread_state.closed = value
+
+    @property
+    def currentConnectionName(self) -> str:
+        self._check_open()
+        name = self.environment.currentEnv.get('connectionName') or '_main_connection'
+        if not isinstance(name, str):
+            raise TypeError('connectionName must be a string')
+        return name
+
+    def usingMainConnection(self) -> bool:
+        return self.currentConnectionName == '_main_connection'
+
+    def _check_store(self) -> None:
+        store = self.environment.currentEnv.get('storename')
+        if store and store != '_main_db':
+            raise UnsupportedFeatureError('Database stores are not implemented in this profile')
+
+    @property
+    def _session(self) -> Session:
+        self._check_open()
+        self._check_store()
+        name = self.currentConnectionName
+        if name not in self._sessions:
+            conninfo, connect_kwargs = self._connection_settings()
+            self._sessions[name] = Session(
+                driver=self.driver,
+                conninfo=conninfo,
+                connect_kwargs=connect_kwargs,
+                environment=self.environment,
+                connection_name=name,
+            )
+        return self._sessions[name]
 
     @property
     def current_env(self):
+        self._check_open()
         return self.environment.current_env
 
     @property
     def currentEnv(self):
-        return self.current_env
+        self._check_open()
+        return self.environment.currentEnv
 
+    @currentEnv.setter
+    def currentEnv(self, values):
+        self._check_open()
+        self.environment.currentEnv = values
+
+    def updateEnv(self, _excludeNoneValues=False, **values):
+        self.currentEnv.update({key: value for key, value in values.items()
+                                if not _excludeNoneValues or value is not None})
+
+    def clearCurrentEnv(self):
+        self.currentEnv = {}
+
+    @property
+    def workdate(self):
+        self._check_open()
+        return self.environment.workdate
+
+    @workdate.setter
+    def workdate(self, value):
+        self.currentEnv['workdate'] = value
+
+    @property
+    def locale(self):
+        self._check_open()
+        return self.environment.locale
+
+    @locale.setter
+    def locale(self, value):
+        self.currentEnv['locale'] = value
+
+    @contextmanager
     def temp_env(self, **values: Any):
-        return self.environment.temp_env(**values)
+        self._check_open()
+        with self.environment.temp_env(**values):
+            yield self
 
     def tempEnv(self, **values: Any):
         return self.temp_env(**values)
 
-    def _check_owner(self) -> None:
-        if get_ident() != self._owner:
-            raise TransactionStateError('Database operations must run on the constructing thread')
+    @property
+    def outcome(self) -> str:
+        """Most recent session transaction outcome, including uncertain commit."""
+        name = self.environment.currentEnv.get('connectionName') or '_main_connection'
+        session = self._sessions.get(name)
+        return session.outcome if session is not None else 'not_started'
 
-    def _check_open(self) -> None:
-        self._check_owner()
+    def execute(self, query: CompiledQuery | str, sqlargs=None) -> QueryResult:
+        """Execute a compiled statement in this DB's shared unit of work."""
+        self._check_open()
+        if isinstance(query, str):
+            return self._session.execute(self._prepare_sql(query, sqlargs))
+        elif sqlargs is not None:
+            raise TypeError('Parameters are already part of a CompiledQuery')
+        return self._session.execute(query)
+
+    def _prepare_sql(self, sql, sqlargs) -> CompiledQuery:
+        query: CompiledQuery = self.driver.prepare_sql(sql, sqlargs, self.environment.snapshot())
+        return query
+
+    @property
+    def currentTrigger(self):
+        """Current write operation, including its causal parent and level."""
+        self._check_open()
+        return self._trigger_stack.parentItem
+
+    @contextmanager
+    def _trigger_operation(self, event, table, record=None, old_record=None):
+        self._check_open()
+        with self._trigger_stack.operation(
+                event, table.fullname, record=record, old_record=old_record) as item:
+            yield item
+
+    def deferToCommit(self, callback, *args, **kwargs):
+        """Run a callback before committing the selected named connection."""
+        self._check_open()
+        return self._session.defer_to_commit(callback, *args, **kwargs)
+
+    def deferAfterCommit(self, callback, *args, **kwargs):
+        """Run a callback after committing the selected named connection."""
+        self._check_open()
+        return self._session.defer_after_commit(callback, *args, **kwargs)
+
+    def deferredRaise(self, exception):
+        """Make the selected named connection fail at its next commit."""
+        self._check_open()
+        self._session.deferred_raise(exception)
+
+    def _check_boundary(self) -> None:
+        self._check_open()
+        if self._write_depth:
+            raise TransactionStateError('Cannot finish a transaction inside a table write or hook')
+
+    def commit(self) -> None:
+        self._check_boundary()
+        self._session.commit()
+
+    def rollback(self) -> None:
+        self._check_boundary()
+        self._session.rollback()
+
+    @contextmanager
+    def _write_operation(self):
+        self._check_open()
+        session = self._session
+        session._check_usable()
+        execution_count = session._execution_count
+        self._write_depth += 1
+        try:
+            yield
+        except BaseException as error:
+            # Only an execution error from this operation's own session has
+            # already rolled back its work. Another session's rollback cannot
+            # repair this incomplete write; neither can an older SQL failure.
+            if not (session._execution_count != execution_count
+                    and session._execution_error is error):
+                session.mark_failed()
+            raise
+        finally:
+            self._write_depth -= 1
+
+    def closeConnection(self) -> None:
+        """Release the current thread's named connections, keeping it usable."""
+        self._check_boundary()
+        for session in self._sessions.values():
+            session._check_manual_completion()
+        try:
+            self._close_sessions()
+        finally:
+            self._sessions.clear()
+
+    def _close_sessions(self) -> None:
+        error = None
+        for session in self._sessions.values():
+            try:
+                session.close()
+            except BaseException as failure:
+                if error is None:
+                    error = failure
+                else:
+                    error.add_note(f'Another named connection cleanup failed: {type(failure).__name__}')
+        if error is not None:
+            raise error
+
+    def close(self) -> None:
+        """Close this thread's DB state; other threads remain usable."""
+        if self._write_depth:
+            raise TransactionStateError('Cannot close the database inside a table write or hook')
         if self._closed:
-            raise DatabaseClosedError('Database is closed')
-
-    def _validate_query(self, query: CompiledQuery) -> None:
-        self.driver.validate(query)
-        if query.environment is not None:
-            query.environment.validate(self.environment.snapshot())
-
-    def transaction(self) -> Transaction:
-        self._check_open()
-        return Transaction(self)
-
-    def execute(self, query: CompiledQuery) -> QueryResult:
-        self._check_open()
-        self._validate_query(query)
-        with self.transaction() as transaction:
-            return transaction.execute(query)
+            return
+        # Preflight all scopes before closing anything; then clean every named
+        # connection even when one driver rollback/close fails.
+        for session in self._sessions.values():
+            session._check_manual_completion()
+        try:
+            self._close_sessions()
+        finally:
+            self._closed = True
 
     def __enter__(self) -> Database:
         self._check_open()
         return self
 
-    def __exit__(self, *exc: Any) -> None:
-        self.close()
-
-    def close(self) -> None:
-        self._check_owner()
-        if self._active is not None:
-            raise TransactionStateError('Exit the active transaction before closing its database')
-        self._closed = True
+    def __exit__(self, exc_type: Any, error: Any, traceback: Any) -> None:
+        try:
+            self.close()
+        except BaseException as cleanup_error:
+            if error is None:
+                raise
+            error.add_note(f'Database cleanup failed: {type(cleanup_error).__name__}')
+            raise error from cleanup_error
 
 
 class PostgresDatabase(Database):
-    """Compatibility facade selecting the PostgreSQL psycopg driver profile."""
+    """Driver-selecting facade using the shared, explicitly completed runtime."""
 
-    def __init__(self, conninfo: str = '', *, connect_kwargs: dict[str, Any] | None = None,
-                 driver: SyncDriver | None = None, environment: SqlEnvironment | None = None):
-        if driver is None:
-            from .drivers.psycopg import PsycopgDriver
-            driver = PsycopgDriver()
+    def __init__(self, conninfo='', *, connect_kwargs=None, driver=None, environment=None):
+        from .drivers.psycopg import PsycopgDriver
+        driver = driver if driver is not None else PsycopgDriver()
         if (driver.dialect, driver.binding) != ('postgresql', 'psycopg_named'):
             raise ValueError('PostgresDatabase requires the postgresql/psycopg_named driver profile')
         super().__init__(conninfo, driver=driver, connect_kwargs=connect_kwargs,
                          environment=environment)
-
-
-class Transaction:
-    """Single-use transaction; a failed statement makes it rollback-only."""
-
-    def __init__(self, database: Database):
-        self.database = database
-        self.outcome = 'not_started'
-        self._connection: Any = None
-        self._used = False
-        self._failed = False
-        self._accepting = False
-        self._executing = False
-
-    def __enter__(self) -> Transaction:
-        self.database._check_open()
-        if self._used:
-            raise TransactionStateError('Transaction contexts are single-use')
-        if self.database._active is not None:
-            raise TransactionStateError('Nested database transactions are unsupported; use tx.execute')
-        self._used = True
-        self.database._active = self
-        try:
-            self._connection = self.database.driver.connect(
-                self.database.conninfo, **self.database.connect_kwargs)
-        except BaseException:
-            self.database._active = None
-            raise
-        self.outcome = 'active'
-        self._accepting = True
-        return self
-
-    def execute(self, query: CompiledQuery) -> QueryResult:
-        self.database._check_open()
-        if self._executing:
-            raise TransactionStateError('Transaction is already executing a statement')
-        if not self._accepting or self._failed or self.database._active is not self:
-            raise TransactionStateError('Transaction is not active or is rollback-only')
-        self.database._validate_query(query)
-        self._executing = True
-        try:
-            return self.database.driver.execute(self._connection, query)
-        except BaseException:
-            self._failed = True
-            raise
-        finally:
-            self._executing = False
-
-    def _finish(self, commit: bool) -> None:
-        error: BaseException | None = None
-        try:
-            if commit:
-                self.database.driver.commit(self._connection)
-                self.outcome = 'committed'
-            else:
-                self.database.driver.rollback(self._connection)
-                self.outcome = 'rolled_back'
-        except BaseException as operation_error:
-            self.outcome = 'unknown'
-            error = operation_error
-        try:
-            self.database.driver.close(self._connection)
-        except BaseException as close_error:
-            if error is None:
-                error = close_error
-            else:
-                error.add_note(f'Connection cleanup also failed: {type(close_error).__name__}')
-        finally:
-            self._connection = None
-        if error is not None:
-            raise error
-
-    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
-        self.database._check_owner()
-        if self._executing:
-            raise TransactionStateError('Cannot exit while the transaction is executing a statement')
-        if not self._accepting or self.database._active is not self:
-            raise TransactionStateError('Transaction is not active or is already exiting')
-        self._accepting = False
-        try:
-            self._finish(exc_type is None and not self._failed)
-            if exc_type is None and self._failed:
-                raise TransactionStateError('Transaction rolled back after a failed statement')
-        finally:
-            self.database._active = None

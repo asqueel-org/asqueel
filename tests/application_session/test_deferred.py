@@ -1,4 +1,5 @@
 """Commit lifecycle contracts, including failures hidden inside callbacks."""
+from tests.unit_of_work import completed
 import pytest
 
 from asqueel import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, build_database
@@ -46,7 +47,7 @@ def test_precommit_failure_rolls_back_atomic_scope_and_clears_callbacks():
         raise ValueError('pre-commit')
 
     with pytest.raises(ValueError, match='pre-commit'):
-        with session.transaction():
+        with completed(session):
             session.execute(CompiledQuery('write'))
             session.defer_to_commit(fail)
             session.defer_after_commit(lambda: events.append('after'))
@@ -101,17 +102,18 @@ def test_caught_domain_failure_in_callback_cannot_be_committed():
     session.close()
 
 
-def test_callback_context_pins_scope_connection_and_restores_environment():
+def test_commit_selects_current_name_and_callbacks_restore_environment():
     with database() as db:
         events = []
-        # Scope owns A even if the environment is changed before scope exit.
         with db.tempEnv(connectionName='A', onCommittingStep=False):
-            with db.transaction():
-                db.execute(CompiledQuery('A'))
-                db.deferToCommit(lambda: events.append((db.currentConnectionName, db.currentEnv['onCommittingStep'])))
-                db.deferAfterCommit(lambda: events.append((db.currentConnectionName, db.currentEnv['onCommittingStep'])))
-                db.currentEnv['connectionName'] = 'B'
-            assert db.currentConnectionName == 'B'
+            db.execute(CompiledQuery('A'))
+            db.deferToCommit(lambda: events.append((db.currentConnectionName, db.currentEnv['onCommittingStep'])))
+            db.deferAfterCommit(lambda: events.append((db.currentConnectionName, db.currentEnv['onCommittingStep'])))
+            with db.tempEnv(connectionName='B'):
+                db.commit()
+                assert events == []
+            db.commit()
+            assert db.currentConnectionName == 'A'
             assert db.currentEnv['onCommittingStep'] is False
         assert events == [('A', True), ('A', True)]
 
@@ -239,7 +241,7 @@ def test_postcommit_python_failure_keeps_commit_and_rolls_back_only_new_work():
         raise ValueError('after commit')
 
     with pytest.raises(ValueError, match='after commit'):
-        with session.transaction():
+        with completed(session):
             session.execute(CompiledQuery('first'))
             session.defer_after_commit(fail)
     assert driver.persisted == ['first']
@@ -260,7 +262,7 @@ def test_precommit_error_retains_original_exception_if_cleanup_fails():
 
     driver.rollback_error = OSError('cleanup')
     with pytest.raises(ValueError) as caught:
-        with session.transaction():
+        with completed(session):
             session.execute(CompiledQuery('write'))
             session.defer_to_commit(fail)
     assert caught.value is original

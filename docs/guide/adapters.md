@@ -2,8 +2,8 @@
 
 Use `PostgresCompiler` and `PostgresDatabase` for the standard PostgreSQL path.
 The lower-level adapters let applications separate query planning, SQL syntax,
-parameter binding and database I/O. PostgreSQL with psycopg 3 is the implemented
-data backend; adapter protocols do not imply support for additional databases.
+parameter binding and database I/O. PostgreSQL uses psycopg 3; SQLite uses sqlite3 with SqliteDialect and SqliteDriver.
+Adapter protocols do not imply support for other execution backends.
 
 ## Assemble the PostgreSQL pipeline
 
@@ -26,7 +26,9 @@ def find_customer(model, conninfo, customer_id):
         params={'customer_id': customer_id},
     )
     with Database(conninfo, driver=driver, environment=environment) as db:
-        return db.execute(query)
+        result = db.execute(query)
+        db.commit()
+        return result
 ```
 
 Constructing a compiler or formatting a query does not connect to PostgreSQL.
@@ -158,3 +160,9 @@ query execution; a catalog provider does not make a new backend migratable.
 
 See [low-level transactions](low-level-runtime.md) for lifecycle rules and
 [current limitations](limitations.md) before implementing against an extension seam.
+
+For direct SQL, a synchronous driver also implements
+`prepare_sql(sql, sqlargs, snapshot)`, returning a profiled `CompiledQuery`. This
+adaptation belongs to the driver; the execution service does not compile model
+queries or import a database client. Injected drivers used only for compiled
+statements need no direct-SQL parser.

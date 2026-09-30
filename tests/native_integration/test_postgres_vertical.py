@@ -1,4 +1,5 @@
 """Cross-component acceptance tests, independent of the migration facade."""
+from tests.unit_of_work import completed
 import os
 from uuid import uuid4
 
@@ -77,7 +78,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
 
     def scenario():
         with PostgresDatabase(connect_kwargs=params) as db:
-            with db.transaction() as tx:
+            with completed(db) as tx:
                 customer = tx.execute(compiler.insert('crm.customer', {
                     'id': 1, 'name': "L'impresa 50%",
                 }))
@@ -102,8 +103,9 @@ def test_native_model_compiler_runtime_and_import(native_database):
                 'crm.invoice', {'total': 15}, where='$id = :id', params={'id': 11},
             ))
             assert updated.rows[0]['total'] == 15
+            db.commit()
             with pytest.raises(psycopg.errors.UniqueViolation):
-                with db.transaction() as tx:
+                with completed(db) as tx:
                     tx.execute(compiler.insert('crm.customer', {'id': 2, 'name': 'Rollback'}))
                     tx.execute(compiler.insert('crm.customer', {'id': 1, 'name': 'Duplicate'}))
             assert not (db.execute(compiler.select(
@@ -113,6 +115,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
                 'crm.invoice', where='$id = :id', params={'id': 12},
             ))
             assert deleted.rowcount == 1
+            db.commit()
     scenario()
     imported = inspect_postgres(connection, [schema], ui={
         f'{schema}.crm_customer.display name': {'label': 'Cliente'},
@@ -131,12 +134,13 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
     compiler = PostgresCompiler(resolve_model(recipe(schema)))
     with PostgresDatabase(connect_kwargs=params) as db:
         with pytest.raises(RuntimeError, match='abort transaction'):
-            with db.transaction() as tx:
+            with completed(db) as tx:
                 tx.execute(compiler.insert('crm.customer', {'id': 9, 'name': 'Aborted'}))
                 raise RuntimeError('abort transaction')
         assert not db.execute(compiler.select('crm.customer')).rows
         db.execute(compiler.insert('crm.customer', {'id': 10, 'name': 'Committed'}))
         assert db.execute(compiler.select('crm.customer', columns='$id')).rows == [{'id': 10}]
+        db.commit()
     assert connection.execute(sql.SQL('SELECT id FROM {}.crm_customer').format(
         sql.Identifier(schema))).fetchall() == [(10,)]
 
@@ -146,8 +150,9 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
     compiler = PostgresCompiler(resolve_model(recipe(schema)))
     with PostgresDatabase(connect_kwargs=params) as first, PostgresDatabase(connect_kwargs=params) as second:
         with pytest.raises(RuntimeError, match='abort first'):
-            with first.transaction() as tx:
+            with completed(first) as tx:
                 tx.execute(compiler.insert('crm.customer', {'id': 31, 'name': 'Abort'}))
                 second.execute(compiler.insert('crm.customer', {'id': 32, 'name': 'Commit'}))
+                second.commit()
                 raise RuntimeError('abort first')
         assert first.execute(compiler.select('crm.customer', columns='$id')).rows == [{'id': 32}]

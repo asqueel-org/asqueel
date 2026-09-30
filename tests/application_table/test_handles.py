@@ -1,3 +1,4 @@
+from asqueel.writes import WriteMixin
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import replace
@@ -20,7 +21,7 @@ class Config:
         return self.values.get(path, default)
 
 
-class Application:
+class Application(WriteMixin):
     def __init__(self, model):
         self.model = model
         self.environment = SqlEnvironment()

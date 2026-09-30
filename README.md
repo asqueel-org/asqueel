@@ -26,7 +26,7 @@ SQL remains available for expressions; Asqueel resolves model names and relation
 paths and binds query parameters.
 
 Asqueel brings Genropy's approach to database applications into a standalone
-library. The current alpha targets PostgreSQL, with explicit writes and transaction
+library. The current checkout supports PostgreSQL and SQLite, with explicit writes and transaction
 completion. Start with [What is Asqueel?](docs/guide/overview.md)
 for the approach and an example. The manual also covers planned capabilities;
 [Current status](docs/guide/limitations.md) identifies what works today and what
@@ -72,7 +72,7 @@ db.close()
 
 Against an existing `sales.customer` table, call `query.fetch()` to get a list
 of dictionaries. Table writes and reads share a lazy session. Use `db.commit()`
-and `db.rollback()`, or group operations with `with db.transaction():`.
+and `db.rollback()`. Select a named connection with `db.tempEnv(connectionName=...)`.
 Closing the database rolls back pending work; `with db:` does not commit it.
 
 Construction does not connect or create tables. The
@@ -162,3 +162,5 @@ pip install -e "../asqueel-migration[postgresql,validation]" -e ".[dev]"
 ## License
 
 Apache License 2.0 — Copyright Softwell S.r.l.
+
+SQLite configuration and runtime limitations are described in the [SQLite guide](docs/guide/sqlite.md).

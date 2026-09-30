@@ -1,4 +1,5 @@
 """Alias paths across live PostgreSQL application reads and physical writes."""
+from tests.unit_of_work import completed
 from uuid import uuid4
 
 import psycopg
@@ -115,7 +116,7 @@ def test_aliases_are_read_only_and_default_dml_returning_is_physical(alias_datab
     with pytest.raises(ValueError):
         table.insert({'id': 4, 'customer_name': 'bad'})
     db.rollback()
-    with db.transaction():
+    with completed(db):
         inserted = table.insert({'id': 4, 'customer_id': 1, 'amount': 40})
         assert inserted.rows == [{'id': 4, 'customer_id': 1, 'amount': 40}]
         updated = table.update({'amount': 41}, where='$id=4')

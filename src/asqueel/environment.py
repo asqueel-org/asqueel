@@ -10,7 +10,8 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from types import MappingProxyType
-from typing import Any
+from threading import local
+from typing import Any, cast
 
 
 def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:
@@ -74,30 +75,30 @@ class SqlEnvironment:
 class ApplicationEnvironment(SqlEnvironment):
     """Mutable synchronous application context with legacy tempEnv semantics.
 
-    The application DB guards thread ownership. ``current_env`` is a detached
-    snapshot; ``currentEnv`` is the live mapping. Do not share it between tasks
-    or threads. Compiler snapshots include workdate/locale defaults only.
+    Each thread owns a live mapping. ``current_env`` is a detached snapshot;
+    ``currentEnv`` must not be passed to another thread or async task.
+    Compiler snapshots include workdate/locale defaults only.
     """
 
     def __init__(self, source: SqlEnvironment | None = None):
-        if source is None:
-            super().__init__()
-        else:
-            self._values = source._values
+        self._defaults = _copy_values(source.current_env if source is not None else {}, 'initialization')
+        self._local = local()
 
     @property
     def current_env(self) -> Mapping[str, Any]:
-        return super().snapshot()
+        return MappingProxyType(_copy_values(self.currentEnv, 'snapshot'))
 
     @property
     def currentEnv(self) -> dict[str, Any]:
-        return self._values.get()
+        if not hasattr(self._local, 'values'):
+            self._local.values = _copy_values(self._defaults, 'thread initialization')
+        return cast(dict[str, Any], self._local.values)
 
     @currentEnv.setter
     def currentEnv(self, values: dict[str, Any]) -> None:
         if not isinstance(values, dict):
             raise TypeError('currentEnv must be a dictionary')
-        self._values.set(values)
+        self._local.values = values
 
     @property
     def workdate(self):
@@ -111,7 +112,7 @@ class ApplicationEnvironment(SqlEnvironment):
         return self.currentEnv.get('locale') or os.environ.get('GNR_LOCALE') or locale.getlocale()[0] or 'en_GB'
 
     def snapshot(self) -> Mapping[str, Any]:
-        values = dict(super().snapshot())
+        values = dict(self.current_env)
         values['workdate'] = self.workdate
         values['locale'] = self.locale
         return MappingProxyType(values)

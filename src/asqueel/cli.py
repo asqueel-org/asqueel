@@ -49,16 +49,22 @@ def target_arguments(command):
 
 
 def prepare_migration(db, *, allow_removals=False):
-    """Project the resolved model and delegate to the existing PostgreSQL migrator."""
-    from psycopg.conninfo import conninfo_to_dict
-    from asqueel_migration import PgDatabase, SqlMigrator
+    """Project the model and delegate to the existing backend migration adapter."""
+    from asqueel_migration import PgDatabase, SqliteDatabase, SqlMigrator
     from .migration import SqlMigrationRenderer
     from .projection import to_physical_builder
 
     implementation, conninfo, kwargs = connection_settings(db.config)
-    if implementation != 'postgresql':
-        raise CliError('This CLI currently supports the PostgreSQL Asqueel runtime')
-    params = conninfo_to_dict(conninfo or '', **(kwargs or {}))
+    if implementation == 'sqlite':
+        params = dict(kwargs or {})
+        params.setdefault('dbname', conninfo)
+        if params['dbname'] == ':memory:':
+            raise CliError('CLI migrations require persistent SQLite files')
+    elif implementation == 'postgresql':
+        from psycopg.conninfo import conninfo_to_dict
+        params = conninfo_to_dict(conninfo or '', **(kwargs or {}))
+    else:
+        raise CliError('Unsupported migration backend')
     if not params.get('dbname'):
         raise CliError('Declare connection.name (or an explicit dbname in the legacy connection settings)')
     desired = SqlMigrationRenderer(to_physical_builder(db.model)).render()
@@ -67,7 +73,8 @@ def prepare_migration(db, *, allow_removals=False):
     schemas = sorted(desired['root']['schemas'])
     if not schemas:
         raise CliError('Declare at least one nonempty managed schema before migrating')
-    database = PgDatabase(params, application_schemas=schemas)
+    database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase
+    database = database_class(params, application_schemas=schemas)
     migrator = SqlMigrator(database, ignore_constraint_name=True,
                           removeDisabled=not allow_removals)
     migrator.ormStructure = desired

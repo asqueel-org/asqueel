@@ -116,8 +116,8 @@ assert environment.current_env["allowed_organizations"] == [10, 20]
 ```
 
 Custom values used in snapshots must support `deepcopy`. The mutable application
-mapping and its temporary scopes do not provide async or thread-safe sharing;
-use them synchronously on the database's constructing thread.
+mapping and its temporary scopes belong to the calling thread. Each thread gets
+its own mapping; do not pass that mutable mapping to another thread or async task.
 
 ## Distinguish a lazy query from a compiled statement
 
@@ -135,8 +135,13 @@ with db.temp_env(customer_id=2):
         db.execute(compiled)
     except EnvironmentMismatchError:
         pass  # Rejected before execution: it captured customer_id=1.
-    with db.transaction():
+    try:
         rows = query.fetch()  # Fresh compilation now uses customer_id=2.
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
 ```
 
 Compilation captures values; a saved `CompiledQuery` does not automatically
@@ -158,18 +163,22 @@ environment checks.
 For `app.document` from the [row-policy guide](row-policies.md):
 
 ```python
-with db.transaction():
+try:
     with db.temp_env(organization=10):
         db.table("app.document").insert({"id": 100, "title": "First organization"})
     with db.temp_env(organization=20):
         db.table("app.document").insert({"id": 101, "title": "Second organization"})
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 Both operations share one transaction. Their partition columns are filled using
 their respective current organization. Switching context does not switch databases.
-The mutable application environment, named sessions and model graph
-belong to the constructing thread. They are not an async or thread-safe
-execution interface.
+The model graph is shared; mutable application environments and named sessions
+are isolated per thread. Concurrent async tasks within one thread are unsupported.
 
 ## Advanced: share context between independent components
 

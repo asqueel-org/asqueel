@@ -1,5 +1,28 @@
 # Release notes
 
+## 0.3.0
+
+Version prepared in the source repository; tagging and package publication are
+separate steps. This release changes transaction completion in the former
+low-level runtime: callers must now commit or roll back explicitly.
+
+- One execution implementation for AsqueelDb and the lower-level facades. Direct
+  SQL supports bound `:name` and environment parameters. Execute never commits
+  automatically; transaction objects and connection contexts have been removed.
+- Environment, named connections and write state are isolated per thread.
+  Each worker releases its own connections with `closeConnection()` or `close()`.
+- Write orchestration lives on the DB. Table methods delegate; raw variants skip
+  table hooks but retain shared DB hooks and change tracking. Extension points
+  are documented in the hook guide and legacy adaptation map.
+- SQLite runtime and CLI migration support reuse the existing migration adapter.
+  Attached schema files and immediate transactions have explicit concurrency and
+  DDL limitations; see the SQLite guide.
+- AsqueelDb copies supplied environment defaults per thread. Standalone executors
+  can still share an explicitly supplied SqlEnvironment with a compiler.
+
+Validation of this checkout: 618 tests passed against PostgreSQL and SQLite,
+including the installed wheel and executable examples; coverage 95%.
+
 ## 0.2.0
 
 Version prepared in the source repository; package publication is a separate

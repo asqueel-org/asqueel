@@ -1,15 +1,15 @@
 """Lazy synchronous application session retaining its physical connection."""
 from __future__ import annotations
 
-from contextlib import contextmanager
-from collections.abc import Iterator
 from typing import Any
 from uuid import uuid4
 
 from .contracts import CompiledQuery, QueryResult
 from .drivers.base import SyncDriver
 from .environment import SqlEnvironment
-from .runtime import Database, TransactionStateError
+from threading import current_thread
+
+from .errors import DatabaseClosedError, TransactionStateError
 
 
 class DeferredCommitError(RuntimeError):
@@ -20,8 +20,8 @@ class Session:
     """One named unit of work; commit/rollback retain the connection for reuse.
 
     SQL execution errors immediately roll back, as in legacy GnrSqlDb.execute.
-    Python domain failures remain rollback-only until explicitly cleared. An
-    optional transaction scope cannot silently succeed after a caught SQL error.
+    Python domain failures remain rollback-only until explicitly cleared.
+    Completion is always explicit.
     """
 
     def __init__(self, driver: SyncDriver, conninfo: str = '', *,
@@ -29,15 +29,17 @@ class Session:
                  environment: SqlEnvironment | None = None,
                  connection_name: str | None = None):
         self.environment = environment if environment is not None else SqlEnvironment()
-        self._runtime = Database(conninfo, driver=driver, connect_kwargs=connect_kwargs,
-                                 environment=self.environment)
+        self.driver = driver
+        self.conninfo = conninfo
+        self.connect_kwargs = dict(connect_kwargs or {})
+        if self.connect_kwargs.get('autocommit'):
+            raise ValueError('autocommit is incompatible with explicit transactions')
+        self._owner = current_thread()
         self._connection: Any = None
         self._pending = False
         self._committing = False
         self._completion_failed = False
         self._connection_name = connection_name
-        self._scope_active = False
-        self._scope_failed = False
         self._failed = False
         self._executing = False
         self._closed = False
@@ -100,8 +102,14 @@ class Session:
         self._deferred['after'].clear()
         self._pending_exceptions.clear()
 
+    def _check_owner(self) -> None:
+        if current_thread() is not self._owner:
+            raise TransactionStateError('Connection operations must run on the constructing thread')
+
     def _check_open(self) -> None:
-        self._runtime._check_open()
+        self._check_owner()
+        if self._closed:
+            raise DatabaseClosedError('Connection is closed')
 
     def _check_available(self) -> None:
         self._check_open()
@@ -112,31 +120,30 @@ class Session:
         self._check_available()
         if self._committing:
             raise TransactionStateError('Cannot reenter transaction completion from a commit callback')
-        if self._scope_active:
-            raise TransactionStateError('The transaction context owns session completion')
 
     def _check_usable(self) -> None:
         self._check_available()
-        if self._failed or self._completion_failed or (self._scope_active and self._scope_failed):
+        if self._failed or self._completion_failed:
             raise TransactionStateError('Session is rollback-only; call rollback before reuse')
 
     def execute(self, query: CompiledQuery) -> QueryResult:
         self._check_usable()
-        self._runtime._validate_query(query)
+        self.driver.validate(query)
+        if query.environment is not None:
+            query.environment.validate(self.environment.snapshot())
         self._execution_count += 1
         self._executing = True
         self._execution_error = None
         try:
             if self._connection is None:
-                self._connection = self._runtime.driver.connect(
-                    self._runtime.conninfo, **self._runtime.connect_kwargs)
+                self._connection = self.driver.connect(
+                    self.conninfo, **self.connect_kwargs)
             self._pending = True
             self.outcome = 'active'
-            return self._runtime.driver.execute(self._connection, query)
+            return self.driver.execute(self._connection, query)
         except BaseException as error:
             self._execution_error = error
             self._completion_failed = self._committing
-            self._scope_failed = self._scope_active
             try:
                 self._finish(False)
             except BaseException as cleanup_error:
@@ -155,7 +162,7 @@ class Session:
     def _discard_connection(self) -> None:
         connection, self._connection = self._connection, None
         if connection is not None:
-            self._runtime.driver.close(connection)
+            self.driver.close(connection)
 
     def _finish(self, commit: bool) -> None:
         if not self._pending:
@@ -166,7 +173,7 @@ class Session:
             return
         self._executing = True
         try:
-            operation = self._runtime.driver.commit if commit else self._runtime.driver.rollback
+            operation = self.driver.commit if commit else self.driver.rollback
             operation(self._connection)
             self.outcome = 'committed' if commit else 'rolled_back'
             self._failed = False
@@ -227,34 +234,8 @@ class Session:
         self._finish(False)
         self._failed = False
 
-    @contextmanager
-    def transaction(self) -> Iterator[Session]:
-        self._check_available()
-        if self._scope_active:
-            raise TransactionStateError('Nested session transaction contexts are unsupported')
-        if self._pending or self._failed:
-            raise TransactionStateError('Complete the pending session before entering a transaction context')
-        self._scope_active = True
-        self._scope_failed = False
-        try:
-            try:
-                yield self
-                if self._failed or self._scope_failed:
-                    raise TransactionStateError('Session transaction rolled back after a failed operation')
-                self._commit_pending()
-            except BaseException as error:
-                try:
-                    self._finish(False)
-                except BaseException as cleanup_error:
-                    error.add_note(f'Scope rollback failed: {type(cleanup_error).__name__}')
-                    raise error from cleanup_error
-                raise
-        finally:
-            self._scope_active = False
-            self._scope_failed = False
-
     def close(self) -> None:
-        self._runtime._check_owner()
+        self._check_owner()
         if self._closed:
             return
         self._check_manual_completion()
@@ -274,7 +255,6 @@ class Session:
                 else:
                     error.add_note(f'Connection cleanup also failed: {type(failure).__name__}')
         finally:
-            self._runtime.close()
             self._executing = False
             self._closed = True
         if error is not None:

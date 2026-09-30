@@ -1,7 +1,7 @@
 # Installation
 
 Asqueel requires Python 3.11 or later. The supported Python test matrix is
-3.11–3.13. PostgreSQL is the only implemented database execution backend.
+3.11–3.13. PostgreSQL and SQLite are implemented execution backends. SQLite uses the standard library and requires SQLite 3.35 or later.
 The package is alpha; check the API and feature limits when upgrading.
 
 ## Choose the dependencies you need

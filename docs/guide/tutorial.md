@@ -162,8 +162,8 @@ update is rolled back by `db.rollback()` in the exception handler. The
 final read confirms that the previously committed name remains.
 
 SQL execution errors automatically roll back the selected connection. A Python
-exception requires explicit rollback, as above. Optional atomic scopes are
-described separately in the transaction guide.
+exception requires explicit rollback, as above. Named connections and deferred
+callbacks are described in the transaction guide.
 
 ## 7. Own the lifecycle and clean up
 

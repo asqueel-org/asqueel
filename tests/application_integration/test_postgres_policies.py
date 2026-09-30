@@ -1,4 +1,5 @@
 """Row policies survive recipe materialization and application table dispatch."""
+from tests.unit_of_work import completed
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -59,7 +60,7 @@ def test_application_partition_draft_deletion_and_scoped_writes():
                 with db.temp_env(allowed_organizations=[0]):
                     assert [r['id'] for r in query.fetch()] == [1, 5]
                 db.rollback()
-                with db.temp_env(organization=0), db.transaction():
+                with db.temp_env(organization=0), completed(db):
                     inserted = item.insert({'id': 6, 'label': 'new'})
                     assert inserted.rows[0]['organization'] == 0
                     assert item.update({'label': 'forbidden'}, where='$id=2').rowcount == 0

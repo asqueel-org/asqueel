@@ -27,7 +27,7 @@ Synchronous runtime
 -------------------
 
 .. automodule:: asqueel.runtime
-   :members: Database, PostgresDatabase, Transaction, DatabaseClosedError, TransactionStateError
+   :members: Database, PostgresDatabase, DatabaseClosedError, TransactionStateError
 
 Environment
 -----------

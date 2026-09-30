@@ -1,4 +1,5 @@
 """Formula select/exists acceptance with real correlations and nested policies."""
+from tests.unit_of_work import completed
 from decimal import Decimal
 from uuid import uuid4
 
@@ -130,14 +131,14 @@ def test_scalar_multiple_rows_raise_and_this_inside_literal_comment_survives(for
             {'literal_marker': '#THIS.id'}]
         db.rollback()
         with pytest.raises(psycopg.errors.CardinalityViolation):
-            with db.transaction():
+            with completed(db):
                 db.table('invoice').query('$single_amount', where='$id=1').fetch()
         assert db.outcome == 'rolled_back'
 
 
 def test_default_returning_does_not_evaluate_subquery_virtuals(formula_database):
     db = formula_database
-    with db.transaction():
+    with completed(db):
         inserted = db.table('invoice').insert({'id': 4, 'name': 'new'})
         assert inserted.rows == [{'id': 4, 'name': 'new'}]
         updated = db.table('invoice').update({'name': 'updated'}, where='$id=4')

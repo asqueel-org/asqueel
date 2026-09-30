@@ -58,13 +58,13 @@ or its physical-name mapping differs from the existing database.
 
 | Symptom | Explanation and recovery |
 |---|---|
-| Writes disappear after leaving `with db:` | Closing rolls back pending work. Use `with db.transaction():` or explicit `db.commit()`. |
+| Writes disappear after leaving `with db:` | Closing rolls back pending work. Use `db.commit()` / `db.rollback()` or explicit `db.commit()`. |
 | Cannot enter a transaction scope | A prior read or write may already have opened a pending transaction. Complete it deliberately first; nested scopes are not supported. |
-| Session is rollback-only | A Python table hook failed, rollback failed, or the optional atomic scope caught a SQL error. Roll back explicitly outside the scope; ordinary application SQL errors already trigger automatic rollback. |
+| Session is rollback-only | A table/shared write hook failed or rollback failed. Roll back explicitly; ordinary SQL execution errors already trigger automatic rollback. |
 | `EnvironmentMismatchError` | A saved compiled statement captured different context. Recompile within the intended scope or use a lazy query terminal there. |
 | `RecordNotFoundError` | No visible record matched, or a hooked write failed to identify its row. Review the selector and scope. |
 | `RecordMultipleRowsError` | A record read or hooked update/delete matched more than one row. Fix the selector; do not hide matches with a limit. |
-| Thread ownership error | Construct, use and close the database within the same thread. Do not move a Bag/model/session across workers. |
+| Thread ownership error | Share the DB, not its internal sessions or driver connections. Each worker must release its own connections. |
 | `DatabaseClosedError` | Construct a new database; closed objects cannot be reopened. |
 | Commit outcome is `unknown` | The server outcome was not confirmed. Reconcile using application identifiers before retrying. |
 

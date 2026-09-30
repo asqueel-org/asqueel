@@ -67,8 +67,13 @@ shared environment:
 ```python
 # db comes from a recipe declaring the app.document policy above.
 with db.temp_env(organization=0):
-    with db.transaction():
+    try:
         documents = db.table('app.document').query(columns='$id, $title', order_by='$id').fetch()
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
 ```
 
 This SELECT restricts `organization_id` to `0`, includes only rows whose draft
@@ -234,7 +239,7 @@ both retain the normal partition write guards.
 from datetime import datetime, timezone
 
 with db.temp_env(organization=10):
-    with db.transaction():
+    try:
         document = db.table('app.document')
         deleted = document.soft_delete(
             value=datetime.now(timezone.utc),
@@ -245,6 +250,11 @@ with db.temp_env(organization=10):
             where='$id = :id', params={'id': 100},
             returning='$id, $deleted_at',
         )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
 ```
 
 These table methods execute immediately in the shared transaction. They require

@@ -3,13 +3,12 @@
 Start with a database built from a `SqlDatabaseConfig` recipe. All examples on
 this page use the `sales.customer`, `sales.invoice` and `sales.line` model in the
 [tutorial](tutorial.md). They assume its physical tables and seed data exist.
-Run each independent example inside `with db.transaction():` so the read
-transaction is completed when the block ends.
+Each example explicitly commits on success and rolls back on failure, including reads.
 
 ## Select, filter and order
 
 ```python
-with db.transaction():
+try:
     invoice = db.table("sales.invoice")
     rows = invoice.query(
         columns="$id, @customer.name AS customer_name, $total",
@@ -18,6 +17,11 @@ with db.transaction():
         order_by="$total DESC, $id",
         limit=20,
     ).fetch()
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 `rows` is a list of dictionaries. With the tutorial data it contains one invoice:
@@ -74,13 +78,18 @@ new formulas can otherwise change both the output and the cost of a query.
 ## Bind values, including collections
 
 ```python
-with db.transaction():
+try:
     rows = db.table("sales.customer").query(
         columns="$id, $name",
         where="$name ILIKE :pattern",
         params={"pattern": "%ad%"},
         order_by="$id",
     ).fetch()
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 Parameters bind values, not identifiers or SQL fragments. Choose ordering and
@@ -95,11 +104,16 @@ query options. Prefer the explicit mapping for reusable application code.
 For PostgreSQL list membership, use `ANY` with a Python list:
 
 ```python
-with db.transaction():
+try:
     rows = db.table("sales.customer").query(
         columns="$id, $name", where="$id = ANY(:ids)",
         params={"ids": [1, 2]}, order_by="$id",
     ).fetch()
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 An empty array matches no rows. For the PostgreSQL `ANY` expression, use a cast
@@ -114,12 +128,17 @@ Use `IS NULL` for a NULL test. `column = :value` with `value=None` does not mean
 ## Navigate relations without writing joins
 
 ```python
-with db.transaction():
+try:
     rows = db.table("sales.invoice").query(
         columns="$id, @customer.name AS customer_name",
         where="@customer.name = :name", params={"name": "Ada"},
         order_by="$id",
     ).fetch()
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 The relation is declared by the model, and its target must be a recognized
@@ -135,11 +154,16 @@ plain join; the root table's policies govern the query.
 ## Use aliases, formulas and aggregates
 
 ```python
-with db.transaction():
+try:
     rows = db.table("sales.invoice").query(
         columns="$id, $customer_name, $double_total, $line_total, $has_lines",
         order_by="$id",
     ).fetch()
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 All five names are model columns. `customer_name` is an alias to a related column;
@@ -150,9 +174,14 @@ formulas. Their declaration and scope rules are in [models](models.md) and
 For a count, use an explicit SQL aggregate:
 
 ```python
-with db.transaction():
+try:
     rows = db.table("sales.invoice").query(columns="COUNT(*) AS n").fetch()
     count = rows[0]["n"]
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 Use `query.count()` when you want the count of a query result. Use `group_by`,
@@ -164,12 +193,17 @@ those have an explicit result shape.
 ## Fetch exactly one record
 
 ```python
-with db.transaction():
+try:
     customer = db.table("sales.customer")
     reader = customer.record(1)
     first = reader.output("dict")
     again = reader.output("dict")  # A copy of the same cached snapshot.
     immediate = customer.record(2, mode="dict")
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 `record()` enforces exactly one visible match. It raises `RecordNotFoundError`
@@ -198,10 +232,15 @@ compiled = query.compiled  # No connection required.
 print(compiled.sql)
 print(dict(compiled.params))
 
-with db.transaction():
+try:
     result = query.execute()
     assert result.rows[0]["id"] == 10
     assert [column.name for column in result.columns] == ["id", "total"]
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 `QueryResult` has `rows`, `rowcount` and `columns`. Direct model projections carry
@@ -216,9 +255,14 @@ execution and parameter formatting, see [the compiler interface](compiler.md).
 ## Lock rows during a change
 
 ```python
-with db.transaction():
+try:
     row = db.table("sales.customer").record(1, for_update=True).output("dict")
     db.table("sales.customer").update({"id": row["id"], "name": "Ada Lovelace"})
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
 ```
 
 PostgreSQL locks only the base table with `FOR UPDATE OF`. Locks end at commit or

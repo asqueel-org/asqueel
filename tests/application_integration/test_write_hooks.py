@@ -1,4 +1,5 @@
 """Real locking and atomic update/delete lifecycle through application handles."""
+from tests.unit_of_work import completed
 from copy import deepcopy
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -122,7 +123,7 @@ def test_post_hook_failure_rolls_back_write_and_cross_table_effects(hooked_datab
     table = db.table('item')
     table.fail = True
     with pytest.raises(ValueError, match='hook failure'):
-        with db.transaction():
+        with completed(db):
             if operation == 'update':
                 table.update({'org': 0, 'id': 0, 'name': 'changed'})
             else:
@@ -138,7 +139,7 @@ def test_exactly_one_locked_record_before_any_hook(hooked_database, operation):
     for where, error in [('$id=99', RecordNotFoundError), ('$org=0', RecordMultipleRowsError),
                          ('$org=1', RecordNotFoundError)]:
         with pytest.raises(error):
-            with db.transaction():
+            with completed(db):
                 if operation == 'update':
                     table.update({'name': 'changed'}, where=where)
                 else:
@@ -161,7 +162,7 @@ def test_pre_hook_holds_postgres_row_lock(hooked_database):
             attempted.append(True)
 
     table.probe_lock = probe
-    with db.transaction():
+    with completed(db):
         table.update({'org': 0, 'id': 0, 'name': 'locked'})
     assert attempted == [True]
     assert persisted(observer, schema)[0] == (0, 0, 'locked')
@@ -171,7 +172,7 @@ def test_soft_delete_restore_call_update_hooks_with_deleted_record_visible(hooke
     db, observer, schema = hooked_database
     table = db.table('item')
     marker = datetime(2026, 9, 29, tzinfo=timezone.utc)
-    with db.transaction():
+    with completed(db):
         table.soft_delete(marker, '$id=1')
         assert table.query(where='$id=1').fetch() == []
         table.restore('$id=1')
@@ -185,7 +186,7 @@ def test_hook_key_change_uses_saved_old_key_and_plain_tables_keep_batch_writes(h
     db, observer, schema = hooked_database
     table = db.table('item')
     table.replace_key = 7
-    with db.transaction():
+    with completed(db):
         result = table.update({'org': 0, 'id': 0, 'name': 'moved'})
         assert result.rows[0]['id'] == 7
         assert table.events[-1][2]['id'] == 0
@@ -233,7 +234,7 @@ def test_precommit_exception_rolls_back_real_writes_and_skips_after(hooked_datab
         raise ValueError('pre-commit failure')
 
     with pytest.raises(ValueError, match='pre-commit failure'):
-        with db.transaction():
+        with completed(db):
             db.table('item').update({'org': 0, 'id': 0, 'name': 'changed'})
             db.deferToCommit(fail)
             db.deferAfterCommit(lambda: events.append('after'))

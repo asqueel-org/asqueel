@@ -125,10 +125,15 @@ Against an existing database with the example table:
 db = AsqueelDb(Shop)
 try:
     customer = db.table("customer")
-    with db.transaction():
+    try:
         customer.insert({"id": 1, "name": "Ada"})
         rows = customer.query(where="$id = :wanted", wanted=1).fetch()
         assert rows[0]["name"] == "Ada"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
 finally:
     db.close()
 
@@ -158,10 +163,10 @@ semantics and transaction rules.
 
 ## Ownership and advanced integration
 
-A database and its session belong to their constructing thread. Create separate
-database objects for independent contexts. Repeated table lookup within one
-instance preserves identity; separate builds have separate live objects and
-sessions. Treat configuration as fixed after construction: editing its tree does
+A database shares its model and table handles between threads. Connections and
+mutable execution state are isolated per thread. Repeated table lookup within one
+instance preserves identity; custom table classes must not store per-request state
+on shared attributes. Treat configuration as fixed after construction: editing its tree does
 not rebuild the resolved model or change an existing session's connection settings.
 
 `SqlBuilder`, `resolve_model`, `QueryCompiler` and the low-level `Database` remain

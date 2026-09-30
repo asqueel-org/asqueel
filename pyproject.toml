@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "asqueel"
-version = "0.2.0"
+version = "0.3.0"
 description = "SQL model, PostgreSQL compiler and synchronous runtime"
 readme = "README.md"
 license = "Apache-2.0"

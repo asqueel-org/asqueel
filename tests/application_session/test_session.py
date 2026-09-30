@@ -1,3 +1,4 @@
+from tests.unit_of_work import completed
 from concurrent.futures import ThreadPoolExecutor
 import threading
 
@@ -63,7 +64,7 @@ class Driver:
 def test_creation_and_empty_context_have_no_io():
     driver = Driver()
     session = Session(driver)
-    with session.transaction() as active:
+    with completed(session) as active:
         assert active is session
     session.commit()
     session.rollback()
@@ -91,12 +92,12 @@ def test_ambient_operations_share_connection_and_wait_for_commit():
 def test_context_commits_atomically_or_rolls_back_on_python_error():
     driver = Driver()
     session = Session(driver)
-    with session.transaction():
+    with completed(session):
         session.execute(CompiledQuery('first'))
         session.execute(CompiledQuery('second'))
     assert driver.persisted == ['first', 'second']
     with pytest.raises(RuntimeError, match='hook'):
-        with session.transaction():
+        with completed(session):
             session.execute(CompiledQuery('third'))
             raise RuntimeError('hook failed')
     assert driver.persisted == ['first', 'second']
@@ -124,14 +125,14 @@ def test_failed_ambient_session_rolls_back_immediately_and_is_reusable():
 def test_mark_failed_prevents_silent_context_success(with_sql):
     driver = Driver()
     session = Session(driver)
-    with pytest.raises(TransactionStateError, match='rolled back'):
-        with session.transaction():
+    with pytest.raises(TransactionStateError, match='rollback-only'):
+        with completed(session):
             if with_sql:
                 session.execute(CompiledQuery('first'))
             session.mark_failed()
     assert driver.persisted == []
     assert driver.calls == (['connect', 'first', 'rollback'] if with_sql else [])
-    with session.transaction():
+    with completed(session):
         session.execute(CompiledQuery('healthy'))
     assert driver.persisted == ['healthy']
     session.close()
@@ -152,23 +153,16 @@ def test_mark_failed_without_sql_requires_manual_rollback():
     session.close()
 
 
-def test_context_rejects_nested_adoption_and_manual_completion():
+def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
     driver = Driver()
     session = Session(driver)
     session.execute(CompiledQuery('pending'))
-    with pytest.raises(TransactionStateError, match='pending'):
-        with session.transaction():
-            pass
+    session.commit()
+    session.commit()
+    session.execute(CompiledQuery('next'))
     session.rollback()
-    with session.transaction():
-        with pytest.raises(TransactionStateError, match='Nested'):
-            with session.transaction():
-                pass
-        for operation in (session.commit, session.rollback, session.close):
-            with pytest.raises(TransactionStateError, match='context owns'):
-                operation()
-        session.execute(CompiledQuery('ok'))
-    assert driver.persisted == ['ok']
+    assert driver.persisted == ['pending']
+    assert driver.calls.count('commit') == 1
     session.close()
 
 
@@ -248,14 +242,13 @@ def test_driver_callback_cannot_reenter_session_completion():
     session.close()
 
 
-def test_caught_driver_error_cannot_commit_context_as_success():
+def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
     driver = Driver()
     session = Session(driver)
-    with pytest.raises(TransactionStateError, match='rolled back'):
-        with session.transaction():
-            session.execute(CompiledQuery('before'))
-            with pytest.raises(LookupError):
-                session.execute(CompiledQuery('fail'))
+    session.execute(CompiledQuery('before'))
+    with pytest.raises(LookupError):
+        session.execute(CompiledQuery('fail'))
+    session.commit()
     assert driver.persisted == []
     assert session.outcome == 'rolled_back'
     assert driver.calls[-1] == 'rollback'
@@ -284,8 +277,7 @@ def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
     session = Session(driver)
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(LookupError):
-        with session.transaction():
-            session.execute(CompiledQuery('fail'))
+        session.execute(CompiledQuery('fail'))
     assert session.outcome == 'unknown'
     with pytest.raises(TransactionStateError, match='rollback-only'):
         session.execute(CompiledQuery('unsafe retry'))

@@ -45,7 +45,7 @@ extensions = [
 templates_path = []
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # Publish application-developer documentation only. Internal notes stay in Git.
-include_patterns = ["index.rst", "api.rst", "grammar.md", "guide/**"]
+include_patterns = ["index.rst", "api.rst", "grammar.md", "adattamenti-legacy.md", "guide/**"]
 
 # MyST: the guides and narrative pages are Markdown; the toctree skeleton is rst.
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}

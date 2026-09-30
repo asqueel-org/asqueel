@@ -64,16 +64,21 @@ requires exactly one row. See [writes](writes.md) for the detailed contract.
 db = AsqueelDb(Recipe)
 try:
     with db.temp_env(organization=10):     # Context only; does not open a connection.
-        with db.transaction():            # Commits on success, rolls back on error.
+        try:
             db.table("app.document").insert({"id": 100, "title": "Example"})
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
 finally:
     db.close()
 
 ```
 
-Use `db.commit()` / `db.rollback()` for manual completion outside atomic scopes.
-Even reads open transactions. No nested scopes/savepoints are provided. Construct,
-use and close each database on the same thread.
+Use `db.commit()` / `db.rollback()` for explicit completion.
+Even reads open transactions. Nested tempEnv scopes are supported; savepoints are not. A database can be shared
+between threads; each worker must release its own connections.
 
 ## Defaults that matter
 

@@ -1,3 +1,4 @@
+from tests.unit_of_work import completed
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -26,7 +27,8 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
         assert db.current_env == {'company': 0}
     assert db.current_env == {}
     assert db.outcome == 'not_started'
-    with db.transaction():
+    assert not hasattr(db, 'transaction')
+    with completed(db):
         pass
     assert driver.calls == []
     with db:
@@ -38,17 +40,23 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
         db.table('item')
 
 
-def test_database_and_handles_reject_cross_thread_operations_before_io():
+def test_database_and_handles_can_be_used_by_another_thread():
     driver = Driver()
     db = build_database(Recipe, driver=driver)
     table = db.table('item')
     query = table.query()
+
+    def worker():
+        assert db.table('item') is table
+        query.fetch()
+        db.close()
+
     with ThreadPoolExecutor(max_workers=1) as pool:
-        for call in (lambda: db.table('item'), table.query, query.fetch, db.close):
-            with pytest.raises(TransactionStateError, match='constructing thread'):
-                pool.submit(call).result()
-    assert driver.calls == []
+        pool.submit(worker).result()
+    assert driver.calls[-2:] == ['rollback', 'close']
+    table.query().fetch()
     db.close()
+    assert driver.calls.count('connect') == 2
 
 
 def test_invalid_implementation_and_table_class_fail_before_connection():

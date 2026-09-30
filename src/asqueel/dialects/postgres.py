@@ -11,7 +11,7 @@ from ..query_plan import Fragment, Identifier, Parameter, QueryPlan, SqlStatemen
 
 _DOLLAR = re.compile(r"\$(?:[A-Za-z_][A-Za-z_0-9]*)?\$")
 
-def _tokens(sql: str):
+def _tokens(sql: str, *, sqlite=False):
     """Yield (kind, text), preserving SQL strings, identifiers and comments."""
     i = 0
     while i < len(sql):
@@ -35,13 +35,13 @@ def _tokens(sql: str):
             if depth:
                 raise ValueError('Unclosed SQL comment')
             yield 'comment', sql[start:i]
-        elif sql[i] in "'\"" or sql.startswith('$"', i):
+        elif sql[i] in "'\"" or sql.startswith('$"', i) or (sqlite and sql[i] in "`["):
             field_reference = sql.startswith('$"', i)
             if field_reference:
                 i += 1
-            delimiter = sql[i]
+            delimiter = ']' if sql[i] == '[' else sql[i]
             # PostgreSQL E'...' supports backslash escapes; ordinary strings do not.
-            escaped = delimiter == "'" and i > 0 and sql[i - 1] in 'eE' and (
+            escaped = not sqlite and delimiter == "'" and i > 0 and sql[i - 1] in 'eE' and (
                 i < 2 or not (sql[i - 2].isalnum() or sql[i - 2] == '_'))
             i += 1
             closed = False

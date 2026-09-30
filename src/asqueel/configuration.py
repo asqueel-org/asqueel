@@ -146,6 +146,13 @@ def connection_settings(config):
     if not isinstance(name, str) or not name.strip():
         raise ValueError('connection.name must resolve to a nonempty database name')
     options['dbname'] = name
+    if implementation == 'sqlite':
+        if any(config(f'connection.{key}', default=None) is not None
+               for key in ('host', 'port', 'user', 'password')):
+            raise ValueError('SQLite uses a filename, not host/user/password/port')
+        if set(options) - {'dbname', 'timeout', 'cached_statements'}:
+            raise ValueError('Unsupported SQLite connection options')
+        return implementation, '', options
     for name in ('host', 'port', 'user', 'password'):
         value = config(f'connection.{name}', default=None)
         if value is not None:
