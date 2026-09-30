@@ -28,7 +28,9 @@ su DB reale; modello e mapping identici per lettura e scrittura.
 **Risultato:** capability per funzione, server, driver ed estensioni.
 **Accettazione:** corpus eseguito nel sottoinsieme dichiarato; errori espliciti
 fuori dal perimetro, senza emulazioni silenziose con risultati diversi.
-**Motivazione:** F-R03. SQLite come secondo backend è una raccomandazione, non un vincolo utente.
+**Motivazione:** F-R03. SQLite è ora un backend richiesto esplicitamente
+dall'utente. Il supporto deve essere implementato e verificato; non è ancora
+disponibile nel runtime attuale.
 
 ## O-04 — Costruzione del modello dal database
 

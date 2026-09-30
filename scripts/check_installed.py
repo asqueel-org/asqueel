@@ -71,7 +71,7 @@ def main():
         return
     with tempfile.TemporaryDirectory(prefix='asqueel-wheel-') as directory:
         destination = Path(directory)
-        for name in ('tests', 'docs'):
+        for name in ('tests', 'docs', 'examples'):
             shutil.copytree(repository / name, destination / name)
         for name in ('README.md', 'pyproject.toml'):
             shutil.copy2(repository / name, destination / name)

@@ -143,8 +143,12 @@ native-object declarations and some result APIs still need specification. The
 manual explains their roles without inventing finalized constructors for them.
 
 F1 has working named connections and mutable environment, but is not fully
-closed: complete locale validation and Python hook-error equivalence remain
-open. Deferred callbacks and trigger-stack behavior now have targeted verification;
+closed: complete locale validation and compatibility of deliberate low-level
+recovery after a caught Python error remain open. Normal legacy record-cluster
+saves already abort on propagated errors; this is not a difference in normal
+save behavior.
+Six hook positions and pre/post-commit Python failures have been compared on
+PostgreSQL; the difference is described in [legacy compatibility](legacy.md). Deferred callbacks and trigger-stack behavior now have targeted verification;
 application event integration remains separate.
 
 ## Verified commit lifecycle

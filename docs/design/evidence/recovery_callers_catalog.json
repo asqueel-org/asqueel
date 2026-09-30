@@ -1,0 +1,1697 @@
+{
+  "revision": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "tracked_python_files": 1648,
+  "parsed_files": 1648,
+  "handler_count": 517,
+  "worktree_changes_excluded": [
+    " M projects/test_invoice/packages/invc/model/customer.py",
+    " M projects/test_invoice/packages/invc/model/invoice.py",
+    " M projects/test_invoice/packages/invc/model/invoice_row.py"
+  ],
+  "syntax_or_read_failures": [],
+  "candidate_count": 61,
+  "candidate_source_sha256": {
+    "gnrpy/gnr/app/gnrapp.py": "3b6f5d8d72cd6ff43ad4b2ecc77b572e71c9f4e3a0ce191781d644427cec29a7",
+    "gnrpy/gnr/app/gnrdbo.py": "713590700950f2b42d2228e4e6828a03707bc7d5e55132526bb7dd948f8315e2",
+    "gnrpy/gnr/core/loghandlers/gnrapp.py": "1aa809becb966b64e6ea3922a2e8124eb31a83a4953a37c65a0fa42d8f633a1b",
+    "gnrpy/gnr/core/loghandlers/postgres.py": "20da1a0514e5e248972841cace786bf7dc1ba3f7a4aafab03f5bff0504411e86",
+    "gnrpy/gnr/db/cli/gnrmigrate.py": "0d5154974415fba7022cb742b3770350e2a661ba91c0b20c570b1587c128a36d",
+    "gnrpy/gnr/sql/adapters/_gnrbasepostgresadapter.py": "172307ad13fd6430c78c73a02a35c634db0cdaf64baa53b82338300876c2e498",
+    "gnrpy/gnr/sql/adapters/gnrmysql.py": "c7e0af3fd99bdb162b1f0c361c95ff8c6d20972ea299e1d9a13291dd1261a38f",
+    "gnrpy/gnr/sql/adapters/gnrsqlite.py": "34d8afffcfb68ea378da5772dc99f4737f1cffdf7e7873fe83ea44481d3c1c28",
+    "gnrpy/gnr/sql/gnrsql/connections.py": "2ba31361e635a54a98893f5efdab99f2588fdf00c7ca7708ea4d617cd66daf1c",
+    "gnrpy/gnr/sql/gnrsql/execute.py": "435d408b4e77f53896c4d79d000564026a9faf695e5ecc87b65b6c1f08de8861",
+    "gnrpy/gnr/sql/gnrsqlmigration/executor.py": "e38a6755526e89772db9e9a290dbc955476febc0ac0ad116449fbd1a1e7dbf3b",
+    "gnrpy/gnr/sql/gnrsqlmodel/model.py": "efe2461441340e9dc5cbf984d4f29a91504fcbc7668092e1e7e3a24192287c57",
+    "gnrpy/gnr/sql/gnrsqltable/triggers.py": "a345f672eddbd5d5f6236178898617ec2d906e458a4f0884105342ce5fcf02b4",
+    "gnrpy/gnr/sql/gnrsqlutils.py": "76f2c9a149f7b024caa3e211cb6ac0b34ea0046d1bb3cdcd5c85b2c8547a0e81",
+    "gnrpy/gnr/sql/pgutils.py": "66fa662bc1637fba4cebf6a79566e2d23db9a5ca205c546fcbb8e95868f040f5",
+    "gnrpy/gnr/web/_gnrbasewebpage.py": "88193ff5de88225873b473996f8e77fef12f81896c98be0c4e88156351149b90",
+    "gnrpy/gnr/web/batch/btcbase.py": "0fbb9b81af1b1234333fa8fa85abaf00bfd6fbd36d117a37cc428cf152807f53",
+    "gnrpy/gnr/web/batch/btcmail.py": "91f38491c0f66196ec5f909868479b389f6c70f8d7c6ce20ee07a5d5bdc0e71e",
+    "gnrpy/gnr/web/cli/gnrstoragemove.py": "e6373e10744004b771ebf3ca149078ced35f5c65abf2a6f78bb6bacd8ddb23ef",
+    "gnrpy/gnr/web/cli/gnrtaskcontrol.py": "ebe4238680748207014b873ddd2d0e0fddf8b160dd8f806053ccf7062b1d8f0e",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/misc.py": "4b0c4df401699f8b524d16177c89b062e949c07804732f080f78821f38fe9fa2",
+    "gnrpy/gnr/web/gnrwsgisite.py": "1f679275d922091c70918ab1124665da72b4236ca0a921541db2cf1b0aacd2ae",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrresourceloader.py": "7caf0615ebb07e58eb5b367cfbb803771c71990596137d386c6a4fc84e84a4c0",
+    "gnrpy/tests/sql/common.py": "4956dab21d322fbed8b0c4ded1c89c73b9cdff32ba98f691786b9f8b2d44b5bf",
+    "gnrpy/tests/sql/conftest.py": "c5d84290dbe12211f71606b44db45b355c5f66d0de462215d18cd8c9741c8d3e",
+    "gnrpy/tests/sql/test_db_notify.py": "d03b85670b5110f6c9f0cabb0441f26f69bdbfcb345a2560b8371f8e5c4bb8fc",
+    "gnrpy/tests/web/gnrstoragehandler_test.py": "789e690351eeb99533b14b0946fe1014e02ec8375263f44d4856a8acea50aad9",
+    "projects/gnrcore/packages/adm/model/backup.py": "0d32c160befdec3f83a27ae4782e3ac278fdc071a14023441053bc54e40fcc77",
+    "projects/gnrcore/packages/adm/model/preference.py": "ba074cf58b4bf21b1f2f6728e0a232d54728d69fd28b6e0c1d619d1d9235fa86",
+    "projects/gnrcore/packages/adm/model/userobject.py": "95f1eda3d637ab8c3266a1d5557d0db30a6e8ceef8beacdeee80547638ac031c",
+    "projects/gnrcore/packages/adm/resources/login.py": "693ebfb8c4f6b75ee8cb4ced724d0da85a2840302902a385b4de839826e18754",
+    "projects/gnrcore/packages/docu/tests/test_docu_resolver.py": "7b44eeea19b0f1cd69ac819b0535e7f817710e487697d80b62cb0ffc089233ce",
+    "projects/gnrcore/packages/email/lib/imap.py": "9b04cc4c269ea68165ed9c348fd5b3f311fdfcc2bbd9f74acc5b3bb59977709e",
+    "projects/gnrcore/packages/email/lib/utils.py": "c8b33ce45d4ceabf77bd37748c94e8f64d415c592a98c87a395b33be961ccdb5",
+    "projects/gnrcore/packages/email/model/message.py": "26919b040d2e0f15af2f428fa76bb641f4588c6b799d48d5afa7ee2b3d113112",
+    "projects/gnrcore/packages/email/resources/services/mailproxy/mailproxy.py": "b6dfe86fd3558f7cc50c9423fa86041dccc541f8c721bfe0cb0f91b0132d5096",
+    "projects/gnrcore/packages/email/resources/tables/account/action/receive_mail.py": "ef8d719ba0bbcdff4f6a5c3a77abc2f42d24055e504771fcd93aa350e67b7d55",
+    "projects/gnrcore/packages/email/webpages/mailproxy/mp_endpoint.py": "5bd32ec8224859ec7a04fbf2bd50c1a08d523dfba0fb17bd0a6c4df8c3acc37d",
+    "projects/gnrcore/packages/multidb/main.py": "4196208e5779516cf7669110896b0cb9ba0798b4fc7de774a9b76a9e6b61bc98",
+    "projects/gnrcore/packages/multidb/model/_packages/adm/user.py": "1502ee236eca0664a1fdab4ad83be91387fa74ea346239364e3348b8cdb528a3",
+    "projects/gnrcore/packages/sys/model/locked_record.py": "15da6da561544e499a2e35560954af98a9ee41272f857b76206951a3f77c0276",
+    "projects/gnrcore/packages/sys/model/upgrade.py": "b256d035a05d580eeeb2575c52eb81ab0d15bfc13edde54f23ff663c3e2f9440",
+    "projects/gnrcore/packages/sys/webpages/ep_table.py": "f203f1fea21d9627e3c50263e26323a993b0b59f56efd91e24a59f2b776ef8e9",
+    "resources/common/_unused/standardRecordViews.py": "b4b93b571663be4acbbd4ccd96848737f196904d8a28ef410616143d8d5c6346"
+  },
+  "candidates": [
+    {
+      "file": "gnrpy/gnr/app/gnrapp.py",
+      "scope": "GnrApp.importTableFromLegacyDb",
+      "try_line": 1817,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 1819,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 1841,
+          "call": "destbl.insertMany"
+        },
+        {
+          "line": 1842,
+          "call": "sourcedb.closeConnection"
+        }
+      ]
+    },
+    {
+      "file": "gnrpy/gnr/app/gnrdbo.py",
+      "scope": "AttachmentTable.trigger_onDeletedAtc",
+      "try_line": 1930,
+      "body_calls": [
+        {
+          "line": 1932,
+          "call": "snode.delete"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 1933,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 1934,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/core/loghandlers/gnrapp.py",
+      "scope": "GnrAppLoggingHandler._process_record",
+      "try_line": 15,
+      "body_calls": [
+        {
+          "line": 19,
+          "call": "self.gnrapp.db.table(self.table_name).insert"
+        },
+        {
+          "line": 20,
+          "call": "self.gnrapp.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 21,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/core/loghandlers/postgres.py",
+      "scope": "GnrPostgresqlLoggingHandler._process_record",
+      "try_line": 69,
+      "body_calls": [
+        {
+          "line": 75,
+          "call": "cursor.execute"
+        },
+        {
+          "line": 76,
+          "call": "conn.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 78,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/db/cli/gnrmigrate.py",
+      "scope": "main",
+      "try_line": 211,
+      "body_calls": [
+        {
+          "line": 216,
+          "call": "app.db.commit"
+        },
+        {
+          "line": 257,
+          "call": "app.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 260,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [
+        {
+          "line": 264,
+          "call": "app.db.closeConnection"
+        }
+      ],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/adapters/_gnrbasepostgresadapter.py",
+      "scope": "PostgresSqlDbBaseAdapter._createDb",
+      "try_line": 401,
+      "body_calls": [
+        {
+          "line": 402,
+          "call": "curs.execute"
+        },
+        {
+          "line": 403,
+          "call": "conn.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 404,
+          "type": "bare",
+          "calls": [],
+          "exits": [
+            {
+              "line": 405,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/adapters/gnrmysql.py",
+      "scope": "SqlDbAdapter.createDb",
+      "try_line": 139,
+      "body_calls": [
+        {
+          "line": 140,
+          "call": "curs.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 141,
+          "type": "bare",
+          "calls": [],
+          "exits": [
+            {
+              "line": 142,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+      "scope": "SqlDbAdapter.execute",
+      "try_line": 161,
+      "body_calls": [
+        {
+          "line": 165,
+          "call": "cursor.execute"
+        },
+        {
+          "line": 167,
+          "call": "cursor.execute"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+      "scope": "SqlDbAdapter.raw_fetch",
+      "try_line": 182,
+      "body_calls": [
+        {
+          "line": 186,
+          "call": "cursor.execute"
+        },
+        {
+          "line": 188,
+          "call": "cursor.execute"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+      "scope": "GnrSqliteCursor.execute",
+      "try_line": 508,
+      "body_calls": [
+        {
+          "line": 509,
+          "call": "pysqlite.Cursor.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 510,
+          "type": "pysqlite.OperationalError",
+          "calls": [
+            {
+              "line": 517,
+              "call": "pysqlite.Cursor.execute"
+            }
+          ],
+          "exits": [
+            {
+              "line": 518,
+              "kind": "Return"
+            },
+            {
+              "line": 521,
+              "kind": "Raise"
+            }
+          ]
+        },
+        {
+          "line": 522,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 524,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+      "scope": "GnrSqliteCursor.execute",
+      "try_line": 516,
+      "body_calls": [
+        {
+          "line": 517,
+          "call": "pysqlite.Cursor.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 519,
+          "type": "pysqlite.OperationalError",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsql/connections.py",
+      "scope": "ConnectionMixin.closeConnection",
+      "try_line": 52,
+      "body_calls": [
+        {
+          "line": 54,
+          "call": "conn.rollback"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 56,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsql/execute.py",
+      "scope": "ExecuteMixin.execute",
+      "try_line": 123,
+      "body_calls": [
+        {
+          "line": 140,
+          "call": "c.execute"
+        },
+        {
+          "line": 145,
+          "call": "cursor.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 152,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 156,
+              "call": "self.rollback"
+            }
+          ],
+          "exits": [
+            {
+              "line": 157,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 160,
+          "call": "self.commit"
+        }
+      ]
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsqlmigration/executor.py",
+      "scope": "ExecutorMixin.verifyConversionBackups",
+      "try_line": 290,
+      "body_calls": [
+        {
+          "line": 291,
+          "call": "self.db.execute"
+        },
+        {
+          "line": 313,
+          "call": "self.db.adapter.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 315,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+      "scope": "DbModel.addRelation",
+      "try_line": 240,
+      "body_calls": [
+        {
+          "line": 298,
+          "call": "meta_kwargs.update"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 347,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 349,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsqltable/triggers.py",
+      "scope": "TriggersMixin.check_updatable",
+      "try_line": 220,
+      "body_calls": [
+        {
+          "line": 221,
+          "call": "self.protect_update"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 223,
+          "type": "EXCEPTIONS['protect_update']",
+          "calls": [],
+          "exits": [
+            {
+              "line": 224,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsqltable/triggers.py",
+      "scope": "TriggersMixin.check_deletable",
+      "try_line": 229,
+      "body_calls": [
+        {
+          "line": 230,
+          "call": "self.protect_delete"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 232,
+          "type": "EXCEPTIONS['protect_delete']",
+          "calls": [],
+          "exits": [
+            {
+              "line": 233,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsqlutils.py",
+      "scope": "SqlModelChecker.addExtensions",
+      "try_line": 203,
+      "body_calls": [
+        {
+          "line": 208,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 209,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/gnrsqlutils.py",
+      "scope": "SqlModelChecker.changeRelations",
+      "try_line": 611,
+      "body_calls": [
+        {
+          "line": 614,
+          "call": "db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 615,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 617,
+              "call": "db.rollback"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/sql/pgutils.py",
+      "scope": "PgDbUtils._query_to_json",
+      "try_line": 36,
+      "body_calls": [
+        {
+          "line": 39,
+          "call": "cursor.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 43,
+          "type": "GnrNonExistingDbException",
+          "calls": [],
+          "exits": [
+            {
+              "line": 45,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/_gnrbasewebpage.py",
+      "scope": "GnrBaseWebPage.deleteRecordCluster",
+      "try_line": 574,
+      "body_calls": [
+        {
+          "line": 577,
+          "call": "tblobj.writeRecordCluster"
+        },
+        {
+          "line": 579,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 581,
+          "type": "GnrSqlDeleteException",
+          "calls": [],
+          "exits": [
+            {
+              "line": 582,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/_gnrbasewebpage.py",
+      "scope": "GnrBaseWebPage.deleteDbRow",
+      "try_line": 594,
+      "body_calls": [
+        {
+          "line": 599,
+          "call": "tblobj.delete"
+        },
+        {
+          "line": 601,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 603,
+          "type": "GnrSqlDeleteException",
+          "calls": [],
+          "exits": [
+            {
+              "line": 604,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/batch/btcbase.py",
+      "scope": "BaseResourceBatch.__call__",
+      "try_line": 70,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 77,
+          "type": "self.btc.exception_stopped",
+          "calls": [],
+          "exits": []
+        },
+        {
+          "line": 80,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 85,
+              "kind": "Raise"
+            },
+            {
+              "line": 91,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [
+        {
+          "line": 97,
+          "call": "self.batch_logtbl.insert"
+        },
+        {
+          "line": 98,
+          "call": "self.db.commit"
+        }
+      ],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/batch/btcbase.py",
+      "scope": "BaseResourceBatch.__call__",
+      "try_line": 87,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 90,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 91,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 97,
+          "call": "self.batch_logtbl.insert"
+        },
+        {
+          "line": 98,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "gnrpy/gnr/web/batch/btcbase.py",
+      "scope": "BaseResourceBatch._post_process",
+      "try_line": 117,
+      "body_calls": [
+        {
+          "line": 118,
+          "call": "self.db.autoCommit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 119,
+          "type": "self.db.exceptions['missedCommit']",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/batch/btcmail.py",
+      "scope": "BaseResourceMail._send_one_email_legacy",
+      "try_line": 43,
+      "body_calls": [
+        {
+          "line": 54,
+          "call": "self.db.table('adm.sent_email').insert"
+        },
+        {
+          "line": 55,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 57,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 59,
+              "call": "self.db.table('adm.sent_email').insert"
+            },
+            {
+              "line": 60,
+              "call": "self.db.commit"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/cli/gnrstoragemove.py",
+      "scope": "StorageMover.run",
+      "try_line": 95,
+      "body_calls": [
+        {
+          "line": 145,
+          "call": "tbl.raw_update"
+        },
+        {
+          "line": 146,
+          "call": "self.site.db.commit"
+        },
+        {
+          "line": 147,
+          "call": "src_node.delete"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/cli/gnrstoragemove.py",
+      "scope": "StorageMover.run",
+      "try_line": 104,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 106,
+          "type": "GnrSqlMissingTable",
+          "calls": [],
+          "exits": [
+            {
+              "line": 108,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 145,
+          "call": "tbl.raw_update"
+        },
+        {
+          "line": 146,
+          "call": "self.site.db.commit"
+        },
+        {
+          "line": 147,
+          "call": "src_node.delete"
+        }
+      ]
+    },
+    {
+      "file": "gnrpy/gnr/web/cli/gnrstoragemove.py",
+      "scope": "StorageMover.run",
+      "try_line": 109,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 117,
+          "type": "(GnrSqlMissingColumn, GnrSqlMissingField)",
+          "calls": [],
+          "exits": [
+            {
+              "line": 119,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 145,
+          "call": "tbl.raw_update"
+        },
+        {
+          "line": 146,
+          "call": "self.site.db.commit"
+        },
+        {
+          "line": 147,
+          "call": "src_node.delete"
+        }
+      ]
+    },
+    {
+      "file": "gnrpy/gnr/web/cli/gnrtaskcontrol.py",
+      "scope": "main",
+      "try_line": 103,
+      "body_calls": [
+        {
+          "line": 104,
+          "call": "client.execute"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 112,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/misc.py",
+      "scope": "MiscMixin.deleteDbRows",
+      "try_line": 237,
+      "body_calls": [
+        {
+          "line": 255,
+          "call": "tblobj.update"
+        },
+        {
+          "line": 260,
+          "call": "tblobj.update"
+        },
+        {
+          "line": 262,
+          "call": "tblobj.delete"
+        },
+        {
+          "line": 264,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 266,
+          "type": "GnrSqlDeleteException",
+          "calls": [],
+          "exits": [
+            {
+              "line": 267,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/misc.py",
+      "scope": "MiscMixin.archiveDbRows",
+      "try_line": 293,
+      "body_calls": [
+        {
+          "line": 305,
+          "call": "tblobj.update"
+        },
+        {
+          "line": 308,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 309,
+          "type": "GnrSqlDeleteException",
+          "calls": [],
+          "exits": [
+            {
+              "line": 310,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/gnr/web/gnrwsgisite.py",
+      "scope": "GnrWsgiSite.__init__",
+      "try_line": 457,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 459,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 518,
+          "call": "self.db.commit"
+        },
+        {
+          "line": 532,
+          "call": "self.db.closeConnection"
+        }
+      ]
+    },
+    {
+      "file": "gnrpy/gnr/web/gnrwsgisite_proxy/gnrresourceloader.py",
+      "scope": "ResourceLoader.find_webtools",
+      "try_line": 117,
+      "body_calls": [
+        {
+          "line": 121,
+          "call": "tools.update"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 122,
+          "type": "ImportError",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/common.py",
+      "scope": "BaseGnrSqlTest.teardown_class",
+      "try_line": 149,
+      "body_calls": [
+        {
+          "line": 151,
+          "call": "cls.db.closeConnection"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/conftest.py",
+      "scope": "_db_pg",
+      "try_line": 164,
+      "body_calls": [],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [
+        {
+          "line": 181,
+          "call": "app.db.closeConnection"
+        }
+      ],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/conftest.py",
+      "scope": "_db_pg",
+      "try_line": 174,
+      "body_calls": [
+        {
+          "line": 181,
+          "call": "app.db.closeConnection"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/test_db_notify.py",
+      "scope": "TestDbNotifyPayload.test_notify_true_insert",
+      "try_line": 136,
+      "body_calls": [
+        {
+          "line": 139,
+          "call": "db_pg.commit"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/test_db_notify.py",
+      "scope": "TestDbNotifyPayload.test_notify_fields_delete",
+      "try_line": 166,
+      "body_calls": [
+        {
+          "line": 169,
+          "call": "db_pg.commit"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/test_db_notify.py",
+      "scope": "TestDbNotifyPayload.test_notify_fields_update_changed",
+      "try_line": 194,
+      "body_calls": [
+        {
+          "line": 198,
+          "call": "db_pg.commit"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/sql/test_db_notify.py",
+      "scope": "TestDbNotifyPayload.test_notify_fields_update_no_change",
+      "try_line": 225,
+      "body_calls": [
+        {
+          "line": 229,
+          "call": "db_pg.commit"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "gnrpy/tests/web/gnrstoragehandler_test.py",
+      "scope": "TestStorageHandler.test_relative_storage_from_service_record",
+      "try_line": 1014,
+      "body_calls": [
+        {
+          "line": 1035,
+          "call": "node.delete"
+        }
+      ],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [
+        {
+          "line": 1037,
+          "call": "tblservice.delete"
+        },
+        {
+          "line": 1038,
+          "call": "self.site.db.commit"
+        }
+      ],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/backup.py",
+      "scope": "Table.deleteBackupFile",
+      "try_line": 36,
+      "body_calls": [
+        {
+          "line": 37,
+          "call": "childSn.delete"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 39,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/preference.py",
+      "scope": "Table.loadPreference",
+      "try_line": 113,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 115,
+          "type": "RecordNotExistingError",
+          "calls": [
+            {
+              "line": 117,
+              "call": "self.insert"
+            },
+            {
+              "line": 118,
+              "call": "self.db.commit"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/userobject.py",
+      "scope": "Table.checkResourceUserObject",
+      "try_line": 156,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 160,
+          "type": "OSError",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 162,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/resources/login.py",
+      "scope": "LoginComponent.login_createNewUser",
+      "try_line": 522,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 524,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 525,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 526,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/resources/login.py",
+      "scope": "LoginComponent.login_confirmNewPassword",
+      "try_line": 594,
+      "body_calls": [
+        {
+          "line": 602,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 603,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 605,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/docu/tests/test_docu_resolver.py",
+      "scope": "TestDocuResolver.test_homonym_candidates_are_bounded",
+      "try_line": 265,
+      "body_calls": [],
+      "handlers": [],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/email/lib/imap.py",
+      "scope": "ImapReceiver.receive",
+      "try_line": 61,
+      "body_calls": [
+        {
+          "line": 64,
+          "call": "self.messages_table.insert"
+        },
+        {
+          "line": 65,
+          "call": "self.account_table.update"
+        },
+        {
+          "line": 66,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 67,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 68,
+              "call": "self.db.rollbackAll"
+            },
+            {
+              "line": 72,
+              "call": "self.account_table.update"
+            },
+            {
+              "line": 73,
+              "call": "self.db.commit"
+            }
+          ],
+          "exits": [
+            {
+              "line": 71,
+              "kind": "Raise"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 75,
+          "call": "self.account_table.update"
+        },
+        {
+          "line": 76,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/email/lib/utils.py",
+      "scope": "ImapReceiver.receive",
+      "try_line": 67,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 69,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 75,
+          "call": "self.messages_table.insert"
+        },
+        {
+          "line": 77,
+          "call": "self.account_table.update"
+        },
+        {
+          "line": 78,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/email/model/message.py",
+      "scope": "Table.sendMessage",
+      "try_line": 390,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 404,
+          "type": "SMTPConnectError",
+          "calls": [],
+          "exits": []
+        },
+        {
+          "line": 409,
+          "type": "Exception",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 417,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/email/resources/services/mailproxy/mailproxy.py",
+      "scope": "Main.activateService",
+      "try_line": 370,
+      "body_calls": [
+        {
+          "line": 377,
+          "call": "service_tbl.recordToUpdate"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 396,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 397,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/email/resources/tables/account/action/receive_mail.py",
+      "scope": "Main.do",
+      "try_line": 21,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 23,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 24,
+              "call": "self.db.rollbackAll"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/email/webpages/mailproxy/mp_endpoint.py",
+      "scope": "GnrCustomWebPage._update_from_delivery_report",
+      "try_line": 220,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 225,
+          "type": "(TypeError, ValueError)",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 238,
+          "call": "messagetbl.update"
+        },
+        {
+          "line": 240,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/email/webpages/mailproxy/mp_endpoint.py",
+      "scope": "GnrCustomWebPage._update_from_delivery_report",
+      "try_line": 231,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 235,
+          "type": "(TypeError, ValueError)",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 238,
+          "call": "messagetbl.update"
+        },
+        {
+          "line": 240,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/multidb/main.py",
+      "scope": "MultidbTable._checkSyncAll_store",
+      "try_line": 475,
+      "body_calls": [
+        {
+          "line": 477,
+          "call": "self.insertMany"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 478,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 480,
+              "call": "self.raw_update"
+            },
+            {
+              "line": 482,
+              "call": "self.raw_insert"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/multidb/model/_packages/adm/user.py",
+      "scope": "Table.newStoreUser",
+      "try_line": 14,
+      "body_calls": [
+        {
+          "line": 20,
+          "call": "self.db.table('adm.user').insert"
+        },
+        {
+          "line": 30,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 31,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 32,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/locked_record.py",
+      "scope": "Table.lockRecord",
+      "try_line": 28,
+      "body_calls": [
+        {
+          "line": 29,
+          "call": "self.insert"
+        },
+        {
+          "line": 30,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 32,
+          "type": "self.db.connection.IntegrityError",
+          "calls": [
+            {
+              "line": 33,
+              "call": "self.db.rollback"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/upgrade.py",
+      "scope": "Table.runUpgrade",
+      "try_line": 74,
+      "body_calls": [
+        {
+          "line": 80,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 81,
+          "type": "Exception",
+          "calls": [
+            {
+              "line": 84,
+              "call": "self.db.rollbackAll"
+            }
+          ],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 86,
+          "call": "self.recordToUpdate"
+        },
+        {
+          "line": 92,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/webpages/ep_table.py",
+      "scope": "GnrCustomWebPage._get_documentNode",
+      "try_line": 79,
+      "body_calls": [],
+      "handlers": [
+        {
+          "line": 81,
+          "type": "AttributeError",
+          "calls": [],
+          "exits": []
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": [
+        {
+          "line": 110,
+          "call": "tblobj.recordToUpdate"
+        },
+        {
+          "line": 113,
+          "call": "self.db.commit"
+        }
+      ]
+    },
+    {
+      "file": "resources/common/_unused/standardRecordViews.py",
+      "scope": "RecordAndViews.rpc_save",
+      "try_line": 136,
+      "body_calls": [
+        {
+          "line": 137,
+          "call": "self.tblobj.insertOrUpdate"
+        },
+        {
+          "line": 138,
+          "call": "self.db.commit"
+        }
+      ],
+      "handlers": [
+        {
+          "line": 141,
+          "type": "Exception",
+          "calls": [],
+          "exits": [
+            {
+              "line": 142,
+              "kind": "Return"
+            }
+          ]
+        }
+      ],
+      "else_calls": [],
+      "finally_calls": [],
+      "later_calls": []
+    }
+  ]
+}

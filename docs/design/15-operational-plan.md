@@ -4,7 +4,16 @@ Stato aggiornato al 30 settembre 2026: F1 è **aperta**. Sessioni nominate ed
 environment hanno verifiche; i difetti della bozza trigger/deferred censiti nel
 [riesame 18](18-interrupted-lifecycle-review.md) sono risolti nella
 [consegna 19](19-deferred-lifecycle-fixes.md).
-Localizzazione completa ed errori Python restano da completare. Le code pending
+Il [riesame degli errori Python 20](20-python-error-lifecycle.md) verifica 16
+scenari per implementazione su PostgreSQL e corregge attribuzione degli errori
+fra connessioni e preservazione dell'eccezione originale durante cleanup.
+Il controllo successivo del salvataggio legacy conferma che gli errori impediscono
+il commit nel percorso normale e che deferredRaise blocca anche il retry.
+Il [riesame dei chiamanti 21](21-recovery-callers.md) verifica rollback e ripresa,
+log indipendente e salvataggio dello stato di errore: nove scenari per backend.
+La protezione nativa resta invariata; il logger senza rollback è un rischio di
+porting documentato. Restano retry delle callback, percorsi applicativi indicati
+nel riesame e localizzazione completa. Le code pending
 sono requisito di chiusura F1 prima di F2; F4 ne integra l'uso nei record/eventi.
 F0 dispone di primi oracle, ma il censimento complessivo resta aperto.
 Baseline: `2bed211d5c0c2144e4669b9259114757db12e65d`, più documentazione in lavorazione.
@@ -105,6 +114,21 @@ Nessuna assegnazione ad agenti o esecuzione parallela è avviata da questo piano
 **Uscita:** fixture riproducibile, primi confronti transazioni/path/risultati
 eseguibili e registro delle divergenze. Conteggio di test definiti distinto da
 raccolti, eseguiti, saltati e superati. Riferimenti: LT01–LT42.
+
+### Attività collaterale C1 — Package legacy → dichiarazione Python
+
+Avviare l'analisi e una prima verticale di traduzione di un package Genropy
+reale in sorgente dichiarativo del modello nuovo, con provenienza, dipendenze
+e diagnosi delle parti non traducibili. Il [compito 22](22-legacy-package-translation.md)
+definisce perimetro e criteri di verifica. Alimenta F2 e anticipa l'importazione
+package di F9; non sostituisce la priorità sul nucleo DB né blocca F1.
+
+Il package legacy è una sottoapplicazione con contributi SQL, GUI e altri
+servizi. Studiare nel puro SQL import opzionali sull'elemento `db`: i contributi
+importati dichiarano schemi, tabelle e colonne tramite le grammatiche esistenti.
+Questo punto di composizione dovrà poter accogliere la parte SQL di una futura
+sottoapplicazione. Sintassi, collocazione fisica della configurazione e mapping
+fra package, namespace logico e schema fisico restano da definire.
 
 ### F1 — Transazioni ed environment come nel legacy
 
@@ -267,7 +291,14 @@ LT01–LT03, LT36–LT41.
 2. Partition fisiche PostgreSQL: chiavi/vincoli, routing, attach/detach e
    lifecycle nel migratore; studio separato dalle subtables e dalla policy row.
 3. Store/tenant: environment, nomi, isolamento e confini transazionali.
-4. Altri dialect dati: matrice di capacità e suite comune; struttura gestita
+4. SQLite, richiesto dall'utente: adapter dati e driver, configurazione per file
+   e memoria, letture/scritture e transazioni verificate sul backend reale.
+   Collegare e verificare il percorso strutturale con l'adapter SQLite già
+   presente in sqlmigration (che dispone anche di PostgreSQL, MySQL e SQL Server).
+   Non reimplementare gli adapter di migrazione. Definire
+   mapping degli schemi logici, tipi, foreign key, locking e limiti delle
+   modifiche strutturali senza assumere equivalenza con PostgreSQL.
+5. Ulteriori dialect dati: matrice di capacità e suite comune; struttura gestita
    tramite gli adapter di sqlmigration.
 
 **Uscita per incremento:** roundtrip e migrazione verificati, letture/scritture

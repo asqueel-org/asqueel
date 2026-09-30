@@ -42,6 +42,7 @@ class Session:
         self._executing = False
         self._closed = False
         self._execution_error: BaseException | None = None
+        self._execution_count = 0
         self._deferred: dict[str, dict[str, dict[tuple[int, str], tuple[Any, tuple, dict]]]] = {
             'before': {}, 'after': {},
         }
@@ -122,6 +123,7 @@ class Session:
     def execute(self, query: CompiledQuery) -> QueryResult:
         self._check_usable()
         self._runtime._validate_query(query)
+        self._execution_count += 1
         self._executing = True
         self._execution_error = None
         try:

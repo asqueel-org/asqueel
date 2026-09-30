@@ -2,9 +2,13 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from contextlib import contextmanager
+from pathlib import Path
+import sys
 
 from genro_builders.builder import BuilderBase, element
 from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
+from genro_bag import BagResolver
 
 from .builder import SqlBuilder
 
@@ -46,9 +50,19 @@ class ConfigurationView:
 class SqlDatabaseElements:
     """Keep root grammar in a mixin so recipe subclasses retain its defaults."""
 
-    @element(sub_tags='schemas[:1], extensions[:1]', node_label='db')
-    def db(self, name: str, implementation: str = 'postgresql', conninfo: str = '',
+    @element(sub_tags='connection[:1], schemas[:1], extensions[:1]', node_label='db')
+    def db(self, name: str = 'db', implementation: str = 'postgresql', conninfo: str = '',
            connect_kwargs: dict | None = None):
+        ...
+
+    @element(parent_tags='db', sub_tags='', node_label='connection')
+    def connection(self, name: str | BagResolver, implementation: str = 'postgresql',
+                   host: str | BagResolver | None = None,
+                   port: int | BagResolver | None = None,
+                   user: str | BagResolver | None = None,
+                   password: str | BagResolver | None = None,
+                   options: dict | None = None):
+        """Single connection configuration; name is the physical database name."""
         ...
 
 
@@ -73,7 +87,75 @@ def _copy_recipe(recipe):
 def _owned_handler(source, parents=None):
     def own(recipe):
         return _copy_recipe(recipe) if isinstance(recipe, BuilderBase) else recipe
-    return ConfigHandler(own(source), parents=[own(item) for item in (parents or ())])
+    sources = [configuration_source(item) for item in (*(parents or ()), source)]
+    with _recipe_imports(sources):
+        return ConfigHandler(own(sources[-1]), parents=[own(item) for item in sources[:-1]])
+
+
+def configuration_source(source):
+    """Resolve a registered name, a recipe path/directory or a Python class."""
+    if isinstance(source, str) and ':' in source and not source.endswith('.py'):
+        from pkgutil import resolve_name
+        return resolve_name(source)
+    if isinstance(source, str) and '/' not in source and '\\' not in source and source not in ('.', '..') and not source.endswith('.py'):
+        from .registry import DatabaseRegistry
+        return DatabaseRegistry().resolve(source)
+    if isinstance(source, (str, Path)):
+        path = Path(source).expanduser().resolve()
+        return path / 'configure.py' if path.is_dir() else path
+    return source
+
+
+@contextmanager
+def _recipe_imports(sources):
+    """Let the standard file loader import packages containing its recipe.
+
+    ConfigHandler remains the recipe loader; file recipes use absolute imports.
+    Only Python package roots (directories with __init__.py) are inferred.
+    """
+    added = []
+    for source in sources:
+        if not isinstance(source, Path):
+            continue
+        root = source.parent
+        while (root / '__init__.py').is_file():
+            root = root.parent
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+            added.append(str(root))
+    try:
+        yield
+    finally:
+        for root in added:
+            sys.path.remove(root)
+
+
+def connection_settings(config):
+    """Read standard config attributes, resolving EnvResolver via ConfigHandler."""
+    implementation = config('connection.implementation', default=None)
+    if implementation is None:
+        return (config('implementation', default='postgresql'),
+                config('conninfo', default=''), config('connect_kwargs', default=None))
+    if config('conninfo', default='') or config('connect_kwargs', default=None):
+        raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
+    options = dict(config('connection.options', default=None) or {})
+    reserved = {'dbname', 'host', 'port', 'user', 'password'} & options.keys()
+    if reserved:
+        raise ValueError('Connection fields must be declared directly, not inside options')
+    name = config('connection.name', default=None)
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError('connection.name must resolve to a nonempty database name')
+    options['dbname'] = name
+    for name in ('host', 'port', 'user', 'password'):
+        value = config(f'connection.{name}', default=None)
+        if value is not None:
+            expected = int if name == 'port' else str
+            if not isinstance(value, expected) or isinstance(value, bool):
+                raise ValueError(f'connection.{name} resolved to an invalid type')
+            options[name] = value
+    if options.get('autocommit'):
+        raise ValueError('Asqueel requires transactional connections, not autocommit')
+    return implementation, '', options
 
 
 def build_database(source, *, parents=None, driver=None, dialect=None, environment=None):

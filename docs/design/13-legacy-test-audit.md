@@ -197,3 +197,22 @@ Il piano F1 include ora esplicitamente il caso di due connessioni A/B allo stess
 DB, con conclusione indipendente delle transazioni e ripristino della selezione.
 La precedente voce generica connectionName sottostimava questo requisito.
 Fonte: lettura delle implementazioni, non nuova esecuzione della suite legacy.
+
+
+## Python-error lifecycle follow-up — 30 September 2026
+
+The [F1 error review](20-python-error-lifecycle.md) adds contracts PY01–PY06 to
+LT26–LT29: 16 real-PostgreSQL scenarios for each implementation cover six write
+hook positions, explicit rollback versus attempted commit, and pre/post-commit
+callback failures with and without new SQL. It records the difference between
+legacy continuation and native rollback-only behavior; it does not declare that
+difference approved or the overall F0 inventory complete.
+
+The [caller follow-up](21-recovery-callers.md) reviews 61 lexical candidates
+from 1,648 tracked Python files and executes nine scenarios per backend using
+five original caller bodies. Explicit rollback/recovery, independent logging
+and handled SMTP failure agree within the fixture boundaries. A logger without
+rollback persists partial failed work in legacy and blocks subsequent writes
+in native Asqueel; this is a porting risk, not a newly accepted compatibility
+requirement. Callback retry differences and the documented broad-catch branches
+remain open.

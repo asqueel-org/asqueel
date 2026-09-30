@@ -29,7 +29,10 @@ same physical connection.
 `db.close()` rolls back pending work and closes the session. Likewise, leaving
 `with build_database(YourRecipe) as db:` closes the database; it does **not**
 commit pending writes on a successful exit. Use an explicit commit or the
-transaction scope below. Database operations must run on the constructing thread.
+transaction scope below. If the body raises and database cleanup also fails,
+the body exception remains the raised error; the cleanup failure is attached as
+its cause. A cleanup failure without a body exception is raised directly.
+Database operations must run on the constructing thread.
 
 ## Optional atomic scope
 
@@ -69,7 +72,11 @@ except psycopg.errors.UniqueViolation:
 An executed SQL error automatically rolls back the selected connection before
 propagating the original error. Previous writes on that connection are discarded;
 with ordinary implicit transactions, a later operation can start new work without
-an additional manual rollback. Other named connections remain independent.
+an additional manual rollback. Other named connections remain independent. If a table hook on A calls SQL on
+B and B's error escapes the hook, B is rolled back automatically, while A's
+incomplete table operation becomes rollback-only. A rollback on B cannot undo
+work already performed on A. A connection unrelated to that operation remains
+usable.
 
 A Python domain error in a table write/hook still marks that session rollback-only;
 call `db.rollback()` before reuse. Inside the optional atomic scope, a caught SQL
@@ -77,6 +84,13 @@ error also prevents successful scope completion: exit raises `TransactionStateEr
 If automatic rollback itself fails, the connection is discarded, the outcome is
 `unknown`, and explicit recovery is required. The original SQL error is preserved
 with the rollback failure as its cause.
+
+For batch processing, catch a failed item outside its write, roll back, then
+save its error status and continue with the next item in a new transaction.
+An independent named connection can commit an error log while the failed main
+transaction awaits rollback. Catching an external service error before a
+successful database write can also let you store that error as application
+status; this does not require committing a failed database operation.
 
 A hook cannot commit, roll back or close the database during its enclosing write.
 This ensures its changes and the primary write have one transaction boundary.

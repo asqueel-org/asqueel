@@ -6,6 +6,17 @@ Questo documento conserva il piano del refactoring. Dopo l'autorizzazione
 ne documentano l'esecuzione. L'obiettivo è estrarre PostgreSQL senza cambiare
 la semantica verificata. Gli altri dialetti arrivano successivamente.
 
+**Requisito acquisito:** SQLite deve essere incluso fra gli adapter supportati
+da realizzare. Non è più una raccomandazione opzionale. Il lavoro comprende
+dialetto dati, driver e configurazione su file/in memoria. Il migratore dispone
+già di adapter, reader e writer per PostgreSQL, SQLite, MySQL e SQL Server:
+riutilizzare quel supporto, verificando il collegamento dal modello/configurazione
+Asqueel, senza pianificarne una nuova implementazione. Servono test reali e
+matrice delle capacità del runtime. Mapping degli schemi,
+foreign key, tipi e locking richiedono contratti espliciti. Questa registrazione
+non dichiara SQLite già disponibile né sposta automaticamente la priorità del
+lavoro corrente su configurazione e CLI PostgreSQL.
+
 ## 1. Confine dei componenti
 
 | Componente | Decide e produce | Non deve fare |

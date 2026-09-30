@@ -3,6 +3,11 @@
 ## Vincoli acquisiti, da non rimettere fra le alternative
 
 - PostgreSQL è prioritario in lettura e scrittura; altri dialetti possono essere parziali.
+- SQLite è un adapter richiesto esplicitamente dall'utente, non una semplice
+  raccomandazione. Prevedere dialetto dati e driver con prove proprie;
+  riutilizzare l'adapter SQLite del migratore, già dotato dei quattro backend
+  PostgreSQL, SQLite, MySQL e SQL Server. Verificare il collegamento con Asqueel
+  e registrare le capacità e le differenze rispetto a PostgreSQL.
 - Modello ottenibile dal DB e da package/applicazioni legacy, oltre alla via nativa.
 - Componenti/mixin di adattamento legacy sono ammessi.
 - aggregateRows e la ricomposizione Python implicita sono eliminati anche nel bridge.
@@ -163,8 +168,9 @@ Materialized view e procedure distinte dalle funzioni richiedono una scelta di p
 
 ### D-12 — Dialetti ulteriori e rilascio
 
-**Scelta:** secondo backend, packaging del bridge, profili pubblici e requisiti di supporto.
-**Raccomandazione:** SQLite per verifiche portabili iniziali; altri in base a
-utilizzo reale. Un adapter deve dichiarare ciò che non supporta.
+**Acquisito:** SQLite è richiesto come backend aggiuntivo.
+**Scelta residua:** packaging del bridge, profili pubblici, requisiti di supporto
+e calendario di consegna. Ulteriori backend in base all'utilizzo reale.
+Un adapter deve dichiarare ciò che non supporta.
 **Tradeoff:** copertura nominale larga senza test reali dà falsa portabilità.
 **Da chiudere:** sottoinsieme iniziale in P0, matrice di rilascio in P8.

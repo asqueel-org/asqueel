@@ -5,6 +5,11 @@ Builders recipe. `build_database()` produces a synchronous `SqlDatabase` with
 stable table, column and relation objects. Construction validates and binds the
 model without connecting, executing SQL, or applying migrations.
 
+The [CLI and named configurations](cli.md) guide covers the singleton
+`connection` declaration with `EnvResolver`, `~/.asqueel` registration,
+migration commands and a Python console with `db` available. The older root
+connection attributes shown below remain supported.
+
 ## Build or render a recipe
 
 ```python

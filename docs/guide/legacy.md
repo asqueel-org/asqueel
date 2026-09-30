@@ -65,6 +65,28 @@ The compatibility adapter translates legacy declarations and application
 conventions. It must preserve their observable contract or expose an explicitly
 agreed difference. It is separate from SQL dialect adapters.
 
+## Python errors: normal saves and explicit recovery
+
+Normal legacy record-cluster saves do not reach commit when a write or an
+`onSaving`/`onSaved` hook raises. Request cleanup rolls back pending work.
+An error queued with `deferredRaise()` also prevents commit, including retry.
+The distinction below concerns code that deliberately catches an ordinary
+Python exception and continues at the low-level database API.
+
+If you catch a Python error from a write hook or pre-commit callback, the legacy
+standalone core can still let you commit the writes already performed. Current
+Asqueel requires rollback before reuse. After-commit errors cannot undo a commit
+that has already succeeded; any new work started by the failed callback must
+be rolled back in Asqueel. Residual callbacks are discarded during that recovery.
+
+This low-level recovery difference is verified on PostgreSQL. It does not mean
+that normal legacy saves persisted failed operations. Its compatibility with
+callers that deliberately recover remains under review. Do not port code that catches a hook error
+and continues to commit without reviewing its intended effects. See
+[transactions](transactions.md) for the current native behavior. Web request
+cleanup and application-specific exception handlers are separate from this
+standalone-core comparison.
+
 ## Move application integration to its own layer
 
 Keep generic database operations in the standalone layer. Connect localization,

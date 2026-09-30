@@ -1,0 +1,940 @@
+{
+  "native_baseline": "e8e9bf4",
+  "method": "Original legacy AST methods and Bag; real PostgreSQL with independent observer; fixed fixture adapter; excludes framework, validation, counters, related writes and notifications.",
+  "legacy": {
+    "source": {
+      "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+      "sha256": {
+        "gnrpy/gnr/sql/gnrsql/helpers.py": "ff33b1079fc90156789ac640c7731ef5173c93d91c5eeaab42a23299c6e15fad",
+        "gnrpy/gnr/sql/gnrsql/env.py": "35ec7e23652fe0cffc379e9f5fe821ebd6edfdec70942b44e031ebb484452394",
+        "gnrpy/gnr/sql/gnrsql/connections.py": "2ba31361e635a54a98893f5efdab99f2588fdf00c7ca7708ea4d617cd66daf1c",
+        "gnrpy/gnr/sql/gnrsql/execute.py": "435d408b4e77f53896c4d79d000564026a9faf695e5ecc87b65b6c1f08de8861",
+        "gnrpy/gnr/sql/gnrsql/transactions.py": "7d13522189896b95e83004e9cbc94297e3e717a518f7ac149bc1dcdeddab7745",
+        "gnrpy/gnr/sql/gnrsql/write.py": "63b1d4f47c53bc798183bbfb2a990235d137d7c73fc28dbe1f2611c609eb28d2",
+        "gnrpy/gnr/core/gnrbag.py": "5de12bbdbc3bab4b8a3941ec0dd76adf3f4d3635861e3f1b187e33fbce5e1584"
+      }
+    },
+    "results": {
+      "trigger_onInserting/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onInserting/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "hook"
+          ]
+        },
+        "callbacks": [
+          "before",
+          "after"
+        ]
+      },
+      "trigger_onInserted/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onInserted/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ],
+            [
+              20,
+              "changed"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "hook"
+          ]
+        },
+        "callbacks": [
+          "before",
+          "after"
+        ]
+      },
+      "trigger_onUpdating/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onUpdating/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "hook"
+          ]
+        },
+        "callbacks": [
+          "before",
+          "after"
+        ]
+      },
+      "trigger_onUpdated/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onUpdated/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "changed"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "hook"
+          ]
+        },
+        "callbacks": [
+          "before",
+          "after"
+        ]
+      },
+      "trigger_onDeleting/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onDeleting/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "hook"
+          ]
+        },
+        "callbacks": [
+          "before",
+          "after"
+        ]
+      },
+      "trigger_onDeleted/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onDeleted/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 1,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [],
+          "audit": [
+            "earlier",
+            "hook"
+          ]
+        },
+        "callbacks": [
+          "before",
+          "after"
+        ]
+      },
+      "before/write=False": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks_after_error": [],
+        "retry_error": null,
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_retry": [
+          "later",
+          "after"
+        ],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": [
+          "later",
+          "after"
+        ]
+      },
+      "before/write=True": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks_after_error": [],
+        "retry_error": null,
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "callback",
+            "earlier"
+          ]
+        },
+        "callbacks_after_retry": [
+          "later",
+          "after"
+        ],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "callback",
+            "earlier",
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": [
+          "later",
+          "after"
+        ]
+      },
+      "after/write=False": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_error": [],
+        "retry_error": null,
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_retry": [],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": [
+          "later"
+        ]
+      },
+      "after/write=True": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_error": [],
+        "retry_error": null,
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "callback",
+            "earlier"
+          ]
+        },
+        "callbacks_after_retry": [
+          "later"
+        ],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "callback",
+            "earlier",
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": [
+          "later"
+        ]
+      }
+    }
+  },
+  "native": {
+    "source": {},
+    "results": {
+      "trigger_onInserting/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onInserting/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": "TransactionStateError",
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onInserted/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onInserted/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": "TransactionStateError",
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onUpdating/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onUpdating/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": "TransactionStateError",
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onUpdated/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onUpdated/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": "TransactionStateError",
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onDeleting/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onDeleting/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": "TransactionStateError",
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onDeleted/rollback": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": null,
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "trigger_onDeleted/commit": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "trigger_depth": 0,
+        "completion_error": "TransactionStateError",
+        "visible_after_completion": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks": []
+      },
+      "before/write=False": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks_after_error": [],
+        "retry_error": "TransactionStateError",
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks_after_retry": [],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": []
+      },
+      "before/write=True": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks_after_error": [],
+        "retry_error": "TransactionStateError",
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": []
+        },
+        "callbacks_after_retry": [],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": []
+      },
+      "after/write=False": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_error": [],
+        "retry_error": null,
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_retry": [],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": []
+      },
+      "after/write=True": {
+        "visible_after_error": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_error": [],
+        "retry_error": "TransactionStateError",
+        "visible_after_retry": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier"
+          ]
+        },
+        "callbacks_after_retry": [],
+        "visible_after_recovery": {
+          "items": [
+            [
+              10,
+              "original"
+            ]
+          ],
+          "audit": [
+            "earlier",
+            "recovered"
+          ]
+        },
+        "callbacks_after_recovery": []
+      }
+    }
+  }
+}

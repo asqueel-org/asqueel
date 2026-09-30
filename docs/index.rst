@@ -21,7 +21,7 @@ and exports can share its definition. UI consumers can inspect the same field's
 metadata. SQL expressions remain part of the query language; Asqueel resolves
 model names and relation paths and binds values.
 
-The current alpha runs synchronously on PostgreSQL. Writes and transaction
+The current alpha targets PostgreSQL. Writes and transaction
 completion are explicit. Construction never connects or creates tables.
 
 This manual presents the intended delivery contract. Implementation availability
@@ -53,6 +53,8 @@ Choose your starting point
    :caption: Build applications
 
    guide/configuration
+   guide/cli
+   guide/two-schemas
    guide/models
    guide/queries
    guide/writes

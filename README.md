@@ -26,8 +26,8 @@ SQL remains available for expressions; Asqueel resolves model names and relation
 paths and binds query parameters.
 
 Asqueel brings Genropy's approach to database applications into a standalone
-library. The current alpha runs synchronously on PostgreSQL, with explicit
-writes and transaction completion. Start with [What is Asqueel?](docs/guide/overview.md)
+library. The current alpha targets PostgreSQL, with explicit writes and transaction
+completion. Start with [What is Asqueel?](docs/guide/overview.md)
 for the approach and an example. The manual also covers planned capabilities;
 [Current status](docs/guide/limitations.md) identifies what works today and what
 remains to be implemented.
@@ -82,6 +82,31 @@ runtime remain available for advanced integrations.
 Query expressions are application code; pass external values through parameters
 rather than SQL interpolation.
 
+## Configure, migrate and explore a complete example
+
+The [two-schema example](docs/guide/two-schemas.md) separates configuration,
+schemas, table declarations and business logic. It includes users/access logs
+and customers/products/invoices/rows, with explicit imports and `EnvResolver`
+connection settings.
+
+From this source checkout (the CLI is not assumed to be in older PyPI releases):
+
+```sh
+python -m pip install -e ".[postgresql,migration]"
+asqueel register gestionale ./examples/two_schemas
+asqueel check gestionale
+asqueel db plan gestionale
+asqueel db apply gestionale
+asqueel shell gestionale
+```
+
+Set the example's `PG*` environment variables for your PostgreSQL server before
+`plan`/`apply`; the database account must have the required privileges. `check`
+is offline. The registry in `~/.asqueel` stores the folder path, not credentials.
+The console provides `db`; the same name works with `build_database("gestionale")`
+in Python. See the [complete walkthrough](docs/guide/two-schemas.md) and
+[CLI reference](docs/guide/cli.md) for setup, migrations and transaction behavior.
+
 ## Learn and use Asqueel
 
 Start with [What is Asqueel?](docs/guide/overview.md) and
@@ -93,6 +118,7 @@ transaction examples and disposable-schema cleanup.
 
 | You want to… | Read |
 |---|---|
+| Run the two-schema example, migrate it and open a console | [Complete example](docs/guide/two-schemas.md) and [CLI](docs/guide/cli.md) |
 | Configure an application and render live objects | [Configuration](docs/guide/configuration.md) |
 | Declare names, relations, aliases and UI metadata | [Models](docs/guide/models.md) |
 | Read data or load exactly one record | [Queries](docs/guide/queries.md) |

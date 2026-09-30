@@ -15,7 +15,7 @@ can query it or inspect its metadata.
 The project brings Genropy's approach to database applications into a standalone
 library. Its purpose is to keep a rich application model reusable while retaining
 SQL expressions, visible query results and explicit control over writes and
-transactions. The current alpha executes synchronously on PostgreSQL. See
+transactions. The current alpha targets PostgreSQL. See
 [Current status](limitations.md) for the boundary between implemented behavior
 and the broader design described in this manual.
 

@@ -63,6 +63,9 @@ dev = [
     "mypy>=1.0",
 ]
 
+[project.scripts]
+asqueel = "asqueel.cli:main"
+
 [project.urls]
 Documentation = "https://github.com/asqueel-org/asqueel/tree/main/docs"
 Homepage = "https://github.com/asqueel-org/asqueel"
@@ -76,7 +79,7 @@ packages = ["src/asqueel"]
 "docs/grammar.md" = "asqueel/grammar.md"
 
 [tool.hatch.build.targets.sdist]
-include = ["/src", "/tests", "/scripts", "/docs", "/assets", "/requirements",
+include = ["/src", "/tests", "/scripts", "/docs", "/examples", "/assets", "/requirements",
            "/README.md", "/LICENSE", "/NOTICE", "/pyproject.toml", "/.readthedocs.yaml"]
 exclude = ["/docs/_build"]
 

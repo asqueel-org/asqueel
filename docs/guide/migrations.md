@@ -10,6 +10,11 @@ Install the migration and PostgreSQL dependencies when you need this path:
 pip install 'asqueel[postgresql,migration]'
 ```
 
+The [CLI](cli.md) provides `asqueel db plan NAME` and `asqueel db apply NAME`
+using the same registered configuration as the application. It also handles
+creating a missing PostgreSQL database through the existing migration adapter.
+The lower-level API below remains available.
+
 ## Resolve names before producing migration data
 
 For a model returned by `resolve_model()` or `inspect_postgres()`, use

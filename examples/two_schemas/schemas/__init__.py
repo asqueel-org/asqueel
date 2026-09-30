@@ -1,0 +1,1 @@
+"""Explicit SQL configuration example."""

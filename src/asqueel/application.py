@@ -30,7 +30,8 @@ class SqlDatabase:
         self._write_depth = 0
         self.config = config
         self.model = model
-        implementation = config('implementation', default='postgresql')
+        from .configuration import connection_settings
+        implementation, _, _ = connection_settings(config)
         if implementation != 'postgresql':
             raise UnsupportedFeatureError(f'Unsupported database implementation: {implementation!r}')
         self.driver = driver if driver is not None else PsycopgDriver()
@@ -86,10 +87,14 @@ class SqlDatabase:
         self._check_store()
         name = self.currentConnectionName
         if name not in self._sessions:
+            from .configuration import connection_settings
+            implementation, conninfo, connect_kwargs = connection_settings(self.config)
+            if implementation != self.dialect.name:
+                raise ValueError('Configured implementation changed after database construction')
             self._sessions[name] = Session(
                 driver=self.driver,
-                conninfo=self.config('conninfo', default=''),
-                connect_kwargs=self.config('connect_kwargs', default=None),
+                conninfo=conninfo,
+                connect_kwargs=connect_kwargs,
                 environment=self.environment,
                 connection_name=name,
             )
@@ -220,13 +225,16 @@ class SqlDatabase:
         self._check_open()
         session = self._session
         session._check_usable()
+        execution_count = session._execution_count
         self._write_depth += 1
         try:
             yield
         except BaseException as error:
-            # execute already rolled back the failing named connection. Do not
-            # turn a recoverable SQL error into a new domain failure.
-            if not any(item._execution_error is error for item in self._sessions.values()):
+            # Only an execution error from this operation's own session has
+            # already rolled back its work. Another session's rollback cannot
+            # repair this incomplete write; neither can an older SQL failure.
+            if not (session._execution_count != execution_count
+                    and session._execution_error is error):
                 session.mark_failed()
             raise
         finally:
@@ -274,5 +282,11 @@ class SqlDatabase:
         self._check_open()
         return self
 
-    def __exit__(self, *exc: Any) -> None:
-        self.close()
+    def __exit__(self, exc_type: Any, error: Any, traceback: Any) -> None:
+        try:
+            self.close()
+        except BaseException as cleanup_error:
+            if error is None:
+                raise
+            error.add_note(f'Database cleanup failed: {type(cleanup_error).__name__}')
+            raise error from cleanup_error
