@@ -216,3 +216,33 @@ rollback persists partial failed work in legacy and blocks subsequent writes
 in native Asqueel; this is a porting risk, not a newly accepted compatibility
 requirement. Callback retry differences and the documented broad-catch branches
 remain open.
+
+## LT26 — date/locale context follow-up
+
+[Contract 24](24-workdate-locale-contract.md) records source evidence, the
+accepted absence of locale validation and 11 native contract cases, including
+PostgreSQL/SQLite binding. The context slice is verified; Windows UI-language
+lookup and application localization are not ported by this work. LT26 as a
+whole and F1 remain open. Full suite: 629 passed, coverage 95%.
+
+## LT28 — callback recovery recheck
+
+[Report 25](25-callback-recovery.md) reruns the original legacy/native PostgreSQL
+oracle and adds eight PostgreSQL/SQLite regression cases. PY02–PY04 are reproduced;
+residual-queue disposition remains a decision, not a runtime defect silently
+fixed. Native behavior is unchanged. Full suite: 637 passed, coverage 95%.
+
+On 1 October 2026 callback-owned error handling was clarified: normal return
+continues dispatch; an escaping exception interrupts it. Residual-queue disposal
+is a separate unresolved difference; see review 25. Caller-specific error paths
+from review 21 remain open.
+
+## F1 closure — 1 October 2026
+
+[Report 27](27-f1-request-lifecycle-closure.md) completes the bounded caller
+review with nine scenarios per implementation and records concrete adapter
+obligations for RC03/18/26/45/50/51. Callback propagation now leaves unreached
+postcommit callbacks for application-owned recovery and cleanup; no forced
+queue disposal or continue-on-error policy. Ten PostgreSQL/SQLite cases prove
+request isolation on a reused DB/thread. Full suite: **650 passed**, **95% coverage**.
+F1's synchronous profile is complete; F0's whole-legacy inventory is not.

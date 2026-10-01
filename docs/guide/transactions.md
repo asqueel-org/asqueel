@@ -114,3 +114,24 @@ The lower-level `Database` and `PostgresDatabase` facades share this execution
 implementation and explicit completion rules. They do not offer a second
 transaction API. See [direct execution](low-level-runtime.md),
 [write hooks](hooks.md), and [legacy adaptations](../adattamenti-legacy.md).
+
+### Recovery after a callback exception
+
+A callback is removed before invocation; `commit()` does not automatically retry
+it. A precommit exception blocks commit until rollback, which clears the pending
+queues. An escaping postcommit Python exception stops dispatch; callbacks not yet
+reached remain pending. If the
+callback started new SQL work, roll back that failed work before reuse; this
+cannot undo the earlier successful commit. Without new SQL, another `commit()`
+is a no-op. If the application deliberately starts and commits new work in
+the same context, it can run the remaining callbacks. Rollback or connection
+cleanup clears them; SQL execution errors retain their automatic rollback rules.
+
+At a request boundary, clean up connections before starting the next request. Do not retry an entire
+write just because an after-commit notification failed: the write is already
+committed. External callback effects are not undone by database rollback.
+
+The callback implementer can catch an expected external-service failure with
+`try/except` and return normally to let later callbacks run. This does not
+repair a database error: caught SQL or table-write failures retain the existing
+rollback protections. Do not commit or roll back recursively inside a callback.

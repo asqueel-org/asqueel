@@ -1,6 +1,10 @@
 # 21 — Recovery in real legacy callers
 
-30 September 2026. **Keep the existing native rollback policy for now.** The
+Historical review, 30 September 2026. The remaining caller boundaries below
+were subsequently executed and assigned in [closure report 27](27-f1-request-lifecycle-closure.md).
+Its results supersede this report’s open F1 status; the earlier evidence remains historical.
+
+**Keep the existing native rollback policy for now.** The
 verified recovery paths work with it: discard failed work before continuing,
 write an independent failure log, or catch an external service error and save
 its status. These results do not approve every difference in deferred retry

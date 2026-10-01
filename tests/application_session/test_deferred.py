@@ -271,3 +271,57 @@ def test_precommit_error_retains_original_exception_if_cleanup_fails():
     driver.rollback_error = None
     session.rollback()
     session.close()
+
+
+@pytest.mark.parametrize('queue', ['before', 'after'])
+def test_callback_can_handle_external_failure_and_continue_queue(queue):
+    driver = Driver()
+    session = Session(driver)
+    events = []
+
+    def handled():
+        try:
+            raise OSError('external service unavailable')
+        except OSError:
+            events.append('handled')
+
+    try:
+        session.execute(CompiledQuery('write'))
+        register = session.defer_to_commit if queue == 'before' else session.defer_after_commit
+        register(handled)
+        register(lambda: events.append('next'))
+        session.commit()
+        assert events == ['handled', 'next']
+        assert driver.persisted == ['write']
+        session.commit()
+        assert events == ['handled', 'next']
+    finally:
+        session.close()
+
+
+def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup():
+    session = Session(Driver())
+    events = []
+    original = ValueError('notification failed')
+
+    def notify():
+        events.append('notify')
+        raise original
+
+    try:
+        session.execute(CompiledQuery('saved'))
+        session.defer_after_commit(notify)
+        session.defer_after_commit(lambda: events.append('log'))
+        with pytest.raises(ValueError) as raised:
+            session.commit()
+        assert raised.value is original
+        assert events == ['notify']
+        session.commit()  # No new work: no automatic callback retry.
+        assert events == ['notify']
+        # The application deliberately continues in the same request/context.
+        session.execute(CompiledQuery('next'))
+        session.commit()
+        assert events == ['notify', 'log']
+        assert session.driver.persisted == ['saved', 'next']
+    finally:
+        session.close()

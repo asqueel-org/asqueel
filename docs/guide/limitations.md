@@ -75,16 +75,18 @@ application; the compiler does not decide who may use them.
 
 ## Transaction and value boundaries
 
-The application `SqlDatabase` keeps a shared transaction across table operations
-and `db.execute()` calls until commit or rollback. Its connection is opened
-lazily and retained after commit/rollback for reuse under its connection name. Closing the database rolls back
-pending work. The separate low-level `Database`/`PostgresDatabase.execute()`
-convenience instead opens and completes a transaction per call; use an explicit
-transaction when combining dependent operations through those components.
+`AsqueelDb`, `SqlDatabase`, `Database` and `PostgresDatabase` share one execution
+implementation. Table operations and `db.execute()` use the current thread's
+selected named connection until explicit commit or rollback. Connections open
+lazily and are retained for reuse. `execute()` never commits automatically;
+there is no public transaction object or connection context manager.
+Closing the DB rolls back pending work and releases the current thread's
+connections. Each worker must close its own connections.
 
-An application SQL execution error automatically rolls back the selected named
-connection. Python hook errors still require explicit rollback. The low-level
-transaction context remains rollback-only after a statement error. An uncertain commit
+An SQL execution error automatically rolls back the selected named connection.
+A Python error in the write lifecycle marks the affected session rollback-only:
+commit is blocked until explicit rollback. An arbitrary Python exception outside
+that lifecycle requires the caller to roll back its pending work. An uncertain commit
 outcome does not mean the write failed; retries require application-specific
 handling. See [transactions](transactions.md).
 
@@ -127,7 +129,7 @@ implement the capability or certify another database backend.
 
 The delivery guides include query count/grouping/distinct and collection bindings,
 model path introspection, virtual relations, provider/Python/Bag columns, subtables,
-Selection/Bag results, commit callbacks, application integration, legacy-package
+Selection/Bag results, application integration, legacy-package
 import and native SQL objects. These belong to the product plan; the availability
 matrix above describes which parts execute in this checkout.
 
@@ -138,14 +140,22 @@ compatibility work, not accepted product differences. Native query results still
 use dictionary rows; path lookup on live columns is not complete. Legacy IN-list
 expansion, count/grouping and Selection are not implemented.
 
-The standalone/application-linked separation is an architectural direction.
+Standalone execution and application tables share the same execution service.
 Names and signatures for new application providers, virtual-relation variants,
 native-object declarations and some result APIs still need specification. The
 manual explains their roles without inventing finalized constructors for them.
 
-F1 has working named connections and mutable environment, but is not fully
-closed: complete locale validation and compatibility of deliberate low-level
-recovery after a caught Python error remain open. Normal legacy record-cluster
+Commit callbacks (`deferToCommit`, `deferAfterCommit`, `deferredRaise`) are
+available per named connection. Handled errors allow dispatch to continue;
+escaping errors stop dispatch and reach the application. After a Python
+postcommit failure, unreached callbacks remain pending until rollback/connection
+cleanup or a deliberate later transaction in the same context. There is no
+automatic retry, and failed new work still requires rollback.
+
+The synchronous F1 context/connection/recovery profile is verified; this does
+not certify a complete legacy application port. Workdate/locale identifiers
+are deliberately not validated. Application request cleanup is required before
+reusing a worker for another request. Normal legacy record-cluster
 saves already abort on propagated errors; this is not a difference in normal
 save behavior.
 Six hook positions and pre/post-commit Python failures have been compared on

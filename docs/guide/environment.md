@@ -62,11 +62,24 @@ or `.pop()` to remove a key. `db.updateEnv(...)` updates values; with
 `db.clearCurrentEnv()` replaces it with an empty dictionary. Neither operation
 commits or closes named connections.
 
-`db.workdate` defaults to today's date. `db.locale` falls back to `GNR_LOCALE`,
-the system locale, then `en_GB`. Both properties can be set explicitly. Application
+`db.workdate` defaults to today's local date, evaluated when read. `db.locale`
+uses a truthy explicit value, otherwise `GNR_LOCALE` when that variable exists,
+otherwise Python's `locale.getlocale()[0]`. An empty default becomes `en_GB`;
+in particular, `GNR_LOCALE=""` selects `en_GB`, not the system locale.
+Both properties can be set explicitly. A false-valued override (`None`, `""`,
+`False` or `0`) selects the fallback. Values are not coerced or validated:
+there is no locale catalogue or Babel dependency. Unlike legacy's default-locale
+validation, an unknown nonempty identifier is preserved. These properties do
+not change the process locale, database collation or date formatting. Application
 compiler snapshots resolve these defaults for `:env_workdate` and `:env_locale`.
 Localization services belong to the application-linked layer; business-date
 and locale context are available to queries without requiring a web page.
+
+Defaults do not populate `currentEnv`. `tempEnv` restores overridden values,
+including after exceptions, using the scope rules above. Each thread owns its
+values. Compiled environment bindings capture the effective date/locale and
+reject execution when those values change, including a default date crossing
+midnight. Explicit query parameters take precedence over environment values.
 
 ## Bind explicit values or fall back to context
 
@@ -199,3 +212,45 @@ with PostgresDatabase("dbname=example", environment=environment) as executor:
 
 Independent default environments do not share values. The low-level executor's
 transaction behavior differs from `SqlDatabase`; see [low-level execution](low-level-runtime.md).
+
+## Application-owned request boundary
+
+A web request, network handler or job instance can expose a `db` property which
+returns a shared AsqueelDb and initializes the current worker’s context only on
+first access. For example, this application class uses existing DB methods:
+
+```python
+class Request:
+    def __init__(self, shared_db, user, workdate, locale):
+        self.shared_db = shared_db
+        self.values = dict(user=user, workdate=workdate, locale=locale)
+        self._db = None
+
+    @property
+    def db(self):
+        if self._db is None:
+            self._db = self.shared_db
+            self._db.clearCurrentEnv()
+            self._db.updateEnv(**self.values)
+        return self._db
+
+    def cleanup(self):
+        try:
+            self.shared_db.closeConnection()
+        finally:
+            self.shared_db.clearCurrentEnv()
+```
+
+The request dispatcher must call cleanup on success and failure, before reusing
+that worker for another request. Business code commits explicitly; cleanup rolls
+back pending work and releases all named connections in that thread. It does not
+undo a successful commit. Preserve the original application exception if cleanup
+also fails. Repeated `request.db` access does not reset context during the request.
+
+This is an application pattern, not a new Asqueel request/session class. A nested
+helper belonging to the same request should reuse its initialized context, not
+clear it again. A request instance is owned by one synchronous worker; async
+task isolation is not supplied by this pattern. `closeConnection()` permits
+subsequent requests to reuse the DB; `close()` permanently closes that worker’s
+DB state. `clearCurrentEnv()` alone neither rolls back work nor clears pending
+connection callbacks.

@@ -12,9 +12,9 @@ driver PostgreSQL o SQLite.
 ## Riferimenti e stato
 
 Confronto effettuato il 30 settembre 2026 sul legacy alla revisione
-`fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea` e sul codice di lavoro Asqueel
-successivo al tag `v0.2.0`. Le modifiche locali non sono automaticamente
-funzionalità della versione pubblicata.
+`fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea` e sul codice Asqueel ora
+pubblicato nella versione `0.3.0` (`5c9c09f`). I comportamenti indicati come
+non portati o da verificare restano aperti anche dopo questa release.
 
 Fonti legacy, relative alla radice del repository Genropy:
 
@@ -79,7 +79,7 @@ un'emulazione completa del raw Genropy.
 | `_onDbChange`, totalizzatori, `onLogChange`, change log e notifiche | Punto `_onDbChange` disponibile anche per raw; servizi applicativi non portati. | Collegare totalizzatori, log e notifiche al punto comune; decidere quali effetti differire al commit. |
 | `raw_insert/raw_update/raw_delete` | API presenti su tabella e DB; non equivalenti a tutto il contratto legacy. | Adattare le differenze di firma e ritorno; i raw saltano i trigger di tabella, mantenendo hook DB, policy ed errori. |
 | `currentTrigger`, parent e livello della chiamata | Pila presente e isolata per thread. | Verificare le informazioni richieste dai chiamanti legacy e dalle scritture annidate. |
-| `deferToCommit`, `deferAfterCommit`, `deferredRaise` | Disponibili per connessione nominata. | Verificare retry, deduplicazione, ricorsione ed errori: la presenza dei nomi non garantisce identica semantica. |
+| `deferToCommit`, `deferAfterCommit`, `deferredRaise` | Disponibili per connessione nominata. | Contratti verificati nel profilo F1; eccezioni propagate, nessun retry automatico. Cleanup delle richieste e adattamenti dei chiamanti nel rapporto 27. |
 | `onDbCommitted` e notifiche applicative del commit | Nessun hook equivalente completo. | Collegare l'integrazione applicativa al completamento, distinguendo errore prima e dopo il commit effettivo. |
 
 ### L'ordine è parte del contratto
@@ -154,3 +154,23 @@ una promessa di portare indistintamente ogni funzionalità legacy.
 
 Per il lavoro sui package vedere anche
 [Traduzione dei package legacy](https://github.com/asqueel-org/asqueel/blob/main/docs/design/22-legacy-package-translation.md).
+
+## Request lifecycle and caller recovery — local F1 completion
+
+The application instance that owns a request initializes `currentEnv` once on
+first `db` access, then closes all of its worker’s named connections and clears
+context at request completion, including errors. Use `closeConnection()` for a
+DB shared across consecutive requests; clearing environment alone is insufficient.
+
+The F1 closure report (`docs/design/27-f1-request-lifecycle-closure.md`) records tested
+adaptation duties for the logger, older mail importer, batch success/error logs,
+SMTP queue removal, extension DDL and directory visitors. A caught database
+write failure requires rollback or request termination before further writes.
+Successful external effects, such as sending mail, require application
+reconciliation; SQL rollback cannot undo them. No service implementation or
+multi-store compatibility is claimed by those bounded tests.
+
+Unlike the published 0.3.0 handler, the local after-commit handler propagates a
+Python exception without automatically clearing unreached callbacks. The
+application’s rollback/close clears them; deliberate subsequent work in the
+same context can reach them. SQL failures retain automatic rollback semantics.

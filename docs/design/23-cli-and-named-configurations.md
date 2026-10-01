@@ -3,6 +3,13 @@
 Consegna locale del 30 settembre 2026. Implementa il percorso SQL discusso con
 l'utente; non introduce la sottoapplicazione Genropy né chiude F1.
 
+**Current status:** this report records the original PostgreSQL delivery, now
+released in 0.2.0. Release 0.3.0 also provides SQLite runtime and CLI migration
+support through the existing SQLite migration adapter. Its constraints are
+documented in the [SQLite guide](../guide/sqlite.md). The PostgreSQL-only limits
+and 584-test count below are historical; the current baseline is 618 passing
+tests. See the [operational plan](15-operational-plan.md) for remaining work.
+
 ## Contratto consegnato
 
 - Una cartella con `configure.py` può essere registrata tramite un nome simbolico.

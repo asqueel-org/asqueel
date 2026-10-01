@@ -1,29 +1,80 @@
 # 15 — Piano operativo di completamento Asqueel
 
-Stato aggiornato al 30 settembre 2026: F1 è **aperta**. Sessioni nominate ed
-environment hanno verifiche; i difetti della bozza trigger/deferred censiti nel
-[riesame 18](18-interrupted-lifecycle-review.md) sono risolti nella
-[consegna 19](19-deferred-lifecycle-fixes.md).
-Il [riesame degli errori Python 20](20-python-error-lifecycle.md) verifica 16
-scenari per implementazione su PostgreSQL e corregge attribuzione degli errori
-fra connessioni e preservazione dell'eccezione originale durante cleanup.
-Il controllo successivo del salvataggio legacy conferma che gli errori impediscono
-il commit nel percorso normale e che deferredRaise blocca anche il retry.
-Il [riesame dei chiamanti 21](21-recovery-callers.md) verifica rollback e ripresa,
-log indipendente e salvataggio dello stato di errore: nove scenari per backend.
-La protezione nativa resta invariata; il logger senza rollback è un rischio di
-porting documentato. Restano retry delle callback, percorsi applicativi indicati
-nel riesame e localizzazione completa. Le code pending
-sono requisito di chiusura F1 prima di F2; F4 ne integra l'uso nei record/eventi.
-F0 dispone di primi oracle, ma il censimento complessivo resta aperto.
-Baseline: `2bed211d5c0c2144e4669b9259114757db12e65d`, più documentazione in lavorazione.
-Fonti: [audit dei 42 contratti](13-legacy-test-audit.md),
-[traguardo e tappe](14-legacy-target-and-stages.md),
-[decisioni acquisite](05-decisions.md).
+## Delivery status — 30 September 2026
+
+Implementation baseline: release **0.3.0**, commit `5c9c09f`; documentation
+through `022132b`. The release is tagged and published. The latest pre-push
+verification passed **618 tests**, with **95% coverage**; the documentation
+build passed with warnings treated as errors. These checks establish the
+implemented profile, not completion of every legacy contract.
+
+**Update, 1 October 2026: F1 is complete for the synchronous request-owned
+profile; see [closure evidence 27](27-f1-request-lifecycle-closure.md).** Delivery has advanced across several phases; the table
+below distinguishes working increments from phase acceptance. F0's complete
+legacy inventory is still open. The original release snapshot below is preserved; the closure evidence records
+the subsequent local F1 work. F0 and F2–F10 remain open.
+
+| Phase | Delivered evidence | Remaining acceptance |
+|---|---|---|
+| F0 | Legacy revision fixed; executable session, deferred and caller oracles. | Complete contract inventory, traceability and performance baseline. |
+| F1 | Shared execution service, implicit transactions with explicit completion, per-thread named connections/environment, deferred queues and write-error protection. | F1 profile verified; application-porting obligations and later-phase boundaries recorded in report 27. |
+| F2 | Resolved model, linked metadata, direct relation paths, aliases, cascading configuration and explicitly imported schema/table contributions. | Uniform model path lookup/introspection, relation metadata and full naming/composition contract verification. |
+| F3 | Parameterized queries, to-one paths, ordering/pagination and scalar correlated formulas. | Count, DISTINCT, GROUP BY/HAVING, collection binding and remaining legacy query contracts. |
+| F4 | CRUD/RETURNING, record access, table hooks, DB write hooks and raw commands through the common execution path. | Remaining record/result terminals, key generation, old-record/bulk contracts and concurrency/event acceptance. |
+| F5 | Row policies, runnable tutorial and multi-schema examples. | Integrated V1 acceptance, policy interactions and resolution of remaining F1–F4 gaps. |
+| F6–F8 | Existing aliases/formulas and extension points are foundations. | Advanced relations, collections/macros, Selection/Bag and extended application lifecycle. |
+| F9 / C1 | PostgreSQL catalog import, migration projection/integration and modular Python declarations. | Legacy-package translator, broader import coverage and full roundtrip acceptance. |
+| F10 | PostgreSQL and SQLite data paths; SQLite CLI migrations reuse the existing adapter. | SQLite remains a bounded delivered increment, not backend parity; native objects, physical partitions, stores and further data dialects remain open. |
+
+### Delivered decisions that supersede earlier drafts
+
+- `AsqueelDb`, `SqlDatabase`, `Database` and `PostgresDatabase` use the same
+  execution implementation. `execute()` never commits automatically. Public
+  transaction objects and connection context managers have been removed.
+- A DB graph can be shared across threads; named connections, environment and
+  write state are thread-local. `tempEnv(connectionName=...)` selects a connection
+  without completing its transaction. Each worker closes its own connections.
+- Table writes delegate to DB orchestration and then `execute()`. Raw commands
+  skip table triggers but preserve shared DB hooks and change tracking.
+- Configuration has one connection section; credentials use the existing
+  `EnvResolver`. Explicit Python imports compose schemas and tables. Named
+  configurations, CLI and Python console are delivered; package discovery and
+  the full Genropy subapplication contract are not.
+- SQLite is implemented now, despite its original placement in F10. Attached
+  schema files, `BEGIN IMMEDIATE` (including reads), locking and foreign-key
+  limits are documented in the [SQLite guide](../guide/sqlite.md).
+
+### F1 closure — 1 October 2026
+
+1. Date/locale context verified, with no locale validation or Babel (report 24).
+2. Callback propagation and application-owned recovery verified. Python errors
+   stop dispatch without forcibly discarding unreached postcommit callbacks;
+   rollback/close clears them. Failed-work barriers remain (report 27).
+3. Remaining catalog caller boundaries reviewed and executed in bounded
+   original-method fixtures; concrete adapter obligations recorded (report 27).
+4. PostgreSQL/SQLite tests exercise two requests on the same thread and DB,
+   covering context, pending writes and named callback cleanup. F1 runtime
+   acceptance is complete for this profile; full application porting is not.
+
+**Next implementation phase: F2**, uniform model navigation and metadata.
+F0 inventory continues alongside it. C1 package translation remains collateral.
+Changes are local, not an additional release or implied push.
+
+Sources: [42-contract audit](13-legacy-test-audit.md),
+[stages](14-legacy-target-and-stages.md), [decisions](05-decisions.md),
+[deferred fixes](19-deferred-lifecycle-fixes.md),
+[Python-error review](20-python-error-lifecycle.md),
+[caller review](21-recovery-callers.md),
+[CLI delivery](23-cli-and-named-configurations.md),
+[release notes](../guide/release-notes.md) and
+[legacy adaptations](../adattamenti-legacy.md).
+Earlier delivery reports preserve their historical test counts and scope;
+this snapshot supersedes their statements about current availability.
 
 ## Obiettivo e regola di lavoro
 
-Consegnare un Asqueel sincrono per nuove applicazioni PostgreSQL, configurato
+Consegnare un Asqueel sincrono per nuove applicazioni PostgreSQL e per il profilo
+SQLite documentato, configurato
 tramite grammatiche in cascata e utilizzato attraverso gli oggetti vivi:
 `db.table('cont.cliente').query(...).fetch()`.
 Il legacy guida sintassi, default e lifecycle. Il lavoro parte dal nucleo già
@@ -147,11 +198,14 @@ fra package, namespace logico e schema fisico restano da definire.
   implicito. Questo requisito non dipende dal futuro supporto store/tenant.
   Separare transazioni, stato di errore e callback per connessione; verificare
   che commit/rollback di B non concludano la transazione pendente di A.
-  Le sessioni nominate sono presenti; completare e verificare le code per nome.
-- Completare deferred, stack trigger e contesto onCommittingStep, con oracle
-  legacy e test sui percorsi di errore prima di avanzare a F2.
-- Tenere distinta la convenience del runtime a basso livello dalla sessione
-  applicativa; correggere insieme manuale ed esempi.
+  Sessioni e code per nome sono presenti e testate; resta la verifica dei
+  contratti di recupero indicati nella checklist F1.
+- Deferred, stack trigger e contesto onCommittingStep sono implementati.
+  Completare gli oracle legacy per retry e callback residue dopo errore
+  prima di avanzare a F2.
+- Mantenere un solo percorso di esecuzione per runtime e DB applicativo:
+  nessun commit automatico per chiamata, nessun oggetto transaction pubblico.
+  Manuale ed esempi devono usare commit/rollback espliciti.
 
 **Uscita:** due scritture seguite da errore non lasciano dati parziali; visibilità
 prima/dopo commit verificata da un'altra connessione; scope env ripristinati
@@ -291,12 +345,13 @@ LT01–LT03, LT36–LT41.
 2. Partition fisiche PostgreSQL: chiavi/vincoli, routing, attach/detach e
    lifecycle nel migratore; studio separato dalle subtables e dalla policy row.
 3. Store/tenant: environment, nomi, isolamento e confini transazionali.
-4. SQLite, richiesto dall'utente: adapter dati e driver, configurazione per file
+4. SQLite — profilo iniziale consegnato in 0.3.0; mantenere espliciti i limiti
+   e verificare separatamente ogni ampliamento. Contratto: adapter dati e driver, configurazione per file
    e memoria, letture/scritture e transazioni verificate sul backend reale.
-   Collegare e verificare il percorso strutturale con l'adapter SQLite già
+   Il percorso strutturale è collegato all'adapter SQLite già
    presente in sqlmigration (che dispone anche di PostgreSQL, MySQL e SQL Server).
    Non reimplementare gli adapter di migrazione. Definire
-   mapping degli schemi logici, tipi, foreign key, locking e limiti delle
+   ogni ampliamento del mapping degli schemi logici, tipi, foreign key, locking e limiti delle
    modifiche strutturali senza assumere equivalenza con PostgreSQL.
 5. Ulteriori dialect dati: matrice di capacità e suite comune; struttura gestita
    tramite gli adapter di sqlmigration.
@@ -306,6 +361,12 @@ ove applicabili, limiti pubblici espliciti. L'async si valuta solo dopo il nucle
 sincrono, sulla base delle misure e del modello di isolamento degli oggetti.
 
 ## Controlli trasversali e chiusura delle fasi
+
+- **Future async portability (accepted 1 October 2026):** review execution,
+  environment, connection ownership, hooks and cleanup choices against
+  [record 26](26-async-portability.md). Prefer simpler portable designs; record
+  obstacles, alternatives and required public API changes before adopting them.
+  Async implementation remains outside the current synchronous phase.
 
 - Ogni fase chiude con test pertinenti, integrazione reale dove necessaria,
   documentazione aggiornata e registro LT aggiornato. Non richiedere SQL
@@ -320,9 +381,8 @@ sincrono, sulla base delle misure e del modello di isolamento degli oggetti.
   accidentalmente alle modifiche runtime. Commit/push non sono autorizzati
   dalla sola richiesta di questo piano.
 
-## Primo passo eseguibile
+## Next executable step
 
-F0, con tre famiglie iniziali: rollback dopo errore SQL; lookup e compilazione
-di `@customer_id.state`; alias/pkey e forma della riga restituita. Dopo averne
-registrato il confronto, iniziare F1 e F2. Non partire da una riscrittura totale
-né dall'aggiunta di nuove funzionalità prima di fissare questi contratti.
+Deliver the verified local F1 changes and proceed to F2's uniform model path
+lookup and metadata contract. Keep extending F0's inventory. Do not reopen the
+agreed callback propagation or invent a separate public session API.

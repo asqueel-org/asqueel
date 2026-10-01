@@ -217,7 +217,8 @@ class Session:
                     # failure until the caller rolls it back.
                     if self._pending:
                         self._failed = True
-                    self._clear_deferred()
+                    # Propagate without consuming callbacks that were not reached.
+                    # The application owns recovery; rollback/close clears queues.
                     raise
         finally:
             self._committing = False

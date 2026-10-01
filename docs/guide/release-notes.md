@@ -2,8 +2,7 @@
 
 ## 0.3.0
 
-Version prepared in the source repository; tagging and package publication are
-separate steps. This release changes transaction completion in the former
+Released on PyPI and tagged `v0.3.0`. This release changes transaction completion in the former
 low-level runtime: callers must now commit or roll back explicitly.
 
 - One execution implementation for AsqueelDb and the lower-level facades. Direct

@@ -109,7 +109,12 @@ class ApplicationEnvironment(SqlEnvironment):
     def locale(self):
         import locale
         import os
-        return self.currentEnv.get('locale') or os.environ.get('GNR_LOCALE') or locale.getlocale()[0] or 'en_GB'
+        if self.currentEnv.get('locale'):
+            return self.currentEnv['locale']
+        # An explicitly empty GNR_LOCALE selects the static fallback, as in legacy.
+        # Locale identifiers are context values, deliberately not validated.
+        configured = os.environ.get('GNR_LOCALE') if 'GNR_LOCALE' in os.environ else locale.getlocale()[0]
+        return configured or 'en_GB'
 
     def snapshot(self) -> Mapping[str, Any]:
         values = dict(self.current_env)

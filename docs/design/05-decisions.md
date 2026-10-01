@@ -18,7 +18,9 @@
 - Schema come prefisso del nome tabella e mapping legacy devono essere supportati.
 
 Aggiornamento del perimetro iniziale: la V1 è destinata ad applicazioni nuove,
-con nucleo e runtime **sincroni**. L'eventuale async si valuterà a nucleo terminato.
+con nucleo e runtime **sincroni**. L’implementazione async è successiva, ma
+la sua praticabilità va tutelata fin da ora: preferire scelte portabili e
+registrare ogni ostacolo concreto secondo il [criterio 26](26-async-portability.md).
 La configurazione tramite grammatiche deve produrre oggetti vivi: `db` è la
 radice e l'utilizzo applicativo passa da `db.table(...).query(...).fetch()`.
 La logica del legacy guida lifecycle, responsabilità e contratti applicativi;
@@ -174,3 +176,18 @@ e calendario di consegna. Ulteriori backend in base all'utilizzo reale.
 Un adapter deve dichiarare ciò che non supporta.
 **Tradeoff:** copertura nominale larga senza test reali dà falsa portabilità.
 **Da chiudere:** sottoinsieme iniziale in P0, matrice di rilascio in P8.
+
+## Accepted update — locale context without validation
+
+The user chose no locale validation, catalogue or mandatory Babel dependency.
+Keep date/locale values as context and document the difference from legacy
+default-locale validation. See [contract 24](24-workdate-locale-contract.md).
+
+## Clarified update — callback error ownership (1 October 2026)
+
+A callback handles recoverable failures using try/except when needed. Normal
+return allows dispatch to continue; an escaping exception interrupts dispatch
+and reaches the caller. The completed SQL commit remains durable. No automatic
+continue-on-error or error aggregation. Application request cleanup owns queue lifetime: rollback/close clears pending
+callbacks. No forced queue disposal solely for a Python postcommit exception;
+see [delivery 27](27-f1-request-lifecycle-closure.md).
