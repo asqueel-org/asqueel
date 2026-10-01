@@ -74,7 +74,7 @@ Existing root-level `conninfo` / `connect_kwargs` recipes remain supported.
 Do not mix these with a `connection` node. The root's old `implementation`
 setting belongs to the old form; with a `connection` node, use
 `connection.implementation`. The CLI and application share the same connection
-settings reader. Named runtime sessions, if used, connect to this same physical
+settings reader. Named runtime connections, if used, connect to this same physical
 DB with these settings; they are not additional configuration entries.
 
 ## Inspect and apply migrations

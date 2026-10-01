@@ -67,8 +67,8 @@ supported in the to-one profile.
 A scalar subquery must project exactly one column. SQL expressions such as
 `COUNT(*)`, `SUM($amount)` and `MAX($date)` need no explicit output alias inside
 the definition. There is **no implicit LIMIT 1**: PostgreSQL raises a cardinality
-error if a scalar subquery returns multiple rows, and the session then requires
-rollback. No matching scalar row yields NULL; EXISTS yields False. Aggregates
+error if a scalar subquery returns multiple rows. Asqueel automatically rolls
+back the pending transaction on that SQL error, including earlier pending writes. No matching scalar row yields NULL; EXISTS yields False. Aggregates
 retain their SQL behavior, including SUM over an empty set returning NULL.
 
 `exists` defaults to a constant projection. Set `dtype='B'` explicitly; the model

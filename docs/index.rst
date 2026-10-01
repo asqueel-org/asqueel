@@ -21,7 +21,7 @@ and exports can share its definition. UI consumers can inspect the same field's
 metadata. SQL expressions remain part of the query language; Asqueel resolves
 model names and relation paths and binds values.
 
-The current alpha targets PostgreSQL. Writes and transaction
+The current alpha supports PostgreSQL and the documented SQLite profile. Writes and transaction
 completion are explicit. Construction never connects or creates tables.
 
 This manual presents the intended delivery contract. Implementation availability

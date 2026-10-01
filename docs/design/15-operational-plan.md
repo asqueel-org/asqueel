@@ -252,6 +252,11 @@ prima una decisione sul confine fra riferimento intenzionale e dato esterno.
 
 ### F4 — Record, terminali e scritture
 
+Review del 1 ottobre: oggi il predicato multi-riga cambia comportamento quando
+si aggiungono hook tabella o DB. Il legacy separa update/delete per record da
+batchUpdate/deleteSelection. Il contratto uniforme e le API bulk restano da
+implementare in F4; evidenze e ambito nel [report 29](29-review-corrections.md).
+
 - Completare record per PK/condizione, ignoreMissing/ignoreDuplicate e
   terminali essenziali fetchPkeys/fetchAsDict; verificare accesso alle righe
   per nome e indice secondo il contratto scelto dal legacy.

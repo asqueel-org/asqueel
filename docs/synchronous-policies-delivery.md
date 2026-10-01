@@ -1,16 +1,19 @@
 # Consegna: nucleo sincrono e policy di riga
 
+> Report storico: per il runtime attuale vedere [runtime](native-runtime.md) e
+> [piano corrente](design/15-operational-plan.md).
+
 29 settembre 2026. La decisione aggiornata è completare il nucleo sincrono
 prima di valutare async. Sostituisce il runtime awaitable della prima V1.
 
 > Ambito della consegna: componenti del nucleo SQL. La successiva
 > [revisione a oggetti](design/09-legacy-object-api-review.md) identifica il livello
-> DB/tabella/query/record e la gestione di sessione ancora da realizzare secondo
+> DB/tabella/query/record e il lifecycle oggi aggiornato secondo
 > il contratto prodotto richiesto. I test sotto non certificano quel livello.
 
 ## API e confini
 
-- `Database` con driver iniettato e `PostgresDatabase`: `with`, `transaction()`,
+- `Database` con driver iniettato e `PostgresDatabase`: commit/rollback espliciti,
   `execute()`, `close()` sincroni. Connessione e chiamate sul thread costruttore;
   accessi da altri thread rifiutati. Nessun executor o passaggio delle Bag ai worker.
 - Rimossi `ThreadedDatabase`, `DatabaseSaturatedError`, `aclose`, `max_workers`,

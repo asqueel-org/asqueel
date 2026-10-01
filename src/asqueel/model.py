@@ -92,7 +92,13 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             {'constraint_type': 'UNIQUE', 'columns': node.get_attr('columns')}
             for node in entry['composites'].values() if node.get_attr('unique')
         )
-        attrs['relations'] = tuple(dict(node.attr) for _, _, node in entry['relations'])
+        # Keep the resolved relation name, including the composite owner name,
+        # so physical projection can identify the declaration without guessing
+        # from its first member column.
+        attrs['relations'] = tuple(
+            dict(node.attr, x_name=node.get_attr('x_name') or owner)
+            for _, owner, node in entry['relations']
+        )
         prefix = attrs.get('x_sql_prefix', inherited.get('x_sql_prefix', ''))
         if prefix is True:
             prefix = schema + '_'

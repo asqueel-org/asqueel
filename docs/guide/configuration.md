@@ -152,8 +152,7 @@ dictionaries. Legacy `Selection`, Bag output, and the `count()` terminal are not
 implemented. Use an explicit aggregate projection for counting.
 
 Insert, update, delete, soft-delete and restore return `QueryResult`. Read the
-[transaction guide](transactions.md) before using writes: operations share a
-session and do not commit individually.
+[transaction guide](transactions.md) before using writes: operations share the selected connection and do not commit individually.
 
 ## Add business behavior
 
@@ -167,8 +166,15 @@ A database shares its model and table handles between threads. Connections and
 mutable execution state are isolated per thread. Repeated table lookup within one
 instance preserves identity; custom table classes must not store per-request state
 on shared attributes. Treat configuration as fixed after construction: editing its tree does
-not rebuild the resolved model or change an existing session's connection settings.
+not rebuild the resolved model or reconfigure an already-open physical connection.
 
 `SqlBuilder`, `resolve_model`, `QueryCompiler` and the low-level `Database` remain
 available independently. `SqlDatabase` binds those responsibilities for application
 use; it does not require a second compiler or an alternative migration system.
+
+### Connection implementation inheritance
+
+`connection(implementation=...)` explicitly selects the backend. When omitted,
+it inherits `db(implementation=...)`, whose default is PostgreSQL. For example,
+`root.db("demo", implementation="sqlite").connection(name="app.db")` selects
+SQLite. An explicit connection implementation overrides the DB default.

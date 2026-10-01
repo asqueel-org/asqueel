@@ -56,7 +56,7 @@ class SqlDatabaseElements:
         ...
 
     @element(parent_tags='db', sub_tags='', node_label='connection')
-    def connection(self, name: str | BagResolver, implementation: str = 'postgresql',
+    def connection(self, name: str | BagResolver, implementation: str | None = None,
                    host: str | BagResolver | None = None,
                    port: int | BagResolver | None = None,
                    user: str | BagResolver | None = None,
@@ -132,17 +132,21 @@ def _recipe_imports(sources):
 
 def connection_settings(config):
     """Read standard config attributes, resolving EnvResolver via ConfigHandler."""
-    implementation = config('connection.implementation', default=None)
-    if implementation is None:
+    name = config('connection.name', default=None)
+    has_connection = (isinstance(config, ConfigHandler)
+                      and config.builder.source.get_node(f'{config.root_label}.connection') is not None)
+    if not has_connection and name is None:
         return (config('implementation', default='postgresql'),
                 config('conninfo', default=''), config('connect_kwargs', default=None))
+    implementation = config('connection.implementation', default=None)
+    if implementation is None:
+        implementation = config('implementation', default='postgresql')
     if config('conninfo', default='') or config('connect_kwargs', default=None):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
     options = dict(config('connection.options', default=None) or {})
     reserved = {'dbname', 'host', 'port', 'user', 'password'} & options.keys()
     if reserved:
         raise ValueError('Connection fields must be declared directly, not inside options')
-    name = config('connection.name', default=None)
     if not isinstance(name, str) or not name.strip():
         raise ValueError('connection.name must resolve to a nonempty database name')
     options['dbname'] = name

@@ -6,8 +6,8 @@ application database.
 
 These examples expose the components used internally by `SqlDatabase`.
 `PostgresCompiler` turns model-based queries into SQL and bound parameters;
-`PostgresDatabase` executes them synchronously. Its standalone `execute()` commits
-each operation, unlike the shared application session. Compilation does not
+`PostgresDatabase` executes them synchronously. Its `execute()` joins the selected connection’s pending transaction;
+call `commit()` or `rollback()` explicitly, as with the application database. Compilation does not
 connect to a database, create tables, or apply migrations.
 
 This page uses a small resolved model. You can obtain the same kind of model
@@ -183,10 +183,13 @@ With the corresponding tables already present in PostgreSQL:
 ```python
 from asqueel import PostgresDatabase
 
-with PostgresDatabase('dbname=myapp user=myapp') as db:
+db = PostgresDatabase('dbname=myapp user=myapp')
+try:
     result = db.execute(query)
     for row in result.rows:
         print(row)
+finally:
+    db.close()
 ```
 
 `QueryResult.rows` is an eagerly materialized list of dictionaries.
@@ -196,8 +199,9 @@ metadata includes the model dtype, UI metadata, and the stable column identity
 in `source` when one is declared. Otherwise `source` is the logical column path.
 Arbitrary computed expressions do not acquire inferred dtype or UI metadata.
 
-Each `db.execute()` runs in its own transaction. For several statements that
-must succeed together, use [an explicit low-level transaction](low-level-runtime.md).
+Successive `db.execute()` calls on the same selected connection share a pending
+transaction. Call `db.commit()` after the unit of work, or `db.rollback()` to
+cancel it; see [the low-level runtime](low-level-runtime.md).
 
 `query.sql` and `query.params` are available for diagnostics. The SQL is already
 prepared for psycopg parameter binding: literal percent signs are doubled.

@@ -4,6 +4,9 @@
 schemas and returns `ImportResult(model, warnings)`. It does not create, alter
 or delete database objects and does not commit, roll back or close the supplied
 connection. The connection must be a synchronous psycopg connection.
+The importer requires PostgreSQL 15 or newer: its catalog queries read
+`confdelsetcols` and `indnullsnotdistinct`. This requirement concerns catalog
+inspection, not a claim that every runtime feature requires PostgreSQL 15.
 
 ## Inspect explicit schemas
 

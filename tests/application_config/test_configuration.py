@@ -144,3 +144,29 @@ def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits(
         assert alias.config.scope('missing')('value', default=0) == 0
         assert alias.model.dtype == 'A'
         assert 'LEFT JOIN' in db.table('source').query(columns='$label').sqltext
+
+
+@pytest.mark.parametrize(('root_impl', 'connection_impl', 'expected'), [
+    ('sqlite', None, 'sqlite'),
+    ('postgresql', None, 'postgresql'),
+    ('postgresql', 'sqlite', 'sqlite'),
+    ('sqlite', 'postgresql', 'postgresql'),
+])
+def test_connection_implementation_inherits_root_unless_explicit(root_impl, connection_impl, expected):
+    from asqueel.configuration import connection_settings
+
+    class Config(SqlDatabaseConfig):
+        def main(self, root):
+            db = root.db('demo', implementation=root_impl)
+            options = {} if connection_impl is None else {'implementation': connection_impl}
+            db.connection(name='app.db', **options)
+            db.schemas().schema('s').tables().table('t', pkey='id').columns().column('id', dtype='I')
+
+    db = build_database(Config)
+    try:
+        implementation, conninfo, options = connection_settings(db.config)
+        assert implementation == db.driver.dialect == expected
+        assert conninfo == ''
+        assert options == {'dbname': 'app.db'}
+    finally:
+        db.close()

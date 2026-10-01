@@ -37,7 +37,7 @@ remain distinct from multiple stores.
 
 ### Explicit collection shapes replace aggregateRows
 
-`aggregateRows` is removed, including from the compatibility adapter. Express
+`aggregateRows` is not implemented in Asqueel. Express
 related collections and aggregates as explicit results or correlated queries.
 Do not rely on a Python pass to deduplicate multiplied join rows and rebuild
 objects after fetching. When porting such a query, identify its intended parent
@@ -61,9 +61,9 @@ rendering. This gives the same model to data access, metadata consumers and
 schema tooling. Model inspection from an existing database is complemented by
 application metadata; a catalog cannot recover Python behavior or UI intentions.
 
-The compatibility adapter translates legacy declarations and application
-conventions. It must preserve their observable contract or expose an explicitly
-agreed difference. It is separate from SQL dialect adapters.
+A future compatibility adapter would translate legacy declarations and application
+conventions. It is not implemented. Its intended contract must preserve observable
+behavior or expose an agreed difference; this is separate from SQL dialect adapters.
 
 ## Python errors: normal saves and explicit recovery
 
@@ -79,9 +79,9 @@ Asqueel requires rollback before reuse. After-commit errors cannot undo a commit
 that has already succeeded; any new work started by the failed callback must
 be rolled back in Asqueel. Residual callbacks are discarded during that recovery.
 
-This low-level recovery difference is verified on PostgreSQL. It does not mean
-that normal legacy saves persisted failed operations. Its compatibility with
-callers that deliberately recover remains under review. Do not port code that catches a hook error
+Legacy comparisons run on PostgreSQL; native recovery tests cover PostgreSQL and SQLite. It does not mean
+that normal legacy saves persisted failed operations. The reviewed legacy callers have explicit adaptation obligations in the
+[legacy adaptation map](../adattamenti-legacy.md). Do not port code that catches a hook error
 and continues to commit without reviewing its intended effects. See
 [transactions](transactions.md) for the current native behavior. Web request
 cleanup and application-specific exception handlers are separate from this

@@ -74,7 +74,7 @@ Run it with `python quickstart.py`.
 
 - `SqlDatabaseConfig` combines declaration grammar and connection configuration.
   `AsqueelDb()` validates the model and creates the live object graph.
-- `SqlDatabase` owns the model, compiler, environment and lazy session. It connects
+- `SqlDatabase` owns the model, compiler, environment and lazy connections. It connects
   on the first executed operation, not during construction or SQL compilation.
 - `db.table()` returns a stable operational table. Its `.model` is the resolved
   descriptor; `.config` is a scoped view of the shared configuration.

@@ -10,6 +10,6 @@ mypy>=1.0
 build
 hatchling
 editables
-# Bootstrap the renamed migrator until its first PyPI release; pin its reviewed commit.
+# Reviewed migration source revision for development/CI; wheel extras use PyPI.
 asqueel-migration[postgresql,validation] @ git+https://github.com/asqueel-org/asqueel-migration.git@c12390d06712a2c4f1a3cc0303a5c278402382e2
 psycopg[binary]>=3.3.6

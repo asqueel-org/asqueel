@@ -96,3 +96,40 @@ def test_physical_projection_uses_resolved_naming():
     physical = SqlModelCatalog(to_physical_builder(model))
     assert set(physical.tables) == {('public', 'sales_customer'), ('public', 'invoices')}
     assert 'double' not in physical.tables[('public', 'invoices')]['columns']
+
+
+@pytest.mark.parametrize('alias', [None, 'parent'])
+@pytest.mark.parametrize('foreign_key', [True, False])
+def test_composite_relation_survives_physical_migration_projection(alias, foreign_key):
+    from asqueel import SqlMigrationRenderer, to_physical_builder
+
+    builder = SqlBuilder()
+    tables = builder.source.db('demo').schemas().schema('s', x_sql_schema='physical').tables()
+    parent = tables.table('parent', pkey='x,y', x_sql_name='parents')
+    columns = parent.columns()
+    columns.column('x', dtype='I', x_sql_name='px')
+    columns.column('y', dtype='I', x_sql_name='py')
+    child = tables.table('child', pkey='id')
+    columns = child.columns()
+    columns.column('id', dtype='I')
+    columns.column('ax', dtype='I', x_sql_name='cx')
+    columns.column('ay', dtype='I', x_sql_name='cy')
+    kwargs = {'foreign_key': foreign_key}
+    if foreign_key:
+        kwargs['on_delete'] = 'CASCADE'
+    if alias:
+        kwargs['x_name'] = alias
+    child.composites().compositeColumn('pair', columns='ax,ay').relation('s.parent', **kwargs)
+    model = resolve_model(builder)
+    assert model.table('s.child').relations[alias or 'pair'].columns == ('ax', 'ay')
+    physical = to_physical_builder(model)
+    projected = resolve_model(physical).table('physical.child')
+    assert len(projected.relations) == int(foreign_key)
+    if foreign_key:
+        relation = next(iter(projected.relations.values()))
+        assert relation.columns == ('cx', 'cy')
+        assert relation.target_columns == ('px', 'py')
+        assert relation.target == 'physical.parents'
+    structure = SqlMigrationRenderer(physical).render()
+    relations = structure['root']['schemas']['physical']['tables']['child']['relations']
+    assert bool(relations) is foreign_key

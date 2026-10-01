@@ -5,34 +5,19 @@ requisiti acquisiti e proposte. Non avvia un'implementazione né una migrazione.
 
 ## Revisione corrente
 
-La [consegna 23](23-cli-and-named-configurations.md) aggiunge CLI, registro
-`~/.asqueel`, sezione connection con EnvResolver e console Python. Il percorso
-configurazione → creazione DB → query/scritture → piano vuoto è verificato su
-PostgreSQL. SQLite resta richiesto; si riuseranno i suoi adapter di migrazione.
+Il [piano operativo 15](15-operational-plan.md) è il riferimento attivo.
+F1 è chiusa per il profilo sincrono: connessioni nominate per thread, environment,
+recupero applicativo e callback sono verificati su PostgreSQL e SQLite. Il
+[report 28](28-db-owned-connection-lifecycle.md) documenta la rimozione effettiva
+di Session; il [report 27](27-f1-request-lifecycle-closure.md) registra i confronti legacy.
+F2 è il prossimo passo; F0 e F2–F10 restano aperte.
 
-Il [compito collaterale 22](22-legacy-package-translation.md) avvia lo studio
-della traduzione di package Genropy in dichiarazioni Python del modello nuovo.
-Configurazione ed equivalente Pythonico del package restano scelte aperte;
-la priorità principale resta sulle funzionalità DB.
-
-Il [riesame degli errori Python 20](20-python-error-lifecycle.md) confronta hook
-e callback con il legacy su PostgreSQL, registra le differenze di retry/rollback
-e corregge difetti nativi di attribuzione e cleanup. Il controllo dei chiamanti
-conferma che il salvataggio legacy normale non committa in presenza di errori;
-il [riesame dei chiamanti 21](21-recovery-callers.md) verifica nove scenari per
-backend di recupero esplicito e identifica il rischio del logger senza rollback.
-La protezione nativa resta invariata; retry delle callback e altri percorsi
-applicativi delimitati nel riesame restano aperti.
-F1 rimane aperta, anche per il completamento della localizzazione.
-
-La [consegna F1 — sessioni](17-f1-sessions-delivery.md) introduce connessioni
-nominate persistenti, rollback SQL automatico e currentEnv/tempEnv applicativi.
-Include oracle legacy su PostgreSQL e 532 test superati; distingue ciò che resta
-aperto, in particolare localizzazione completa e code pending F4.
-
-Il [piano operativo 15](15-operational-plan.md) traduce l’audit in fasi F0–F10,
-dipendenze, criteri di accettazione e traguardi V1–V4. È pianificazione,
-non avvio dell’implementazione.
+La [consegna 23](23-cli-and-named-configurations.md) documenta CLI, registro
+`~/.asqueel` e configurazione. SQLite è disponibile nel profilo limitato
+[documentato](../guide/sqlite.md), senza implicare parità fra backend.
+Il [compito collaterale 22](22-legacy-package-translation.md) riguarda la futura
+traduzione dei package; il bridge applicativo legacy non è implementato.
+I report precedenti conservano evidenze e conteggi storici, non lo stato attuale.
 
 L'[audit dei test SQL legacy](13-legacy-test-audit.md) censisce 37 file e 968
 definizioni sorgente, distingue prove reali, mock e casi non raccolti, e collega

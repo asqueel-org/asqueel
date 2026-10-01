@@ -1,7 +1,7 @@
 # Release Asqueel
 
 Distribution: `asqueel`. Python package: `asqueel`.
-Repository: `asqueel-org/asqueel`. Prepared version: `0.1.1`.
+Repository: `asqueel-org/asqueel`. Prepared version: `0.4.0`.
 
 ## One-time PyPI setup
 
@@ -37,10 +37,9 @@ it uploads to PyPI only when the selected ref is a matching `v*` version tag.
 Do not create the release tag until the publisher configuration and release
 contents have been reviewed. Uploaded PyPI files cannot be replaced in place.
 
-Publish **asqueel-migration first**. Asqueel's `migration` and `dev` extras depend
-on its public distribution. Before that first migration release, Asqueel CI uses
-an explicit source revision for the migration dependency; wheel metadata keeps
-the normal `asqueel-migration>=0.1.2` requirement.
+The `migration` and `dev` extras require `asqueel-migration>=0.1.2`.
+Validate the selected dependency version before release. The source revision in
+`requirements/core.in` is a development/CI input, not wheel dependency metadata.
 
 No PyPI upload is performed by the rename itself. Read the Docs project/account
 configuration is independent of the checked-in Sphinx configuration.

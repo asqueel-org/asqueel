@@ -4,6 +4,10 @@
 
 Version prepared in the source repository; package publication is separate.
 
+- Fixed composite foreign-key projection into migration metadata, including
+  unnamed relations and remapped physical columns.
+- Connection implementation now inherits the DB setting unless explicitly
+  overridden, so a SQLite DB cannot silently take the PostgreSQL default.
 - Removed the internal Session entity. Database directly owns execution,
   completion, callbacks and cleanup; named connections keep only per-thread data.
 - Request lifecycle and callback recovery verified on PostgreSQL and SQLite:
@@ -11,7 +15,7 @@ Version prepared in the source repository; package publication is separate.
 - Date and locale defaults follow the documented context-only contract, without
   Babel or locale validation.
 
-Validation: 650 tests passed on PostgreSQL and SQLite, with 95% coverage.
+Validation: 659 tests passed on PostgreSQL and SQLite, with 95% coverage.
 Ruff, mypy and the strict documentation build passed.
 
 ## 0.3.0
@@ -51,7 +55,7 @@ step. This version introduces the configuration-to-terminal workflow:
   migrations and open a Python console with `db` available.
 - Follow the executable [two-schema example](two-schemas.md), covering users,
   access logs, customers, products, invoices and rows with separate model/logic.
-- Python write failures are attributed to the correct session; stale SQL
+- Python write failures are attributed to the correct connection; stale SQL
   exceptions cannot bypass rollback-only protection, and database scope
   cleanup preserves the original exception if cleanup also fails.
 

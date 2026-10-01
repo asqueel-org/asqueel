@@ -1,82 +1,74 @@
 # Runtime SQL sincrono
 
-`Database(driver=...)` gestisce connessioni e transazioni tramite un driver
-sincrono iniettato. `PostgresDatabase` seleziona `PsycopgDriver`. Tutte le
-operazioni avvengono sul thread chiamante, senza executor, worker o API async.
-L'eventuale supporto async verrà valutato dopo il completamento del nucleo.
+`Database(driver=...)` possiede il lifecycle delle connessioni.
+`PostgresDatabase` seleziona `PsycopgDriver`; `AsqueelDb` usa la configurazione
+applicativa. Tutte le operazioni eseguono sul thread chiamante.
 
 ```python
 from asqueel import PostgresDatabase, CompiledQuery
 
-with PostgresDatabase("dbname=example") as db:
-    with db.transaction() as tx:
-        result = tx.execute(CompiledQuery(
-            'INSERT INTO public.example (name) VALUES (%(name)s) RETURNING id',
-            {'name': 'Ada'},
-        ))
-    result = db.execute(CompiledQuery('SELECT 42 AS answer'))
+db = PostgresDatabase("dbname=example")
+try:
+    result = db.execute(CompiledQuery(
+        'INSERT INTO public.example (name) VALUES (%(name)s) RETURNING id',
+        {'name': 'Ada'},
+    ))
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+finally:
+    db.close()
 ```
 
 ## Transazioni e risorse
 
-Ogni transazione apre una connessione nuova e la chiude all'uscita. Nessun pool
-persistente. `db.execute()` apre una transazione per il singolo statement;
-per più operazioni atomiche usare `with db.transaction() as tx` e `tx.execute()`.
-Transazioni annidate sulla stessa istanza non sono supportate; i contesti sono
-monouso. `close()` è idempotente e rifiuta la chiusura durante una transazione
-attiva. Un database chiuso non può essere riaperto.
+La connessione selezionata si apre al primo execute. Le operazioni successive
+condividono la transazione pendente fino a `commit()` o `rollback()` espliciti.
+Non esistono oggetti Session né un metodo `transaction()`. `tempEnv` modifica
+il contesto e può selezionare una connessione nominata; non conclude transazioni.
 
-L'uscita senza errori esegue commit; un errore esegue rollback. Un errore del
-driver durante execute rende la transazione rollback-only, anche se intercettato
-nel corpo del with. In questo caso le altre execute falliscono e l'uscita segnala
-`TransactionStateError` dopo il rollback. La validazione offline di profilo e
-ambiente precede l'I/O: un rifiuto non rende rollback-only una transazione valida.
+Un errore SQL provoca rollback automatico, compreso il lavoro precedente non
+committato, e pulisce le callback della connessione. L'errore originale viene
+rilanciato. Un errore Python dentro una scrittura o callback precommit impone
+rollback prima del riuso. Un errore postcommit non annulla i dati già salvati;
+le callback non raggiunte restano fino al recupero applicativo. Se la callback
+fallita ha aperto nuovo lavoro SQL, quel lavoro richiede rollback.
 
-`tx.outcome` distingue `not_started`, `active`, `committed`, `rolled_back` e
-`unknown`. Un errore durante commit o rollback può rendere incerto l'esito;
-non ripetere automaticamente le scritture. La connessione viene comunque chiusa
-e lo stato dell'istanza rilasciato, anche se la pulizia solleva un errore.
+Un errore del driver durante commit/rollback può lasciare un esito incerto:
+non ripetere automaticamente le scritture. La connessione viene scartata.
+`closeConnection()` ripulisce tutte le connessioni del thread corrente e permette
+il riuso del DB nella richiesta successiva. `close()` chiude lo stato DB di quel
+thread; è idempotente e non committa. La conclusione durante hook o callback
+è protetta dai controlli di rientranza.
 
-## Bag e proprietà del thread
+## Thread, ambiente e driver
 
-Un database appartiene al thread che lo costruisce: accessi da altri thread
-sono rifiutati, anche attraverso una transazione. Modello, compiler e Bag
-restano nel contesto applicativo. Il runtime non propaga ContextVar verso altri
-thread e non invoca resolver Bag in background. Il controllo del thread non
-rende thread-safe Bag condivise manualmente dall'applicazione.
+Modello e handle del DB possono essere condivisi tra thread. Connessioni,
+callback e `ApplicationEnvironment` sono isolati per thread; ogni worker deve
+ripulire le proprie risorse. Non condividere i record interni delle connessioni.
+Le classi applicative condivise non devono conservare stato di richiesta negli
+attributi. Questo contratto non rende thread-safe oggetti Bag condivisi e mutati
+manualmente, né rende il runtime async-safe.
 
-`QueryResult.rows` contiene dizionari materializzati. I nomi delle colonne devono
-essere univoci e corrispondere ai metadati compilati. Nessun cursore lazy esce
-dall'esecuzione. Gli oggetti nei parametri e nei metadati non devono essere
-modificati concorrentemente dall'applicazione.
+Il compiler standalone può condividere un `SqlEnvironment` con il runtime.
+Il DB applicativo usa `ApplicationEnvironment` per `currentEnv`, workdate e
+locale. Le dipendenze ambientali di una query compilata vengono verificate
+prima dell'esecuzione; una query non più valida solleva `EnvironmentMismatchError`.
 
-Il runtime è proprietario del controllo transazionale: non inserire comandi
-BEGIN/COMMIT/ROLLBACK nelle query applicative. Valori utente in `params`, senza
-interpolazione SQL. Le chiamate bloccano fino al completamento; eventuali timeout
-si configurano su PostgreSQL. Nessuna cancellazione async o coda di ammissione.
+Il driver implementa `SyncDriver`. La facciata PostgreSQL ammette il profilo
+`postgresql/psycopg_named`; per altri profili usare `Database` con il driver
+appropriato o la configurazione applicativa. `QueryResult.rows` contiene
+risultati materializzati; nessun cursore lazy esce dall'esecuzione.
 
-## Ambiente e adapter
-
-Condividere `SqlEnvironment` fra compiler e database per usare `temp_env()` e
-le [policy di riga](row-policies.md). Il runtime verifica che le dipendenze
-ambientali della query siano ancora valide prima della connessione/esecuzione;
-altrimenti solleva `EnvironmentMismatchError`. Gli alias `currentEnv` e `tempEnv`
-restano disponibili. Vedi [ambiente SQL](sql-environment.md).
-
-```python
-from asqueel import Database
-
-with Database(driver=my_sync_driver) as db:
-    result = db.execute(compiled_query)
-```
-
-Il driver implementa `SyncDriver`. La facciata PostgreSQL ammette solo il
-profilo `postgresql/psycopg_named`; per altri profili usare `Database`.
-`ThreadedDatabase`, `aclose`, `max_workers`, `max_pending` e i protocolli
-`async with`/`await execute` sono stati rimossi da questa API alpha.
+Il runtime possiede il controllo transazionale: non inserire BEGIN/COMMIT/ROLLBACK
+nelle query applicative. I valori utente vanno nei parametri; le espressioni SQL
+sono codice applicativo fidato. Le chiamate sono bloccanti. La futura migrazione
+async è analizzata nel [documento 26](design/26-async-portability.md).
 
 ## Verifiche
 
-Le suite runtime e adapter verificano proprietà del thread, CRUD, metadati,
-rollback-only, transazioni monouso, pulizia, chiusura ed errori di commit/rollback.
-I test PostgreSQL verificano persistenza e rollback su connessioni reali.
+Le suite runtime verificano isolamento per thread, connessioni nominate,
+CRUD, callback, rollback, cleanup ed errori di completamento. PostgreSQL e SQLite
+sono esercitati su connessioni reali. `scripts/demo_native.py` verifica il
+percorso PostgreSQL con commit/rollback espliciti e uno schema temporaneo.

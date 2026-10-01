@@ -32,30 +32,34 @@ def main(*, explicit_adapters=False):
         compiler = PostgresCompiler(model)
         database = PostgresDatabase(dsn)
 
-    with database:
+    try:
         database.execute(CompiledQuery(f'CREATE SCHEMA "{schema}"'))
+        database.execute(CompiledQuery(
+            f'CREATE TABLE "{schema}"."sales_customer" (id bigint PRIMARY KEY, name text)'))
+        database.commit()
         try:
-            database.execute(CompiledQuery(
-                f'CREATE TABLE "{schema}"."sales_customer" (id bigint PRIMARY KEY, name text)'))
-            with database.transaction() as tx:
-                tx.execute(compiler.insert('sales.customer', {'id': 1, 'name': 'Ada'}))
-                tx.execute(compiler.update(
-                    'sales.customer', {'name': "Ada, 100% Genro"},
-                    where='$id = :id', params={'id': 1},
-                ))
+            database.execute(compiler.insert('sales.customer', {'id': 1, 'name': 'Ada'}))
+            database.execute(compiler.update(
+                'sales.customer', {'name': "Ada, 100% Genro"},
+                where='$id = :id', params={'id': 1},
+            ))
+            database.commit()
             try:
-                with database.transaction() as tx:
-                    tx.execute(compiler.insert('sales.customer', {'id': 2, 'name': 'Rollback'}))
-                    raise RuntimeError('Demonstration rollback')
+                database.execute(compiler.insert('sales.customer', {'id': 2, 'name': 'Rollback'}))
+                raise RuntimeError('Demonstration rollback')
             except RuntimeError:
-                pass
+                database.rollback()
             result = database.execute(compiler.select('sales.customer', order_by='$id'))
             assert result.rows == [{'id': 1, 'name': 'Ada, 100% Genro'}]
             assert result.columns[1].ui['label'] == 'Cliente'
             print(result.rows)
             print('Native model, naming, compiler, synchronous CRUD and rollback passed.')
         finally:
+            database.rollback()
             database.execute(CompiledQuery(f'DROP SCHEMA "{schema}" CASCADE'))
+            database.commit()
+    finally:
+        database.close()
 
 
 if __name__ == '__main__':

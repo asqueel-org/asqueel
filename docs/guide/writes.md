@@ -74,9 +74,9 @@ except Exception:
 
 ```
 
-Without overridden update hooks, this is a set-based update: all matching rows
+Without overridden table or shared DB write hooks, this is a set-based update: all matching rows
 in the partition scope are updated. `result.rowcount` tells you how many rows
-were affected, and zero is a normal outcome. With hooks, the predicate must
+were affected, and zero is a normal outcome. With either kind of hook, the predicate must
 identify exactly one row; [the hook guide](hooks.md) explains why.
 
 To change a key, use an explicit predicate selecting the old key and a mapping
@@ -141,9 +141,10 @@ and logical-deletion **read** filters do not automatically restrict writes. A
 hooked update/deletion reads the physical row with those read filters disabled,
 while keeping partition restrictions.
 
-A SQL or hook failure makes the shared unit of work rollback-only. Catch errors
-outside `db.commit()` / `db.rollback()`, or call `db.rollback()` before reuse when
-managing completion manually. Do not interpret zero affected rows as an access
+An ordinary SQL execution error automatically rolls back the pending transaction.
+A Python write-hook failure instead requires explicit rollback before reuse.
+Handle errors around the complete unit of work and use `db.rollback()` for
+application-owned recovery. Do not interpret zero affected rows as an access
 exception or silently retry an unknown commit outcome.
 
 Next: [transactions](transactions.md), [business hooks](hooks.md), and
