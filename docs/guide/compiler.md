@@ -51,7 +51,7 @@ query = compiler.select(
     'sales.invoice',
     columns='$id, @customer.name AS customer_name, $total',
     where='$total >= :minimum',
-    params={'minimum': 100},
+    sqlparams={'minimum': 100},
     order_by='$id',
     limit=20,
     offset=0,
@@ -125,8 +125,9 @@ A missing related row therefore produces NULL target values. A target condition
 placed in `where`, such as `@customer.name = :name`, still excludes rows where
 that condition is not true; the LEFT JOIN does not override your filter.
 
-Without an explicit alias, `@customer.name` is returned as `_customer_name`.
-Use explicit aliases for public result contracts. Reverse relations require an
+Without an explicit alias, `@customer.name` is returned as `customer_name`:
+the automatic name omits the target's leading underscore. Use explicit aliases
+for public result contracts. Reverse relations require an
 explicit collection or aggregate shape; a scalar path must identify one value.
 
 ### Parameters, literals, and expressions
@@ -135,7 +136,7 @@ explicit collection or aggregate shape; a scalar path must identify one value.
 query = compiler.select(
     'sales.invoice',
     where='$note ILIKE :pattern AND $total >= :minimum',
-    params={'pattern': '%overdue%', 'minimum': 0},
+    sqlparams={'pattern': '%overdue%', 'minimum': 0},
 )
 ```
 
@@ -171,10 +172,12 @@ An explicit SQL aggregate is supported as an expression:
 query = compiler.select('sales.invoice', 'COUNT(*) AS invoice_count')
 ```
 
-This returns a normal compiled SELECT with the applicable read filters. There
-is no separate `count()` method or `group_by`/`having` query option. Aggregate
-SQL expressions do not enable automatic grouping, row deduplication, or collection
-assembly. The `aggregateRows` option is rejected.
+This returns a normal compiled SELECT with the applicable read filters. The
+`distinct`, `group_by` and `having` options express grouping and uniqueness,
+and `SqlQuery.count()` is the count terminal; their rules and errors are in
+[queries](queries.md). An aggregate SQL expression on its own still does not
+enable automatic grouping, row deduplication or collection assembly, and the
+`aggregateRows` option is rejected.
 
 ## Execute and read results
 
@@ -227,13 +230,13 @@ updated = compiler.update(
     'sales.invoice',
     {'total': 150},
     where='$id = :id',
-    params={'id': 10},
+    sqlparams={'id': 10},
     returning='$id, $total',
 )
 deleted = compiler.delete(
     'sales.invoice',
     where='$id = :id',
-    params={'id': 10},
+    sqlparams={'id': 10},
     returning='$id',
 )
 ```

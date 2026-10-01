@@ -20,8 +20,27 @@ Version prepared in the source repository; package publication is separate.
   callback exceptions reach the application, which owns recovery and cleanup.
 - Date and locale defaults follow the documented context-only contract, without
   Babel or locale validation.
+- `IN :ids` and `NOT IN :ids` bind a collection (`list`, `tuple`, `set`,
+  `frozenset`) as one parameter per member, in compiled queries and in direct
+  SQL. An empty collection renders an operand-free form that never emits
+  `IN ()`. Mixing one parameter between collection and scalar position is an
+  error. PostgreSQL `= ANY(:ids)` with a list keeps binding one array parameter.
+- Queries accept `distinct`, `group_by` and `having`, resolved like `where`.
+  Unsupported combinations — `having` without `group_by`, `group_by='*'`,
+  `for_update` or `exclude_logical_deleted='mark'` with distinct/grouping, and
+  an ORDER BY item that DISTINCT cannot project — raise
+  `UnsupportedFeatureError` on both backends.
+- `SqlQuery.count()` is implemented: one statement, a Python `int`, row policies
+  applied as for `fetch()`, ORDER BY dropped and `for_update` ignored. It wraps
+  the select in a subquery when the projections are not plain column references,
+  and rejects a query carrying `limit` or `offset`.
+- Breaking: the `params=` mapping argument is removed from every public query,
+  record, write and compiler entry point, and from formula subquery definitions.
+  Pass parameters as keyword arguments (`minimum=100`) or as the legacy-named
+  `sqlparams={...}` mapping. A leftover `params=` on `query()` is reported as an
+  unused keyword binding; on the write and compiler methods it is a `TypeError`.
 
-Validation: 683 tests passed on PostgreSQL and SQLite, with 95% coverage.
+Validation: 844 tests passed on PostgreSQL and SQLite, with 95% coverage.
 Ruff, mypy and the strict documentation build passed.
 
 ## 0.3.0

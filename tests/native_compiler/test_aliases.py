@@ -35,7 +35,7 @@ def test_alias_metadata_and_all_clauses_reuse_joins(model):
     query = PostgresCompiler(model).select(
         'invoice', '$customer_code AS code, $country_name AS label, $via_alias',
         where='$customer_code=:code AND @customer.@country.name=:name',
-        params={'code': 7, 'name': 'Italy'}, order_by='$country_name')
+        sqlparams={'code': 7, 'name': 'Italy'}, order_by='$country_name')
     assert query.sql.count('LEFT JOIN') == 2
     assert '"t1"."numeric_code" AS "code"' in query.sql
     assert '"t2"."country_name" AS "label"' in query.sql
@@ -64,7 +64,7 @@ def test_legacy_and_native_paths_have_same_sql_and_default_alias(model):
 def test_multi_hop_tokens_in_literals_are_not_resolved(model):
     query = PostgresCompiler(model).select(
         'invoice', "'$fake @customer.@country.name' AS literal, $id",
-        where='$id=:id /* @missing.@missing.field */', params={'id': 1})
+        where='$id=:id /* @missing.@missing.field */', sqlparams={'id': 1})
     assert 'LEFT JOIN' not in query.sql
     assert "'$fake @customer.@country.name'" in query.sql
 

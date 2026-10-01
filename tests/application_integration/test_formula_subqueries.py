@@ -55,7 +55,7 @@ def formula_database():
                     virtual.formulaColumn('all_total', dtype='N', select=dict(**total, ignorePartition=True))
                     virtual.formulaColumn('above_threshold', dtype='N', select=dict(
                         table='app.line', columns='SUM($amount)',
-                        where='$invoice_id=#THIS.id AND $amount>:threshold', params={'threshold': 15},
+                        where='$invoice_id=#THIS.id AND $amount>:threshold', sqlparams={'threshold': 15},
                         cast='numeric'))
                     virtual.formulaColumn('single_amount', dtype='N', select=dict(
                         table='app.line', columns='$amount', where='$invoice_id=#THIS.id'))
@@ -150,5 +150,5 @@ def test_subquery_local_params_are_isolated_from_outer_binding(formula_database)
     db = formula_database
     with db.temp_env(organization=0):
         query = db.table('invoice').query('$id,$above_threshold', where='$id<:threshold',
-                                          params={'threshold': 2})
+                                          sqlparams={'threshold': 2})
         assert query.fetch() == [{'id': 1, 'above_threshold': Decimal(50)}]

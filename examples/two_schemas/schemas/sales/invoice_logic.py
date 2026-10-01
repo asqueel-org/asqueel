@@ -7,6 +7,6 @@ class InvoiceLogic(SqlTable):
         """Return a parameterized query; execution remains the caller's choice."""
         return self.db.table("sales.invoice_row").query(
             columns="$id, $description, $quantity, $unit_price, $amount",
-            where="$invoice_id = :invoice_id", params={"invoice_id": invoice_id},
+            where="$invoice_id = :invoice_id", invoice_id=invoice_id,
             order_by="$id",
         )

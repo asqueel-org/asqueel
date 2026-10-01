@@ -91,7 +91,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
                 }))
             query = compiler.select(
                 'crm.invoice', columns='$id, @customer_id.name AS customer, $double_total',
-                where='$id >= :start', params={'start': 11}, order_by='$id',
+                where='$id >= :start', sqlparams={'start': 11}, order_by='$id',
             )
             result = db.execute(query)
             assert [(r['id'], r['customer'], r['double_total']) for r in result.rows] == [
@@ -100,7 +100,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
             assert result.columns[1].ui['label'] == 'Cliente'
             assert result.columns[1].ui['placeholder'] == 'Nome'
             updated = db.execute(compiler.update(
-                'crm.invoice', {'total': 15}, where='$id = :id', params={'id': 11},
+                'crm.invoice', {'total': 15}, where='$id = :id', sqlparams={'id': 11},
             ))
             assert updated.rows[0]['total'] == 15
             db.commit()
@@ -109,10 +109,10 @@ def test_native_model_compiler_runtime_and_import(native_database):
                     tx.execute(compiler.insert('crm.customer', {'id': 2, 'name': 'Rollback'}))
                     tx.execute(compiler.insert('crm.customer', {'id': 1, 'name': 'Duplicate'}))
             assert not (db.execute(compiler.select(
-                'crm.customer', where='$id = :id', params={'id': 2},
+                'crm.customer', where='$id = :id', sqlparams={'id': 2},
             ))).rows
             deleted = db.execute(compiler.delete(
-                'crm.invoice', where='$id = :id', params={'id': 12},
+                'crm.invoice', where='$id = :id', sqlparams={'id': 12},
             ))
             assert deleted.rowcount == 1
             db.commit()

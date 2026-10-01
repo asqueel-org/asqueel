@@ -44,18 +44,18 @@ class WriteMixin:
                 columns = result.columns
             return QueryResult(rows, rowcount, columns)
 
-    def update(self, table, values, where=None, params=None, returning='*', *, ignore_partition=False):
-        return self._update(self._write_table(table), values, where, params, returning, ignore_partition=ignore_partition)
+    def update(self, table, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
+        return self._update(self._write_table(table), values, where, sqlparams, returning, ignore_partition=ignore_partition)
 
-    def raw_update(self, table, values, where=None, params=None, returning='*', *, ignore_partition=False):
-        return self._update(self._write_table(table), values, where, params, returning, ignore_partition=ignore_partition, raw=True)
+    def raw_update(self, table, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
+        return self._update(self._write_table(table), values, where, sqlparams, returning, ignore_partition=ignore_partition, raw=True)
 
-    def delete(self, table, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
-        return self._delete(self._write_table(table), record_or_pkey, where=where, params=params,
+    def delete(self, table, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
+        return self._delete(self._write_table(table), record_or_pkey, where=where, sqlparams=sqlparams,
                             returning=returning, ignore_partition=ignore_partition)
 
-    def raw_delete(self, table, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
-        return self._delete(self._write_table(table), record_or_pkey, where=where, params=params,
+    def raw_delete(self, table, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
+        return self._delete(self._write_table(table), record_or_pkey, where=where, sqlparams=sqlparams,
                             returning=returning, ignore_partition=ignore_partition, raw=True)
 
     def _direct_write(self, table, event, record, compiled, *, raw):
@@ -85,22 +85,22 @@ class WriteMixin:
                 self.onWritten(table, 'I', record, raw=raw)
                 return result
 
-    def _update(self, table, values, where=None, params=None, returning='*', *, ignore_partition=False, raw=False):
+    def _update(self, table, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False, raw=False):
         with self._write_operation():
             if not isinstance(values, Mapping):
                 raise TypeError('Update values must be a mapping')
             record = _copy(dict(values))
             if where is None:
-                where, params = table._key_selector(record, params)
+                where, sqlparams = table._key_selector(record, sqlparams)
             # Validate the caller's write predicate and values before acquiring locks.
             self.compiler.update(
-                table.fullname, record, where, params, returning, ignore_partition=ignore_partition)
+                table.fullname, record, where, sqlparams, returning, ignore_partition=ignore_partition)
             with table._trigger_operation('update', record=record) as trigger:
                 if raw:
                     return self._direct_write(table, 'U', record, lambda: self.compiler.update(
-                        table.fullname, record, where, params, returning,
+                        table.fullname, record, where, sqlparams, returning,
                         ignore_partition=ignore_partition), raw=True)
-                old_record = table._locked_record(where, params, ignore_partition)
+                old_record = table._locked_record(where, sqlparams, ignore_partition)
                 key_where, key_params = table._key_selector(old_record)
                 merged = _copy(old_record)
                 merged.update(record)
@@ -123,15 +123,15 @@ class WriteMixin:
                 self.onWritten(table, 'U', merged, old_record=_copy(old_record), raw=raw)
                 return result
 
-    def _delete(self, table, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False, raw=False):
+    def _delete(self, table, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False, raw=False):
         with self._write_operation():
             by_key = where is None
             if by_key:
                 if record_or_pkey is None:
                     raise ValueError('Delete requires a primary key, record, or explicit where')
-                where, params = table._key_selector(record_or_pkey, params)
+                where, sqlparams = table._key_selector(record_or_pkey, sqlparams)
             compiled = self.compiler.delete(
-                table.fullname, where, params, returning, ignore_partition=ignore_partition)
+                table.fullname, where, sqlparams, returning, ignore_partition=ignore_partition)
             if raw:
                 record = _copy(record_or_pkey) if by_key else None
                 if record is not None and not isinstance(record, Mapping):
@@ -140,7 +140,7 @@ class WriteMixin:
                     record = dict(zip(keys, values))
                 with table._trigger_operation('delete', record=record):
                     return self._direct_write(table, 'D', record, compiled, raw=True)
-            record = table._locked_record(where, params, ignore_partition)
+            record = table._locked_record(where, sqlparams, ignore_partition)
             key_where, key_params = table._key_selector(record)
             with table._trigger_operation('delete', record=record):
                 self.onWriting(table, 'D', record, raw=raw)

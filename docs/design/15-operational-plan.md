@@ -19,7 +19,7 @@ the subsequent local F1 work. F0 and F2–F10 remain open.
 | F0 | Legacy revision fixed; executable session, deferred and caller oracles. | Complete contract inventory, traceability and performance baseline. |
 | F1 | Shared execution service, implicit transactions with explicit completion, per-thread named connections/environment, deferred queues and write-error protection. | Closed: behavior and structural removal verified in reports 27–28; application-porting obligations remain explicitly scoped. |
 | F2 | Resolved model, linked metadata, direct relation paths, aliases, cascading configuration and explicitly imported schema/table contributions. | Uniform model path lookup/introspection, relation metadata and full naming/composition contract verification. |
-| F3 | Parameterized queries, to-one paths, ordering/pagination and scalar correlated formulas. | Count, DISTINCT, GROUP BY/HAVING, collection binding and remaining legacy query contracts. |
+| F3 | Parameterized queries, to-one paths, ordering/pagination, scalar correlated formulas, collection binding, DISTINCT, GROUP BY/HAVING and the count terminal. | Remaining legacy query contracts: relationDict, joinConditions, to-many relations, Selection/Bag, DISTINCT ON and tuple-of-columns IN. |
 | F4 | CRUD/RETURNING, record access, table hooks, DB write hooks and raw commands through the common execution path. | Remaining record/result terminals, key generation, old-record/bulk contracts and concurrency/event acceptance. |
 | F5 | Row policies, runnable tutorial and multi-schema examples. | Integrated V1 acceptance, policy interactions and resolution of remaining F1–F4 gaps. |
 | F6–F8 | Existing aliases/formulas and extension points are foundations. | Advanced relations, collections/macros, Selection/Bag and extended application lifecycle. |
@@ -61,10 +61,11 @@ tests pass after the removal. Report 28 records the correction and acceptance.
    covering context, pending writes and named callback cleanup. F1 runtime
    acceptance is complete for this profile; full application porting is not.
 
-**Prossimo lavoro pianificato:** [incremento query 30](30-query-completion-plan.md),
-con verifica dei difetti, prerequisiti minimi F2 e completamento del nucleo F3
-(IN/NOT IN, DISTINCT, GROUP BY/HAVING, count). Non equivale alla chiusura integrale
-di F2 o F3. F0 prosegue in parallelo; C1 resta collaterale.
+**Lavoro concluso:** [incremento query 30](30-query-completion-plan.md) ha
+implementato il nucleo F3 (IN/NOT IN, DISTINCT, GROUP BY/HAVING, count) con i
+prerequisiti minimi F2; vedi la sezione `## Esito` di quel documento. Non
+equivale alla chiusura integrale di F2 o F3. F0 prosegue in parallelo; C1 resta
+collaterale.
 This closure is not a new package release.
 
 Sources: [42-contract audit](13-legacy-test-audit.md),

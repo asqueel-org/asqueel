@@ -24,7 +24,7 @@ class RecordMultipleRowsError(LookupError):
 
 _SELECT_OPTIONS = frozenset({
     'order_by', 'limit', 'offset', 'exclude_draft', 'exclude_logical_deleted',
-    'ignore_partition', 'for_update',
+    'ignore_partition', 'for_update', 'distinct', 'group_by', 'having',
 })
 _ALIASES = {
     'excludeDraft': 'exclude_draft',
@@ -32,7 +32,7 @@ _ALIASES = {
     'ignorePartition': 'ignore_partition',
 }
 _UNSUPPORTED = frozenset({
-    'aggregateRows', '_aggregateRows', 'distinct', 'group_by', 'having',
+    'aggregateRows', '_aggregateRows',
     'relationDict', 'joinConditions', 'sqlContextName',
     'addPkeyColumn', 'ignoreTableOrderBy', 'subtable', 'bagFields',
     '_storename', 'storename', 'locale', 'mode', 'checkPermissions', 'aliasPrefix',
@@ -118,14 +118,17 @@ class SqlQuery:
 
     @property
     def compiled(self):
+        return self._compile(self.db.compiler.select)
+
+    def _compile(self, terminal):
         self.db._check_open()
-        query = self.db.compiler.select(self.table.fullname, params=_copy(self._params),
-                                        **_copy(self._options))
+        query = terminal(self.table.fullname, sqlparams=_copy(self._params),
+                         **_copy(self._options))
         unused = set(self._keyword_bindings) - set(query.input_parameters)
         if unused:
             raise UnsupportedFeatureError(
                 f'Unknown query options or unused keyword bindings: {sorted(unused)}; '
-                'use params for explicit parameter mappings')
+                'use sqlparams for explicit parameter mappings')
         return query
 
     @property
@@ -143,7 +146,8 @@ class SqlQuery:
         raise UnsupportedFeatureError('Selection and Bag output are outside this application profile')
 
     def count(self):
-        raise UnsupportedFeatureError('The count terminal is not implemented; select an explicit SQL aggregate')
+        row = self.db.execute(self._compile(self.db.compiler.count)).rows[0]
+        return int(row['count'])
 
 
 class SqlRecord:
@@ -203,7 +207,7 @@ class SqlTable:
         except KeyError:
             raise ValueError(f'Unknown relation {self.fullname}.{name}') from None
 
-    def query(self, columns='*', where=None, params=None, sqlparams=None, **options_or_bindings):
+    def query(self, columns='*', where=None, sqlparams=None, **options_or_bindings):
         self.db._check_open()
         incoming = dict(options_or_bindings)
         for alias, native in _ALIASES.items():
@@ -216,10 +220,10 @@ class SqlTable:
             raise UnsupportedFeatureError(f'Unsupported query options: {sorted(unsupported)}')
         options = {'columns': columns, 'where': where}
         options.update({key: incoming.pop(key) for key in list(incoming) if key in _SELECT_OPTIONS})
-        bindings = _bindings(params, sqlparams, incoming)
+        bindings = _bindings(sqlparams, incoming)
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 
-    def _key_selector(self, pkey, params=None):
+    def _key_selector(self, pkey, sqlparams=None):
         names = self.model.pkey
         if not names:
             raise ValueError(f'{self.fullname} has no declared primary key')
@@ -236,7 +240,7 @@ class SqlTable:
             raise ValueError('Composite primary keys require a complete mapping or ordered sequence')
         if any(value is None for value in values):
             raise ValueError('Primary-key values must not be None')
-        bindings = _bindings(params)
+        bindings = _bindings(sqlparams)
         conditions = []
         for index, (name, value) in enumerate(zip(names, values)):
             parameter = f'__record_key_{index}'
@@ -246,13 +250,13 @@ class SqlTable:
             conditions.append(f'{_reference(name)} = :{parameter}')
         return ' AND '.join(conditions), bindings
 
-    def record(self, pkey=None, where=None, params=None, sqlparams=None, mode=None, **options_or_bindings):
+    def record(self, pkey=None, where=None, sqlparams=None, mode=None, **options_or_bindings):
         self.db._check_open()
         if 'columns' in options_or_bindings:
             raise UnsupportedFeatureError('Record reads select the complete row; use query for custom projections')
         if 'limit' in options_or_bindings or 'offset' in options_or_bindings:
             raise UnsupportedFeatureError('Record reads cannot limit/offset away duplicate candidates')
-        bindings = _bindings(params, sqlparams)
+        bindings = _bindings(sqlparams)
         if where is not None:
             if not isinstance(where, str) or not where.strip():
                 raise ValueError('Record lookup needs a nonempty selector')
@@ -260,7 +264,7 @@ class SqlTable:
             where, bindings = self._key_selector(pkey, bindings)
         else:
             raise ValueError('Record lookup requires a primary key or explicit where')
-        result = SqlRecord(self.query(where=where, params=bindings, **options_or_bindings))
+        result = SqlRecord(self.query(where=where, sqlparams=bindings, **options_or_bindings))
         return result.output(mode) if mode is not None else result
 
     def trigger_onInserting(self, record):
@@ -295,12 +299,12 @@ class SqlTable:
         with operation(event, self, record=record, old_record=old_record) as item:
             yield item
 
-    def _locked_record(self, where, params, ignore_partition):
+    def _locked_record(self, where, sqlparams, ignore_partition):
         if not self.model.pkey:
             raise ValueError('Ordinary update/delete require a declared primary key')
         columns = ', '.join(_reference(name) for name, column in self.model.columns.items()
                             if not column.is_virtual)
-        query = self.query(columns=columns, where=where, params=params, for_update=True, limit=2,
+        query = self.query(columns=columns, where=where, sqlparams=sqlparams, for_update=True, limit=2,
                            exclude_draft=False, exclude_logical_deleted=False,
                            ignore_partition=ignore_partition)
         return SqlRecord(query).output()
@@ -321,30 +325,30 @@ class SqlTable:
     def raw_insert(self, values, returning='*', *, ignore_partition=False):
         return self.db.raw_insert(self, values, returning, ignore_partition=ignore_partition)
 
-    def update(self, values, where=None, params=None, returning='*', *, ignore_partition=False):
-        return self.db.update(self, values, where, params, returning, ignore_partition=ignore_partition)
+    def update(self, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
+        return self.db.update(self, values, where, sqlparams, returning, ignore_partition=ignore_partition)
 
-    def raw_update(self, values, where=None, params=None, returning='*', *, ignore_partition=False):
-        return self.db.raw_update(self, values, where, params, returning, ignore_partition=ignore_partition)
+    def raw_update(self, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
+        return self.db.raw_update(self, values, where, sqlparams, returning, ignore_partition=ignore_partition)
 
-    def delete(self, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
-        return self.db.delete(self, record_or_pkey, where=where, params=params,
+    def delete(self, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
+        return self.db.delete(self, record_or_pkey, where=where, sqlparams=sqlparams,
                               returning=returning, ignore_partition=ignore_partition)
 
-    def raw_delete(self, record_or_pkey=None, *, where=None, params=None, returning='*', ignore_partition=False):
-        return self.db.raw_delete(self, record_or_pkey, where=where, params=params,
+    def raw_delete(self, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
+        return self.db.raw_delete(self, record_or_pkey, where=where, sqlparams=sqlparams,
                                   returning=returning, ignore_partition=ignore_partition)
 
-    def soft_delete(self, value, where, params=None, returning='*', *, ignore_partition=False):
+    def soft_delete(self, value, where, sqlparams=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
             if value is None:
                 raise ValueError('soft_delete requires a non-None tombstone value')
             field = self.db.compiler._tombstone(self.fullname)
-            return self.update({field: value}, where, params, returning,
+            return self.update({field: value}, where, sqlparams, returning,
                                ignore_partition=ignore_partition)
 
-    def restore(self, where, params=None, returning='*', *, ignore_partition=False):
+    def restore(self, where, sqlparams=None, returning='*', *, ignore_partition=False):
         with self.db._write_operation():
             field = self.db.compiler._tombstone(self.fullname)
-            return self.update({field: None}, where, params, returning,
+            return self.update({field: None}, where, sqlparams, returning,
                                ignore_partition=ignore_partition)

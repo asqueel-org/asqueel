@@ -119,12 +119,12 @@ def test_detached_parameters_and_legacy_keyword_bindings(db):
     assert query.compiled.params['ids'] == [0, 1]
     assert db.table('customer').query('$id', where='$id=:id', id=0).compiled.params['id'] == 0
     with pytest.raises(ValueError, match='Duplicate parameter'):
-        db.table('customer').query(where='$id=:id', params={'id': 1}, id=2)
+        db.table('customer').query(where='$id=:id', sqlparams={'id': 1}, id=2)
     with pytest.raises(UnsupportedFeatureError, match='unused keyword'):
         db.table('customer').query(nonsense=True).compiled
 
 
-@pytest.mark.parametrize('option', ['aggregateRows', '_aggregateRows', 'group_by', 'addPkeyColumn'])
+@pytest.mark.parametrize('option', ['aggregateRows', '_aggregateRows', 'relationDict', 'addPkeyColumn'])
 def test_unsupported_options_are_not_silently_treated_as_bindings(db, option):
     with pytest.raises(UnsupportedFeatureError):
         db.table('customer').query(**{option: True})

@@ -70,7 +70,7 @@ def test_neutral_lexer_renderer_and_formatter_are_actual_injected_dependencies(m
     dialect, formatter = SentinelDialect(), SentinelFormatter()
     compiler = QueryCompiler(model, dialect, formatter)
     query = compiler.select('invoice', '$id, «$hidden,:unused,100%» AS literal, :p AS value',
-                            params={'p': '50%'}, where='$id=:p')
+                            sqlparams={'p': '50%'}, where='$id=:p')
     assert dialect.token_inputs
     assert query.sql == 'SENTINEL:select:[t0].[ID%]«$hidden,:unused,100%»{p}'
     assert query.dialect == 'sentinel'
@@ -85,7 +85,7 @@ def test_plan_generation_does_not_render_or_escape_sql(model):
     dialect, formatter = SentinelDialect(), SentinelFormatter()
     compiler = QueryCompiler(model, dialect, formatter)
     plan = compiler.plan_select('invoice', '$id, $double, @customer.name',
-                                where='$id=:id', params={'id': 7}, limit=0, offset=0)
+                                where='$id=:id', sqlparams={'id': 7}, limit=0, offset=0)
     assert not dialect.plans and not formatter.statements
     assert plan.table == TableRef('physical', 'Bills%', 't0')
     assert plan.projections[0].expression == Fragment((Identifier('t0'), '.', Identifier('ID%')))
@@ -105,7 +105,7 @@ def test_write_plans_keep_assignments_and_parameters_structured(model):
     dialect, formatter = SentinelDialect(), SentinelFormatter()
     compiler = QueryCompiler(model, dialect, formatter)
     plan = compiler.plan_update('invoice', {'id': 4}, '$id=:__value_0',
-                                params={'__value_0': 1}, returning='$id')
+                                sqlparams={'__value_0': 1}, returning='$id')
     assert plan.operation == 'update'
     assert plan.assignments[0].column == 'ID%'
     assert plan.assignments[0].value == Fragment((Parameter('___value_0'),))
@@ -130,7 +130,7 @@ def test_adapter_mismatch_and_plan_mismatch_are_rejected(model):
 
 def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(model):
     compiler = PostgresCompiler(model)
-    selected = compiler.select('invoice', '$id', where='$id=:id', params={'id': 4}, limit=0)
+    selected = compiler.select('invoice', '$id', where='$id=:id', sqlparams={'id': 4}, limit=0)
     assert selected.sql == ('SELECT "t0"."ID%%" AS "id" FROM "physical"."Bills%%" AS "t0" '
                             'WHERE "t0"."ID%%"=%(id)s LIMIT 0')
     inserted = compiler.insert('invoice', {'id': 4}, returning='$id')

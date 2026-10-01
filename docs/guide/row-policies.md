@@ -243,11 +243,11 @@ with db.temp_env(organization=10):
         document = db.table('app.document')
         deleted = document.soft_delete(
             value=datetime.now(timezone.utc),
-            where='$id = :id', params={'id': 100},
+            where='$id = :id', sqlparams={'id': 100},
             returning='$id, $deleted_at',
         )
         restored = document.restore(
-            where='$id = :id', params={'id': 100},
+            where='$id = :id', sqlparams={'id': 100},
             returning='$id, $deleted_at',
         )
         db.commit()

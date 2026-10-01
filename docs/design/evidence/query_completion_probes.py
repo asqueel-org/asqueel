@@ -115,7 +115,7 @@ def query_probe(db, backend, construct, classification, source, *, columns='*', 
     try:
         with db.temp_env(**(env or {})):
             query = db.table('sales.invoice').query(columns=columns, where=where,
-                                                    params=params, **options)
+                                                    sqlparams=params, **options)
             if terminal == 'count':
                 outcome['result'] = query.count()
                 outcome['status'] = 'returned'
@@ -147,7 +147,7 @@ def recompilation_probe(db, backend):
     db.compiler.select = counting_select
     try:
         query = db.table('sales.invoice').query(columns='$id', where='$id = :id',
-                                                params={'id': 10})
+                                                sqlparams={'id': 10})
         first, second = query.compiled, query.compiled
         outcome['sql'] = first.sql
         outcome['params'] = dict(first.params)

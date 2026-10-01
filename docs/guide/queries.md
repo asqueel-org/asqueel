@@ -13,7 +13,7 @@ try:
     rows = invoice.query(
         columns="$id, @customer.name AS customer_name, $total",
         where="$total >= :minimum",
-        params={"minimum": 100},
+        minimum=100,
         order_by="$total DESC, $id",
         limit=20,
     ).fetch()
@@ -57,7 +57,7 @@ accepted; do not supply both spellings of the same option.
 | `$name` | Local logical column, including a declared virtual column. | `$total >= :minimum` |
 | `@relation.column` | Column on a declared to-one target. | `@customer.name` |
 | `AS name` | Result dictionary key. | `$id AS invoice_id` |
-| `:name` | Bound data value. | `params={'minimum': 100}` |
+| `:name` | Bound data value. | `minimum=100` |
 | `:env_name` | Explicit parameter, or environment fallback for `name`. | `:env_customer_id` |
 | SQL expression | Trusted PostgreSQL expression. | `COALESCE($total, 0) AS amount` |
 
@@ -82,7 +82,7 @@ try:
     rows = db.table("sales.customer").query(
         columns="$id, $name",
         where="$name ILIKE :pattern",
-        params={"pattern": "%ad%"},
+        pattern="%ad%",
         order_by="$id",
     ).fetch()
     db.commit()
@@ -107,7 +107,7 @@ For PostgreSQL list membership, use `ANY` with a Python list:
 try:
     rows = db.table("sales.customer").query(
         columns="$id, $name", where="$id = ANY(:ids)",
-        params={"ids": [1, 2]}, order_by="$id",
+        ids=[1, 2], order_by="$id",
     ).fetch()
     db.commit()
 except Exception:
@@ -118,9 +118,31 @@ except Exception:
 
 An empty array matches no rows. For the PostgreSQL `ANY` expression, use a cast
 such as `:ids::bigint[]` if the surrounding SQL cannot infer the array type.
-Lists containing `None` retain PostgreSQL NULL semantics. Genro's collection
-binding syntax also supports `IN :ids` and `NOT IN :ids`: the compiler prepares
-the required bindings rather than interpolating values into the SQL text.
+Lists containing `None` retain PostgreSQL NULL semantics.
+
+`IN :ids` and `NOT IN :ids` bind a collection. The compiler binds one parameter
+per member and never interpolates values into the SQL text. The rules:
+
+- Accepted values are `list`, `tuple`, `set` and `frozenset`. Any other value
+  after `IN`/`NOT IN` — including `str`, `bytes`, `int` and `dict` — raises
+  `ValueError` naming the parameter, before any SQL is sent.
+- Members are bound in order and duplicates are kept, not deduplicated.
+- A `None` member is bound as NULL and SQL three-valued logic applies:
+  `$id IN :ids` with `ids=[1, None]` matches only `id` 1, and `$id NOT IN :ids`
+  with the same list matches no row at all, because `x <> NULL` is never true.
+- An empty collection renders an operand-free form that matches no rows for
+  `IN` and every row for `NOT IN`, rows whose column is NULL included: `= ANY('{}')` / `<> ALL('{}')` on
+  PostgreSQL, `IN (SELECT 1 WHERE 0)` / `NOT IN (SELECT 1 WHERE 0)` on SQLite.
+  `IN ()` is never emitted.
+- The same parameter used in collection position twice expands both
+  occurrences. The same parameter used once in collection position and once in
+  scalar position — `$id IN :ids AND $other = ANY(:ids)` — raises `ValueError`
+  naming it, in either order, subqueries included.
+- A list used only in scalar position keeps its existing binding: on PostgreSQL
+  `= ANY(:ids)` still binds one array parameter, the empty list included.
+
+`db.execute(sql, {...})` applies the same rules, the same empty form and the
+same errors, with the form chosen by the driver's dialect.
 
 Use `IS NULL` for a NULL test. `column = :value` with `value=None` does not mean
 `IS NULL`. PostgreSQL casts such as `:minimum::numeric` are preserved.
@@ -131,7 +153,7 @@ Use `IS NULL` for a NULL test. `column = :value` with `value=None` does not mean
 try:
     rows = db.table("sales.invoice").query(
         columns="$id, @customer.name AS customer_name",
-        where="@customer.name = :name", params={"name": "Ada"},
+        where="@customer.name = :name", name="Ada",
         order_by="$id",
     ).fetch()
     db.commit()
@@ -184,11 +206,39 @@ except Exception:
 
 ```
 
-Use `query.count()` when you want the count of a query result. Use `group_by`,
-`having` and `distinct` to express grouping and uniqueness. Counting grouped
-results is different from counting base rows: define the query shape before
-choosing its terminal. An SQL aggregate does not assemble related collections;
-those have an explicit result shape.
+`query.count()` returns a Python `int` computed by the database with one
+statement. When the query projects only column references and carries no
+`distinct` or `group_by`, it renders `SELECT count(*) ... FROM`; otherwise it
+wraps the select in a subquery, so `count()` always equals `len(fetch())`.
+ORDER BY is dropped from the count statement and `for_update=True` is ignored.
+Row policies are applied exactly as for `fetch()`. `count()` on a query with a
+`limit` or an `offset` — `0` included — raises `UnsupportedFeatureError`
+mentioning limit/offset, before any SQL is sent. `count()` does not mutate the
+query: its options, params and compiled SQL are unchanged afterwards.
+
+`distinct`, `group_by` and `having` express uniqueness and grouping:
+
+- `distinct=True` adds DISTINCT; `False` and `None` add nothing. Any other
+  value, `''` and `1` included, raises `ValueError` mentioning `distinct`.
+- `group_by` and `having` are expressions resolved like `where`: fields,
+  to-one paths, alias columns and formulas resolve, a repeated relation reuses
+  its join, and collection parameters work in `having`.
+- `group_by='*'` raises `UnsupportedFeatureError`; project the aggregate
+  explicitly instead.
+- `having` without `group_by` raises `UnsupportedFeatureError` naming both.
+- `for_update=True` with `distinct` or `group_by` raises
+  `UnsupportedFeatureError`, as does `exclude_logical_deleted='mark'` with
+  either of them.
+- With DISTINCT, every ORDER BY item must name a projection alias or resolve to
+  a projected expression; anything else raises `UnsupportedFeatureError`
+  mentioning ORDER BY, on both backends.
+- DISTINCT projects only the requested columns: no primary key and no policy
+  column is added. There is no Python-side grouping or deduplication, and
+  DISTINCT ON is not available.
+
+Counting grouped results is different from counting base rows: define the query
+shape before choosing its terminal. An SQL aggregate does not assemble related
+collections; those have an explicit result shape.
 
 ## Fetch exactly one record
 
@@ -226,7 +276,7 @@ query result, rather than turning a table into a tracked row object.
 
 ```python
 query = db.table("sales.invoice").query(
-    columns="$id, $total", where="$id=:wanted", params={"wanted": 10},
+    columns="$id, $total", where="$id=:wanted", wanted=10,
 )
 compiled = query.compiled  # No connection required.
 print(compiled.sql)

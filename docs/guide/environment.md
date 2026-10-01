@@ -93,7 +93,7 @@ with db.temp_env(minimum_total=100):
     assert query.compiled.params["env_minimum_total"] == 100
     explicit = db.table("sales.invoice").query(
         columns="$id, $total", where="$total >= :env_minimum_total",
-        params={"env_minimum_total": 250},
+        env_minimum_total=250,
     )
     assert explicit.compiled.params["env_minimum_total"] == 250
 ```

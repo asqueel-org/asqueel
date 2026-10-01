@@ -21,11 +21,19 @@ class SqliteDialect(PostgresDialect):
             raise ValueError('SQL identifiers must be nonempty strings without NUL')
         return '"' + name.replace('"', '""') + '"'
 
+    def empty_collection(self, negated):
+        # SQLite has no array literal; an empty row source is the portable form.
+        return 'NOT IN (SELECT 1 WHERE 0)' if negated else 'IN (SELECT 1 WHERE 0)'
+
     def render(self, plan):
+        if plan.operation == 'count':
+            return self._count(plan)
         # SQLite has no FOR UPDATE. The driver begins an IMMEDIATE transaction
         # before any statement, covering the read/modify/write cycle in hooks.
         if type(plan.for_update) is not bool:
             raise ValueError('for_update must be a boolean')
+        # Clearing for_update below would hide the combinations it is rejected with.
+        self._grouping(plan)
         if plan.for_update:
             self._require('for_update')
         if plan.for_update and plan.operation != 'select':

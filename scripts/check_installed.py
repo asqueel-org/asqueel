@@ -59,13 +59,13 @@ def main():
         rebuilt.validate_model()
         resolved = package.resolve_model(rebuilt)
         query = package.PostgresCompiler(resolved).select(
-            'public.customer', where='$id = :id', params={'id': 7},
+            'public.customer', where='$id = :id', sqlparams={'id': 7},
         )
         assert query.params == {'id': 7}
         assert '"public"."customer"' in query.sql
         generic = package.QueryCompiler(
             resolved, package.PostgresDialect(), package.PsycopgDriver(),
-        ).select('public.customer', where='$id = :id', params={'id': 7})
+        ).select('public.customer', where='$id = :id', sqlparams={'id': 7})
         assert generic == query
         print('Core-only build, validation, emission, model and adapter pipeline passed')
         return

@@ -53,7 +53,7 @@ def test_application_query_guide_against_tutorial_data():
             # Document the empty-list case too, not just the nonempty ANY example.
             with completed(db):
                 assert db.table('sales.customer').query(
-                    where='$id = ANY(:ids)', params={'ids': []},
+                    where='$id = ANY(:ids)', sqlparams={'ids': []},
                 ).fetch() == []
         finally:
             db.rollback()

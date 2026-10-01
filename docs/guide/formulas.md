@@ -87,10 +87,9 @@ virtuals.formulaColumn('total_above_minimum', dtype='N',
         where='$invoice_id=#THIS.id AND $amount >= :minimum'))
 ```
 
-A query may supply the parameter with `params={'minimum': 100}` or
-`minimum=100`. Definitions may instead supply local `params` or `sqlparams`
-mappings; local values override inherited values only in their subquery scope.
-Duplicate names declared in both local mappings are rejected. Parameter names
+A query may supply the parameter as `minimum=100` or with
+`sqlparams={'minimum': 100}`. Definitions may instead supply a local `sqlparams`
+mapping; local values override inherited values only in their subquery scope. Parameter names
 are isolated during compilation so independent formulas cannot capture each
 other's values. Values remain bound parameters, not SQL string substitutions.
 

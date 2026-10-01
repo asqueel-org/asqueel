@@ -22,7 +22,7 @@ def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
         assert isinstance(invoice, InvoiceLogic)
         query = invoice.query(
             columns='$number, @customer_id.name AS customer, @created_by.username AS author',
-            where='$customer_id = :customer_id', params={'customer_id': 42},
+            where='$customer_id = :customer_id', sqlparams={'customer_id': 42},
         ).compiled
         assert 'JOIN "sales"."customer"' in query.sql
         assert 'JOIN "identity"."user"' in query.sql

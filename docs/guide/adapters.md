@@ -23,7 +23,7 @@ def find_customer(model, conninfo, customer_id):
     )
     query = compiler.select(
         'customer', where='$id = :customer_id',
-        params={'customer_id': customer_id},
+        sqlparams={'customer_id': customer_id},
     )
     with Database(conninfo, driver=driver, environment=environment) as db:
         result = db.execute(query)

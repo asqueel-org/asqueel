@@ -27,7 +27,7 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
             db.execute(compiler.insert('crm.customer', {'id': 1, 'name': "L'impresa 50%"}))
             plan = compiler.plan_select(
                 'crm.customer', columns="$name, '50%' AS percent",
-                where='$id = :id', params={'id': 1},
+                where='$id = :id', sqlparams={'id': 1},
             )
             statement = dialect.render(plan)
             assert any(isinstance(part, Parameter) for part in statement.parts)

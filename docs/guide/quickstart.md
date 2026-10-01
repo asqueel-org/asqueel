@@ -52,7 +52,7 @@ try:
 
         query = customer.query(
             columns="$id, $name", where="$id >= :minimum_id",
-            params={"minimum_id": 1}, order_by="$id",
+            minimum_id=1, order_by="$id",
         )
         rows = query.fetch()
         assert rows == [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Grace"}]

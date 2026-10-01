@@ -1,6 +1,6 @@
 # 30 — Piano: completamento del nucleo query legacy
 
-Stato: pianificato, implementazione non avviata.
+Stato: passi 2-6 implementati sul branch `wf/query-core-completion`; vedi `## Esito`.
 Baseline: `90984fb`, versione sorgente 0.4.0; 683 test, copertura 95%.
 Riferimento legacy: `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea`.
 
@@ -162,3 +162,61 @@ confronti quando il contratto non garantisce un ordine naturale.
 **Chiusura:** tutti i passi e la matrice accettati, nessun bug bloccante incluso
 rimasto aperto, errori supportati/non supportati documentati sul posto. Segnalare
 come concluso questo incremento, mantenendo visibili i residui F2/F3/F4/F5.
+
+## Esito
+
+Passi 2-6 implementati in quattro fasi sul branch `wf/query-core-completion`.
+
+| Fase | Contenuto | Commit |
+|---|---|---|
+| 1 | parametri collezione `IN` / `NOT IN`, query compilate e SQL diretto | `d5253d3` |
+| 2 | clausole di `QueryPlan` e opzioni DISTINCT, GROUP BY, HAVING | `8ae8392` |
+| 3 | terminale `SqlQuery.count()` | `5d0527c` |
+| 4 | accettazione integrata, benchmark e documentazione | questo commit |
+
+Suite finale: 844 test passati su PostgreSQL e SQLite, 1 skip
+(`= ANY` è sintassi PostgreSQL, saltato su SQLite), copertura 95%. Ruff, mypy e
+la build strict della documentazione passano. I 16 test di accettazione del
+passo 6 sono passati senza richiedere alcuna correzione in `src/asqueel`.
+
+### Benchmark
+
+Rerun dello script invariato `docs/design/evidence/query_benchmark.py`; risultati
+in `docs/design/evidence/query_benchmark_after.json`, confronto sulle mediane
+asqueel rispetto a `query_benchmark.json` (stessa macchina, stesse versioni).
+
+| Caso | PostgreSQL prima → dopo | Δ | SQLite prima → dopo | Δ |
+|---|---|---|---|---|
+| compile_simple | 0.033363 → 0.034012 | +1.9% | 0.034470 → 0.036245 | +5.1% |
+| compile_relation_two_subqueries | 0.150561 → 0.150792 | +0.2% | 0.156819 → 0.159912 | +2.0% |
+| repeated_fetch_same_query | 0.080987 → 0.081536 | +0.7% | 0.043628 → 0.043634 | +0.0% |
+| record_pkey | 0.065831 → 0.063243 | -3.9% | 0.039625 → 0.039427 | -0.5% |
+| insert_single_row | 0.058886 → 0.059151 | +0.5% | 0.036404 → 0.036495 | +0.2% |
+| fetch_10000_rows_to_one_join | 0.019931 → 0.018421 | -7.6% | 0.021019 → 0.019866 | -5.5% |
+
+Le uniche variazioni in peggio oltre il 2% sono quelle di compilazione su SQLite:
+`compile_simple` +5.1% e `compile_relation_two_subqueries` +2.0%. La causa è la
+scansione unica del compilatore, che ora riconosce anche la parola chiave
+`IN` / `NOT IN` prima di `:nome` (regex `_PARAM` estesa in fase 1) e valuta le
+nuove opzioni `distinct`, `group_by`, `having` in `plan_select` (fase 2): lavoro
+per-compilazione aggiunto, nessuna query in più. I casi che toccano il database
+non peggiorano in modo significativo: le due diminuzioni su
+`fetch_10000_rows_to_one_join` e la diminuzione su `record_pkey` PostgreSQL sono
+rumore di misura, come lo erano i run anomali già presenti nella baseline
+(`compile_relation_two_subqueries` PostgreSQL ha un run a 0.282938 contro una
+mediana di 0.150561). Nessuna soglia è stata inventata.
+
+### Portabilità async (documento 26)
+
+`count()` è un terminale di I/O: esegue una sola statement attraverso
+`self.db.execute(compiled)`, come `fetch()`. La compilazione e le proprietà
+passive restano senza I/O — `SqlQuery.compiled` e `count()` condividono
+`_compile(terminal)`, che non tocca la connessione. Nessun vincolo di thread
+nuovo è stato introdotto.
+
+### Residui
+
+Restano aperti e visibili F2/F3/F4/F5 del piano 15. Fuori da questo incremento,
+come previsto: R33 oltre la correzione della guida, R34 (espansione `*`),
+`relationDict`, `joinConditions`, relazioni to-many, Selection/Bag, DISTINCT ON
+e `IN` su tupla di colonne.

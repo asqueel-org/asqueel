@@ -106,7 +106,7 @@ def test_multiple_partitions_are_and_combined_and_parameter_names_do_not_collide
     partitions = [SCOPE, PartitionScope('region', 'region')]
     env = SqlEnvironment({'organization': 0, 'region': 'north'})
     compiler = PostgresCompiler(model(partitions=partitions), environment=env)
-    query = compiler.select('item', where='$id=:__policy_0', params={'__policy_0': 99})
+    query = compiler.select('item', where='$id=:__policy_0', sqlparams={'__policy_0': 99})
     assert query.params['__policy_0'] == 99
     assert query.params['___policy_0'] == 0
     assert query.params['__policy_1'] == 'north'
@@ -129,7 +129,7 @@ def test_env_fallback_explicit_override_and_snapshot_once():
     assert env.calls == 1
     assert plan.params['env_needle'] == 4
     assert 'needle' in plan.environment.keys
-    other = compiler.plan_select('item', where='$id=:env_needle', params={'env_needle': 9})
+    other = compiler.plan_select('item', where='$id=:env_needle', sqlparams={'env_needle': 9})
     assert env.calls == 2
     assert other.params['env_needle'] == 9
     assert 'needle' not in other.environment.keys
