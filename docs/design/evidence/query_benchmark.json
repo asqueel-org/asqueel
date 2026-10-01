@@ -1,0 +1,282 @@
+{
+  "generated_by": "docs/design/evidence/query_benchmark.py",
+  "configuration": {
+    "model": "docs/guide/_examples/shop_tutorial.py",
+    "dataset": {
+      "customers": 2000,
+      "invoices": 10000
+    },
+    "iterations": {
+      "single_row": 500,
+      "fetch_10000_rows": 3
+    },
+    "runs": 5,
+    "warmup_runs": 1,
+    "statistic": "median seconds per run"
+  },
+  "versions": {
+    "python": "3.12.12",
+    "asqueel": "0.4.0",
+    "psycopg": "3.3.6",
+    "sqlite": "3.50.4",
+    "postgresql": "17.7 (Homebrew)"
+  },
+  "results": {
+    "postgresql": {
+      "compile_simple": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.033363,
+          "runs": [
+            0.033908,
+            0.033837,
+            0.033182,
+            0.03308,
+            0.033363
+          ]
+        },
+        "driver_s": null,
+        "ratio": null
+      },
+      "compile_relation_two_subqueries": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.150561,
+          "runs": [
+            0.153135,
+            0.282938,
+            0.150561,
+            0.147717,
+            0.149993
+          ]
+        },
+        "driver_s": null,
+        "ratio": null
+      },
+      "repeated_fetch_same_query": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.080987,
+          "runs": [
+            0.080987,
+            0.081205,
+            0.07998,
+            0.079986,
+            0.128824
+          ]
+        },
+        "driver_s": {
+          "median": 0.015845,
+          "runs": [
+            0.016473,
+            0.015885,
+            0.015715,
+            0.015735,
+            0.015845
+          ]
+        },
+        "ratio": 5.111
+      },
+      "record_pkey": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.065831,
+          "runs": [
+            0.06139,
+            0.062568,
+            0.070868,
+            0.071696,
+            0.065831
+          ]
+        },
+        "driver_s": {
+          "median": 0.016148,
+          "runs": [
+            0.015654,
+            0.015937,
+            0.016148,
+            0.016659,
+            0.016443
+          ]
+        },
+        "ratio": 4.077
+      },
+      "insert_single_row": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.058886,
+          "runs": [
+            0.060647,
+            0.058951,
+            0.057884,
+            0.05809,
+            0.058886
+          ]
+        },
+        "driver_s": {
+          "median": 0.017278,
+          "runs": [
+            0.017399,
+            0.017278,
+            0.017294,
+            0.017025,
+            0.017048
+          ]
+        },
+        "ratio": 3.408
+      },
+      "fetch_10000_rows_to_one_join": {
+        "iterations": 3,
+        "asqueel_s": {
+          "median": 0.019931,
+          "runs": [
+            0.01865,
+            0.020071,
+            0.024985,
+            0.01985,
+            0.019931
+          ]
+        },
+        "driver_s": {
+          "median": 0.013338,
+          "runs": [
+            0.017993,
+            0.013679,
+            0.013338,
+            0.012994,
+            0.012988
+          ]
+        },
+        "ratio": 1.494
+      }
+    },
+    "sqlite": {
+      "compile_simple": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.03447,
+          "runs": [
+            0.034931,
+            0.03447,
+            0.034516,
+            0.03376,
+            0.034214
+          ]
+        },
+        "driver_s": null,
+        "ratio": null
+      },
+      "compile_relation_two_subqueries": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.156819,
+          "runs": [
+            0.155439,
+            0.160645,
+            0.159688,
+            0.156819,
+            0.156072
+          ]
+        },
+        "driver_s": null,
+        "ratio": null
+      },
+      "repeated_fetch_same_query": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.043628,
+          "runs": [
+            0.043628,
+            0.043562,
+            0.07623,
+            0.048256,
+            0.043065
+          ]
+        },
+        "driver_s": {
+          "median": 0.002242,
+          "runs": [
+            0.002229,
+            0.002242,
+            0.002283,
+            0.002282,
+            0.002184
+          ]
+        },
+        "ratio": 19.459
+      },
+      "record_pkey": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.039625,
+          "runs": [
+            0.039601,
+            0.038973,
+            0.039702,
+            0.040357,
+            0.039625
+          ]
+        },
+        "driver_s": {
+          "median": 0.002102,
+          "runs": [
+            0.002077,
+            0.002102,
+            0.002335,
+            0.002166,
+            0.002082
+          ]
+        },
+        "ratio": 18.851
+      },
+      "insert_single_row": {
+        "iterations": 500,
+        "asqueel_s": {
+          "median": 0.036404,
+          "runs": [
+            0.03668,
+            0.036723,
+            0.036404,
+            0.036153,
+            0.036285
+          ]
+        },
+        "driver_s": {
+          "median": 0.00177,
+          "runs": [
+            0.001777,
+            0.001768,
+            0.001886,
+            0.00177,
+            0.001735
+          ]
+        },
+        "ratio": 20.567
+      },
+      "fetch_10000_rows_to_one_join": {
+        "iterations": 3,
+        "asqueel_s": {
+          "median": 0.021019,
+          "runs": [
+            0.021019,
+            0.021239,
+            0.021807,
+            0.020662,
+            0.020716
+          ]
+        },
+        "driver_s": {
+          "median": 0.013928,
+          "runs": [
+            0.01408,
+            0.013965,
+            0.013854,
+            0.013903,
+            0.013928
+          ]
+        },
+        "ratio": 1.509
+      }
+    }
+  }
+}

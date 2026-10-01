@@ -1,0 +1,3505 @@
+{
+  "generated_by": "docs/design/evidence/query_legacy_oracle.py",
+  "legacy": {
+    "revision": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "source_sha256": {
+      "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py": "0bd51adf7acfcf433982a0613f745dfe08255c92638ae158dd3c7dc02dfaa7d7",
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py": "ee9e8d0cbcf00494fb5eeae3e8ddb5905a1a426250ae815cf32341385d7d2df3",
+      "gnrpy/gnr/sql/adapters/gnrsqlite.py": "34d8afffcfb68ea378da5772dc99f4737f1cffdf7e7873fe83ea44481d3c1c28",
+      "gnrpy/gnr/sql/gnrsql/connections.py": "2ba31361e635a54a98893f5efdab99f2588fdf00c7ca7708ea4d617cd66daf1c",
+      "gnrpy/gnr/sql/gnrsql/env.py": "35ec7e23652fe0cffc379e9f5fe821ebd6edfdec70942b44e031ebb484452394",
+      "gnrpy/gnr/sql/gnrsql/execute.py": "435d408b4e77f53896c4d79d000564026a9faf695e5ecc87b65b6c1f08de8861",
+      "gnrpy/gnr/sql/gnrsql/helpers.py": "ff33b1079fc90156789ac640c7731ef5173c93d91c5eeaab42a23299c6e15fad",
+      "gnrpy/gnr/sql/gnrsql/transactions.py": "7d13522189896b95e83004e9cbc94297e3e717a518f7ac149bc1dcdeddab7745",
+      "gnrpy/gnr/sql/gnrsqldata/query.py": "9b7ff2eb8650774a60fc6bee73399980b208397526e1f2ccbfcec90cc145b7ad"
+    },
+    "extracted": [
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py:37 RE_SQL_PARAMS",
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py:294 gnrdict_row",
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py:305 GnrDictCursor",
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74 SqlDbAdapter.adaptTupleListSet",
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py:101 SqlDbAdapter.prepareSqlText",
+      "gnrpy/gnr/sql/adapters/gnrpostgres3.py:121 SqlDbAdapter.compileSql",
+      "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208 SqlDbAdapter.adaptTupleListSet",
+      "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:695 SqlDbAdapter.compileSql",
+      "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721 SqlDbAdapter._selectForUpdate",
+      "gnrpy/gnr/sql/adapters/gnrsqlite.py:111 SqlDbAdapter.prepareSqlText",
+      "gnrpy/gnr/sql/adapters/gnrsqlite.py:119 SqlDbAdapter._booleanSubCb",
+      "gnrpy/gnr/sql/adapters/gnrsqlite.py:140 SqlDbAdapter._selectForUpdate",
+      "gnrpy/gnr/sql/gnrsql/helpers.py:171 TempEnv",
+      "gnrpy/gnr/sql/gnrsql/env.py:41 EnvMixin",
+      "gnrpy/gnr/sql/gnrsql/connections.py:38 ConnectionMixin",
+      "gnrpy/gnr/sql/gnrsql/execute.py:42 ExecuteMixin",
+      "gnrpy/gnr/sql/gnrsql/transactions.py:41 TransactionMixin",
+      "gnrpy/gnr/sql/gnrsqldata/query.py:235 SqlQuery.cursor",
+      "gnrpy/gnr/sql/gnrsqldata/query.py:557 SqlQuery.count"
+    ]
+  },
+  "environment": {
+    "psycopg": "3.3.6",
+    "postgresql": "17.7 (Homebrew)",
+    "sqlite": "3.50.4"
+  },
+  "dataset": {
+    "customer": [
+      [
+        1,
+        "Ada"
+      ],
+      [
+        2,
+        "Grace"
+      ],
+      [
+        3,
+        "Linus"
+      ]
+    ],
+    "invoice": [
+      [
+        10,
+        1,
+        "125.00",
+        "First order",
+        null
+      ],
+      [
+        11,
+        2,
+        "40.00",
+        null,
+        null
+      ],
+      [
+        12,
+        1,
+        "15.50",
+        "Second order",
+        null
+      ],
+      [
+        13,
+        null,
+        "7.00",
+        "No customer",
+        null
+      ],
+      [
+        14,
+        2,
+        "40.00",
+        "Deleted",
+        "2026-01-01 00:00:00"
+      ],
+      [
+        15,
+        3,
+        "40.00",
+        null,
+        null
+      ]
+    ],
+    "columns": {
+      "customer": [
+        "id",
+        "name"
+      ],
+      "invoice": [
+        "id",
+        "customer_id",
+        "total",
+        "note",
+        "__del_ts"
+      ]
+    }
+  },
+  "entries": [
+    {
+      "id": "legacy_in_list_pg",
+      "backend": "postgresql",
+      "row": "IN list",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, 11) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_not_in_list_pg",
+      "backend": "postgresql",
+      "row": "NOT IN list",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" NOT IN(10, 11) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_tuple_pg",
+      "backend": "postgresql",
+      "row": "IN tuple",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, 11) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_set_pg",
+      "backend": "postgresql",
+      "row": "IN set",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, 11) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_empty_pg",
+      "backend": "postgresql",
+      "row": "IN empty collection",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (FALSE) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_not_in_empty_pg",
+      "backend": "postgresql",
+      "row": "NOT IN empty collection",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (TRUE) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_duplicates_pg",
+      "backend": "postgresql",
+      "row": "IN duplicates",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, 10, 11) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_none_member_pg",
+      "backend": "postgresql",
+      "row": "IN None member",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          null
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, NULL) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_not_in_none_member_pg",
+      "backend": "postgresql",
+      "row": "NOT IN None member",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          null
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" NOT IN(10, NULL) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_null_column_pg",
+      "backend": "postgresql",
+      "row": "IN on a NULL column value",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$customer_id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"customer_id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"customer_id\" IN(1, 2) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_not_in_null_column_pg",
+      "backend": "postgresql",
+      "row": "NOT IN on a NULL column value",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$customer_id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"customer_id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          1
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          11,
+          11
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"customer_id\" NOT IN(1) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_scalar_string_pg",
+      "backend": "postgresql",
+      "row": "IN scalar string",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$note IN :notes",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"note\" IN :notes) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "notes": "First order"
+      },
+      "status": "error",
+      "error_type": "SyntaxError",
+      "error": "syntax error at or near \"'First order'\"",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"note\" IN 'First order')  AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_same_param_twice_pg",
+      "backend": "postgresql",
+      "row": "same parameter used twice",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids OR $customer_id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids OR \"t0\".\"customer_id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          1,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(1, 11)  OR \"t0\".\"customer_id\" IN(1, 11) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_same_param_in_and_any_pg",
+      "backend": "postgresql",
+      "row": "same parameter in IN and scalar position",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids OR $id = ANY(:ids)",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids OR \"t0\".\"id\" = ANY(:ids)) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "status": "error",
+      "error_type": "KeyError",
+      "error": "'ids'",
+      "sent_sql": null,
+      "sent_params": null
+    },
+    {
+      "id": "legacy_two_collections_pg",
+      "backend": "postgresql",
+      "row": "two collections in one query",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids AND $customer_id NOT IN :customers",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids AND \"t0\".\"customer_id\" NOT IN :customers) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11,
+          12
+        ],
+        "customers": [
+          2
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, 11, 12)  AND \"t0\".\"customer_id\" NOT IN(2) ) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_two_collections_prefix_pg",
+      "backend": "postgresql",
+      "row": "two collections in one query (name prefix)",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids AND $customer_id IN :ids2",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN :ids AND \"t0\".\"customer_id\" IN :ids2) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11,
+          12
+        ],
+        "ids2": [
+          1
+        ]
+      },
+      "status": "error",
+      "error_type": "SyntaxError",
+      "error": "syntax error at or near \"2\"",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" IN(10, 11, 12)  AND \"t0\".\"customer_id\" IN(10, 11, 12) 2) AND (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_subquery_in_list_pg",
+      "backend": "postgresql",
+      "row": "IN inside a named subquery",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:439",
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:416 subquery alias prefix <alias>_t (t0_t0)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409 subquery wrapped in \" ( %s ) \"; gnrpy/gnr/sql/gnrsqldata/compiler.py:439 formula wrapped in \"( %s )\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 output name of COUNT(*) is colToAs -> COUNT___",
+        "sq_pars defaults: excludeLogicalDeleted=False, addPkeyColumn=False (gnrpy/gnr/sql/gnrsqldata/compiler.py:412-418)",
+        "#THIS correlation written in its resolved form \"t0\".\"id\""
+      ],
+      "input": {
+        "table": "customer",
+        "columns": "$id, $n_selected",
+        "formula": "n_selected: select=dict(table='sales.invoice', columns='COUNT(*)', where='$customer_id=#THIS.id AND $id IN :ids')",
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"  FROM \"<schema>\".\"invoice\" AS t0_t0 WHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN :ids) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"customer\" AS t0 ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11,
+          14
+        ]
+      },
+      "columns": [
+        "id",
+        "n_selected",
+        "pkey"
+      ],
+      "result": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          2,
+          2,
+          2
+        ],
+        [
+          3,
+          0,
+          3
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"  FROM \"<schema>\".\"invoice\" AS t0_t0 WHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN(10, 11, 14) ) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"customer\" AS t0 ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_subquery_in_empty_pg",
+      "backend": "postgresql",
+      "row": "IN empty collection inside a named subquery",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:439",
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:416 subquery alias prefix <alias>_t (t0_t0)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409 subquery wrapped in \" ( %s ) \"; gnrpy/gnr/sql/gnrsqldata/compiler.py:439 formula wrapped in \"( %s )\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 output name of COUNT(*) is colToAs -> COUNT___",
+        "sq_pars defaults: excludeLogicalDeleted=False, addPkeyColumn=False (gnrpy/gnr/sql/gnrsqldata/compiler.py:412-418)",
+        "#THIS correlation written in its resolved form \"t0\".\"id\""
+      ],
+      "input": {
+        "table": "customer",
+        "columns": "$id, $n_selected",
+        "formula": "n_selected: select=dict(table='sales.invoice', columns='COUNT(*)', where='$customer_id=#THIS.id AND $id IN :ids')",
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"  FROM \"<schema>\".\"invoice\" AS t0_t0 WHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN :ids) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"customer\" AS t0 ORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id",
+        "n_selected",
+        "pkey"
+      ],
+      "result": [
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          2,
+          0,
+          2
+        ],
+        [
+          3,
+          0,
+          3
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"  FROM \"<schema>\".\"invoice\" AS t0_t0 WHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND FALSE) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"customer\" AS t0 ORDER BY \"t0\".\"id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_direct_in_list_pg",
+      "backend": "postgresql",
+      "row": "IN in direct SQL",
+      "method": "executed-extracted",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:81",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "input": {
+        "sql": "SELECT id FROM <invoice> WHERE id IN :ids ORDER BY id"
+      },
+      "terminal": "execute",
+      "legacy_sql": "SELECT id FROM \"<schema>\".\"invoice\" WHERE id IN :ids ORDER BY id",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id"
+      ],
+      "result": [
+        [
+          10
+        ],
+        [
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT id FROM \"<schema>\".\"invoice\" WHERE id IN(10, 11)  ORDER BY id",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_direct_in_empty_pg",
+      "backend": "postgresql",
+      "row": "IN empty collection in direct SQL",
+      "method": "executed-extracted",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:81",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "input": {
+        "sql": "SELECT id FROM <invoice> WHERE id IN :ids ORDER BY id"
+      },
+      "terminal": "execute",
+      "legacy_sql": "SELECT id FROM \"<schema>\".\"invoice\" WHERE id IN :ids ORDER BY id",
+      "params": {
+        "ids": []
+      },
+      "status": "error",
+      "error_type": "SyntaxError",
+      "error": "syntax error at or near \"'{}'\"",
+      "sent_sql": "-- None\nSELECT id FROM \"<schema>\".\"invoice\" WHERE id IN '{}'  ORDER BY id",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_distinct_true_pg",
+      "backend": "postgresql",
+      "row": "distinct=True",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate = bool(distinct or group_by): no pkey column",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057 DISTINCT"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true,
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "total"
+      ],
+      "result": [
+        [
+          "7.00"
+        ],
+        [
+          "15.50"
+        ],
+        [
+          "40.00"
+        ],
+        [
+          "125.00"
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_distinct_empty_pg",
+      "backend": "postgresql",
+      "row": "distinct=''",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or '' -> ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058 auto DISTINCT only with exploding (to-many) joins"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": "",
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "total",
+        "pkey"
+      ],
+      "result": [
+        [
+          "7.00",
+          13
+        ],
+        [
+          "15.50",
+          12
+        ],
+        [
+          "40.00",
+          11
+        ],
+        [
+          "40.00",
+          15
+        ],
+        [
+          "125.00",
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_distinct_none_pg",
+      "backend": "postgresql",
+      "row": "distinct=None",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:144",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or '' -> ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058 auto DISTINCT only with exploding (to-many) joins"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": null,
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "total",
+        "pkey"
+      ],
+      "result": [
+        [
+          "7.00",
+          13
+        ],
+        [
+          "15.50",
+          12
+        ],
+        [
+          "40.00",
+          11
+        ],
+        [
+          "40.00",
+          15
+        ],
+        [
+          "125.00",
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_distinct_order_by_outside_projection_pg",
+      "backend": "postgresql",
+      "row": "DISTINCT with order_by outside the projection",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1071"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate = bool(distinct or group_by): no pkey column",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057 DISTINCT",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1071 hidden __ord_col_N added only for auto DISTINCT"
+      ],
+      "input": {
+        "columns": "$customer_id",
+        "distinct": true,
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "params": {},
+      "status": "error",
+      "error_type": "InvalidColumnReference",
+      "error": "for SELECT DISTINCT, ORDER BY expressions must appear in select list",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) ORDER BY \"t0\".\"total\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_group_by_pg",
+      "backend": "postgresql",
+      "row": "GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1096"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "order_by": "$customer_id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" ORDER BY \"t0\".\"customer_id\"",
+      "params": {},
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          1,
+          "140.50"
+        ],
+        [
+          2,
+          "40.00"
+        ],
+        [
+          3,
+          "40.00"
+        ],
+        [
+          null,
+          "7.00"
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" ORDER BY \"t0\".\"customer_id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_group_by_star_pg",
+      "backend": "postgresql",
+      "row": "group_by='*'",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:906",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:906 group_by '*' -> None after aggregate is set"
+      ],
+      "input": {
+        "columns": "SUM($total) AS total_sum, COUNT(*) AS n",
+        "group_by": "*"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  SUM(\"t0\".\"total\") AS total_sum,\nCOUNT(*) AS n  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "columns": [
+        "total_sum",
+        "n"
+      ],
+      "result": [
+        [
+          "227.50",
+          5
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  SUM(\"t0\".\"total\") AS total_sum,\nCOUNT(*) AS n  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_having_params_pg",
+      "backend": "postgresql",
+      "row": "HAVING with parameters",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1097",
+        "gnrpy/gnr/sql/gnrsql/execute.py:121"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "having": "SUM($total) >= :minimum",
+        "order_by": "$customer_id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" HAVING SUM(\"t0\".\"total\") >= :minimum ORDER BY \"t0\".\"customer_id\"",
+      "params": {
+        "minimum": 40
+      },
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          1,
+          "140.50"
+        ],
+        [
+          2,
+          "40.00"
+        ],
+        [
+          3,
+          "40.00"
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" HAVING SUM(\"t0\".\"total\") >= 40  ORDER BY \"t0\".\"customer_id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_aggregate_without_group_by_pg",
+      "backend": "postgresql",
+      "row": "aggregate projection without GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1004"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate is False: no distinct, no group_by",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended before gnrpy/gnr/sql/gnrsqldata/compiler.py:1004 detects SUM("
+      ],
+      "input": {
+        "columns": "SUM($total) AS total_sum"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  SUM(\"t0\".\"total\") AS total_sum,\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "status": "error",
+      "error_type": "GroupingError",
+      "error": "column \"t0.id\" must appear in the GROUP BY clause or be used in an aggregate function",
+      "sent_sql": "-- None\nSELECT  SUM(\"t0\".\"total\") AS total_sum,\n\"t0\".\"id\" AS \"pkey\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_for_update_distinct_pg",
+      "backend": "postgresql",
+      "row": "for_update with DISTINCT",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1101",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721",
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py:140"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate = bool(distinct or group_by): no pkey column",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057 DISTINCT",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721 FOR UPDATE OF t0; gnrpy/gnr/sql/adapters/gnrsqlite.py:140 renders nothing"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true,
+        "for_update": true
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) FOR UPDATE OF t0 ",
+      "params": {},
+      "status": "error",
+      "error_type": "FeatureNotSupported",
+      "error": "FOR UPDATE is not allowed with DISTINCT clause",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) FOR UPDATE OF t0 ",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_for_update_group_by_pg",
+      "backend": "postgresql",
+      "row": "for_update with GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1101",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721",
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py:140"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "for_update": true
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" FOR UPDATE OF t0 ",
+      "params": {},
+      "status": "error",
+      "error_type": "FeatureNotSupported",
+      "error": "FOR UPDATE is not allowed with GROUP BY clause",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" FOR UPDATE OF t0 ",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_mark_aggregate_pg",
+      "backend": "postgresql",
+      "row": "exclude_logical_deleted='mark' with GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:981",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:983"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:981 no IS NULL chunk unless excludeLogicalDeleted is True",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:983 _isdeleted column skipped when aggregate or count"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "excludeLogicalDeleted": "mark",
+        "order_by": "$customer_id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 GROUP BY \"t0\".\"customer_id\" ORDER BY \"t0\".\"customer_id\"",
+      "params": {},
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          1,
+          "140.50"
+        ],
+        [
+          2,
+          "80.00"
+        ],
+        [
+          3,
+          "40.00"
+        ],
+        [
+          null,
+          "7.00"
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum  FROM \"<schema>\".\"invoice\" AS t0 GROUP BY \"t0\".\"customer_id\" ORDER BY \"t0\".\"customer_id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_plain_pg",
+      "backend": "postgresql",
+      "row": "count: plain query",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 5,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_ordered_pg",
+      "backend": "postgresql",
+      "row": "count: order_by",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "order_by": "$total"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 5,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_distinct_pg",
+      "backend": "postgresql",
+      "row": "count: DISTINCT query",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:943 count with distinct keeps the projection",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = len(fetchall())"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 4,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_grouped_having_pg",
+      "backend": "postgresql",
+      "row": "count: grouped query with HAVING",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:942 count with group_by projects the group_by columns",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = number of groups fetched"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "having": "SUM($total) >= :minimum"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" HAVING SUM(\"t0\".\"total\") >= :minimum",
+      "params": {
+        "minimum": 40
+      },
+      "result": 3,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" HAVING SUM(\"t0\".\"total\") >= 40 ",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_limit_pg",
+      "backend": "postgresql",
+      "row": "count: limit",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "limit": 2
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) LIMIT 2",
+      "params": {},
+      "result": 5,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) LIMIT 2",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_limit_offset_pg",
+      "backend": "postgresql",
+      "row": "count: limit and offset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "limit": 2,
+        "offset": 2
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) LIMIT 2 OFFSET 2",
+      "params": {},
+      "result": 0,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) LIMIT 2 OFFSET 2",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_distinct_limit_offset_pg",
+      "backend": "postgresql",
+      "row": "count: DISTINCT with limit and offset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:943 count with distinct keeps the projection",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = len(fetchall())"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true,
+        "limit": 2,
+        "offset": 1
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) LIMIT 2 OFFSET 1",
+      "params": {},
+      "result": 2,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) LIMIT 2 OFFSET 1",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_grouped_limit_pg",
+      "backend": "postgresql",
+      "row": "count: grouped query with limit",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:942 count with group_by projects the group_by columns",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = number of groups fetched"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "having": "SUM($total) >= :minimum",
+        "limit": 2
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" HAVING SUM(\"t0\".\"total\") >= :minimum LIMIT 2",
+      "params": {
+        "minimum": 40
+      },
+      "result": 2,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\" HAVING SUM(\"t0\".\"total\") >= 40  LIMIT 2",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_empty_pg",
+      "backend": "postgresql",
+      "row": "count: empty dataset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "where": "$id < 0"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 0,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_grouped_empty_pg",
+      "backend": "postgresql",
+      "row": "count: grouped query on an empty dataset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:942 count with group_by projects the group_by columns",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = number of groups fetched"
+      ],
+      "input": {
+        "columns": "$customer_id",
+        "group_by": "$customer_id",
+        "where": "$id < 0"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\"",
+      "params": {},
+      "result": 0,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\"  FROM \"<schema>\".\"invoice\" AS t0 WHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL) GROUP BY \"t0\".\"customer_id\"",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_count_mark_pg",
+      "backend": "postgresql",
+      "row": "count with exclude_logical_deleted='mark'",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:981 no IS NULL chunk in mark mode"
+      ],
+      "input": {
+        "columns": "*",
+        "excludeLogicalDeleted": "mark"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0",
+      "params": {},
+      "result": 6,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"  FROM \"<schema>\".\"invoice\" AS t0",
+      "sent_params": null
+    },
+    {
+      "id": "legacy_in_list_sqlite",
+      "backend": "sqlite",
+      "row": "IN list",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_not_in_list_sqlite",
+      "backend": "sqlite",
+      "row": "NOT IN list",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" NOT IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_in_tuple_sqlite",
+      "backend": "sqlite",
+      "row": "IN tuple",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_in_set_sqlite",
+      "backend": "sqlite",
+      "row": "IN set",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_in_empty_sqlite",
+      "backend": "sqlite",
+      "row": "IN empty collection",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN () ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_not_in_empty_sqlite",
+      "backend": "sqlite",
+      "row": "NOT IN empty collection",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" NOT IN () ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_in_duplicates_sqlite",
+      "backend": "sqlite",
+      "row": "IN duplicates",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1,:ids2) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 10,
+        "ids2": 11
+      }
+    },
+    {
+      "id": "legacy_in_none_member_sqlite",
+      "backend": "sqlite",
+      "row": "IN None member",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          null
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": null
+      }
+    },
+    {
+      "id": "legacy_not_in_none_member_sqlite",
+      "backend": "sqlite",
+      "row": "NOT IN None member",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          null
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" NOT IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": null
+      }
+    },
+    {
+      "id": "legacy_in_null_column_sqlite",
+      "backend": "sqlite",
+      "row": "IN on a NULL column value",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$customer_id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"customer_id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"customer_id\" IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 1,
+        "ids1": 2
+      }
+    },
+    {
+      "id": "legacy_not_in_null_column_sqlite",
+      "backend": "sqlite",
+      "row": "NOT IN on a NULL column value",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$customer_id NOT IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"customer_id\" NOT IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          1
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          11,
+          11
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"customer_id\" NOT IN (:ids0) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 1
+      }
+    },
+    {
+      "id": "legacy_in_scalar_string_sqlite",
+      "backend": "sqlite",
+      "row": "IN scalar string",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$note IN :notes",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"note\" IN :notes) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "notes": "First order"
+      },
+      "status": "error",
+      "error_type": "OperationalError",
+      "error": "near \":notes\": syntax error",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"note\" IN :notes) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "notes": "First order"
+      }
+    },
+    {
+      "id": "legacy_same_param_twice_sqlite",
+      "backend": "sqlite",
+      "row": "same parameter used twice",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids OR $customer_id IN :ids",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids OR \"t0\".\"customer_id\" IN :ids) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          1,
+          11
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1)  OR \"t0\".\"customer_id\" IN (:ids0,:ids1) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 1,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_same_param_in_and_any_sqlite",
+      "backend": "sqlite",
+      "row": "same parameter in IN and scalar position",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids OR $id = ANY(:ids)",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids OR \"t0\".\"id\" = ANY(:ids)) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "status": "error",
+      "error_type": "OperationalError",
+      "error": "no such function: ANY",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1)  OR \"t0\".\"id\" = ANY((:ids0,:ids1) )) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_two_collections_sqlite",
+      "backend": "sqlite",
+      "row": "two collections in one query",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids AND $customer_id NOT IN :customers",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids AND \"t0\".\"customer_id\" NOT IN :customers) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11,
+          12
+        ],
+        "customers": [
+          2
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1,:ids2)  AND \"t0\".\"customer_id\" NOT IN (:customers0) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11,
+        "ids2": 12,
+        "customers0": 2
+      }
+    },
+    {
+      "id": "legacy_two_collections_prefix_sqlite",
+      "backend": "sqlite",
+      "row": "two collections in one query (name prefix)",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:990 where chunks wrapped and joined with the logical deletion chunk (gnrpy/gnr/sql/gnrsqldata/compiler.py:981)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended (no aggregate)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 $col output name; templateReplace renders \"t0\".\"col\""
+      ],
+      "input": {
+        "columns": "$id",
+        "where": "$id IN :ids AND $customer_id IN :ids2",
+        "params": null,
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN :ids AND \"t0\".\"customer_id\" IN :ids2) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11,
+          12
+        ],
+        "ids2": [
+          1
+        ]
+      },
+      "columns": [
+        "id",
+        "pkey"
+      ],
+      "result": [
+        [
+          10,
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" IN (:ids0,:ids1,(:ids20) )  AND \"t0\".\"customer_id\" IN (:ids20) ) AND (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11,
+        "ids20": 1
+      }
+    },
+    {
+      "id": "legacy_subquery_in_list_sqlite",
+      "backend": "sqlite",
+      "row": "IN inside a named subquery",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:439",
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:416 subquery alias prefix <alias>_t (t0_t0)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409 subquery wrapped in \" ( %s ) \"; gnrpy/gnr/sql/gnrsqldata/compiler.py:439 formula wrapped in \"( %s )\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 output name of COUNT(*) is colToAs -> COUNT___",
+        "sq_pars defaults: excludeLogicalDeleted=False, addPkeyColumn=False (gnrpy/gnr/sql/gnrsqldata/compiler.py:412-418)",
+        "#THIS correlation written in its resolved form \"t0\".\"id\""
+      ],
+      "input": {
+        "table": "customer",
+        "columns": "$id, $n_selected",
+        "formula": "n_selected: select=dict(table='sales.invoice', columns='COUNT(*)', where='$customer_id=#THIS.id AND $id IN :ids')",
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"main\".\"invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN :ids) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"customer\" AS t0\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": [
+          10,
+          11,
+          14
+        ]
+      },
+      "columns": [
+        "id",
+        "n_selected",
+        "pkey"
+      ],
+      "result": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          2,
+          2,
+          2
+        ],
+        [
+          3,
+          0,
+          3
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"main\".\"invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN (:ids0,:ids1,:ids2) ) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"customer\" AS t0\nORDER BY \"t0\".\"id\"",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11,
+        "ids2": 14
+      }
+    },
+    {
+      "id": "legacy_subquery_in_empty_sqlite",
+      "backend": "sqlite",
+      "row": "IN empty collection inside a named subquery",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:439",
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:416 subquery alias prefix <alias>_t (t0_t0)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:409 subquery wrapped in \" ( %s ) \"; gnrpy/gnr/sql/gnrsqldata/compiler.py:439 formula wrapped in \"( %s )\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1011 output name of COUNT(*) is colToAs -> COUNT___",
+        "sq_pars defaults: excludeLogicalDeleted=False, addPkeyColumn=False (gnrpy/gnr/sql/gnrsqldata/compiler.py:412-418)",
+        "#THIS correlation written in its resolved form \"t0\".\"id\""
+      ],
+      "input": {
+        "table": "customer",
+        "columns": "$id, $n_selected",
+        "formula": "n_selected: select=dict(table='sales.invoice', columns='COUNT(*)', where='$customer_id=#THIS.id AND $id IN :ids')",
+        "order_by": "$id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"main\".\"invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN :ids) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"customer\" AS t0\nORDER BY \"t0\".\"id\"",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id",
+        "n_selected",
+        "pkey"
+      ],
+      "result": [
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          2,
+          0,
+          2
+        ],
+        [
+          3,
+          0,
+          3
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"main\".\"invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\" = \"t0\".\"id\" AND \"t0_t0\".\"id\" IN () ) )  ) AS \"n_selected\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"customer\" AS t0\nORDER BY \"t0\".\"id\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_direct_in_list_sqlite",
+      "backend": "sqlite",
+      "row": "IN in direct SQL",
+      "method": "executed-extracted",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:81",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "input": {
+        "sql": "SELECT id FROM <invoice> WHERE id IN :ids ORDER BY id"
+      },
+      "terminal": "execute",
+      "legacy_sql": "SELECT id FROM \"main\".\"invoice\" WHERE id IN :ids ORDER BY id",
+      "params": {
+        "ids": [
+          10,
+          11
+        ]
+      },
+      "columns": [
+        "id"
+      ],
+      "result": [
+        [
+          10
+        ],
+        [
+          11
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT id FROM \"main\".\"invoice\" WHERE id IN (:ids0,:ids1)  ORDER BY id",
+      "sent_params": {
+        "ids0": 10,
+        "ids1": 11
+      }
+    },
+    {
+      "id": "legacy_direct_in_empty_sqlite",
+      "backend": "sqlite",
+      "row": "IN empty collection in direct SQL",
+      "method": "executed-extracted",
+      "source": [
+        "gnrpy/gnr/sql/gnrsql/execute.py:121",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:74",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py:81",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:208"
+      ],
+      "input": {
+        "sql": "SELECT id FROM <invoice> WHERE id IN :ids ORDER BY id"
+      },
+      "terminal": "execute",
+      "legacy_sql": "SELECT id FROM \"main\".\"invoice\" WHERE id IN :ids ORDER BY id",
+      "params": {
+        "ids": []
+      },
+      "columns": [
+        "id"
+      ],
+      "result": [],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT id FROM \"main\".\"invoice\" WHERE id IN ()  ORDER BY id",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_distinct_true_sqlite",
+      "backend": "sqlite",
+      "row": "distinct=True",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate = bool(distinct or group_by): no pkey column",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057 DISTINCT"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true,
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "total"
+      ],
+      "result": [
+        [
+          7
+        ],
+        [
+          15.5
+        ],
+        [
+          40
+        ],
+        [
+          125
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_distinct_empty_sqlite",
+      "backend": "sqlite",
+      "row": "distinct=''",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or '' -> ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058 auto DISTINCT only with exploding (to-many) joins"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": "",
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "total",
+        "pkey"
+      ],
+      "result": [
+        [
+          7,
+          13
+        ],
+        [
+          15.5,
+          12
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          15
+        ],
+        [
+          125,
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_distinct_none_sqlite",
+      "backend": "sqlite",
+      "row": "distinct=None",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:144",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or '' -> ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1058 auto DISTINCT only with exploding (to-many) joins"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": null,
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "total",
+        "pkey"
+      ],
+      "result": [
+        [
+          7,
+          13
+        ],
+        [
+          15.5,
+          12
+        ],
+        [
+          40,
+          11
+        ],
+        [
+          40,
+          15
+        ],
+        [
+          125,
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"total\" AS \"total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_distinct_order_by_outside_projection_sqlite",
+      "backend": "sqlite",
+      "row": "DISTINCT with order_by outside the projection",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1071"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate = bool(distinct or group_by): no pkey column",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057 DISTINCT",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1071 hidden __ord_col_N added only for auto DISTINCT"
+      ],
+      "input": {
+        "columns": "$customer_id",
+        "distinct": true,
+        "order_by": "$total"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "params": {},
+      "columns": [
+        "customer_id"
+      ],
+      "result": [
+        [
+          null
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"total\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_group_by_sqlite",
+      "backend": "sqlite",
+      "row": "GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1096"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "order_by": "$customer_id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nORDER BY \"t0\".\"customer_id\"",
+      "params": {},
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          null,
+          7
+        ],
+        [
+          1,
+          140.5
+        ],
+        [
+          2,
+          40
+        ],
+        [
+          3,
+          40
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nORDER BY \"t0\".\"customer_id\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_group_by_star_sqlite",
+      "backend": "sqlite",
+      "row": "group_by='*'",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:906",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:906 group_by '*' -> None after aggregate is set"
+      ],
+      "input": {
+        "columns": "SUM($total) AS total_sum, COUNT(*) AS n",
+        "group_by": "*"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  SUM(\"t0\".\"total\") AS total_sum,\nCOUNT(*) AS n\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "columns": [
+        "total_sum",
+        "n"
+      ],
+      "result": [
+        [
+          227.5,
+          5
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  SUM(\"t0\".\"total\") AS total_sum,\nCOUNT(*) AS n\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_having_params_sqlite",
+      "backend": "sqlite",
+      "row": "HAVING with parameters",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1097",
+        "gnrpy/gnr/sql/gnrsql/execute.py:121"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "having": "SUM($total) >= :minimum",
+        "order_by": "$customer_id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\") >= :minimum\nORDER BY \"t0\".\"customer_id\"",
+      "params": {
+        "minimum": 40
+      },
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          1,
+          140.5
+        ],
+        [
+          2,
+          40
+        ],
+        [
+          3,
+          40
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\") >= :minimum\nORDER BY \"t0\".\"customer_id\"",
+      "sent_params": {
+        "minimum": 40
+      }
+    },
+    {
+      "id": "legacy_aggregate_without_group_by_sqlite",
+      "backend": "sqlite",
+      "row": "aggregate projection without GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1004"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate is False: no distinct, no group_by",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:947 pkey column appended before gnrpy/gnr/sql/gnrsqldata/compiler.py:1004 detects SUM("
+      ],
+      "input": {
+        "columns": "SUM($total) AS total_sum"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  SUM(\"t0\".\"total\") AS total_sum,\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "columns": [
+        "total_sum",
+        "pkey"
+      ],
+      "result": [
+        [
+          227.5,
+          10
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  SUM(\"t0\".\"total\") AS total_sum,\n\"t0\".\"id\" AS \"pkey\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_for_update_distinct_sqlite",
+      "backend": "sqlite",
+      "row": "for_update with DISTINCT",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1101",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721",
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py:140"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:899 distinct or ''",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate = bool(distinct or group_by): no pkey column",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1057 DISTINCT",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721 FOR UPDATE OF t0; gnrpy/gnr/sql/adapters/gnrsqlite.py:140 renders nothing"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true,
+        "for_update": true
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\n",
+      "params": {},
+      "columns": [
+        "total"
+      ],
+      "result": [
+        [
+          125
+        ],
+        [
+          40
+        ],
+        [
+          15.5
+        ],
+        [
+          7
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\n",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_for_update_group_by_sqlite",
+      "backend": "sqlite",
+      "row": "for_update with GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1101",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:721",
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py:140"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "for_update": true
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\n",
+      "params": {},
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          null,
+          7
+        ],
+        [
+          1,
+          140.5
+        ],
+        [
+          2,
+          40
+        ],
+        [
+          3,
+          40
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\n",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_mark_aggregate_sqlite",
+      "backend": "sqlite",
+      "row": "exclude_logical_deleted='mark' with GROUP BY",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:981",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:983"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:902 aggregate: no pkey column, no table order_by (gnrpy/gnr/sql/gnrsqldata/compiler.py:910)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1018 explicit AS kept verbatim (alias not quoted)",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:981 no IS NULL chunk unless excludeLogicalDeleted is True",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:983 _isdeleted column skipped when aggregate or count"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "excludeLogicalDeleted": "mark",
+        "order_by": "$customer_id"
+      },
+      "terminal": "fetch",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"\nORDER BY \"t0\".\"customer_id\"",
+      "params": {},
+      "columns": [
+        "customer_id",
+        "total_sum"
+      ],
+      "result": [
+        [
+          null,
+          7
+        ],
+        [
+          1,
+          140.5
+        ],
+        [
+          2,
+          80
+        ],
+        [
+          3,
+          40
+        ]
+      ],
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\",\nSUM(\"t0\".\"total\") AS total_sum\n FROM \"main\".\"invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"\nORDER BY \"t0\".\"customer_id\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_plain_sqlite",
+      "backend": "sqlite",
+      "row": "count: plain query",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 5,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_ordered_sqlite",
+      "backend": "sqlite",
+      "row": "count: order_by",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "order_by": "$total"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 5,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_distinct_sqlite",
+      "backend": "sqlite",
+      "row": "count: DISTINCT query",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:943 count with distinct keeps the projection",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = len(fetchall())"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 4,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_grouped_having_sqlite",
+      "backend": "sqlite",
+      "row": "count: grouped query with HAVING",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:942 count with group_by projects the group_by columns",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = number of groups fetched"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "having": "SUM($total) >= :minimum"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\") >= :minimum",
+      "params": {
+        "minimum": 40
+      },
+      "result": 3,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\") >= :minimum",
+      "sent_params": {
+        "minimum": 40
+      }
+    },
+    {
+      "id": "legacy_count_limit_sqlite",
+      "backend": "sqlite",
+      "row": "count: limit",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "limit": 2
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nLIMIT 2",
+      "params": {},
+      "result": 5,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nLIMIT 2",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_limit_offset_sqlite",
+      "backend": "sqlite",
+      "row": "count: limit and offset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "limit": 2,
+        "offset": 2
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nLIMIT 2\nOFFSET 2",
+      "params": {},
+      "result": 0,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nLIMIT 2\nOFFSET 2",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_distinct_limit_offset_sqlite",
+      "backend": "sqlite",
+      "row": "count: DISTINCT with limit and offset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:943 count with distinct keeps the projection",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = len(fetchall())"
+      ],
+      "input": {
+        "columns": "$total",
+        "distinct": true,
+        "limit": 2,
+        "offset": 1
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nLIMIT 2\nOFFSET 1",
+      "params": {},
+      "result": 2,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  DISTINCT \"t0\".\"total\" AS \"total\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nLIMIT 2\nOFFSET 1",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_grouped_limit_sqlite",
+      "backend": "sqlite",
+      "row": "count: grouped query with limit",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:942 count with group_by projects the group_by columns",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = number of groups fetched"
+      ],
+      "input": {
+        "columns": "$customer_id, SUM($total) AS total_sum",
+        "group_by": "$customer_id",
+        "having": "SUM($total) >= :minimum",
+        "limit": 2
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\") >= :minimum\nLIMIT 2",
+      "params": {
+        "minimum": 40
+      },
+      "result": 2,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\") >= :minimum\nLIMIT 2",
+      "sent_params": {
+        "minimum": 40
+      }
+    },
+    {
+      "id": "legacy_count_empty_sqlite",
+      "backend": "sqlite",
+      "row": "count: empty dataset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())"
+      ],
+      "input": {
+        "columns": "*",
+        "where": "$id < 0"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL)",
+      "params": {},
+      "result": 0,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL)",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_grouped_empty_sqlite",
+      "backend": "sqlite",
+      "row": "count: grouped query on an empty dataset",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:942 count with group_by projects the group_by columns",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:585 count = number of groups fetched"
+      ],
+      "input": {
+        "columns": "$customer_id",
+        "group_by": "$customer_id",
+        "where": "$id < 0"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"",
+      "params": {},
+      "result": 0,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"main\".\"invoice\" AS t0\nWHERE (\"t0\".\"id\" < 0) AND (\"t0\".\"__del_ts\" IS NULL)\nGROUP BY \"t0\".\"customer_id\"",
+      "sent_params": {}
+    },
+    {
+      "id": "legacy_count_mark_sqlite",
+      "backend": "sqlite",
+      "row": "count with exclude_logical_deleted='mark'",
+      "method": "derived-from-source",
+      "source": [
+        "gnrpy/gnr/sql/gnrsqldata/query.py:557",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:939"
+      ],
+      "derivation": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:940 count mode: order_by dropped",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:946 columns = count(*) AS \"gnr_row_count\"",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:1099 limit/offset kept in count mode",
+        "gnrpy/gnr/sql/gnrsqldata/query.py:587 one gnr_row_count row -> its value, otherwise len(fetchall())",
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py:981 no IS NULL chunk in mark mode"
+      ],
+      "input": {
+        "columns": "*",
+        "excludeLogicalDeleted": "mark"
+      },
+      "terminal": "count",
+      "legacy_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0",
+      "params": {},
+      "result": 6,
+      "status": "returned",
+      "sent_sql": "-- None\nSELECT  count(*) AS \"gnr_row_count\"\n FROM \"main\".\"invoice\" AS t0",
+      "sent_params": {}
+    }
+  ]
+}

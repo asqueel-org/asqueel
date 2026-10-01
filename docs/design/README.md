@@ -12,6 +12,8 @@ recupero applicativo e callback sono verificati su PostgreSQL e SQLite. Il
 di Session; il [report 27](27-f1-request-lifecycle-closure.md) registra i confronti legacy.
 Il prossimo lavoro è il [piano query 30](30-query-completion-plan.md):
 prerequisiti minimi F2 e incremento funzionale F3. F0 e F2–F10 restano aperte.
+La [matrice 31](31-query-contract-matrix.md) registra prove legacy e Asqueel del
+passo 1, contratti proposti e decisioni aperte su collezioni, DISTINCT, GROUP BY e count.
 
 La [consegna 23](23-cli-and-named-configurations.md) documenta CLI, registro
 `~/.asqueel` e configurazione. SQLite è disponibile nel profilo limitato
