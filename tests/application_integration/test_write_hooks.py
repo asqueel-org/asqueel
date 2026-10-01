@@ -182,7 +182,7 @@ def test_soft_delete_restore_call_update_hooks_with_deleted_record_visible(hooke
     assert audit_events(observer, schema) == [('updating',), ('updated',)] * 2
 
 
-def test_hook_key_change_uses_saved_old_key_and_plain_tables_keep_batch_writes(hooked_database):
+def test_hook_key_change_uses_saved_old_key_and_raw_allows_batch_writes(hooked_database):
     db, observer, schema = hooked_database
     table = db.table('item')
     table.replace_key = 7
@@ -190,7 +190,7 @@ def test_hook_key_change_uses_saved_old_key_and_plain_tables_keep_batch_writes(h
         result = table.update({'org': 0, 'id': 0, 'name': 'moved'})
         assert result.rows[0]['id'] == 7
         assert table.events[-1][2]['id'] == 0
-        assert db.table('audit').update({'event': 'batch'}, where='true').rowcount == 2
+        assert db.table('audit').raw_update({'event': 'batch'}, where='true').rowcount == 2
     assert (0, 7, 'moved') in persisted(observer, schema)
     assert (0, 0, 'original') not in persisted(observer, schema)
     assert audit_events(observer, schema) == [('batch',), ('batch',)]

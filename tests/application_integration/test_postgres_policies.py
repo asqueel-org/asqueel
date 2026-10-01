@@ -63,7 +63,7 @@ def test_application_partition_draft_deletion_and_scoped_writes():
                 with db.temp_env(organization=0), completed(db):
                     inserted = item.insert({'id': 6, 'label': 'new'})
                     assert inserted.rows[0]['organization'] == 0
-                    assert item.update({'label': 'forbidden'}, where='$id=2').rowcount == 0
+                    assert item.raw_update({'label': 'forbidden'}, where='$id=2').rowcount == 0
                     tombstone = datetime(2026, 9, 29, tzinfo=timezone.utc)
                     assert item.soft_delete(tombstone, '$id=6').rows[0]['deleted_at'] == tombstone
                     assert item.query(where='$id=6').fetch() == []

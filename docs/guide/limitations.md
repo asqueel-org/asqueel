@@ -18,7 +18,7 @@ runtime. This page describes behavior you can rely on when choosing APIs.
 | Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | No GROUP BY/HAVING/DISTINCT options, count terminal or legacy IN-list expansion; not a universal SQL parser. |
 | Formulas | SQL expressions, scalar select/exists dictionaries and named correlated subqueries. | Python providers, method callbacks, formula variants, subquery collections and advanced macros are outside the native profile. Partition filtering remains explicit inside subqueries. |
 | Alias columns | Declared aliases inherit target metadata, allow local overrides, and resolve through supported to-one paths, including alias/formula targets. | Read-only; no to-many/virtualRelation. Default RETURNING excludes aliases; explicit relational aliases cannot be returned by DML. |
-| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after table hooks, database write hooks, and raw commands that retain change tracking. | Hooked updates/deletes require exactly one row and a declared primary key. No record-cluster writes, automatic retry or implicit save of related records. |
+| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after table hooks, database write hooks, and raw commands that retain change tracking. | Ordinary updates/deletes require exactly one row and a declared primary key. Raw predicates may match multiple rows; raw insertion also accepts a list. No record-cluster writes, automatic retry or implicit save of related records. |
 | Environment | Nested scopes, detached snapshots and guarded contextual queries. | Not a permissions system; direct SQL does not acquire model policy predicates automatically. |
 | Row policies | Declared partition scopes, draft and logical-deletion handling. | Tenant/store routing and legacy subtable behavior are not provided. Read policies are not complete write authorization. |
 | Model/UI | Native declarations, resolved naming and linked column metadata. | No UI renderer/editor; UI visibility and read-only metadata do not enforce database permissions. |
@@ -46,7 +46,7 @@ unique. Result metadata supplied to a direct `CompiledQuery` must match the
 actual returned names, order and number of columns.
 
 Pagination uses limit/offset; there is no keyset-pagination helper. Streaming,
-bulk/COPY helpers and query compilation/result caching are not provided by the
+COPY/executemany optimizations and query compilation/result caching are not provided by the
 runtime. Application records cache their exactly-one-row snapshot until explicit
 `refresh()`; ordinary query fetches always execute again. Record reads reject
 custom projections, limit and offset so they cannot mask multiple matches.

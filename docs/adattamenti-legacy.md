@@ -65,6 +65,18 @@ I raw saltano i sei trigger di tabella ma mantengono questi punti, la pila delle
 scritture, le policy native e i controlli sugli errori. Non sono ancora
 un'emulazione completa del raw Genropy.
 
+Nel contratto corrente Asqueel `update` e `delete` richiedono sempre un record,
+anche senza override dei trigger. `raw_update` e `raw_delete` accettano filtri
+multi-riga senza caricare ogni record; gli hook DB ricevono i valori forniti
+all'update o la chiave/record forniti al delete, non snapshot completi.
+Per delete con filtro esplicito ricevono `record=None`; `old_record` è assente.
+Gli hook DB sono chiamati una volta per comando raw update/delete, non per riga.
+
+`raw_insert` accetta un dizionario o una lista di dizionari. La lista esegue
+INSERT attraverso execute nella stessa transazione, mantenendo gli hook DB per
+ciascun record e saltando i trigger di tabella. Non usa il percorso cursor diretto
+del vecchio insertMany, non committa fra record e non espone un metodo Many separato.
+
 ## Ciclo di scrittura e comportamenti da adattare
 
 | Comportamento legacy | Stato in Asqueel | Adattamento necessario |

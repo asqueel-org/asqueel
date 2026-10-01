@@ -38,12 +38,12 @@ For updates, override `trigger_onUpdating(record, old_record=None)` and/or
 `trigger_onUpdated(record, old_record=None)`. For physical deletion, override
 `trigger_onDeleting(record)` and/or `trigger_onDeleted(record)`.
 
-When an update or delete hook is overridden, the table first reads and locks the
+Ordinary update and delete always first read and lock the
 matching record with PostgreSQL `FOR UPDATE OF` the base table. A declared primary
 key and exactly one matching row are required; missing or multiple matches raise
 `RecordNotFoundError` or `RecordMultipleRowsError` before any hook runs. Locks last
-until commit or rollback. Without overridden hooks, explicit predicates retain
-the existing set-based update/delete behavior.
+until commit or rollback. This single-record contract also applies when no hook is overridden.
+Use raw commands for predicates affecting multiple rows.
 
 The update before-hook receives the complete physical row overlaid with the
 caller's changes. It may modify that record. Both update hooks receive independent
@@ -113,10 +113,9 @@ action in both mechanisms.
 | Physical delete | `trigger_onDeleting(record)` | `trigger_onDeleted(record)` |
 | Soft-delete / restore | The update lifecycle | The update lifecycle |
 
-Hooked update/delete reads lock exactly one existing row first. This changes the
-semantics of a broad predicate: adding a hook to an existing table can turn a
-previously valid multirow operation into an explicit multiple-record error.
-Review callers when introducing those hooks.
+Ordinary update/delete locks exactly one existing row before hooks. Adding a
+hook does not change cardinality. A broad predicate must use raw update/delete
+when per-record Python table triggers are intentionally bypassed.
 
 See [writes](writes.md) for selectors and returned values, and
 [transactions](transactions.md) for failure recovery.
@@ -141,13 +140,25 @@ follows the legacy extension point. Default shared hooks do nothing. They can
 perform nested writes or defer callbacks, but cannot commit/rollback inside a
 write. Any Python failure makes the selected connection rollback-only.
 
-`table.raw_insert`, `raw_update` and `raw_delete` have the corresponding ordinary
-method signatures and also exist on `db`, with the table as first argument.
-They bypass table triggers, not DB hooks, policies, parameterization or change
-tracking. Overriding a shared hook makes update/delete use a locked single record
-so the hook receives complete data; a predicate selecting zero or multiple rows
-fails before the hook. Without shared/table hooks, predicate writes may affect
-multiple rows.
+`table.raw_insert`, `raw_update` and `raw_delete` also exist on `db`, with the
+table as first argument. They bypass Python table triggers, not DB hooks,
+policies, parameterization, SQL triggers or transaction/error handling.
+
+- Raw insert accepts a mapping or a list of mappings. Shared hooks run once per
+  inserted record, in list order, and receive that record. Returned physical
+  values are available to after-hooks. No intermediate commit occurs.
+- Raw update executes one SQL statement for its entire predicate. Shared hooks
+  run once, receiving only the supplied update values, without an old snapshot.
+  Before-hooks may modify those values before SQL compilation.
+- Raw delete executes one SQL statement. For a key/record selector, shared hooks
+  receive a copied key mapping or the supplied record. For an explicit predicate
+  they receive `record=None`. This is selector information, not a loaded row;
+  mutating it does not change the compiled deletion predicate.
+
+Overriding shared hooks never turns a raw command into a single-record command.
+Raw update/delete call them even when zero rows match, and provide no implicit
+per-row events. Hook implementations must branch on `raw`/`_raw` and tolerate
+partial records or `None`. For raw commands `old_record` remains `None`.
 
 The native shared hooks do not implement Genropy field/package dispatch,
 counters, totalizers or notifications. Their mapping is tracked in

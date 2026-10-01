@@ -184,14 +184,17 @@ def test_composite_selector_requires_complete_keys_and_uses_named_physical_resol
     assert '"t0"."L"' in app.executions[0].sql
     with pytest.raises(ValueError, match='Incomplete primary key'):
         live.update({'left': 0})
+    app.results = [[{'left': 0, 'right': 'x'}], [{'left': 0, 'right': 'x'}]]
     live.delete({'left': 0, 'right': 'x'})
     assert app.executions[-1].sql.startswith('DELETE ')
 
 
 def test_update_record_and_delete_pkey_zero_keep_explicit_selectors(db):
     table = db.table('customer')
+    db.results = [[{'id': 0, 'name': 'Before'}], [{'id': 0}]]
     table.update({'id': 0, 'name': 'Zero'}, returning='$id')
     assert ' WHERE ' in db.executions[-1].sql
+    db.results = [[{'id': 0, 'name': 'Zero'}], [{'id': 0}]]
     table.delete(0, returning=None)
     assert list(db.executions[-1].params.values()) == [0]
     with pytest.raises(ValueError):

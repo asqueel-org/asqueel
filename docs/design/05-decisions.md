@@ -198,3 +198,32 @@ Remove the internal Session entity as well as the public session concept.
 Database owns execution, commit, rollback, callbacks and cleanup. Thread-local
 named connections contain plain state dictionaries, with no independent methods
 or lifecycle. See [structural closure 28](28-db-owned-connection-lifecycle.md).
+
+## Accepted update — record writes and explicit raw predicates (1 October 2026)
+
+User decision: Python table triggers belong to ordinary record writes. Their
+absence must never silently enable multi-row SQL semantics.
+
+- `insert` takes one mapping. `update` and `delete` lock exactly one record and
+  run the complete lifecycle regardless of overridden hooks. Missing/multiple
+  matches raise RecordNotFoundError/RecordMultipleRowsError before hooks.
+- `raw_update` and `raw_delete` accept predicates matching zero or more rows.
+  They skip Python table triggers, including when shared DB hooks are overridden.
+- `raw_insert` takes one mapping or a list of mappings. No additional Many API.
+  The list executes INSERTs through execute in order; results are concatenated
+  and rowcounts summed. Empty lists are no-ops; heterogeneous column sets retain
+  server defaults. This delivery does not add COPY/executemany optimization.
+- Raw commands preserve policy checks, driver binding, SQL constraints/triggers,
+  shared DB hooks and the selected transaction. Never commit implicitly.
+- Shared DB hooks run per inserted record, but once per raw update/delete
+  statement. Raw update supplies the update values; raw delete supplies a copied
+  record/key mapping, or None for an explicit predicate. No old-record snapshot
+  is loaded. Before-update hooks may edit values; deletion selector data is
+  informational. Integration hooks must support this raw operation contract.
+- Python failures require application rollback; SQL errors retain automatic
+  rollback of all pending work. No per-list savepoint or partial-success result.
+
+This closes the cardinality inconsistency identified in review 29, not all F4
+record/result/event requirements. Thread-local execution and ownership remain
+unchanged. A future async implementation must await each write and its cleanup;
+this adds no new thread-bound public entity or hidden commit boundary.

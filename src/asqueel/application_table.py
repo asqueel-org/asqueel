@@ -295,14 +295,9 @@ class SqlTable:
         with operation(event, self, record=record, old_record=old_record) as item:
             yield item
 
-    def _has_write_hooks(self, operation):
-        names = ('trigger_onUpdating', 'trigger_onUpdated') if operation == 'update' else (
-            'trigger_onDeleting', 'trigger_onDeleted')
-        return any(getattr(type(self), name) is not getattr(SqlTable, name) for name in names)
-
     def _locked_record(self, where, params, ignore_partition):
         if not self.model.pkey:
-            raise ValueError('Write hooks require a declared primary key')
+            raise ValueError('Ordinary update/delete require a declared primary key')
         columns = ', '.join(_reference(name) for name, column in self.model.columns.items()
                             if not column.is_virtual)
         query = self.query(columns=columns, where=where, params=params, for_update=True, limit=2,

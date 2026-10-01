@@ -35,7 +35,7 @@ facade and injected-adapter modes against isolated PostgreSQL. Release guidance,
 the site introduction and the design index reflect the current implementation.
 The importer minimum is now explicitly PostgreSQL 15 because of catalog columns.
 
-## Multi-row write contract: evidence, not an implicit API change
+## Multi-row write contract: review evidence and subsequent decision
 
 At legacy revision `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea`:
 
@@ -45,12 +45,12 @@ At legacy revision `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea`:
 - The same module's batchUpdate/_batchUpdate_rows selects rows and calls update
   (or raw_update) per record, with separately configurable completion.
 
-Asqueel currently permits set-based predicates without hooks and requires a
-single record with table or shared DB hooks. This is a real remaining F4 contract
-issue, now explicitly tracked in the plan; the guide describes the current
-limitation. Completing F4 should separate record and bulk contracts consistently
-and test cardinality independently of hook presence. No speculative bulk API or
-silent change to existing writes is introduced in this correction.
+At the time of this review, Asqueel permitted set-based predicates without hooks
+and required one record when hooks were present. The subsequent user decision
+in [decisions 05](05-decisions.md) resolves this: ordinary update/delete always
+require one record; raw predicates may affect many rows; raw_insert accepts one
+mapping or a list. No separate Many API. Shared raw hooks receive operation data,
+not implicit full-row snapshots. Broader F4 acceptance remains open.
 
 ## Validation and remaining scope
 

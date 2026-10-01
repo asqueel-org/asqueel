@@ -4,6 +4,12 @@
 
 Version prepared in the source repository; package publication is separate.
 
+- Ordinary update/delete now always require exactly one record and a declared
+  primary key, independently of hooks. Existing multi-row callers must explicitly
+  use raw_update/raw_delete when bypassing Python table triggers is intended.
+- raw_insert accepts a mapping or a list, with combined results and no implicit
+  commits. Raw predicates remain multi-row even with shared DB hooks; those hooks
+  receive supplied operation data, without a loaded old-record snapshot.
 - Fixed composite foreign-key projection into migration metadata, including
   unnamed relations and remapped physical columns.
 - Connection implementation now inherits the DB setting unless explicitly
@@ -15,7 +21,7 @@ Version prepared in the source repository; package publication is separate.
 - Date and locale defaults follow the documented context-only contract, without
   Babel or locale validation.
 
-Validation: 659 tests passed on PostgreSQL and SQLite, with 95% coverage.
+Validation: 683 tests passed on PostgreSQL and SQLite, with 95% coverage.
 Ruff, mypy and the strict documentation build passed.
 
 ## 0.3.0
