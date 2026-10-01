@@ -1,6 +1,8 @@
 # Release notes
 
-## Unreleased
+## 0.4.0
+
+Version prepared in the source repository; package publication is separate.
 
 - Removed the internal Session entity. Database directly owns execution,
   completion, callbacks and cleanup; named connections keep only per-thread data.
@@ -8,6 +10,9 @@
   callback exceptions reach the application, which owns recovery and cleanup.
 - Date and locale defaults follow the documented context-only contract, without
   Babel or locale validation.
+
+Validation: 650 tests passed on PostgreSQL and SQLite, with 95% coverage.
+Ruff, mypy and the strict documentation build passed.
 
 ## 0.3.0
 
