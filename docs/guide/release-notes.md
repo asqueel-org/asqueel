@@ -2,7 +2,7 @@
 
 ## 0.4.0
 
-Version prepared in the source repository; package publication is separate.
+Released on PyPI and tagged `v0.4.0`.
 
 - Ordinary update/delete now always require exactly one record and a declared
   primary key, independently of hooks. Existing multi-row callers must explicitly
