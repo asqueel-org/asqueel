@@ -349,7 +349,7 @@ def test_poisoned_application_session_rejects_insert_before_running_hooks():
                        attributes={'x_table_class': Customer})
     db = SqlDatabase(model=ResolvedModel({descriptor.key: descriptor}), config=Config())
     try:
-        db._session.mark_failed()
+        db._mark_connection_failed(db._connection_state)
         with pytest.raises(TransactionStateError, match='rollback-only'):
             db.table('customer').insert({'id': 1})
         assert seen == []

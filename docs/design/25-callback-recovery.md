@@ -51,7 +51,7 @@ and the separate caller-specific error paths from review 21.
 
 ## Verification
 
-`tests/application_session/test_callback_recovery.py` adds eight real-database
+`tests/application_connections/test_callback_recovery.py` adds eight real-database
 cases: before/after commit × callback with/without new SQL × PostgreSQL/SQLite.
 They verify original exception identity, restored committing context, retry
 barriers, committed data from an independent connection after recovery, clean

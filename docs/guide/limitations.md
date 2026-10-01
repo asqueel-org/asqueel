@@ -84,7 +84,7 @@ Closing the DB rolls back pending work and releases the current thread's
 connections. Each worker must close its own connections.
 
 An SQL execution error automatically rolls back the selected named connection.
-A Python error in the write lifecycle marks the affected session rollback-only:
+A Python error in the write lifecycle marks the affected connection rollback-only:
 commit is blocked until explicit rollback. An arbitrary Python exception outside
 that lifecycle requires the caller to roll back its pending work. An uncertain commit
 outcome does not mean the write failed; retries require application-specific

@@ -7,7 +7,7 @@ from asqueel import (
     DatabaseClosedError, SqlDatabaseConfig, SqlTable, TransactionStateError,
     UnsupportedFeatureError, build_database,
 )
-from tests.application_session.test_session import Driver
+from tests.application_connections.test_connections import Driver
 
 
 class Recipe(SqlDatabaseConfig):

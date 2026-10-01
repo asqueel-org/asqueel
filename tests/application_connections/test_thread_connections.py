@@ -8,7 +8,7 @@ from asqueel import AsqueelDb, TransactionStateError
 from asqueel.contracts import CompiledQuery
 from asqueel.environment import SqlEnvironment
 from tests.application_config.test_application import Recipe
-from tests.application_session.test_session import Driver
+from tests.application_connections.test_connections import Driver
 
 
 def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
@@ -24,9 +24,9 @@ def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
         try:
             for connection_name in ('_main_connection', 'other'):
                 with db.tempEnv(connectionName=connection_name):
-                    connection = db._session
+                    connection = db._connection_state
                     connections.append(connection)
-                    assert connection is db._session
+                    assert connection is db._connection_state
                     db.execute(CompiledQuery(name + connection_name))
                     db.deferToCommit(lambda: callbacks.append(db.currentEnv['user']))
                     with db._trigger_operation('insert', db.table('app.item')) as trigger:
@@ -76,9 +76,9 @@ def test_named_environment_changes_selection_without_completion():
 
 def test_internal_connection_rejects_cross_thread_use():
     db = AsqueelDb(Recipe, driver=Driver())
-    session = db._session
+    state = db._connection_state
     with ThreadPoolExecutor(max_workers=1) as pool:
-        for operation in (session.commit, session.rollback):
+        for operation in (lambda: db._commit_connection(state), lambda: db._rollback_connection(state)):
             with pytest.raises(TransactionStateError, match='constructing thread'):
                 pool.submit(operation).result()
     db.close()

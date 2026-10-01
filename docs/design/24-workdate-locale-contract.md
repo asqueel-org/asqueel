@@ -37,7 +37,7 @@ No process-global `locale.setlocale()` is used.
 
 ## Verification
 
-`tests/application_session/test_locale_workdate.py` adds 11 cases covering the
+`tests/application_connections/test_locale_workdate.py` adds 11 cases covering the
 fallback matrix, unknown values, dynamic dates, nested exception scopes, stale
 queries, concurrent threads and real PostgreSQL/SQLite parameter binding.
 Before the fix, the empty-environment regression failed (9 passed, 1 failed,

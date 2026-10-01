@@ -155,7 +155,7 @@ def test_asqueel_db_is_a_real_persistent_class_with_owned_handles(tmp_path, monk
         assert isinstance(db, SqlDatabase)
         assert db.table('sales.invoice').db is db
         assert db.table('sales.invoice').rows_query(7).compiled.params == {'invoice_id': 7}
-        assert not db._sessions
+        assert not db._connections
     finally:
         db.close()
     assert db._closed

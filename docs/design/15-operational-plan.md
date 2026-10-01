@@ -8,8 +8,8 @@ verification passed **618 tests**, with **95% coverage**; the documentation
 build passed with warnings treated as errors. These checks establish the
 implemented profile, not completion of every legacy contract.
 
-**Update, 1 October 2026: F1 is complete for the synchronous request-owned
-profile; see [closure evidence 27](27-f1-request-lifecycle-closure.md).** Delivery has advanced across several phases; the table
+**Update, 1 October 2026: F1 is closed for the synchronous request-owned profile,
+including removal of the internal Session lifecycle; see [structural closure 28](28-db-owned-connection-lifecycle.md).** Delivery has advanced across several phases; the table
 below distinguishes working increments from phase acceptance. F0's complete
 legacy inventory is still open. The original release snapshot below is preserved; the closure evidence records
 the subsequent local F1 work. F0 and F2–F10 remain open.
@@ -17,7 +17,7 @@ the subsequent local F1 work. F0 and F2–F10 remain open.
 | Phase | Delivered evidence | Remaining acceptance |
 |---|---|---|
 | F0 | Legacy revision fixed; executable session, deferred and caller oracles. | Complete contract inventory, traceability and performance baseline. |
-| F1 | Shared execution service, implicit transactions with explicit completion, per-thread named connections/environment, deferred queues and write-error protection. | F1 profile verified; application-porting obligations and later-phase boundaries recorded in report 27. |
+| F1 | Shared execution service, implicit transactions with explicit completion, per-thread named connections/environment, deferred queues and write-error protection. | Closed: behavior and structural removal verified in reports 27–28; application-porting obligations remain explicitly scoped. |
 | F2 | Resolved model, linked metadata, direct relation paths, aliases, cascading configuration and explicitly imported schema/table contributions. | Uniform model path lookup/introspection, relation metadata and full naming/composition contract verification. |
 | F3 | Parameterized queries, to-one paths, ordering/pagination and scalar correlated formulas. | Count, DISTINCT, GROUP BY/HAVING, collection binding and remaining legacy query contracts. |
 | F4 | CRUD/RETURNING, record access, table hooks, DB write hooks and raw commands through the common execution path. | Remaining record/result terminals, key generation, old-record/bulk contracts and concurrency/event acceptance. |
@@ -44,7 +44,12 @@ the subsequent local F1 work. F0 and F2–F10 remain open.
   schema files, `BEGIN IMMEDIATE` (including reads), locking and foreign-key
   limits are documented in the [SQLite guide](../guide/sqlite.md).
 
-### F1 closure — 1 October 2026
+### F1 closure correction — 1 October 2026
+
+The previous completion claim was premature: the internal Session lifecycle
+remained. It is now removed: Database owns execution and completion; its
+thread-local named-connection dictionary contains plain data records. All 650
+tests pass after the removal. Report 28 records the correction and acceptance.
 
 1. Date/locale context verified, with no locale validation or Babel (report 24).
 2. Callback propagation and application-owned recovery verified. Python errors
@@ -58,7 +63,7 @@ the subsequent local F1 work. F0 and F2–F10 remain open.
 
 **Next implementation phase: F2**, uniform model navigation and metadata.
 F0 inventory continues alongside it. C1 package translation remains collateral.
-Changes are local, not an additional release or implied push.
+This closure is not a new package release.
 
 Sources: [42-contract audit](13-legacy-test-audit.md),
 [stages](14-legacy-target-and-stages.md), [decisions](05-decisions.md),
@@ -129,7 +134,7 @@ una destinazione motivata, né differenze introdotte senza accordo. Non si dichi
 | Fase | Consegna | Dipende da | Traguardo |
 |---|---|---|---|
 | F0 | Corpus eseguibile e baseline | — | V1 |
-| F1 | Sessione, transazioni ed environment | F0 | V1 |
+| F1 | Connessioni, transazioni ed environment | F0 | V1 |
 | F2 | Modello navigabile e metadati | F0 | V1 |
 | F3 | Query complete per l'uso quotidiano | F1, F2 | V1 |
 | F4 | Record, risultati e lifecycle delle scritture | F1, F3 | V1 |
@@ -186,7 +191,7 @@ fra package, namespace logico e schema fisico restano da definire.
 - Conservare la transazione implicita del db applicativo e commit/rollback
   espliciti; non richiedere `with db.transaction()` negli esempi ordinari.
 - Allineare il comportamento dopo errore SQL al rollback legacy, verificando
-  anche il riuso della sessione e gli errori del driver durante la conclusione.
+  anche il riuso della connessione e gli errori del driver durante la conclusione.
 - Esaminare separatamente eccezioni negli hook: il rollback in execute non
   dimostra quale sia il contratto di ogni errore Python.
 - Recuperare currentEnv/tempEnv e i default necessari di workdate/locale;
@@ -198,8 +203,8 @@ fra package, namespace logico e schema fisico restano da definire.
   implicito. Questo requisito non dipende dal futuro supporto store/tenant.
   Separare transazioni, stato di errore e callback per connessione; verificare
   che commit/rollback di B non concludano la transazione pendente di A.
-  Sessioni e code per nome sono presenti e testate; resta la verifica dei
-  contratti di recupero indicati nella checklist F1.
+  Connessioni e code per nome sono presenti e testate; i contratti di
+  recupero F1 sono verificati nei report 27–28.
 - Deferred, stack trigger e contesto onCommittingStep sono implementati.
   Completare gli oracle legacy per retry e callback residue dopo errore
   prima di avanzare a F2.

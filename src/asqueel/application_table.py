@@ -1,6 +1,6 @@
 """Live application tables, lazy query intent, and cached single-record reads.
 
-Application objects execute through their owning SqlDatabase session. They do
+Application objects execute through their owning SqlDatabase. They do
 not open connections, commit, or emulate legacy Bag/selection result objects.
 """
 from __future__ import annotations
@@ -178,7 +178,7 @@ class SqlRecord:
 
 
 class SqlTable:
-    """Session-bound application table with stable column/relation handles."""
+    """Database-bound application table with stable column/relation handles."""
 
     def __init__(self, db, model):
         self.db = db
@@ -264,7 +264,7 @@ class SqlTable:
         return result.output(mode) if mode is not None else result
 
     def trigger_onInserting(self, record):
-        """Override to validate/change the outgoing record in the shared session."""
+        """Override to validate/change the outgoing record in the selected connection."""
 
     def trigger_onInserted(self, record):
         """Override to react to input values overlaid with available returned fields."""

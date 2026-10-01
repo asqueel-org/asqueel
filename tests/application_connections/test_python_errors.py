@@ -1,8 +1,8 @@
-"""Error ownership across named sessions and preservation during DB cleanup."""
+"""Error ownership across named connections and preservation during DB cleanup."""
 import pytest
 
 from asqueel import CompiledQuery, SqlTable, TransactionStateError
-from tests.application_session.test_deferred import database
+from tests.application_connections.test_deferred import database
 
 
 @pytest.mark.parametrize('hook', ['trigger_onInserting', 'trigger_onInserted'])

@@ -1,5 +1,14 @@
 # Release notes
 
+## Unreleased
+
+- Removed the internal Session entity. Database directly owns execution,
+  completion, callbacks and cleanup; named connections keep only per-thread data.
+- Request lifecycle and callback recovery verified on PostgreSQL and SQLite:
+  callback exceptions reach the application, which owns recovery and cleanup.
+- Date and locale defaults follow the documented context-only contract, without
+  Babel or locale validation.
+
 ## 0.3.0
 
 Released on PyPI and tagged `v0.3.0`. This release changes transaction completion in the former

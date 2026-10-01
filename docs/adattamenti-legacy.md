@@ -26,7 +26,8 @@ Fonti legacy, relative alla radice del repository Genropy:
 - `gnrpy/gnr/sql/gnrsql/transactions.py`: commit, rollback e callback differite.
 
 Fonti Asqueel: `src/asqueel/application.py`, `application_table.py`,
-`session.py`, `environment.py`, `compiler.py` e `runtime.py`.
+`environment.py`, `compiler.py` e `runtime.py` (che possiede direttamente
+il lifecycle delle connessioni, senza un’entità Session).
 
 ## Percorso delle operazioni
 

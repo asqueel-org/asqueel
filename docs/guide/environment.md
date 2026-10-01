@@ -2,7 +2,7 @@
 
 An environment is a scoped mapping of application context: current organization,
 request language or a value used by several query predicates. `SqlDatabase`
-shares an application environment between its compiler and named sessions.
+shares an application environment between its compiler and named connections.
 Changing `connectionName` selects a separate connection lazily; other context
 changes do not select a different database. Store selection and tenant routing
 are separate application/database concerns.
@@ -190,7 +190,7 @@ except Exception:
 
 Both operations share one transaction. Their partition columns are filled using
 their respective current organization. Switching context does not switch databases.
-The model graph is shared; mutable application environments and named sessions
+The model graph is shared; mutable application environments and named connections
 are isolated per thread. Concurrent async tasks within one thread are unsupported.
 
 ## Advanced: share context between independent components

@@ -1,4 +1,4 @@
-"""Compare original legacy queue methods with native Session queue dispatch.
+"""Compare original legacy queue methods with native DB queue dispatch.
 
 The legacy mode executes an AST-extracted, unmodified TransactionMixin using
 its real legacy Bag. This probes queues, not the complete framework/SQL commit.
@@ -63,12 +63,12 @@ def scenarios(backend):
 
 
 def native_backend():
-    from asqueel.session import Session
-    from tests.application_session.test_session import Driver
-    session = Session(Driver())
-    session.defer = session.defer_to_commit
-    session.drain = lambda: session._invoke_deferred('before')
-    return session
+    from asqueel.runtime import Database
+    from tests.application_connections.test_connections import Driver
+    db = Database(driver=Driver())
+    db.defer = db.deferToCommit
+    db.drain = lambda: db._invoke_deferred(db._connection_state, 'before')
+    return db
 
 
 def legacy_backend(root):

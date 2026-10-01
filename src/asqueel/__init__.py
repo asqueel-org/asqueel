@@ -38,7 +38,7 @@ from .runtime import (
     DatabaseClosedError, Database, PostgresDatabase,
     TransactionStateError,
 )
-from .session import DeferredCommitError
+from .errors import DeferredCommitError
 from .triggers import TriggerStack, TriggerStackItem
 
 __version__ = "0.3.0"

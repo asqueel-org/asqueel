@@ -3,9 +3,9 @@ from tests.unit_of_work import completed
 import pytest
 
 from asqueel import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, build_database
-from asqueel.session import Session
+from asqueel.runtime import Database
 from tests.application_config.test_application import Recipe
-from tests.application_session.test_session import Driver
+from tests.application_connections.test_connections import Driver
 
 
 def database(table_class=SqlTable):
@@ -40,66 +40,66 @@ def test_hooks_can_register_both_queues_and_deferred_errors():
 
 def test_precommit_failure_rolls_back_atomic_scope_and_clears_callbacks():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     events = []
 
     def fail():
         raise ValueError('pre-commit')
 
     with pytest.raises(ValueError, match='pre-commit'):
-        with completed(session):
-            session.execute(CompiledQuery('write'))
-            session.defer_to_commit(fail)
-            session.defer_after_commit(lambda: events.append('after'))
+        with completed(db):
+            db.execute(CompiledQuery('write'))
+            db.deferToCommit(fail)
+            db.deferAfterCommit(lambda: events.append('after'))
     assert driver.calls[-1] == 'rollback'
     assert not driver.persisted
-    session.execute(CompiledQuery('recovery'))
-    session.commit()
+    db.execute(CompiledQuery('recovery'))
+    db.commit()
     assert driver.persisted == ['recovery']
     assert events == []
-    session.close()
+    db.close()
 
 
 @pytest.mark.parametrize('queue', ['before', 'after'])
 def test_caught_sql_error_cannot_continue_commit_or_callbacks(queue):
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     events = []
-    session.execute(CompiledQuery('write'))
+    db.execute(CompiledQuery('write'))
 
     def fail():
         try:
-            session.execute(CompiledQuery('fail'))
+            db.execute(CompiledQuery('fail'))
         except LookupError:
             pass
         # Even a fresh registration must not resurrect the aborted commit.
-        session.defer_after_commit(lambda: events.append('resurrected'))
+        db.deferAfterCommit(lambda: events.append('resurrected'))
 
-    register = session.defer_to_commit if queue == 'before' else session.defer_after_commit
+    register = db.deferToCommit if queue == 'before' else db.deferAfterCommit
     register(fail)
     register(lambda: events.append('later'))
     with pytest.raises(TransactionStateError):
-        session.commit()
+        db.commit()
     assert driver.calls.count('commit') == (queue == 'after')
     assert driver.persisted == (['write'] if queue == 'after' else [])
     assert events == []
-    session.rollback()
-    session.execute(CompiledQuery('recovery'))
-    session.commit()
+    db.rollback()
+    db.execute(CompiledQuery('recovery'))
+    db.commit()
     assert events == []
-    session.close()
+    db.close()
 
 
 def test_caught_domain_failure_in_callback_cannot_be_committed():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('write'))
-    session.defer_to_commit(session.mark_failed)
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('write'))
+    db.deferToCommit(lambda: db._mark_connection_failed(db._connection_state))
     with pytest.raises(TransactionStateError):
-        session.commit()
+        db.commit()
     assert driver.persisted == []
-    session.rollback()
-    session.close()
+    db.rollback()
+    db.close()
 
 
 def test_commit_selects_current_name_and_callbacks_restore_environment():
@@ -139,60 +139,60 @@ def test_named_queues_and_exceptions_are_independent():
 
 @pytest.mark.parametrize('completion', ['rollback', 'close'])
 def test_discard_clears_queues_even_without_sql(completion):
-    session = Session(Driver())
+    db = Database(driver=Driver())
     events = []
-    session.defer_to_commit(lambda: events.append('before'))
-    session.defer_after_commit(lambda: events.append('after'))
-    session.deferred_raise(ValueError('discard'))
-    getattr(session, completion)()
+    db.deferToCommit(lambda: events.append('before'))
+    db.deferAfterCommit(lambda: events.append('after'))
+    db.deferredRaise(ValueError('discard'))
+    getattr(db, completion)()
     if completion == 'rollback':
-        session.execute(CompiledQuery('new'))
-        session.commit()
+        db.execute(CompiledQuery('new'))
+        db.commit()
     assert events == []
-    session.close()
+    db.close()
 
 
 def test_unknown_commit_never_dispatches_after_and_discards_queue():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     events = []
-    session.execute(CompiledQuery('write'))
-    session.defer_after_commit(lambda: events.append('after'))
+    db.execute(CompiledQuery('write'))
+    db.deferAfterCommit(lambda: events.append('after'))
     driver.commit_error = OSError('unknown commit')
     with pytest.raises(OSError):
-        session.commit()
-    assert session.outcome == 'unknown'
+        db.commit()
+    assert db.outcome == 'unknown'
     assert events == []
     driver.commit_error = None
-    session.rollback()
-    session.execute(CompiledQuery('next'))
-    session.commit()
+    db.rollback()
+    db.execute(CompiledQuery('next'))
+    db.commit()
     assert events == []
-    session.close()
+    db.close()
 
 
 def test_after_callback_can_start_next_transaction_as_in_legacy():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('first'))
-    session.defer_after_commit(lambda: session.execute(CompiledQuery('second')))
-    session.commit()
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('first'))
+    db.deferAfterCommit(lambda: db.execute(CompiledQuery('second')))
+    db.commit()
     assert driver.persisted == ['first', 'second']
     assert driver.calls.count('commit') == 2
-    session.close()
+    db.close()
 
 
 @pytest.mark.parametrize('action', ['commit', 'rollback', 'close'])
 def test_callback_cannot_reenter_transaction_completion(action):
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('write'))
-    session.defer_to_commit(getattr(session, action))
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('write'))
+    db.deferToCommit(getattr(db, action))
     with pytest.raises(TransactionStateError):
-        session.commit()
+        db.commit()
     assert not driver.persisted
-    session.rollback()
-    session.close()
+    db.rollback()
+    db.close()
 
 
 def test_stack_tracks_nested_writes_and_restores_after_exception():
@@ -227,34 +227,34 @@ def test_queue_contracts_match_recorded_original_legacy_oracle():
     evidence = Path(__file__).resolve().parents[2] / 'docs/design/evidence'
     oracle = runpy.run_path(str(evidence / 'deferred_queue_oracle.py'))
     expected = json.loads((evidence / 'deferred_queue_oracle.json').read_text())['legacy']['results']
-    session = oracle['native_backend']()
-    assert oracle['scenarios'](session) == expected
-    session.close()
+    db = oracle['native_backend']()
+    assert oracle['scenarios'](db) == expected
+    db.close()
 
 
 def test_postcommit_python_failure_keeps_commit_and_rolls_back_only_new_work():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
 
     def fail():
-        session.execute(CompiledQuery('second'))
+        db.execute(CompiledQuery('second'))
         raise ValueError('after commit')
 
     with pytest.raises(ValueError, match='after commit'):
-        with completed(session):
-            session.execute(CompiledQuery('first'))
-            session.defer_after_commit(fail)
+        with completed(db):
+            db.execute(CompiledQuery('first'))
+            db.deferAfterCommit(fail)
     assert driver.persisted == ['first']
     assert driver.calls.count('commit') == driver.calls.count('rollback') == 1
-    session.execute(CompiledQuery('recovered'))
-    session.commit()
+    db.execute(CompiledQuery('recovered'))
+    db.commit()
     assert driver.persisted == ['first', 'recovered']
-    session.close()
+    db.close()
 
 
 def test_precommit_error_retains_original_exception_if_cleanup_fails():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     original = ValueError('original')
 
     def fail():
@@ -262,21 +262,21 @@ def test_precommit_error_retains_original_exception_if_cleanup_fails():
 
     driver.rollback_error = OSError('cleanup')
     with pytest.raises(ValueError) as caught:
-        with completed(session):
-            session.execute(CompiledQuery('write'))
-            session.defer_to_commit(fail)
+        with completed(db):
+            db.execute(CompiledQuery('write'))
+            db.deferToCommit(fail)
     assert caught.value is original
     assert isinstance(caught.value.__cause__, OSError)
-    assert session.outcome == 'unknown'
+    assert db.outcome == 'unknown'
     driver.rollback_error = None
-    session.rollback()
-    session.close()
+    db.rollback()
+    db.close()
 
 
 @pytest.mark.parametrize('queue', ['before', 'after'])
 def test_callback_can_handle_external_failure_and_continue_queue(queue):
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     events = []
 
     def handled():
@@ -286,21 +286,21 @@ def test_callback_can_handle_external_failure_and_continue_queue(queue):
             events.append('handled')
 
     try:
-        session.execute(CompiledQuery('write'))
-        register = session.defer_to_commit if queue == 'before' else session.defer_after_commit
+        db.execute(CompiledQuery('write'))
+        register = db.deferToCommit if queue == 'before' else db.deferAfterCommit
         register(handled)
         register(lambda: events.append('next'))
-        session.commit()
+        db.commit()
         assert events == ['handled', 'next']
         assert driver.persisted == ['write']
-        session.commit()
+        db.commit()
         assert events == ['handled', 'next']
     finally:
-        session.close()
+        db.close()
 
 
 def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup():
-    session = Session(Driver())
+    db = Database(driver=Driver())
     events = []
     original = ValueError('notification failed')
 
@@ -309,19 +309,19 @@ def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup()
         raise original
 
     try:
-        session.execute(CompiledQuery('saved'))
-        session.defer_after_commit(notify)
-        session.defer_after_commit(lambda: events.append('log'))
+        db.execute(CompiledQuery('saved'))
+        db.deferAfterCommit(notify)
+        db.deferAfterCommit(lambda: events.append('log'))
         with pytest.raises(ValueError) as raised:
-            session.commit()
+            db.commit()
         assert raised.value is original
         assert events == ['notify']
-        session.commit()  # No new work: no automatic callback retry.
+        db.commit()  # No new work: no automatic callback retry.
         assert events == ['notify']
         # The application deliberately continues in the same request/context.
-        session.execute(CompiledQuery('next'))
-        session.commit()
+        db.execute(CompiledQuery('next'))
+        db.commit()
         assert events == ['notify', 'log']
-        assert session.driver.persisted == ['saved', 'next']
+        assert db.driver.persisted == ['saved', 'next']
     finally:
-        session.close()
+        db.close()

@@ -6,7 +6,7 @@ import pytest
 from asqueel import build_database
 from asqueel.contracts import CompiledQuery
 from tests.application_config.test_application import Recipe
-from tests.application_session.test_session import Driver
+from tests.application_connections.test_connections import Driver
 
 
 def test_named_transactions_commit_independently_and_reuse_connections():

@@ -43,7 +43,7 @@ def test_invalid_profile_and_missing_parameters_do_not_connect():
         db.execute(CompiledQuery('SELECT 1'))
     with pytest.raises(ValueError, match='Missing'):
         db.execute('SELECT :missing')
-    assert db._session._connection is None
+    assert db._connection_state['connection'] is None
     db.close()
 
 

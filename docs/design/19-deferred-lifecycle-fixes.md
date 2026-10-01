@@ -36,7 +36,7 @@ il runtime da stato corrotto, senza affermare che il legacy avesse tali garanzie
 
 ## Verifica
 
-I nuovi test sono in tests/application_session/test_deferred.py e nei test
+I nuovi test sono in tests/application_connections/test_deferred.py e nei test
 PostgreSQL dei write hooks. Nove casi sono falliti sulla bozza e passati dopo le
 correzioni. I controlli includono osservazione da una connessione indipendente,
 rollback delle scritture secondarie, connessioni nominate, errore post-commit,

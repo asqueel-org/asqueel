@@ -8,7 +8,7 @@ from asqueel.contracts import CompiledQuery, EnvironmentBinding, EnvironmentMism
 from asqueel.drivers.psycopg import PsycopgDriver
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import DatabaseClosedError, TransactionStateError
-from asqueel.session import Session
+from asqueel.runtime import Database
 
 
 class Driver:
@@ -63,139 +63,143 @@ class Driver:
 
 def test_creation_and_empty_context_have_no_io():
     driver = Driver()
-    session = Session(driver)
-    with completed(session) as active:
-        assert active is session
-    session.commit()
-    session.rollback()
-    session.close()
+    db = Database(driver=driver)
+    with completed(db) as active:
+        assert active is db
+    db.commit()
+    db.rollback()
+    db.close()
     assert not driver.calls
 
 
 def test_ambient_operations_share_connection_and_wait_for_commit():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('parent'))
-    session.execute(CompiledQuery('child'))
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('parent'))
+    db.execute(CompiledQuery('child'))
     assert driver.calls == ['connect', 'parent', 'child']
     assert driver.persisted == []
-    session.commit()
+    db.commit()
     assert driver.persisted == ['parent', 'child']
-    assert session.outcome == 'committed'
-    session.execute(CompiledQuery('next'))
-    session.close()
+    assert db.outcome == 'committed'
+    db.execute(CompiledQuery('next'))
+    db.close()
     assert driver.persisted == ['parent', 'child']
-    assert session.outcome == 'rolled_back'
+    assert db.outcome == 'rolled_back'
     assert driver.calls[-2:] == ['rollback', 'close']
 
 
 def test_context_commits_atomically_or_rolls_back_on_python_error():
     driver = Driver()
-    session = Session(driver)
-    with completed(session):
-        session.execute(CompiledQuery('first'))
-        session.execute(CompiledQuery('second'))
+    db = Database(driver=driver)
+    with completed(db):
+        db.execute(CompiledQuery('first'))
+        db.execute(CompiledQuery('second'))
     assert driver.persisted == ['first', 'second']
     with pytest.raises(RuntimeError, match='hook'):
-        with completed(session):
-            session.execute(CompiledQuery('third'))
+        with completed(db):
+            db.execute(CompiledQuery('third'))
             raise RuntimeError('hook failed')
     assert driver.persisted == ['first', 'second']
-    assert session.outcome == 'rolled_back'
-    session.close()
+    assert db.outcome == 'rolled_back'
+    db.close()
 
 
-def test_failed_ambient_session_rolls_back_immediately_and_is_reusable():
+def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('parent'))
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('parent'))
     with pytest.raises(LookupError):
-        session.execute(CompiledQuery('fail'))
-    assert session.outcome == 'rolled_back'
+        db.execute(CompiledQuery('fail'))
+    assert db.outcome == 'rolled_back'
     assert driver.calls[-1] == 'rollback'
     assert driver.persisted == []
-    session.execute(CompiledQuery('recovered'))
-    session.commit()
+    db.execute(CompiledQuery('recovered'))
+    db.commit()
     assert driver.persisted == ['recovered']
     assert driver.calls.count('connect') == 1
-    session.close()
+    db.close()
 
 
 @pytest.mark.parametrize('with_sql', [False, True])
 def test_mark_failed_prevents_silent_context_success(with_sql):
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     with pytest.raises(TransactionStateError, match='rollback-only'):
-        with completed(session):
+        with completed(db):
             if with_sql:
-                session.execute(CompiledQuery('first'))
-            session.mark_failed()
+                db.execute(CompiledQuery('first'))
+            db._mark_connection_failed(db._connection_state)
     assert driver.persisted == []
     assert driver.calls == (['connect', 'first', 'rollback'] if with_sql else [])
-    with completed(session):
-        session.execute(CompiledQuery('healthy'))
+    with completed(db):
+        db.execute(CompiledQuery('healthy'))
     assert driver.persisted == ['healthy']
-    session.close()
+    db.close()
 
 
 def test_mark_failed_without_sql_requires_manual_rollback():
     driver = Driver()
-    session = Session(driver)
-    session.mark_failed()
+    db = Database(driver=driver)
+    db._mark_connection_failed(db._connection_state)
     with pytest.raises(TransactionStateError):
-        session.commit()
+        db.commit()
     with pytest.raises(TransactionStateError):
-        session.execute(CompiledQuery('must_not_run'))
+        db.execute(CompiledQuery('must_not_run'))
     assert not driver.calls
-    session.rollback()
-    session.execute(CompiledQuery('ok'))
-    session.commit()
-    session.close()
+    db.rollback()
+    db.execute(CompiledQuery('ok'))
+    db.commit()
+    db.close()
 
 
 def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('pending'))
-    session.commit()
-    session.commit()
-    session.execute(CompiledQuery('next'))
-    session.rollback()
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('pending'))
+    db.commit()
+    db.commit()
+    db.execute(CompiledQuery('next'))
+    db.rollback()
     assert driver.persisted == ['pending']
     assert driver.calls.count('commit') == 1
-    session.close()
+    db.close()
 
 
 def test_guards_run_before_connect_and_reject_stale_context():
     driver = Driver()
     environment = SqlEnvironment({'company': 1})
-    session = Session(driver, environment=environment)
+    db = Database(driver=driver, environment=environment)
     with pytest.raises(ValueError, match='profile'):
-        session.execute(CompiledQuery('wrong', dialect='other'))
+        db.execute(CompiledQuery('wrong', dialect='other'))
     query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
     with environment.temp_env(company=2):
         with pytest.raises(EnvironmentMismatchError):
-            session.execute(query)
+            db.execute(query)
     assert not driver.calls
-    session.execute(query)
-    session.rollback()
-    session.close()
+    db.execute(query)
+    db.rollback()
+    db.close()
 
 
-def test_thread_ownership_and_closed_state():
+def test_connection_record_ownership_and_closed_database_state():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
+    state = db._connection_state
     with ThreadPoolExecutor(max_workers=1) as executor:
         assert executor.submit(threading.get_ident).result() != threading.get_ident()
-        for operation in (lambda: session.execute(CompiledQuery('bad')), session.commit,
-                          session.rollback, session.mark_failed, session.close):
+        for operation in (lambda: db._execute_on_connection(state, CompiledQuery('bad')),
+                          lambda: db._commit_connection(state),
+                          lambda: db._rollback_connection(state),
+                          lambda: db._mark_connection_failed(state),
+                          lambda: db._close_connection(state)):
             with pytest.raises(TransactionStateError, match='constructing thread'):
                 executor.submit(operation).result()
     assert not driver.calls
-    session.close()
-    session.close()
+    db.close()
+    db.close()
     with pytest.raises(DatabaseClosedError):
-        session.execute(CompiledQuery('closed'))
+        db.execute(CompiledQuery('closed'))
 
 
 @pytest.mark.parametrize('operation', ['commit', 'rollback'])
@@ -204,55 +208,55 @@ def test_control_failure_preserves_original_and_attempts_close(operation):
     error = OSError('control failed')
     setattr(driver, operation + '_error', error)
     driver.close_error = RuntimeError('close failed')
-    session = Session(driver)
-    session.execute(CompiledQuery('pending'))
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('pending'))
     with pytest.raises(OSError) as caught:
-        getattr(session, operation)()
+        getattr(db, operation)()
     assert caught.value is error
-    assert session.outcome == 'unknown'
+    assert db.outcome == 'unknown'
     assert driver.calls[-1] == 'close'
-    session.close()
+    db.close()
 
 
 def test_close_marks_closed_even_when_rollback_cleanup_fails():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('pending'))
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('pending'))
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(OSError):
-        session.close()
+        db.close()
     assert driver.calls[-1] == 'close'
-    assert session.outcome == 'unknown'
+    assert db.outcome == 'unknown'
     with pytest.raises(DatabaseClosedError):
-        session.execute(CompiledQuery('closed'))
+        db.execute(CompiledQuery('closed'))
 
 
-def test_driver_callback_cannot_reenter_session_completion():
+def test_driver_callback_cannot_reenter_connection_completion():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     def callback():
-        for operation in (session.commit, session.rollback, session.close,
-                          lambda: session.execute(CompiledQuery('recursive'))):
+        for operation in (db.commit, db.rollback, db.close,
+                          lambda: db.execute(CompiledQuery('recursive'))):
             with pytest.raises(TransactionStateError, match='executing'):
                 operation()
     driver.callback = callback
-    session.execute(CompiledQuery('outer'))
-    session.commit()
+    db.execute(CompiledQuery('outer'))
+    db.commit()
     assert driver.persisted == ['outer']
-    session.close()
+    db.close()
 
 
 def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
     driver = Driver()
-    session = Session(driver)
-    session.execute(CompiledQuery('before'))
+    db = Database(driver=driver)
+    db.execute(CompiledQuery('before'))
     with pytest.raises(LookupError):
-        session.execute(CompiledQuery('fail'))
-    session.commit()
+        db.execute(CompiledQuery('fail'))
+    db.commit()
     assert driver.persisted == []
-    assert session.outcome == 'rolled_back'
+    assert db.outcome == 'rolled_back'
     assert driver.calls[-1] == 'rollback'
-    session.close()
+    db.close()
 
 
 def test_failed_connection_is_not_cached_and_can_be_retried():
@@ -261,29 +265,29 @@ def test_failed_connection_is_not_cached_and_can_be_retried():
     def fail(*args, **kwargs):
         raise OSError('connect failed')
     driver.connect = fail
-    session = Session(driver)
+    db = Database(driver=driver)
     with pytest.raises(OSError, match='connect failed'):
-        session.execute(CompiledQuery('first'))
-    assert session._connection is None
+        db.execute(CompiledQuery('first'))
+    assert db._connection_state['connection'] is None
     driver.connect = original
-    session.execute(CompiledQuery('recovered'))
-    session.commit()
+    db.execute(CompiledQuery('recovered'))
+    db.commit()
     assert driver.persisted == ['recovered']
-    session.close()
+    db.close()
 
 
 def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
     driver = Driver()
-    session = Session(driver)
+    db = Database(driver=driver)
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(LookupError):
-        session.execute(CompiledQuery('fail'))
-    assert session.outcome == 'unknown'
+        db.execute(CompiledQuery('fail'))
+    assert db.outcome == 'unknown'
     with pytest.raises(TransactionStateError, match='rollback-only'):
-        session.execute(CompiledQuery('unsafe retry'))
+        db.execute(CompiledQuery('unsafe retry'))
     driver.rollback_error = None
-    session.rollback()
-    session.execute(CompiledQuery('recovered'))
-    session.commit()
+    db.rollback()
+    db.execute(CompiledQuery('recovered'))
+    db.commit()
     assert driver.persisted == ['recovered']
-    session.close()
+    db.close()

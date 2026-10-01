@@ -30,7 +30,7 @@ class ShopWithBehavior(SqlDatabaseConfig):
 
 The input mapping is copied before the before-insert hook. Returned fields are
 overlaid before the after-insert hook. Hooks may use other tables on the same
-database; those operations participate in the same session. A hook failure marks
+database; those operations participate in the same connection. A hook failure marks
 the unit of work rollback-only, including a failure before any SQL. Hooks cannot
 commit, roll back or close the database during a write.
 

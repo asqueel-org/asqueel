@@ -191,3 +191,10 @@ and reaches the caller. The completed SQL commit remains durable. No automatic
 continue-on-error or error aggregation. Application request cleanup owns queue lifetime: rollback/close clears pending
 callbacks. No forced queue disposal solely for a Python postcommit exception;
 see [delivery 27](27-f1-request-lifecycle-closure.md).
+
+## Accepted update — DB-owned connection lifecycle (1 October 2026)
+
+Remove the internal Session entity as well as the public session concept.
+Database owns execution, commit, rollback, callbacks and cleanup. Thread-local
+named connections contain plain state dictionaries, with no independent methods
+or lifecycle. See [structural closure 28](28-db-owned-connection-lifecycle.md).

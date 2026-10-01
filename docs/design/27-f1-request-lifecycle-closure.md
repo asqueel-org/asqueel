@@ -4,6 +4,10 @@
 tree after `022132b`. This does not certify complete Genropy application parity,
 F0's entire inventory, multi-store or async support. F2–F10 acceptance stays open.
 
+Structural correction: this report originally left the internal Session entity
+in place and therefore did not complete F1. [Report 28](28-db-owned-connection-lifecycle.md)
+records its removal and the repeated acceptance checks.
+
 ## Application boundary
 
 Source review: `GnrWebPage.db` initializes the shared application DB's current
@@ -20,10 +24,9 @@ be used for another request on the same thread. `close()` closes that thread's
 DB state and is not the reusable request boundary.
 
 Clearing environment is not transaction cleanup. An application must close or
-roll back pending connections, including named ones, before reuse. The internal
-`Session` container is a per-connection implementation detail, not a web session
-or a new application API. Its role/name can be simplified without changing this
-contract; no public session abstraction is required. See async portability record 26.
+roll back pending connections, including named ones, before reuse. Database now owns the connection lifecycle directly, using data records in its
+thread-local named-connection dictionary. No Session container remains; see
+report 28 and async portability record 26.
 
 ## Callback failure contract
 
@@ -94,8 +97,8 @@ report is not evidence of a push or package publication.
 
 Final validation: **650 tests passed**, **95% coverage**, on isolated PostgreSQL
 and SQLite. Ruff and mypy pass for the changed code (mypy: 40 source files).
-Sphinx validation uses warnings as errors. No internal connection-state rename
-or async runtime was introduced; record 26 captures future migration work.
+Sphinx validation uses warnings as errors. These were the original checks before structural correction; report 28 records
+the repeated checks after Session removal. Record 26 captures future async work.
 
 Reproduce the original-caller comparison with the existing legacy dependency
 environment and a disposable PostgreSQL service:
