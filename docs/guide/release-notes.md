@@ -40,7 +40,7 @@ Version prepared in the source repository; package publication is separate.
   `sqlparams={...}` mapping. A leftover `params=` on `query()` is reported as an
   unused keyword binding; on the write and compiler methods it is a `TypeError`.
 
-Validation: 844 tests passed on PostgreSQL and SQLite, with 95% coverage.
+Validation: 845 tests passed on PostgreSQL and SQLite, with 95% coverage.
 Ruff, mypy and the strict documentation build passed.
 
 ## 0.3.0

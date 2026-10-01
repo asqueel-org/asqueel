@@ -174,7 +174,7 @@ Passi 2-6 implementati in quattro fasi sul branch `wf/query-core-completion`.
 | 3 | terminale `SqlQuery.count()` | `5d0527c` |
 | 4 | accettazione integrata, benchmark e documentazione | questo commit |
 
-Suite finale: 844 test passati su PostgreSQL e SQLite, 1 skip
+Suite finale: 845 test passati su PostgreSQL e SQLite, 1 skip
 (`= ANY` è sintassi PostgreSQL, saltato su SQLite), copertura 95%. Ruff, mypy e
 la build strict della documentazione passano. I 16 test di accettazione del
 passo 6 sono passati senza richiedere alcuna correzione in `src/asqueel`.
