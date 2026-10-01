@@ -134,7 +134,7 @@ def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(
             db.execute(compiled)
     record = db.table('item').record(1)
     assert record.output('dict') == {'id': 1, 'name': 'same'}
-    db.table('item').update({'name': 'changed'}, where='$id=:id', params={'id': 1})
+    db.table('item').update({'name': 'changed'}, where='$id=:id', sqlparams={'id': 1})
     assert record.output('dict')['name'] == 'same'
     record.refresh()
     assert record.output('dict')['name'] == 'changed'

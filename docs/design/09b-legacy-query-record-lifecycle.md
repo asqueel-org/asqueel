@@ -97,7 +97,7 @@ The table/query layers establish the following defaults:
 | Bag fields | Query `bagFields=False`, promoted to true by `for_update` | Bag result decoding is not implemented |
 | Locking | `for_update` is accepted and reaches compiled SQL | No FOR UPDATE option in current query plan/compiler |
 | Store | Table package default can populate `_storename` | No store routing |
-| Parameters | `sqlparams` plus arbitrary extra keyword bindings | Explicit `params` mapping; unsupported options rejected |
+| Parameters | `sqlparams` plus arbitrary extra keyword bindings | Keyword bindings plus `sqlparams` (`params` removed, 0.4.0); unused bindings and unsupported options rejected |
 
 Sources: L2–L3, and
 [compiler.py:899](/Users/gporcari/Sviluppo/Genropy/genropy/gnrpy/gnr/sql/gnrsqldata/compiler.py:899).

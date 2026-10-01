@@ -63,7 +63,7 @@ db = AsqueelDb(Shop)
 customer = db.table("sales.customer")
 query = customer.query(
     columns="$id, $name", where="$id >= :minimum_id",
-    params={"minimum_id": 1}, order_by="$id",
+    minimum_id=1, order_by="$id",
 )
 print(query.sqltext)  # Compiles without opening a connection.
 db.close()

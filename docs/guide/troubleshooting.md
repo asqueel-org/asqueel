@@ -9,7 +9,7 @@ expression is valid on the server.
 
 ```python
 query = db.table("sales.invoice").query(
-    columns="$id, $total", where="$id=:wanted", params={"wanted": 10},
+    columns="$id, $total", where="$id=:wanted", wanted=10,
 )
 compiled = query.compiled
 print(compiled.sql)

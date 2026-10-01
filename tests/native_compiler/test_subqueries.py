@@ -21,9 +21,9 @@ def model():
         'present': Column('present', 'B', exists=spec(columns='1')),
         'named': Column('named', 'N', formula='COALESCE(#low,0)+COALESCE(#high,0)',
                         subqueries={'low': spec(where='$owner_id=#THIS.id AND $amount>:threshold',
-                                                params={'threshold': 1}),
+                                                sqlparams={'threshold': 1}),
                                     'high': spec(where='$owner_id=#THIS.id AND $amount>:threshold',
-                                                 params={'threshold': 5})}),
+                                                 sqlparams={'threshold': 5})}),
     })
     item = Table('item', schema='app', pkey=('id',), columns={
         'id': Column('id', 'L'), 'owner_id': Column('owner_id', 'L'), 'amount': Column('amount', 'N')})
@@ -53,7 +53,7 @@ def test_scalar_and_exists_have_no_implicit_limit_and_preserve_metadata(model):
 def test_named_subqueries_and_outer_bindings_do_not_collide(model):
     query = PostgresCompiler(model).select('owner', '$named',
                 where='$threshold=:threshold AND $id=:s1_threshold',
-                params={'threshold': 10, 's1_threshold': 9})
+                sqlparams={'threshold': 10, 's1_threshold': 9})
     assert len(query.params) == 4
     assert sorted(query.params.values()) == [1, 5, 9, 10]
     assert query.params['threshold'] == 10
@@ -135,7 +135,7 @@ def test_child_policy_defaults_are_partition_strict_but_include_draft_deleted(mo
 
 @pytest.mark.parametrize('options', [dict(group_by='$id'), dict(subtable='restricted'),
     dict(addPkeyColumn=True), dict(ignoreTableOrderBy=False), dict(ignore_partition=True, ignorePartition=True),
-    dict(cast='numeric); DELETE FROM x;--'), dict(params=1), dict(params={'x': 1}, sqlparams={'x': 2})])
+    dict(cast='numeric); DELETE FROM x;--'), dict(sqlparams=1), dict(params={'x': 1})])
 def test_unsupported_or_ambiguous_child_options_rejected(model, options):
     model = change_column(model, 'total', Column('total', select=spec(**options)))
     with pytest.raises(ValueError):
@@ -168,12 +168,25 @@ def test_original_input_consumption_tracks_child_inheritance_not_local_overrides
     model = change_column(model, 'inherited', Column('inherited', select=spec(
         where='$owner_id=#THIS.id AND $amount>:threshold')))
     compiler = PostgresCompiler(model)
-    inherited = compiler.select('owner', '$inherited', params={'threshold': 4})
+    inherited = compiler.select('owner', '$inherited', sqlparams={'threshold': 4})
     assert inherited.input_parameters == ('threshold',)
-    overridden = compiler.select('owner', '$named', params={'threshold': 4})
+    overridden = compiler.select('owner', '$named', sqlparams={'threshold': 4})
     assert overridden.input_parameters == ()
-    both = compiler.select('owner', '$named', where='$threshold=:threshold', params={'threshold': 4})
+    both = compiler.select('owner', '$named', where='$threshold=:threshold', sqlparams={'threshold': 4})
     assert both.input_parameters == ('threshold',)
+
+
+def test_local_collection_shadows_outer_scalar_of_the_same_name(model):
+    model = change_column(model, 'chosen', Column('chosen', select=spec(
+        where='$owner_id=#THIS.id AND $id IN :ids', sqlparams={'ids': [1, 2]})))
+    query = PostgresCompiler(model).select('owner', '$chosen', where='$id = :ids',
+                                           sqlparams={'ids': 7})
+    assert sorted(value for value in query.params.values()) == [1, 2, 7]
+    inherited = change_column(model, 'chosen', Column('chosen', select=spec(
+        where='$owner_id=#THIS.id AND $id IN :ids')))
+    with pytest.raises(ValueError, match='ids'):
+        PostgresCompiler(inherited).select('owner', '$chosen', where='$id = ANY(:ids)',
+                                           sqlparams={'ids': [7]})
 
 
 def test_snapshot_once_even_with_nested_subqueries(model):

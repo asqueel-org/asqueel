@@ -15,7 +15,7 @@ runtime. This page describes behavior you can rely on when choosing APIs.
 | Runtime | Synchronous execution, implicit transaction start and explicit completion. | No async API, worker pool, general-purpose connection pool or automatic retries; named connections are retained until closed. |
 | Ownership | Independent named connections per thread, one active transaction per name. | Share the DB graph; each worker closes its own connections. No nested transactions or savepoints; no async task isolation. |
 | Results | Materialized dictionary rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
-| Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | No GROUP BY/HAVING/DISTINCT options, count terminal or legacy IN-list expansion; not a universal SQL parser. |
+| Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | No DISTINCT ON, tuple-of-columns IN, `*` grouping or Python-side deduplication; not a universal SQL parser. |
 | Formulas | SQL expressions, scalar select/exists dictionaries and named correlated subqueries. | Python providers, method callbacks, formula variants, subquery collections and advanced macros are outside the native profile. Partition filtering remains explicit inside subqueries. |
 | Alias columns | Declared aliases inherit target metadata, allow local overrides, and resolve through supported to-one paths, including alias/formula targets. | Read-only; no to-many/virtualRelation. Default RETURNING excludes aliases; explicit relational aliases cannot be returned by DML. |
 | Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after table hooks, database write hooks, and raw commands that retain change tracking. | Ordinary updates/deletes require exactly one row and a declared primary key. Raw predicates may match multiple rows; raw insertion also accepts a list. No record-cluster writes, automatic retry or implicit save of related records. |
@@ -127,18 +127,17 @@ implement the capability or certify another database backend.
 
 ## Designed capabilities and open decisions
 
-The delivery guides include query count/grouping/distinct and collection bindings,
-model path introspection, virtual relations, provider/Python/Bag columns, subtables,
-Selection/Bag results, application integration, legacy-package
-import and native SQL objects. These belong to the product plan; the availability
+The delivery guides include model path introspection, virtual relations,
+provider/Python/Bag columns, subtables, Selection/Bag results, application
+integration, legacy-package import and native SQL objects. These belong to the product plan; the availability
 matrix above describes which parts execute in this checkout.
 
 The Genropy guide records agreed differences: removal of aggregateRows and explicit
 partition semantics. Output naming, implicit pkey/default ordering, wildcard
 selection and other unapproved divergences in the current implementation are
 compatibility work, not accepted product differences. Native query results still
-use dictionary rows; path lookup on live columns is not complete. Legacy IN-list
-expansion, count/grouping and Selection are not implemented.
+use dictionary rows; path lookup on live columns is not complete. Collection
+bindings, count, grouping and distinct are implemented; Selection is not.
 
 Standalone execution and application tables share the same execution service.
 Names and signatures for new application providers, virtual-relation variants,
@@ -182,12 +181,14 @@ aliases omit the target leading underscore (`customer_name` instead of
 `_customer_name`). Use explicit projections and aliases for stable result contracts.
 Relation path segments currently require ASCII identifiers.
 
-Use PostgreSQL `= ANY(:ids)` for collection bindings in this checkout; legacy
-`IN :ids` expansion is not implemented. An empty array matches no rows; NULL
-members retain PostgreSQL semantics. Use an explicit array cast when SQL cannot
-infer the parameter type. There is no count terminal or group/having/distinct
-query option, no implicit primary-key projection or model default ordering, and
-no NOWAIT/SKIP LOCKED query option.
+Collection bindings accept `IN :ids`, `NOT IN :ids` and PostgreSQL
+`= ANY(:ids)`. An empty collection matches no rows for `IN`; NULL members
+retain SQL three-valued semantics. Use an explicit array cast when SQL cannot
+infer the parameter type. Mixing one parameter between collection and scalar
+position is an error. `count()`, `distinct`, `group_by` and `having` are
+available with the rules in [queries](queries.md); `count()` rejects a query
+carrying `limit` or `offset`. There is no implicit primary-key projection or
+model default ordering, and no NOWAIT/SKIP LOCKED query option.
 
 Scalar subquery definitions accept `table`, `columns`, `where`, `params`/`sqlparams`,
 `order_by`, `limit`, `offset`, policy options and `cast`. Cast syntax does not

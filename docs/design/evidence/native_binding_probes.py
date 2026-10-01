@@ -37,7 +37,7 @@ def run():
                     item = {'case': name, 'predicate': predicate, 'value': list(value)}
                     try:
                         query = compiler.select('app.item', columns='$id', where=predicate,
-                                                params={'ids': value}, order_by='$id')
+                                                sqlparams={'ids': value}, order_by='$id')
                         item['rows'] = db.execute(query).rows
                         item['status'] = 'executed'
                     except Exception as error:

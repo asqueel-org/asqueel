@@ -66,7 +66,7 @@ is display information; it is not write authorization.
 try:
     result = db.table("sales.invoice").raw_update(
         {"note": "Reviewed"}, where="$total >= :minimum",
-        params={"minimum": 100}, returning="$id, $note",
+        sqlparams={"minimum": 100}, returning="$id, $note",
     )
     db.commit()
 except Exception:
@@ -106,9 +106,9 @@ except Exception:
 ```
 
 A complete key mapping or a full record containing the key can also identify
-the row. For a predicate, use `delete(where=..., params=...)`. As with ordinary update,
+the row. For a predicate, use `delete(where=..., sqlparams=...)`. As with ordinary update,
 exactly one row and a declared primary key are required, with or without hooks.
-Use `raw_delete(where=..., params=...)` for a predicate matching zero or more rows;
+Use `raw_delete(where=..., sqlparams=...)` for a predicate matching zero or more rows;
 it bypasses Python table triggers and invokes shared DB hooks once. Foreign keys and database deletion actions still apply.
 
 `delete()` always issues a physical DELETE, including on a table with a logical
@@ -125,9 +125,9 @@ try:
     document = db.table("app.document")
     document.soft_delete(
         value=datetime.now(timezone.utc),
-        where="$id=:wanted", params={"wanted": 100},
+        where="$id=:wanted", sqlparams={"wanted": 100},
     )
-    document.restore(where="$id=:wanted", params={"wanted": 100})
+    document.restore(where="$id=:wanted", sqlparams={"wanted": 100})
     db.commit()
 except Exception:
     db.rollback()

@@ -16,16 +16,36 @@ from .dialects.base import DataDialect
 from .drivers.base import BindingFormatter
 from .model import _resolve_aliases, _unique_target, validate_row_policies
 from .query_plan import (
-    Assignment, Identifier, Join, Parameter, Projection, QueryPlan,
-    SqlStatement, TableRef, concat, separated,
+    _IDENT, _PARAM, Assignment, Identifier, Join, Parameter, Projection, QueryPlan,
+    SqlStatement, TableRef, _column_reference, concat, expand_collection, member_name,
+    parameter_use, separated,
 )
 
-_IDENT = r"[A-Za-z_][A-Za-z_0-9]*"
-_PARAM = re.compile(r":" + _IDENT)
 _FIELD = re.compile(r"\$(" + _IDENT + r")")
 _PATH = re.compile(r"@(" + _IDENT + r"(?:\.@?" + _IDENT + r")*\." + _IDENT + r")")
 _THIS = re.compile(r"#THIS\.(@?" + _IDENT + r"(?:\.@?" + _IDENT + r")*)")
 _MACRO = re.compile(r"#(" + _IDENT + r")")
+
+
+def distinct_ordering(context, projections, order_by):
+    """Reject a DISTINCT ORDER BY item that is not one of the projected columns (R18, D10).
+
+    DISTINCT removes rows before ORDER BY, so a sort key outside the projection
+    has no single value per result row.
+    """
+    aliases = {projection.alias for projection in projections}
+    expressions = [projection.expression for projection in projections]
+    for item in _split(order_by, context.dialect.tokens):
+        term = re.sub(r'(?i)\s+NULLS\s+(?:FIRST|LAST)$', '', item.strip()).strip()
+        term = re.sub(r'(?i)\s+(?:ASC|DESC)$', '', term).strip()
+        if re.fullmatch(_IDENT, term) or re.fullmatch(r'"(?:[^"]|"")+"', term):
+            name = term[1:-1].replace('""', '"') if term.startswith('"') else term
+            if name in aliases:
+                continue
+        elif context.expression(term) in expressions:
+            continue
+        raise UnsupportedFeatureError(
+            f'ORDER BY {item!r} with distinct must be a projected alias or expression')
 
 
 def quote_identifier(name: str) -> str:
@@ -136,9 +156,11 @@ class _Context:
         self.joins = {}
         self.allow_joins = joins
         self.formulas = parent.formulas if parent else set()
-        self.state = parent.state if parent else {'counter': 0, 'names': set(self.available)}
+        self.state = parent.state if parent else {'counter': 0, 'names': set(self.available),
+                                                   'uses': {}}
         self.state['names'].update(self.available)
         self.binding_names = {}
+        self.use_keys = dict(parent.use_keys) if parent else {}
         self.namespace = namespace
         self.basealias = namespace + 't0'
         self.outer = outer
@@ -149,7 +171,8 @@ class _Context:
     def table_ref(table, alias='t0'):
         return TableRef(table.physical_schema, table.physical_name, alias)
 
-    def binding(self, name):
+    def resolve(self, name):
+        """Make the parameter value available, reading the environment for ``env_`` names."""
         if name in self.input_origins:
             self.consumed_inputs.add(name)
         if name not in self.available:
@@ -160,6 +183,24 @@ class _Context:
                     self.available[name] = self.snapshot[key]
             if name not in self.available:
                 raise ValueError(f'Missing query parameter: {name}')
+
+    def collection(self, name, negated):
+        """Expand a parameter in IN position into one binding per member."""
+        self.resolve(name)
+        parameter_use(self.state['uses'], self.use_keys.get(name, name), True)
+        base = self.namespace + name
+
+        def allocate(member):
+            bound_name = member_name(base, self.state['names'])
+            self.params[bound_name] = member
+            return bound_name
+
+        return expand_collection(name, self.available[name], negated, allocate,
+                                 self.dialect.empty_collection)
+
+    def binding(self, name):
+        self.resolve(name)
+        parameter_use(self.state['uses'], self.use_keys.get(name, name), False)
         if name not in self.binding_names:
             bound_name = self.namespace + name
             if self.namespace:
@@ -301,9 +342,7 @@ class _Context:
                 if any(p.alias == '_isdeleted' for p in projections):
                     raise ValueError('The _isdeleted result alias is reserved in mark mode')
                 for projection in projections:
-                    parts = projection.expression.parts
-                    if not (len(parts) == 3 and isinstance(parts[0], Identifier)
-                            and parts[1] == '.' and isinstance(parts[2], Identifier)):
+                    if not _column_reference(projection.expression):
                         raise UnsupportedFeatureError('mark requires physical column projections; opaque expressions/formulas are unsupported')
                 column = self.table.columns[name]
                 metadata = ResultColumn('_isdeleted', column.dtype,
@@ -330,7 +369,7 @@ class _Context:
                 actual = options.pop(name)
                 if type(actual) is not type(value) or actual != value:
                     raise UnsupportedFeatureError(f'Unsupported subquery option: {name}={actual!r}')
-        known = {'table', 'columns', 'where', 'params', 'sqlparams', 'order_by',
+        known = {'table', 'columns', 'where', 'sqlparams', 'order_by',
                  'limit', 'offset', 'exclude_draft', 'exclude_logical_deleted',
                  'ignore_partition', 'cast'}
         if options.keys() - known:
@@ -342,15 +381,9 @@ class _Context:
         if not isinstance(options.get('where'), str) or not options['where'].strip():
             raise ValueError('A subquery requires an explicit WHERE expression')
         available = dict(self.available)
-        local = {}
-        for name in ('params', 'sqlparams'):
-            values = options.get(name)
-            if values is not None:
-                if not isinstance(values, Mapping):
-                    raise ValueError(f'Subquery {name} must be a mapping')
-                if local.keys() & values.keys():
-                    raise ValueError('Duplicate subquery parameter declarations')
-                local.update(values)
+        local = options.get('sqlparams') or {}
+        if not isinstance(local, Mapping):
+            raise ValueError('Subquery sqlparams must be a mapping')
         available.update(local)
         self.state['counter'] += 1
         namespace = f's{self.state["counter"]}_'
@@ -358,6 +391,7 @@ class _Context:
                          self.dialect, self.snapshot, parent=self,
                          outer=(self, owner, outer_alias), namespace=namespace)
         child.input_origins.difference_update(local)
+        child.use_keys.update({name: namespace + name for name in local})
         columns = options.get('columns', '1 AS __exists' if exists else '*')
         expressions = _split(columns, self.dialect.tokens) if isinstance(columns, str) else list(columns)
         # Subquery expressions need no public output alias. Give opaque scalar
@@ -499,7 +533,11 @@ class _Context:
                     result.append(self.subquery(subqueries[match.group(1)], table, alias))
                     i = match.end()
                 elif match := _PARAM.match(code, i):
-                    result.append(self.binding(match.group()[1:]))
+                    if match['keyword'] is None:
+                        result.append(self.binding(match['name']))
+                    else:
+                        result.extend(self.collection(
+                            match['name'], match['keyword'][:3].upper() == 'NOT'))
                     i = match.end()
                 elif match := _FIELD.match(code, i):
                     result.append(self.field(table, alias, match.group(1)))
@@ -588,10 +626,11 @@ class QueryCompiler:
         return _Context(self.model, self.model.table(table), params, self.dialect,
                         self.environment.snapshot(), joins=joins)
 
-    def plan_select(self, table, columns='*', where=None, params=None, order_by=None,
+    def plan_select(self, table, columns='*', where=None, sqlparams=None, order_by=None,
                     limit=None, offset=None, *, exclude_draft=True,
                     exclude_logical_deleted=True, ignore_partition=False,
-                    for_update=False, **options) -> QueryPlan:
+                    for_update=False, distinct=False, group_by=None, having=None,
+                    **options) -> QueryPlan:
         """Resolve a select without rendering the root or formatting parameters.
 
         Correlated child plans are rendered by the dialect into structured
@@ -603,11 +642,29 @@ class QueryCompiler:
             raise UnsupportedFeatureError(f'Unsupported query options: {sorted(options)}')
         if type(for_update) is not bool:
             raise ValueError('for_update must be a boolean')
-        context = self._context(table, params)
+        if distinct is None:
+            distinct = False
+        if distinct is not True and distinct is not False:
+            raise ValueError(f'distinct must be True, False or None, not {distinct!r}')
+        if having is not None and group_by is None:
+            raise UnsupportedFeatureError('having requires group_by')
+        if for_update and (distinct or group_by is not None):
+            raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
+        if exclude_logical_deleted == 'mark' and (distinct or group_by is not None):
+            raise UnsupportedFeatureError('mark is incompatible with distinct or group_by')
+        if isinstance(group_by, str) and group_by.strip() == '*':
+            raise UnsupportedFeatureError(
+                "group_by='*' is unsupported; group by the projected columns, and project "
+                'the aggregates explicitly')
+        context = self._context(table, sqlparams)
         projections = context.projection(columns)
         if not projections:
             raise ValueError('SELECT needs result columns')
         predicate = context.expression(where) if where is not None else None
+        grouping = context.expression(group_by) if group_by is not None else None
+        aggregate_filter = context.expression(having) if having is not None else None
+        if distinct and order_by is not None:
+            distinct_ordering(context, projections, order_by)
         ordering = context.expression(order_by) if order_by is not None else None
         projections, predicate = context.select_policies(
             projections, predicate, exclude_draft=exclude_draft,
@@ -620,17 +677,34 @@ class QueryCompiler:
                          tuple(context.joins.values()), predicate, ordering, limit, offset,
                          params=context.params, dialect=self.dialect.name,
                          environment=context.environment_binding(), for_update=for_update,
-                         input_parameters=tuple(sorted(context.consumed_inputs)))
+                         input_parameters=tuple(sorted(context.consumed_inputs)),
+                         distinct=distinct, group_by=grouping, having=aggregate_filter)
 
-    def select(self, table, columns='*', where=None, params=None, order_by=None,
+    def plan_count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
+                   limit=None, offset=None, *, for_update=False, **options) -> QueryPlan:
+        """Resolve the same select, without pagination or ordering, as a count."""
+        for clause, value in [('limit', limit), ('offset', offset)]:
+            if value is not None:
+                raise UnsupportedFeatureError(
+                    f'count() cannot apply {clause}; count the query without limit/offset')
+        plan = self.plan_select(table, columns, where, sqlparams, None, None, None, **options)
+        return replace(plan, operation='count')
+
+    def count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
+              limit=None, offset=None, **options):
+        return self.compile_plan(self.plan_count(table, columns, where, sqlparams, order_by,
+                                                 limit, offset, **options))
+
+    def select(self, table, columns='*', where=None, sqlparams=None, order_by=None,
                limit=None, offset=None, *, exclude_draft=True,
                exclude_logical_deleted=True, ignore_partition=False,
-               for_update=False, **options):
-        return self.compile_plan(self.plan_select(table, columns, where, params, order_by,
+               for_update=False, distinct=False, group_by=None, having=None, **options):
+        return self.compile_plan(self.plan_select(table, columns, where, sqlparams, order_by,
                                                   limit, offset, exclude_draft=exclude_draft,
                                                   exclude_logical_deleted=exclude_logical_deleted,
                                                   ignore_partition=ignore_partition,
-                                                  for_update=for_update, **options))
+                                                  for_update=for_update, distinct=distinct,
+                                                  group_by=group_by, having=having, **options))
 
     def _values(self, context, values):
         if not isinstance(values, Mapping):
@@ -673,9 +747,9 @@ class QueryCompiler:
     def insert(self, table, values, returning='*', *, ignore_partition=False):
         return self.compile_plan(self.plan_insert(table, values, returning, ignore_partition=ignore_partition))
 
-    def plan_update(self, table, values, where, params=None, returning='*', *, ignore_partition=False) -> QueryPlan:
+    def plan_update(self, table, values, where, sqlparams=None, returning='*', *, ignore_partition=False) -> QueryPlan:
         """Resolve a guarded update without executing or rendering SQL."""
-        context = self._context(table, params, joins=False)
+        context = self._context(table, sqlparams, joins=False)
         values = context.guard_values(values, ignore_partition=ignore_partition)
         assignments = self._values(context, values)
         if not assignments:
@@ -688,13 +762,13 @@ class QueryCompiler:
                          dialect=self.dialect.name, environment=context.environment_binding(),
                          input_parameters=tuple(sorted(context.consumed_inputs)))
 
-    def update(self, table, values, where, params=None, returning='*', *, ignore_partition=False):
-        return self.compile_plan(self.plan_update(table, values, where, params, returning,
+    def update(self, table, values, where, sqlparams=None, returning='*', *, ignore_partition=False):
+        return self.compile_plan(self.plan_update(table, values, where, sqlparams, returning,
                                                    ignore_partition=ignore_partition))
 
-    def plan_delete(self, table, where, params=None, returning='*', *, ignore_partition=False) -> QueryPlan:
+    def plan_delete(self, table, where, sqlparams=None, returning='*', *, ignore_partition=False) -> QueryPlan:
         """Resolve a guarded delete without executing or rendering SQL."""
-        context = self._context(table, params, joins=False)
+        context = self._context(table, sqlparams, joins=False)
         predicate = self._where(context, where)
         predicate = context.combine_where(predicate, context.partition_predicates(ignore_partition, write=True))
         projections = context.projection(returning)
@@ -703,8 +777,8 @@ class QueryCompiler:
                          environment=context.environment_binding(),
                          input_parameters=tuple(sorted(context.consumed_inputs)))
 
-    def delete(self, table, where, params=None, returning='*', *, ignore_partition=False):
-        return self.compile_plan(self.plan_delete(table, where, params, returning, ignore_partition=ignore_partition))
+    def delete(self, table, where, sqlparams=None, returning='*', *, ignore_partition=False):
+        return self.compile_plan(self.plan_delete(table, where, sqlparams, returning, ignore_partition=ignore_partition))
 
 
     def _tombstone(self, table):
@@ -716,16 +790,16 @@ class QueryCompiler:
             raise ValueError('Soft deletion requires a physical logical_deletion_field')
         return name
 
-    def soft_delete(self, table, value, where, params=None, returning='*', *, ignore_partition=False):
+    def soft_delete(self, table, value, where, sqlparams=None, returning='*', *, ignore_partition=False):
         """Write the explicit tombstone value; normal partition write guards apply."""
         if value is None:
             raise ValueError('soft_delete requires a non-None tombstone value')
-        return self.update(table, {self._tombstone(table): value}, where, params, returning,
+        return self.update(table, {self._tombstone(table): value}, where, sqlparams, returning,
                            ignore_partition=ignore_partition)
 
-    def restore(self, table, where, params=None, returning='*', *, ignore_partition=False):
+    def restore(self, table, where, sqlparams=None, returning='*', *, ignore_partition=False):
         """Clear the tombstone without applying draft/deleted read filters."""
-        return self.update(table, {self._tombstone(table): None}, where, params, returning,
+        return self.update(table, {self._tombstone(table): None}, where, sqlparams, returning,
                            ignore_partition=ignore_partition)
 
 

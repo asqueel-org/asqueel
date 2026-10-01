@@ -23,18 +23,18 @@ def spec(**options):
 
 @pytest.mark.parametrize('kind', ['select', 'exists'])
 def test_structured_formula_is_snapshotted_and_virtual(kind):
-    definition = spec(columns='count(*)', params={'states': ['new']})
+    definition = spec(columns='count(*)', sqlparams={'states': ['new']})
     builder, _ = declaration(**{kind: definition})
     column = resolve_model(builder).table('customer').columns['value']
     assert column.is_virtual and column.formula is None
     assert getattr(column, kind)['table'] == 'sales.invoice'
     definition['table'] = 'changed'
-    definition['params']['states'].append('changed')
-    assert getattr(column, kind)['params'] == {'states': ['new']}
-    assert column.attributes[kind]['params'] == {'states': ['new']}
+    definition['sqlparams']['states'].append('changed')
+    assert getattr(column, kind)['sqlparams'] == {'states': ['new']}
+    assert column.attributes[kind]['sqlparams'] == {'states': ['new']}
     with pytest.raises(TypeError):
         getattr(column, kind)['table'] = 'changed'
-    assert getattr(replace(column, name='copy'), kind)['params'] == {'states': ['new']}
+    assert getattr(replace(column, name='copy'), kind)['sqlparams'] == {'states': ['new']}
 
 
 def test_named_subqueries_and_alias_lineage_do_not_copy_operational_definition():

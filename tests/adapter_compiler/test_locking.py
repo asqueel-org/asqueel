@@ -27,7 +27,7 @@ def test_select_defaults_do_not_lock(compiler):
 
 def test_lock_is_structural_and_follows_pagination(compiler):
     plan = compiler.plan_select('invoice', '$id, @customer.name', where='$id=:id',
-                                params={'id': 3}, order_by='$id', limit=5, offset=2,
+                                sqlparams={'id': 3}, order_by='$id', limit=5, offset=2,
                                 for_update=True)
     assert plan.for_update is True
     query = compiler.compile_plan(plan)
@@ -80,5 +80,5 @@ def test_manual_root_alias_is_quoted_for_lock_target(compiler):
 
 def test_trailing_comment_cannot_swallow_lock(compiler):
     query = compiler.select('invoice', where='$id=:id -- user comment',
-                            params={'id': 1}, for_update=True)
+                            sqlparams={'id': 1}, for_update=True)
     assert '-- user comment\n FOR UPDATE OF "t0"' in query.sql

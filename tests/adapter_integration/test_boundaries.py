@@ -30,9 +30,9 @@ from asqueel.drivers.psycopg import PsycopgDriver
 from asqueel.runtime import Database
 table = Table('sample', columns={'id': Column('id', 'L')})
 model = ResolvedModel({table.key: table})
-facade = PostgresCompiler(model).select('sample', where='$id = :id', params={'id': 7})
+facade = PostgresCompiler(model).select('sample', where='$id = :id', sqlparams={'id': 7})
 generic = QueryCompiler(model, PostgresDialect(), PsycopgDriver()).select(
-    'sample', where='$id = :id', params={'id': 7})
+    'sample', where='$id = :id', sqlparams={'id': 7})
 assert facade == generic
 assert dict(generic.params) == {'id': 7}
 '''
@@ -93,7 +93,7 @@ def test_facade_keeps_existing_compiled_query_binding_contract():
     table = Table('sample', sql_name='50%', columns={'odd name': Column('odd name')})
     model = ResolvedModel({table.key: table})
     compiler = PostgresCompiler(model)
-    query = compiler.select('sample', where='$"odd name" = :value', params={'value': '50%'})
+    query = compiler.select('sample', where='$"odd name" = :value', sqlparams={'value': '50%'})
     assert '"50%%"' in query.sql
     assert '%(value)s' in query.sql
     assert query.binding == 'psycopg_named'

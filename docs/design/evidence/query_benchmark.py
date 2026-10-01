@@ -97,16 +97,16 @@ def benchmarks(db, driver):
     customer = db.table('sales.customer')
 
     def compile_simple(index, step):
-        invoice.query(columns='$id, $total', where='$id = :id', params={'id': 1}).compiled
+        invoice.query(columns='$id, $total', where='$id = :id', sqlparams={'id': 1}).compiled
 
     def compile_complex(index, step):
         invoice.query(columns='$id, @customer.name AS customer_name, $line_total, $has_lines',
-                      where='$id = :id', params={'id': 1}).compiled
+                      where='$id = :id', sqlparams={'id': 1}).compiled
 
     yield 'compile_simple', SINGLE_ROW_ITERATIONS, compile_simple, db.rollback, None
     yield 'compile_relation_two_subqueries', SINGLE_ROW_ITERATIONS, compile_complex, db.rollback, None
 
-    repeated = invoice.query(columns='$id, $total, $note', where='$id = :id', params={'id': 42})
+    repeated = invoice.query(columns='$id, $total, $note', where='$id = :id', sqlparams={'id': 42})
     repeated_sql = repeated.compiled
 
     def driver_fetch(index, step):

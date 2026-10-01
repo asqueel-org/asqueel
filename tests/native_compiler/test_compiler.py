@@ -25,7 +25,7 @@ def compiler():
 
 def test_projection_join_reuse_and_metadata(compiler):
     query = compiler.select('invoice', '$id, @customer.name AS customer, $quad',
-                            where='@customer.name = :name', params={'name': "O'Reilly"},
+                            where='@customer.name = :name', sqlparams={'name': "O'Reilly"},
                             order_by='@customer.name DESC', limit=0, offset=0)
     assert query.sql.count('LEFT JOIN') == 1
     assert '"Actual ""Schema"."app_customer"' in query.sql
@@ -41,7 +41,7 @@ def test_scanner_preserves_sql_literals_comments_cast_and_percent(compiler):
     query = compiler.select('invoice',
         "$id, concat('$missing :no @n.x #X', $$:no $none$$, $tag$:no$tag$) AS text",
         where="$id = :id::integer AND '10%' LIKE :pattern /* :missing /* nested */ */",
-        params={'id': 1, 'pattern': '10%'})
+        sqlparams={'id': 1, 'pattern': '10%'})
     assert "'$missing :no @n.x #X'" in query.sql
     assert '$$:no $none$$' in query.sql
     assert '$tag$:no$tag$' in query.sql
@@ -108,7 +108,7 @@ def test_insert_values_mapping_and_default_values(compiler):
 
 def test_update_collision_returning_and_line_comment(compiler):
     query = compiler.update('invoice', {'amount': 4}, '$id=:__value_0 -- trailing',
-                            params={'__value_0': 1}, returning='$id, $double')
+                            sqlparams={'__value_0': 1}, returning='$id, $double')
     assert query.params['__value_0'] == 1
     assert query.params['___value_0'] == 4
     assert '-- trailing\n RETURNING' in query.sql
@@ -135,7 +135,7 @@ def test_removed_aggregate_rows_option_is_explicit(compiler):
     with pytest.raises(UnsupportedFeatureError, match='removed'):
         compiler.select('invoice', aggregateRows=True)
     with pytest.raises(UnsupportedFeatureError, match='Unsupported query options'):
-        compiler.select('invoice', group_by='$id')
+        compiler.select('invoice', relationDict={})
 
 
 @pytest.mark.parametrize('name', ['display name', 'a-b', 'città', 'αριθμός', '50%', 'a"b'])
@@ -143,7 +143,7 @@ def test_quoted_logical_names_work_in_wildcards_predicates_and_returning(name):
     table = Table('t', columns={name: Column(name)})
     compiler = PostgresCompiler(ResolvedModel({table.key: table}))
     reference = '$"' + name.replace('"', '""') + '"'
-    selected = compiler.select('t', where=reference + ' = :value', params={'value': 'x'},
+    selected = compiler.select('t', where=reference + ' = :value', sqlparams={'value': 'x'},
                                 order_by=reference)
     assert selected.columns[0].name == name
     assert selected.sql.count('"t0".') == 3

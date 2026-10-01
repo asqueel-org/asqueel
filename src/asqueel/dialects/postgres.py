@@ -6,8 +6,11 @@ from __future__ import annotations
 
 import re
 
-from ..contracts import UnsupportedFeatureError
-from ..query_plan import Fragment, Identifier, Parameter, QueryPlan, SqlStatement, concat, separated
+from dataclasses import replace
+
+from ..contracts import ResultColumn, UnsupportedFeatureError
+from ..query_plan import (Fragment, Identifier, Parameter, Projection, QueryPlan, SqlStatement,
+                          _column_reference, concat, separated)
 
 _DOLLAR = re.compile(r"\$(?:[A-Za-z_][A-Za-z_0-9]*)?\$")
 
@@ -107,6 +110,36 @@ class PostgresDialect:
             raise TypeError('SQL expressions must be strings')
         return _tokens(expression)
 
+    def empty_collection(self, negated: bool) -> str:
+        """Operand-free replacement of ``IN`` / ``NOT IN`` for an empty collection."""
+        return "<> ALL('{}')" if negated else "= ANY('{}')"
+
+    def _grouping(self, plan: QueryPlan) -> None:
+        """Reject the DISTINCT/GROUP BY/HAVING combinations no backend here supports."""
+        if type(plan.distinct) is not bool:
+            raise ValueError('distinct must be a boolean')
+        if plan.operation != 'select' and (plan.distinct or plan.group_by is not None
+                                           or plan.having is not None):
+            raise UnsupportedFeatureError('DISTINCT, GROUP BY and HAVING apply to SELECT only')
+        if plan.having is not None and plan.group_by is None:
+            raise UnsupportedFeatureError('having requires group_by')
+        if plan.for_update and (plan.distinct or plan.group_by is not None):
+            raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
+
+    def _count(self, plan: QueryPlan) -> SqlStatement:
+        """Count rows directly when every projection is a plain column, else over a subquery."""
+        inner = replace(plan, operation='select', order_by=None, for_update=False)
+        if not plan.distinct and plan.group_by is None and all(
+                _column_reference(projection.expression) for projection in plan.projections):
+            column = ResultColumn('count')
+            return self.render(replace(inner, projections=(
+                Projection(Fragment(('count(*)',)), column.name, column),)))
+        column = ResultColumn('count')
+        nested = self.render(inner)
+        parts = ('SELECT count(*) AS ', self.quote_identifier(column.name), ' FROM (',
+                 *nested.parts, ') AS ', self.quote_identifier('count_source'))
+        return SqlStatement(parts, plan.params, (column,), self.name, environment=plan.environment)
+
     def _require(self, capability):
         if capability not in self.capabilities:
             raise UnsupportedFeatureError(f'{self.name}: unsupported capability {capability}')
@@ -133,12 +166,15 @@ class PostgresDialect:
     def render(self, plan: QueryPlan) -> SqlStatement:
         if plan.dialect != self.name:
             raise ValueError(f'Cannot render {plan.dialect!r} plan with {self.name}')
+        if plan.operation == 'count':
+            return self._count(plan)
         operation = plan.operation
         if operation not in {'select', 'insert', 'update', 'delete'}:
             raise UnsupportedFeatureError(f'Unsupported operation: {operation}')
         self._require(operation)
         if type(plan.for_update) is not bool:
             raise ValueError('for_update must be a boolean')
+        self._grouping(plan)
         if plan.for_update:
             if operation != 'select':
                 raise UnsupportedFeatureError('FOR UPDATE is only supported for SELECT')
@@ -177,7 +213,8 @@ class PostgresDialect:
         projections = separated(concat(self._fragment(p.expression), ' AS ', Identifier(p.alias))
                                 for p in plan.projections)
         if operation == 'select':
-            statement = concat('SELECT ', projections, ' FROM ', table)
+            statement = concat('SELECT ' + ('DISTINCT ' if plan.distinct else ''),
+                               projections, ' FROM ', table)
             joined_aliases = {plan.table.alias}
             for join in plan.joins:
                 if join.kind != 'left':
@@ -207,6 +244,11 @@ class PostgresDialect:
             statement = concat('DELETE FROM ', table)
         if plan.where is not None:
             statement = concat(statement, ' WHERE ', self._fragment(plan.where))
+        for clause, fragment in [('GROUP BY', plan.group_by), ('HAVING', plan.having)]:
+            if fragment is not None:
+                if not self._has_expression(fragment):
+                    raise ValueError(f'{clause} requires an expression')
+                statement = concat(statement, f' {clause} ', self._fragment(fragment))
         if plan.order_by is not None:
             if not self._has_expression(plan.order_by):
                 raise ValueError('ORDER BY requires an expression')

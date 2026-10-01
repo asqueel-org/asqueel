@@ -41,7 +41,7 @@ def main(*, explicit_adapters=False):
             database.execute(compiler.insert('sales.customer', {'id': 1, 'name': 'Ada'}))
             database.execute(compiler.update(
                 'sales.customer', {'name': "Ada, 100% Genro"},
-                where='$id = :id', params={'id': 1},
+                where='$id = :id', sqlparams={'id': 1},
             ))
             database.commit()
             try:

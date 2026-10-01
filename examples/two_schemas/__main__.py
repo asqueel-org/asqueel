@@ -12,7 +12,7 @@ def main():
             print(name)
         query = db.table("sales.invoice").query(
             columns="$number, @customer_id.name AS customer, @created_by.username AS author",
-            where="$customer_id = :customer_id", params={"customer_id": 42},
+            where="$customer_id = :customer_id", customer_id=42,
         ).compiled
         print(query.sql)
         print(query.params)

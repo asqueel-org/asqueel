@@ -15,7 +15,7 @@ def recipe(local=None):
             definition = dict(table='app.line', columns='SUM($amount)',
                               where='$invoice_id=#THIS.id AND $amount>:floor')
             if local is not None:
-                definition['params'] = local
+                definition['sqlparams'] = local
             invoice.virtual_columns().formulaColumn('total', select=definition, dtype='I')
     return Recipe
 
@@ -32,7 +32,7 @@ def test_local_parameter_shadow_does_not_consume_unused_caller_keyword():
     with build_database(recipe({'floor': 7})) as db:
         with pytest.raises(UnsupportedFeatureError, match='unused keyword'):
             db.table('invoice').query(columns='$total', floor=5).compiled
-        compiled = db.table('invoice').query(columns='$total', params={'floor': 5}).compiled
+        compiled = db.table('invoice').query(columns='$total', sqlparams={'floor': 5}).compiled
         assert list(compiled.params.values()) == [7]
         assert compiled.input_parameters == ()
 

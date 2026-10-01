@@ -140,8 +140,8 @@ finally:
 ```
 
 `query()` creates detached query intent; `.sqltext` compiles it, and `.fetch()`
-executes it. Explicit `params={...}` is the clearest parameter interface.
-`sqlparams` and referenced keyword parameters are also accepted; unused keyword
+executes it. Parameters are keyword arguments such as `minimum=100`; `sqlparams={...}`
+takes a mapping when names are built at runtime or clash with an option. Unused keyword
 arguments fail rather than silently turning a misspelled option into a parameter.
 Queries compile in the environment current at the terminal call.
 
