@@ -10,7 +10,8 @@ F1 è chiusa per il profilo sincrono: connessioni nominate per thread, environme
 recupero applicativo e callback sono verificati su PostgreSQL e SQLite. Il
 [report 28](28-db-owned-connection-lifecycle.md) documenta la rimozione effettiva
 di Session; il [report 27](27-f1-request-lifecycle-closure.md) registra i confronti legacy.
-F2 è il prossimo passo; F0 e F2–F10 restano aperte.
+Il prossimo lavoro è il [piano query 30](30-query-completion-plan.md):
+prerequisiti minimi F2 e incremento funzionale F3. F0 e F2–F10 restano aperte.
 
 La [consegna 23](23-cli-and-named-configurations.md) documenta CLI, registro
 `~/.asqueel` e configurazione. SQLite è disponibile nel profilo limitato

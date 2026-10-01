@@ -61,8 +61,10 @@ tests pass after the removal. Report 28 records the correction and acceptance.
    covering context, pending writes and named callback cleanup. F1 runtime
    acceptance is complete for this profile; full application porting is not.
 
-**Next implementation phase: F2**, uniform model navigation and metadata.
-F0 inventory continues alongside it. C1 package translation remains collateral.
+**Prossimo lavoro pianificato:** [incremento query 30](30-query-completion-plan.md),
+con verifica dei difetti, prerequisiti minimi F2 e completamento del nucleo F3
+(IN/NOT IN, DISTINCT, GROUP BY/HAVING, count). Non equivale alla chiusura integrale
+di F2 o F3. F0 prosegue in parallelo; C1 resta collaterale.
 This closure is not a new package release.
 
 Sources: [42-contract audit](13-legacy-test-audit.md),
