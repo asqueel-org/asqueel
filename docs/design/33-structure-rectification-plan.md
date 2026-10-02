@@ -115,12 +115,12 @@ Uso reale: 477 chiamate `.colgroup(` in 197 file di 24 repository indicizzati
 ## Passo 1 — Contratto della dichiarazione
 
 - Elenco dei metodi di tabella del legacy (`DbModelSrc`) con la firma, e per
-  ciascuno: supportato, rinviato con errore esplicito, divergenza motivata.
+  ciascuno: supportato, non ancora presente, divergenza motivata.
 - In questo incremento: `column`, `formulaColumn`, `aliasColumn`,
   `subQueryColumn`, `pyColumn`, `index`, `colgroup`, `relation` sulla colonna.
-- Rinviati con errore esplicito: `joinColumn`, `bagItemColumn`, `toolColumn`,
+- Non ancora presenti (la grammatica non li conosce): `joinColumn`, `bagItemColumn`, `toolColumn`,
   `aliasTable`, `subtable`, `virtual_column` generico.
-- Da decidere (D3): `compositeColumn` e `constraint`.
+- `compositeColumn` come nel legacy (D3); `constraint` non accettato (D12).
 
 **Uscita:** tabella nel documento [adattamenti legacy](../adattamenti-legacy.md).
 
@@ -129,7 +129,7 @@ Uso reale: 477 chiamate `.colgroup(` in 197 file di 24 repository indicizzati
 - `table` accetta direttamente gli elementi del passo 1.
 - `SqlBuilder.set_child` instrada ogni elemento nel suo contenitore interno:
   `column` → `columns`; colonne virtuali → `virtual_columns`; `index` →
-  `indexes`; `compositeColumn` e `constraint` secondo D3. Il contenitore viene
+  `indexes`; `compositeColumn` → contenitore interno delle composite. Il contenitore viene
   creato alla prima colonna.
 - La forma esplicita `table.columns()` / `table.virtual_columns()` non è più
   accettata (nessuna grafia alternativa). Il test di contratto
@@ -279,23 +279,56 @@ Decisione del 2026-10-02 (D11).
   dichiarato con `colgroup`; appartenenza dichiarata nel gruppo o con
   `colgroup='<nome>'`; ordine di dichiarazione, nessun numero di posizione;
   colonne nei contenitori di oggi. Dettagli nel passo 4.
-- **D2 — Contenitori esistenti per chi li usa già.** Proposta: forma esplicita
-  rifiutata, coerente con la regola «nessuna grafia alternativa». È un
-  breaking change per asqueel 0.4.
-- **D3 — `compositeColumn` e `constraint`.** Il legacy `compositeColumn` è una
-  colonna virtuale JSON (`model.py:1063-1102`); quello di asqueel è una chiave
-  composta con relazione (`elements.py:329`). Stesso nome, significato diverso
-  (LT08). `constraint` non esiste nel legacy. Da decidere nome e posizione.
-- **D4 — `_override`.** Portarlo o rifiutare sempre la collisione.
+- **D2 — Forma esplicita dei contenitori — DECISA (2026-10-02).** Rifiutata:
+  `tbl.columns()` e `tbl.virtual_columns()` non sono più accettati (nessuna
+  grafia alternativa). È un breaking change per asqueel 0.4.
+- **D3 — `compositeColumn` — DECISA (2026-10-02).** Identico al legacy, un solo
+  concetto per ogni chiave su più colonne: colonna virtuale con il valore
+  serializzato `'["P1", 2024]'`, `static=True` di default (presente in `*`);
+  `unique=True` produce il vincolo `UNIQUE`; `.relation(...)` fa la relazione su
+  più colonne verso un altro `compositeColumn`; `pkey` nomina sempre una sola
+  colonna, fisica o `compositeColumn` (`pkey='product_year_key'`). Il valore è
+  l'identità del record con pkey composta (`gnrsqltable/utils.py:84-91`
+  `compositeKey`, `query.py:47-60` `parseSerializedKey`). Oggi asqueel dichiara
+  `pkey='product_id,year'` e il `compositeColumn` non è una colonna: breaking
+  change per asqueel 0.4.
+- **D12 — `constraint` — DECISA (2026-10-02).** Esce dal modello in questo
+  incremento, con entrambi i tipi. La chiave unica su più colonne è
+  `compositeColumn(..., unique=True)`. `CHECK` torna nel modello insieme agli
+  altri oggetti nativi del database (trigger, funzioni, view). `asqueel-migration`
+  gestisce già i `CHECK` (`readers/base_reader.py:215-221`,
+  `command_builder.py:311-331`), salvo il reader SQLite
+  (`readers/sqlite_reader.py:35`). L'importatore di asqueel non porta i `CHECK`
+  e avvisa con il nome del vincolo; la migrazione è additiva
+  (`removed_constraint` è un no-op, `command_builder.py:905-907`), quindi il
+  vincolo resta nel database.
+- **D4 — `_override` — DECISA (2026-10-02).** In questo incremento un nome
+  usato da una colonna fisica e da una virtuale dà sempre errore. Gli usi reali
+  di `_override=True` (`frigel_cont`, `icond`) stanno in `_packages/`, dove un
+  package modifica la tabella di un altro: `_override` arriva con la
+  composizione fra package, con la sintassi legacy.
 - **D5 — Attributo `group` legacy — DECISA (2026-10-01).** Non accettato:
   `colgroup` è l'unica sintassi di raggruppamento. Visibilità e posizione delle
   relazioni appartengono al livello dell'interfaccia.
-- **D6 — Attributi di `colgroup` oltre a `name_long`.** Da decidere.
+- **D6 — Attributi di `colgroup` — DECISA (2026-10-02).** Solo `name_long` e i
+  default `col_*`. `group=` non è accettato (nel legacy non ha effetto sulle
+  colonne). Eventuali attributi d'interfaccia passano da `x_ui`.
 - **D7 — Indice delle relazioni — DECISA (2026-10-02).** Vedi passo 4b.
-- **D10 — Nomi dei parametri di `relation` e `weak_relation`.** Legacy
-  `related_column`, `relation_name`, `onDelete`/`onDelete_sql`,
-  `onUpdate`/`onUpdate_sql`; asqueel `to`, `back_reference`, `on_delete`,
-  `on_update`. Da decidere.
+- **D10 — Nomi dei parametri di `relation` e `weak_relation` — DECISA
+  (2026-10-02).** Nome legacy in forma snake: `related_column`,
+  `relation_name`, `one_name`, `many_name`, `one_one`, `on_delete`/`on_update`
+  (azioni Python sui collegati, legacy `onDelete`/`onUpdate`),
+  `on_delete_sql`/`on_update_sql` (azioni SQL della FK, legacy
+  `onDelete_sql`/`onUpdate_sql`), `deferred`, `deferrable`,
+  `initially_deferred`. Oggi in asqueel `on_delete` è l'azione SQL: breaking
+  change per asqueel 0.4. Principio generale: nel dubbio prevale la versione
+  Python rispetto a quella affidata all'SQL. `on_update_sql` vale `'cascade'` di
+  default, come nel legacy (`model.py:1352`): ogni FK nasce con
+  `ON UPDATE CASCADE` (deciso 2026-10-02; da spiegare nella guida).
+  `on_delete`/`on_update` (azioni Python) fanno parte dell'API obiettivo ed
+  entrano nella firma con il ciclo delle scritture (`deleteRelated`/
+  `updateRelated`, F4). Nessun codice provvisorio: fino ad allora il validatore
+  esistente li rifiuta come attributi sconosciuti (`validators.py:106-120`).
 - **D11 — `relation` = FK, `weak_relation` logica con `insensitive` — DECISA
   (2026-10-02).** Vedi passo 4c.
 - **D8 — `weak_relation` verso un target non unico — DECISA (2026-10-02).**
@@ -304,7 +337,9 @@ Decisione del 2026-10-02 (D11).
   `anaci organo_carica.py:29-30`) e la scelta di una riga per ordine non sono
   parametri di `weak_relation`: appartengono a `virtualRelation`
   (`table=`/`condition`, `order_by`/`limit`, genropy/genropy_meta#1). Fino ad
-  allora: errore esplicito.
-- **D9 — Indice sulle colonne del target non pkey.** Il legacy lo crea in
-  differita, salvo target `unique` (`orm_extractor.py:273-279`, `:441-443`);
-  asqueel no. Proposta: crearlo come nel legacy.
+  allora non esistono.
+- **D9 — Indice sulle colonne di destinazione — DECISA (2026-10-02).** Una
+  `weak_relation` crea un indice sulle colonne di destinazione, come nel legacy
+  (`orm_extractor.py:273-279`, `:441-443`), salvo che siano già le prime
+  colonne di una pkey, di un `UNIQUE` o di un indice. Con `relation` la
+  destinazione è una chiave unica e ha già il suo indice.

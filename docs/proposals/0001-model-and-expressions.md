@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | Proposal — for team review |
-| **Implementation** | Not yet in the code. asqueel 0.4.0 behaves as described in the current guide. |
+| **Implementation** | Not yet in the code. asqueel 0.4.0 behaves as described in the current guide. asqueel is being written: parts of this target arrive in later increments, without provisional implementations. |
 | **Date** | 2026-10-02 |
 | **Applies to** | asqueel after 0.4.0 |
 | **Plans** | [32 — expression parser and resolver](../design/32-expression-resolver-plan.md), [33 — model structure](../design/33-structure-rectification-plan.md) |
@@ -26,6 +26,13 @@ yet.
   decision of a GenroPy proposal (GEP). Section 8 lists them.
 - **An unsupported form raises an explicit error.** It never produces a
   different result.
+- **Python first.** When in doubt between a behaviour implemented in Python and
+  one delegated to SQL, the Python one prevails: Python triggers are far more
+  powerful. Names follow: the short name is the Python action, the `_sql`
+  suffix marks the SQL one.
+- **snake_case for parameters.** A GenroPy parameter keeps its name in snake
+  form (`onDelete_sql` → `on_delete_sql`). GenroPy element names keep their
+  spelling (`formulaColumn`, `aliasColumn`, `compositeColumn`).
 - **The design leaves room for two planned features**: relation functions
   ([GEP 1](https://github.com/genropy/genropy_meta/blob/main/gep/GEP-0001-relation-aggregates.md),
   e.g. `@invoices.sum($total)`) and `virtualRelation`
@@ -54,16 +61,23 @@ table, as in GenroPy. The internal containers (`columns`, `virtual_columns`,
 `indexes`) exist but are not written by the developer.
 
 - The explicit form `tbl.columns().column(...)` / `tbl.virtual_columns()...`
-  is no longer accepted. **Open** (plan 33, D2) — proposed: refused.
+  is no longer accepted. **Decided.**
 - A name used by a physical and a virtual column of the same table is an error.
   Today asqueel accepts it and the virtual column silently replaces the
-  physical one. Whether to port GenroPy's `_override` escape: **Open**
-  (plan 33, D4).
+  physical one. **Decided.** GenroPy's `_override=True` is used where a package
+  modifies another package's table; it comes with package composition.
 
 Supported column elements: `column`, `formulaColumn`, `aliasColumn`,
 `subQueryColumn`, `pyColumn`, `compositeColumn`.
-Not supported, with an explicit error: `joinColumn`, `bagItemColumn`,
+Not available yet (the grammar does not know them): `joinColumn`, `bagItemColumn`,
 `toolColumn`, `aliasTable`, `subtable`, `localized` and `ext_*` columns.
+
+`constraint` is not part of the model. A unique key on several columns is
+`compositeColumn(..., unique=True)`. `CHECK` constraints come back with the
+other native database objects (triggers, functions, views). Importing a
+database that has `CHECK` constraints imports the model without them and warns
+with their names; migrations are additive, so the constraints stay in the
+database. **Decided.**
 
 ### 2.2 Column groups — Decided
 
@@ -89,7 +103,8 @@ tbl.column('city', colgroup='address')
   a group with a different `colgroup` attribute; the same group declared twice.
 - Groups only group. Visibility in a user interface and the placement of
   relation nodes in a fields tree are not part of the model core.
-- Further attributes of `colgroup`: **Open** (plan 33, D6).
+- `colgroup` takes only `name_long` and `col_*` defaults. Interface attributes,
+  if needed, go through `x_ui`. **Decided.**
 
 ### 2.3 Relations — Decided
 
@@ -107,28 +122,60 @@ tbl.column('legacy_code', size=':10').weak_relation('sales.customer.code', insen
 - `weak_relation(..., insensitive=True)` joins without case distinction.
 - A link to a target that is not unique, a filtered relation, or one row chosen
   by order and limit (for example the last invoice of a customer) is not a
-  parameter of `weak_relation`. These are `virtualRelation` cases; until it
-  exists they raise an error.
+  parameter of `weak_relation`. These are `virtualRelation` cases, not
+  available until it exists.
 - The rows of the many side are reached through the inverse relation (section
   3.2), not through a relation declared on the one side.
-- Parameter names of `relation` and `weak_relation` (GenroPy `related_column`,
-  `relation_name`, `onDelete`/`onDelete_sql`, `onUpdate`/`onUpdate_sql`
-  against asqueel's current `to`, `back_reference`, `on_delete`,
-  `on_update`): **Open** (plan 33, D10).
+- Parameters, **Decided**: `related_column` (target), `relation_name`
+  (inverse name), `one_name`, `many_name`, `one_one`, `on_delete` /
+  `on_update` (Python actions on related records), `on_delete_sql` /
+  `on_update_sql` (SQL actions of the foreign key), `deferred`, `deferrable`,
+  `initially_deferred`.
+- `on_delete` / `on_update` (Python actions: `'cascade'`, `'setnull'`,
+  `'raise'`) belong to the target API and arrive with the related-records write
+  cycle. Until then the model validator rejects them as unknown attributes.
+  **Decided.**
 
-### 2.4 Composite keys
+#### Every foreign key cascades key updates — Decided
+
+`on_update_sql` defaults to `'cascade'`, as in GenroPy. Every foreign key is
+created with `ON UPDATE CASCADE`: when the key of a referenced record changes,
+the database updates the rows that point to it. Without this default the
+database would refuse the key change while related rows exist.
 
 ```python
-tbl.compositeColumn('product_year_key', columns='product_id,year', unique=True)
-tbl.compositeColumn('product_year_ref', columns='product_id,year').relation('invc.price_year.product_year_key')
+tbl.column('customer_id', dtype='L').relation('sales.customer.id')
+# FOREIGN KEY (customer_id) REFERENCES sales.customer (id) ON UPDATE CASCADE
+tbl.column('owner_id', dtype='L').relation('sales.user.id', on_update_sql=None)
+# FOREIGN KEY (owner_id) REFERENCES sales.user (id)  — no action on update
 ```
 
-- `unique=True` creates a multi-column `UNIQUE` constraint. **Decided**
-  (same as GenroPy).
+Today asqueel creates foreign keys without an update action; this changes.
+
+### 2.4 Composite keys — Decided
+
+```python
+tbl = tables.table('price_year', pkey='product_year_key')
+tbl.column('product_id', dtype='L')
+tbl.column('year', dtype='L')
+tbl.compositeColumn('product_year_key', columns='product_id,year', unique=True)
+
+note = tables.table('price_year_note', pkey='id')
+note.compositeColumn('product_year_ref', columns='product_id,year').relation('invc.price_year.product_year_key')
+```
+
+One concept covers every key on several columns, as in GenroPy:
+
+- A `compositeColumn` is a virtual column. Its value is the serialized key,
+  e.g. `'["P1", 2024]'`. It is `static=True` by default, so `*` selects it.
+- `unique=True` creates a multi-column `UNIQUE` constraint.
 - `.relation(...)` on a composite targets another composite and joins the
-  member columns in order. **Decided** (same as GenroPy).
-- Whether the composite is also a selectable column whose value is GenroPy's
-  JSON-like text `'["P1", 2024]'`, included in `*`: **Open** (plan 33, D3).
+  member columns in order.
+- `pkey` always names one column, physical or composite. A composite primary
+  key is `pkey='<composite name>'`; `table.pkeys` returns the member columns.
+- The serialized value is the identity of a record with a composite key: it is
+  the `pkey` value of query results and of records, and GenroPy reads it back
+  with `parseSerializedKey`.
 
 ### 2.5 Indexes created by relations — Decided
 
@@ -138,9 +185,10 @@ tbl.compositeColumn('product_year_ref', columns='product_id,year').relation('inv
 - The index is not created when the source columns are already the leading
   columns of the primary key, of a `UNIQUE` constraint or of a declared index.
 - There is no option to switch it off.
-- An index on the target columns when they are not the target's primary key:
-  **Open** (plan 33, D9) — proposed: created, as in GenroPy, unless the target
-  is unique.
+- A `weak_relation` also creates an index on its target columns, as GenroPy
+  does, unless they are already the leading columns of a primary key, a
+  `UNIQUE` constraint or an index. A `relation` targets a unique key, which is
+  already indexed. **Decided.**
 
 ## 3. Writing expressions
 
@@ -175,8 +223,8 @@ tbl.compositeColumn('product_year_ref', columns='product_id,year').relation('inv
 A path through a relation that reaches several rows (for example `@invoices`
 from a customer) is an error. Its values will be reached through GEP 1 relation
 functions: `@invoices.count()`, `@invoices.sum($total)`,
-`@invoices.to_json($number, $date)`. The parser already recognises this form
-and reports that it is not available yet.
+`@invoices.to_json($number, $date)`. The parser already reads this form, so
+GEP 1 only adds the functions.
 
 asqueel never compiles a join that multiplies the rows of the main table, and
 never regroups rows in Python.
@@ -190,7 +238,36 @@ never regroups rows in Python.
   context (columns, where, order by, group by, having, relation condition,
   formula, record). A macro unknown to the dialect is a compilation error.
   **Proposed** (plan 32, step 6).
-- First macros: `#THIS`, `#IN_RANGE`, `#PERIOD`. **Open** (plan 32, D5).
+- `#THIS.<path>` is a column or a path of the outer row inside a correlated
+  subquery, resolved by the outer query; its joins belong to the outer query. It
+  works in `select`/`exists` conditions and in `sql_formula`, where GenroPy does
+  not expand `#THIS.@rel.col` (genropy/genropy#1505). Outside a correlated
+  context it is an error. **Decided.**
+- `#IN_RANGE(value, start, end)` is true when `start <= value <= end`; a `NULL`
+  bound leaves that side open, and two `NULL` bounds are always true (GenroPy
+  semantics). Arguments are any expression: column, path, parameter,
+  `:env_name`, `#THIS.<path>`. It expands in every context, `group by`, `having`
+  and record queries included. **Decided.**
+- `#PERIOD($field, :p)` filters `$field` on the period described by the value of
+  `p` (`'today'`, `'today;today+7'`, `'questa settimana'`, `'2024'`, ...). The
+  period is decoded by `genro_toolbox.dates.parse_period(text, workdate,
+  locale)` (genro-toolbox 0.15.0) with the `workdate` and `locale` of the
+  context; an unrecognised value raises `PeriodError`. The parser replays 2796
+  GenroPy cases; its 432 approved divergences are listed with their reasons in
+  genro-toolbox (`tests/data/period_parser_divergences.json`). **Decided.** The generated SQL is always
+  half-open, `$field >= :p_from AND $field < :p_to_next` with `p_to_next` the day
+  after the end; a single day uses the same form. On a `date` column the result
+  is GenroPy's; on a timestamp column the last day is included, which GenroPy's
+  `BETWEEN` missed. **Decided.** A parameter is written `:p`; a literal value is quoted, `#PERIOD($date, '2024')`
+  or `#PERIOD($date, 'today;today+7')`; a missing parameter is an error.
+  **Decided**, to be reviewed after genropy/genropy#1509 (GenroPy also accepts
+  the bare name `p`).
+- The period of `#PERIOD` cannot come from a column (`#PERIOD($date, $col)`):
+  the period text is decoded in Python while the query is compiled, before any
+  row exists. GenroPy does not expand that form either. Use
+  `#IN_RANGE($date, $start, $end)` when the row holds the two dates, or a
+  parameter (`:p`, `:env_p`) when the period is known before execution.
+  **Decided.**
 - `#ENV` is not ported: `:env_name` replaces it.
 
 ### 3.5 `table.column()` — Decided
@@ -199,10 +276,15 @@ never regroups rows in Python.
   `table.column('@customer_id.name')` return the same column the compiler
   resolves.
 - A column offers `relatedTable()` and `relatedColumn()`, as in GenroPy.
-- A missing name: error or `None` (GenroPy returns `None` for a plain name and
-  raises for a path): **Open** (plan 32, D3).
-- Exception names (GenroPy `GnrSqlMissingField`, `GnrSqlMissingColumn`,
-  `GnrSqlRelationError`): **Open** (plan 32, D8).
+- A missing plain name returns `None`; a path through a missing relation raises.
+  This is GenroPy's behaviour, and `table.column('x') is not None` is the
+  framework's way to test whether a table has a column. **Decided.**
+- Exceptions form one hierarchy rooted in `GnrSqlException` (GenroPy name), one
+  class per case: `GnrSqlMissingTable`, `GnrSqlMissingField` (missing relation),
+  `GnrSqlMissingColumn` (missing final column of a path),
+  `GnrSqlInvalidVirtualColumn`, `GnrSqlRelationError` (relation declaration).
+  In GenroPy these derive from `GnrException` and escape
+  `except GnrSqlException`. **Decided.**
 
 ## 4. Selecting columns
 
@@ -230,16 +312,21 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 (`genro_grid.js`, `apphandler/export.py`). Today asqueel produces
 `customer_name`; that changes.
 
-### 4.4 Still to decide
+### 4.4 The `pkey` column and the count — Decided
 
-The column list of the count mode and the automatic `pkey` column: **Open**.
+- asqueel does not add a `pkey` column to query results. GenroPy adds
+  `$<pkey> AS pkey` by default (`addPkeyColumn=True`), except for tables without
+  a primary key, count mode, `distinct`, `group_by` and formula subqueries. That
+  behaviour belongs to the future GenroPy adapter, not to the asqueel core.
+- `count()` returns the same number as GenroPy for plain, `group_by` and
+  `distinct` queries; it raises with `limit` or `offset`.
 
 ## 5. Effects on migrations
 
 | Declaration | Database |
 |---|---|
-| `relation` | `FOREIGN KEY` + index on the source columns (section 2.5) |
-| `weak_relation` | index on the source columns |
+| `relation` | `FOREIGN KEY ... ON UPDATE CASCADE` + index on the source columns (sections 2.3, 2.5) |
+| `weak_relation` | index on the source columns and, when not already covered, on the target columns |
 | `compositeColumn(..., unique=True)` | `UNIQUE` on the member columns |
 | `relation` on a composite | composite `FOREIGN KEY` + index |
 | `colgroup` | nothing |
@@ -257,7 +344,7 @@ The column list of the count mode and the automatic `pkey` column: **Open**.
 ## 7. Breaking changes for asqueel 0.4 users
 
 - Columns declared on the table instead of through `columns()` /
-  `virtual_columns()` (if D2 is confirmed).
+  `virtual_columns()`.
 - `relation()` always creates a foreign key; the former
   `relation(foreign_key=False)` becomes `weak_relation()`;
   `case_insensitive=True` becomes `weak_relation(insensitive=True)`.
@@ -266,6 +353,13 @@ The column list of the count mode and the automatic `pkey` column: **Open**.
 - Automatic names `_customer_id_name` instead of `customer_name`.
 - `*` no longer selects formulas and aliases that are not `static`.
 - `indexed=False` on a relation removed.
+- Foreign keys are created with `ON UPDATE CASCADE` by default.
+- `relation` parameters renamed: `to` → `related_column`, `back_reference` →
+  `relation_name`, `on_delete`/`on_update` (SQL today) → `on_delete_sql`/
+  `on_update_sql`; `on_delete`/`on_update` now name the Python actions.
+- `constraint` removed from the model.
+- A composite primary key is `pkey='<compositeColumn name>'` instead of
+  `pkey='a,b'`; a `compositeColumn` is now a selectable column.
 
 ## 8. Divergences from GenroPy
 
@@ -283,13 +377,4 @@ The column list of the count mode and the automatic `pkey` column: **Open**.
 
 | Id | Question |
 |---|---|
-| Plan 33 D2 | Refuse the explicit containers `columns()` / `virtual_columns()` |
-| Plan 33 D3 | Composite as a selectable JSON-like column |
-| Plan 33 D4 | Port `_override` |
-| Plan 33 D6 | Further `colgroup` attributes |
-| Plan 33 D9 | Index on non-pkey target columns |
-| Plan 33 D10 | Parameter names of `relation` / `weak_relation` |
-| Plan 32 D3 | Missing name in `column()`: error or `None` |
-| Plan 32 D5 | First macros |
-| Plan 32 D8 | Exception names |
-| — | Count mode column list; automatic `pkey` column |
+| genropy/genropy#1509 | `#PERIOD`: whether the bare parameter name `p` stays valid next to `:p` |

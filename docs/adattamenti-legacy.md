@@ -115,6 +115,16 @@ requisito del nucleo; non va dichiarato già risolto dall'integrazione legacy.
 
 ## Record, risultati e selezioni
 
+**Colonna `pkey` nei risultati — decisione del 2 ottobre 2026.** Il legacy
+aggiunge `$<pkey> AS pkey` a ogni query (`addPkeyColumn=True` di default in
+`gnrsqldata/query.py:150`; `compiler.py:947-949`), salvo tabelle senza pkey,
+modalità count, `distinct`, `group_by` e subquery delle formule. Il codice
+d'interfaccia legge `row['pkey']`. Asqueel non la aggiunge: l'adattatore legacy
+deve aggiungerla con le stesse esclusioni. Con `SUM`/`COUNT` nelle colonne e
+senza `group_by` il legacy la aggiunge comunque e produce SQL non valido
+(l'aggregato è riconosciuto dopo, `compiler.py:1008-1009`): l'adattatore la
+esclude anche in quel caso.
+
 Nel legacy `table.insert(record)` restituisce il record passato, che il ciclo
 può modificare. Asqueel copia i valori in ingresso e restituisce `QueryResult`;
 i valori SQL restituiti vengono riportati sul record interno prima dell'hook

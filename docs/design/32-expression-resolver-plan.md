@@ -135,8 +135,10 @@ FK verso la stessa tabella, due FK verso la stessa tabella, relazioni composite.
   (`@customer_id.@country_id.name`). Un segmento intermedio senza `@` produce un
   errore di sintassi (D4). Una table alias legacy si scrive anch'essa con la `@`
   (`@customer.account_name`, `test_compiler_coverage.py:2729`).
-- La funzione su relazione viene riconosciuta e rifiutata con un errore che
-  rimanda a GEP 1.
+- La funzione su relazione (`@rel.f(argomenti)`) viene letta come nodo, così il
+  GEP 1 aggiunge solo le funzioni. Finché non esistono funzioni, la
+  compilazione fallisce come per qualsiasi nome sconosciuto: nessun messaggio
+  provvisorio.
 - Gli errori di sintassi riportano la posizione nell'espressione.
 
 **Uscita:** parser con test sul corpus del passo 1, comprese le forme rifiutate.
@@ -149,7 +151,8 @@ FK verso la stessa tabella, due FK verso la stessa tabella, relazioni composite.
   relazione, direzione e cardinalità; espansione degli `aliasColumn`
   (`relation_path`).
 - La chiave di un join è la catena canonica dei passaggi, schema incluso.
-- Un passaggio uno-a-molti produce un errore esplicito che rimanda a GEP 1.
+- Un passaggio uno-a-molti produce un errore: è un controllo di correttezza
+  (nessun join che moltiplica le righe), non un segnaposto per il GEP 1.
 - Errori tipizzati con i nomi del legacy (D8): relazione mancante, colonna
   mancante, path non valido.
 - Sostituisce i walker attuali: `compiler._Context.field` e `related`,
@@ -263,8 +266,11 @@ to-many» diventano «GEP 1 sulle relazioni inverse; `virtualRelation`».
   (`models.md:31`, `:119`, `formulas.md:40`, `troubleshooting.md:30`), il
   tutorial `docs/guide/_examples/shop_tutorial.py` e i test che dichiarano
   `x_name`.
-- **D3 — Nome mancante in `column()`.** Legacy `None`, asqueel `ValueError`.
-  Proposta: errore tipizzato; divergenza registrata.
+- **D3 — Nome mancante in `column()` — DECISA (2026-10-02).** Identico al
+  legacy (`gnrsqlmodel/table.py:514-565`): un nome semplice mancante restituisce
+  `None`; un path con una relazione mancante alza l'eccezione. Il `None` è
+  l'idioma del framework per sapere se una tabella ha una colonna (28 righe in
+  `gnrpy` e `resources`, per esempio `gnrdbo.py:187`, `:1144`).
 - **D4 — Segmenti intermedi senza `@` — DECISA (2026-10-01).** La forma
   `@customer.country.name` è un'estensione di asqueel che il legacy non accetta
   (`compiler.py` `_getRelationAlias`: un nodo colonna senza `joiner` alza
@@ -274,11 +280,57 @@ to-many» diventano «GEP 1 sulle relazioni inverse; `virtualRelation`».
   `test_legacy_and_native_paths_have_same_sql_and_default_alias`
   (`tests/native_compiler/test_aliases.py:56`).
 - **D5 — Macro del primo incremento.** Proposta: `#THIS`, `#IN_RANGE`,
-  `#PERIOD`. Da decidere: `#PERIOD` con valore letterale (#541) e i limiti di
-  `#IN_RANGE` (`<=` nel legacy, `<` nel `between` delle relazioni).
+  `#PERIOD`, una per volta.
+  - `#THIS` — DECISA (2026-10-02): stessa semantica del legacy: colonna o path
+    della riga esterna, risolto dal resolver della query esterna, con i join
+    nella query esterna. Vale anche nelle `sql_formula`, dove il legacy non
+    espande `#THIS.@rel.col` (genropy/genropy#1505). Fuori da un contesto
+    correlato: errore.
+  - `#IN_RANGE(valore, inizio, fine)` — DECISA (2026-10-02): semantica del
+    legacy (`compiler.py:1316-1346`), estremi inclusi, `NULL` come estremo
+    aperto, entrambi `NULL` vero. Argomenti: qualunque espressione del parser.
+    Espansa in tutti i contesti, compresi `group_by`, `having` e record. Solo il
+    nome `#IN_RANGE` (il legacy `#BETWEEN` è stato rinominato in #644).
+  - `#PERIOD($campo, :p)` — nelle prime macro (2026-10-02). La decodifica del
+    periodo è delegata a `genro_toolbox.dates.parse_period(text, workdate,
+    locale)` (genro-toolbox 0.15.0, commit `c7a26f9`), con `workdate` e
+    `locale` del contesto: restituisce `DatePeriod(start, end)`, `None` per un
+    estremo aperto; un valore non riconosciuto alza `PeriodError`. Dipendenza
+    `genro-toolbox>=0.15.0` aggiunta da questo passo. Divergenze dal
+    `decodeDatePeriod` legacy: 432 casi su 2796, motivate in
+    `tests/data/period_parser_divergences.json` di genro-toolbox. SQL (deciso
+    2026-10-02): sempre chiuso a sinistra e aperto a destra, `campo >= :p_from
+    AND campo < :p_to_next` con `p_to_next` il giorno dopo la data finale; un
+    giorno solo usa la stessa forma; solo inizio `>=`; solo fine `<`; nessun
+    estremo `true`. Su `date` il risultato è quello del legacy; su timestamp
+    include l'ultimo giorno (difetto del `BETWEEN` legacy, REVIEW in
+    `compiler.py:1388-1390`; caso reale `erpylight th_pt_distinta.py:126-129`).
+    Secondo argomento (deciso 2026-10-02, da rivedere dopo
+    genropy/genropy#1509): `:p` per un parametro, obbligatorio; un valore
+    letterale si scrive tra apici, `#PERIOD($date, '2024')`,
+    `#PERIOD($date, 'today;today+7')`; un parametro mancante è sempre un
+    errore. Nessun ripiego da nome a letterale come proposto in
+    genropy/genropy#541: un parametro scritto male diventerebbe un periodo senza
+    avviso, e `\w+` non ammette valori come `'today;today+7'`. Il periodo non può
+    venire da una colonna (`#PERIOD($date, $col)`): la decodifica avviene in
+    Python durante la compilazione; il legacy non espande quella forma. Per due
+    date della riga si usa `#IN_RANGE`.
 - **D6 — Inverse e cardinalità.** Proposta: dentro questo incremento (passo 2).
 - **D7 — Riferimento legacy.** Proposta: `fa35e5a` più i commit successivi di
   `develop` su compiler e modello, elencati nel passo 1.
-- **D8 — Eccezioni.** Proposta: classi con i nomi del legacy
-  (`GnrSqlMissingField`, `GnrSqlMissingColumn`, `GnrSqlRelationError`), derivate
-  da `ValueError` per non rompere il contratto attuale di asqueel.
+- **D8 — Eccezioni — DECISA (2026-10-02).** Gerarchia coerente con una base
+  sola, `GnrSqlException` (nome legacy). Ne derivano, un caso per classe:
+  `GnrSqlMissingTable` (tabella mancante), `GnrSqlMissingField` (relazione
+  mancante), `GnrSqlMissingColumn` (colonna finale mancante in un path),
+  `GnrSqlInvalidVirtualColumn` (virtuale non valida), `GnrSqlRelationError`
+  (dichiarazione delle relazioni). Nel legacy queste derivano da `GnrException`
+  e sfuggono a `except GnrSqlException` (`gnrsql_exceptions.py:95-108`). Gli
+  altri errori di asqueel entrano nella gerarchia con i nomi legacy in un lavoro
+  a parte. Nessun vincolo di compatibilità con i `ValueError` attuali.
+- **D9 — Colonna `pkey` automatica — DECISA (2026-10-02).** Il nucleo di asqueel
+  non la aggiunge. Il legacy aggiunge `$<pkey> AS pkey` di default
+  (`addPkeyColumn=True`, `query.py:150`, `compiler.py:947-949`), salvo tabella
+  senza pkey, count, `distinct`, `group_by` e subquery delle formule (`:418`);
+  con `SUM`/`COUNT` senza `group_by` la aggiunge comunque perché l'aggregato è
+  riconosciuto dopo (`:1008-1009`). Il comportamento va nel futuro adattatore
+  legacy, registrato in `docs/adattamenti-legacy.md`.
