@@ -31,7 +31,7 @@ unexpected results, see [troubleshooting](troubleshooting.md).
 
 ## Query and result boundaries
 
-The compiler resolves supported Genro field references and preserves authored
+The compiler resolves supported Asqueel field references and preserves authored
 SQL expressions. SQL fragments are trusted application code; bind external
 values through parameters. Successful rendering does not validate every SQL
 expression against the server.

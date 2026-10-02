@@ -12,8 +12,8 @@ them harder to keep consistent. Asqueel lets the model own that knowledge:
 a related value or SQL calculation can become a named column, and consumers
 can query it or inspect its metadata.
 
-The project brings Genropy's approach to database applications into a standalone
-library. Its purpose is to keep a rich application model reusable while retaining
+Asqueel is the port of GenroPy's SQL layer to a standalone library. Its
+purpose is to keep a rich application model reusable while retaining
 SQL expressions, visible query results and explicit control over writes and
 transactions. The current alpha targets PostgreSQL. See
 [Current status](limitations.md) for the boundary between implemented behavior
@@ -89,7 +89,7 @@ Asqueel combines SQL expressions with model references:
 | `@customer_id.@state_id.name` | A path through declared relations. |
 | `:minimum` | A bound value. |
 | `:env_workdate` | A value resolved from the execution environment. |
-| `#IN_RANGE(...)` | A Genro construct interpreted by the compiler. |
+| `#IN_RANGE(...)` | A Asqueel construct interpreted by the compiler. |
 | `SUM($amount)` | An SQL expression using a model column. |
 
 A `#NAME` construct can produce SQL, prepare parameters, resolve a contextual

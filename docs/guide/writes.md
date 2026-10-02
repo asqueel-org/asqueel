@@ -32,8 +32,8 @@ are unnecessary. A simple SQL formula can be explicitly requested, but a
 relation-dependent or structured subquery formula requires a separate SELECT.
 
 Database constraints and server defaults still apply. An empty insert mapping
-requests DEFAULT VALUES, with any required partition values filled first. Genro
-SQL does not automatically generate keys from a `pkey` declaration; define and
+requests DEFAULT VALUES, with any required partition values filled first. Asqueel
+does not automatically generate keys from a `pkey` declaration; define and
 manage the database's generation strategy explicitly if keys are not supplied.
 
 ## Update by primary key

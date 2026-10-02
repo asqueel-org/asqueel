@@ -37,7 +37,7 @@ l'evidenza senza dipendere da numeri di riga di un branch mobile.
 | INF | Deduzione tecnica dalle fonti; richiede la prova indicata. |
 
 «Non presente nella superficie esaminata» non significa «impossibile in ogni
-branch o applicazione». Il dossier non inventaria tutte le installazioni Genro.
+branch o applicazione». Il dossier non inventaria tutte le installazioni GenroPy.
 
 ## Verifiche effettivamente disponibili
 
@@ -48,7 +48,7 @@ branch o applicazione». Il dossier non inventaria tutte le installazioni Genro.
 3. Prototipo Builders 0.27 con due montaggi annidati: percorso
    `db.schemas.public.tables.invoice.columns.id` conservato.
 4. Sedici risultati numerici del dataset del corpus verificati con SQL diretto
-   su SQLite in memoria. Non è stato eseguito un compiler Genro in questa prova.
+   su SQLite in memoria. Non è stato eseguito un compiler GenroPy in questa prova.
 5. Precedenti verifiche S01/S05: 122 passati e 2 xfail nella suite con PostgreSQL,
    più profili core/Routes/ASGI, packaging, Ruff e mypy. Si vedano risultati e
    limitazioni nel [rapporto](../ecosystem-alignment.md).

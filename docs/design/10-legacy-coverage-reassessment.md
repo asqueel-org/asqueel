@@ -17,7 +17,7 @@ I 421 test superati certificano i contratti implementati. Non sono una misura di
 copertura del legacy, né provano equivalenza del linguaggio o dei comportamenti.
 La precedente espressione «utilizzabile per applicazioni nuove» va delimitata a
 un sottoinsieme dimostrato, non intesa come disponibilità generale delle primitive
-Genro necessarie alle applicazioni nuove.
+asqueel necessarie alle applicazioni nuove.
 
 Le specifiche precedenti contenevano già requisiti non implementati, per esempio
 VIR-02 per aliasColumn. Il problema è stato anche di tracciabilità: tali requisiti
@@ -68,7 +68,7 @@ prove di implementazione osservata, non un oracle differenziale eseguito.
 | pyColumn | D presente, R rifiutata; manca anche la fase di calcolo sui risultati | Contratto da selezionare |
 | Colonna composita | Vincoli/relazioni composte supportati nel sottoinsieme; il valore virtuale legacy non è disponibile come `$composite` | Distinguere le due semantiche |
 | Percorsi to-one | Supportati nel dialetto sintattico nuovo; non equivalenti a tutte le forme legacy multi-hop | Fondamentale |
-| Reverse/to-many | Non implementati come navigazione generale del modello/linguaggio | Fondamentale per nuovo Genro |
+| Reverse/to-many | Non implementati come navigazione generale del modello/linguaggio | Fondamentale per asqueel |
 | virtualRelation | Richiesta moderna/GEP, non funzione già presente nel nuovo modello | Fondamentale nel percorso relazioni |
 | Parametri scalari | Binding supportato | Base da conservare |
 | Parametri lista/tupla | La forma legacy `IN :ids` fallisce su PostgreSQL nel nuovo percorso; `ANY` non è equivalenza sintattica | Fondamentale |

@@ -6,7 +6,7 @@
 
 ## Confini fra compiler, dialetto e driver
 
-`QueryCompiler(model, dialect, formatter)` risolve il linguaggio Genro in un
+`QueryCompiler(model, dialect, formatter)` risolve il linguaggio asqueel in un
 `QueryPlan`: tabella fisica, proiezioni, join, predicato, assegnamenti e metadati.
 I frammenti distinguono testo SQL fidato, `Identifier` e `Parameter`; non
 contengono quoting di identificatori né placeholder del driver.
@@ -19,7 +19,7 @@ eseguono entrambe le fasi e restituiscono il `CompiledQuery` pronto per il runti
 
 Il dialetto possiede il lexer SQL e la generazione delle istruzioni. Per esempio,
 dollar quote, stringhe E e cast `::` appartengono al lexer PostgreSQL; lo scanner
-comune vede token protetti e risolve soltanto i riferimenti Genro. Il formatter
+comune vede token protetti e risolve soltanto i riferimenti asqueel. Il formatter
 possiede placeholder e escaping richiesti dal driver. Un dialetto e un formatter
 con identità incompatibili vengono rifiutati.
 
@@ -95,7 +95,7 @@ dagli utenti. I dati esterni vanno sempre in `params`. `:name` diventa binding
 nominato psycopg; `::type` resta un cast PostgreSQL. Un parametro richiesto ma
 assente genera errore. Parametri forniti e non utilizzati non vengono inoltrati.
 
-Semicolon di separazione istruzioni e macro Genro non supportate vengono
+Semicolon di separazione istruzioni e macro asqueel non supportate vengono
 rifiutati. Non sono implementati l'espansione delle macro legacy, gli ingressi
 Bag, le virtualRelation GEP, la semantica delle policy legacy, il planner di
 aggregazioni, GROUP BY/HAVING come opzioni API o il bridge record/selection.

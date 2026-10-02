@@ -115,7 +115,7 @@ pertinenti sono gli adapter, in particolare `LB:208` e `LP:147`.
 | F04 | Formula `select=dict(...)`, `exists=dict(...)` | Assente | `LC:399` crea queryCompile e wrapper; `NQ:80` non ha nodi subquery, `NC:292` legge solo column.formula. |
 | F05 | `#THIS.field` e correlazione | Rifiutato | `LC:310`, `LC:417`; `NC:369` rifiuta macro. Mancano scope interno/esterno distinti. |
 | F06 | `select_name`, `#name`, subquery_name() e cast | Assente/rifiutato | `LC:397–420` compone sottoquery nominate; nessun protocollo nel nuovo resolver. |
-| F07 | SQL manuale `EXISTS(SELECT...) AS present` | Parziale | Può attraversare Fragment se valido, ma `$field` è risolto sempre nello scope Genro corrente. Alias fisici e correlazione scritti a mano restano responsabilità dello sviluppatore. Non è F04. |
+| F07 | SQL manuale `EXISTS(SELECT...) AS present` | Parziale | Può attraversare Fragment se valido, ma `$field` è risolto sempre nello scope asqueel corrente. Alias fisici e correlazione scritti a mano restano responsabilità dello sviluppatore. Non è F04. |
 | F08 | `py_method` | Assente | `LC:440` produce NULL e registra postprocessing, `LQ:256` esegue callback; nuovo fetch restituisce valori driver senza pipeline equivalente. |
 | F09 | `var_*`, formule varianti e parametri isolati | Assente | `LC:427` scrive currentEnv e rinomina bind per virtuale/colonna. Nuovo binding è per piano, non namespace per variante. |
 | F10 | `#ENV`, `#PREF` | Rifiutato | `LC:314`, `LC:320`; `NC:369`. `:env_name` moderno è bind di valore e non metodo env_name/preferenza o SQL literal interpolato. |

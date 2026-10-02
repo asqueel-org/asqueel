@@ -10,7 +10,7 @@ e casi limite; questo documento espone i finding e le conseguenze progettuali.
 Funzioni, CASE, cast, finestre e FILTER possono passare come SQL del dialetto.
 **Conseguenza:** un elenco finito di funzioni non basta a garantirne la copertura.
 **Verifica:** corpus SQL reale e lexer capace di preservare stringhe/commenti;
-LEX-01–LEX-11 definiscono il confine fra parsing Genro e SQL opaco.
+LEX-01–LEX-11 definiscono il confine fra parsing asqueel e SQL opaco.
 
 ## F-C02 — Il compiler integra più responsabilità nello stesso passaggio
 

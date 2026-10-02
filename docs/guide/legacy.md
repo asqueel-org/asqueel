@@ -22,7 +22,7 @@ than the internal modules of either implementation.
 | Database objects | A live db owns tables, columns, relations and execution context. |
 | Relation paths | FK-based paths such as `@customer_id.state` and multi-hop paths such as `@customer_id.@state_id.name`. |
 | Computed columns | Alias and formula declarations attach reusable values and metadata to the model. |
-| Query language | `$field`, `@path`, bound parameters and `#NAME` Genro constructs. |
+| Query language | `$field`, `@path`, bound parameters and `#NAME` Asqueel constructs. |
 | Transactions | Implicit transaction start; explicit commit/rollback and independent named connections. |
 | Environment | Mutable currentEnv and scoped tempEnv, with business date and application context. |
 | Commit lifecycle | Work before commit, work after commit and application events have distinct responsibilities. |

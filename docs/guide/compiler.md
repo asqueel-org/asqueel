@@ -68,7 +68,7 @@ The main arguments are:
 |---|---|
 | `table` | Logical `schema.table` name; a short table name is accepted only when unambiguous. |
 | `columns` | A comma-separated string or sequence of projection expressions. Defaults to `'*'`. |
-| `where` | A trusted SQL expression with Genro column references and named data parameters. |
+| `where` | A trusted SQL expression with Asqueel column references and named data parameters. |
 | `params` | A mapping of parameter names to Python values. |
 | `order_by` | A trusted ordering expression, such as `'$total DESC, $id'`. |
 | `limit`, `offset` | Nonnegative integers. `limit=0` returns no rows. |
@@ -148,7 +148,7 @@ Values are bound separately from SQL. Missing referenced parameters raise
 Use `IS NULL` for a NULL test; binding `None` to an equality expression does not
 change SQL's NULL comparison rules. PostgreSQL casts such as `:minimum::numeric`
 are preserved. SQL strings, quoted identifiers, dollar quotes, and comments
-protect their contents from Genro reference expansion.
+protect their contents from Asqueel reference expansion.
 
 SQL expressions are trusted application code. Parameters bind data values;
 they do not make user-supplied column names, operators, ordering clauses, or SQL
@@ -262,7 +262,7 @@ logical-deletion read filters do not automatically restrict them.
 ## Compiler responsibilities
 
 The compiler resolves model references, relation paths, formulas, aliases and
-named parameters. Uppercase `#NAME` constructs introduce Genro-owned operations
+named parameters. Uppercase `#NAME` constructs introduce operations owned by Asqueel
 with defined expansion rules. Result shaping belongs to the result layer;
 application routing and connection selection belong to the database context.
 Unsupported options raise errors rather than being silently ignored. PostgreSQL

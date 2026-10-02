@@ -51,7 +51,7 @@ from typing import Literal
 
 from genro_builders.builder import element
 
-#: Genro normalized type codes. Mirrors
+#: asqueel normalized type codes. Mirrors
 #: ``asqueel_migration.structures.DTYPE_CODES`` — declared locally because
 #: the grammar must not import the migration package (the dependency is
 #: one-way). The renderer's golden test asserts the two stay in step.
@@ -234,7 +234,7 @@ class TableElements:
 
         Args:
             name: the column name — physical, and this node's key.
-            dtype: Genro normalized type code. Absent, the renderer
+            dtype: asqueel normalized type code. Absent, the renderer
                 defaults to ``'A'`` when ``size`` is given, else ``'T'``.
             size: ``'n'`` or ``'min:max'`` character size.
             notnull: NOT NULL. Pkey members get it from their pkey

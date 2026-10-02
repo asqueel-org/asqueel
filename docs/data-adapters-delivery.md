@@ -11,7 +11,7 @@ di ulteriori backend.
 
 | Componente | Responsabilità effettiva |
 |---|---|
-| `QueryCompiler` | Riferimenti Genro, formule, relazioni, unicità del target, alias, metadati e costruzione del piano risolto. |
+| `QueryCompiler` | Riferimenti asqueel, formule, relazioni, unicità del target, alias, metadati e costruzione del piano risolto. |
 | `QueryPlan` e frammenti | Tabelle fisiche, join, proiezioni, assegnazioni, clausole, parametri e descrizione dei risultati; identificatori e binding restano nodi distinti dal testo SQL. |
 | `PostgresDialect` | Scanner PostgreSQL, quoting SQL, resa SELECT/CRUD/RETURNING, LEFT JOIN, paginazione, capacità del profilo e validazione dei piani. |
 | `PsycopgDriver` | Preparazione offline dei parametri, escaping del protocollo, client psycopg, cursori, fetch e primitive transazionali. |
@@ -23,7 +23,7 @@ definiscono i confini; non importano il client DB o il migratore per definire
 i rispettivi contratti.
 
 ```text
-modello + richiesta Genro
+modello + richiesta asqueel
     → QueryCompiler.plan_* → QueryPlan
     → PostgresDialect.render → SqlStatement
     → PsycopgDriver.prepare → CompiledQuery
@@ -134,7 +134,7 @@ La convergenza futura dei reader tra repository rimane un lavoro separato.
 
 ## Cosa resta successivo
 
-Driver async nativo, secondo dialetto e ampliamenti della semantica Genro sono
+Driver async nativo, secondo dialetto e ampliamenti della semantica asqueel sono
 interventi distinti. Questa separazione consente di aggiungerli senza replicare
 resolver o lifecycle. Non cambia i limiti funzionali V1 e non reintroduce
 aggregateRows, hook legacy o migrazioni non rappresentabili.

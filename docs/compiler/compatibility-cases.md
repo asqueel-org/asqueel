@@ -100,7 +100,7 @@ Risposte matematiche indipendenti dall'oracle legacy:
 - C0 e C3 devono sopravvivere a una navigazione LEFT senza filtro sul target.
 
 I test del compiler devono esplicitare DISTINCT/pkey/policy: questi numeri
-non sono automaticamente il risultato di ogni API Genro che esprime un join.
+non sono automaticamente il risultato di ogni API GenroPy che esprime un join.
 
 ### 2.2 Estensioni del modello per gruppi dedicati
 
@@ -136,7 +136,7 @@ grammatica testuale nuove funzioni con questi nomi.
 | L07 | Espressione con virgola in stringa e funzione annidata | Una sola proiezione, non uno split sulle virgole interne. |
 | L08 | Array SQL e parentesi quadre con virgole, PostgreSQL | Conservazione del frammento e split corretto. |
 | L09 | Stringa contenente `$id` e `@customer_id.name` | Oracle; nuovo lexer/decisione A02. |
-| L10 | Commento SQL con token Genro | Oracle; nessun riferimento accidentale nel profilo nuovo regolare. |
+| L10 | Commento SQL con token asqueel | Oracle; nessun riferimento accidentale nel profilo nuovo regolare. |
 | L11 | Dollar quoting PostgreSQL e cast `::numeric` | Oracle per legacy, lexer del dialetto verificato. |
 | L12 | Apici raddoppiati, backslash e stringa non chiusa | Risultato oppure diagnostica lessicale controllata. |
 | L13 | `CAST($total AS TEXT) AS text_total` | CAST interno distinto dall'alias esterno; caratterizzare A03. |
@@ -272,7 +272,7 @@ grammatica testuale nuove funzioni con questi nomi.
 | M27 | Macro registrata con override di nome esistente | Precedenza del dispatcher. |
 | M28 | Macro custom registrata fuori dalla lista invocata | Oracle non-espansione e scelta del nuovo contratto. |
 | M29 | TSRANK/TSHEADLINE con operandi espliciti nel secondo trasformatore | Oracle psycopg2 e confronto con postgres3/postgres8000; decisione A18. |
-| M30 | Rank diretto vs rank dentro formula virtuale | Controllare assenza di token Genro irrisolti nel SQL finale e risultati reali. |
+| M30 | Rank diretto vs rank dentro formula virtuale | Controllare assenza di token asqueel irrisolti nel SQL finale e risultati reali. |
 
 ## 7. Clausole, policy, count e cardinalità
 
@@ -468,7 +468,7 @@ una risposta esatta sul dataset piccolo.
 
 Ogni query reale importata deve conservare anche definizioni delle virtuali,
 relazioni, policy e contesto necessari. Una stringa SQL da sola non è un caso
-di conformità Genro completo.
+di conformità GenroPy completo.
 
 Le prestazioni costituiscono una suite separata: numero di query, volume righe,
 tempo di compilazione, piano DB, consumo memoria e costo del postprocessing.
@@ -481,4 +481,4 @@ I 16 controlli numerici principali del dataset sono stati eseguiti con SQL
 diretto su SQLite in memoria: conteggi con/senza policy, gruppi, valori distinti,
 molteplicità dei LEFT JOIN e somme prima/dopo il join. Tutti concordano con i
 valori riportati. Questa verifica controlla il dataset di specifica: non esegue
-il compiler Genro e non certifica alcuna implementazione nuova.
+il compiler GenroPy e non certifica alcuna implementazione nuova.

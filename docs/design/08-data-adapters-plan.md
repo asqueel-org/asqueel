@@ -22,16 +22,16 @@ lavoro corrente su configurazione e CLI PostgreSQL.
 | Componente | Decide e produce | Non deve fare |
 |---|---|---|
 | Modello risolto | Identità, nomi logici/fisici, tipi logici, relazioni, formule e metadati UI. | Scegliere placeholder del driver o generare query. |
-| Compiler comune | Risoluzione dei riferimenti, join richiesti, cardinalità, scope, alias, dipendenze delle formule e descrizione dei risultati. | Incorporare peculiarità PostgreSQL nella semantica Genro. |
+| Compiler comune | Risoluzione dei riferimenti, join richiesti, cardinalità, scope, alias, dipendenze delle formule e descrizione dei risultati. | Incorporare peculiarità PostgreSQL nella semantica asqueel. |
 | Adapter dati del dialetto | Sintassi SQL per letture/scritture e traduzione delle operazioni logiche supportate. | Aprire connessioni, ricostruire il modello, inventare join o applicare hook. |
-| Driver | Binding concreto, adattamento dei valori, connessioni, cursori, primitive transazionali, risultati ed errori del client DB. | Risolvere relazioni o tradurre sintassi Genro. |
+| Driver | Binding concreto, adattamento dei valori, connessioni, cursori, primitive transazionali, risultati ed errori del client DB. | Risolvere relazioni o tradurre sintassi asqueel. |
 | Runtime | Proprietà della sessione, ordine delle operazioni, esecuzione sincrona sul thread chiamante e pulizia. | Comporre SQL di SELECT/DML o duplicare il driver. |
 | Adapter strutturali di sqlmigration | Introspezione, rappresentazione fisica, confronto, DDL e operazioni strutturali. | Diventare dipendenza obbligatoria per leggere e scrivere dati. |
 
 Il flusso proposto è:
 
 ```text
-richiesta Genro + modello
+richiesta asqueel + modello
         → compiler comune → piano risolto
         → adapter del dialetto → statement con parametri strutturati
         → preparazione del driver → SQL e valori eseguibili

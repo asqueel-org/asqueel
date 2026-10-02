@@ -77,7 +77,7 @@ The catalog inspection records:
 | Constraint details and definitions | `table.attributes['constraints']` |
 | Index definitions, ordering, predicates and options used by validation | `table.attributes['indexes']` |
 
-Common types are normalized to Genro codes, for example `integer` → `I`,
+Common types are normalized to Asqueel codes, for example `integer` → `I`,
 `bigint` → `L`, and `character varying(120)` → `A` with size metadata. The original
 type is retained. Unknown types remain verbatim and produce a warning rather
 than being converted to an unrelated type.

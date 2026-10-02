@@ -1,4 +1,4 @@
-"""Resolve the native Genro expression profile into driver-independent query plans.
+"""Resolve the native asqueel expression profile into driver-independent query plans.
 
 The data dialect owns SQL tokenization and rendering. Binding formatters own
 placeholder syntax and escaping. Authored SQL fragments remain trusted code.
@@ -548,7 +548,7 @@ class _Context:
                 elif code[i] == ';':
                     raise UnsupportedFeatureError('Statement separators are not SQL expressions')
                 elif code[i] in '$@' or (code[i] == '#' and re.match(r'#[A-Za-z_]', code[i:])):
-                    raise UnsupportedFeatureError('Unsupported Genro expression syntax')
+                    raise UnsupportedFeatureError('Unsupported asqueel expression syntax')
                 else:
                     result.append(code[i])
                     i += 1
@@ -601,7 +601,7 @@ class _Context:
 
 
 class QueryCompiler:
-    """Resolve Genro syntax, then delegate SQL and binding to explicit adapters."""
+    """Resolve asqueel syntax, then delegate SQL and binding to explicit adapters."""
 
     def __init__(self, model: ResolvedModel, dialect: DataDialect, formatter: BindingFormatter,
                  *, environment: SqlEnvironment | None = None):

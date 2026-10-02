@@ -1,4 +1,4 @@
-# 32 — Piano: parser delle espressioni Genro, resolver unico, relazioni e macro
+# 32 — Piano: parser delle espressioni asqueel, resolver unico, relazioni e macro
 
 Stato: proposta, da approvare. Nessun passo è avviato.
 Baseline: `04bef4c`, versione 0.4.0 pubblicata; 845 test, copertura 95%.
@@ -8,7 +8,7 @@ Riferimento legacy: `fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea`, più i commit di
 
 ## Obiettivo e collocazione
 
-Un solo componente interpreta le espressioni Genro e un solo componente ne
+Un solo componente interpreta le espressioni asqueel e un solo componente ne
 risolve i riferimenti. Lo usano compiler, modello, policy e `SqlTable.column()`.
 È il nucleo di F2 del [piano 15](15-operational-plan.md) (LT04, LT03 attraverso
 i path, LT05 per direzione e cardinalità) ed è il prerequisito di GEP 1 e delle
@@ -123,7 +123,7 @@ e decisioni D1–D8 chiuse prima del passo 2.
 **Uscita:** inverse visibili nel modello e in `SqlTable.relations`; test su
 FK verso la stessa tabella, due FK verso la stessa tabella, relazioni composite.
 
-## Passo 3 — Parser delle espressioni Genro
+## Passo 3 — Parser delle espressioni asqueel
 
 - Il parser usa il livello lessicale esistente (`dialects/postgres.py` `_tokens`)
   per stringhe, identificatori quotati e commenti.

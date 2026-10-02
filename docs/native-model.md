@@ -65,7 +65,7 @@ nome del constraint, così più FK fra le stesse tabelle rimangono distinguibili
 `['indexes']` conserva `pg_get_indexdef`, predicate, validità e unicità, compresi
 DESC, indici espressivi e parziali. Sono metadati fedeli del catalogo, non un
 piano di migrazione né una promessa di round-trip DDL tramite il migratore.
-I tipi comuni importati sono normalizzati nei codici Genro (`integer` → `I`,
+I tipi comuni importati sono normalizzati nei codici asqueel (`integer` → `I`,
 `character varying` → `A`); il tipo PostgreSQL completo resta in `raw_type`.
 Tipi senza codice rimangono verbatim e producono warning, senza conversioni
 arbitrarie. La proiezione fisica rifiuta le conversioni note come lossy.

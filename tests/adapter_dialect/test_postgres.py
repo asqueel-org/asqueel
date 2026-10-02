@@ -1,4 +1,4 @@
-"""Dialect rendering uses plans directly, independently of Genro resolution."""
+"""Dialect rendering uses plans directly, independently of asqueel resolution."""
 from dataclasses import replace
 
 import pytest

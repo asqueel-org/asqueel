@@ -257,7 +257,7 @@ Le correzioni di base #8/#9 del migratore non sono rinviate a P7.
 - Versionare modello, API e bridge; fornire guida di importazione, migrazione,
   rimozione aggregateRows, anomalie corrette e limiti residui.
 - Rendere riproducibili dipendenze, installazione, test e dataset; aggiornare
-  i minimi dell'ecosistema Genro secondo le versioni stabili verificate al momento.
+  i minimi dei package genro-* secondo le versioni stabili verificate al momento.
 - Documentare primo profilo di rilascio e percorso di estensione, inclusa P7
   quando sarà pronta. Non presentare le funzionalità prospettiche come disponibili.
 

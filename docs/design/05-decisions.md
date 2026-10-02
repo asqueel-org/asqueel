@@ -31,10 +31,10 @@ La [revisione architetturale 09](09-legacy-object-api-review.md) distingue il
 nucleo tecnico già implementato dal livello prodotto ancora mancante. I report
 di consegna precedenti non certificano il completamento di quel livello.
 
-## Costrutti Genro nella compilazione — accordo del 30 settembre 2026
+## Costrutti asqueel nella compilazione — accordo del 30 settembre 2026
 
 `#` seguito da un nome maiuscolo, come `#IN_RANGE`, identifica un costrutto
-proprio del linguaggio Genro, riconosciuto ed elaborato durante la compilazione.
+proprio del linguaggio asqueel, riconosciuto ed elaborato durante la compilazione.
 Si conserva questa sintassi con un'implementazione interna strutturata: non si
 riduce il contratto a una sostituzione testuale preliminare.
 
@@ -85,8 +85,8 @@ poi un'app reale con subtable, policy e almeno un hook di scrittura.
 
 **Scelta:** minimo PostgreSQL, driver e matrice delle estensioni.
 **Raccomandazione:** un solo driver iniziale con contratto completo; ampliare
-dopo la prima prova verticale. Rispettare le versioni stabili dell'ecosistema
-Genro quando si aggiornano dipendenze, verificandole al momento dell'implementazione.
+dopo la prima prova verticale. Rispettare le versioni stabili dei package
+genro-* quando si aggiornano dipendenze, verificandole al momento dell'implementazione.
 **Tradeoff:** più varianti aumentano immediatamente la matrice dei comportamenti.
 **Da chiudere:** prima di P3; i documenti PostgreSQL 18 non impongono quella versione minima.
 

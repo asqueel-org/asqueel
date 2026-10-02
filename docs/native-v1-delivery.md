@@ -78,7 +78,7 @@ i percorsi verificati dalle limitazioni sperimentali.
 
 Ambiente isolato Python 3.12, PostgreSQL 17 UTF-8 temporaneo sulla porta 55449;
 nessun database applicativo esistente modificato. Ogni test nativo usa oggetti
-univoci e cleanup/rollback. Le dipendenze Genro sono le ultime stabili verificate
+univoci e cleanup/rollback. Le dipendenze genro-* sono le ultime stabili verificate
 su PyPI: Builders/Bag 0.27.0, TYTX 0.16.0, Toolbox 0.14.0, migratore 0.1.0,
 Routes 0.30.1, ASGI 0.46.3. Driver psycopg 3.3.6.
 

@@ -182,7 +182,7 @@ A physical column — the only element that projects as a column.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name — physical, and this node's key. |
-| dtype | `DTYPE \| None` | `None` | physical | Genro normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
+| dtype | `DTYPE \| None` | `None` | physical | asqueel normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
 | size | `str \| None` | `None` | physical | `'n'` or `'min:max'` character size. |
 | notnull | `bool` | `False` | physical | NOT NULL. Pkey members get it from their pkey membership, not from this flag. |
 | unique | `bool` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. |

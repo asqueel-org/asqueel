@@ -11,7 +11,7 @@ ai finding, agli obiettivi e al piano del nuovo Asqueel.
 
 ## Conclusioni
 
-1. Il compiler legacy risolve espressioni Genro attraverso il modello runtime,
+1. Il compiler legacy risolve espressioni GenroPy attraverso il modello runtime,
    costruisce join e clausole, e lascia all'adapter la composizione SQL finale.
    Non è un parser SQL completo con AST tipizzato.
 2. Il `compiler_next` presente su develop è ancora una copia indipendente del

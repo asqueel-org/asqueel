@@ -1,4 +1,4 @@
-# Specifica di un compiler SQL nuovo con sintassi Genro legacy
+# Specifica di un compiler SQL nuovo con sintassi GenroPy legacy
 
 Versione 0.1 — 29 settembre 2026 — specifica ricavata dal codice, da validare
 con il corpus differenziale prima di dichiarare compatibilità completa.
@@ -30,7 +30,7 @@ Documenti complementari:
 
 ## 1. Obiettivo, significato di equivalenza e perimetro
 
-**OBJ-01.** Il nuovo compiler accetta le query Genro esistenti senza obbligare
+**OBJ-01.** Il nuovo compiler accetta le query GenroPy esistenti senza obbligare
 chi le scrive a cambiare `$colonna`, percorsi `@relazione`, formule, parametri,
 macro e opzioni documentati di seguito.
 
@@ -52,7 +52,7 @@ UPDATE, DELETE, trigger, transazioni, migrazioni e salvataggio dei record-cluste
 restano fuori dal compiler; i contratti di confine sono comunque esplicitati.
 
 **OBJ-06.** La grammatica è ibrida: SQL del dialetto ospite più riferimenti e
-costrutti Genro. Un elenco finito di funzioni SQL non descrive tutto il legacy.
+costrutti asqueel. Un elenco finito di funzioni SQL non descrive tutto il legacy.
 Il compiler nuovo deve conservare un percorso per espressioni SQL del dialetto.
 
 Legenda dei requisiti:
@@ -155,7 +155,7 @@ due liste nella nuova implementazione.
 
 ### 3.1 Notazione di riferimento
 
-Questa grammatica descrive i costrutti Genro principali; `sql_fragment` è un
+Questa grammatica descrive i costrutti asqueel principali; `sql_fragment` è un
 frammento valido per il dialetto, non un non-terminale completamente definito qui.
 
 ```ebnf
@@ -196,7 +196,7 @@ funzioni, sottoespressioni, array e stringhe possono contenere virgole.
 Il legacy usa uno splitter consapevole di parentesi tonde, quadre e apici.
 
 **LEX-08.** Vanno distinti `*` di espansione iniziale, moltiplicazione e `COUNT(*)`.
-Soltanto una proiezione il cui testo inizia con `*` segue l'espansione Genro.
+Soltanto una proiezione il cui testo inizia con `*` segue l'espansione asqueel.
 
 **LEX-09.** Sono ammessi SQL ordinario, funzioni del dialetto, CASE, cast,
 aritmetica, predicati, sottoquery SQL testuali, finestre e `FILTER (WHERE ...)`.
@@ -207,7 +207,7 @@ completo: apici, commenti, dollar quoting PostgreSQL, cast `::`, escape e alias
 contenenti `AS` richiedono caratterizzazione. Il nuovo lexer deve avere test
 espliciti per ciascuna forma; non assumere equivalenza automatica.
 
-**LEX-11 — N.** Separare token SQL opachi dai riferimenti Genro, conservando
+**LEX-11 — N.** Separare token SQL opachi dai riferimenti asqueel, conservando
 posizione nel testo, ambito e origine. Non sostituire riferimenti dentro stringhe
 o commenti nel nuovo profilo regolare. Eventuali dipendenze da tale comportamento
 legacy devono essere isolate come anomalie di compatibilità.
@@ -450,7 +450,7 @@ Una virtuale non definita deve dare un errore di campo mancante nella query.
 **VIR-02.** `aliasColumn(relation_path=...)` risolve ricorsivamente il percorso
 nel contesto della tabella che possiede l'alias. Un alias di colonna non è un AS.
 
-**VIR-03.** `sql_formula` è un'espressione SQL estesa con riferimenti Genro.
+**VIR-03.** `sql_formula` è un'espressione SQL estesa con riferimenti asqueel.
 Può usare altre virtuali, relazioni, funzioni e sottoquery nominate.
 La formula espansa è racchiusa in parentesi.
 
@@ -968,13 +968,13 @@ nome generico «SQL».
 
 **DIA-04.** Nel percorso SQLite osservato, ILIKE viene adattato a LIKE, `~*`
 a REGEXP e alcuni confronti booleani vengono riscritti. Il lock FOR UPDATE è
-omesso. Queste sono responsabilità dell'adapter, non del parser Genro.
+omesso. Queste sono responsabilità dell'adapter, non del parser asqueel.
 
 **DIA-05.** Il base adapter rende un lock del tipo FOR UPDATE OF alias e può
 aggiungere una modalità testuale. MySQL e altri adapter hanno override.
 MSSQL ha una propria compilazione con TOP: non esportare quel SQL ad altri dialetti.
 
-**DIA-06.** Lo stile nominale `:name` è la forma logica Genro; il driver può
+**DIA-06.** Lo stile nominale `:name` è la forma logica asqueel; il driver può
 richiedere una conversione successiva. Il SQL restituito dal compiler e quello
 effettivamente eseguito non sono sempre identici.
 
@@ -1077,7 +1077,7 @@ del vecchio compiler.
 ```text
 API legacy / query Bag / nuova API
           ↓ adattamento ingresso
-QuerySpec + espressioni con riferimenti Genro
+QuerySpec + espressioni con riferimenti asqueel
           ↓ risoluzione su ModelProvider e contesto
 Piano semantico: scope, colonne, relazioni, tipi, cardinalità, parametri
           ↓ applicazione politiche e lowering
@@ -1095,7 +1095,7 @@ formula risolta, sottoquery, alias di risultato.
 
 **NEW-03.** Non è necessario iniziare da un parser completo di ogni dialetto.
 È però necessario un lexer affidabile, confini di espressione e scope; i token
-Genro presenti nel SQL opaco devono essere identificati senza alterare letterali.
+asqueel presenti nel SQL opaco devono essere identificati senza alterare letterali.
 
 **NEW-04.** Il `ModelProvider` risolve i contratti MOD senza esporre le classi
 legacy. Un primo provider può adattare il modello esistente; un secondo può

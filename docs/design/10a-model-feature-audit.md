@@ -137,7 +137,7 @@ Non sono solo possibilità teoriche: `adm.group.group_tags` usa `select_tg` e
 Fonti: `L:projects/gnrcore/packages/adm/model/group.py:18`;
 `L:projects/gnrcore/packages/adm/model/userobject.py:34`.
 
-Nel nuovo modello è operativo solo sql_formula testuale. I riferimenti Genro,
+Nel nuovo modello è operativo solo sql_formula testuale. I riferimenti asqueel,
 i parametri e le relazioni possono passare attraverso il resolver delle
 espressioni; questo non equivale al linguaggio di macro legacy. Conservare
 `x_select_*` o `x_var_*` come metadata non attiva le relative funzioni.

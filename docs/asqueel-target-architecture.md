@@ -661,7 +661,7 @@ ruoli e owner; non sostituisce automaticamente le policy applicative.
 ## 11. Miglioramenti di prestazioni e come verificarli
 
 La prima ottimizzazione è evitare lavoro e molteplicità non richiesti.
-Il planner PostgreSQL resta responsabile del piano fisico; Genro deve produrre
+Il planner PostgreSQL resta responsabile del piano fisico; asqueel deve produrre
 una rappresentazione SQL corretta e abbastanza chiara, senza tentare subito
 di costruire un secondo ottimizzatore a costi.
 

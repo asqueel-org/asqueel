@@ -1,6 +1,6 @@
 # Dialetti dati e confini del compiler
 
-Il compiler Genro risolve nomi logici, formule, relazioni, parametri e metadati
+Il compiler asqueel risolve nomi logici, formule, relazioni, parametri e metadati
 in un `QueryPlan`. Il dialetto rende quel piano in `SqlStatement`; il driver
 traduce i nodi parametro nel formato richiesto dalla libreria di connessione.
 Una `Fragment` contiene stringhe SQL applicative, `Identifier` e `Parameter`
@@ -9,7 +9,7 @@ distinti: nessun componente deve cercare placeholder già formattati nel testo.
 | Confine | Responsabilità | Esclusioni |
 |---|---|---|
 | Compiler comune | Modello, `$campo`, percorsi, formule, scope, alias e result metadata | Quoting SQL del backend, connessioni e formato psycopg. |
-| `PostgresDialect` | Lessico SQL PostgreSQL, quoting identificatori, SELECT/DML e capability | Risoluzione Genro, valore dei parametri, connessioni, migrazioni DDL. |
+| `PostgresDialect` | Lessico SQL PostgreSQL, quoting identificatori, SELECT/DML e capability | Risoluzione asqueel, valore dei parametri, connessioni, migrazioni DDL. |
 | Driver | Binding concreto, connessione/esecuzione e convenzioni della libreria | Interpretare nuovamente il DSL o inventare relazioni. |
 | Provider catalogo | Introspezione read-only e rapporto di fedeltà del modello importato | Migrare o cancellare oggetti. |
 | sqlmigration | Struttura fisica, confronto, pianificazione e applicazione DDL | Runtime delle query e metadati UI. |
