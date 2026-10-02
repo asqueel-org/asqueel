@@ -483,3 +483,7 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | genropy/genropy#1509 | `#PERIOD`: whether the bare parameter name `p` stays valid next to `:p` |
 | — | Parameters of `sys_fields`, `auto_counter`, `hierarchical` |
 | — | Hierarchical: null path value, `/` in a path value, `copyFromParent`, `_parent_h_*` |
+| — | Which GenroPy table attributes become `options` elements and which stay attributes of the table ([analysis 38](https://github.com/asqueel-org/asqueel/blob/main/docs/design/38-table-attributes-analysis.md)) |
+| — | How a package registers its own options, the mechanism GenroPy packages emulate with table attributes and mixins (analysis 38 §7.3) |
+| — | Which model-build hooks asqueel supports ([analysis 35](https://github.com/asqueel-org/asqueel/blob/main/docs/design/35-model-build-hooks.md)) |
+| — | Primary key generation and new records: `pkeyValue`, `newPkeyValue`, `newRecord` |
