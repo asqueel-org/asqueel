@@ -155,6 +155,32 @@ SQLite percorre lo stesso ciclo delle scritture e degli hook. La riserva di
 scrittura riguarda i file collegati, non le singole righe; i servizi legacy
 non devono assumere identica concorrenza fra PostgreSQL e SQLite.
 
+## Espansione delle colonne nella SELECT
+
+Decisioni del 1 ottobre 2026 per il [piano 32](https://github.com/asqueel-org/asqueel/blob/main/docs/design/32-expression-resolver-plan.md).
+Descrivono il contratto da implementare, non il comportamento attuale di
+Asqueel: oggi `*` comprende anche formule e alias (`compiler.py:568-571`).
+Fonte legacy: `gnrsqldata/compiler.py` `expandMultipleColumns` e
+`gnrsqlmodel/table.py` `starColumns` su `origin/develop` (`51e4270c54`).
+
+| Forma | Legacy | Asqueel | Motivo |
+|---|---|---|---|
+| `*` | Colonne fisiche in ordine di dichiarazione, escluse le `dtype='X'` se `bagFields` è falso; poi le virtuali con `static=True`. `bagFields` è falso nelle query, vero nei record. | Identico. | — |
+| `*prefix_` sulla tabella principale | Il prefisso viene ignorato: stesso risultato di `*`. Dal 2009 al 2020 filtrava per prefisso; il commit `87e8c97018` (2020-10-19) ha perso il filtro. | Non supportato: errore esplicito. | Forma superflua: nessun caso d'uso la giustifica. Dal 2020 ogni `*prefix_` restituisce `*`, quindi sostituirla con `*` non cambia il risultato dei chiamanti esistenti. Proposta di rimozione nel legacy: [genropy/genropy#1504](https://github.com/genropy/genropy/issues/1504). |
+| `*nome`, con `nome` colonna virtuale | La `sql_formula` di `nome` viene espansa al posto di `nome`; se inizia con `@` ricade in `*@rel.(a,b)` con `nome` come etichetta. Con una formula che non inizia con `@` restituisce `*`. | Non supportato: errore esplicito. | Serve solo al meccanismo `*@rel.(a,b)` (riga seguente). |
+| `*@rel.(a,b,...)` | Seleziona `@rel.a`, `@rel.b` con join che moltiplica le righe; `aggregateDict` e `_aggregateRows` le riuniscono per pkey in un dizionario per la cella `_subtable` della griglia (commit `6e009b97d9`, 2012). | Non supportato: errore esplicito. | GEP 1 §3 (nessun uso trovato, nessun test) e §9.6 (rimozione). Sostituto: `@rel.to_json($a, $b)` del GEP 1, compilato come subquery correlata, senza moltiplicare le righe. |
+| `*@rel`, `*@rel1.@rel2` | `@rel.col` per ogni colonna fisica della tabella raggiunta, comprese le `dtype='X'`, senza virtuali; su una relazione lato molti moltiplica le righe. Presente dal primo import (`731268058f`, 2009). | Non supportato: errore esplicito. | [genropy/genropy#623](https://github.com/genropy/genropy/issues/623): nessun uso nei progetti indicizzati, solo nei test del framework (`h_query_surface_test.py:275`, `test_compiler_factory.py`); proposta di deprecazione. |
+| `*@rel.prefix_` | Le colonne di `*@rel` il cui nome inizia con `prefix_`. Presente dal primo import (`731268058f`, 2009). | Non supportato: errore esplicito. | [genropy/genropy#623](https://github.com/genropy/genropy/issues/623): nessun uso nei progetti indicizzati; nessun uso trovato neppure nei test del framework. |
+
+Nomi automatici: un path senza `AS` prende il nome di `colToAs` (ogni carattere
+non alfanumerico diventa `_`, `_` iniziale davanti a una cifra), identico al
+legacy: `@customer_id.name` → `_customer_id_name`. Motivo: client e server del
+framework ricalcolano il nome con la stessa regola (`genro_grid.js:1370`,
+`:1861`, `genro_dlg.js:1047`, `apphandler/export.py:283`, `batch/btcexport.py:71`).
+Asqueel oggi produce `customer_name` (R33): va allineato.
+
+Restano da decidere la modalità count e la colonna `pkey` aggiunta.
+
 ## Criterio per i prossimi adattamenti
 
 Per ogni comportamento portato, registrare il punto d'ingresso, l'ordine,
