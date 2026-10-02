@@ -214,8 +214,39 @@ onto them.
 - The other `sysFields` functions (optimistic concurrency, audit, diagnostics,
   row protection, invalid fields, record merge, system records, versioned
   updates) are **Open**: each is discussed on its own.
-- The parameters of each element and the form of the declaration (children of
-  `table` or of `sys_fields`) are **Open**.
+- The parameters of each element are **Open**.
+
+#### The `options` container — Decided
+
+```python
+class ProductTypeModel:
+    def configure(self, tables):
+        tbl = tables.table('product_type', pkey='id')
+        tbl.column('description')
+        opts = tbl.options()
+        opts.sys_fields()
+        opts.hierarchical('description')
+        opts.auto_counter('parent_id')
+        return tbl
+```
+
+- A table is declared in one method, `configure(self, tables)`. There is no
+  `config_db` and no method per role.
+- Table features are declared inside an explicit container, `tbl.options()`:
+  a child of `table`, at most one per table, holding `sys_fields`,
+  `hierarchical` and `auto_counter`. `auto_counter` may appear more than once,
+  one per foreign key.
+- A feature element outside `options` is an error.
+- Dependencies between features are checked by the model validator: for
+  example `hierarchical` requires a single-column primary key.
+- Columns are declared directly on the table (section 2.1) because they are
+  its content; features describe how the table behaves and stay visible as a
+  separate block. This is why `options` is explicit while `columns` is not.
+- Every option is a grammar element with a typed signature and a docstring,
+  so the generated grammar reference (`asqueel.grammar_doc`, checked byte for
+  byte by a test) documents each option, its parameters and its defaults. In
+  GenroPy the same information is spread over `sysFields` keyword arguments
+  and table attributes read in many places.
 
 ### 2.7 Hierarchical tables — Decided
 
@@ -450,6 +481,5 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | Id | Question |
 |---|---|
 | genropy/genropy#1509 | `#PERIOD`: whether the bare parameter name `p` stays valid next to `:p` |
-| — | Form of the table-feature elements: children of `table` or of `sys_fields` |
 | — | Parameters of `sys_fields`, `auto_counter`, `hierarchical` |
 | — | Hierarchical: null path value, `/` in a path value, `copyFromParent`, `_parent_h_*` |
