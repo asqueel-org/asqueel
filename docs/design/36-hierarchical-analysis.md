@@ -1,6 +1,6 @@
 # 36 — Analisi delle tabelle gerarchiche nel legacy
 
-Stato: analisi, nessuna decisione presa. Serve a progettare in asqueel la
+Stato: analisi; decisioni del 2026-10-02 nella sezione 10. Serve a progettare in asqueel la
 funzione gerarchica come elemento della grammatica dentro `table`, partendo
 dalle funzioni offerte e non dall'implementazione legacy.
 
@@ -438,3 +438,55 @@ decisione presa.
 11. Vincoli che le applicazioni scrivono a mano: numero massimo di livelli,
     unicità di un campo fra fratelli, codice progressivo fra fratelli.
 12. Controlli assenti nel legacy: cicli, escape di `_` e `/`, concorrenza.
+
+## 10. Decisioni (2026-10-02)
+
+Confermate dall'utente. Non ancora registrate nella proposta 0001.
+
+### 10.1 Modello
+
+- Il modello resta quello del legacy: `parent_id` più path materializzati
+  fisici, della pkey (`hierarchical_pkey`) e dei campi (`hierarchical_<fld>`).
+- La riscrittura del sottoalbero resta un update per figlio, con i trigger
+  Python, per la regola «prima Python».
+- Motivo: le tabelle gerarchiche sono molto statiche; spostamenti e rinomine
+  sono rari e le letture contano di più. Il costo della cascata non è
+  rilevante.
+
+### 10.2 Miglioramenti adottati (rischio basso)
+
+Rischio = quanto il miglioramento cambia comportamento o dati rispetto a un DB
+legacy.
+
+- Controllo dei cicli allo spostamento: un nodo che diventerebbe discendente
+  di se stesso è un errore (oggi: cascata senza fine, sezione 7).
+- Lettura di padre, figli e fratelli senza i filtri di bozza e cancellazione
+  logica (oggi: path sbagliati, sezione 7).
+- Allo spostamento il nodo prende l'ultima posizione fra i nuovi fratelli
+  (oggi: tiene il `_row_count` del vecchio padre).
+- Ordine fra fratelli tramite `auto_counter('parent_id')`, con lock sul padre
+  durante il calcolo di massimo + 1.
+- `_h_count` resta a 2 caratteri in base 36 come nel legacy, compatibile con i
+  DB esistenti. Il 1296° fratello sotto lo stesso padre è un errore esplicito
+  all'insert (oggi: stringa vuota e ordinamento rotto). Un parametro per la
+  larghezza è stato valutato e scartato: l'ordine manuale riguarda pochi
+  fratelli.
+- Escape di `_` e `%` in ogni LIKE sui path generato dal nucleo.
+- Su PostgreSQL l'indice del path è creato con `text_pattern_ops`.
+- Il nucleo offre sottoalbero, antenati e radice, con «nodo incluso» o «nodo
+  escluso» esplicito. La forma va decisa insieme a GEP 1 e `virtualRelation`.
+
+### 10.3 Aperti (rischio medio)
+
+- Valore nullo in un campo del path come errore: i dati esistenti con valori
+  nulli non si potrebbero più scrivere.
+- `/` dentro un valore come errore o codificato: stesso problema per i valori
+  che lo contengono.
+- `copyFromParent` solo all'insert e allo spostamento: cambia la propagazione
+  rispetto al legacy.
+- `_parent_h_*` calcolato invece che fisico: le colonne esistono nei DB legacy.
+
+### 10.4 Fuori dal primo incremento
+
+- `hierarchical_linked_to`, nodi virtuali, `hdepth`: da 1 a 3 usi ciascuno
+  (sezione 8.1).
