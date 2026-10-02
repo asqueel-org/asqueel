@@ -441,7 +441,7 @@ decisione presa.
 
 ## 10. Decisioni (2026-10-02)
 
-Confermate dall'utente. Non ancora registrate nella proposta 0001.
+Confermate dall'utente. Registrate nella proposta 0001 (§2.6, §2.7, §8, §9).
 
 ### 10.1 Modello
 
