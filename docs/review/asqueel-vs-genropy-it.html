@@ -1,0 +1,818 @@
+<title>Asqueel e GenroPy SQL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column with a sticky table of contents on wide screens; comparison blocks break out to two columns. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #1d2433;
+  --muted: #5b6475;
+  --rule: #d9dee7;
+  --accent: #1f6f78;
+  --accent-soft: #e2f0f1;
+  --legacy: #8a5a1f;
+  --legacy-soft: #f6ecdf;
+  --decided: #23704a;
+  --decided-soft: #e1f2e8;
+  --open: #9a5b00;
+  --open-soft: #fbefd9;
+  --direction: #2c5aa0;
+  --direction-soft: #e3ebf8;
+  --code-bg: #eef1f5;
+  --font-display: "Literata", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141922; --surface: #1b212c; --ink: #e6e9ef; --muted: #a2abbb; --rule: #2e3644;
+    --accent: #6cc3cb; --accent-soft: #1d3438;
+    --legacy: #e0b27a; --legacy-soft: #352a1c;
+    --decided: #7dd3a3; --decided-soft: #1c3226;
+    --open: #f0b860; --open-soft: #3a2d17;
+    --direction: #8fb3f0; --direction-soft: #1e2a40;
+    --code-bg: #232a36; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141922; --surface: #1b212c; --ink: #e6e9ef; --muted: #a2abbb; --rule: #2e3644;
+  --accent: #6cc3cb; --accent-soft: #1d3438;
+  --legacy: #e0b27a; --legacy-soft: #352a1c;
+  --decided: #7dd3a3; --decided-soft: #1c3226;
+  --open: #f0b860; --open-soft: #3a2d17;
+  --direction: #8fb3f0; --direction-soft: #1e2a40;
+  --code-bg: #232a36; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 80px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .page { grid-template-columns: minmax(0, 1fr); gap: 24px; } nav.toc { position: static !important; max-height: none !important; } }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; font-size: 14px; }
+nav.toc p { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+nav.toc a { color: var(--ink); text-decoration: none; display: block; padding: 3px 8px; border-left: 2px solid transparent; }
+nav.toc a:hover, nav.toc a:focus-visible { border-left-color: var(--accent); color: var(--accent); outline: none; }
+main { min-width: 0; }
+header.doc { border-bottom: 1px solid var(--rule); padding-bottom: 24px; margin-bottom: 8px; }
+header.doc .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.25; color: var(--ink); }
+h1 { font-size: clamp(30px, 4vw, 42px); font-weight: 650; margin: 8px 0 12px; }
+h2 { font-size: 26px; font-weight: 650; margin: 56px 0 12px; padding-top: 8px; border-top: 1px solid var(--rule); scroll-margin-top: 20px; }
+h3 { font-size: 19px; font-weight: 650; margin: 32px 0 8px; }
+p, li { max-width: 72ch; }
+.lead { font-size: 18px; color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: var(--muted); margin-top: 16px; }
+.meta b { color: var(--ink); font-weight: 600; }
+code, pre { font-family: var(--font-mono); font-size: 13.5px; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 14px 16px; border-radius: 6px; overflow-x: auto; line-height: 1.5; margin: 0; }
+.cmp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+@media (max-width: 720px) { .cmp { grid-template-columns: minmax(0, 1fr); } }
+.cmp > div { min-width: 0; }
+.cmp .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin: 0 0 6px; }
+.cmp .legacy .label { color: var(--legacy); }
+.cmp .asq .label { color: var(--accent); }
+.cmp .legacy pre { border-left: 3px solid var(--legacy); }
+.cmp .asq pre { border-left: 3px solid var(--accent); }
+.status { display: inline-block; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; vertical-align: 2px; white-space: nowrap; }
+.s-decided { background: var(--decided-soft); color: var(--decided); }
+.s-open { background: var(--open-soft); color: var(--open); }
+.s-direction { background: var(--direction-soft); color: var(--direction); }
+.tablewrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--bg); }
+tr:last-child td { border-bottom: none; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.why { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+.why p { margin: 0; }
+.why b { color: var(--accent); }
+.ask { border: 1px dashed var(--open); background: var(--open-soft); padding: 12px 16px; border-radius: 6px; margin: 24px 0 8px; }
+.ask p.t { margin: 0 0 6px; font-weight: 600; color: var(--open); font-size: 14px; text-transform: uppercase; letter-spacing: .06em; }
+.ask ol { margin: 0; padding-left: 20px; }
+.ask li { margin: 4px 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 14px; margin: 16px 0; }
+.diagram { margin: 16px 0; padding: 12px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; font-family: var(--font-body); font-size: 15px; }
+.d-text text { fill: var(--ink); }
+.d-text .d-cap { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; fill: var(--muted); }
+.d-text .d-code { font-family: var(--font-mono); font-size: 13px; }
+.d-text .d-small { font-size: 13px; fill: var(--muted); }
+.d-box { fill: var(--surface); stroke: var(--rule); stroke-width: 1.5; }
+.d-asq { stroke: var(--accent); }
+.d-leg { stroke: var(--legacy); fill: var(--legacy-soft); }
+.d-adapter { stroke: var(--legacy); fill: var(--surface); }
+.d-core { stroke: var(--accent); fill: var(--accent-soft); }
+.d-db { stroke: var(--muted); }
+.d-line { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.d-arrowhead { fill: var(--muted); }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+</style>
+<div class="page">
+<nav class="toc" aria-label="Indice">
+  <p>Indice</p>
+  <ol>
+    <li><a href="#review">Come rivedere</a></li>
+    <li><a href="#summary">Riepilogo dei pareri</a></li>
+    <li><a href="#what">Cos'&egrave; Asqueel</a></li>
+    <li><a href="#builders">Perch&eacute; contano i builder</a></li>
+    <li><a href="#model">Dichiarare un modello</a></li>
+    <li><a href="#options">Funzioni di tabella e options</a></li>
+    <li><a href="#hier">Tabelle gerarchiche</a></li>
+    <li><a href="#expr">Scrivere espressioni</a></li>
+    <li><a href="#select">Selezionare colonne</a></li>
+    <li><a href="#grouping">Raggruppamento</a></li>
+    <li><a href="#pkey">Chiavi primarie</a></li>
+    <li><a href="#writes">Scritture e azioni Python</a></li>
+    <li><a href="#adapter">L'adattatore GenroPy</a></li>
+    <li><a href="#diff">Tutte le differenze</a></li>
+    <li><a href="#open">Decisioni aperte</a></li>
+    <li><a href="#general">Domande generali</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="doc">
+  <p class="eyebrow">Revisione di progetto &middot; per il team GenroPy</p>
+  <h1>Asqueel e GenroPy SQL</h1>
+  <p class="lead">Asqueel &egrave; il porting del layer SQL di GenroPy in una libreria indipendente. Questo documento descrive Asqueel come sar&agrave; quando le decisioni qui sotto saranno implementate, confronta ogni parte con il layer SQL di GenroPy e chiede al team di mettere in discussione le scelte.</p>
+  <div class="meta">
+    <span><b>Data</b> 4 ottobre 2026</span>
+    <span><b>Asqueel</b> <code>main</code> a <code>c0888b3</code> (0.4.0 su PyPI)</span>
+    <span><b>GenroPy</b> <code>origin/develop</code> a <code>5e7f02e8d774</code></span>
+    <span><b>Fonti</b> proposta 0001 e analisi 34&ndash;39</span>
+  </div>
+  <p class="fb-status" id="fb-status" role="status"></p>
+</header>
+
+<h2 id="review">Come rivedere</h2>
+<p>Quasi tutto ci&ograve; che segue non &egrave; ancora nel codice. Asqueel 0.4.0 esegue gi&agrave; query e scritture. Le modifiche al modello e alle espressioni sono decisioni di progetto prese una per volta, ciascuna confrontata con GenroPy prima di essere scritta.</p>
+<div class="legend">
+  <span><span class="status s-decided">Decisa</span> concordata e registrata; le obiezioni servono ancora</span>
+  <span><span class="status s-direction">Direzione</span> l'obiettivo &egrave; deciso, i dettagli no</span>
+  <span><span class="status s-open">Aperta</span> non decisa; il tuo parere la orienta</span>
+</div>
+<p>Sotto ogni decisione trovi tre pulsanti (<b>D'accordo</b>, <b>Contrario</b>, <b>Non so</b>) e un campo per la motivazione. In fondo a ogni sezione c'&egrave; un campo per ci&ograve; che manca. Indica in particolare:</p>
+<ul>
+  <li>le scelte che non condividi, e perch&eacute;;</li>
+  <li>i comportamenti di GenroPy dimenticati o fraintesi;</li>
+  <li>gli usi nelle tue applicazioni che una decisione romperebbe.</li>
+</ul>
+<p>Il parere si salva da solo. Tutti i lettori vedono i pareri di tutti; ognuno modifica solo i propri. I numeri sull'uso reale vengono dall'indice Sourcerer dei repository del team; ogni fatto sul legacy ha file e riga nei documenti di analisi citati in fondo.</p>
+
+<h2 id="summary">Riepilogo dei pareri</h2>
+<p>Una riga per decisione. &laquo;Discorde&raquo; vuol dire almeno un parere d'accordo e almeno uno contrario.</p>
+<label class="fb-filter"><input type="checkbox" id="fb-only-split"> Mostra solo i punti discordi</label>
+<div class="tablewrap"><table class="fb-summary">
+  <thead><tr><th>Decisione</th><th>Stato</th><th class="num">D'accordo</th><th class="num">Contrario</th><th class="num">Non so</th><th class="num">Note</th></tr></thead>
+  <tbody id="fb-summary-body"><tr><td colspan="6" class="fb-empty">Nessun parere ancora. Il primo che lasci comparir&agrave; qui.</td></tr></tbody>
+</table></div>
+
+<h2 id="what">Cos'&egrave; Asqueel</h2>
+<p>Asqueel conserva ci&ograve; che rende prezioso il layer database di GenroPy, cio&egrave; il modello come unico luogo dove vivono tabelle, relazioni, colonne calcolate e le loro descrizioni, e lo rende usabile fuori da GenroPy.</p>
+<ul>
+  <li><b>Qualunque applicazione Python</b> dichiara un modello, apre un database e lo interroga con lo stesso linguaggio di espressioni di GenroPy (<code>$col</code>, <code>@rel.col</code>, <code>:param</code>, macro).</li>
+  <li><b>Un'applicazione GenroPy</b> usa Asqueel tramite un adattatore. L'adattatore traduce le dichiarazioni GenroPy (<code>config_db</code>, <code>sysFields</code>, attributi di tabella, strutture delle griglie) in dichiarazioni Asqueel, e riporta i risultati nella forma che il codice GenroPy si aspetta.</li>
+</ul>
+<figure class="diagram" aria-label="Architettura di Asqueel">
+<svg viewBox="0 0 960 360" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Una dichiarazione del modello o l&#39;adattatore GenroPy costruiscono un albero sorgente; i renderer producono oggetti del modello, struttura di migrazione e riferimento della grammatica; compiler, dialect e driver eseguono le query sul database.</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="d-arrowhead"/>
+    </marker>
+  </defs>
+  <g class="d-text">
+    <rect x="10" y="20" width="230" height="110" rx="8" class="d-box d-asq"/>
+    <text x="125" y="48" text-anchor="middle" class="d-cap">Applicazione Python</text>
+    <text x="125" y="80" text-anchor="middle">Dichiarazione del modello</text>
+    <text x="125" y="104" text-anchor="middle" class="d-code">configure(self, tables)</text>
+
+    <rect x="10" y="170" width="230" height="170" rx="8" class="d-box d-leg"/>
+    <text x="125" y="198" text-anchor="middle" class="d-cap">Applicazione GenroPy</text>
+    <text x="125" y="228" text-anchor="middle" class="d-code">config_db, sysFields</text>
+    <text x="125" y="250" text-anchor="middle" class="d-code">attributi di tabella, griglie</text>
+    <rect x="45" y="278" width="160" height="44" rx="6" class="d-box d-adapter"/>
+    <text x="125" y="305" text-anchor="middle">Adattatore GenroPy</text>
+    <line x1="125" y1="258" x2="125" y2="276" class="d-line" marker-end="url(#arr)"/>
+
+    <rect x="330" y="140" width="200" height="80" rx="8" class="d-box d-core"/>
+    <text x="430" y="175" text-anchor="middle">Albero sorgente</text>
+    <text x="430" y="199" text-anchor="middle" class="d-small">genro-builders</text>
+    <path d="M240,75 C290,75 290,165 328,170" class="d-line" marker-end="url(#arr)"/>
+    <path d="M205,300 C290,300 290,200 328,192" class="d-line" marker-end="url(#arr)"/>
+
+    <rect x="620" y="20" width="200" height="70" rx="8" class="d-box d-core"/>
+    <text x="720" y="50" text-anchor="middle">Oggetti del modello</text>
+    <text x="720" y="72" text-anchor="middle" class="d-small">tabelle, colonne, relazioni</text>
+    <rect x="620" y="145" width="200" height="70" rx="8" class="d-box"/>
+    <text x="720" y="175" text-anchor="middle">Struttura di migrazione</text>
+    <text x="720" y="197" text-anchor="middle" class="d-small">asqueel-migration</text>
+    <rect x="620" y="270" width="200" height="70" rx="8" class="d-box"/>
+    <text x="720" y="300" text-anchor="middle">Riferimento grammatica</text>
+    <text x="720" y="322" text-anchor="middle" class="d-small">documentazione generata</text>
+    <path d="M530,165 C575,165 575,55 618,55" class="d-line" marker-end="url(#arr)"/>
+    <line x1="530" y1="180" x2="618" y2="180" class="d-line" marker-end="url(#arr)"/>
+    <path d="M530,195 C575,195 575,305 618,305" class="d-line" marker-end="url(#arr)"/>
+    <text x="574" y="132" text-anchor="middle" class="d-small">renderer</text>
+
+    <rect x="860" y="10" width="90" height="90" rx="8" class="d-box d-db"/>
+    <text x="905" y="42" text-anchor="middle" class="d-small">compiler</text>
+    <text x="905" y="60" text-anchor="middle" class="d-small">dialect</text>
+    <text x="905" y="78" text-anchor="middle" class="d-small">driver</text>
+    <line x1="820" y1="55" x2="858" y2="55" class="d-line" marker-end="url(#arr)"/>
+    <text x="905" y="125" text-anchor="middle" class="d-small">PostgreSQL</text>
+    <text x="905" y="143" text-anchor="middle" class="d-small">SQLite</text>
+  </g>
+</svg>
+</figure>
+<p>Restano fuori dal nucleo di Asqueel, e appartengono all'adattatore o all'applicazione: l'interfaccia utente, la composizione dei package GenroPy e le notifiche dell'applicazione web.</p>
+<div class="fb" data-item="porting"></div>
+<div class="fb-missing" data-section="what"></div>
+
+<h2 id="builders">Perch&eacute; contano i builder</h2>
+<p>GenroPy dichiara un modello chiamando metodi che scrivono attributi in una Bag. Asqueel lo dichiara con una <b>grammatica</b> costruita con genro-builders. Gran parte delle differenze di questo documento discende da ci&ograve; che una grammatica d&agrave; e gli attributi liberi no. &Egrave; la base di ogni riquadro &laquo;Perch&eacute; cambia&raquo;.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Capacit&agrave; dei builder</th><th>Cosa significa per un modello</th><th>GenroPy oggi</th></tr></thead>
+  <tbody>
+    <tr><td>Ogni elemento &egrave; un metodo con firma tipizzata (<code>@element</code>)</td><td>Ogni dichiarazione ha un insieme noto di parametri. Una keyword sconosciuta &egrave; un errore di validazione; le estensioni libere usano il prefisso <code>x_</code>.</td><td>Gli attributi sconosciuti di tabella e colonna vengono salvati in silenzio. Refusi come <code>rowCaption</code>, <code>captionField</code>, <code>partitioned_progetto_id</code> esistono nelle applicazioni e nessuno li legge.</td></tr>
+    <tr><td>Regole di contenimento (<code>parent_tags</code>, <code>sub_tags</code> con cardinalit&agrave;)</td><td>&laquo;Al massimo un <code>options</code> per tabella&raquo;, &laquo;una funzione solo dentro <code>options</code>&raquo;, &laquo;una relazione solo su una colonna&raquo; sono regole della grammatica, controllate alla costruzione del modello.</td><td>Controllate per convenzione, o per niente.</td></tr>
+    <tr><td>Due fasi: si costruisce un albero sorgente, poi lo si rende</td><td>La dichiarazione &egrave; una ricetta. I renderer trasformano la stessa sorgente in oggetti del modello, nella struttura di migrazione e nella documentazione. Un renderer pu&ograve; leggere prima un nodo e produrne pi&ugrave; oggetti.</td><td>Dichiarazione e modello compilato nascono in un solo passaggio; helper come <code>sysFields</code> scrivono colonne mentre la tabella si dichiara.</td></tr>
+    <tr><td>Introspezione della grammatica</td><td>Il riferimento della grammatica (<code>docs/grammar.md</code>) &egrave; generato da firme e docstring, e un test lo confronta byte per byte. Ogni opzione ha una voce documentata con parametri e default.</td><td>Quasi tutti gli attributi di tabella non hanno documentazione (l'analisi 38 elenca circa 80 nomi e famiglie, quasi tutti non documentati).</td></tr>
+    <tr><td>Instradamento dei figli (<code>SqlBuilder.set_child</code>)</td><td>Chi scrive usa <code>tbl.column(...)</code> sulla tabella; il builder lo mette nel contenitore interno giusto. Verificato con un prototipo.</td><td>Stessa esperienza per chi scrive, meccanismo diverso.</td></tr>
+  </tbody>
+</table></div>
+<div class="fb" data-item="grammar"></div>
+<div class="fb-missing" data-section="builders"></div>
+
+<h2 id="model">Dichiarare un modello</h2>
+<div class="cmp">
+  <div class="legacy"><p class="label">GenroPy</p>
+<pre>class Table(object):
+    def config_db(self, pkg):
+        tbl = pkg.table('invoice', pkey='id',
+                        name_long='!![en]Invoice',
+                        caption_field='number')
+        self.sysFields(tbl, counter='customer_id')
+        tbl.column('number', size=':10')
+        tbl.column('customer_id', size='22').relation(
+            'sales.customer.id', mode='foreignkey',
+            relation_name='invoices', onDelete='raise')
+        tbl.column('total', dtype='N', size='12,2',
+                   group='amounts.010')
+        tbl.aliasColumn('customer_name',
+                        '@customer_id.name')</pre></div>
+  <div class="asq"><p class="label">Asqueel</p>
+<pre>class InvoiceModel:
+    def configure(self, tables):
+        tbl = tables.table('invoice', pkey='id',
+                           name_long='Invoice',
+                           caption_field='number')
+        opts = tbl.options()
+        opts.sys_fields()
+        opts.auto_counter('customer_id')
+        tbl.column('number', size=':10')
+        tbl.column('customer_id', size='22').relation(
+            'sales.customer.id',
+            relation_name='invoices', on_delete='raise')
+        amounts = tbl.colgroup('amounts', name_long='Amounts')
+        amounts.column('total', dtype='N', size='12,2')
+        tbl.aliasColumn('customer_name',
+                        relation_path='@customer_id.name')
+        return tbl</pre></div>
+</div>
+
+<h3>Le colonne si dichiarano sulla tabella <span class="status s-decided">Decisa</span></h3>
+<p>Come in GenroPy: <code>tbl.column</code>, <code>tbl.formulaColumn</code>, <code>tbl.aliasColumn</code>, <code>tbl.index</code>. La forma esplicita <code>tbl.columns().column(...)</code> di Asqueel 0.4 sparisce. Un nome usato sia da una colonna fisica sia da una virtuale &egrave; un errore; l'<code>_override</code> di GenroPy arriva con la composizione dei package. Elementi di colonna supportati: <code>column</code>, <code>formulaColumn</code>, <code>aliasColumn</code>, <code>subQueryColumn</code>, <code>pyColumn</code>, <code>compositeColumn</code>. Non ancora: <code>joinColumn</code>, <code>bagItemColumn</code>, <code>toolColumn</code>, <code>aliasTable</code>, <code>subtable</code>, colonne localizzate.</p>
+<div class="fb" data-item="columns"></div>
+
+<h3>Un solo metodo, <code>configure</code> <span class="status s-decided">Decisa</span></h3>
+<p>Una tabella si dichiara in <code>configure(self, tables)</code>, che restituisce la tabella. Non esistono <code>config_db</code> n&eacute; metodi per ruolo. L'adattatore GenroPy chiama i <code>config_db</code> del legacy e li traduce.</p>
+<div class="fb" data-item="configure"></div>
+
+<h3>Gruppi di colonne <span class="status s-decided">Decisa</span></h3>
+<p><code>tbl.colgroup(nome, name_long=..., col_*=...)</code> dichiara un gruppo una volta. Una colonna vi entra se dichiarata tramite il gruppo, oppure con <code>colgroup='nome'</code> sulla tabella. L'ordine &egrave; quello di dichiarazione; non ci sono numeri di posizione.</p>
+<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy <code>group='amounts.010'</code> mescola raggruppamento, ordine e visibilit&agrave; nell'interfaccia in una stringa, e il contatore del <code>colgroup</code> legacy non avanza mai (ogni colonna riceve <code>.001</code>). Come elemento della grammatica un gruppo ha la sua firma, default per le sue colonne (<code>col_*</code>) e tre errori controllati: gruppo non dichiarato, gruppo in conflitto, gruppo dichiarato due volte.</p></div>
+<div class="fb" data-item="colgroup"></div>
+
+<h3>Relazioni <span class="status s-decided">Decisa</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Elemento</th><th>Database</th><th>Target</th></tr></thead>
+  <tbody>
+    <tr><td><code>relation(...)</code></td><td><code>FOREIGN KEY ... ON UPDATE CASCADE</code> pi&ugrave; un indice sulle colonne sorgente</td><td>deve avere una chiave unica; altrimenti errore</td></tr>
+    <tr><td><code>weak_relation(...)</code></td><td>nessun vincolo; indice su colonne sorgente e target</td><td>creduto unico; <code>insensitive=True</code> confronta senza maiuscole</td></tr>
+  </tbody>
+</table></div>
+<p>I parametri tengono i nomi di GenroPy in snake_case: <code>related_column</code>, <code>relation_name</code>, <code>one_name</code>, <code>many_name</code>, <code>one_one</code>, <code>on_delete</code> / <code>on_update</code> (azioni Python sui record collegati), <code>on_delete_sql</code> / <code>on_update_sql</code> (azioni SQL della FK), <code>deferred</code>, <code>deferrable</code>, <code>initially_deferred</code>. La relazione uscente prende il nome della sua colonna (<code>@customer_id</code>); <code>x_name</code> sparisce.</p>
+<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy un <code>relation()</code> semplice &egrave; logico e <code>mode='foreignkey'</code> aggiunge il vincolo. Negli otto repository applicativi pi&ugrave; grandi 3555 relazioni su 4134 (86%) usano <code>mode='foreignkey'</code>, quindi il caso comune diventa quello breve. Due elementi al posto di una stringa <code>mode</code> danno a ciascun tipo il suo insieme chiuso di parametri: <code>insensitive</code> esiste solo dove pu&ograve; funzionare, perch&eacute; una FK non confronta senza maiuscole. Target non unici, relazioni filtrate e &laquo;una riga per ordine&raquo; sono lasciati a <code>virtualRelation</code> (genropy_meta#1).</p></div>
+<div class="fb" data-item="relations"></div>
+
+<h3>Chiavi composite e vincoli <span class="status s-decided">Decisa</span></h3>
+<p>Un solo concetto copre ogni chiave su pi&ugrave; colonne, come in GenroPy: <code>compositeColumn(nome, columns='a,b', unique=True)</code>. Il suo valore &egrave; la chiave serializzata (<code>'["P1", 2024]'</code>); <code>*</code> la seleziona; <code>unique=True</code> crea l'<code>UNIQUE</code> su pi&ugrave; colonne; <code>.relation(...)</code> su una composita punta a un'altra composita. <code>pkey</code> nomina sempre una colonna, fisica o composita. L'elemento <code>constraint</code> esce dal modello: i <code>CHECK</code> tornano con gli altri oggetti nativi del database (trigger, funzioni, view).</p>
+<p>Ogni relazione crea un indice sulle colonne sorgente, salvo che siano gi&agrave; le prime colonne della chiave primaria, di un <code>UNIQUE</code> o di un indice. Non c'&egrave; un'opzione per spegnerlo. Ogni FK nasce con <code>ON UPDATE CASCADE</code>, come in GenroPy.</p>
+<div class="fb" data-item="keys"></div>
+<div class="fb-missing" data-section="model"></div>
+
+<h2 id="options">Funzioni di tabella e <code>options</code></h2>
+<p>GenroPy aggiunge colonne di sistema e comportamenti con gli argomenti di <code>sysFields(...)</code>, con attributi di tabella e con classi base. Asqueel raccoglie le funzioni di tabella in un blocco visibile, <code>tbl.options()</code>, dove ogni funzione &egrave; un elemento. Le funzioni si prendono da ci&ograve; che GenroPy offre, non da come lo implementa.</p>
+
+<h3>Le prime tre opzioni <span class="status s-decided">Decisa</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Opzione</th><th>Funzioni</th><th>Origine in GenroPy</th></tr></thead>
+  <tbody>
+    <tr><td><code>sys_fields</code></td><td>chiave primaria generata; timestamp di insert e update; utente di insert e update; cancellazione logica; bozza</td><td><code>sysFields(id, ins, upd, user_ins, user_upd, ldel, draftField)</code></td></tr>
+    <tr><td><code>auto_counter</code></td><td>numerazione delle righe sulla tabella o dentro una FK; numerazione dentro un master che non riusa i numeri</td><td><code>sysFields(counter=...)</code>, <code>counter_&lt;nome&gt;=</code>, <code>relidx</code></td></tr>
+    <tr><td><code>hierarchical</code></td><td>struttura ad albero (sezione successiva)</td><td><code>sysFields(hierarchical=...)</code> e sotto-opzioni</td></tr>
+  </tbody>
+</table></div>
+<p>Regole: al massimo un <code>options</code> per tabella; una funzione fuori da <code>options</code> &egrave; un errore; <code>auto_counter</code> pu&ograve; comparire una volta per FK; le dipendenze fra funzioni le controlla il validatore (per esempio <code>hierarchical</code> richiede una chiave primaria a una sola colonna).</p>
+<div class="why"><p><b>Perch&eacute; cambia.</b> Le colonne sono il contenuto della tabella e si dichiarano su di essa; le funzioni descrivono come la tabella si comporta e restano insieme in un blocco separato. Poich&eacute; ogni opzione &egrave; un elemento della grammatica, un refuso &egrave; un errore invece di un attributo ignorato, e il riferimento generato documenta ogni opzione. In GenroPy la stessa conoscenza &egrave; sparsa fra gli argomenti di <code>sysFields</code> (1617 chiamate, il 58% senza argomenti) e attributi di tabella letti in molti punti.</p></div>
+<div class="fb" data-item="options"></div>
+
+<h3>Cosa diventa un'opzione <span class="status s-open">Aperta</span></h3>
+<p>Misura su 5720 file di modello applicativi in 66 repository:</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Gruppo</th><th>Attributi (file che li usano)</th></tr></thead>
+  <tbody>
+    <tr><td>Propriet&agrave; della tabella, usate quasi ovunque</td><td><code>name_long</code> 5707, <code>name_plural</code> 5317, <code>pkey</code> 5219, <code>caption_field</code> 5047</td></tr>
+    <tr><td>Funzioni usate davvero</td><td><code>rowcaption</code> 675, <code>lookup</code> 561, <code>partition_*</code> 240, <code>multidb</code> 134, <code>order_by</code> 105, <code>group_*</code> 90, <code>unifyRecordsTag</code> 58, <code>broadcast</code> 57, <code>archivable</code> 40, <code>audit</code> 20</td></tr>
+    <tr><td>Funzioni scritte come classi base</td><td><code>AttachmentTable</code> 206 file, <code>TotalizeTable</code> 13</td></tr>
+    <tr><td>Mai usati nelle applicazioni</td><td><code>lastTS</code>, <code>noChangeMerge</code>, <code>noTestForMerge</code>, <code>sqlschema</code>, <code>comment</code></td></tr>
+  </tbody>
+</table></div>
+<p>Le altre funzioni di <code>sysFields</code> (concorrenza ottimistica, audit, diagnostica, protezione di riga, campi invalidi, unione di record, record di sistema, aggiornamenti per versione) si discuteranno una per una. Anche i parametri di ogni opzione sono aperti.</p>
+<div class="fb" data-item="which-options"></div>
+
+<h3>Opzioni registrate da un package <span class="status s-open">Aperta</span></h3>
+<p>Dieci package GenroPy in sette repository aggiungono comportamento a tabelle di <em>altri</em> package nello stesso modo: la tabella dichiara un attributo del package (<code>multidb</code>, <code>wkfl</code>, <code>survey</code>, <code>e2l</code>, <code>tmsh_bookable</code>, <code>multi_tenant</code>, ...) e il package lo legge e aggiunge un mixin alla tabella. Asqueel deve permettere a un package di registrare le proprie opzioni, con firma e documentazione. I default di package per tutte le tabelle sono rari (politica dei dbstore in sei package) e non sono un primo bisogno. Le classi <code>Table</code> di package nei <code>main.py</code> (199 package) non ridefiniscono mai gli hook di scrittura n&eacute; <code>sysFields</code>.</p>
+<div class="fb" data-item="package-options"></div>
+<div class="fb-missing" data-section="options"></div>
+
+<h2 id="hier">Tabelle gerarchiche</h2>
+<h3>Modello: quello di GenroPy <span class="status s-decided">Decisa</span></h3>
+<p>Una relazione <code>parent_id</code> pi&ugrave; path materializzati, fisici, della chiave primaria (<code>hierarchical_pkey</code>) e dei campi dichiarati (<code>hierarchical_&lt;campo&gt;</code>). Spostare un nodo o rinominare un campo del path riscrive il sottoalbero un figlio alla volta, con i trigger Python. Le tabelle gerarchiche sono molto statiche, quindi le letture contano pi&ugrave; del costo di una riscrittura rara. L'ordine fra fratelli &egrave; <code>auto_counter('parent_id')</code>; la chiave di ordinamento <code>_h_count</code> tiene i 2 caratteri in base 36 per livello di GenroPy.</p>
+<div class="cmp">
+  <div class="legacy"><p class="label">GenroPy</p>
+<pre>self.sysFields(tbl, hierarchical='description',
+               counter=True, hierarchical_root_id=True)</pre></div>
+  <div class="asq"><p class="label">Asqueel</p>
+<pre>opts = tbl.options()
+opts.sys_fields()
+opts.hierarchical('description')
+opts.auto_counter('parent_id')</pre></div>
+</div>
+<div class="fb" data-item="hier-model"></div>
+
+<h3>Correzioni <span class="status s-decided">Decisa</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>GenroPy</th><th>Asqueel</th><th>Issue</th></tr></thead>
+  <tbody>
+    <tr><td>Spostare un nodo sotto un suo discendente non &egrave; controllato sul server: cascata senza fine</td><td>Errore</td><td>genropy/genropy#1523</td></tr>
+    <tr><td>Padre e figli letti con i filtri di bozza e cancellazione logica: il figlio di un padre archiviato diventa radice</td><td>Lettura senza filtri</td><td>#1524</td></tr>
+    <tr><td>Un nodo spostato tiene la vecchia posizione fra i fratelli; <code>_h_count</code> diventa vuoto oltre 1295 fratelli</td><td>Ultima posizione sotto il nuovo padre; errore esplicito al 1296&deg; fratello</td><td>#1525</td></tr>
+    <tr><td><code>LIKE</code> sui path senza escape (gli id contengono <code>_</code>); nessun indice utilizzabile da <code>LIKE 'x%'</code></td><td><code>LIKE</code> con escape; indice <code>text_pattern_ops</code> su PostgreSQL</td><td>#1526</td></tr>
+  </tbody>
+</table></div>
+<p>Il nucleo offrir&agrave; anche sottoalbero, antenati e radice, con &laquo;nodo incluso&raquo; o &laquo;nodo escluso&raquo; esplicito. Oggi le applicazioni scrivono il filtro del sottoalbero a mano in tre forme diverse. La forma si decider&agrave; insieme al GEP 1 e a <code>virtualRelation</code>.</p>
+<div class="fb" data-item="hier-fixes"></div>
+
+<h3>Punti aperti <span class="status s-open">Aperta</span></h3>
+<p>Valore nullo in un campo del path; <code>/</code> dentro un valore; <code>copyFromParent</code> applicato solo all'insert e allo spostamento; <code>_parent_h_*</code> calcolato invece che fisico. Fuori dal primo incremento: <code>hierarchical_linked_to</code>, nodi virtuali, <code>hdepth</code> (da uno a tre usi ciascuno).</p>
+<div class="fb" data-item="hier-open"></div>
+<div class="fb-missing" data-section="hier"></div>
+
+<h2 id="expr">Scrivere espressioni</h2>
+<p>Il linguaggio delle espressioni &egrave; quello di GenroPy. Asqueel non aggiunge grafie alternative; una forma non supportata d&agrave; errore e non produce mai un risultato diverso.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Forma</th><th>Significato</th><th>Stato</th></tr></thead>
+  <tbody>
+    <tr><td><code>$col</code></td><td>colonna della tabella corrente</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>@customer_id.@state_id.name</code></td><td>path attraverso relazioni; ogni segmento di relazione inizia con <code>@</code></td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>:name</code>, <code>:env_name</code></td><td>parametro; valore dall'ambiente</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#THIS.&lt;path&gt;</code></td><td>riga esterna in una subquery correlata, anche dentro <code>sql_formula</code></td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#IN_RANGE(valore, inizio, fine)</code></td><td>estremi inclusi; un estremo <code>NULL</code> &egrave; aperto; in ogni contesto</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#PERIOD($campo, :p)</code></td><td>periodo decodificato da <code>genro_toolbox.dates.parse_period</code>; sempre <code>&gt;= inizio AND &lt; giorno dopo la fine</code></td><td><span class="status s-decided">Decisa</span>, <code>:p</code> o <code>p</code> aperto (#1509)</td></tr>
+    <tr><td><code>#ENV</code></td><td>non portato: lo sostituisce <code>:env_name</code></td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#BAG</code>, <code>#BAGCOLS</code>, <code>TSQUERY</code>, <code>VECQUERY</code>, <code>#PREF</code></td><td>in seguito</td><td><span class="status s-open">Aperta</span></td></tr>
+  </tbody>
+</table></div>
+<div class="fb" data-item="syntax"></div>
+<ul>
+  <li><b>Un parser e un resolver</b>, condivisi da query, formule, policy di riga e <code>table.column()</code>.</li>
+  <li><b>Un path che raggiunge molte righe</b> (per esempio <code>@invoices</code> da un cliente) &egrave; un errore. I suoi valori arrivano dalle funzioni di relazione del GEP 1: <code>@invoices.count()</code>, <code>@invoices.sum($total)</code>. Il parser legge quella forma fin dall'inizio, quindi il GEP 1 aggiunge solo le funzioni. Asqueel non compila mai un join che moltiplica le righe della tabella principale.</li>
+</ul>
+<div class="fb" data-item="many-side"></div>
+<ul>
+  <li><b><code>table.column('mancante')</code></b> restituisce <code>None</code>, come in GenroPy; un path con una relazione mancante alza un'eccezione. Le eccezioni formano una gerarchia con radice <code>GnrSqlException</code>, una classe per caso.</li>
+</ul>
+<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy <code>#THIS.@rel.col</code> dentro <code>sql_formula</code> non viene espanso (genropy/genropy#1505); Asqueel lo risolve come ogni altro path. <code>#PERIOD</code> usa un intervallo semiaperto perch&eacute; su un timestamp l'ultimo giorno sia incluso, cosa che il <code>BETWEEN</code> di GenroPy perdeva. Le eccezioni tengono i nomi di GenroPy ma hanno una radice comune, cos&igrave; <code>except GnrSqlException</code> le prende tutte.</p></div>
+<div class="fb" data-item="macros"></div>
+<div class="fb-missing" data-section="expr"></div>
+
+<h2 id="select">Selezionare colonne</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>Forma</th><th>GenroPy</th><th>Asqueel</th><th>Motivo</th></tr></thead>
+  <tbody>
+    <tr><td><code>*</code></td><td>colonne fisiche (<code>X</code> solo con <code>bagFields</code>), poi le virtuali con <code>static=True</code></td><td>uguale</td><td>&mdash;</td></tr>
+    <tr><td><code>*prefix_</code></td><td>restituisce tutte le colonne dopo una regressione del 2020</td><td>errore</td><td>genropy/genropy#1504</td></tr>
+    <tr><td><code>*name</code>, <code>*@rel</code>, <code>*@rel.prefix_</code></td><td>espande le colonne della relazione, pu&ograve; moltiplicare le righe</td><td>errore</td><td>nessun uso nei progetti indicizzati; genropy/genropy#623</td></tr>
+    <tr><td><code>*@rel.(a,b)</code></td><td>moltiplica le righe e le riaggrega in Python</td><td>errore</td><td>tolto dal GEP 1 &sect;9.6; lo sostituisce <code>@rel.to_json($a, $b)</code></td></tr>
+    <tr><td>path senza <code>AS</code></td><td><code>_customer_id_name</code></td><td>uguale</td><td>client ed export calcolano lo stesso nome</td></tr>
+    <tr><td>colonna <code>pkey</code> nei risultati</td><td>aggiunta di default</td><td>non la aggiunge il nucleo; la aggiunge l'adattatore</td><td>un risultato del nucleo contiene ci&ograve; che si &egrave; chiesto</td></tr>
+    <tr><td><code>count()</code></td><td>&mdash;</td><td>stessi numeri di GenroPy; errore con <code>limit</code> o <code>offset</code></td><td>&mdash;</td></tr>
+  </tbody>
+</table></div>
+<div class="fb" data-item="star"></div>
+<div class="fb" data-item="pkey-column"></div>
+<div class="fb-missing" data-section="select"></div>
+
+<h2 id="grouping">Raggruppamento <span class="status s-direction">Direzione</span></h2>
+<p>La grouped view di GenroPy permette a qualunque utente di raggruppare qualunque vista senza codice: si trascinano i campi, si sceglie Break o un aggregato, si vede una lista, un albero o una pivot, si clicca un gruppo per vederne le righe, si salva la vista. Le applicazioni la usano anche da codice (strutture in 173 moduli di 24 repository). Il nucleo di Asqueel fornir&agrave; ci&ograve; che serve, per qualunque interfaccia:</p>
+<ul>
+  <li>una richiesta di raggruppamento dichiarativa e serializzabile (Break, aggregati da un elenco chiuso, filtri, pivot), compilata dallo stesso resolver;</li>
+  <li>Break su una tabella gerarchica che producono i nodi intermedi con i loro totali, a qualsiasi profondit&agrave;;</li>
+  <li>regole di risalita dei totali calcolate in Python sopra un <code>GROUP BY</code> SQL piatto (somma, conteggio, minimo, massimo, media pesata, unione dei valori distinti);</li>
+  <li>drill-down per condizione invece che per elenco di chiavi; concatenamento, dove la condizione di un gruppo filtra un nuovo raggruppamento;</li>
+  <li>metadati del modello per l'interfaccia: relazioni, tipi, caption leggibili, campi gerarchici.</li>
+</ul>
+<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy un Break su <code>hierarchical_description</code> d&agrave; un nodo per path completo (&laquo;Building Materials/Insulation/Batts&raquo;) e nessun totale intermedio, perch&eacute; chi costruisce l'albero non spezza mai sul <code>/</code> e la cella non porta l'attributo gerarchico. Il server legacy inserisce nell'SQL il nome dell'aggregato mandato dal client; un elenco chiuso lo evita. <code>_pkeylist</code> concatena tutte le chiavi di un gruppo e cresce con i dati; una condizione no.</p></div>
+<div class="fb" data-item="grouping"></div>
+<div class="fb-missing" data-section="grouping"></div>
+
+<h2 id="pkey">Chiavi primarie <span class="status s-open">Aperta</span></h2>
+<p>Solo analisi. In GenroPy <code>newPkeyValue(record)</code> chiama <code>pkeyValue(record)</code>, che prova sei regole in ordine: chiave composita, <code>max + 1</code> numerico, UUID senza record, <code>pkey_columns</code>, <code>__syscode</code>, UUID testuale di 22 caratteri; altrimenti restituisce <code>None</code>. Quattro applicazioni ridefiniscono <code>newPkeyValue</code> (un codice da un contatore, una chiave fissa per una tabella con un solo record, <code>_</code> sostituito per gli import bancari, un codice casuale ripetuto finch&eacute; &egrave; unico).</p>
+<p>Difetti da evitare: <code>max + 1</code> senza lock; <code>insertMany</code> che d&agrave; a tutti i record la stessa chiave numerica; collisioni di <code>pkey_columns</code> con valori <code>None</code> o contenenti il separatore; un <code>None</code> silenzioso quando nessuna regola si applica. Asqueel oggi non genera chiavi: inserisce i valori dati e legge <code>RETURNING</code>.</p>
+<div class="fb" data-item="pkey"></div>
+<div class="fb-missing" data-section="pkey"></div>
+
+<h2 id="writes">Scritture e azioni Python</h2>
+<p><b>Prima Python</b> <span class="status s-decided">Decisa</span>: quando un comportamento pu&ograve; stare in Python o in SQL, prevale quello Python; i nomi seguono, il nome corto &egrave; l'azione Python e il suffisso <code>_sql</code> quella SQL (<code>on_delete</code> contro <code>on_delete_sql</code>). Il ciclo di scrittura completo (trigger di campo, contatori, cascate sui record collegati, protezioni) &egrave; ancora da progettare; i compiti dell'adattatore qui sotto elencano il protocollo GenroPy che dovr&agrave; riprodurre.</p>
+<div class="fb" data-item="python-first"></div>
+<div class="fb-missing" data-section="writes"></div>
+
+<h2 id="adapter">L'adattatore GenroPy</h2>
+<p>L'adattatore &egrave; il modo in cui il codice GenroPy esistente continua a funzionare. &Egrave; un livello separato: composizione dei package, regole applicative e notifiche non entrano nel driver PostgreSQL o SQLite.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Lato GenroPy</th><th>Compito dell'adattatore</th></tr></thead>
+  <tbody>
+    <tr><td><code>config_db(pkg)</code>, <code>config_db_&lt;pkg&gt;</code></td><td>Chiamarli e produrre la dichiarazione Asqueel</td></tr>
+    <tr><td>Argomenti di <code>sysFields(...)</code>, attributi di tabella</td><td>Tradurli in elementi di <code>options</code></td></tr>
+    <tr><td><code>relation(mode=...)</code>, <code>group='name.NNN'</code></td><td>Tradurli in <code>relation</code> / <code>weak_relation</code> e in <code>colgroup</code></td></tr>
+    <tr><td>Risultati letti come <code>row['pkey']</code></td><td>Aggiungere <code>$pkey AS pkey</code> con le esclusioni di GenroPy (nessuna pkey, count, <code>distinct</code>, <code>group_by</code>, subquery delle formule, aggregati)</td></tr>
+    <tr><td>Protocollo di scrittura: <code>checkPkey</code>, <code>protect_*</code>, trigger di campo, trigger dei package, contatori, <code>dbo_on*</code>, <code>updateRelated</code> / <code>deleteRelated</code>, <code>_onDbChange</code></td><td>Riprodurre l'ordine; l'ordine fa parte del contratto</td></tr>
+    <tr><td><code>tempEnv</code>, connessioni nominate, store</td><td>Tenere <code>tempEnv</code> come modificatore di contesto; il cambio di store non &egrave; nel nucleo</td></tr>
+    <tr><td>Strutture delle grouped view</td><td>Tradurle in richieste di raggruppamento e ritorno (<code>_grp_count_sum</code>, <code>_pkeylist</code>, <code>_thgroup_pkey</code>)</td></tr>
+  </tbody>
+</table></div>
+<div class="fb" data-item="adapter"></div>
+<div class="fb-missing" data-section="adapter"></div>
+
+<h2 id="diff">Tutte le differenze da GenroPy</h2>
+<p>Ogni divergenza richiede un motivo scritto: uso misurato, difetto mostrato nel codice, requisito del database o decisione di un GEP. L'ultima colonna indica la capacit&agrave; dei builder coinvolta, quando c'&egrave;.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>GenroPy</th><th>Asqueel</th><th>Motivo</th><th>Builder</th></tr></thead>
+  <tbody>
+    <tr><td><code>config_db</code>, attributi scritti in una Bag</td><td><code>configure</code>, elementi della grammatica</td><td>una dichiarazione controllata e documentata</td><td>elementi tipizzati, costruzione in due fasi</td></tr>
+    <tr><td>Attributi sconosciuti accettati in silenzio</td><td>Errore; le estensioni usano <code>x_</code></td><td>refusi delle applicazioni mai letti</td><td>firme chiuse</td></tr>
+    <tr><td>Funzioni di tabella come argomenti di <code>sysFields</code>, attributi, classi base</td><td>elementi di <code>tbl.options()</code></td><td>un blocco visibile, una voce di documentazione per opzione</td><td>regole di contenimento, introspezione</td></tr>
+    <tr><td><code>relation()</code> logica, <code>mode='foreignkey'</code> aggiunge la FK</td><td><code>relation()</code> &egrave; la FK; <code>weak_relation()</code> logica</td><td>l'86% delle relazioni usa <code>mode='foreignkey'</code></td><td>un elemento per tipo, parametri propri</td></tr>
+    <tr><td><code>mode='insensitive'</code></td><td><code>weak_relation(insensitive=True)</code></td><td>una FK non confronta senza maiuscole; nessun uso trovato</td><td>parametro solo dove vale</td></tr>
+    <tr><td><code>group='name.NNN'</code>, <code>group_&lt;name&gt;=</code></td><td><code>colgroup</code></td><td>la codifica mescola gruppo, ordine e visibilit&agrave;; il contatore non avanza</td><td>gruppo come elemento con errori controllati</td></tr>
+    <tr><td><code>indexed</code> su una relazione ignorato</td><td>sempre indicizzata salvo copertura delle prime colonne</td><td>GenroPy controlla l'appartenenza alla pkey, non la posizione</td><td>&mdash;</td></tr>
+    <tr><td>Relazione verso target non unico accettata</td><td><code>relation</code>: errore; <code>weak_relation</code>: creduto unico</td><td>duplicazione silenziosa delle righe</td><td>&mdash;</td></tr>
+    <tr><td>Elemento <code>constraint</code></td><td>tolto; <code>CHECK</code> con gli oggetti nativi</td><td>l'<code>UNIQUE</code> su pi&ugrave; colonne &egrave; una <code>compositeColumn</code></td><td>&mdash;</td></tr>
+    <tr><td><code>*prefix_</code>, <code>*@rel</code>, <code>*@rel.(a,b)</code>, <code>*name</code></td><td>errore</td><td>#1504, #623, GEP 1 &sect;9.6</td><td>&mdash;</td></tr>
+    <tr><td><code>#THIS.@rel.col</code> non espanso in <code>sql_formula</code></td><td>espanso</td><td>#1505</td><td>&mdash;</td></tr>
+    <tr><td><code>#PERIOD</code> con <code>BETWEEN</code></td><td>intervallo semiaperto</td><td>ultimo giorno perso sui timestamp</td><td>&mdash;</td></tr>
+    <tr><td>Difetti delle tabelle gerarchiche</td><td>cicli, filtri, posizioni, <code>LIKE</code> corretti</td><td>#1523&ndash;#1526</td><td>&mdash;</td></tr>
+    <tr><td>Colonna <code>pkey</code> in ogni risultato</td><td>aggiunta dall'adattatore</td><td>i risultati del nucleo contengono ci&ograve; che si &egrave; chiesto</td><td>&mdash;</td></tr>
+    <tr><td>Grouped view: niente gerarchia, aggregati liberi, liste di chiavi</td><td>Break gerarchici, aggregati chiusi, condizioni</td><td>verificato in browser su <code>test_invoice_pg</code></td><td>&mdash;</td></tr>
+  </tbody>
+</table></div>
+<div class="fb-missing" data-section="diff"></div>
+
+<h2 id="open">Decisioni aperte</h2>
+<ol>
+  <li>Quali attributi di tabella di GenroPy diventano elementi di <code>options</code> e quali restano attributi della tabella.</li>
+  <li>Come un package registra le proprie opzioni.</li>
+  <li>I parametri di <code>sys_fields</code>, <code>auto_counter</code> e <code>hierarchical</code>.</li>
+  <li>Le altre funzioni di <code>sysFields</code>: concorrenza ottimistica, audit, diagnostica, protezione di riga, campi invalidi, unione di record, record di sistema, aggiornamenti per versione.</li>
+  <li>Tabelle gerarchiche: valori nulli nel path, <code>/</code> nei valori, <code>copyFromParent</code>, <code>_parent_h_*</code>.</li>
+  <li>La forma di sottoalbero, antenati e radice, insieme al GEP 1 e a <code>virtualRelation</code>.</li>
+  <li>Raggruppamento: la forma della richiesta e del risultato.</li>
+  <li>Quali hook di costruzione del modello supporta Asqueel (<code>onBuildingDbobj</code>, <code>custom_type_&lt;dtype&gt;</code> usato da 75 package, <code>onApplicationInited</code>, ...).</li>
+  <li>Generazione delle chiavi primarie e nuovi record (<code>pkeyValue</code>, <code>newPkeyValue</code>, <code>newRecord</code>).</li>
+  <li><code>#PERIOD</code>: se il nome nudo <code>p</code> resta valido accanto a <code>:p</code> (genropy/genropy#1509).</li>
+  <li>Il ciclo di scrittura completo nel nucleo.</li>
+</ol>
+<div class="fb-missing" data-section="open"></div>
+
+<h2 id="general">Domande generali</h2>
+<div class="fb" data-item="general-picture"></div>
+<div class="fb-missing" data-section="general"></div>
+
+<footer>
+  <p>Fonti nel repository Asqueel: <code>docs/proposals/0001-model-and-expressions.md</code>; analisi <code>docs/design/34</code> (sysFields), <code>35</code> (hook di costruzione del modello), <code>36</code> (tabelle gerarchiche), <code>37</code> (grouped view), <code>38</code> (attributi di tabella e classi Table di package), <code>39</code> (chiavi primarie); <code>docs/adattamenti-legacy.md</code> (compiti dell'adattatore). Issue GenroPy aperte durante l'analisi: genropy/genropy#1504, #1505, #1509, #1523&ndash;#1527.</p>
+  <p>I pareri sono salvati nell'archivio di questa pagina. Tutti i lettori li vedono; ognuno modifica solo i propri.</p>
+</footer>
+</main>
+</div>
+
+<style>
+.fb { margin: 14px 0 22px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+.fb-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.fb-q { font-size: 13px; font-weight: 600; color: var(--muted); margin-right: 4px; }
+.fb-btn { font: inherit; font-size: 14px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); cursor: pointer; }
+.fb-btn:hover { border-color: var(--accent); }
+.fb-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fb-btn[aria-pressed="true"][data-stance="agree"] { background: var(--decided-soft); border-color: var(--decided); color: var(--decided); font-weight: 600; }
+.fb-btn[aria-pressed="true"][data-stance="disagree"] { background: #f8e1df; border-color: #b3261e; color: #b3261e; font-weight: 600; }
+.fb-btn[aria-pressed="true"][data-stance="unsure"] { background: var(--open-soft); border-color: var(--open); color: var(--open); font-weight: 600; }
+.fb-btn:disabled { opacity: .55; cursor: not-allowed; }
+.fb-counts { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.fb textarea, .fb-missing textarea { display: block; width: 100%; margin-top: 10px; min-height: 58px; padding: 8px 10px; font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; resize: vertical; }
+.fb textarea:focus-visible, .fb-missing textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fb details, .fb-missing details { margin-top: 8px; font-size: 14px; }
+.fb summary, .fb-missing summary { cursor: pointer; color: var(--accent); }
+.fb-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.fb-list li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: start; max-width: none; }
+.fb-list img { width: 28px; height: 28px; border-radius: 50%; }
+.fb-who { font-weight: 600; }
+.fb-tag { font-size: 12px; margin-left: 6px; padding: 1px 7px; border-radius: 999px; }
+.fb-tag.agree { background: var(--decided-soft); color: var(--decided); }
+.fb-tag.disagree { background: #f8e1df; color: #b3261e; }
+.fb-tag.unsure { background: var(--open-soft); color: var(--open); }
+.fb-note { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 0; }
+.fb-missing { margin: 22px 0 8px; padding: 12px 14px; border: 1px dashed var(--open); border-radius: 6px; background: var(--open-soft); }
+.fb-missing .fb-q { color: var(--open); }
+.fb-status { min-height: 1.4em; font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+.fb-filter { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; margin: 8px 0 0; }
+.fb-summary td a { color: var(--ink); }
+.fb-summary tr.split td:first-child { box-shadow: inset 3px 0 0 #b3261e; }
+.fb-empty { color: var(--muted); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fb-btn[aria-pressed="true"][data-stance="disagree"], :root:not([data-theme="light"]) .fb-tag.disagree { background: #3b1d1b; color: #f2a29b; border-color: #f2a29b; } :root:not([data-theme="light"]) .fb-summary tr.split td:first-child { box-shadow: inset 3px 0 0 #f2a29b; } }
+:root[data-theme="dark"] .fb-btn[aria-pressed="true"][data-stance="disagree"], :root[data-theme="dark"] .fb-tag.disagree { background: #3b1d1b; color: #f2a29b; border-color: #f2a29b; }
+:root[data-theme="dark"] .fb-summary tr.split td:first-child { box-shadow: inset 3px 0 0 #f2a29b; }
+</style>
+<script>
+(function () {
+  var ITEMS = [
+    ["porting", "Asqueel come porting del layer SQL di GenroPy, con adattatore", "direction"],
+    ["grammar", "Il modello come grammatica genro-builders", "decided"],
+    ["columns", "Colonne dichiarate sulla tabella", "decided"],
+    ["configure", "Un solo metodo configure", "decided"],
+    ["colgroup", "Gruppi di colonne con colgroup", "decided"],
+    ["relations", "relation con FK, weak_relation logica", "decided"],
+    ["keys", "Chiavi composite, indici delle relazioni, constraint fuori", "decided"],
+    ["options", "Contenitore options con sys_fields, auto_counter, hierarchical", "decided"],
+    ["which-options", "Quali attributi diventano opzioni", "open"],
+    ["package-options", "Opzioni registrate da un package", "open"],
+    ["hier-model", "Tabelle gerarchiche: modello di GenroPy", "decided"],
+    ["hier-fixes", "Tabelle gerarchiche: correzioni", "decided"],
+    ["hier-open", "Tabelle gerarchiche: punti aperti", "open"],
+    ["syntax", "Sintassi delle espressioni e macro", "decided"],
+    ["many-side", "Path verso molte righe: errore, poi GEP 1", "decided"],
+    ["macros", "table.column, eccezioni, #THIS e #PERIOD", "decided"],
+    ["star", "Espansione di * e forme non supportate", "decided"],
+    ["pkey-column", "Colonna pkey aggiunta dall'adattatore", "decided"],
+    ["grouping", "Raggruppamento nel nucleo", "direction"],
+    ["pkey", "Chiavi primarie", "open"],
+    ["python-first", "Prima Python, suffisso _sql", "decided"],
+    ["adapter", "Compiti dell'adattatore GenroPy", "direction"],
+    ["general-picture", "L'immagine complessiva di Asqueel", "direction"]
+  ];
+  var STATUS = { decided: ["Decisa", "s-decided"], direction: ["Direzione", "s-direction"], open: ["Aperta", "s-open"] };
+  var STANCES = [["agree", "D'accordo"], ["disagree", "Contrario"], ["unsure", "Non so"]];
+  var STANCE_LABEL = { agree: "D'accordo", disagree: "Contrario", unsure: "Non so" };
+  var SECTION_TITLE = { what: "Cos'\u00e8 Asqueel", builders: "builder", model: "modello", options: "options", hier: "tabelle gerarchiche", expr: "espressioni", select: "selezione delle colonne", grouping: "raggruppamento", pkey: "chiavi primarie", writes: "scritture", adapter: "adattatore", diff: "differenze", open: "decisioni aperte", general: "domande generali" };
+
+  var db = null, user = null, myId = null, canWrite = false;
+  var votes = {};
+  var mine = { items: {}, missing: {} };
+  var loadedMine = false, touched = false;
+  var saving = false, again = false;
+  var statusEl = document.getElementById("fb-status");
+
+  function setStatus(t) { if (statusEl) statusEl.textContent = t; }
+  function clone(o) { return JSON.parse(JSON.stringify(o || {})); }
+
+  function buildItem(el) {
+    var id = el.getAttribute("data-item");
+    el.id = "fb-" + id;
+    var head = document.createElement("div"); head.className = "fb-head";
+    var q = document.createElement("span"); q.className = "fb-q";
+    q.textContent = id === "general-picture" ? "Ti convince l'immagine di Asqueel come layer SQL di GenroPy in libreria, usato da GenroPy tramite adattatore?" : "Il tuo parere";
+    head.appendChild(q);
+    STANCES.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "fb-btn"; b.dataset.stance = s[0]; b.textContent = s[1];
+      b.setAttribute("aria-pressed", "false"); b.disabled = true;
+      b.addEventListener("click", function () { setStance(id, s[0]); });
+      head.appendChild(b);
+    });
+    var counts = document.createElement("span"); counts.className = "fb-counts"; head.appendChild(counts);
+    el.appendChild(head);
+    var ta = document.createElement("textarea");
+    ta.id = "fb-note-" + id; ta.placeholder = "Motivazione, punto dimenticato o frainteso (facoltativo)";
+    ta.setAttribute("aria-label", "Nota per: " + itemTitle(id)); ta.disabled = true;
+    var timer = null;
+    ta.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(function () { setNote(id, ta.value); }, 900); });
+    ta.addEventListener("blur", function () { clearTimeout(timer); setNote(id, ta.value); });
+    el.appendChild(ta);
+    var det = document.createElement("details"); det.hidden = true;
+    var sum = document.createElement("summary"); det.appendChild(sum);
+    var ul = document.createElement("ul"); ul.className = "fb-list"; det.appendChild(ul);
+    el.appendChild(det);
+  }
+
+  function buildMissing(el) {
+    var sec = el.getAttribute("data-section");
+    var q = document.createElement("p"); q.className = "fb-q"; q.style.margin = "0";
+    q.textContent = "Cosa manca o \u00e8 frainteso in questa sezione (" + (SECTION_TITLE[sec] || sec) + ")?";
+    el.appendChild(q);
+    var ta = document.createElement("textarea");
+    ta.id = "fb-missing-" + sec; ta.placeholder = "Comportamenti GenroPy dimenticati, usi che si romperebbero, altro"; ta.disabled = true;
+    ta.setAttribute("aria-label", "Cosa manca: " + (SECTION_TITLE[sec] || sec));
+    var timer = null;
+    ta.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(function () { setMissing(sec, ta.value); }, 900); });
+    ta.addEventListener("blur", function () { clearTimeout(timer); setMissing(sec, ta.value); });
+    el.appendChild(ta);
+    var det = document.createElement("details"); det.hidden = true;
+    var sum = document.createElement("summary"); det.appendChild(sum);
+    var ul = document.createElement("ul"); ul.className = "fb-list"; det.appendChild(ul);
+    el.appendChild(det);
+  }
+
+  function itemTitle(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i][0] === id) return ITEMS[i][1]; return id; }
+
+  function setStance(id, stance) {
+    if (!canWrite) return;
+    touched = true;
+    var cur = mine.items[id] || {};
+    var next = cur.stance === stance ? "" : stance;
+    mine.items[id] = { stance: next, note: cur.note || "" };
+    render(); save();
+  }
+  function setNote(id, text) {
+    if (!canWrite) return;
+    var cur = mine.items[id] || { stance: "", note: "" };
+    var v = text.slice(0, 4000);
+    if ((cur.note || "") === v) return;
+    touched = true;
+    mine.items[id] = { stance: cur.stance || "", note: v };
+    render(); save();
+  }
+  function setMissing(sec, text) {
+    if (!canWrite) return;
+    var v = text.slice(0, 4000);
+    if ((mine.missing[sec] || "") === v) return;
+    touched = true;
+    mine.missing[sec] = v;
+    render(); save();
+  }
+
+  function save() {
+    if (!db || !myId || !canWrite) return;
+    if (saving) { again = true; return; }
+    saving = true; setStatus("Salvataggio\u2026");
+    db.doc("votes/" + myId).set({ items: clone(mine.items), missing: clone(mine.missing), updatedAt: new Date().toISOString() })
+      .then(function () { setStatus("Parere salvato."); })
+      .catch(function (e) {
+        if (e && e.code === "invalid_argument") { canWrite = false; enableInputs(); setStatus("Il tuo accesso alla pagina \u00e8 in sola lettura: chiedi all'autore l'accesso da Contributor per lasciare un parere."); }
+        else if (e && e.code === "quota_exceeded") { setStatus("L'archivio dei pareri \u00e8 pieno: avvisa l'autore della pagina."); }
+        else { setStatus("Salvataggio non riuscito. Il parere resta nella pagina: modificalo di nuovo per riprovare."); }
+      })
+      .then(function () { saving = false; if (again) { again = false; save(); } });
+  }
+
+  function enableInputs() {
+    document.querySelectorAll(".fb button, .fb textarea, .fb-missing textarea").forEach(function (x) { x.disabled = !canWrite; });
+  }
+
+  function tally(id) {
+    var c = { agree: 0, disagree: 0, unsure: 0, notes: 0, entries: [] };
+    Object.keys(votes).forEach(function (uid) {
+      var v = votes[uid] && votes[uid].items && votes[uid].items[id];
+      if (!v) return;
+      if (c[v.stance] !== undefined && v.stance) c[v.stance]++;
+      if (v.note) c.notes++;
+      if (v.stance || v.note) c.entries.push({ uid: uid, stance: v.stance, note: v.note || "" });
+    });
+    return c;
+  }
+
+  var renderSeq = 0;
+  function render() {
+    var seq = ++renderSeq;
+    var ids = Object.keys(votes);
+    var p = user && ids.length ? user.profiles(ids) : Promise.resolve({});
+    p.then(function (ps) { if (seq === renderSeq) paint(ps || {}); }, function () { if (seq === renderSeq) paint({}); });
+  }
+
+  function personRow(ul, ps, uid, stance, text) {
+    var li = document.createElement("li");
+    var img = document.createElement("img"); img.alt = "";
+    var pr = ps[uid]; if (pr && pr.avatarUrl) img.src = pr.avatarUrl;
+    li.appendChild(img);
+    var box = document.createElement("div");
+    var who = document.createElement("span"); who.className = "fb-who";
+    who.textContent = (pr && pr.name) || (uid === myId ? "Tu" : "Qualcuno");
+    box.appendChild(who);
+    if (stance) { var tag = document.createElement("span"); tag.className = "fb-tag " + stance; tag.textContent = STANCE_LABEL[stance]; box.appendChild(tag); }
+    if (text) { var n = document.createElement("p"); n.className = "fb-note"; n.textContent = text; box.appendChild(n); }
+    li.appendChild(box); ul.appendChild(li);
+  }
+
+  function paint(ps) {
+    document.querySelectorAll(".fb[data-item]").forEach(function (el) {
+      var id = el.getAttribute("data-item");
+      var my = mine.items[id] || {};
+      el.querySelectorAll(".fb-btn").forEach(function (b) { b.setAttribute("aria-pressed", my.stance === b.dataset.stance ? "true" : "false"); });
+      var ta = el.querySelector("textarea");
+      if (ta && document.activeElement !== ta && ta.value !== (my.note || "")) ta.value = my.note || "";
+      var c = tally(id);
+      el.querySelector(".fb-counts").textContent = c.agree + " d'accordo \u00b7 " + c.disagree + " contrari \u00b7 " + c.unsure + " non so";
+      var det = el.querySelector("details"), ul = det.querySelector("ul");
+      ul.textContent = "";
+      c.entries.forEach(function (e) { personRow(ul, ps, e.uid, e.stance, e.note); });
+      det.hidden = c.entries.length === 0;
+      det.querySelector("summary").textContent = "Vedi i pareri (" + c.entries.length + ")";
+    });
+    document.querySelectorAll(".fb-missing[data-section]").forEach(function (el) {
+      var sec = el.getAttribute("data-section");
+      var ta = el.querySelector("textarea");
+      var mv = mine.missing[sec] || "";
+      if (ta && document.activeElement !== ta && ta.value !== mv) ta.value = mv;
+      var det = el.querySelector("details"), ul = det.querySelector("ul");
+      ul.textContent = "";
+      var n = 0;
+      Object.keys(votes).forEach(function (uid) {
+        var t = votes[uid] && votes[uid].missing && votes[uid].missing[sec];
+        if (t) { n++; personRow(ul, ps, uid, "", t); }
+      });
+      det.hidden = n === 0;
+      det.querySelector("summary").textContent = "Vedi le segnalazioni (" + n + ")";
+    });
+    paintSummary();
+  }
+
+  function paintSummary() {
+    var body = document.getElementById("fb-summary-body");
+    if (!body) return;
+    var only = document.getElementById("fb-only-split").checked;
+    body.textContent = "";
+    var any = false, rows = 0;
+    ITEMS.forEach(function (it) {
+      var c = tally(it[0]);
+      if (c.entries.length) any = true;
+      var split = c.agree > 0 && c.disagree > 0;
+      if (only && !split) return;
+      var tr = document.createElement("tr"); if (split) tr.className = "split";
+      var td = document.createElement("td"); var a = document.createElement("a"); a.href = "#fb-" + it[0]; a.textContent = it[1]; td.appendChild(a); tr.appendChild(td);
+      var ts = document.createElement("td"); var chip = document.createElement("span"); chip.className = "status " + STATUS[it[2]][1]; chip.textContent = STATUS[it[2]][0]; ts.appendChild(chip); tr.appendChild(ts);
+      [c.agree, c.disagree, c.unsure, c.notes].forEach(function (n) { var x = document.createElement("td"); x.className = "num"; x.textContent = String(n); tr.appendChild(x); });
+      body.appendChild(tr); rows++;
+    });
+    if (!any || rows === 0) {
+      body.textContent = "";
+      var tr = document.createElement("tr"); var td = document.createElement("td"); td.colSpan = 6; td.className = "fb-empty";
+      td.textContent = !any ? "Nessun parere ancora. Il primo che lasci comparir\u00e0 qui." : "Nessun punto discorde.";
+      tr.appendChild(td); body.appendChild(tr);
+    }
+  }
+
+  document.querySelectorAll(".fb[data-item]").forEach(buildItem);
+  document.querySelectorAll(".fb-missing[data-section]").forEach(buildMissing);
+  document.getElementById("fb-only-split").addEventListener("change", paintSummary);
+  paintSummary();
+
+  if (!window.claude || typeof window.claude.use !== "function") {
+    setStatus("Per lasciare un parere apri questa pagina su claude.ai con un account dell'organizzazione.");
+    return;
+  }
+  setStatus("Collegamento all'archivio dei pareri\u2026");
+  Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function (r) {
+    db = r[0]; user = r[1];
+    if (!db) { setStatus("L'archivio dei pareri non \u00e8 disponibile in questa vista: apri la pagina su claude.ai, autenticato con un account dell'organizzazione."); return; }
+    return (user ? user.id() : Promise.resolve(null)).then(function (id) {
+      myId = id;
+      canWrite = !!myId;
+      enableInputs();
+      setStatus(canWrite ? "Puoi lasciare il tuo parere: si salva da solo." : "Puoi leggere i pareri; per lasciarne uno serve un account dell'organizzazione con accesso da Contributor.");
+      db.collection("votes").onSnapshot(function (snap) {
+        var next = {};
+        snap.docs.forEach(function (d) { if (d.exists) next[d.id] = d.data(); });
+        votes = next;
+        if (myId && !loadedMine && !touched && votes[myId]) { mine = { items: clone(votes[myId].items), missing: clone(votes[myId].missing) }; loadedMine = true; }
+        render();
+      }, function (e) {
+        setStatus(e && e.code === "revoked" ? "L'accesso all'archivio dei pareri non \u00e8 pi\u00f9 disponibile." : "I pareri degli altri non si aggiornano pi\u00f9: ricarica la pagina.");
+      });
+    });
+  });
+})();
+</script>

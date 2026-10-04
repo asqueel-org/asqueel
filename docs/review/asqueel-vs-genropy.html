@@ -1,0 +1,515 @@
+<title>Asqueel and GenroPy SQL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column with a sticky table of contents on wide screens; comparison blocks break out to two columns. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #1d2433;
+  --muted: #5b6475;
+  --rule: #d9dee7;
+  --accent: #1f6f78;
+  --accent-soft: #e2f0f1;
+  --legacy: #8a5a1f;
+  --legacy-soft: #f6ecdf;
+  --decided: #23704a;
+  --decided-soft: #e1f2e8;
+  --open: #9a5b00;
+  --open-soft: #fbefd9;
+  --direction: #2c5aa0;
+  --direction-soft: #e3ebf8;
+  --code-bg: #eef1f5;
+  --font-display: "Literata", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141922; --surface: #1b212c; --ink: #e6e9ef; --muted: #a2abbb; --rule: #2e3644;
+    --accent: #6cc3cb; --accent-soft: #1d3438;
+    --legacy: #e0b27a; --legacy-soft: #352a1c;
+    --decided: #7dd3a3; --decided-soft: #1c3226;
+    --open: #f0b860; --open-soft: #3a2d17;
+    --direction: #8fb3f0; --direction-soft: #1e2a40;
+    --code-bg: #232a36; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141922; --surface: #1b212c; --ink: #e6e9ef; --muted: #a2abbb; --rule: #2e3644;
+  --accent: #6cc3cb; --accent-soft: #1d3438;
+  --legacy: #e0b27a; --legacy-soft: #352a1c;
+  --decided: #7dd3a3; --decided-soft: #1c3226;
+  --open: #f0b860; --open-soft: #3a2d17;
+  --direction: #8fb3f0; --direction-soft: #1e2a40;
+  --code-bg: #232a36; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.page { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 80px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .page { grid-template-columns: minmax(0, 1fr); gap: 24px; } nav.toc { position: static !important; max-height: none !important; } }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; font-size: 14px; }
+nav.toc p { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+nav.toc a { color: var(--ink); text-decoration: none; display: block; padding: 3px 8px; border-left: 2px solid transparent; }
+nav.toc a:hover, nav.toc a:focus-visible { border-left-color: var(--accent); color: var(--accent); outline: none; }
+main { min-width: 0; }
+header.doc { border-bottom: 1px solid var(--rule); padding-bottom: 24px; margin-bottom: 8px; }
+header.doc .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.25; color: var(--ink); }
+h1 { font-size: clamp(30px, 4vw, 42px); font-weight: 650; margin: 8px 0 12px; }
+h2 { font-size: 26px; font-weight: 650; margin: 56px 0 12px; padding-top: 8px; border-top: 1px solid var(--rule); scroll-margin-top: 20px; }
+h3 { font-size: 19px; font-weight: 650; margin: 32px 0 8px; }
+p, li { max-width: 72ch; }
+.lead { font-size: 18px; color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: var(--muted); margin-top: 16px; }
+.meta b { color: var(--ink); font-weight: 600; }
+code, pre { font-family: var(--font-mono); font-size: 13.5px; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 14px 16px; border-radius: 6px; overflow-x: auto; line-height: 1.5; margin: 0; }
+.cmp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+@media (max-width: 720px) { .cmp { grid-template-columns: minmax(0, 1fr); } }
+.cmp > div { min-width: 0; }
+.cmp .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin: 0 0 6px; }
+.cmp .legacy .label { color: var(--legacy); }
+.cmp .asq .label { color: var(--accent); }
+.cmp .legacy pre { border-left: 3px solid var(--legacy); }
+.cmp .asq pre { border-left: 3px solid var(--accent); }
+.status { display: inline-block; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; vertical-align: 2px; white-space: nowrap; }
+.s-decided { background: var(--decided-soft); color: var(--decided); }
+.s-open { background: var(--open-soft); color: var(--open); }
+.s-direction { background: var(--direction-soft); color: var(--direction); }
+.tablewrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--bg); }
+tr:last-child td { border-bottom: none; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.why { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+.why p { margin: 0; }
+.why b { color: var(--accent); }
+.ask { border: 1px dashed var(--open); background: var(--open-soft); padding: 12px 16px; border-radius: 6px; margin: 24px 0 8px; }
+.ask p.t { margin: 0 0 6px; font-weight: 600; color: var(--open); font-size: 14px; text-transform: uppercase; letter-spacing: .06em; }
+.ask ol { margin: 0; padding-left: 20px; }
+.ask li { margin: 4px 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 14px; margin: 16px 0; }
+.diagram { margin: 16px 0; padding: 12px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; font-family: var(--font-body); font-size: 15px; }
+.d-text text { fill: var(--ink); }
+.d-text .d-cap { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; fill: var(--muted); }
+.d-text .d-code { font-family: var(--font-mono); font-size: 13px; }
+.d-text .d-small { font-size: 13px; fill: var(--muted); }
+.d-box { fill: var(--surface); stroke: var(--rule); stroke-width: 1.5; }
+.d-asq { stroke: var(--accent); }
+.d-leg { stroke: var(--legacy); fill: var(--legacy-soft); }
+.d-adapter { stroke: var(--legacy); fill: var(--surface); }
+.d-core { stroke: var(--accent); fill: var(--accent-soft); }
+.d-db { stroke: var(--muted); }
+.d-line { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.d-arrowhead { fill: var(--muted); }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="page">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#review">How to review</a></li>
+    <li><a href="#what">What Asqueel is</a></li>
+    <li><a href="#builders">Why the builders matter</a></li>
+    <li><a href="#model">Declaring a model</a></li>
+    <li><a href="#options">Table features and options</a></li>
+    <li><a href="#hier">Hierarchical tables</a></li>
+    <li><a href="#expr">Writing expressions</a></li>
+    <li><a href="#select">Selecting columns</a></li>
+    <li><a href="#grouping">Grouping</a></li>
+    <li><a href="#pkey">Primary keys</a></li>
+    <li><a href="#writes">Writes and Python actions</a></li>
+    <li><a href="#adapter">The GenroPy adapter</a></li>
+    <li><a href="#diff">All differences</a></li>
+    <li><a href="#open">Open decisions</a></li>
+    <li><a href="#questions">Questions for the team</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="doc">
+  <p class="eyebrow">Design review &middot; for the GenroPy team</p>
+  <h1>Asqueel and GenroPy SQL</h1>
+  <p class="lead">Asqueel is the port of GenroPy's SQL layer to a standalone library. This document describes Asqueel as it will look when the decisions below are implemented, compares each part with GenroPy's SQL layer, and asks the team to challenge the choices.</p>
+  <div class="meta">
+    <span><b>Date</b> 4 October 2026</span>
+    <span><b>Asqueel</b> <code>main</code> at <code>c0888b3</code> (0.4.0 on PyPI)</span>
+    <span><b>GenroPy</b> <code>origin/develop</code> at <code>5e7f02e8d774</code></span>
+    <span><b>Source of truth</b> proposal 0001 and analyses 34&ndash;39</span>
+  </div>
+</header>
+
+<h2 id="review">How to review</h2>
+<p>Most of what follows is not in the code yet. Asqueel 0.4.0 already runs queries and writes; the model and expression changes described here are design decisions taken one at a time, each compared with GenroPy before being written down.</p>
+<div class="legend">
+  <span><span class="status s-decided">Decided</span> agreed and recorded; we still want objections</span>
+  <span><span class="status s-direction">Direction</span> the goal is agreed, the details are open</span>
+  <span><span class="status s-open">Open</span> not decided; your input shapes it</span>
+</div>
+<p>Each section ends with questions. Please answer by section number, and tell us in particular:</p>
+<ul>
+  <li>choices you disagree with, and why;</li>
+  <li>GenroPy behaviour we forgot or misread;</li>
+  <li>uses in your applications that a decision would break.</li>
+</ul>
+<p>Numbers about "real usage" come from the Sourcerer index of the team's repositories (for example: 150 hierarchical tables in 35 application repositories). Every legacy fact is backed by a file and line in the analysis documents linked at the end.</p>
+
+<h2 id="what">What Asqueel is</h2>
+<p>Asqueel keeps what makes GenroPy's database layer valuable, the model as the single place where tables, relations, calculated columns and their descriptions live, and makes it usable outside GenroPy.</p>
+<ul>
+  <li><b>Any Python application</b> declares a model, opens a database and queries it with the same expression language GenroPy uses (<code>$col</code>, <code>@rel.col</code>, <code>:param</code>, macros).</li>
+  <li><b>A GenroPy application</b> uses Asqueel through an adapter. The adapter translates GenroPy declarations (<code>config_db</code>, <code>sysFields</code>, table attributes, grid structures) into Asqueel declarations, and turns results back into the shapes GenroPy code expects.</li>
+</ul>
+<figure class="diagram" aria-label="Asqueel architecture">
+<svg viewBox="0 0 960 360" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>A model declaration or the GenroPy adapter builds one source tree; renderers produce model objects, the migration structure and the grammar reference; the compiler, dialect and driver run queries on the database.</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="d-arrowhead"/>
+    </marker>
+  </defs>
+  <g class="d-text">
+    <rect x="10" y="20" width="230" height="110" rx="8" class="d-box d-asq"/>
+    <text x="125" y="48" text-anchor="middle" class="d-cap">Any Python application</text>
+    <text x="125" y="80" text-anchor="middle">Model declaration</text>
+    <text x="125" y="104" text-anchor="middle" class="d-code">configure(self, tables)</text>
+
+    <rect x="10" y="170" width="230" height="170" rx="8" class="d-box d-leg"/>
+    <text x="125" y="198" text-anchor="middle" class="d-cap">GenroPy application</text>
+    <text x="125" y="228" text-anchor="middle" class="d-code">config_db, sysFields</text>
+    <text x="125" y="250" text-anchor="middle" class="d-code">table attributes, grid structs</text>
+    <rect x="45" y="278" width="160" height="44" rx="6" class="d-box d-adapter"/>
+    <text x="125" y="305" text-anchor="middle">GenroPy adapter</text>
+    <line x1="125" y1="258" x2="125" y2="276" class="d-line" marker-end="url(#arr)"/>
+
+    <rect x="330" y="140" width="200" height="80" rx="8" class="d-box d-core"/>
+    <text x="430" y="175" text-anchor="middle">Source tree</text>
+    <text x="430" y="199" text-anchor="middle" class="d-small">genro-builders</text>
+    <path d="M240,75 C290,75 290,165 328,170" class="d-line" marker-end="url(#arr)"/>
+    <path d="M205,300 C290,300 290,200 328,192" class="d-line" marker-end="url(#arr)"/>
+
+    <rect x="620" y="20" width="200" height="70" rx="8" class="d-box d-core"/>
+    <text x="720" y="50" text-anchor="middle">Model objects</text>
+    <text x="720" y="72" text-anchor="middle" class="d-small">tables, columns, relations</text>
+    <rect x="620" y="145" width="200" height="70" rx="8" class="d-box"/>
+    <text x="720" y="175" text-anchor="middle">Migration structure</text>
+    <text x="720" y="197" text-anchor="middle" class="d-small">asqueel-migration</text>
+    <rect x="620" y="270" width="200" height="70" rx="8" class="d-box"/>
+    <text x="720" y="300" text-anchor="middle">Grammar reference</text>
+    <text x="720" y="322" text-anchor="middle" class="d-small">generated docs</text>
+    <path d="M530,165 C575,165 575,55 618,55" class="d-line" marker-end="url(#arr)"/>
+    <line x1="530" y1="180" x2="618" y2="180" class="d-line" marker-end="url(#arr)"/>
+    <path d="M530,195 C575,195 575,305 618,305" class="d-line" marker-end="url(#arr)"/>
+    <text x="574" y="132" text-anchor="middle" class="d-small">renderers</text>
+
+    <rect x="860" y="10" width="90" height="90" rx="8" class="d-box d-db"/>
+    <text x="905" y="42" text-anchor="middle" class="d-small">compiler</text>
+    <text x="905" y="60" text-anchor="middle" class="d-small">dialect</text>
+    <text x="905" y="78" text-anchor="middle" class="d-small">driver</text>
+    <line x1="820" y1="55" x2="858" y2="55" class="d-line" marker-end="url(#arr)"/>
+    <text x="905" y="125" text-anchor="middle" class="d-small">PostgreSQL</text>
+    <text x="905" y="143" text-anchor="middle" class="d-small">SQLite</text>
+  </g>
+</svg>
+</figure>
+<p>Three things stay out of the Asqueel core and belong to the adapter or to the application: user interface, GenroPy package composition, and the web application's notifications.</p>
+
+<h2 id="builders">Why the builders matter</h2>
+<p>GenroPy declares a model by calling methods that write attributes into a Bag. Asqueel declares it through a <b>grammar</b> built with genro-builders. Most differences in this document follow from what a grammar gives that loose attributes do not. This is the basis for every "why" box below.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Builders capability</th><th>What it means for a model</th><th>GenroPy today</th></tr></thead>
+  <tbody>
+    <tr><td>Each element is a method with a typed signature (<code>@element</code>)</td><td>Every declaration has a known set of parameters. An unknown keyword is a validation error; free extensions use the <code>x_</code> prefix.</td><td>Unknown table and column attributes are stored silently. Typos such as <code>rowCaption</code>, <code>captionField</code>, <code>partitioned_progetto_id</code> exist in applications and are never read.</td></tr>
+    <tr><td>Containment rules (<code>parent_tags</code>, <code>sub_tags</code> with cardinality)</td><td>"At most one <code>options</code> per table", "a feature only inside <code>options</code>", "a relation only on a column" are grammar rules, checked when the model is built.</td><td>Checked by convention, or not at all.</td></tr>
+    <tr><td>Two phases: build a source tree, then render it</td><td>The declaration is a recipe. Renderers turn the same source into model objects, into the migration structure, and into documentation. A renderer may read a node first and produce several objects from it.</td><td>Declaration and compiled model are built in one pass; helpers such as <code>sysFields</code> write columns directly while the table is being declared.</td></tr>
+    <tr><td>Grammar introspection</td><td>The grammar reference (<code>docs/grammar.md</code>) is generated from the signatures and docstrings, and a test compares it byte for byte. Every option gets a documented entry with its parameters and defaults.</td><td>Most table attributes have no documentation (analysis 38 lists about 80 attribute names and families, almost all undocumented).</td></tr>
+    <tr><td>Routing of children (<code>SqlBuilder.set_child</code>)</td><td>The author writes <code>tbl.column(...)</code> on the table; the builder files it in the right internal container. Verified with a prototype.</td><td>Same author experience, different mechanism.</td></tr>
+  </tbody>
+</table></div>
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Is "the model is a grammar" acceptable as the foundation, given that GenroPy code will reach it through the adapter?</li>
+  <li>Do you see GenroPy model features that a closed signature would make hard to express?</li>
+</ol></div>
+
+<h2 id="model">Declaring a model</h2>
+<div class="cmp">
+  <div class="legacy"><p class="label">GenroPy</p>
+<pre>class Table(object):
+    def config_db(self, pkg):
+        tbl = pkg.table('invoice', pkey='id',
+                        name_long='!![en]Invoice',
+                        caption_field='number')
+        self.sysFields(tbl, counter='customer_id')
+        tbl.column('number', size=':10')
+        tbl.column('customer_id', size='22').relation(
+            'sales.customer.id', mode='foreignkey',
+            relation_name='invoices', onDelete='raise')
+        tbl.column('total', dtype='N', size='12,2',
+                   group='amounts.010')
+        tbl.aliasColumn('customer_name',
+                        '@customer_id.name')</pre></div>
+  <div class="asq"><p class="label">Asqueel</p>
+<pre>class InvoiceModel:
+    def configure(self, tables):
+        tbl = tables.table('invoice', pkey='id',
+                           name_long='Invoice',
+                           caption_field='number')
+        opts = tbl.options()
+        opts.sys_fields()
+        opts.auto_counter('customer_id')
+        tbl.column('number', size=':10')
+        tbl.column('customer_id', size='22').relation(
+            'sales.customer.id',
+            relation_name='invoices', on_delete='raise')
+        amounts = tbl.colgroup('amounts', name_long='Amounts')
+        amounts.column('total', dtype='N', size='12,2')
+        tbl.aliasColumn('customer_name',
+                        relation_path='@customer_id.name')
+        return tbl</pre></div>
+</div>
+
+<h3>Columns are declared on the table <span class="status s-decided">Decided</span></h3>
+<p>As in GenroPy: <code>tbl.column</code>, <code>tbl.formulaColumn</code>, <code>tbl.aliasColumn</code>, <code>tbl.index</code>. The explicit form <code>tbl.columns().column(...)</code> of Asqueel 0.4 goes away. A name used by both a physical and a virtual column is an error; GenroPy's <code>_override</code> comes later with package composition. Supported column elements: <code>column</code>, <code>formulaColumn</code>, <code>aliasColumn</code>, <code>subQueryColumn</code>, <code>pyColumn</code>, <code>compositeColumn</code>. Not yet: <code>joinColumn</code>, <code>bagItemColumn</code>, <code>toolColumn</code>, <code>aliasTable</code>, <code>subtable</code>, localized columns.</p>
+
+<h3>One method, <code>configure</code> <span class="status s-decided">Decided</span></h3>
+<p>A table is declared in <code>configure(self, tables)</code>, which returns the table. There is no <code>config_db</code> and no method per role. The GenroPy adapter calls the legacy <code>config_db</code> methods and translates them.</p>
+
+<h3>Column groups <span class="status s-decided">Decided</span></h3>
+<p><code>tbl.colgroup(name, name_long=..., col_*=...)</code> declares a group once. A column joins it by being declared through the group, or with <code>colgroup='name'</code> on the table. Order is declaration order; there are no position numbers.</p>
+<div class="why"><p><b>Why it differs.</b> GenroPy's <code>group='amounts.010'</code> mixes grouping, ordering and interface visibility in one string, and the legacy <code>colgroup</code> counter never advances (every column gets <code>.001</code>). As a grammar element, a group has its own signature, defaults for its columns (<code>col_*</code>) and three checked errors: undeclared group, conflicting group, group declared twice.</p></div>
+
+<h3>Relations <span class="status s-decided">Decided</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Element</th><th>Database</th><th>Target</th></tr></thead>
+  <tbody>
+    <tr><td><code>relation(...)</code></td><td><code>FOREIGN KEY ... ON UPDATE CASCADE</code> plus an index on the source columns</td><td>must have a unique key; otherwise an error</td></tr>
+    <tr><td><code>weak_relation(...)</code></td><td>no constraint; index on source and target columns</td><td>trusted to be unique; <code>insensitive=True</code> joins case-insensitively</td></tr>
+  </tbody>
+</table></div>
+<p>Parameters keep GenroPy names in snake_case: <code>related_column</code>, <code>relation_name</code>, <code>one_name</code>, <code>many_name</code>, <code>one_one</code>, <code>on_delete</code> / <code>on_update</code> (Python actions on related records), <code>on_delete_sql</code> / <code>on_update_sql</code> (SQL actions of the foreign key), <code>deferred</code>, <code>deferrable</code>, <code>initially_deferred</code>. The outgoing relation is named after its column (<code>@customer_id</code>); <code>x_name</code> goes away.</p>
+<div class="why"><p><b>Why it differs.</b> In GenroPy a bare <code>relation()</code> is logical and <code>mode='foreignkey'</code> adds the constraint. In the eight largest application repositories, 3555 of 4134 relations (86%) use <code>mode='foreignkey'</code>, so the common case becomes the short one. Two elements instead of a <code>mode</code> string give each kind its own closed parameter set: <code>insensitive</code> exists only where it can work, since a foreign key cannot compare case-insensitively. Links to non-unique targets, filtered relations and "one row by order" are left to <code>virtualRelation</code> (genropy_meta#1).</p></div>
+
+<h3>Composite keys and constraints <span class="status s-decided">Decided</span></h3>
+<p>One concept covers every key on several columns, as in GenroPy: <code>compositeColumn(name, columns='a,b', unique=True)</code>. Its value is the serialized key (<code>'["P1", 2024]'</code>); it is selected by <code>*</code>; <code>unique=True</code> creates the multi-column <code>UNIQUE</code>; <code>.relation(...)</code> on a composite targets another composite. <code>pkey</code> always names one column, physical or composite. The <code>constraint</code> element leaves the model: <code>CHECK</code> constraints come back with the other native database objects (triggers, functions, views).</p>
+<p>Every relation creates an index on its source columns unless they are already the leading columns of the primary key, a <code>UNIQUE</code> constraint or an index. There is no option to switch it off.</p>
+
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Does any application depend on a logical <code>relation()</code> without foreign key in a way that <code>weak_relation()</code> would not cover?</li>
+  <li>Are there uses of <code>group='name.NNN'</code> numbering that a declaration-order group cannot reproduce?</li>
+  <li>Do you use <code>constraint</code> or <code>CHECK</code> in GenroPy models today?</li>
+</ol></div>
+
+<h2 id="options">Table features and options</h2>
+<p>GenroPy adds system columns and behaviours through <code>sysFields(...)</code> arguments, table attributes and base classes. Asqueel gathers table features in one visible block, <code>tbl.options()</code>, where each feature is an element describing one function. The functions are taken from what GenroPy offers, not from how it implements them.</p>
+
+<h3>The first three options <span class="status s-decided">Decided</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Option</th><th>Functions</th><th>GenroPy source</th></tr></thead>
+  <tbody>
+    <tr><td><code>sys_fields</code></td><td>generated primary key; insert and update timestamps; insert and update user; logical deletion; draft</td><td><code>sysFields(id, ins, upd, user_ins, user_upd, ldel, draftField)</code></td></tr>
+    <tr><td><code>auto_counter</code></td><td>row numbering over the table or inside a foreign key; numbering inside a master that never reuses numbers</td><td><code>sysFields(counter=...)</code>, <code>counter_&lt;name&gt;=</code>, <code>relidx</code></td></tr>
+    <tr><td><code>hierarchical</code></td><td>tree structure (next section)</td><td><code>sysFields(hierarchical=...)</code> and sub-options</td></tr>
+  </tbody>
+</table></div>
+<p>Rules: at most one <code>options</code> per table; a feature outside it is an error; <code>auto_counter</code> may appear once per foreign key; dependencies between features are checked by the validator (for example <code>hierarchical</code> requires a single-column primary key).</p>
+<div class="why"><p><b>Why it differs.</b> Columns are the table's content and are declared directly on it; features describe how the table behaves and stay together as a separate block. Because each option is a grammar element, a typo is an error instead of a silently ignored attribute, and the generated grammar reference documents every option. In GenroPy the same knowledge is spread over <code>sysFields</code> keyword arguments (1617 calls, 58% without arguments) and table attributes read in many places.</p></div>
+
+<h3>What becomes an option <span class="status s-open">Open</span></h3>
+<p>Measured on 5720 application model files in 66 repositories:</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Group</th><th>Attributes (files using them)</th></tr></thead>
+  <tbody>
+    <tr><td>Properties of the table, used almost everywhere</td><td><code>name_long</code> 5707, <code>name_plural</code> 5317, <code>pkey</code> 5219, <code>caption_field</code> 5047</td></tr>
+    <tr><td>Features used for real</td><td><code>rowcaption</code> 675, <code>lookup</code> 561, <code>partition_*</code> 240, <code>multidb</code> 134, <code>order_by</code> 105, <code>group_*</code> 90, <code>unifyRecordsTag</code> 58, <code>broadcast</code> 57, <code>archivable</code> 40, <code>audit</code> 20</td></tr>
+    <tr><td>Features written as base classes</td><td><code>AttachmentTable</code> 206 files, <code>TotalizeTable</code> 13</td></tr>
+    <tr><td>Never used in applications</td><td><code>lastTS</code>, <code>noChangeMerge</code>, <code>noTestForMerge</code>, <code>sqlschema</code>, <code>comment</code></td></tr>
+  </tbody>
+</table></div>
+<p>The other <code>sysFields</code> functions (optimistic concurrency, audit, diagnostics, row protection, invalid fields, record merge, system records, versioned updates) will be discussed one by one. The parameters of each option are open too.</p>
+
+<h3>Options registered by a package <span class="status s-open">Open</span></h3>
+<p>Ten GenroPy packages in seven repositories add behaviour to tables of <em>other</em> packages the same way: the table declares an attribute owned by the package (<code>multidb</code>, <code>wkfl</code>, <code>survey</code>, <code>e2l</code>, <code>tmsh_bookable</code>, <code>multi_tenant</code>, ...) and the package reads it and mixes a class into the table. Asqueel needs a way for a package to register its own options, with signature and documentation. Package-wide defaults for every table are rare (dbstore policy in six packages) and are not a first need. Package-level <code>Table</code> classes in <code>main.py</code> (199 packages) never override write hooks or <code>sysFields</code>.</p>
+
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Which table attributes do you consider features (options) and which plain properties of the table?</li>
+  <li>Are there package-owned table attributes in your applications besides the ten listed?</li>
+  <li>Should <code>AttachmentTable</code> and <code>TotalizeTable</code> become options instead of base classes?</li>
+</ol></div>
+
+<h2 id="hier">Hierarchical tables</h2>
+<h3>Model: kept from GenroPy <span class="status s-decided">Decided</span></h3>
+<p>A <code>parent_id</code> relation plus materialized paths, physical, of the primary key (<code>hierarchical_pkey</code>) and of the declared fields (<code>hierarchical_&lt;field&gt;</code>). Moving a node or renaming a path field rewrites the subtree one child at a time with the Python triggers. Hierarchical tables are very static, so reads matter more than the cost of a rare rewrite. Sibling order is <code>auto_counter('parent_id')</code>; the tree sort key <code>_h_count</code> keeps GenroPy's 2 base-36 characters per level.</p>
+<div class="cmp">
+  <div class="legacy"><p class="label">GenroPy</p>
+<pre>self.sysFields(tbl, hierarchical='description',
+               counter=True, hierarchical_root_id=True)</pre></div>
+  <div class="asq"><p class="label">Asqueel</p>
+<pre>opts = tbl.options()
+opts.sys_fields()
+opts.hierarchical('description')
+opts.auto_counter('parent_id')</pre></div>
+</div>
+
+<h3>Corrections <span class="status s-decided">Decided</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>GenroPy</th><th>Asqueel</th><th>Issue</th></tr></thead>
+  <tbody>
+    <tr><td>Moving a node under its own descendant is not checked on the server: endless cascade</td><td>Error</td><td>genropy/genropy#1523</td></tr>
+    <tr><td>Parent and children are read with the draft and logical-deletion filters: a child of an archived parent becomes a root</td><td>Read without filters</td><td>#1524</td></tr>
+    <tr><td>A moved node keeps its old sibling position; <code>_h_count</code> becomes empty above 1295 siblings</td><td>Last position under the new parent; explicit error at the 1296th sibling</td><td>#1525</td></tr>
+    <tr><td><code>LIKE</code> on paths without escape (ids contain <code>_</code>); no index usable by <code>LIKE 'x%'</code></td><td>Escaped <code>LIKE</code>; <code>text_pattern_ops</code> index on PostgreSQL</td><td>#1526</td></tr>
+  </tbody>
+</table></div>
+<p>The core will also offer subtree, ancestors and root with "node included" or "node excluded" stated explicitly. Today applications write the subtree filter by hand in three different forms. Their form will be decided together with GEP 1 and <code>virtualRelation</code>.</p>
+<p><span class="status s-open">Open</span> A null value in a path field; a <code>/</code> inside a path value; <code>copyFromParent</code> applied only on insert and move; <code>_parent_h_*</code> computed instead of physical. Not in the first increment: <code>hierarchical_linked_to</code>, virtual roots, <code>hdepth</code> (one to three uses each).</p>
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Do your hierarchical tables ever see frequent moves or renames?</li>
+  <li>Do you store null values or <code>/</code> in fields used as hierarchical paths?</li>
+  <li>Do you rely on <code>_parent_h_*</code> columns in queries, or only in views?</li>
+</ol></div>
+
+<h2 id="expr">Writing expressions</h2>
+<p>The expression language is GenroPy's. Asqueel adds no alternative spelling; an unsupported form raises an error and never produces a different result.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Form</th><th>Meaning</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td><code>$col</code></td><td>column of the current table</td><td><span class="status s-decided">Decided</span></td></tr>
+    <tr><td><code>@customer_id.@state_id.name</code></td><td>path through relations; every relation segment starts with <code>@</code></td><td><span class="status s-decided">Decided</span></td></tr>
+    <tr><td><code>:name</code>, <code>:env_name</code></td><td>bound parameter; value from the environment</td><td><span class="status s-decided">Decided</span></td></tr>
+    <tr><td><code>#THIS.&lt;path&gt;</code></td><td>outer row in a correlated subquery, also inside <code>sql_formula</code></td><td><span class="status s-decided">Decided</span></td></tr>
+    <tr><td><code>#IN_RANGE(value, start, end)</code></td><td>bounds included; a <code>NULL</code> bound is open; every context</td><td><span class="status s-decided">Decided</span></td></tr>
+    <tr><td><code>#PERIOD($field, :p)</code></td><td>period decoded by <code>genro_toolbox.dates.parse_period</code>; always <code>&gt;= from AND &lt; day after end</code></td><td><span class="status s-decided">Decided</span>, <code>:p</code> vs <code>p</code> open (#1509)</td></tr>
+    <tr><td><code>#ENV</code></td><td>not ported: <code>:env_name</code> replaces it</td><td><span class="status s-decided">Decided</span></td></tr>
+    <tr><td><code>#BAG</code>, <code>#BAGCOLS</code>, <code>TSQUERY</code>, <code>VECQUERY</code>, <code>#PREF</code></td><td>later</td><td><span class="status s-open">Open</span></td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li><b>One parser, one resolver</b> shared by queries, formulas, row policies and <code>table.column()</code>. <span class="status s-decided">Decided</span></li>
+  <li><b>A path that reaches many rows</b> (for example <code>@invoices</code> from a customer) is an error. Its values come from GEP 1 relation functions: <code>@invoices.count()</code>, <code>@invoices.sum($total)</code>. The parser reads that form from the start, so GEP 1 only adds the functions. Asqueel never compiles a join that multiplies the rows of the main table. <span class="status s-decided">Decided</span></li>
+  <li><b><code>table.column('missing')</code></b> returns <code>None</code>, as in GenroPy; a path through a missing relation raises. Exceptions form one hierarchy rooted in <code>GnrSqlException</code>, one class per case. <span class="status s-decided">Decided</span></li>
+</ul>
+<div class="why"><p><b>Why it differs.</b> <code>#THIS.@rel.col</code> inside <code>sql_formula</code> is not expanded in GenroPy (genropy/genropy#1505); Asqueel resolves it like any other path. <code>#PERIOD</code> uses a half-open range so that a timestamp column includes the last day, which GenroPy's <code>BETWEEN</code> missed. The exception classes keep GenroPy names but share one root, so that <code>except GnrSqlException</code> catches all of them.</p></div>
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Do you write intermediate relation segments without <code>@</code> anywhere?</li>
+  <li>Which macros beyond <code>#THIS</code>, <code>#IN_RANGE</code>, <code>#PERIOD</code> do your applications need first?</li>
+</ol></div>
+
+<h2 id="select">Selecting columns</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>Form</th><th>GenroPy</th><th>Asqueel</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td><code>*</code></td><td>physical columns (<code>X</code> only with <code>bagFields</code>), then virtual columns with <code>static=True</code></td><td>same</td><td>&mdash;</td></tr>
+    <tr><td><code>*prefix_</code></td><td>returns every column since a 2020 regression</td><td>error</td><td>genropy/genropy#1504</td></tr>
+    <tr><td><code>*name</code>, <code>*@rel</code>, <code>*@rel.prefix_</code></td><td>expands relation columns, may multiply rows</td><td>error</td><td>no use in indexed projects; genropy/genropy#623</td></tr>
+    <tr><td><code>*@rel.(a,b)</code></td><td>multiplies rows, regroups in Python</td><td>error</td><td>removed by GEP 1 &sect;9.6; replaced by <code>@rel.to_json($a, $b)</code></td></tr>
+    <tr><td>path without <code>AS</code></td><td><code>_customer_id_name</code></td><td>same</td><td>clients and exports compute the same name</td></tr>
+    <tr><td><code>pkey</code> column in results</td><td>added by default</td><td>not added by the core; the adapter adds it</td><td>a core result contains what was asked</td></tr>
+    <tr><td><code>count()</code></td><td>&mdash;</td><td>same numbers as GenroPy; error with <code>limit</code> or <code>offset</code></td><td>&mdash;</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="grouping">Grouping <span class="status s-direction">Direction</span></h2>
+<p>GenroPy's grouped view lets any user group any table view without code: drag fields, choose Break or an aggregate, see a flat list, a tree or a pivot, click a group to see its rows, save the view. Applications also use it from code (structures in 173 modules of 24 repositories). Asqueel's core will provide what that needs, for any interface:</p>
+<ul>
+  <li>a declarative, serializable grouping request (breaks, aggregates from a closed list, filters, pivot), compiled by the same resolver;</li>
+  <li>breaks on a hierarchical table that produce the intermediate nodes with their totals, at any depth;</li>
+  <li>roll-up rules computed in Python over a flat SQL <code>GROUP BY</code> (sum, count, min, max, weighted average, union of distinct values);</li>
+  <li>drill-down by condition instead of a list of primary keys; chaining, where the condition of a group filters a new grouping;</li>
+  <li>model metadata for the interface: relations, types, readable captions, hierarchical fields.</li>
+</ul>
+<div class="why"><p><b>Why it differs.</b> In GenroPy a break on <code>hierarchical_description</code> gives one node per full path ("Building Materials/Insulation/Batts") and no intermediate totals, because the tree builder never splits on <code>/</code> and the cell does not carry the hierarchical attribute. The legacy server inserts the aggregate name sent by the client directly into SQL; a closed list removes that. <code>_pkeylist</code> concatenates every key of a group, which grows with the data; a condition does not.</p></div>
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Which grouping features do your users rely on most: tree, pivot, saved views, dashboards?</li>
+  <li>Is drill-down by condition acceptable everywhere, or do some screens need the explicit key list?</li>
+</ol></div>
+
+<h2 id="pkey">Primary keys <span class="status s-open">Open</span></h2>
+<p>Analysis only. In GenroPy <code>newPkeyValue(record)</code> calls <code>pkeyValue(record)</code>, which tries six rules in order: composite key, numeric <code>max + 1</code>, UUID when there is no record, <code>pkey_columns</code>, <code>__syscode</code>, 22-character text UUID; otherwise it returns <code>None</code>. Four applications override <code>newPkeyValue</code> (a code from a counter, a fixed key for a one-row table, <code>_</code> replaced for bank imports, a random code retried until unique).</p>
+<p>Defects to avoid: <code>max + 1</code> without a lock; <code>insertMany</code> giving every record the same numeric key; <code>pkey_columns</code> collisions when values are <code>None</code> or contain the joiner; a silent <code>None</code> when no rule applies. Asqueel today does not generate keys: it inserts the values given and reads back <code>RETURNING</code>.</p>
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Which key types do new tables use: 22-character UUID, serial, codes?</li>
+  <li>Do you need the per-table override point, or would declared rules cover your cases?</li>
+</ol></div>
+
+<h2 id="writes">Writes and Python actions</h2>
+<p><b>Python first</b> <span class="status s-decided">Decided</span>: when a behaviour can live in Python or in SQL, the Python one prevails; names follow, the short name is the Python action and the <code>_sql</code> suffix the SQL one (<code>on_delete</code> versus <code>on_delete_sql</code>). The full write cycle (field triggers, counters, cascades on related records, protections) is still to be designed; the adapter obligations below list the GenroPy protocol it must reproduce.</p>
+
+<h2 id="adapter">The GenroPy adapter</h2>
+<p>The adapter is how existing GenroPy code keeps working. It is a separate layer: package composition, application rules and notifications do not go into the PostgreSQL or SQLite driver.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>GenroPy side</th><th>Adapter duty</th></tr></thead>
+  <tbody>
+    <tr><td><code>config_db(pkg)</code>, <code>config_db_&lt;pkg&gt;</code></td><td>Call them and produce the Asqueel declaration</td></tr>
+    <tr><td><code>sysFields(...)</code> arguments, table attributes</td><td>Map them to <code>options</code> elements</td></tr>
+    <tr><td><code>relation(mode=...)</code>, <code>group='name.NNN'</code></td><td>Map to <code>relation</code> / <code>weak_relation</code> and to <code>colgroup</code></td></tr>
+    <tr><td>Results read as <code>row['pkey']</code></td><td>Add <code>$pkey AS pkey</code> with GenroPy's exclusions (no pkey, count, <code>distinct</code>, <code>group_by</code>, formula subqueries, aggregates)</td></tr>
+    <tr><td>Write protocol: <code>checkPkey</code>, <code>protect_*</code>, field triggers, package triggers, counters, <code>dbo_on*</code>, <code>updateRelated</code> / <code>deleteRelated</code>, <code>_onDbChange</code></td><td>Reproduce the order; the order is part of the contract</td></tr>
+    <tr><td><code>tempEnv</code>, named connections, stores</td><td>Keep <code>tempEnv</code> as the context modifier; store switching is not in the core</td></tr>
+    <tr><td>Grouped view grid structures</td><td>Translate into grouping requests and back (<code>_grp_count_sum</code>, <code>_pkeylist</code>, <code>_thgroup_pkey</code>)</td></tr>
+  </tbody>
+</table></div>
+<div class="ask"><p class="t">Questions</p><ol>
+  <li>Which GenroPy behaviours must the adapter keep bit for bit, and which may it improve?</li>
+  <li>What is missing from this list?</li>
+</ol></div>
+
+<h2 id="diff">All differences from GenroPy</h2>
+<p>Every divergence needs a written reason: measured usage, a defect shown in the code, a database requirement, or a GEP decision. The last column names the builders capability involved, when there is one.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>GenroPy</th><th>Asqueel</th><th>Reason</th><th>Builders</th></tr></thead>
+  <tbody>
+    <tr><td><code>config_db</code>, attributes written into a Bag</td><td><code>configure</code>, grammar elements</td><td>one checked, documented declaration</td><td>typed elements, two-phase build</td></tr>
+    <tr><td>Unknown attributes accepted silently</td><td>Error; extensions use <code>x_</code></td><td>application typos never read</td><td>closed signatures</td></tr>
+    <tr><td>Table features as <code>sysFields</code> arguments, attributes, base classes</td><td><code>tbl.options()</code> elements</td><td>one visible block, one doc entry per option</td><td>containment rules, introspection</td></tr>
+    <tr><td><code>relation()</code> logical, <code>mode='foreignkey'</code> adds the FK</td><td><code>relation()</code> is the FK; <code>weak_relation()</code> logical</td><td>86% of relations use <code>mode='foreignkey'</code></td><td>one element per kind, own parameters</td></tr>
+    <tr><td><code>mode='insensitive'</code></td><td><code>weak_relation(insensitive=True)</code></td><td>a foreign key cannot compare case-insensitively; no use found</td><td>parameter only where valid</td></tr>
+    <tr><td><code>group='name.NNN'</code>, <code>group_&lt;name&gt;=</code></td><td><code>colgroup</code></td><td>the encoding mixes grouping, order and visibility; counter never advances</td><td>group as element with checked errors</td></tr>
+    <tr><td><code>indexed</code> on a relation ignored</td><td>always indexed unless covered by leading columns</td><td>GenroPy checks pkey membership, not position</td><td>&mdash;</td></tr>
+    <tr><td>Relation to a non-unique target accepted</td><td><code>relation</code>: error; <code>weak_relation</code>: trusted</td><td>silent row duplication</td><td>&mdash;</td></tr>
+    <tr><td><code>constraint</code> element</td><td>removed; <code>CHECK</code> with native objects</td><td>composite <code>UNIQUE</code> is a <code>compositeColumn</code></td><td>&mdash;</td></tr>
+    <tr><td><code>*prefix_</code>, <code>*@rel</code>, <code>*@rel.(a,b)</code>, <code>*name</code></td><td>error</td><td>#1504, #623, GEP 1 &sect;9.6</td><td>&mdash;</td></tr>
+    <tr><td><code>#THIS.@rel.col</code> not expanded in <code>sql_formula</code></td><td>expanded</td><td>#1505</td><td>&mdash;</td></tr>
+    <tr><td><code>#PERIOD</code> with <code>BETWEEN</code></td><td>half-open range</td><td>last day lost on timestamps</td><td>&mdash;</td></tr>
+    <tr><td>Hierarchical defects</td><td>cycles, filters, positions, <code>LIKE</code> fixed</td><td>#1523&ndash;#1526</td><td>&mdash;</td></tr>
+    <tr><td><code>pkey</code> column added to every result</td><td>added by the adapter</td><td>core results contain what was asked</td><td>&mdash;</td></tr>
+    <tr><td>Grouped view: no hierarchy, free aggregate names, key lists</td><td>hierarchical breaks, closed aggregates, conditions</td><td>verified in the browser on <code>test_invoice_pg</code></td><td>&mdash;</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="open">Open decisions</h2>
+<ol>
+  <li>Which GenroPy table attributes become <code>options</code> elements and which stay attributes of the table.</li>
+  <li>How a package registers its own options.</li>
+  <li>The parameters of <code>sys_fields</code>, <code>auto_counter</code> and <code>hierarchical</code>.</li>
+  <li>The other <code>sysFields</code> functions: optimistic concurrency, audit, diagnostics, row protection, invalid fields, record merge, system records, versioned updates.</li>
+  <li>Hierarchical tables: null path values, <code>/</code> in path values, <code>copyFromParent</code>, <code>_parent_h_*</code>.</li>
+  <li>The form of subtree, ancestors and root, together with GEP 1 and <code>virtualRelation</code>.</li>
+  <li>Grouping: the shape of the request and of the result.</li>
+  <li>Which model-build hooks Asqueel supports (<code>onBuildingDbobj</code>, <code>custom_type_&lt;dtype&gt;</code> used by 75 packages, <code>onApplicationInited</code>, ...).</li>
+  <li>Primary key generation and new records (<code>pkeyValue</code>, <code>newPkeyValue</code>, <code>newRecord</code>).</li>
+  <li><code>#PERIOD</code>: whether the bare parameter name <code>p</code> stays valid next to <code>:p</code> (genropy/genropy#1509).</li>
+  <li>The full write cycle in the core.</li>
+</ol>
+
+<h2 id="questions">Questions for the team</h2>
+<p>Beyond the questions in each section, three general ones:</p>
+<ol>
+  <li>Does the picture of Asqueel as "GenroPy's SQL layer as a library, reached by GenroPy through an adapter" match what you expect?</li>
+  <li>Which GenroPy features do your applications depend on that this document does not mention at all?</li>
+  <li>Which decision marked <span class="status s-decided">Decided</span> would you reopen, and with what evidence?</li>
+</ol>
+
+<footer>
+  <p>Sources in the Asqueel repository: <code>docs/proposals/0001-model-and-expressions.md</code>; analyses <code>docs/design/34</code> (sysFields), <code>35</code> (model-build hooks), <code>36</code> (hierarchical tables), <code>37</code> (grouped view), <code>38</code> (table attributes and package Table classes), <code>39</code> (primary keys); <code>docs/adattamenti-legacy.md</code> (adapter obligations). GenroPy issues opened during the analysis: genropy/genropy#1504, #1505, #1509, #1523&ndash;#1527.</p>
+</footer>
+</main>
+</div>
