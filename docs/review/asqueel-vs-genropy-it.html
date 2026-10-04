@@ -243,13 +243,12 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <ul>
   <li><b>La sintassi di GenroPy &egrave; quella di default.</b> Un modello o un&#39;espressione scritti per GenroPy significano la stessa cosa in Asqueel, quando Asqueel li supporta.</li>
   <li><b>Nessuna grafia alternativa.</b> Asqueel non aggiunge un secondo modo di scrivere ci&ograve; che GenroPy esprime gi&agrave;.</li>
-  <li><b>Ogni divergenza ha un motivo esterno scritto</b>: un inventario dell&#39;uso reale, un difetto del legacy mostrato nel codice, un requisito del database o la decisione di un GEP.</li>
+  <li><b>Ogni divergenza ha un motivo esterno scritto</b>: un inventario dell&#39;uso reale, un difetto del legacy mostrato nel codice o un requisito del database.</li>
   <li><b>Una forma non supportata d&agrave; un errore esplicito</b>, mai un risultato diverso.</li>
   <li><b>Prima Python.</b> Nel dubbio fra un comportamento in Python e uno delegato all&#39;SQL prevale quello Python. Il nome corto &egrave; l&#39;azione Python, il suffisso <code>_sql</code> quella SQL.</li>
   <li><b>snake_case per i parametri.</b> Un parametro di GenroPy tiene il nome in forma snake (<code>onDelete_sql</code> &rarr; <code>on_delete_sql</code>). I nomi degli elementi di GenroPy restano invariati (<code>formulaColumn</code>, <code>aliasColumn</code>, <code>compositeColumn</code>); gli elementi nuovi sono in snake (<code>weak_relation</code>, <code>colgroup</code>, <code>sys_fields</code>).</li>
   <li><b>La dichiarazione &egrave; una ricetta; il modello &egrave; un albero di oggetti</b> prodotto da un renderer, senza corrispondenza uno a uno fra nodi e oggetti.</li>
   <li><b>Le funzioni si prendono da ci&ograve; che GenroPy offre</b>, non dalla sua implementazione; la compatibilit&agrave; la d&agrave; l&#39;adattatore.</li>
-  <li><b>Spazio per due funzioni pianificate</b>: le funzioni di relazione del GEP 1 e <code>virtualRelation</code>. Niente di questa proposta duplica ci&ograve; che daranno.</li>
   <li><b>Ci&ograve; che non &egrave; implementato resta assente</b>, senza codice provvisorio.</li>
 </ul>
 <div class="fb" data-item="principles"></div>
@@ -308,8 +307,30 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 </div>
 
 <h3>Le colonne si dichiarano sulla tabella <span class="status s-decided">Decisa</span></h3>
-<p>Come in GenroPy: <code>tbl.column</code>, <code>tbl.formulaColumn</code>, <code>tbl.aliasColumn</code>, <code>tbl.index</code>. Un nome usato sia da una colonna fisica sia da una virtuale &egrave; un errore; l'<code>_override</code> di GenroPy arriva con la composizione dei package. Elementi di colonna supportati: <code>column</code>, <code>formulaColumn</code>, <code>aliasColumn</code>, <code>subQueryColumn</code>, <code>pyColumn</code>, <code>compositeColumn</code>. Non ancora: <code>joinColumn</code>, <code>bagItemColumn</code>, <code>toolColumn</code>, <code>aliasTable</code>, <code>subtable</code>, colonne localizzate.</p>
+<p>Come in GenroPy: <code>tbl.column</code>, <code>tbl.formulaColumn</code>, <code>tbl.aliasColumn</code>, <code>tbl.index</code>. Un nome usato sia da una colonna fisica sia da una virtuale &egrave; un errore; l'<code>_override</code> di GenroPy arriva con la composizione dei package. Elementi di colonna: <code>column</code>, <code>formulaColumn</code>, <code>aliasColumn</code>, <code>subQueryColumn</code>, <code>pyColumn</code>, <code>compositeColumn</code>, <code>bagItemColumn</code>.</p>
 <div class="fb" data-item="columns"></div>
+
+<h3>Valori dentro una colonna Bag <span class="status s-direction">Direzione</span></h3>
+<p><code>bagItemColumn(nome, bagcolumn='$metadata', itempath='status', dtype=...)</code> legge un valore da dentro una colonna di tipo Bag. Nelle applicazioni &egrave; molto usata: 77 moduli in 23 repository, circa 200 dichiarazioni. In GenroPy l'estrazione usa XPath sulla forma XML della Bag. Da progettare: l'SQL che estrae il valore, per dialetto, e il tipo del risultato.</p>
+<div class="fb" data-item="bagitem"></div>
+
+<h3>Subtable <span class="status s-direction">Direzione</span></h3>
+<p>In GenroPy una subtable &egrave; un sottoinsieme con nome di una tabella: <code>tbl.subtable('industriale', condition='$conto_industriale IS TRUE')</code>. Si interroga con <code>query(subtable='industriale')</code>, anche combinando i nomi (<code>a&amp;b</code>, <code>a|b</code>, <code>!a</code>); la tabella pu&ograve; avere un <code>default_subtable</code>. Esiste anche una forma di package, <code>pkg.subtable(nome, maintable='pkg.tab')</code>, che copia colonne e relazioni della tabella principale e distingue le righe con la colonna <code>__subtable</code>. Nelle applicazioni la forma di tabella &egrave; in almeno 25 moduli di 10 repository.</p>
+<p>In asqueel una subtable diventa un oggetto del modello di prima classe. Si dichiara nella grammatica della tabella, eredita la configurazione della tabella principale (colonne, relazioni, opzioni) e aggiunge sempre la propria condizione. Si interroga come una tabella e pu&ograve; essere target di una relazione.</p>
+<p>Da decidere: il nome con cui si interroga; se una subtable aggiunge colonne virtuali proprie; cosa fa un insert in una subtable (controlla la condizione o imposta un valore); se la forma di package diventa un caso della stessa grammatica.</p>
+<div class="fb" data-item="subtable"></div>
+
+<h3>Altri elementi di colonna <span class="status s-open">Aperta</span></h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Elemento GenroPy</th><th>Cosa fa</th><th>Uso nelle applicazioni</th><th>Proposta</th></tr></thead>
+  <tbody>
+    <tr><td><code>joinColumn</code></td><td>colonna virtuale con <code>.relation(target, cnd=...)</code>: collega la riga a un'altra tabella con una condizione, senza FK</td><td>circa 12 usi in 8 repository</td><td>sostituita da <code>virtualRelation</code>; l'adattatore traduce</td></tr>
+    <tr><td><code>toolColumn</code></td><td>colonna virtuale che mostra un link verso uno strumento esterno (per esempio un file ICS); con <code>dtype='P'</code> un'immagine</td><td>1 uso</td><td>da decidere</td></tr>
+    <tr><td><code>aliasTable</code></td><td>nome breve per un path di relazione (<code>'@invoice_id.@customer_id'</code>)</td><td>nessun uso attivo (2 commentati)</td><td>da decidere</td></tr>
+    <tr><td>colonne localizzate (<code>localized=True</code>)</td><td>una colonna con un valore per lingua del database, gestita dal package</td><td>pochi usi (teamset)</td><td>da decidere</td></tr>
+  </tbody>
+</table></div>
+<div class="fb" data-item="other-columns"></div>
 
 <h3>Un solo metodo, <code>configure</code> <span class="status s-decided">Decisa</span></h3>
 <p>Una tabella si dichiara in <code>configure(self, tables)</code>, che restituisce la tabella. Non esistono <code>config_db</code> n&eacute; metodi per ruolo. L'adattatore GenroPy chiama i <code>config_db</code> del legacy e li traduce.</p>
@@ -330,7 +351,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   </tbody>
 </table></div>
 <p>I parametri tengono i nomi di GenroPy in snake_case: <code>related_column</code>, <code>relation_name</code>, <code>one_name</code>, <code>many_name</code>, <code>one_one</code>, <code>on_delete</code> / <code>on_update</code> (azioni Python sui record collegati), <code>on_delete_sql</code> / <code>on_update_sql</code> (azioni SQL della FK), <code>deferred</code>, <code>deferrable</code>, <code>initially_deferred</code>. La relazione uscente prende il nome della sua colonna (<code>@customer_id</code>).</p>
-<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy un <code>relation()</code> semplice &egrave; logico e <code>mode='foreignkey'</code> aggiunge il vincolo. Negli otto repository applicativi pi&ugrave; grandi 3555 relazioni su 4134 (86%) usano <code>mode='foreignkey'</code>, quindi il caso comune diventa quello breve. Due elementi al posto di una stringa <code>mode</code> danno a ciascun tipo il suo insieme chiuso di parametri: <code>insensitive</code> esiste solo dove pu&ograve; funzionare, perch&eacute; una FK non confronta senza maiuscole. Target non unici, relazioni filtrate e &laquo;una riga per ordine&raquo; sono lasciati a <code>virtualRelation</code> (genropy_meta#1).</p></div>
+<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy un <code>relation()</code> semplice &egrave; logico e <code>mode='foreignkey'</code> aggiunge il vincolo. Negli otto repository applicativi pi&ugrave; grandi 3555 relazioni su 4134 (86%) usano <code>mode='foreignkey'</code>, quindi il caso comune diventa quello breve. Due elementi al posto di una stringa <code>mode</code> danno a ciascun tipo il suo insieme chiuso di parametri: <code>insensitive</code> esiste solo dove pu&ograve; funzionare, perch&eacute; una FK non confronta senza maiuscole. Target non unici, relazioni filtrate e &laquo;una riga per ordine&raquo; li copre <code>virtualRelation</code> (sezione &laquo;Relazioni virtuali&raquo;).</p></div>
 <div class="fb" data-item="relations"></div>
 
 <h3>Chiavi composite e vincoli <span class="status s-decided">Decisa</span></h3>
@@ -400,11 +421,11 @@ opts.auto_counter('parent_id')</pre></div>
     <tr><td><code>LIKE</code> sui path senza escape (gli id contengono <code>_</code>); nessun indice utilizzabile da <code>LIKE 'x%'</code></td><td><code>LIKE</code> con escape; indice <code>text_pattern_ops</code> su PostgreSQL</td><td>#1526</td></tr>
   </tbody>
 </table></div>
-<p>Il nucleo offrir&agrave; anche sottoalbero, antenati e radice, con &laquo;nodo incluso&raquo; o &laquo;nodo escluso&raquo; esplicito. Oggi le applicazioni scrivono il filtro del sottoalbero a mano in tre forme diverse. La forma si decider&agrave; insieme al GEP 1 e a <code>virtualRelation</code>.</p>
+<p>Il nucleo offrir&agrave; anche sottoalbero, antenati e radice, con &laquo;nodo incluso&raquo; o &laquo;nodo escluso&raquo; esplicito. Oggi le applicazioni scrivono il filtro del sottoalbero a mano in tre forme diverse. La forma si decider&agrave; insieme alle funzioni di relazione e a <code>virtualRelation</code>.</p>
 <div class="fb" data-item="hier-fixes"></div>
 
 <h3>Punti aperti <span class="status s-open">Aperta</span></h3>
-<p>Valore nullo in un campo del path; <code>/</code> dentro un valore; <code>copyFromParent</code> applicato solo all'insert e allo spostamento; <code>_parent_h_*</code> calcolato invece che fisico. Fuori dal primo incremento: <code>hierarchical_linked_to</code>, nodi virtuali, <code>hdepth</code> (da uno a tre usi ciascuno).</p>
+<p>Valore nullo in un campo del path; <code>/</code> dentro un valore; <code>copyFromParent</code> applicato solo all'insert e allo spostamento; <code>_parent_h_*</code> calcolato invece che fisico. Da progettare anche: <code>hierarchical_linked_to</code>, nodi virtuali, <code>hdepth</code> (da uno a tre usi ciascuno).</p>
 <div class="fb" data-item="hier-open"></div>
 <div class="fb-missing" data-section="hier"></div>
 
@@ -434,17 +455,17 @@ opts.auto_counter('parent_id')</pre></div>
 </ul>
 <div class="fb" data-item="relation-names"></div>
 
-<h3>Passaggi verso molte righe <span class="status s-decided">Decisa</span></h3>
-<p>Un path che attraversa una relazione verso molte righe (per esempio <code>@invoices</code> da un cliente) &egrave; un errore. I suoi valori arriveranno dalle funzioni di relazione del GEP 1. Il parser legge questa forma fin dall'inizio, quindi il GEP 1 aggiunge solo le funzioni:</p>
+<h3>Funzioni di relazione verso molte righe <span class="status s-direction">Direzione</span></h3>
+<p>Una relazione verso molte righe (per esempio <code>@invoices</code> da un cliente) si legge con una funzione di relazione. Un path che la attraversa senza funzione &egrave; un errore.</p>
 <div class="tablewrap"><table>
-  <thead><tr><th>Funzione (GEP 1)</th><th>Risultato</th></tr></thead>
+  <thead><tr><th>Funzione</th><th>Risultato</th></tr></thead>
   <tbody>
     <tr><td><code>@invoices.count()</code></td><td>numero delle righe collegate</td></tr>
     <tr><td><code>@invoices.sum($total)</code></td><td>somma di una colonna delle righe collegate</td></tr>
     <tr><td><code>@invoices.to_json($number, $date)</code></td><td>le righe collegate come JSON; sostituisce <code>*@rel.(a,b)</code></td></tr>
   </tbody>
 </table></div>
-<p>Asqueel non compila mai un join che moltiplica le righe della tabella principale, e non riaggrega mai righe in Python. Le funzioni del GEP 1 si compilano come subquery correlate.</p>
+<p>Asqueel non compila mai un join che moltiplica le righe della tabella principale, e non riaggrega mai righe in Python. Le funzioni di relazione si compilano come subquery correlate.</p>
 <div class="fb" data-item="many-side"></div>
 
 <h3>Macro</h3>
@@ -462,7 +483,7 @@ opts.auto_counter('parent_id')</pre></div>
     <tr><td><code>#PERIOD($campo, :p)</code></td><td>Filtra <code>$campo</code> sul periodo descritto dal valore di <code>p</code> (<code>'today'</code>, <code>'today;today+7'</code>, <code>'questa settimana'</code>, <code>'2024'</code>, ...). Il periodo lo decodifica <code>genro_toolbox.dates.parse_period(text, workdate, locale)</code> (genro-toolbox 0.15.0) con <code>workdate</code> e <code>locale</code> del contesto; un valore non riconosciuto alza <code>PeriodError</code>. Il parser riproduce 2796 casi di GenroPy; le 432 divergenze approvate sono elencate con il motivo in genro-toolbox. L'SQL &egrave; sempre semiaperto: <code>$campo &gt;= :p_from AND $campo &lt; :p_to_next</code>, con <code>p_to_next</code> il giorno dopo la fine. Un valore letterale va tra apici: <code>#PERIOD($date, '2024')</code>. Un parametro mancante &egrave; un errore.</td><td><span class="status s-decided">Decisa</span>; <code>:p</code> o <code>p</code> da rivedere con #1509</td></tr>
     <tr><td><code>#PERIOD($date, $col)</code></td><td>Non ammesso: il testo del periodo si decodifica in Python durante la compilazione, prima che esista una riga. Neanche GenroPy espande questa forma. Si usa <code>#IN_RANGE($date, $inizio, $fine)</code> quando la riga contiene le due date, oppure un parametro (<code>:p</code>, <code>:env_p</code>).</td><td><span class="status s-decided">Decisa</span></td></tr>
     <tr><td><code>#ENV</code></td><td>Non portato: lo sostituisce <code>:env_name</code>.</td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>#BAG</code>, <code>#BAGCOLS</code>, <code>TSQUERY</code>, <code>VECQUERY</code>, <code>#PREF</code></td><td>In seguito.</td><td><span class="status s-open">Aperta</span></td></tr>
+    <tr><td><code>#BAG</code>, <code>#BAGCOLS</code>, <code>TSQUERY</code>, <code>VECQUERY</code>, <code>#PREF</code></td><td>Da progettare.</td><td><span class="status s-open">Aperta</span></td></tr>
   </tbody>
 </table></div>
 <div class="why"><p><b>Perch&eacute; cambia.</b> <code>#THIS.@rel.col</code> in <code>sql_formula</code> funziona come ogni altro path, mentre GenroPy non lo espande. <code>#PERIOD</code> usa un intervallo semiaperto: su una colonna data il risultato &egrave; quello di GenroPy, su un timestamp l'ultimo giorno &egrave; incluso, cosa che il <code>BETWEEN</code> di GenroPy perdeva.</p></div>
@@ -477,11 +498,9 @@ opts.auto_counter('parent_id')</pre></div>
 </ul>
 <div class="fb" data-item="column-api"></div>
 
-<h3>Pianificato, fuori da questa proposta</h3>
-<ul>
-  <li><b>Funzioni di relazione del GEP 1</b> sulle relazioni verso molte righe (tabella sopra).</li>
-  <li><b><code>virtualRelation</code></b> (genropy_meta#1): relazioni filtrate, collegamenti senza FK verso un target non unico, una riga scelta per ordine e limite, in sola lettura. Esempio: <code>virtualRelation('last_invoice', relation='@invoices', order_by='$date DESC', limit=1)</code>. Asqueel non progetta nulla che <code>virtualRelation</code> renderebbe inutile.</li>
-</ul>
+<h3>Relazioni virtuali <span class="status s-direction">Direzione</span></h3>
+<p><code>virtualRelation</code> dichiara una relazione in sola lettura che non ha una FK: relazioni filtrate, collegamenti verso un target non unico, una riga scelta per ordine e limite. Esempio: <code>virtualRelation('last_invoice', relation='@invoices', order_by='$date DESC', limit=1)</code>; poi <code>@last_invoice.date</code> si legge come ogni altro path.</p>
+<p>Sostituisce <code>joinColumn</code> di GenroPy, che usa sempre una condizione: su pi&ugrave; colonne, su un parametro d'ambiente (<code>:env_current_revisione_id</code>), su un intervallo di date (<code>#BETWEEN($date, @x.valid_from, @x.valid_to)</code>, <code>range=</code>). Da decidere per coprire tutti gli usi: il nome della relazione inversa (<code>relation_name</code>); la presenza in <code>*</code> (<code>static=True</code>); <code>range=</code>; se la relazione espone il valore del collegamento (l'id del target) come colonna.</p>
 <div class="fb" data-item="planned"></div>
 <div class="fb-missing" data-section="expr"></div>
 
@@ -492,7 +511,7 @@ opts.auto_counter('parent_id')</pre></div>
     <tr><td><code>*</code></td><td>colonne fisiche (<code>X</code> solo con <code>bagFields</code>), poi le virtuali con <code>static=True</code></td><td>uguale</td><td>&mdash;</td></tr>
     <tr><td><code>*prefix_</code></td><td>restituisce tutte le colonne dopo una regressione del 2020</td><td>errore</td><td>genropy/genropy#1504</td></tr>
     <tr><td><code>*name</code>, <code>*@rel</code>, <code>*@rel.prefix_</code></td><td>espande le colonne della relazione, pu&ograve; moltiplicare le righe</td><td>errore</td><td>nessun uso nei progetti indicizzati; genropy/genropy#623</td></tr>
-    <tr><td><code>*@rel.(a,b)</code></td><td>moltiplica le righe e le riaggrega in Python</td><td>errore</td><td>tolto dal GEP 1 &sect;9.6; lo sostituisce <code>@rel.to_json($a, $b)</code></td></tr>
+    <tr><td><code>*@rel.(a,b)</code></td><td>moltiplica le righe e le riaggrega in Python</td><td>errore</td><td>lo sostituisce <code>@rel.to_json($a, $b)</code></td></tr>
     <tr><td>path senza <code>AS</code></td><td><code>_customer_id_name</code></td><td>uguale</td><td>client ed export calcolano lo stesso nome</td></tr>
     <tr><td>colonna <code>pkey</code> nei risultati</td><td>aggiunta di default</td><td>non la aggiunge il nucleo; la aggiunge l'adattatore</td><td>un risultato del nucleo contiene ci&ograve; che si &egrave; chiesto</td></tr>
     <tr><td><code>count()</code></td><td>&mdash;</td><td>stessi numeri di GenroPy; errore con <code>limit</code> o <code>offset</code></td><td>&mdash;</td></tr>
@@ -552,6 +571,7 @@ opts.auto_counter('parent_id')</pre></div>
     <tr><td><code>config_db(pkg)</code>, <code>config_db_&lt;pkg&gt;</code></td><td>Chiamarli e produrre la dichiarazione Asqueel</td></tr>
     <tr><td>Argomenti di <code>sysFields(...)</code>, attributi di tabella</td><td>Tradurli in elementi di <code>options</code></td></tr>
     <tr><td><code>relation(mode=...)</code>, <code>group='name.NNN'</code></td><td>Tradurli in <code>relation</code> / <code>weak_relation</code> e in <code>colgroup</code></td></tr>
+    <tr><td><code>joinColumn(...).relation(..., cnd=...)</code>, <code>subtable(...)</code></td><td>Tradurli in <code>virtualRelation</code> e in subtable di asqueel</td></tr>
     <tr><td>Risultati letti come <code>row['pkey']</code></td><td>Aggiungere <code>$pkey AS pkey</code> con le esclusioni di GenroPy (nessuna pkey, count, <code>distinct</code>, <code>group_by</code>, subquery delle formule, aggregati)</td></tr>
     <tr><td>Protocollo di scrittura: <code>checkPkey</code>, <code>protect_*</code>, trigger di campo, trigger dei package, contatori, <code>dbo_on*</code>, <code>updateRelated</code> / <code>deleteRelated</code>, <code>_onDbChange</code></td><td>Riprodurre l'ordine; l'ordine fa parte del contratto</td></tr>
     <tr><td><code>tempEnv</code>, connessioni nominate, store</td><td>Tenere <code>tempEnv</code> come modificatore di contesto; il cambio di store non &egrave; nel nucleo</td></tr>
@@ -562,7 +582,7 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="fb-missing" data-section="adapter"></div>
 
 <h2 id="diff">Tutte le differenze da GenroPy</h2>
-<p>Ogni divergenza richiede un motivo scritto: uso misurato, difetto mostrato nel codice, requisito del database o decisione di un GEP. L'ultima colonna indica la capacit&agrave; dei builder coinvolta, quando c'&egrave;.</p>
+<p>Ogni divergenza richiede un motivo scritto: uso misurato, difetto mostrato nel codice o requisito del database. L'ultima colonna indica la capacit&agrave; dei builder coinvolta, quando c'&egrave;.</p>
 <div class="tablewrap"><table>
   <thead><tr><th>GenroPy</th><th>Asqueel</th><th>Motivo</th><th>Builder</th></tr></thead>
   <tbody>
@@ -575,10 +595,12 @@ opts.auto_counter('parent_id')</pre></div>
     <tr><td><code>indexed</code> su una relazione ignorato</td><td>sempre indicizzata salvo copertura delle prime colonne</td><td>GenroPy controlla l'appartenenza alla pkey, non la posizione</td><td>&mdash;</td></tr>
     <tr><td>Relazione verso target non unico accettata</td><td><code>relation</code>: errore; <code>weak_relation</code>: creduto unico</td><td>duplicazione silenziosa delle righe</td><td>&mdash;</td></tr>
     <tr><td>Elemento <code>constraint</code></td><td>tolto; <code>CHECK</code> con gli oggetti nativi</td><td>l'<code>UNIQUE</code> su pi&ugrave; colonne &egrave; una <code>compositeColumn</code></td><td>&mdash;</td></tr>
-    <tr><td><code>*prefix_</code>, <code>*@rel</code>, <code>*@rel.(a,b)</code>, <code>*name</code></td><td>errore</td><td>#1504, #623, GEP 1 &sect;9.6</td><td>&mdash;</td></tr>
+    <tr><td><code>*prefix_</code>, <code>*@rel</code>, <code>*@rel.(a,b)</code>, <code>*name</code></td><td>errore</td><td>#1504, #623; sostituito da <code>to_json</code></td><td>&mdash;</td></tr>
     <tr><td><code>#THIS.@rel.col</code> non espanso in <code>sql_formula</code></td><td>espanso</td><td>#1505</td><td>&mdash;</td></tr>
     <tr><td><code>#PERIOD</code> con <code>BETWEEN</code></td><td>intervallo semiaperto</td><td>ultimo giorno perso sui timestamp</td><td>&mdash;</td></tr>
     <tr><td>Difetti delle tabelle gerarchiche</td><td>cicli, filtri, posizioni, <code>LIKE</code> corretti</td><td>#1523&ndash;#1526</td><td>&mdash;</td></tr>
+    <tr><td><code>joinColumn</code></td><td><code>virtualRelation</code></td><td>un collegamento con condizione &egrave; una relazione, non una colonna</td><td>elemento con parametri propri</td></tr>
+    <tr><td>Subtable come filtro con nome</td><td>subtable come oggetto del modello che eredita dalla tabella</td><td>si interroga e si collega come una tabella</td><td>elemento della grammatica della tabella</td></tr>
     <tr><td>Colonna <code>pkey</code> in ogni risultato</td><td>aggiunta dall'adattatore</td><td>i risultati del nucleo contengono ci&ograve; che si &egrave; chiesto</td><td>&mdash;</td></tr>
     <tr><td>Grouped view: niente gerarchia, aggregati liberi, liste di chiavi</td><td>Break gerarchici, aggregati chiusi, condizioni</td><td>verificato in browser su <code>test_invoice_pg</code></td><td>&mdash;</td></tr>
   </tbody>
@@ -592,7 +614,11 @@ opts.auto_counter('parent_id')</pre></div>
   <li>I parametri di <code>sys_fields</code>, <code>auto_counter</code> e <code>hierarchical</code>.</li>
   <li>Le altre funzioni di <code>sysFields</code>: concorrenza ottimistica, audit, diagnostica, protezione di riga, campi invalidi, unione di record, record di sistema, aggiornamenti per versione.</li>
   <li>Tabelle gerarchiche: valori nulli nel path, <code>/</code> nei valori, <code>copyFromParent</code>, <code>_parent_h_*</code>.</li>
-  <li>La forma di sottoalbero, antenati e radice, insieme al GEP 1 e a <code>virtualRelation</code>.</li>
+  <li>La forma di sottoalbero, antenati e radice, insieme alle funzioni di relazione e a <code>virtualRelation</code>.</li>
+  <li><code>virtualRelation</code>: relazione inversa, presenza in <code>*</code>, <code>range=</code>, valore del collegamento.</li>
+  <li>Subtable: nome, colonne proprie, scrittura, forma di package.</li>
+  <li><code>bagItemColumn</code>: SQL di estrazione per dialetto e tipo del risultato.</li>
+  <li><code>toolColumn</code>, <code>aliasTable</code>, colonne localizzate.</li>
   <li>Raggruppamento: la forma della richiesta e del risultato.</li>
   <li>Quali hook di costruzione del modello supporta Asqueel (<code>onBuildingDbobj</code>, <code>custom_type_&lt;dtype&gt;</code> usato da 75 package, <code>onApplicationInited</code>, ...).</li>
   <li>Generazione delle chiavi primarie e nuovi record (<code>pkeyValue</code>, <code>newPkeyValue</code>, <code>newRecord</code>).</li>
@@ -656,6 +682,9 @@ opts.auto_counter('parent_id')</pre></div>
     ["principles", "Principi", "decided"],
     ["grammar", "Il modello come grammatica genro-builders", "decided"],
     ["columns", "Colonne dichiarate sulla tabella", "decided"],
+    ["bagitem", "bagItemColumn: valori dentro una colonna Bag", "direction"],
+    ["subtable", "Subtable come oggetti di prima classe", "direction"],
+    ["other-columns", "Altri elementi di colonna", "open"],
     ["configure", "Un solo metodo configure", "decided"],
     ["colgroup", "Gruppi di colonne con colgroup", "decided"],
     ["relations", "relation con FK, weak_relation logica", "decided"],
@@ -668,11 +697,11 @@ opts.auto_counter('parent_id')</pre></div>
     ["hier-open", "Tabelle gerarchiche: punti aperti", "open"],
     ["syntax", "Sintassi delle espressioni", "decided"],
     ["relation-names", "Nomi delle relazioni, anche inverse", "proposed"],
-    ["many-side", "Path verso molte righe: errore, poi GEP 1", "decided"],
+    ["many-side", "Funzioni di relazione verso molte righe", "direction"],
     ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed"],
     ["macros", "Macro #THIS, #IN_RANGE, #PERIOD, #ENV", "decided"],
     ["column-api", "table.column() ed eccezioni", "decided"],
-    ["planned", "GEP 1 e virtualRelation, pianificati", "direction"],
+    ["planned", "Relazioni virtuali (virtualRelation), sostituiscono joinColumn", "direction"],
     ["star", "Espansione di * e forme non supportate", "decided"],
     ["pkey-column", "Colonna pkey aggiunta dall'adattatore", "decided"],
     ["migrations", "Effetti sulle migrazioni", "decided"],

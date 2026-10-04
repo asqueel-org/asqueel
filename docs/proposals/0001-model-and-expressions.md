@@ -3,7 +3,6 @@
 | | |
 |---|---|
 | **Status** | Proposal — for team review |
-| **Implementation** | Not yet in the code. asqueel is being written: parts of this target arrive in later increments, without provisional implementations. |
 | **Date** | 2026-10-02 |
 | **Applies to** | asqueel |
 | **Plans** | [32 — expression parser and resolver](../design/32-expression-resolver-plan.md), [33 — model structure](../design/33-structure-rectification-plan.md) |
@@ -22,8 +21,8 @@ yet.
 - **No alternative spellings.** asqueel does not add a second way to write
   something GenroPy already expresses.
 - **Divergences are written down with an external reason**: an inventory of
-  real usage, a legacy defect shown in the code, a database requirement, or a
-  decision of a GenroPy proposal (GEP). Section 7 lists them.
+  real usage, a legacy defect shown in the code, or a database requirement.
+  Section 7 lists them.
 - **An unsupported form raises an explicit error.** It never produces a
   different result.
 - **Python first.** When in doubt between a behaviour implemented in Python and
@@ -39,11 +38,6 @@ yet.
   before building and may produce several objects from one node: there is no
   one-to-one correspondence between declaration nodes and model objects.
   **Decided.**
-- **The design leaves room for two planned features**: relation functions
-  ([GEP 1](https://github.com/genropy/genropy_meta/blob/main/gep/GEP-0001-relation-aggregates.md),
-  e.g. `@invoices.sum($total)`) and `virtualRelation`
-  ([genropy/genropy_meta#1](https://github.com/genropy/genropy_meta/issues/1)).
-  Nothing in this proposal duplicates what they will provide.
 
 ## 2. Declaring a table's content
 
@@ -72,10 +66,38 @@ table, as in GenroPy. The internal containers (`columns`, `virtual_columns`,
   **Decided.** GenroPy's `_override=True` is used where a package
   modifies another package's table; it comes with package composition.
 
-Supported column elements: `column`, `formulaColumn`, `aliasColumn`,
-`subQueryColumn`, `pyColumn`, `compositeColumn`.
-Not available yet (the grammar does not know them): `joinColumn`, `bagItemColumn`,
-`toolColumn`, `aliasTable`, `subtable`, `localized` and `ext_*` columns.
+Column elements: `column`, `formulaColumn`, `aliasColumn`, `subQueryColumn`,
+`pyColumn`, `compositeColumn`, `bagItemColumn`.
+
+- `bagItemColumn(name, bagcolumn='$metadata', itempath='status', dtype=...)`
+  reads a value inside a Bag column. Real usage: 77 modules in 23 application
+  repositories, about 200 declarations. GenroPy extracts it with XPath on the
+  XML form of the Bag. **Direction decided**; open: the extraction SQL per
+  dialect and the result type.
+- `joinColumn(...).relation(target, cnd=...)` is replaced by `virtualRelation`
+  (section 3.6); the adapter translates it. **Direction decided.**
+- `toolColumn` (a link to an external tool; 1 application use), `aliasTable`
+  (a short name for a relation path; no active use), `localized` columns (one
+  value per database language; few uses) and `ext_*` columns. **Open.**
+
+### 2.1.1 Subtables — Direction decided
+
+In GenroPy a subtable is a named subset of a table:
+`tbl.subtable('industriale', condition='$conto_industriale IS TRUE')`, queried
+with `query(subtable='industriale')`, names combinable with `&`, `|`, `!`, and
+a table-level `default_subtable`. A package-level form,
+`pkg.subtable(name, maintable='pkg.tab')`, copies the columns and relations of
+the main table and tells rows apart with a `__subtable` column. The table form
+appears in at least 25 modules of 10 application repositories.
+
+In asqueel a subtable is a first-class model object. It is declared in the
+table grammar, inherits the configuration of the main table (columns,
+relations, options) and always adds its own condition. It is queried like a
+table and can be the target of a relation.
+
+Open: the name it is queried by; whether a subtable adds virtual columns of its
+own; what an insert into a subtable does (checks the condition or sets a
+value); whether the package form becomes a case of the same grammar.
 
 `constraint` is not part of the model. A unique key on several columns is
 `compositeColumn(..., unique=True)`. `CHECK` constraints come back with the
@@ -127,8 +149,8 @@ tbl.column('legacy_code', size=':10').weak_relation('sales.customer.code', insen
 - `weak_relation(..., insensitive=True)` joins without case distinction.
 - A link to a target that is not unique, a filtered relation, or one row chosen
   by order and limit (for example the last invoice of a customer) is not a
-  parameter of `weak_relation`. These are `virtualRelation` cases, not
-  available until it exists.
+  parameter of `weak_relation`. These are `virtualRelation` cases (section
+  3.6).
 - The rows of the many side are reached through the inverse relation (section
   3.2), not through a relation declared on the one side.
 - Parameters, **Decided**: `related_column` (target), `relation_name`
@@ -259,8 +281,8 @@ class ProductTypeModel:
   per level, compatible with existing databases. The 1296th sibling under the
   same parent is an explicit error on insert.
 - The core provides subtree, ancestors and root, with the node included or
-  excluded explicitly. Their form is decided together with GEP 1 and
-  `virtualRelation`.
+  excluded explicitly. Their form is decided together with the relation
+  functions and `virtualRelation`.
 
 Corrections with respect to GenroPy, **Decided** (section 7):
 
@@ -275,7 +297,7 @@ Corrections with respect to GenroPy, **Decided** (section 7):
 `copyFromParent` only on insert and move; `_parent_h_*` computed instead of
 physical.
 
-Not available yet: `hierarchical_linked_to`, virtual roots, `hdepth`.
+**Open** as well: `hierarchical_linked_to`, virtual roots, `hdepth`.
 
 ## 3. Writing expressions
 
@@ -304,16 +326,16 @@ Not available yet: `hierarchical_linked_to`, virtual roots, `hdepth`.
   Without it, the name follows GenroPy's rule `<schema>_<table>_<column>` and
   the relation is private. **Proposed** (plan 32, step 2).
 
-### 3.3 Many-side hops — Decided
+### 3.3 Relation functions on many-side relations — Direction decided
 
-A path through a relation that reaches several rows (for example `@invoices`
-from a customer) is an error. Its values will be reached through GEP 1 relation
-functions: `@invoices.count()`, `@invoices.sum($total)`,
-`@invoices.to_json($number, $date)`. The parser already reads this form, so
-GEP 1 only adds the functions.
+A relation that reaches several rows (for example `@invoices` from a customer)
+is read through a relation function: `@invoices.count()`,
+`@invoices.sum($total)`, `@invoices.to_json($number, $date)`. A path through
+it without a function is an error.
 
 asqueel never compiles a join that multiplies the rows of the main table, and
-never regroups rows in Python.
+never regroups rows in Python. Relation functions compile to correlated
+subqueries.
 
 ### 3.4 Macros
 
@@ -372,6 +394,21 @@ never regroups rows in Python.
   In GenroPy these derive from `GnrException` and escape
   `except GnrSqlException`. **Decided.**
 
+### 3.6 Virtual relations — Direction decided
+
+`virtualRelation` declares a read-only relation without a foreign key:
+filtered relations, links to a target that is not unique, one row chosen by
+order and limit. Example:
+`virtualRelation('last_invoice', relation='@invoices', order_by='$date DESC', limit=1)`;
+then `@last_invoice.date` reads like any other path.
+
+It replaces GenroPy's `joinColumn`, which always uses a condition: on several
+columns, on an environment parameter (`:env_current_revisione_id`), on a date
+range (`#BETWEEN($date, @x.valid_from, @x.valid_to)`, `range=`). About 12
+application uses in 8 repositories. Open: the inverse relation name
+(`relation_name`), presence in `*` (`static=True`), `range=`, and whether the
+relation exposes the link value (the target id) as a column.
+
 ## 4. Selecting columns
 
 ### 4.1 `*` — Decided
@@ -388,7 +425,7 @@ rule.
 | `*prefix_` | error | Superfluous; since 2020 GenroPy returns every column for it ([genropy/genropy#1504](https://github.com/genropy/genropy/issues/1504)) |
 | `*name` (virtual column) | error | Only feeds `*@rel.(a,b)` |
 | `*@rel`, `*@rel.prefix_` | error | No usage in indexed projects ([genropy/genropy#623](https://github.com/genropy/genropy/issues/623)) |
-| `*@rel.(a,b)` | error | Removed by GEP 1 §9.6; replaced by `@rel.to_json($a, $b)` |
+| `*@rel.(a,b)` | error | Replaced by `@rel.to_json($a, $b)` |
 
 ### 4.3 Automatic result names — Decided
 
@@ -417,14 +454,9 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | `colgroup` | nothing |
 | virtual columns | nothing |
 
-## 6. Planned, not part of this proposal
+## 6. Further design
 
-- **GEP 1 relation functions** on many-side relations.
-- **`virtualRelation`**: filtered relations, links without a foreign key to a
-  target that is not unique, one row chosen by order and limit
-  (`virtualRelation('last_invoice', relation='@invoices', order_by='$date DESC', limit=1)`),
-  read-only.
-- **Macros** `#BAG`, `#BAGCOLS`, `TSQUERY`/`VECQUERY`, `#PREF`.
+- **Macros** `#BAG`, `#BAGCOLS`, `TSQUERY`/`VECQUERY`, `#PREF`: to be designed.
 - **Grouping.** The core will provide what GenroPy's grouped view needs, for
   any interface: a declarative, serializable grouping request (breaks,
   aggregates from a closed list, filters, pivot); breaks on a hierarchical
@@ -443,7 +475,9 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | `mode='insensitive'` | `weak_relation(insensitive=True)` | a foreign key cannot compare case-insensitively; no usage of `mode='insensitive'` in the same repositories |
 | `group='<name>.<NNN>'` on columns, `group_<name>=` on the table; `'_'`, `'*'`, `one_group`, `many_group` | `colgroup` only | the legacy encoding mixes grouping, ordering and interface visibility; its `colgroup` counter never advances (every column gets `.001`) |
 | `*prefix_` returns every column | error | regression of commit `87e8c97018` (2020); genropy/genropy#1504 |
-| `*@rel`, `*@rel.prefix_`, `*name`, `*@rel.(a,b)` | error | genropy/genropy#623; GEP 1 §9.6 |
+| `*@rel`, `*@rel.prefix_`, `*name`, `*@rel.(a,b)` | error | genropy/genropy#623; replaced by `to_json` |
+| `joinColumn` | `virtualRelation` | a link through a condition is a relation, not a column |
+| subtable as a named filter | subtable as a model object inheriting from the table | it is queried and linked like a table |
 | `indexed` on a relation is ignored (always indexed) | always indexed, skipped only when covered by leading columns of another key or index | GenroPy checks pkey membership, not leading position |
 | a relation to a non-unique target is accepted | `relation`: error (database requirement); `weak_relation`: trusted; non-unique links: `virtualRelation` | silent row duplication in GenroPy navigation |
 | moving a node under its descendant is not checked on the server | error | endless cascade; genropy/genropy#1523 |
@@ -462,3 +496,7 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | — | How a package registers its own options, the mechanism GenroPy packages emulate with table attributes and mixins (analysis 38 §7.3) |
 | — | Which model-build hooks asqueel supports ([analysis 35](https://github.com/asqueel-org/asqueel/blob/main/docs/design/35-model-build-hooks.md)) |
 | — | Primary key generation and new records: `pkeyValue`, `newPkeyValue`, `newRecord` |
+| — | `virtualRelation`: inverse relation name, presence in `*` (`static=True`), `range=`, exposing the link value as a column |
+| — | Subtables: query name, own columns, writes, package form |
+| — | `bagItemColumn`: extraction SQL per dialect and result type |
+| — | `toolColumn`, `aliasTable`, `localized` and `ext_*` columns |
