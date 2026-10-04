@@ -768,12 +768,10 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 <div class="fb-missing" data-section="general"></div>
 
 <h2 id="mymap">La tua mappa</h2>
-<p>I tuoi pareri, decisione per decisione. Ogni riga porta al punto da compilare. <span class="map-key"><span class="map-dot agree"></span>d'accordo <span class="map-dot disagree"></span>contrario <span class="map-dot unsure"></span>non so <span class="map-dot todo"></span>da compilare</span></p>
+<p>I tuoi pareri, sezione per sezione come nell'indice. Ogni riga porta al punto da compilare. <span class="map-key"><span class="map-dot agree"></span>d'accordo <span class="map-dot disagree"></span>contrario <span class="map-dot unsure"></span>non so <span class="map-dot todo"></span>senza risposta <span class="map-dot written"></span>segnalazione scritta</span></p>
 <p class="map-counts" id="map-counts"></p>
-<label class="fb-filter"><input type="checkbox" id="map-only-todo"> Mostra solo i punti da compilare</label>
-<ol class="map-list" id="map-items"></ol>
-<h3>Cosa manca, per sezione</h3>
-<ol class="map-list" id="map-missing"></ol>
+<label class="fb-filter"><input type="checkbox" id="map-only-todo"> Mostra solo le decisioni senza risposta</label>
+<ol class="map-tree" id="map-tree"></ol>
 
 <footer>
   <p>Fonti nel repository Asqueel: <code>docs/proposals/0001-model-and-expressions.md</code>; analisi <code>docs/design/34</code> (sysFields), <code>35</code> (hook di costruzione del modello), <code>36</code> (tabelle gerarchiche), <code>37</code> (grouped view), <code>38</code> (attributi di tabella e classi Table di package), <code>39</code> (chiavi primarie); <code>docs/adattamenti-legacy.md</code> (compiti dell'adattatore). Issue GenroPy aperte durante l'analisi: genropy/genropy#1504, #1505, #1509, #1523&ndash;#1527.</p>
@@ -812,6 +810,15 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .map-dot.disagree { background: #b3261e; }
 .map-dot.unsure { background: var(--muted); }
 .map-dot.todo { background: transparent; border-color: var(--muted); }
+.map-dot.written { background: var(--accent); }
+.map-tree { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; }
+.map-tree > li { max-width: none; }
+.map-sec { display: flex; gap: 10px; align-items: baseline; font-family: var(--font-display); font-weight: 650; font-size: 17px; color: var(--ink); text-decoration: none; }
+.map-sec:hover, .map-sec:focus-visible { color: var(--accent); outline: none; }
+.map-sec-count { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.map-tree .map-list { margin: 6px 0 0 14px; }
+.map-list a.written { border-left: 4px solid var(--accent); }
+.map-list a.optional { border-left: 4px solid var(--rule); border-style: dashed; }
 .map-counts { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .map-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
 .map-list li { max-width: none; }
@@ -1051,38 +1058,56 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   }
 
   function paintMap() {
-    var list = document.getElementById("map-items"), miss = document.getElementById("map-missing"), counts = document.getElementById("map-counts");
-    if (!list) return;
+    var tree = document.getElementById("map-tree"), counts = document.getElementById("map-counts");
+    if (!tree) return;
     var only = document.getElementById("map-only-todo").checked;
-    list.textContent = ""; miss.textContent = "";
-    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 };
-    ITEMS.forEach(function (it) {
-      var my = mine.items[it[0]] || {};
-      var cls = my.stance || "todo";
-      n[cls]++;
-      if (only && cls !== "todo") return;
+    var byId = {}; ITEMS.forEach(function (it) { byId[it[0]] = it; });
+    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 }, written = 0;
+    tree.textContent = "";
+    function row(ul, href, cls, dotCls, title, note, chip) {
       var li = document.createElement("li"), a = document.createElement("a");
-      a.href = "#fb-" + it[0]; a.className = cls;
-      var dot = document.createElement("span"); dot.className = "map-dot " + cls; a.appendChild(dot);
-      var t = document.createElement("span"); t.className = "map-title"; t.textContent = it[1]; a.appendChild(t);
-      if (my.note) { var nt = document.createElement("span"); nt.className = "map-note"; nt.textContent = "nota"; a.appendChild(nt); }
-      var chip = document.createElement("span"); chip.className = "status " + STATUS[it[2]][1]; chip.textContent = STATUS[it[2]][0]; a.appendChild(chip);
-      li.appendChild(a); list.appendChild(li);
+      a.href = href; a.className = cls;
+      var dot = document.createElement("span"); dot.className = "map-dot " + dotCls; a.appendChild(dot);
+      var t = document.createElement("span"); t.className = "map-title"; t.textContent = title; a.appendChild(t);
+      if (note) { var nt = document.createElement("span"); nt.className = "map-note"; nt.textContent = note; a.appendChild(nt); }
+      if (chip) a.appendChild(chip);
+      li.appendChild(a); ul.appendChild(li);
+    }
+    document.querySelectorAll("main h2[id]").forEach(function (h2) {
+      if (h2.id === "mymap") return;
+      var nodes = [];
+      for (var el = h2.nextElementSibling; el && el.tagName !== "H2"; el = el.nextElementSibling) {
+        if (el.matches(".fb[data-item], .fb-missing[data-section]")) nodes.push(el);
+        el.querySelectorAll(".fb[data-item], .fb-missing[data-section]").forEach(function (x) { nodes.push(x); });
+      }
+      if (!nodes.length) return;
+      var ul = document.createElement("ol"); ul.className = "map-list";
+      var answered = 0, total = 0;
+      nodes.forEach(function (el) {
+        if (el.hasAttribute("data-item")) {
+          var id = el.getAttribute("data-item"), it = byId[id]; if (!it) return;
+          var my = mine.items[id] || {}, cls = my.stance || "todo";
+          n[cls]++; total++; if (cls !== "todo") answered++;
+          if (only && cls !== "todo") return;
+          var chip = document.createElement("span"); chip.className = "status " + STATUS[it[2]][1]; chip.textContent = STATUS[it[2]][0];
+          row(ul, "#fb-" + id, cls, cls, it[1], my.note ? "nota" : "", chip);
+        } else {
+          var sec = el.getAttribute("data-section");
+          var done = !!(mine.missing[sec] || "").trim();
+          if (done) written++;
+          if (only) return;
+          row(ul, "#fb-missing-" + sec, done ? "written" : "optional", done ? "written" : "todo", "Cosa manca o \u00e8 frainteso (facoltativo)", done ? "scritta" : "", null);
+        }
+      });
+      if (!ul.children.length) return;
+      var li = document.createElement("li");
+      var head = document.createElement("a"); head.className = "map-sec"; head.href = "#" + h2.id;
+      var c = h2.cloneNode(true); c.querySelectorAll(".status").forEach(function (x) { x.remove(); });
+      head.textContent = c.textContent.trim();
+      if (total) { var sc = document.createElement("span"); sc.className = "map-sec-count"; sc.textContent = answered + " di " + total; head.appendChild(sc); }
+      li.appendChild(head); li.appendChild(ul); tree.appendChild(li);
     });
-    var secTodo = 0;
-    document.querySelectorAll(".fb-missing[data-section]").forEach(function (el) {
-      var sec = el.getAttribute("data-section");
-      var done = !!(mine.missing[sec] || "").trim();
-      if (!done) secTodo++;
-      if (only && done) return;
-      var li = document.createElement("li"), a = document.createElement("a");
-      a.href = "#fb-missing-" + sec; a.className = done ? "agree" : "todo";
-      var dot = document.createElement("span"); dot.className = "map-dot " + (done ? "agree" : "todo"); a.appendChild(dot);
-      var t = document.createElement("span"); t.className = "map-title"; t.textContent = SECTION_TITLE[sec] || sec; a.appendChild(t);
-      var st = document.createElement("span"); st.className = "map-note"; st.textContent = done ? "compilato" : "vuoto"; a.appendChild(st);
-      li.appendChild(a); miss.appendChild(li);
-    });
-    counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " da compilare \u00b7 " + secTodo + " sezioni senza segnalazioni" + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
+    counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " senza risposta \u00b7 " + written + " segnalazioni scritte" + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
   }
 
   function paintSummary() {
