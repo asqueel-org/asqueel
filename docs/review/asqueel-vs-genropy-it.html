@@ -811,7 +811,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .map-dot.agree { background: var(--decided); }
 .map-dot.disagree { background: #b3261e; }
 .map-dot.unsure { background: var(--muted); }
-.map-dot.todo { background: var(--open-soft); border-color: var(--open); }
+.map-dot.todo { background: transparent; border-color: var(--muted); }
 .map-counts { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .map-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
 .map-list li { max-width: none; }
@@ -820,7 +820,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .map-list a.agree { border-left: 4px solid var(--decided); }
 .map-list a.disagree { border-left: 4px solid #b3261e; }
 .map-list a.unsure { border-left: 4px solid var(--muted); }
-.map-list a.todo { border-left: 4px solid var(--open); background: var(--open-soft); }
+.map-list a.todo { border-left: 4px solid var(--rule); }
 .map-title { flex: 1; min-width: 0; }
 .map-note { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .fb-note { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 0; }
