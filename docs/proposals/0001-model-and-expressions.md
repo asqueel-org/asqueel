@@ -326,16 +326,92 @@ physical.
   Without it, the name follows GenroPy's rule `<schema>_<table>_<column>` and
   the relation is private. **Proposed** (plan 32, step 2).
 
-### 3.3 Relation functions on many-side relations — Direction decided
+### 3.3 Relation functions — Proposed
 
-A relation that reaches several rows (for example `@invoices` from a customer)
-is read through a relation function: `@invoices.count()`,
-`@invoices.sum($total)`, `@invoices.to_json($number, $date)`. A path through
-it without a function is an error.
+A function applied to a relation path gives one value per row of the main
+table: `@invoices.count()`, `@invoices.sum($total)`,
+`@invoices.@rows.count(distinct($product_id))`. Each expression compiles to a
+correlated subquery on the related table, with the right grain by
+construction. asqueel never compiles a join that multiplies the rows of the
+main table, and never regroups rows in Python.
 
-asqueel never compiles a join that multiplies the rows of the main table, and
-never regroups rows in Python. Relation functions compile to correlated
-subqueries.
+**Rule.** A function operates on one row or on a set of rows, and the form
+says which:
+
+| Form | Operates on | Example |
+|---|---|---|
+| `function(args)` | the row of the main table | `sum($name, ' ', $surname)` |
+| `@one.function(args)` | the related row of a one-side relation | `@customer_id.sum($name, ' ', $surname)` |
+| `@many.function(args)` | the set of rows of a many-side relation | `@invoices.sum($total)` |
+
+The compiler tells the last two apart from the cardinality of the relation in
+the model. A many-side relation in a path always requires an aggregating
+function with explicit arguments; a path through it without a function
+(`@invoices.total`) is an error.
+
+**Aggregating functions.** Form `<relpath>.<function>(<args>)`; functions
+`count`, `sum`, `avg`, `min`, `max`, `to_array`, `to_json`; the modifier
+`distinct(...)` applies to the argument; `count()` takes none. Arguments follow
+the general field grammar on the related table: `$col`, a path, an expression
+(`@rows.sum($quantity * $unit_price)`).
+
+| Expression | Compiled subquery |
+|---|---|
+| `@invoices.count()` | `SELECT COUNT(*) FROM invoice t WHERE t.customer_id = t0.id` |
+| `@invoices.sum($total)` | `SELECT SUM(t.total) FROM invoice t WHERE t.customer_id = t0.id` |
+| `@invoices.@rows.sum($quantity)` | `SELECT SUM(r.quantity) FROM invoice_row r JOIN invoice i ON r.invoice_id = i.id WHERE i.customer_id = t0.id` |
+
+- **Multi-hop.** `@invoices.@rows.sum($quantity)` aggregates over every row
+  reachable through the path. A nested aggregate is a different quantity:
+  `@invoices.avg(@rows.sum($quantity))` is the average over the invoices of the
+  per-invoice sum. Both coexist because the argument differs (column or
+  relation function).
+- **`sum` on text** is string aggregation: `@invoices.sum($number)` joins with
+  the separator declared in the model, else `','`; `@invoices.sum($number, ' | ')`
+  gives it explicitly. Order: the `order_by` of the related table, else its
+  primary key.
+- **`to_array`, `to_json`** give a JSON array of values or of objects
+  (`@rows.to_json($product_id, $quantity)`), dtype `X`. They replace
+  `*@rel.(a,b)`. Names tentative.
+- **No filter inside the function.** `@rel.function(...)` applies to the whole
+  relation. A filtered set is a virtual relation (section 3.6):
+  `@invoices_current_year.sum($total)`.
+- **Everywhere.** A relation function can appear wherever a field can:
+  columns, `where` (hand-written or built by a query editor), `order_by`,
+  `group_by`, `having`, `sql_formula`, relation conditions. One resolver
+  serves all of them.
+- **Output name.** Without `AS` the name comes from the structure of the
+  expression: `_invoices_count`, `_invoices_sum_total`,
+  `_invoices_avg_rows_sum_quantity`. `AS` is mandatory with `template(...)` or
+  a free string. **Open**: the truncation rule above 63 characters.
+
+**Row functions.** Every argument follows the general grammar, so an
+aggregate is a valid argument: aggregates are computed first, the row function
+combines them.
+
+- `sum(a, b, ...)` adds numbers and concatenates text; non-text values in a
+  text `sum` are cast to text.
+- `template('...')` formats one row: `$x` is a field of the row, `#x` a named
+  argument (`template('total #ttl', @invoices.sum($total) AS ttl)`). On a
+  many-side relation it needs an aggregate: `@invoices.sum(template('$year-$number'))`.
+  Argument names must not coincide with macro names.
+- `sql('...')` passes an SQL expression of the dialect in use, with `$field`
+  placeholders resolved as in `sql_formula`. **Open**: one text per dialect,
+  `sql(postgres='...', sqlite='...')`.
+
+**Aggregable columns.** A column declares it with `aggregate=`: on a numeric
+column `True` means `sum`, a list (`'sum,avg,min,max'`) names the functions; on
+text `True` joins with `','`, a string is the separator; date, datetime and
+boolean are cast to ISO text and joined, `'min,max'` uses the native
+functions. `.aggregations('quantity:sum,avg', 'unit_price:sum')` chained on
+`relation()` restricts or extends the functions of that relation and prevails
+over the column. The declaration is opt-in and feeds the model metadata that
+interfaces read.
+
+**Dialects.** `count`, `sum`, `avg`, `min`, `max`: standard. `sum` on text:
+`string_agg(expr, sep ORDER BY ...)` on PostgreSQL, `group_concat` on SQLite
+(order not guaranteed). `to_array`, `to_json`: `json_agg` / `json_build_object`
+on PostgreSQL, `json_group_array` / `json_object` on SQLite.
 
 ### 3.4 Macros
 
@@ -394,20 +470,97 @@ subqueries.
   In GenroPy these derive from `GnrException` and escape
   `except GnrSqlException`. **Decided.**
 
-### 3.6 Virtual relations — Direction decided
+### 3.6 Virtual relations — Proposed
 
-`virtualRelation` declares a read-only relation without a foreign key:
-filtered relations, links to a target that is not unique, one row chosen by
-order and limit. Example:
-`virtualRelation('last_invoice', relation='@invoices', order_by='$date DESC', limit=1)`;
-then `@last_invoice.date` reads like any other path.
+`virtualRelation` declares a derived relation: non-physical and read-only. It
+covers filtered relations, pairings without a foreign key, and one row chosen
+by order and limit. It is the only way to attach a condition to a relation. It
+is navigated like any relation (`@last_invoice.date`) and relation functions
+apply to it (`@invoices_current_year.sum($total)`).
 
-It replaces GenroPy's `joinColumn`, which always uses a condition: on several
-columns, on an environment parameter (`:env_current_revisione_id`), on a date
-range (`#BETWEEN($date, @x.valid_from, @x.valid_to)`, `range=`). About 12
-application uses in 8 repositories. Open: the inverse relation name
-(`relation_name`), presence in `*` (`static=True`), `range=`, and whether the
-relation exposes the link value (the target id) as a column.
+```python
+tbl.virtualRelation(name, relation=None, table=None, condition=None,
+                    order_by=None, limit=None, one_one=False, ask=None,
+                    var_<name>=<expression of the table>, **attrs)
+```
+
+- `relation=`: a relation of the table, automatic or virtual; its pairing is
+  inherited.
+- `table=`: the related table, required only without `relation=`.
+- `condition=`: one predicate; `$col` and `@rel.col` always refer to the
+  related table.
+- `var_<name>=`: binds `:var_<name>` to an expression of the starting table
+  (`$col`, `@path.col`, a relation function). Values of the starting row enter
+  only this way; `#THIS` is not used.
+- `order_by=`, `limit=`: rows chosen by order; `limit=1` implies `one_one`.
+- `ask=`: a parameter asked to the user, as on a formula.
+
+```python
+# in customer
+tbl.virtualRelation('invoices_current_year', relation='@invoices',
+                    condition='$year = :env_current_year')
+tbl.virtualRelation('discount_tiers', table='invc.discount_tier',
+                    condition='$customer_type_code = :var_type',
+                    var_type='$customer_type_code')
+tbl.virtualRelation('invoices_above_prev_avg', relation='@invoices_current_year',
+                    condition='$total > :var_prev_avg',
+                    var_prev_avg='@invoices_prev_year.avg($total)')
+tbl.virtualRelation('last_invoice', relation='@invoices',
+                    order_by='$date DESC', limit=1)
+```
+
+**Pairing and filter.** The compiler splits `condition` into AND terms and
+classifies them by their variables: a term with a variable bound to the
+starting table is *pairing*; a term with only `:env_*`, `ask` values or
+constants is *filter*; a term with OR containing a bound variable is pairing as
+a whole. With `table=` and no `relation=` at least one pairing term is
+required. A restricted relation is still a relation; the distinction is on the
+terms, and it matters for composition (filters AND together, relations chain
+as paths) and for the inverse.
+
+**Rules.**
+
+- Read-only: no record cluster, `on_delete`, index or constraint.
+- Composition: `relation=` towards a virtual relation inherits everything in
+  AND; dependencies form a graph; cycles are an error.
+- Evaluation order: pairing, then `condition`, then `order_by` / `limit`.
+- `order_by` with `limit`: the order must be total (the compiler appends the
+  primary key); deriving from a relation with `limit` is forbidden, or inherits
+  only pairing and condition and redoes order and limit; compiled as
+  `LEFT JOIN LATERAL (... ORDER BY ... LIMIT 1) ON true` on PostgreSQL or a
+  correlated subquery in the ON, valid on SQLite too.
+- `one_one` without `limit` is a guarantee on the data: it needs a constraint
+  (partial unique index, exclusion constraint for intervals), otherwise the
+  join multiplies rows.
+- Navigation is always LEFT; INNER is a semi-join written as a filter
+  (`@rel.count() > 0`); the compiler may use INNER when the relation is total
+  (FK NOT NULL). The condition goes in the ON, not in the WHERE.
+- Paths of the starting table in a binding: single-valued only, joined before
+  the relation; many-side paths need an aggregate.
+- NULL: a null intermediate FK or an aggregate over an empty set gives NULL and
+  the comparison excludes every row; otherwise an explicit COALESCE.
+- `:env_*` parameters make the result depend on the evaluation time and are
+  part of its identity for caching or materialisation.
+- A name used both by `ask` and by a binding is a declaration error.
+
+**Inverse.** Generated on request from the pairing terms only, swapping roles.
+With filter terms the inverse is a partial function. **Open**: forbid it, or
+register it without the filter.
+
+**Name.** `virtualRelation` holds for every case (`relation=`, `table=`,
+`one_one`, `limit`) and states the invariant: non-physical, read-only, derived.
+`manyRelation` describes only the default cardinality; "view" promises
+projections and computed columns the construct does not have.
+
+**What it replaces in GenroPy** (the adapter translates):
+`joinColumn(name).relation(target, cnd=...)`; `relation(..., cnd= / join_on= / between=)`;
+query-time `joinConditions` / `setJoinCondition` (a virtual relation with
+`:env_*` or `ask`); `formulaColumn(select=...)` that exists only for a filtered
+aggregate.
+
+**Open**: a distinct prefix for `ask` parameters; presence in `*`
+(`static=True` on `joinColumn`); whether the relation exposes the link value
+(the related row's id) as a column.
 
 ## 4. Selecting columns
 
@@ -496,7 +649,8 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | — | How a package registers its own options, the mechanism GenroPy packages emulate with table attributes and mixins (analysis 38 §7.3) |
 | — | Which model-build hooks asqueel supports ([analysis 35](https://github.com/asqueel-org/asqueel/blob/main/docs/design/35-model-build-hooks.md)) |
 | — | Primary key generation and new records: `pkeyValue`, `newPkeyValue`, `newRecord` |
-| — | `virtualRelation`: inverse relation name, presence in `*` (`static=True`), `range=`, exposing the link value as a column |
+| — | `virtualRelation`: inverse with filter terms, prefix of `ask` parameters, presence in `*`, link value as a column |
+| — | Relation functions: name truncation rule, `sql()` per dialect, final names of `to_array` / `to_json` |
 | — | Subtables: query name, own columns, writes, package form |
 | — | `bagItemColumn`: extraction SQL per dialect and result type |
 | — | `toolColumn`, `aliasTable`, `localized` and `ext_*` columns |
