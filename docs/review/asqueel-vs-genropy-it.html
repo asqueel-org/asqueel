@@ -124,10 +124,12 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
     <li><a href="#what">Cos'&egrave; Asqueel</a></li>
     <li><a href="#principles">Principi</a></li>
     <li><a href="#builders">Perch&eacute; contano i builder</a></li>
+    <li><a href="#source">Sorgente e modello costruito</a></li>
     <li><a href="#model">Dichiarare un modello</a></li>
     <li><a href="#options">Funzioni di tabella e options</a></li>
     <li><a href="#hier">Tabelle gerarchiche</a></li>
     <li><a href="#expr">Scrivere espressioni</a></li>
+    <li><a href="#modelapi">Leggere il modello costruito</a></li>
     <li><a href="#relfunc">Funzioni di relazione</a></li>
     <li><a href="#vrel">Relazioni virtuali</a></li>
     <li><a href="#select">Selezionare colonne</a></li>
@@ -170,6 +172,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   <li>i comportamenti di GenroPy dimenticati o fraintesi;</li>
   <li>gli usi nelle tue applicazioni che una decisione romperebbe.</li>
 </ul>
+<p>In questa fase non proporre soluzioni alternative. Scrivi cosa non funzionerebbe, cosa resterebbe fuori e cosa diventerebbe scomodo. Raccolti i pareri, ci sar&agrave; una sintesi. Per i punti controversi si potranno allora proporre alternative. Ogni alternativa andr&agrave; valutata sul resto del disegno: una soluzione che sembra logica in un punto pu&ograve; avere effetti su altre parti.</p>
 <p>Il parere si salva da solo. Tutti i lettori vedono i pareri di tutti; ognuno modifica solo i propri. I numeri sull'uso reale vengono dall'indice Sourcerer dei repository del team; ogni fatto sul legacy ha file e riga nei documenti di analisi citati in fondo.</p>
 
 <h2 id="summary">Riepilogo dei pareri</h2>
@@ -250,7 +253,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   <li><b>Una forma non supportata d&agrave; un errore esplicito</b>, mai un risultato diverso.</li>
   <li><b>Prima Python.</b> Nel dubbio fra un comportamento in Python e uno delegato all&#39;SQL prevale quello Python. Il nome corto &egrave; l&#39;azione Python, il suffisso <code>_sql</code> quella SQL.</li>
   <li><b>snake_case per i parametri.</b> Un parametro di GenroPy tiene il nome in forma snake (<code>onDelete_sql</code> &rarr; <code>on_delete_sql</code>). I nomi degli elementi di GenroPy restano invariati (<code>formulaColumn</code>, <code>aliasColumn</code>, <code>compositeColumn</code>); gli elementi nuovi sono in snake (<code>weak_relation</code>, <code>colgroup</code>, <code>sys_fields</code>).</li>
-  <li><b>La dichiarazione &egrave; una ricetta; il modello &egrave; un albero di oggetti</b> prodotto da un renderer, senza corrispondenza uno a uno fra nodi e oggetti.</li>
+  <li><b>La dichiarazione &egrave; una ricetta; il modello &egrave; un albero di oggetti</b> prodotto da un renderer, senza corrispondenza uno a uno fra nodi e oggetti. Le regole sono nella sezione &laquo;Sorgente e modello costruito&raquo;.</li>
   <li><b>Le funzioni si prendono da ci&ograve; che GenroPy offre</b>, non dalla sua implementazione; la compatibilit&agrave; la d&agrave; l&#39;adattatore.</li>
   <li><b>Ci&ograve; che non &egrave; implementato resta assente</b>, senza codice provvisorio.</li>
 </ul>
@@ -271,6 +274,25 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 </table></div>
 <div class="fb" data-item="grammar"></div>
 <div class="fb-missing" data-section="builders"></div>
+
+<h2 id="source">Sorgente e modello costruito <span class="status s-decided">Decisa</span></h2>
+<p>Ogni modello passa per due fasi:</p>
+<ul>
+  <li><b>costruzione</b>: le dichiarazioni (<code>configure</code>, gli hook di costruzione, l&#39;adattatore) scrivono un sorgente, che &egrave; la ricetta;</li>
+  <li><b>render</b>: il renderer trasforma il sorgente negli oggetti del modello.</li>
+</ul>
+<p>Le regole valgono a ogni livello: database, schema, package, tabella, colonna, relazione, gruppo, opzione.</p>
+<ul>
+  <li>A sistema avviato il sorgente non &egrave; raggiungibile: nessun oggetto lo tiene e nessuna API lo restituisce.</li>
+  <li>Tutto ci&ograve; che serve a sistema avviato sta negli oggetti. Se un dato manca, lo copia il renderer.</li>
+  <li>Gli hook che modificano il modello girano durante la costruzione, prima del render.</li>
+  <li><code>db.table(&#39;sales.invoice&#39;)</code> restituisce l&#39;oggetto tabella. Lo stesso vale per gli altri livelli.</li>
+  <li>Un proxy aggiunto per non affollare un namespace collega oggetti fra loro. Non esiste un passaggio dal sorgente agli oggetti.</li>
+  <li>Ogni oggetto ha <code>attributes</code>, in sola lettura: una copia degli attributi dell&#39;oggetto, dichiarati o assegnati durante la costruzione. Esempi: il gruppo di una colonna dichiarata tramite il gruppo; gli attributi delle colonne create da un&#39;opzione. Le propriet&agrave; dell&#39;oggetto e <code>attributes</code> descrivono lo stesso oggetto.</li>
+</ul>
+<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy il sorgente <code>db.model.src</code> resta accessibile accanto agli oggetti <code>db.model.obj</code> (<code>gnrsqlmodel/model.py:78</code>, <code>:187</code>). Il codice applicativo legge il sorgente ad avvio finito (<code>gnrapp.py:802</code>, <code>gnrsql/schema.py:58</code>); gli hook di costruzione lo modificano (<code>gnrdbo.py:567</code>, <code>:620</code>, <code>:1674</code>); <code>SqlTable</code> passa per il proxy <code>.model</code> (<code>gnrsqltable/table.py:123</code>, <code>columns.py:203</code>).</p></div>
+<div class="fb" data-item="src-obj"></div>
+<div class="fb-missing" data-section="source"></div>
 
 <h2 id="model">Dichiarare un modello</h2>
 <div class="cmp">
@@ -360,7 +382,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <h3>Chiavi composite e vincoli <span class="status s-decided">Decisa</span></h3>
 <p>Un solo concetto copre ogni chiave su pi&ugrave; colonne, come in GenroPy: <code>compositeColumn(nome, columns='a,b', unique=True)</code>. Il suo valore &egrave; la chiave serializzata (<code>'["P1", 2024]'</code>); <code>*</code> la seleziona; <code>unique=True</code> crea l'<code>UNIQUE</code> su pi&ugrave; colonne; <code>.relation(...)</code> su una composita punta a un'altra composita. <code>pkey</code> nomina sempre una colonna, fisica o composita. L'elemento <code>constraint</code> esce dal modello: i <code>CHECK</code> tornano con gli altri oggetti nativi del database (trigger, funzioni, view).</p>
 <p>Ogni relazione crea un indice sulle colonne sorgente, salvo che siano gi&agrave; le prime colonne della chiave primaria, di un <code>UNIQUE</code> o di un indice. Non c'&egrave; un'opzione per spegnerlo. Ogni FK nasce con <code>ON UPDATE CASCADE</code>, come in GenroPy.</p>
-<p>Una chiave primaria composita &egrave; <code>pkey=&#39;&lt;nome della compositeColumn&gt;&#39;</code>; <code>table.pkeys</code> restituisce le colonne membro. Il valore serializzato &egrave; l&#39;identit&agrave; di un record con chiave composita: &egrave; il valore <code>pkey</code> di risultati e record, e GenroPy lo rilegge con <code>parseSerializedKey</code>.</p>
+<p>Una chiave primaria composita &egrave; <code>pkey=&#39;&lt;nome della compositeColumn&gt;&#39;</code>; nel modello costruito <code>pkeys</code> restituisce le colonne membro (sezione &laquo;Leggere il modello costruito&raquo;). Il valore serializzato &egrave; l&#39;identit&agrave; di un record con chiave composita: &egrave; il valore <code>pkey</code> di risultati e record, e GenroPy lo rilegge con <code>parseSerializedKey</code>.</p>
 <div class="fb" data-item="keys"></div>
 <div class="fb-missing" data-section="model"></div>
 
@@ -372,13 +394,24 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   <thead><tr><th>Opzione</th><th>Funzioni</th><th>Origine in GenroPy</th></tr></thead>
   <tbody>
     <tr><td><code>sys_fields</code></td><td>chiave primaria generata; timestamp di insert e update; utente di insert e update; cancellazione logica; bozza</td><td><code>sysFields(id, ins, upd, user_ins, user_upd, ldel, draftField)</code></td></tr>
-    <tr><td><code>auto_counter</code></td><td>numerazione delle righe sulla tabella o dentro una FK; numerazione dentro un master che non riusa i numeri</td><td><code>sysFields(counter=...)</code>, <code>counter_&lt;nome&gt;=</code>, <code>relidx</code></td></tr>
+    <tr><td><code>auto_counter</code></td><td>numerazione delle righe sulla tabella o dentro una FK; numerazione dentro un master che non riusa i numeri</td><td><code>sysFields(counter=..., counter_&lt;nome&gt;=..., relidx=...)</code>. Non riguarda i contatori di protocollo, cio&egrave; i metodi <code>counter_&lt;campo&gt;</code> della tabella.</td></tr>
     <tr><td><code>hierarchical</code></td><td>struttura ad albero (sezione successiva)</td><td><code>sysFields(hierarchical=...)</code> e sotto-opzioni</td></tr>
   </tbody>
 </table></div>
 <p>Regole: al massimo un <code>options</code> per tabella; una funzione fuori da <code>options</code> &egrave; un errore; <code>auto_counter</code> pu&ograve; comparire una volta per FK; le dipendenze fra funzioni le controlla il validatore (per esempio <code>hierarchical</code> richiede una chiave primaria a una sola colonna).</p>
-<div class="why"><p><b>Perch&eacute; cambia.</b> Le colonne sono il contenuto della tabella e si dichiarano su di essa; le funzioni descrivono come la tabella si comporta e restano insieme in un blocco separato. Poich&eacute; ogni opzione &egrave; un elemento della grammatica, un refuso &egrave; un errore invece di un attributo ignorato, e il riferimento generato documenta ogni opzione. In GenroPy la stessa conoscenza &egrave; sparsa fra gli argomenti di <code>sysFields</code> (1617 chiamate, il 58% senza argomenti) e attributi di tabella letti in molti punti.</p></div>
+<div class="why"><p><b>Perch&eacute; cambia.</b> Chi scrive il modello dichiara solo colonne applicative. Le colonne di sistema le aggiunge un&#39;opzione: si chiede la funzione, e l&#39;opzione crea le colonne di cui ha bisogno. La loro configurazione passa per l&#39;opzione, non per <code>tbl.column</code>. Per questo <code>sys_fields</code> resta in <code>options</code> anche se aggiunge colonne. Poich&eacute; ogni opzione &egrave; un elemento della grammatica, un refuso &egrave; un errore invece di un attributo ignorato, e il riferimento generato documenta ogni opzione. In GenroPy la stessa conoscenza &egrave; sparsa fra gli argomenti di <code>sysFields</code> (1617 chiamate, il 58% senza argomenti) e attributi di tabella letti in molti punti.</p></div>
 <div class="fb" data-item="options"></div>
+
+<h3>Parametri delle opzioni che aggiungono colonne <span class="status s-proposed">Proposta</span></h3>
+<p>Ogni parametro di un&#39;opzione che aggiunge una colonna accetta tre valori:</p>
+<ul>
+  <li><code>False</code>: la colonna non viene aggiunta;</li>
+  <li><code>True</code>: la colonna viene aggiunta con gli attributi standard;</li>
+  <li>un dict: la colonna viene aggiunta e gli attributi del dict prevalgono su quelli standard.</li>
+</ul>
+<pre>opts.sys_fields(ins={'name_long': 'Creato il'}, ldel=False)</pre>
+<p>I nomi dei parametri sono quelli di GenroPy (<code>ins</code>, <code>upd</code>, <code>ldel</code>, <code>user_ins</code>, ...). Il dict non cambia il nome della colonna (<code>__ins_ts</code>) n&eacute; gli attributi che ne fanno la funzione (<code>onInserting=&#39;setTSNow&#39;</code>). Non esiste una forma con kwargs a prefisso. In GenroPy questi parametri accettano solo vero o falso e le colonne hanno attributi fissi (<code>gnrdbo.py:324</code>).</p>
+<div class="fb" data-item="sys-params"></div>
 
 <h3>Cosa diventa un'opzione <span class="status s-open">Aperta</span></h3>
 <p>Misura su 5720 file di modello applicativi in 66 repository:</p>
@@ -433,7 +466,7 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="fb-missing" data-section="hier"></div>
 
 <h2 id="expr">Scrivere espressioni</h2>
-<p>Il linguaggio delle espressioni &egrave; quello di GenroPy. Asqueel non aggiunge grafie alternative; una forma non supportata d&agrave; errore e non produce mai un risultato diverso. Un solo parser e un solo resolver sono condivisi da query, formule, policy di riga e <code>table.column()</code>.</p>
+<p>Il linguaggio delle espressioni &egrave; quello di GenroPy. Asqueel non aggiunge grafie alternative; una forma non supportata d&agrave; errore e non produce mai un risultato diverso. Un solo parser e un solo resolver sono condivisi da query, formule, policy di riga e <code>column()</code> del modello costruito.</p>
 
 <h3>Sintassi <span class="status s-decided">Decisa</span></h3>
 <div class="tablewrap"><table>
@@ -480,16 +513,32 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="why"><p><b>Perch&eacute; cambia.</b> <code>#THIS.@rel.col</code> in <code>sql_formula</code> funziona come ogni altro path, mentre GenroPy non lo espande. <code>#PERIOD</code> usa un intervallo semiaperto: su una colonna data il risultato &egrave; quello di GenroPy, su un timestamp l'ultimo giorno &egrave; incluso, cosa che il <code>BETWEEN</code> di GenroPy perdeva.</p></div>
 <div class="fb" data-item="macros"></div>
 
-<h3><code>table.column()</code> ed eccezioni <span class="status s-decided">Decisa</span></h3>
+<div class="fb-missing" data-section="expr"></div>
+
+<h2 id="modelapi">Leggere il modello costruito</h2>
+<p>Dichiarare e leggere sono due API distinte.</p>
 <ul>
-  <li><code>table.column('name')</code>, <code>table.column('$name')</code> e <code>table.column('@customer_id.name')</code> restituiscono la stessa colonna che risolve il compiler.</li>
+  <li><code>configure(self, tables)</code> dichiara. <code>tbl.column(...)</code> crea sempre una colonna e non ne cerca mai una. Dentro <code>configure</code> non esiste lettura del modello.</li>
+  <li>Il modello costruito si legge dagli oggetti: <code>db.table(&#39;sales.invoice&#39;)</code> restituisce l&#39;oggetto tabella (sezione &laquo;Sorgente e modello costruito&raquo;).</li>
+</ul>
+<p>Negli esempi di questa sezione <code>invoice = db.table(&#39;sales.invoice&#39;)</code>.</p>
+
+<h3><code>column()</code> ed eccezioni <span class="status s-decided">Decisa</span></h3>
+<ul>
+  <li><code>invoice.column(&#39;total&#39;)</code> e <code>invoice.column(&#39;$total&#39;)</code> restituiscono la colonna <code>total</code> di <code>sales.invoice</code>.</li>
+  <li><code>invoice.column(&#39;@customer_id.name&#39;)</code> restituisce la colonna <code>name</code> di <code>sales.customer</code>, raggiunta con la relazione <code>@customer_id</code>.</li>
+  <li>Ogni forma restituisce la colonna che il compiler risolve per quella espressione.</li>
   <li>Una colonna offre <code>relatedTable()</code> e <code>relatedColumn()</code>, come in GenroPy.</li>
-  <li>Un nome semplice mancante restituisce <code>None</code>; un path con una relazione mancante alza un'eccezione. &Egrave; il comportamento di GenroPy: <code>table.column('x') is not None</code> &egrave; il modo del framework per sapere se una tabella ha una colonna.</li>
+  <li>Un nome semplice mancante restituisce <code>None</code>; un path con una relazione mancante alza un&#39;eccezione. &Egrave; il comportamento di GenroPy: <code>invoice.column(&#39;x&#39;) is not None</code> &egrave; il modo del framework per sapere se una tabella ha una colonna.</li>
+  <li>Su una tabella con chiave primaria composita <code>pkeys</code> restituisce le colonne membro.</li>
   <li>Le eccezioni formano una gerarchia con radice <code>GnrSqlException</code> (nome di GenroPy), una classe per caso: <code>GnrSqlMissingTable</code>, <code>GnrSqlMissingField</code> (relazione mancante), <code>GnrSqlMissingColumn</code> (colonna finale mancante), <code>GnrSqlInvalidVirtualColumn</code>, <code>GnrSqlRelationError</code> (dichiarazione di relazione). In GenroPy queste derivano da <code>GnrException</code> e sfuggono a <code>except GnrSqlException</code>.</li>
 </ul>
 <div class="fb" data-item="column-api"></div>
 
-<div class="fb-missing" data-section="expr"></div>
+<h3>Nome del metodo di lettura <span class="status s-open">Aperta</span></h3>
+<p>Da valutare: il metodo di lettura si chiama <code>get_column</code> invece di <code>column</code>. Il nome diverso separa la lettura dalla dichiarazione <code>tbl.column</code> di <code>configure</code>. L&#39;adattatore GenroPy accetta ancora <code>column</code>, con un avviso di deprecazione.</p>
+<div class="fb" data-item="get-column"></div>
+<div class="fb-missing" data-section="modelapi"></div>
 
 <h2 id="relfunc">Funzioni di relazione <span class="status s-proposed">Proposta</span></h2>
 <p>Una funzione applicata a un path di relazione d&agrave; un valore per ogni riga della tabella principale: <code>@invoices.count()</code>, <code>@invoices.sum($total)</code>, <code>@invoices.@rows.count(distinct($product_id))</code>. Ogni espressione si compila in una subquery correlata sulla tabella collegata. La granularit&agrave; &egrave; giusta per costruzione: asqueel non compila mai un join che moltiplica le righe della tabella principale e non riaggrega mai righe in Python.</p>
@@ -759,6 +808,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   <li>Generazione delle chiavi primarie e nuovi record (<code>pkeyValue</code>, <code>newPkeyValue</code>, <code>newRecord</code>).</li>
   <li><code>#PERIOD</code>: se il nome nudo <code>p</code> resta valido accanto a <code>:p</code> (genropy/genropy#1509).</li>
   <li>Il ciclo di scrittura completo nel nucleo.</li>
+  <li>Lettura del modello costruito: se il metodo si chiama <code>get_column</code> invece di <code>column</code>, con <code>column</code> accettato dall&#39;adattatore e deprecato.</li>
   <li>Nomi delle relazioni inverse senza <code>relation_name</code> (regola <code>&lt;schema&gt;_&lt;tabella&gt;_&lt;colonna&gt;</code>, relazione privata) e registrazione delle macro per livello e contesto: entrambe proposte nel piano 32, non ancora confermate.</li>
 </ol>
 <div class="fb-missing" data-section="open"></div>
@@ -874,6 +924,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["porting", "Asqueel come porting del layer SQL di GenroPy, con adattatore", "direction"],
     ["principles", "Principi", "decided"],
     ["grammar", "Il modello come grammatica genro-builders", "decided"],
+    ["src-obj", "Sorgente inaccessibile a sistema avviato; tutto negli oggetti", "decided"],
     ["columns", "Colonne dichiarate sulla tabella", "decided"],
     ["bagitem", "bagItemColumn: valori dentro una colonna Bag", "direction"],
     ["subtable", "Subtable come oggetti di prima classe", "direction"],
@@ -883,6 +934,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["relations", "relation con FK, weak_relation logica", "decided"],
     ["keys", "Chiavi composite, indici delle relazioni, constraint fuori", "decided"],
     ["options", "Contenitore options con sys_fields, auto_counter, hierarchical", "decided"],
+    ["sys-params", "Parametri delle opzioni: False, True o dict", "proposed"],
     ["which-options", "Quali attributi diventano opzioni", "open"],
     ["package-options", "Opzioni registrate da un package", "open"],
     ["hier-model", "Tabelle gerarchiche: modello di GenroPy", "decided"],
@@ -895,7 +947,8 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["aggregate-decl", "Colonne aggregabili: aggregate= e .aggregations()", "proposed"],
     ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed"],
     ["macros", "Macro #THIS, #IN_RANGE, #PERIOD, #ENV", "decided"],
-    ["column-api", "table.column() ed eccezioni", "decided"],
+    ["column-api", "column() sul modello costruito ed eccezioni", "decided"],
+    ["get-column", "get_column al posto di column per la lettura", "open"],
     ["planned", "Relazioni virtuali: parametri, accoppiamento e filtro, regole", "proposed"],
     ["vrel-open", "Relazioni virtuali: inversa, sostituzioni, punti aperti", "open"],
     ["star", "Espansione di * e forme non supportate", "decided"],
@@ -910,7 +963,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   var STATUS = { decided: ["Decisa", "s-decided"], direction: ["Direzione", "s-direction"], proposed: ["Proposta", "s-proposed"], open: ["Aperta", "s-open"] };
   var STANCES = [["agree", "D'accordo"], ["disagree", "Contrario"], ["unsure", "Non so"]];
   var STANCE_LABEL = { agree: "D'accordo", disagree: "Contrario", unsure: "Non so" };
-  var SECTION_TITLE = { principles: "principi", what: "Cos'\u00e8 Asqueel", builders: "builder", model: "modello", options: "options", hier: "tabelle gerarchiche", expr: "espressioni", vrel: "relazioni virtuali", select: "selezione delle colonne", grouping: "raggruppamento", pkey: "chiavi primarie", writes: "scritture", adapter: "adattatore", diff: "differenze", open: "decisioni aperte", general: "domande generali" };
+  var SECTION_TITLE = { principles: "principi", what: "Cos'\u00e8 Asqueel", builders: "builder", source: "sorgente e modello costruito", model: "modello", options: "options", hier: "tabelle gerarchiche", expr: "espressioni", modelapi: "lettura del modello costruito", vrel: "relazioni virtuali", select: "selezione delle colonne", grouping: "raggruppamento", pkey: "chiavi primarie", writes: "scritture", adapter: "adattatore", diff: "differenze", open: "decisioni aperte", general: "domande generali" };
 
   var db = null, user = null, myId = null, canWrite = false;
   var votes = {};

@@ -14,6 +14,37 @@ final documentation, so that the team can review the result rather than the
 plans. Each rule is marked **Decided** or **Open**. Nothing here is implemented
 yet.
 
+## 0. Source and built model — Decided
+
+Every model goes through two phases:
+
+- **build**: declarations (`configure`, model-build hooks, the GenroPy
+  adapter) write a source, which is the recipe;
+- **render**: the renderer turns the source into the model objects.
+
+The rules apply at every level: database, schema, package, table, column,
+relation, group, option.
+
+- Once the system is running the source is unreachable: no object holds it and
+  no API returns it.
+- Everything needed at run time lives in the objects. If a piece of data is
+  missing, the renderer copies it.
+- Hooks that modify the model run during the build, before rendering.
+- `db.table('sales.invoice')` returns the table object. The same holds for the
+  other levels.
+- A proxy added to keep a namespace small links objects to objects. There is
+  no step from the source to the objects.
+- Every object has `attributes`, read-only: a copy of the object's attributes,
+  declared or assigned during the build. Examples: the group of a column
+  declared through the group; the attributes of the columns an option creates.
+  The object's properties and `attributes` describe the same object.
+
+In GenroPy the source `db.model.src` stays reachable next to the objects
+`db.model.obj` (`gnrsqlmodel/model.py:78`, `:187`). Application code reads the
+source after start-up (`gnrapp.py:802`, `gnrsql/schema.py:58`); model-build
+hooks modify it (`gnrdbo.py:567`, `:620`, `:1674`); `SqlTable` goes through
+the `.model` proxy (`gnrsqltable/table.py:123`, `columns.py:203`).
+
 ## 1. Principles
 
 - **GenroPy syntax is the default.** A model or an expression written for
@@ -37,7 +68,7 @@ yet.
   Python objects (tables, columns, relations). The renderer may read a node
   before building and may produce several objects from one node: there is no
   one-to-one correspondence between declaration nodes and model objects.
-  **Decided.**
+  Section 0 gives the rules. **Decided.**
 
 ## 2. Declaring a table's content
 
@@ -197,7 +228,8 @@ One concept covers every key on several columns, as in GenroPy:
 - `.relation(...)` on a composite targets another composite and joins the
   member columns in order.
 - `pkey` always names one column, physical or composite. A composite primary
-  key is `pkey='<composite name>'`; `table.pkeys` returns the member columns.
+  key is `pkey='<composite name>'`; in the built model `pkeys` returns the
+  member columns (§3.5).
 - The serialized value is the identity of a record with a composite key: it is
   the `pkey` value of query results and of records, and GenroPy reads it back
   with `parseSerializedKey`.
@@ -233,7 +265,16 @@ onto them.
 - The other `sysFields` functions (optimistic concurrency, audit, diagnostics,
   row protection, invalid fields, record merge, system records, versioned
   updates) are **Open**: each is discussed on its own.
-- The parameters of each element are **Open**.
+- Each parameter of an option that adds a column accepts `False` (the column
+  is not added), `True` (the column is added with the standard attributes) or a
+  dict (the column is added and the dict's attributes prevail over the
+  standard ones): `opts.sys_fields(ins={'name_long': 'Created on'}, ldel=False)`.
+  Parameter names are GenroPy's (`ins`, `upd`, `ldel`, `user_ins`, ...). The
+  dict does not change the column name (`__ins_ts`) nor the attributes that
+  make its function (`onInserting='setTSNow'`). There is no prefixed-kwargs
+  form. In GenroPy these parameters accept only true or false and the columns
+  have fixed attributes (`gnrdbo.py:324`). **Proposed.**
+- The other parameters of each element are **Open**.
 
 #### The `options` container — Decided
 
@@ -258,9 +299,11 @@ class ProductTypeModel:
 - A feature element outside `options` is an error.
 - Dependencies between features are checked by the model validator: for
   example `hierarchical` requires a single-column primary key.
-- Columns are declared directly on the table (section 2.1) because they are
-  its content; features describe how the table behaves and stay visible as a
-  separate block. This is why `options` is explicit while `columns` is not.
+- The model author declares only application columns. System columns are
+  added by an option: the author asks for the function, and the option creates
+  the columns it needs. Their configuration goes through the option, not
+  through `tbl.column`. This is why `sys_fields` stays in `options` although it
+  adds columns, and why `options` is explicit while `columns` is not.
 - Every option is a grammar element with a typed signature and a docstring,
   so the generated grammar reference (`asqueel.grammar_doc`, checked byte for
   byte by a test) documents each option, its parameters and its defaults. In
@@ -317,7 +360,7 @@ physical.
 - `@customer.country.name` (an intermediate segment without `@`) is an error.
   GenroPy does not accept it either.
 - Expressions are parsed once, by one parser, and resolved by one resolver
-  shared by queries, formulas, row policies and `table.column()`.
+  shared by queries, formulas, row policies and `column()` on the built model.
 
 ### 3.2 Relation names — Decided
 
@@ -454,21 +497,36 @@ on PostgreSQL, `json_group_array` / `json_object` on SQLite.
   **Decided.**
 - `#ENV` is not ported: `:env_name` replaces it.
 
-### 3.5 `table.column()` — Decided
+### 3.5 Reading the built model — Decided
 
-- `table.column('name')`, `table.column('$name')` and
-  `table.column('@customer_id.name')` return the same column the compiler
-  resolves.
+Declaring and reading are two separate APIs.
+
+- `configure(self, tables)` declares. `tbl.column(...)` always creates a column
+  and never looks one up. There is no model reading inside `configure`.
+- The built model is read from the objects: `db.table('sales.invoice')`
+  returns the table object (section 0).
+
+In the examples below `invoice = db.table('sales.invoice')`.
+
+- `invoice.column('total')` and `invoice.column('$total')` return the column
+  `total` of `sales.invoice`.
+- `invoice.column('@customer_id.name')` returns the column `name` of
+  `sales.customer`, reached through the relation `@customer_id`.
+- Each form returns the column the compiler resolves for that expression.
 - A column offers `relatedTable()` and `relatedColumn()`, as in GenroPy.
 - A missing plain name returns `None`; a path through a missing relation raises.
-  This is GenroPy's behaviour, and `table.column('x') is not None` is the
+  This is GenroPy's behaviour, and `invoice.column('x') is not None` is the
   framework's way to test whether a table has a column. **Decided.**
+- On a table with a composite primary key `pkeys` returns the member columns.
 - Exceptions form one hierarchy rooted in `GnrSqlException` (GenroPy name), one
   class per case: `GnrSqlMissingTable`, `GnrSqlMissingField` (missing relation),
   `GnrSqlMissingColumn` (missing final column of a path),
   `GnrSqlInvalidVirtualColumn`, `GnrSqlRelationError` (relation declaration).
   In GenroPy these derive from `GnrException` and escape
   `except GnrSqlException`. **Decided.**
+- Open: the reading method is named `get_column` instead of `column`, so that
+  it differs from the declaration `tbl.column` in `configure`. The GenroPy
+  adapter keeps accepting `column`, with a deprecation warning.
 
 ### 3.6 Virtual relations — Proposed
 
@@ -654,3 +712,4 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | — | Subtables: query name, own columns, writes, package form |
 | — | `bagItemColumn`: extraction SQL per dialect and result type |
 | — | `toolColumn`, `aliasTable`, `localized` and `ext_*` columns |
+| — | Reading the built model: `get_column` instead of `column`, with `column` accepted by the adapter and deprecated |
