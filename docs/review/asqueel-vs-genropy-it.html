@@ -768,9 +768,17 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 <div class="fb-missing" data-section="general"></div>
 
 <h2 id="mymap">La tua mappa</h2>
-<p>I tuoi pareri, sezione per sezione come nell'indice. Ogni riga porta al punto da compilare. <span class="map-key"><span class="map-dot agree"></span>d'accordo <span class="map-dot disagree"></span>contrario <span class="map-dot unsure"></span>non so <span class="map-dot todo"></span>senza risposta <span class="map-dot written"></span>segnalazione scritta</span></p>
+<p>I tuoi pareri o quelli di tutti, sezione per sezione come nell'indice. Ogni riga porta al punto da compilare. <span class="map-key"><span class="map-dot agree"></span>d'accordo <span class="map-dot disagree"></span>contrario <span class="map-dot unsure"></span>non so <span class="map-dot todo"></span>senza risposta <span class="map-dot written"></span>segnalazione scritta</span></p>
 <p class="map-counts" id="map-counts"></p>
-<label class="fb-filter"><input type="checkbox" id="map-only-todo"> Mostra solo le decisioni senza risposta</label>
+<div class="map-controls">
+  <span class="map-mode" role="radiogroup" aria-label="Pareri mostrati">
+    <label><input type="radio" name="map-mode" value="mine" checked> I miei pareri</label>
+    <label><input type="radio" name="map-mode" value="all"> I pareri di tutti</label>
+  </span>
+  <label class="fb-filter map-f-mine"><input type="checkbox" id="map-only-todo"> Solo le decisioni senza risposta</label>
+  <label class="fb-filter map-f-all"><input type="checkbox" id="map-only-split"> Solo i punti discordi</label>
+  <label class="fb-filter map-f-all"><input type="checkbox" id="map-only-notes"> Solo con note o segnalazioni</label>
+</div>
 <ol class="map-tree" id="map-tree"></ol>
 
 <footer>
@@ -811,6 +819,16 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .map-dot.unsure { background: var(--muted); }
 .map-dot.todo { background: transparent; border-color: var(--muted); }
 .map-dot.written { background: var(--accent); }
+.map-controls { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin: 8px 0 0; }
+.map-mode { display: inline-flex; gap: 14px; font-size: 14px; font-weight: 600; }
+.map-tally { display: inline-flex; gap: 8px; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--muted); }
+.map-tally b { font-weight: 600; }
+.map-tally .t-agree { color: var(--decided); }
+.map-tally .t-disagree { color: #b3261e; }
+.map-list a.split { border-left: 4px solid #b3261e; box-shadow: inset 4px 0 0 var(--decided); }
+.map-dot.split { background: linear-gradient(90deg, var(--decided) 50%, #b3261e 50%); }
+.map-list details { margin: 2px 0 6px 18px; font-size: 14px; }
+.map-list summary { cursor: pointer; color: var(--accent); }
 .map-tree { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; }
 .map-tree > li { max-width: none; }
 .map-sec { display: flex; gap: 10px; align-items: baseline; font-family: var(--font-display); font-weight: 650; font-size: 17px; color: var(--ink); text-decoration: none; }
@@ -1054,24 +1072,47 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       det.querySelector("summary").textContent = "Vedi le segnalazioni (" + n + ")";
     });
     paintSummary();
-    paintMap();
+    paintMap(ps);
   }
 
-  function paintMap() {
+  var lastPs = {};
+  function mapMode() { var r = document.querySelector('input[name="map-mode"]:checked'); return r ? r.value : "mine"; }
+  function paintMap(ps) {
+    if (ps) lastPs = ps; ps = lastPs;
     var tree = document.getElementById("map-tree"), counts = document.getElementById("map-counts");
     if (!tree) return;
-    var only = document.getElementById("map-only-todo").checked;
+    var all = mapMode() === "all";
+    document.querySelectorAll(".map-f-mine").forEach(function (x) { x.hidden = all; });
+    document.querySelectorAll(".map-f-all").forEach(function (x) { x.hidden = !all; });
+    var onlyTodo = document.getElementById("map-only-todo").checked;
+    var onlySplit = document.getElementById("map-only-split").checked;
+    var onlyNotes = document.getElementById("map-only-notes").checked;
     var byId = {}; ITEMS.forEach(function (it) { byId[it[0]] = it; });
-    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 }, written = 0;
+    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 }, written = 0, splitCount = 0, people = Object.keys(votes).length, reports = 0;
     tree.textContent = "";
-    function row(ul, href, cls, dotCls, title, note, chip) {
+    function row(ul, href, cls, dotCls, title, note, tail) {
       var li = document.createElement("li"), a = document.createElement("a");
       a.href = href; a.className = cls;
       var dot = document.createElement("span"); dot.className = "map-dot " + dotCls; a.appendChild(dot);
       var t = document.createElement("span"); t.className = "map-title"; t.textContent = title; a.appendChild(t);
       if (note) { var nt = document.createElement("span"); nt.className = "map-note"; nt.textContent = note; a.appendChild(nt); }
-      if (chip) a.appendChild(chip);
-      li.appendChild(a); ul.appendChild(li);
+      (tail || []).forEach(function (x) { if (x) a.appendChild(x); });
+      li.appendChild(a); ul.appendChild(li); return li;
+    }
+    function tallyEl(c) {
+      var sp = document.createElement("span"); sp.className = "map-tally";
+      [["t-agree", c.agree, "d'accordo"], ["t-disagree", c.disagree, "contrari"], ["t-unsure", c.unsure, "non so"]].forEach(function (x) {
+        var b = document.createElement("b"); b.className = x[0]; b.textContent = x[1]; b.title = x[2]; sp.appendChild(b);
+      });
+      return sp;
+    }
+    function people_details(li, entries, label) {
+      if (!entries.length) return;
+      var det = document.createElement("details"), sum = document.createElement("summary");
+      sum.textContent = label + " (" + entries.length + ")"; det.appendChild(sum);
+      var ul = document.createElement("ul"); ul.className = "fb-list"; det.appendChild(ul);
+      entries.forEach(function (e) { personRow(ul, ps, e.uid, e.stance, e.note); });
+      li.appendChild(det);
     }
     document.querySelectorAll("main h2[id]").forEach(function (h2) {
       if (h2.id === "mymap") return;
@@ -1082,32 +1123,62 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       }
       if (!nodes.length) return;
       var ul = document.createElement("ol"); ul.className = "map-list";
-      var answered = 0, total = 0;
+      var answered = 0, total = 0, secVotes = 0;
       nodes.forEach(function (el) {
         if (el.hasAttribute("data-item")) {
           var id = el.getAttribute("data-item"), it = byId[id]; if (!it) return;
-          var my = mine.items[id] || {}, cls = my.stance || "todo";
-          n[cls]++; total++; if (cls !== "todo") answered++;
-          if (only && cls !== "todo") return;
           var chip = document.createElement("span"); chip.className = "status " + STATUS[it[2]][1]; chip.textContent = STATUS[it[2]][0];
-          row(ul, "#fb-" + id, cls, cls, it[1], my.note ? "nota" : "", chip);
+          var my = mine.items[id] || {}, mycls = my.stance || "todo";
+          n[mycls]++; total++; if (mycls !== "todo") answered++;
+          if (!all) {
+            if (onlyTodo && mycls !== "todo") return;
+            row(ul, "#fb-" + id, mycls, mycls, it[1], my.note ? "nota" : "", [chip]);
+            return;
+          }
+          var c = tally(id), split = c.agree > 0 && c.disagree > 0;
+          if (split) splitCount++;
+          secVotes += c.agree + c.disagree + c.unsure;
+          if (onlySplit && !split) return;
+          if (onlyNotes && !c.notes) return;
+          var cls = split ? "split" : c.disagree ? "disagree" : c.agree ? "agree" : c.unsure ? "unsure" : "todo";
+          var li = row(ul, "#fb-" + id, cls, cls, it[1], c.notes ? c.notes + (c.notes === 1 ? " nota" : " note") : "", [tallyEl(c), chip]);
+          people_details(li, c.entries, "Pareri");
         } else {
           var sec = el.getAttribute("data-section");
-          var done = !!(mine.missing[sec] || "").trim();
-          if (done) written++;
-          if (only) return;
-          row(ul, "#fb-missing-" + sec, done ? "written" : "optional", done ? "written" : "todo", "Cosa manca o \u00e8 frainteso (facoltativo)", done ? "scritta" : "", null);
+          if (!all) {
+            var done = !!(mine.missing[sec] || "").trim();
+            if (done) written++;
+            if (onlyTodo) return;
+            row(ul, "#fb-missing-" + sec, done ? "written" : "optional", done ? "written" : "todo", "Cosa manca o \u00e8 frainteso (facoltativo)", done ? "scritta" : "", null);
+            return;
+          }
+          var entries = [];
+          Object.keys(votes).forEach(function (uid) {
+            var t = votes[uid] && votes[uid].missing && votes[uid].missing[sec];
+            if (t && t.trim()) entries.push({ uid: uid, stance: "", note: t });
+          });
+          reports += entries.length;
+          if (onlySplit) return;
+          if (onlyNotes && !entries.length) return;
+          var li2 = row(ul, "#fb-missing-" + sec, entries.length ? "written" : "optional", entries.length ? "written" : "todo", "Cosa manca o \u00e8 frainteso", entries.length ? entries.length + (entries.length === 1 ? " segnalazione" : " segnalazioni") : "", null);
+          people_details(li2, entries, "Segnalazioni");
         }
       });
       if (!ul.children.length) return;
       var li = document.createElement("li");
       var head = document.createElement("a"); head.className = "map-sec"; head.href = "#" + h2.id;
-      var c = h2.cloneNode(true); c.querySelectorAll(".status").forEach(function (x) { x.remove(); });
-      head.textContent = c.textContent.trim();
-      if (total) { var sc = document.createElement("span"); sc.className = "map-sec-count"; sc.textContent = answered + " di " + total; head.appendChild(sc); }
+      var cl = h2.cloneNode(true); cl.querySelectorAll(".status").forEach(function (x) { x.remove(); });
+      head.textContent = cl.textContent.trim();
+      var sc = document.createElement("span"); sc.className = "map-sec-count";
+      sc.textContent = all ? secVotes + (secVotes === 1 ? " parere" : " pareri") : (total ? answered + " di " + total : "");
+      if (sc.textContent) head.appendChild(sc);
       li.appendChild(head); li.appendChild(ul); tree.appendChild(li);
     });
-    counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " senza risposta \u00b7 " + written + " segnalazioni scritte" + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
+    if (all) {
+      counts.textContent = people + (people === 1 ? " persona ha risposto" : " persone hanno risposto") + " \u00b7 " + splitCount + (splitCount === 1 ? " punto discorde" : " punti discordi") + " \u00b7 " + reports + (reports === 1 ? " segnalazione" : " segnalazioni");
+    } else {
+      counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " senza risposta \u00b7 " + written + " segnalazioni scritte" + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
+    }
   }
 
   function paintSummary() {
@@ -1138,7 +1209,8 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   document.querySelectorAll(".fb[data-item]").forEach(buildItem);
   document.querySelectorAll(".fb-missing[data-section]").forEach(buildMissing);
   document.getElementById("fb-only-split").addEventListener("change", paintSummary);
-  document.getElementById("map-only-todo").addEventListener("change", paintMap);
+  ["map-only-todo", "map-only-split", "map-only-notes"].forEach(function (id) { document.getElementById(id).addEventListener("change", function () { paintMap(); }); });
+  document.querySelectorAll('input[name="map-mode"]').forEach(function (r) { r.addEventListener("change", function () { paintMap(); }); });
   paintSummary();
   paintMap();
 
