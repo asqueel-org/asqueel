@@ -139,6 +139,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
     <li><a href="#diff">Tutte le differenze</a></li>
     <li><a href="#open">Decisioni aperte</a></li>
     <li><a href="#general">Domande generali</a></li>
+    <li><a href="#mymap">La tua mappa</a></li>
   </ol>
 </nav>
 
@@ -766,6 +767,14 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 <div class="fb" data-item="general-picture"></div>
 <div class="fb-missing" data-section="general"></div>
 
+<h2 id="mymap">La tua mappa</h2>
+<p>I tuoi pareri, decisione per decisione. Ogni riga porta al punto da compilare. <span class="map-key"><span class="map-dot agree"></span>d'accordo <span class="map-dot disagree"></span>contrario <span class="map-dot unsure"></span>non so <span class="map-dot todo"></span>da compilare</span></p>
+<p class="map-counts" id="map-counts"></p>
+<label class="fb-filter"><input type="checkbox" id="map-only-todo"> Mostra solo i punti da compilare</label>
+<ol class="map-list" id="map-items"></ol>
+<h3>Cosa manca, per sezione</h3>
+<ol class="map-list" id="map-missing"></ol>
+
 <footer>
   <p>Fonti nel repository Asqueel: <code>docs/proposals/0001-model-and-expressions.md</code>; analisi <code>docs/design/34</code> (sysFields), <code>35</code> (hook di costruzione del modello), <code>36</code> (tabelle gerarchiche), <code>37</code> (grouped view), <code>38</code> (attributi di tabella e classi Table di package), <code>39</code> (chiavi primarie); <code>docs/adattamenti-legacy.md</code> (compiti dell'adattatore). Issue GenroPy aperte durante l'analisi: genropy/genropy#1504, #1505, #1509, #1523&ndash;#1527.</p>
   <p>I pareri sono salvati nell'archivio di questa pagina. Tutti i lettori li vedono; ognuno modifica solo i propri.</p>
@@ -782,7 +791,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .fb-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .fb-btn[aria-pressed="true"][data-stance="agree"] { background: var(--decided-soft); border-color: var(--decided); color: var(--decided); font-weight: 600; }
 .fb-btn[aria-pressed="true"][data-stance="disagree"] { background: #f8e1df; border-color: #b3261e; color: #b3261e; font-weight: 600; }
-.fb-btn[aria-pressed="true"][data-stance="unsure"] { background: var(--open-soft); border-color: var(--open); color: var(--open); font-weight: 600; }
+.fb-btn[aria-pressed="true"][data-stance="unsure"] { background: var(--code-bg); border-color: var(--muted); color: var(--muted); font-weight: 600; }
 .fb-btn:disabled { opacity: .55; cursor: not-allowed; }
 .fb-counts { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .fb textarea, .fb-missing textarea { display: block; width: 100%; margin-top: 10px; min-height: 58px; padding: 8px 10px; font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; resize: vertical; }
@@ -796,7 +805,24 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .fb-tag { font-size: 12px; margin-left: 6px; padding: 1px 7px; border-radius: 999px; }
 .fb-tag.agree { background: var(--decided-soft); color: var(--decided); }
 .fb-tag.disagree { background: #f8e1df; color: #b3261e; }
-.fb-tag.unsure { background: var(--open-soft); color: var(--open); }
+.fb-tag.unsure { background: var(--code-bg); color: var(--muted); }
+.map-key { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: 14px; color: var(--muted); }
+.map-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; border: 2px solid transparent; }
+.map-dot.agree { background: var(--decided); }
+.map-dot.disagree { background: #b3261e; }
+.map-dot.unsure { background: var(--muted); }
+.map-dot.todo { background: var(--open-soft); border-color: var(--open); }
+.map-counts { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.map-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.map-list li { max-width: none; }
+.map-list a { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); text-decoration: none; }
+.map-list a:hover, .map-list a:focus-visible { border-color: var(--accent); outline: none; }
+.map-list a.agree { border-left: 4px solid var(--decided); }
+.map-list a.disagree { border-left: 4px solid #b3261e; }
+.map-list a.unsure { border-left: 4px solid var(--muted); }
+.map-list a.todo { border-left: 4px solid var(--open); background: var(--open-soft); }
+.map-title { flex: 1; min-width: 0; }
+.map-note { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .fb-note { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 0; }
 .fb-missing { margin: 22px 0 8px; padding: 12px 14px; border: 1px dashed var(--open); border-radius: 6px; background: var(--open-soft); }
 .fb-missing .fb-q { color: var(--open); }
@@ -1021,6 +1047,42 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       det.querySelector("summary").textContent = "Vedi le segnalazioni (" + n + ")";
     });
     paintSummary();
+    paintMap();
+  }
+
+  function paintMap() {
+    var list = document.getElementById("map-items"), miss = document.getElementById("map-missing"), counts = document.getElementById("map-counts");
+    if (!list) return;
+    var only = document.getElementById("map-only-todo").checked;
+    list.textContent = ""; miss.textContent = "";
+    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 };
+    ITEMS.forEach(function (it) {
+      var my = mine.items[it[0]] || {};
+      var cls = my.stance || "todo";
+      n[cls]++;
+      if (only && cls !== "todo") return;
+      var li = document.createElement("li"), a = document.createElement("a");
+      a.href = "#fb-" + it[0]; a.className = cls;
+      var dot = document.createElement("span"); dot.className = "map-dot " + cls; a.appendChild(dot);
+      var t = document.createElement("span"); t.className = "map-title"; t.textContent = it[1]; a.appendChild(t);
+      if (my.note) { var nt = document.createElement("span"); nt.className = "map-note"; nt.textContent = "nota"; a.appendChild(nt); }
+      var chip = document.createElement("span"); chip.className = "status " + STATUS[it[2]][1]; chip.textContent = STATUS[it[2]][0]; a.appendChild(chip);
+      li.appendChild(a); list.appendChild(li);
+    });
+    var secTodo = 0;
+    document.querySelectorAll(".fb-missing[data-section]").forEach(function (el) {
+      var sec = el.getAttribute("data-section");
+      var done = !!(mine.missing[sec] || "").trim();
+      if (!done) secTodo++;
+      if (only && done) return;
+      var li = document.createElement("li"), a = document.createElement("a");
+      a.href = "#fb-missing-" + sec; a.className = done ? "agree" : "todo";
+      var dot = document.createElement("span"); dot.className = "map-dot " + (done ? "agree" : "todo"); a.appendChild(dot);
+      var t = document.createElement("span"); t.className = "map-title"; t.textContent = SECTION_TITLE[sec] || sec; a.appendChild(t);
+      var st = document.createElement("span"); st.className = "map-note"; st.textContent = done ? "compilato" : "vuoto"; a.appendChild(st);
+      li.appendChild(a); miss.appendChild(li);
+    });
+    counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " da compilare \u00b7 " + secTodo + " sezioni senza segnalazioni" + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
   }
 
   function paintSummary() {
@@ -1051,7 +1113,9 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   document.querySelectorAll(".fb[data-item]").forEach(buildItem);
   document.querySelectorAll(".fb-missing[data-section]").forEach(buildMissing);
   document.getElementById("fb-only-split").addEventListener("change", paintSummary);
+  document.getElementById("map-only-todo").addEventListener("change", paintMap);
   paintSummary();
+  paintMap();
 
   if (!window.claude || typeof window.claude.use !== "function") {
     setStatus("Per lasciare un parere apri questa pagina su claude.ai con un account dell'organizzazione.");
