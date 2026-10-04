@@ -20,6 +20,8 @@
   --open-soft: #fbefd9;
   --direction: #2c5aa0;
   --direction-soft: #e3ebf8;
+  --proposed: #6b3fa0;
+  --proposed-soft: #eee5f7;
   --code-bg: #eef1f5;
   --font-display: "Literata", Georgia, "Times New Roman", serif;
   --font-body: "Public Sans", "Segoe UI", Helvetica, Arial, sans-serif;
@@ -32,7 +34,7 @@
     --legacy: #e0b27a; --legacy-soft: #352a1c;
     --decided: #7dd3a3; --decided-soft: #1c3226;
     --open: #f0b860; --open-soft: #3a2d17;
-    --direction: #8fb3f0; --direction-soft: #1e2a40;
+    --direction: #8fb3f0; --direction-soft: #1e2a40; --proposed: #c3a3ea; --proposed-soft: #2c2240;
     --code-bg: #232a36; color-scheme: dark;
   }
 }
@@ -42,7 +44,7 @@
   --legacy: #e0b27a; --legacy-soft: #352a1c;
   --decided: #7dd3a3; --decided-soft: #1c3226;
   --open: #f0b860; --open-soft: #3a2d17;
-  --direction: #8fb3f0; --direction-soft: #1e2a40;
+  --direction: #8fb3f0; --direction-soft: #1e2a40; --proposed: #c3a3ea; --proposed-soft: #2c2240;
   --code-bg: #232a36; color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -80,6 +82,7 @@ pre { background: var(--code-bg); padding: 14px 16px; border-radius: 6px; overfl
 .s-decided { background: var(--decided-soft); color: var(--decided); }
 .s-open { background: var(--open-soft); color: var(--open); }
 .s-direction { background: var(--direction-soft); color: var(--direction); }
+.s-proposed { background: var(--proposed-soft); color: var(--proposed); }
 .tablewrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
 th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
@@ -119,12 +122,14 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
     <li><a href="#review">Come rivedere</a></li>
     <li><a href="#summary">Riepilogo dei pareri</a></li>
     <li><a href="#what">Cos'&egrave; Asqueel</a></li>
+    <li><a href="#principles">Principi</a></li>
     <li><a href="#builders">Perch&eacute; contano i builder</a></li>
     <li><a href="#model">Dichiarare un modello</a></li>
     <li><a href="#options">Funzioni di tabella e options</a></li>
     <li><a href="#hier">Tabelle gerarchiche</a></li>
     <li><a href="#expr">Scrivere espressioni</a></li>
     <li><a href="#select">Selezionare colonne</a></li>
+    <li><a href="#migrations">Effetti sulle migrazioni</a></li>
     <li><a href="#grouping">Raggruppamento</a></li>
     <li><a href="#pkey">Chiavi primarie</a></li>
     <li><a href="#writes">Scritture e azioni Python</a></li>
@@ -142,7 +147,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   <p class="lead">Asqueel &egrave; il porting del layer SQL di GenroPy in una libreria indipendente. Questo documento descrive Asqueel come sar&agrave; quando le decisioni qui sotto saranno implementate, confronta ogni parte con il layer SQL di GenroPy e chiede al team di mettere in discussione le scelte.</p>
   <div class="meta">
     <span><b>Data</b> 4 ottobre 2026</span>
-    <span><b>Asqueel</b> <code>main</code> a <code>c0888b3</code> (0.4.0 su PyPI)</span>
+    <span><b>Asqueel</b> <code>main</code> a <code>c0888b3</code></span>
     <span><b>GenroPy</b> <code>origin/develop</code> a <code>5e7f02e8d774</code></span>
     <span><b>Fonti</b> proposta 0001 e analisi 34&ndash;39</span>
   </div>
@@ -150,10 +155,11 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 </header>
 
 <h2 id="review">Come rivedere</h2>
-<p>Quasi tutto ci&ograve; che segue non &egrave; ancora nel codice. Asqueel 0.4.0 esegue gi&agrave; query e scritture. Le modifiche al modello e alle espressioni sono decisioni di progetto prese una per volta, ciascuna confrontata con GenroPy prima di essere scritta.</p>
+<p>Quasi tutto ci&ograve; che segue non &egrave; ancora nel codice. Il codice attuale esegue gi&agrave; query e scritture. Le modifiche al modello e alle espressioni sono decisioni di progetto prese una per volta, ciascuna confrontata con GenroPy prima di essere scritta.</p>
 <div class="legend">
   <span><span class="status s-decided">Decisa</span> concordata e registrata; le obiezioni servono ancora</span>
   <span><span class="status s-direction">Direzione</span> l'obiettivo &egrave; deciso, i dettagli no</span>
+  <span><span class="status s-proposed">Proposta</span> scritta nei piani, non ancora confermata</span>
   <span><span class="status s-open">Aperta</span> non decisa; il tuo parere la orienta</span>
 </div>
 <p>Sotto ogni decisione trovi tre pulsanti (<b>D'accordo</b>, <b>Contrario</b>, <b>Non so</b>) e un campo per la motivazione. In fondo a ogni sezione c'&egrave; un campo per ci&ograve; che manca. Indica in particolare:</p>
@@ -234,6 +240,22 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <div class="fb" data-item="porting"></div>
 <div class="fb-missing" data-section="what"></div>
 
+<h2 id="principles">Principi <span class="status s-decided">Decisa</span></h2>
+<ul>
+  <li><b>La sintassi di GenroPy &egrave; quella di default.</b> Un modello o un&#39;espressione scritti per GenroPy significano la stessa cosa in Asqueel, quando Asqueel li supporta.</li>
+  <li><b>Nessuna grafia alternativa.</b> Asqueel non aggiunge un secondo modo di scrivere ci&ograve; che GenroPy esprime gi&agrave;.</li>
+  <li><b>Ogni divergenza ha un motivo esterno scritto</b>: un inventario dell&#39;uso reale, un difetto del legacy mostrato nel codice, un requisito del database o la decisione di un GEP.</li>
+  <li><b>Una forma non supportata d&agrave; un errore esplicito</b>, mai un risultato diverso.</li>
+  <li><b>Prima Python.</b> Nel dubbio fra un comportamento in Python e uno delegato all&#39;SQL prevale quello Python. Il nome corto &egrave; l&#39;azione Python, il suffisso <code>_sql</code> quella SQL.</li>
+  <li><b>snake_case per i parametri.</b> Un parametro di GenroPy tiene il nome in forma snake (<code>onDelete_sql</code> &rarr; <code>on_delete_sql</code>). I nomi degli elementi di GenroPy restano invariati (<code>formulaColumn</code>, <code>aliasColumn</code>, <code>compositeColumn</code>); gli elementi nuovi sono in snake (<code>weak_relation</code>, <code>colgroup</code>, <code>sys_fields</code>).</li>
+  <li><b>La dichiarazione &egrave; una ricetta; il modello &egrave; un albero di oggetti</b> prodotto da un renderer, senza corrispondenza uno a uno fra nodi e oggetti.</li>
+  <li><b>Le funzioni si prendono da ci&ograve; che GenroPy offre</b>, non dalla sua implementazione; la compatibilit&agrave; la d&agrave; l&#39;adattatore.</li>
+  <li><b>Spazio per due funzioni pianificate</b>: le funzioni di relazione del GEP 1 e <code>virtualRelation</code>. Niente di questa proposta duplica ci&ograve; che daranno.</li>
+  <li><b>Ci&ograve; che non &egrave; implementato resta assente</b>, senza codice provvisorio.</li>
+</ul>
+<div class="fb" data-item="principles"></div>
+<div class="fb-missing" data-section="principles"></div>
+
 <h2 id="builders">Perch&eacute; contano i builder</h2>
 <p>GenroPy dichiara un modello chiamando metodi che scrivono attributi in una Bag. Asqueel lo dichiara con una <b>grammatica</b> costruita con genro-builders. Gran parte delle differenze di questo documento discende da ci&ograve; che una grammatica d&agrave; e gli attributi liberi no. &Egrave; la base di ogni riquadro &laquo;Perch&eacute; cambia&raquo;.</p>
 <div class="tablewrap"><table>
@@ -287,7 +309,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 </div>
 
 <h3>Le colonne si dichiarano sulla tabella <span class="status s-decided">Decisa</span></h3>
-<p>Come in GenroPy: <code>tbl.column</code>, <code>tbl.formulaColumn</code>, <code>tbl.aliasColumn</code>, <code>tbl.index</code>. La forma esplicita <code>tbl.columns().column(...)</code> di Asqueel 0.4 sparisce. Un nome usato sia da una colonna fisica sia da una virtuale &egrave; un errore; l'<code>_override</code> di GenroPy arriva con la composizione dei package. Elementi di colonna supportati: <code>column</code>, <code>formulaColumn</code>, <code>aliasColumn</code>, <code>subQueryColumn</code>, <code>pyColumn</code>, <code>compositeColumn</code>. Non ancora: <code>joinColumn</code>, <code>bagItemColumn</code>, <code>toolColumn</code>, <code>aliasTable</code>, <code>subtable</code>, colonne localizzate.</p>
+<p>Come in GenroPy: <code>tbl.column</code>, <code>tbl.formulaColumn</code>, <code>tbl.aliasColumn</code>, <code>tbl.index</code>. Un nome usato sia da una colonna fisica sia da una virtuale &egrave; un errore; l'<code>_override</code> di GenroPy arriva con la composizione dei package. Elementi di colonna supportati: <code>column</code>, <code>formulaColumn</code>, <code>aliasColumn</code>, <code>subQueryColumn</code>, <code>pyColumn</code>, <code>compositeColumn</code>. Non ancora: <code>joinColumn</code>, <code>bagItemColumn</code>, <code>toolColumn</code>, <code>aliasTable</code>, <code>subtable</code>, colonne localizzate.</p>
 <div class="fb" data-item="columns"></div>
 
 <h3>Un solo metodo, <code>configure</code> <span class="status s-decided">Decisa</span></h3>
@@ -297,6 +319,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <h3>Gruppi di colonne <span class="status s-decided">Decisa</span></h3>
 <p><code>tbl.colgroup(nome, name_long=..., col_*=...)</code> dichiara un gruppo una volta. Una colonna vi entra se dichiarata tramite il gruppo, oppure con <code>colgroup='nome'</code> sulla tabella. L'ordine &egrave; quello di dichiarazione; non ci sono numeri di posizione.</p>
 <div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy <code>group='amounts.010'</code> mescola raggruppamento, ordine e visibilit&agrave; nell'interfaccia in una stringa, e il contatore del <code>colgroup</code> legacy non avanza mai (ogni colonna riceve <code>.001</code>). Come elemento della grammatica un gruppo ha la sua firma, default per le sue colonne (<code>col_*</code>) e tre errori controllati: gruppo non dichiarato, gruppo in conflitto, gruppo dichiarato due volte.</p></div>
+<p>I gruppi raggruppano e basta: la visibilit&agrave; nell&#39;interfaccia e la posizione dei nodi di relazione nell&#39;albero dei campi non fanno parte del nucleo. <code>colgroup</code> accetta solo <code>name_long</code> e i default <code>col_*</code>; gli attributi d&#39;interfaccia, se servono, passano per <code>x_ui</code>. Un metodo chiamato su un gruppo si comporta come sulla tabella (un indice dichiarato tramite un gruppo prende il nome della tabella).</p>
 <div class="fb" data-item="colgroup"></div>
 
 <h3>Relazioni <span class="status s-decided">Decisa</span></h3>
@@ -314,6 +337,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <h3>Chiavi composite e vincoli <span class="status s-decided">Decisa</span></h3>
 <p>Un solo concetto copre ogni chiave su pi&ugrave; colonne, come in GenroPy: <code>compositeColumn(nome, columns='a,b', unique=True)</code>. Il suo valore &egrave; la chiave serializzata (<code>'["P1", 2024]'</code>); <code>*</code> la seleziona; <code>unique=True</code> crea l'<code>UNIQUE</code> su pi&ugrave; colonne; <code>.relation(...)</code> su una composita punta a un'altra composita. <code>pkey</code> nomina sempre una colonna, fisica o composita. L'elemento <code>constraint</code> esce dal modello: i <code>CHECK</code> tornano con gli altri oggetti nativi del database (trigger, funzioni, view).</p>
 <p>Ogni relazione crea un indice sulle colonne sorgente, salvo che siano gi&agrave; le prime colonne della chiave primaria, di un <code>UNIQUE</code> o di un indice. Non c'&egrave; un'opzione per spegnerlo. Ogni FK nasce con <code>ON UPDATE CASCADE</code>, come in GenroPy.</p>
+<p>Una chiave primaria composita &egrave; <code>pkey=&#39;&lt;nome della compositeColumn&gt;&#39;</code>; <code>table.pkeys</code> restituisce le colonne membro. Il valore serializzato &egrave; l&#39;identit&agrave; di un record con chiave composita: &egrave; il valore <code>pkey</code> di risultati e record, e GenroPy lo rilegge con <code>parseSerializedKey</code>.</p>
 <div class="fb" data-item="keys"></div>
 <div class="fb-missing" data-section="model"></div>
 
@@ -386,31 +410,80 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="fb-missing" data-section="hier"></div>
 
 <h2 id="expr">Scrivere espressioni</h2>
-<p>Il linguaggio delle espressioni &egrave; quello di GenroPy. Asqueel non aggiunge grafie alternative; una forma non supportata d&agrave; errore e non produce mai un risultato diverso.</p>
+<p>Il linguaggio delle espressioni &egrave; quello di GenroPy. Asqueel non aggiunge grafie alternative; una forma non supportata d&agrave; errore e non produce mai un risultato diverso. Un solo parser e un solo resolver sono condivisi da query, formule, policy di riga e <code>table.column()</code>.</p>
+
+<h3>Sintassi <span class="status s-decided">Decisa</span></h3>
 <div class="tablewrap"><table>
-  <thead><tr><th>Forma</th><th>Significato</th><th>Stato</th></tr></thead>
+  <thead><tr><th>Forma</th><th>Significato</th></tr></thead>
   <tbody>
-    <tr><td><code>$col</code></td><td>colonna della tabella corrente</td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>@customer_id.@state_id.name</code></td><td>path attraverso relazioni; ogni segmento di relazione inizia con <code>@</code></td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>:name</code>, <code>:env_name</code></td><td>parametro; valore dall'ambiente</td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>#THIS.&lt;path&gt;</code></td><td>riga esterna in una subquery correlata, anche dentro <code>sql_formula</code></td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>#IN_RANGE(valore, inizio, fine)</code></td><td>estremi inclusi; un estremo <code>NULL</code> &egrave; aperto; in ogni contesto</td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>#PERIOD($campo, :p)</code></td><td>periodo decodificato da <code>genro_toolbox.dates.parse_period</code>; sempre <code>&gt;= inizio AND &lt; giorno dopo la fine</code></td><td><span class="status s-decided">Decisa</span>, <code>:p</code> o <code>p</code> aperto (#1509)</td></tr>
-    <tr><td><code>#ENV</code></td><td>non portato: lo sostituisce <code>:env_name</code></td><td><span class="status s-decided">Decisa</span></td></tr>
-    <tr><td><code>#BAG</code>, <code>#BAGCOLS</code>, <code>TSQUERY</code>, <code>VECQUERY</code>, <code>#PREF</code></td><td>in seguito</td><td><span class="status s-open">Aperta</span></td></tr>
+    <tr><td><code>$col</code></td><td>colonna della tabella corrente</td></tr>
+    <tr><td><code>@customer_id.name</code></td><td>colonna raggiunta tramite la relazione di <code>customer_id</code></td></tr>
+    <tr><td><code>@customer_id.@state_id.name</code></td><td>pi&ugrave; passaggi; ogni segmento di relazione inizia con <code>@</code>. <code>@customer.country.name</code> (segmento intermedio senza <code>@</code>) &egrave; un errore, come in GenroPy</td></tr>
+    <tr><td><code>:name</code></td><td>parametro</td></tr>
+    <tr><td><code>:env_name</code></td><td>valore dall'ambiente</td></tr>
+    <tr><td><code>#THIS.&lt;path&gt;</code></td><td>colonna della riga esterna in una subquery correlata</td></tr>
+    <tr><td><code>#NOME(argomenti)</code></td><td>macro (sotto)</td></tr>
+    <tr><td><code>#name</code></td><td>subquery con nome di una formula</td></tr>
   </tbody>
 </table></div>
 <div class="fb" data-item="syntax"></div>
+
+<h3>Nomi delle relazioni</h3>
 <ul>
-  <li><b>Un parser e un resolver</b>, condivisi da query, formule, policy di riga e <code>table.column()</code>.</li>
-  <li><b>Un path che raggiunge molte righe</b> (per esempio <code>@invoices</code> da un cliente) &egrave; un errore. I suoi valori arrivano dalle funzioni di relazione del GEP 1: <code>@invoices.count()</code>, <code>@invoices.sum($total)</code>. Il parser legge quella forma fin dall'inizio, quindi il GEP 1 aggiunge solo le funzioni. Asqueel non compila mai un join che moltiplica le righe della tabella principale.</li>
+  <li>La relazione uscente prende il nome della sua colonna: <code>@customer_id</code>. <code>x_name</code> non nomina pi&ugrave; una relazione. <span class="status s-decided">Decisa</span></li>
+  <li>La relazione inversa prende il nome da <code>relation_name</code> sulla relazione che la dichiara. Senza <code>relation_name</code> il nome segue la regola di GenroPy <code>&lt;schema&gt;_&lt;tabella&gt;_&lt;colonna&gt;</code> e la relazione &egrave; privata. <span class="status s-proposed">Proposta</span></li>
 </ul>
+<div class="fb" data-item="relation-names"></div>
+
+<h3>Passaggi verso molte righe <span class="status s-decided">Decisa</span></h3>
+<p>Un path che attraversa una relazione verso molte righe (per esempio <code>@invoices</code> da un cliente) &egrave; un errore. I suoi valori arriveranno dalle funzioni di relazione del GEP 1. Il parser legge questa forma fin dall'inizio, quindi il GEP 1 aggiunge solo le funzioni:</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Funzione (GEP 1)</th><th>Risultato</th></tr></thead>
+  <tbody>
+    <tr><td><code>@invoices.count()</code></td><td>numero delle righe collegate</td></tr>
+    <tr><td><code>@invoices.sum($total)</code></td><td>somma di una colonna delle righe collegate</td></tr>
+    <tr><td><code>@invoices.to_json($number, $date)</code></td><td>le righe collegate come JSON; sostituisce <code>*@rel.(a,b)</code></td></tr>
+  </tbody>
+</table></div>
+<p>Asqueel non compila mai un join che moltiplica le righe della tabella principale, e non riaggrega mai righe in Python. Le funzioni del GEP 1 si compilano come subquery correlate.</p>
 <div class="fb" data-item="many-side"></div>
+
+<h3>Macro</h3>
 <ul>
-  <li><b><code>table.column('mancante')</code></b> restituisce <code>None</code>, come in GenroPy; un path con una relazione mancante alza un'eccezione. Le eccezioni formano una gerarchia con radice <code>GnrSqlException</code>, una classe per caso.</li>
+  <li>Una macro &egrave; un costrutto del linguaggio, espanso durante la compilazione in parti dell'espressione. I path dentro i suoi argomenti si risolvono come ogni altro path. <span class="status s-decided">Decisa</span> (30 settembre 2026)</li>
+  <li>Le macro si registrano per livello (nucleo, dialetto, applicazione, package) e per contesto (colonne, where, order by, group by, having, condizione di relazione, formula, record). Una macro sconosciuta al dialetto &egrave; un errore di compilazione. <span class="status s-proposed">Proposta</span></li>
 </ul>
-<div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy <code>#THIS.@rel.col</code> dentro <code>sql_formula</code> non viene espanso (genropy/genropy#1505); Asqueel lo risolve come ogni altro path. <code>#PERIOD</code> usa un intervallo semiaperto perch&eacute; su un timestamp l'ultimo giorno sia incluso, cosa che il <code>BETWEEN</code> di GenroPy perdeva. Le eccezioni tengono i nomi di GenroPy ma hanno una radice comune, cos&igrave; <code>except GnrSqlException</code> le prende tutte.</p></div>
+<div class="fb" data-item="macro-registry"></div>
+
+<div class="tablewrap"><table>
+  <thead><tr><th>Macro</th><th>Regole</th><th>Stato</th></tr></thead>
+  <tbody>
+    <tr><td><code>#THIS.&lt;path&gt;</code></td><td>Colonna o path della riga esterna in una subquery correlata; la risolve la query esterna e i suoi join appartengono alla query esterna. Funziona nelle condizioni <code>select</code> / <code>exists</code> e dentro <code>sql_formula</code>, dove GenroPy non espande <code>#THIS.@rel.col</code> (genropy/genropy#1505). Fuori da un contesto correlato &egrave; un errore.</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#IN_RANGE(valore, inizio, fine)</code></td><td>Vero quando <code>inizio &lt;= valore &lt;= fine</code>. Un estremo <code>NULL</code> lascia aperto quel lato; due estremi <code>NULL</code> danno sempre vero (semantica di GenroPy). Gli argomenti sono espressioni qualsiasi: colonna, path, parametro, <code>:env_name</code>, <code>#THIS.&lt;path&gt;</code>. Si espande in ogni contesto, <code>group by</code>, <code>having</code> e query di record comprese.</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#PERIOD($campo, :p)</code></td><td>Filtra <code>$campo</code> sul periodo descritto dal valore di <code>p</code> (<code>'today'</code>, <code>'today;today+7'</code>, <code>'questa settimana'</code>, <code>'2024'</code>, ...). Il periodo lo decodifica <code>genro_toolbox.dates.parse_period(text, workdate, locale)</code> (genro-toolbox 0.15.0) con <code>workdate</code> e <code>locale</code> del contesto; un valore non riconosciuto alza <code>PeriodError</code>. Il parser riproduce 2796 casi di GenroPy; le 432 divergenze approvate sono elencate con il motivo in genro-toolbox. L'SQL &egrave; sempre semiaperto: <code>$campo &gt;= :p_from AND $campo &lt; :p_to_next</code>, con <code>p_to_next</code> il giorno dopo la fine. Un valore letterale va tra apici: <code>#PERIOD($date, '2024')</code>. Un parametro mancante &egrave; un errore.</td><td><span class="status s-decided">Decisa</span>; <code>:p</code> o <code>p</code> da rivedere con #1509</td></tr>
+    <tr><td><code>#PERIOD($date, $col)</code></td><td>Non ammesso: il testo del periodo si decodifica in Python durante la compilazione, prima che esista una riga. Neanche GenroPy espande questa forma. Si usa <code>#IN_RANGE($date, $inizio, $fine)</code> quando la riga contiene le due date, oppure un parametro (<code>:p</code>, <code>:env_p</code>).</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#ENV</code></td><td>Non portato: lo sostituisce <code>:env_name</code>.</td><td><span class="status s-decided">Decisa</span></td></tr>
+    <tr><td><code>#BAG</code>, <code>#BAGCOLS</code>, <code>TSQUERY</code>, <code>VECQUERY</code>, <code>#PREF</code></td><td>In seguito.</td><td><span class="status s-open">Aperta</span></td></tr>
+  </tbody>
+</table></div>
+<div class="why"><p><b>Perch&eacute; cambia.</b> <code>#THIS.@rel.col</code> in <code>sql_formula</code> funziona come ogni altro path, mentre GenroPy non lo espande. <code>#PERIOD</code> usa un intervallo semiaperto: su una colonna data il risultato &egrave; quello di GenroPy, su un timestamp l'ultimo giorno &egrave; incluso, cosa che il <code>BETWEEN</code> di GenroPy perdeva.</p></div>
 <div class="fb" data-item="macros"></div>
+
+<h3><code>table.column()</code> ed eccezioni <span class="status s-decided">Decisa</span></h3>
+<ul>
+  <li><code>table.column('name')</code>, <code>table.column('$name')</code> e <code>table.column('@customer_id.name')</code> restituiscono la stessa colonna che risolve il compiler.</li>
+  <li>Una colonna offre <code>relatedTable()</code> e <code>relatedColumn()</code>, come in GenroPy.</li>
+  <li>Un nome semplice mancante restituisce <code>None</code>; un path con una relazione mancante alza un'eccezione. &Egrave; il comportamento di GenroPy: <code>table.column('x') is not None</code> &egrave; il modo del framework per sapere se una tabella ha una colonna.</li>
+  <li>Le eccezioni formano una gerarchia con radice <code>GnrSqlException</code> (nome di GenroPy), una classe per caso: <code>GnrSqlMissingTable</code>, <code>GnrSqlMissingField</code> (relazione mancante), <code>GnrSqlMissingColumn</code> (colonna finale mancante), <code>GnrSqlInvalidVirtualColumn</code>, <code>GnrSqlRelationError</code> (dichiarazione di relazione). In GenroPy queste derivano da <code>GnrException</code> e sfuggono a <code>except GnrSqlException</code>.</li>
+</ul>
+<div class="fb" data-item="column-api"></div>
+
+<h3>Pianificato, fuori da questa proposta</h3>
+<ul>
+  <li><b>Funzioni di relazione del GEP 1</b> sulle relazioni verso molte righe (tabella sopra).</li>
+  <li><b><code>virtualRelation</code></b> (genropy_meta#1): relazioni filtrate, collegamenti senza FK verso un target non unico, una riga scelta per ordine e limite, in sola lettura. Esempio: <code>virtualRelation('last_invoice', relation='@invoices', order_by='$date DESC', limit=1)</code>. Asqueel non progetta nulla che <code>virtualRelation</code> renderebbe inutile.</li>
+</ul>
+<div class="fb" data-item="planned"></div>
 <div class="fb-missing" data-section="expr"></div>
 
 <h2 id="select">Selezionare colonne</h2>
@@ -429,6 +502,21 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="fb" data-item="star"></div>
 <div class="fb" data-item="pkey-column"></div>
 <div class="fb-missing" data-section="select"></div>
+
+<h2 id="migrations">Effetti sulle migrazioni <span class="status s-decided">Decisa</span></h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>Dichiarazione</th><th>Database</th></tr></thead>
+  <tbody>
+    <tr><td><code>relation</code></td><td><code>FOREIGN KEY ... ON UPDATE CASCADE</code> pi&ugrave; indice sulle colonne sorgente</td></tr>
+    <tr><td><code>weak_relation</code></td><td>indice sulle colonne sorgente e, se non gi&agrave; coperte, sulle colonne target</td></tr>
+    <tr><td><code>compositeColumn(..., unique=True)</code></td><td><code>UNIQUE</code> sulle colonne membro</td></tr>
+    <tr><td><code>relation</code> su una composita</td><td><code>FOREIGN KEY</code> composita pi&ugrave; indice</td></tr>
+    <tr><td><code>colgroup</code></td><td>niente</td></tr>
+    <tr><td>colonne virtuali</td><td>niente</td></tr>
+  </tbody>
+</table></div>
+<p>Importando un database che ha vincoli <code>CHECK</code> si importa il modello senza di essi, con un avviso che ne riporta i nomi. Le migrazioni sono additive, quindi i vincoli restano nel database.</p>
+<div class="fb" data-item="migrations"></div>
 
 <h2 id="grouping">Raggruppamento <span class="status s-direction">Direzione</span></h2>
 <p>La grouped view di GenroPy permette a qualunque utente di raggruppare qualunque vista senza codice: si trascinano i campi, si sceglie Break o un aggregato, si vede una lista, un albero o una pivot, si clicca un gruppo per vederne le righe, si salva la vista. Le applicazioni la usano anche da codice (strutture in 173 moduli di 24 repository). Il nucleo di Asqueel fornir&agrave; ci&ograve; che serve, per qualunque interfaccia:</p>
@@ -508,6 +596,7 @@ opts.auto_counter('parent_id')</pre></div>
   <li>Generazione delle chiavi primarie e nuovi record (<code>pkeyValue</code>, <code>newPkeyValue</code>, <code>newRecord</code>).</li>
   <li><code>#PERIOD</code>: se il nome nudo <code>p</code> resta valido accanto a <code>:p</code> (genropy/genropy#1509).</li>
   <li>Il ciclo di scrittura completo nel nucleo.</li>
+  <li>Nomi delle relazioni inverse senza <code>relation_name</code> (regola <code>&lt;schema&gt;_&lt;tabella&gt;_&lt;colonna&gt;</code>, relazione privata) e registrazione delle macro per livello e contesto: entrambe proposte nel piano 32, non ancora confermate.</li>
 </ol>
 <div class="fb-missing" data-section="open"></div>
 
@@ -562,6 +651,7 @@ opts.auto_counter('parent_id')</pre></div>
 (function () {
   var ITEMS = [
     ["porting", "Asqueel come porting del layer SQL di GenroPy, con adattatore", "direction"],
+    ["principles", "Principi", "decided"],
     ["grammar", "Il modello come grammatica genro-builders", "decided"],
     ["columns", "Colonne dichiarate sulla tabella", "decided"],
     ["configure", "Un solo metodo configure", "decided"],
@@ -574,21 +664,26 @@ opts.auto_counter('parent_id')</pre></div>
     ["hier-model", "Tabelle gerarchiche: modello di GenroPy", "decided"],
     ["hier-fixes", "Tabelle gerarchiche: correzioni", "decided"],
     ["hier-open", "Tabelle gerarchiche: punti aperti", "open"],
-    ["syntax", "Sintassi delle espressioni e macro", "decided"],
+    ["syntax", "Sintassi delle espressioni", "decided"],
+    ["relation-names", "Nomi delle relazioni, anche inverse", "proposed"],
     ["many-side", "Path verso molte righe: errore, poi GEP 1", "decided"],
-    ["macros", "table.column, eccezioni, #THIS e #PERIOD", "decided"],
+    ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed"],
+    ["macros", "Macro #THIS, #IN_RANGE, #PERIOD, #ENV", "decided"],
+    ["column-api", "table.column() ed eccezioni", "decided"],
+    ["planned", "GEP 1 e virtualRelation, pianificati", "direction"],
     ["star", "Espansione di * e forme non supportate", "decided"],
     ["pkey-column", "Colonna pkey aggiunta dall'adattatore", "decided"],
+    ["migrations", "Effetti sulle migrazioni", "decided"],
     ["grouping", "Raggruppamento nel nucleo", "direction"],
     ["pkey", "Chiavi primarie", "open"],
     ["python-first", "Prima Python, suffisso _sql", "decided"],
     ["adapter", "Compiti dell'adattatore GenroPy", "direction"],
     ["general-picture", "L'immagine complessiva di Asqueel", "direction"]
   ];
-  var STATUS = { decided: ["Decisa", "s-decided"], direction: ["Direzione", "s-direction"], open: ["Aperta", "s-open"] };
+  var STATUS = { decided: ["Decisa", "s-decided"], direction: ["Direzione", "s-direction"], proposed: ["Proposta", "s-proposed"], open: ["Aperta", "s-open"] };
   var STANCES = [["agree", "D'accordo"], ["disagree", "Contrario"], ["unsure", "Non so"]];
   var STANCE_LABEL = { agree: "D'accordo", disagree: "Contrario", unsure: "Non so" };
-  var SECTION_TITLE = { what: "Cos'\u00e8 Asqueel", builders: "builder", model: "modello", options: "options", hier: "tabelle gerarchiche", expr: "espressioni", select: "selezione delle colonne", grouping: "raggruppamento", pkey: "chiavi primarie", writes: "scritture", adapter: "adattatore", diff: "differenze", open: "decisioni aperte", general: "domande generali" };
+  var SECTION_TITLE = { principles: "principi", what: "Cos'\u00e8 Asqueel", builders: "builder", model: "modello", options: "options", hier: "tabelle gerarchiche", expr: "espressioni", select: "selezione delle colonne", grouping: "raggruppamento", pkey: "chiavi primarie", writes: "scritture", adapter: "adattatore", diff: "differenze", open: "decisioni aperte", general: "domande generali" };
 
   var db = null, user = null, myId = null, canWrite = false;
   var votes = {};
