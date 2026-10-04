@@ -147,7 +147,6 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   <p class="lead">Asqueel &egrave; il porting del layer SQL di GenroPy in una libreria indipendente. Questo documento descrive Asqueel come sar&agrave; quando le decisioni qui sotto saranno implementate, confronta ogni parte con il layer SQL di GenroPy e chiede al team di mettere in discussione le scelte.</p>
   <div class="meta">
     <span><b>Data</b> 4 ottobre 2026</span>
-    <span><b>Asqueel</b> <code>main</code> a <code>c0888b3</code></span>
     <span><b>GenroPy</b> <code>origin/develop</code> a <code>5e7f02e8d774</code></span>
     <span><b>Fonti</b> proposta 0001 e analisi 34&ndash;39</span>
   </div>
@@ -155,7 +154,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 </header>
 
 <h2 id="review">Come rivedere</h2>
-<p>Quasi tutto ci&ograve; che segue non &egrave; ancora nel codice. Il codice attuale esegue gi&agrave; query e scritture. Le modifiche al modello e alle espressioni sono decisioni di progetto prese una per volta, ciascuna confrontata con GenroPy prima di essere scritta.</p>
+<p>Ci&ograve; che segue descrive decisioni di progetto, prese una per volta e ciascuna confrontata con GenroPy prima di essere scritta. Non descrive codice esistente.</p>
 <div class="legend">
   <span><span class="status s-decided">Decisa</span> concordata e registrata; le obiezioni servono ancora</span>
   <span><span class="status s-direction">Direzione</span> l'obiettivo &egrave; deciso, i dettagli no</span>
@@ -330,7 +329,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
     <tr><td><code>weak_relation(...)</code></td><td>nessun vincolo; indice su colonne sorgente e target</td><td>creduto unico; <code>insensitive=True</code> confronta senza maiuscole</td></tr>
   </tbody>
 </table></div>
-<p>I parametri tengono i nomi di GenroPy in snake_case: <code>related_column</code>, <code>relation_name</code>, <code>one_name</code>, <code>many_name</code>, <code>one_one</code>, <code>on_delete</code> / <code>on_update</code> (azioni Python sui record collegati), <code>on_delete_sql</code> / <code>on_update_sql</code> (azioni SQL della FK), <code>deferred</code>, <code>deferrable</code>, <code>initially_deferred</code>. La relazione uscente prende il nome della sua colonna (<code>@customer_id</code>); <code>x_name</code> sparisce.</p>
+<p>I parametri tengono i nomi di GenroPy in snake_case: <code>related_column</code>, <code>relation_name</code>, <code>one_name</code>, <code>many_name</code>, <code>one_one</code>, <code>on_delete</code> / <code>on_update</code> (azioni Python sui record collegati), <code>on_delete_sql</code> / <code>on_update_sql</code> (azioni SQL della FK), <code>deferred</code>, <code>deferrable</code>, <code>initially_deferred</code>. La relazione uscente prende il nome della sua colonna (<code>@customer_id</code>).</p>
 <div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy un <code>relation()</code> semplice &egrave; logico e <code>mode='foreignkey'</code> aggiunge il vincolo. Negli otto repository applicativi pi&ugrave; grandi 3555 relazioni su 4134 (86%) usano <code>mode='foreignkey'</code>, quindi il caso comune diventa quello breve. Due elementi al posto di una stringa <code>mode</code> danno a ciascun tipo il suo insieme chiuso di parametri: <code>insensitive</code> esiste solo dove pu&ograve; funzionare, perch&eacute; una FK non confronta senza maiuscole. Target non unici, relazioni filtrate e &laquo;una riga per ordine&raquo; sono lasciati a <code>virtualRelation</code> (genropy_meta#1).</p></div>
 <div class="fb" data-item="relations"></div>
 
@@ -430,7 +429,7 @@ opts.auto_counter('parent_id')</pre></div>
 
 <h3>Nomi delle relazioni</h3>
 <ul>
-  <li>La relazione uscente prende il nome della sua colonna: <code>@customer_id</code>. <code>x_name</code> non nomina pi&ugrave; una relazione. <span class="status s-decided">Decisa</span></li>
+  <li>La relazione uscente prende il nome della sua colonna: <code>@customer_id</code>. <span class="status s-decided">Decisa</span></li>
   <li>La relazione inversa prende il nome da <code>relation_name</code> sulla relazione che la dichiara. Senza <code>relation_name</code> il nome segue la regola di GenroPy <code>&lt;schema&gt;_&lt;tabella&gt;_&lt;colonna&gt;</code> e la relazione &egrave; privata. <span class="status s-proposed">Proposta</span></li>
 </ul>
 <div class="fb" data-item="relation-names"></div>
@@ -533,7 +532,7 @@ opts.auto_counter('parent_id')</pre></div>
 
 <h2 id="pkey">Chiavi primarie <span class="status s-open">Aperta</span></h2>
 <p>Solo analisi. In GenroPy <code>newPkeyValue(record)</code> chiama <code>pkeyValue(record)</code>, che prova sei regole in ordine: chiave composita, <code>max + 1</code> numerico, UUID senza record, <code>pkey_columns</code>, <code>__syscode</code>, UUID testuale di 22 caratteri; altrimenti restituisce <code>None</code>. Quattro applicazioni ridefiniscono <code>newPkeyValue</code> (un codice da un contatore, una chiave fissa per una tabella con un solo record, <code>_</code> sostituito per gli import bancari, un codice casuale ripetuto finch&eacute; &egrave; unico).</p>
-<p>Difetti da evitare: <code>max + 1</code> senza lock; <code>insertMany</code> che d&agrave; a tutti i record la stessa chiave numerica; collisioni di <code>pkey_columns</code> con valori <code>None</code> o contenenti il separatore; un <code>None</code> silenzioso quando nessuna regola si applica. Asqueel oggi non genera chiavi: inserisce i valori dati e legge <code>RETURNING</code>.</p>
+<p>Difetti da evitare: <code>max + 1</code> senza lock; <code>insertMany</code> che d&agrave; a tutti i record la stessa chiave numerica; collisioni di <code>pkey_columns</code> con valori <code>None</code> o contenenti il separatore; un <code>None</code> silenzioso quando nessuna regola si applica.</p>
 <div class="fb" data-item="pkey"></div>
 <div class="fb-missing" data-section="pkey"></div>
 

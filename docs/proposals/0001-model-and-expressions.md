@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | **Status** | Proposal — for team review |
-| **Implementation** | Not yet in the code. asqueel 0.4.0 behaves as described in the current guide. asqueel is being written: parts of this target arrive in later increments, without provisional implementations. |
+| **Implementation** | Not yet in the code. asqueel is being written: parts of this target arrive in later increments, without provisional implementations. |
 | **Date** | 2026-10-02 |
-| **Applies to** | asqueel after 0.4.0 |
+| **Applies to** | asqueel |
 | **Plans** | [32 — expression parser and resolver](../design/32-expression-resolver-plan.md), [33 — model structure](../design/33-structure-rectification-plan.md) |
 | **Legacy reference** | GenroPy `origin/develop` `51e4270c54` |
 
@@ -66,11 +66,10 @@ Physical columns, virtual columns and indexes are declared directly on the
 table, as in GenroPy. The internal containers (`columns`, `virtual_columns`,
 `indexes`) exist but are not written by the developer.
 
-- The explicit form `tbl.columns().column(...)` / `tbl.virtual_columns()...`
-  is no longer accepted. **Decided.**
+- There is no explicit form `tbl.columns().column(...)` /
+  `tbl.virtual_columns()...`: the containers stay internal. **Decided.**
 - A name used by a physical and a virtual column of the same table is an error.
-  Today asqueel accepts it and the virtual column silently replaces the
-  physical one. **Decided.** GenroPy's `_override=True` is used where a package
+  **Decided.** GenroPy's `_override=True` is used where a package
   modifies another package's table; it comes with package composition.
 
 Supported column elements: `column`, `formulaColumn`, `aliasColumn`,
@@ -155,8 +154,6 @@ tbl.column('customer_id', dtype='L').relation('sales.customer.id')
 tbl.column('owner_id', dtype='L').relation('sales.user.id', on_update_sql=None)
 # FOREIGN KEY (owner_id) REFERENCES sales.user (id)  — no action on update
 ```
-
-Today asqueel creates foreign keys without an update action; this changes.
 
 ### 2.4 Composite keys — Decided
 
@@ -306,7 +303,6 @@ Not available yet: `hierarchical_linked_to`, virtual roots, `hdepth`.
 - An inverse relation is named by `relation_name` on the declaring relation.
   Without it, the name follows GenroPy's rule `<schema>_<table>_<column>` and
   the relation is private. **Proposed** (plan 32, step 2).
-- `x_name` no longer names a relation.
 
 ### 3.3 Many-side hops — Decided
 
@@ -383,7 +379,7 @@ never regroups rows in Python.
 `*` selects, in declaration order, the physical columns (columns with
 `dtype='X'` only when `bagFields=True`; it is false in queries and true in
 records), then the virtual columns declared `static=True`. This is GenroPy's
-rule. Today asqueel also selects formulas and aliases; that changes.
+rule.
 
 ### 4.2 Other expansions — Decided
 
@@ -399,8 +395,7 @@ rule. Today asqueel also selects formulas and aliases; that changes.
 A path without `AS` takes GenroPy's name: every non-alphanumeric character
 becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 `_customer_id_name`. GenroPy clients and exports compute the same name
-(`genro_grid.js`, `apphandler/export.py`). Today asqueel produces
-`customer_name`; that changes.
+(`genro_grid.js`, `apphandler/export.py`).
 
 ### 4.4 The `pkey` column and the count — Decided
 
