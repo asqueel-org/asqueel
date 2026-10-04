@@ -779,6 +779,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   <label class="fb-filter map-f-all"><input type="checkbox" id="map-only-split"> Solo i punti discordi</label>
   <label class="fb-filter map-f-all"><input type="checkbox" id="map-only-notes"> Solo con note o segnalazioni</label>
 </div>
+<div class="syn-overall" id="map-overall" hidden></div>
 <ol class="map-tree" id="map-tree"></ol>
 
 <footer>
@@ -829,6 +830,13 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .map-dot.split { background: linear-gradient(90deg, var(--decided) 50%, #b3261e 50%); }
 .map-list details { margin: 2px 0 6px 18px; font-size: 14px; }
 .map-list summary { cursor: pointer; color: var(--accent); }
+.syn { margin: 4px 0 8px 18px; padding: 10px 14px; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent-soft); font-size: 14px; }
+.syn-overall { margin: 12px 0; } .syn-overall .syn { margin-left: 0; }
+.syn h4 { margin: 8px 0 2px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
+.syn h4:first-child { margin-top: 0; }
+.syn ul { margin: 0; padding-left: 18px; }
+.syn p { margin: 2px 0; white-space: pre-wrap; }
+.syn .syn-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
 .map-tree { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; }
 .map-tree > li { max-width: none; }
 .map-sec { display: flex; gap: 10px; align-items: baseline; font-family: var(--font-display); font-weight: 650; font-size: 17px; color: var(--ink); text-decoration: none; }
@@ -906,6 +914,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 
   var db = null, user = null, myId = null, canWrite = false;
   var votes = {};
+  var syntheses = {};
   var mine = { items: {}, missing: {} };
   var loadedMine = false, touched = false;
   var saving = false, again = false;
@@ -1076,6 +1085,28 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   }
 
   var lastPs = {};
+  function synthesisEl(sy, open) {
+    var det = document.createElement("details"); det.open = !!open;
+    var sum = document.createElement("summary");
+    sum.textContent = "Sintesi" + (sy.pareri !== undefined ? " (" + sy.pareri + (sy.pareri === 1 ? " parere" : " pareri") + ")" : "");
+    det.appendChild(sum);
+    var box = document.createElement("div"); box.className = "syn";
+    [["pro", "A favore"], ["contro", "Contro"], ["risposte", "Risposte alle obiezioni"]].forEach(function (k) {
+      var v = sy[k[0]]; if (!Array.isArray(v) || !v.length) return;
+      var h = document.createElement("h4"); h.textContent = k[1]; box.appendChild(h);
+      var ul = document.createElement("ul");
+      v.forEach(function (t) { var li = document.createElement("li"); li.textContent = String(t); ul.appendChild(li); });
+      box.appendChild(ul);
+    });
+    [["sintesi", "Sintesi"], ["proposta", "Proposta"]].forEach(function (k) {
+      var v = sy[k[0]]; if (!v) return;
+      var h = document.createElement("h4"); h.textContent = k[1]; box.appendChild(h);
+      var pp = document.createElement("p"); pp.textContent = String(v); box.appendChild(pp);
+    });
+    if (sy.data) { var m = document.createElement("p"); m.className = "syn-meta"; m.textContent = "Aggiornata il " + String(sy.data).slice(0, 10); box.appendChild(m); }
+    det.appendChild(box);
+    return det;
+  }
   function mapMode() { var r = document.querySelector('input[name="map-mode"]:checked'); return r ? r.value : "mine"; }
   function paintMap(ps) {
     if (ps) lastPs = ps; ps = lastPs;
@@ -1090,6 +1121,10 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     var byId = {}; ITEMS.forEach(function (it) { byId[it[0]] = it; });
     var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 }, written = 0, splitCount = 0, people = Object.keys(votes).length, reports = 0;
     tree.textContent = "";
+    var ov = document.getElementById("map-overall");
+    ov.textContent = "";
+    ov.hidden = !(all && syntheses._overall);
+    if (all && syntheses._overall) ov.appendChild(synthesisEl(syntheses._overall, true));
     function row(ul, href, cls, dotCls, title, note, tail) {
       var li = document.createElement("li"), a = document.createElement("a");
       a.href = href; a.className = cls;
@@ -1143,6 +1178,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
           var cls = split ? "split" : c.disagree ? "disagree" : c.agree ? "agree" : c.unsure ? "unsure" : "todo";
           var li = row(ul, "#fb-" + id, cls, cls, it[1], c.notes ? c.notes + (c.notes === 1 ? " nota" : " note") : "", [tallyEl(c), chip]);
           people_details(li, c.entries, "Pareri");
+          if (syntheses[id]) li.appendChild(synthesisEl(syntheses[id], false));
         } else {
           var sec = el.getAttribute("data-section");
           if (!all) {
@@ -1227,6 +1263,12 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       canWrite = !!myId;
       enableInputs();
       setStatus(canWrite ? "Puoi lasciare il tuo parere: si salva da solo." : "Puoi leggere i pareri; per lasciarne uno serve un account dell'organizzazione con accesso da Contributor.");
+      db.collection("syntheses").onSnapshot(function (snap) {
+        var next = {};
+        snap.docs.forEach(function (d) { if (d.exists) next[d.id] = d.data(); });
+        syntheses = next;
+        render();
+      }, function () {});
       db.collection("votes").onSnapshot(function (snap) {
         var next = {};
         snap.docs.forEach(function (d) { if (d.exists) next[d.id] = d.data(); });
