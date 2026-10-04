@@ -1,7 +1,7 @@
 # 39 — Analisi della chiave primaria nel legacy: `pkey`, `pkeyValue`, `newPkeyValue`
 
 Stato: analisi, nessuna decisione presa. Serve a decidere come asqueel genera
-la chiave primaria di un nuovo record (proposta 0001 §9).
+la chiave primaria di un nuovo record (proposta 0001 §8).
 
 Riferimenti: genropy `origin/develop` `5e7f02e8d774`, letto con `git show`.
 Path relativi a `gnrpy/gnr/sql/` salvo indicazione. L'uso nelle applicazioni

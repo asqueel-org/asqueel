@@ -23,7 +23,7 @@ yet.
   something GenroPy already expresses.
 - **Divergences are written down with an external reason**: an inventory of
   real usage, a legacy defect shown in the code, a database requirement, or a
-  decision of a GenroPy proposal (GEP). Section 8 lists them.
+  decision of a GenroPy proposal (GEP). Section 7 lists them.
 - **An unsupported form raises an explicit error.** It never produces a
   different result.
 - **Python first.** When in doubt between a behaviour implemented in Python and
@@ -265,7 +265,7 @@ class ProductTypeModel:
   excluded explicitly. Their form is decided together with GEP 1 and
   `virtualRelation`.
 
-Corrections with respect to GenroPy, **Decided** (section 8):
+Corrections with respect to GenroPy, **Decided** (section 7):
 
 - moving a node under one of its descendants is an error;
 - parent, children and siblings are read without the draft and
@@ -440,27 +440,7 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
   GenroPy adapter translates the legacy grid structure into the request and
   the result back into the legacy shape. **Direction decided**; details open.
 
-## 7. Breaking changes for asqueel 0.4 users
-
-- Columns declared on the table instead of through `columns()` /
-  `virtual_columns()`.
-- `relation()` always creates a foreign key; the former
-  `relation(foreign_key=False)` becomes `weak_relation()`;
-  `case_insensitive=True` becomes `weak_relation(insensitive=True)`.
-- `x_name` removed; outgoing relations are named after their column.
-- `@customer.country.name` without `@` on intermediate segments removed.
-- Automatic names `_customer_id_name` instead of `customer_name`.
-- `*` no longer selects formulas and aliases that are not `static`.
-- `indexed=False` on a relation removed.
-- Foreign keys are created with `ON UPDATE CASCADE` by default.
-- `relation` parameters renamed: `to` → `related_column`, `back_reference` →
-  `relation_name`, `on_delete`/`on_update` (SQL today) → `on_delete_sql`/
-  `on_update_sql`; `on_delete`/`on_update` now name the Python actions.
-- `constraint` removed from the model.
-- A composite primary key is `pkey='<compositeColumn name>'` instead of
-  `pkey='a,b'`; a `compositeColumn` is now a selectable column.
-
-## 8. Divergences from GenroPy
+## 7. Divergences from GenroPy
 
 | GenroPy | asqueel | Reason |
 |---|---|---|
@@ -476,7 +456,7 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | a moved node keeps its old sibling position; `_h_count` empty above 1295 siblings | last position under the new parent; explicit error above 1295 | duplicate positions and broken order; genropy/genropy#1525 |
 | `LIKE` on paths without escape; no pattern index | escaped `LIKE`; `text_pattern_ops` index on PostgreSQL | ids contain `_`; prefix `LIKE` cannot use the index with a non-C collation; genropy/genropy#1526 |
 
-## 9. Open decisions
+## 8. Open decisions
 
 | Id | Question |
 |---|---|
