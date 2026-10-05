@@ -480,10 +480,11 @@ opts.auto_counter('parent_id')</pre></div>
     <tr><td><code>:name</code></td><td>parametro</td></tr>
     <tr><td><code>:env_name</code></td><td>valore dall'ambiente</td></tr>
     <tr><td><code>#THIS.&lt;path&gt;</code></td><td>colonna della riga esterna in una subquery correlata</td></tr>
-    <tr><td><code>#NOME(argomenti)</code></td><td>macro (sotto)</td></tr>
-    <tr><td><code>#name</code></td><td>subquery con nome di una formula</td></tr>
+    <tr><td><code>#NOME(argomenti)</code></td><td>macro, in maiuscolo, registrata per livello e contesto; comprende le funzioni di riga (sotto)</td></tr>
+    <tr><td><code>#name</code></td><td>subquery con nome di una formula, in minuscolo e senza parentesi</td></tr>
   </tbody>
 </table></div>
+<p><code>#THIS</code> &egrave; una radice di path, come <code>$</code> e <code>@</code>, non una macro: non si registra, ed &egrave; ammesso solo in un contesto correlato. L&#39;SQL nativo del dialetto (<code>COALESCE</code>, <code>CASE</code>, <code>||</code>, ...) passa nell&#39;espressione cos&igrave; com&#39;&egrave;, come in GenroPy. <span class="status s-proposed">Proposta</span></p>
 <div class="fb" data-item="syntax"></div>
 
 <h3>Nomi delle relazioni</h3>
@@ -543,51 +544,50 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="fb-missing" data-section="modelapi"></div>
 
 <h2 id="relfunc">Funzioni di relazione <span class="status s-proposed">Proposta</span></h2>
-<p>Una funzione applicata a un path di relazione d&agrave; un valore per ogni riga della tabella principale: <code>@invoices.count()</code>, <code>@invoices.sum($total)</code>, <code>@invoices.@rows.count(distinct($product_id))</code>. Ogni espressione si compila in una subquery correlata sulla tabella collegata. La granularit&agrave; &egrave; giusta per costruzione: asqueel non compila mai un join che moltiplica le righe della tabella principale e non riaggrega mai righe in Python.</p>
+<p>Una funzione applicata a un path di relazione d&agrave; un valore per ogni riga della tabella principale: <code>@invoices.COUNT()</code>, <code>@invoices.SUM($total)</code>, <code>@invoices.@rows.COUNT(DISTINCT($product_id))</code>. Ogni espressione si compila in una subquery correlata sulla tabella collegata. La granularit&agrave; &egrave; giusta per costruzione: asqueel non compila mai un join che moltiplica le righe della tabella principale e non riaggrega mai righe in Python.</p>
 
 <h3>La regola</h3>
 <p>Una funzione opera su una riga o su un insieme di righe, e la forma dice quale:</p>
 <div class="tablewrap"><table>
   <thead><tr><th>Forma</th><th>Opera su</th><th>Esempio</th></tr></thead>
   <tbody>
-    <tr><td><code>funzione(argomenti)</code></td><td>la riga della tabella principale</td><td><code>sum($name, ' ', $surname)</code></td></tr>
-    <tr><td><code>@uno.funzione(argomenti)</code></td><td>la riga collegata di una relazione verso una riga</td><td><code>@customer_id.sum($name, ' ', $surname)</code></td></tr>
-    <tr><td><code>@molti.funzione(argomenti)</code></td><td>l'insieme delle righe di una relazione verso molte righe</td><td><code>@invoices.sum($total)</code></td></tr>
+    <tr><td><code>#FUNZIONE(argomenti)</code></td><td>la riga; i path negli argomenti raggiungono le righe collegate verso una riga</td><td><code>#SUM($name, &#39; &#39;, @customer_id.name)</code></td></tr>
+    <tr><td><code>@molti.FUNZIONE(argomenti)</code></td><td>l&#39;insieme delle righe di una relazione verso molte righe</td><td><code>@invoices.SUM($total)</code></td></tr>
   </tbody>
 </table></div>
-<p>Il compiler distingue gli ultimi due casi dalla cardinalit&agrave; della relazione nel modello. Una relazione verso molte righe dentro un path richiede sempre una funzione di aggregazione con argomenti espliciti: cosa si aggrega e come si legge dall'espressione. Un path che la attraversa senza funzione (<code>@invoices.total</code>) &egrave; un errore.</p>
+<p>Le funzioni di asqueel si scrivono in maiuscolo. Una funzione in minuscolo (<code>@invoices.sum(...)</code>) &egrave; un errore che indica la forma giusta. Una funzione su una relazione verso una riga (<code>@customer_id.SUM(...)</code>) &egrave; un errore: si usano i path dentro la macro. Una relazione verso molte righe dentro un path richiede sempre una funzione di aggregazione con argomenti espliciti: cosa si aggrega e come si legge dall&#39;espressione. Un path che la attraversa senza funzione (<code>@invoices.total</code>) &egrave; un errore.</p>
 
 <h3>Funzioni di aggregazione</h3>
-<p>Forma: <code>&lt;path di relazione&gt;.&lt;funzione&gt;(&lt;argomenti&gt;)</code>. Funzioni: <code>count</code>, <code>sum</code>, <code>avg</code>, <code>min</code>, <code>max</code>, <code>to_array</code>, <code>to_json</code>. Il modificatore <code>distinct(...)</code> vale per l'argomento; <code>count()</code> non ha argomenti. Gli argomenti seguono la grammatica generale dei campi sulla tabella collegata: <code>$col</code>, un path, un'espressione (<code>@rows.sum($quantity * $unit_price)</code>).</p>
+<p>Forma: <code>&lt;path di relazione&gt;.&lt;FUNZIONE&gt;(&lt;argomenti&gt;)</code>. Funzioni: <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, <code>JSON_DICT</code>, <code>JSON_LIST</code>. Il modificatore <code>DISTINCT(...)</code> vale per l&#39;argomento; <code>COUNT()</code> non ha argomenti. Gli argomenti seguono la grammatica generale dei campi sulla tabella collegata: <code>$col</code>, un path, un&#39;espressione (<code>@rows.SUM($quantity * $unit_price)</code>).</p>
 <div class="tablewrap"><table>
   <thead><tr><th>Espressione</th><th>Subquery compilata</th></tr></thead>
   <tbody>
-    <tr><td><code>@invoices.count()</code></td><td><code>SELECT COUNT(*) FROM invoice t WHERE t.customer_id = t0.id</code></td></tr>
-    <tr><td><code>@invoices.sum($total)</code></td><td><code>SELECT SUM(t.total) FROM invoice t WHERE t.customer_id = t0.id</code></td></tr>
-    <tr><td><code>@invoices.@rows.sum($quantity)</code></td><td><code>SELECT SUM(r.quantity) FROM invoice_row r JOIN invoice i ON r.invoice_id = i.id WHERE i.customer_id = t0.id</code></td></tr>
+    <tr><td><code>@invoices.COUNT()</code></td><td><code>SELECT COUNT(*) FROM invoice t WHERE t.customer_id = t0.id</code></td></tr>
+    <tr><td><code>@invoices.SUM($total)</code></td><td><code>SELECT SUM(t.total) FROM invoice t WHERE t.customer_id = t0.id</code></td></tr>
+    <tr><td><code>@invoices.@rows.SUM($quantity)</code></td><td><code>SELECT SUM(r.quantity) FROM invoice_row r JOIN invoice i ON r.invoice_id = i.id WHERE i.customer_id = t0.id</code></td></tr>
   </tbody>
 </table></div>
 <p>Pi&ugrave; espressioni su relazioni diverse convivono nella stessa SELECT, ognuna con la propria granularit&agrave;. Nessun <code>DISTINCT</code> sulla query esterna, nessuna rielaborazione in Python.</p>
 <ul>
-  <li><b>Pi&ugrave; passaggi.</b> <code>@invoices.@rows.sum($quantity)</code> aggrega su tutte le righe raggiungibili dal path (tutte le righe di tutte le fatture del cliente). Un aggregato annidato d&agrave; un'altra grandezza: <code>@invoices.avg(@rows.sum($quantity))</code> &egrave; la media, sulle fatture, della somma per fattura. Le due forme convivono perch&eacute; l'argomento &egrave; diverso (colonna o funzione di relazione). Sui dati di prova: 1097 / 43 = 25,51 contro 1097 / 13 = 84,38.</li>
-  <li><b><code>sum</code> sul testo</b> &egrave; l'aggregazione di stringhe: <code>@invoices.sum($number)</code> unisce i valori con il separatore del modello, altrimenti <code>','</code>; <code>@invoices.sum($number, ' | ')</code> lo d&agrave; esplicito. L'ordine segue l'<code>order_by</code> della tabella collegata, altrimenti la chiave primaria.</li>
-  <li><b><code>to_array</code> e <code>to_json</code></b> danno un array JSON di valori o di oggetti (<code>@rows.to_json($product_id, $quantity)</code>), tipo <code>X</code>. Sostituiscono <code>*@rel.(a,b)</code>, che non dice cosa aggrega.</li>
-  <li><b>Nessun filtro nella funzione.</b> <code>@rel.funzione(...)</code> vale su tutta la relazione. Un insieme filtrato &egrave; una relazione virtuale (sezione successiva): <code>@invoices_current_year.sum($total)</code>.</li>
+  <li><b>Pi&ugrave; passaggi.</b> <code>@invoices.@rows.SUM($quantity)</code> aggrega su tutte le righe raggiungibili dal path (tutte le righe di tutte le fatture del cliente). Un aggregato annidato d&agrave; un&#39;altra grandezza: <code>@invoices.AVG(@rows.SUM($quantity))</code> &egrave; la media, sulle fatture, della somma per fattura. Le due forme convivono perch&eacute; l&#39;argomento &egrave; diverso (colonna o funzione di relazione). Sui dati di prova: 1097 / 43 = 25,51 contro 1097 / 13 = 84,38.</li>
+  <li><b><code>SUM</code> sul testo</b> &egrave; l&#39;aggregazione di stringhe: <code>@invoices.SUM($number)</code> unisce i valori con il separatore del modello, altrimenti <code>&#39;,&#39;</code>; <code>@invoices.SUM($number, &#39; | &#39;)</code> lo d&agrave; esplicito. L&#39;ordine segue l&#39;<code>order_by</code> della tabella collegata, altrimenti la chiave primaria.</li>
+  <li><b><code>JSON_DICT</code> e <code>JSON_LIST</code></b> danno un JSON, tipo <code>X</code>. <code>@invoices.JSON_DICT($date, $total)</code> d&agrave; un dizionario per chiave primaria della tabella collegata: <code>{&quot;&lt;id&gt;&quot;: {&quot;date&quot;: ..., &quot;total&quot;: ...}, ...}</code>. Con <code>key=$number</code> la chiave &egrave; un&#39;altra colonna, che deve essere unica; altrimenti &egrave; un errore. <code>@invoices.JSON_LIST($number)</code> d&agrave; una lista di valori; <code>@invoices.JSON_LIST(#JSON($date, $total))</code> una lista di oggetti. L&#39;ordine segue l&#39;<code>order_by</code> della tabella collegata, altrimenti la chiave primaria. Sostituiscono <code>*@rel.(a,b)</code>, che non dice cosa aggrega.</li>
+  <li><b>Nessun filtro nella funzione.</b> <code>@rel.FUNZIONE(...)</code> vale su tutta la relazione. Un insieme filtrato &egrave; una relazione virtuale (sezione successiva): <code>@invoices_current_year.SUM($total)</code>.</li>
 </ul>
 
 <h3>Dove si usano</h3>
-<p>Ovunque pu&ograve; stare un campo: colonne, <code>where</code> (scritto a mano o costruito da un editor di query), <code>order_by</code>, <code>group_by</code>, <code>having</code>, <code>sql_formula</code> di una formula, condizioni delle relazioni. Esempi: <code>where='@invoices.sum($total) &gt; :soglia'</code>, <code>order_by='@invoices.count() DESC'</code>. Un solo resolver serve tutti questi punti.</p>
+<p>Ovunque pu&ograve; stare un campo: colonne, <code>where</code> (scritto a mano o costruito da un editor di query), <code>order_by</code>, <code>group_by</code>, <code>having</code>, <code>sql_formula</code> di una formula, condizioni delle relazioni. Esempi: <code>where=&#39;@invoices.SUM($total) &gt; :soglia&#39;</code>, <code>order_by=&#39;@invoices.COUNT() DESC&#39;</code>. Un solo resolver serve tutti questi punti.</p>
 <div class="fb" data-item="many-side"></div>
 
 <h3>Nome del risultato</h3>
-<p>Senza <code>AS</code> il nome viene dalla struttura dell'espressione, nella convenzione di <code>_invoices_total</code>: <code>@invoices.count()</code> &rarr; <code>_invoices_count</code>; <code>@invoices.sum($total)</code> &rarr; <code>_invoices_sum_total</code>; <code>@invoices.avg(@rows.sum($quantity))</code> &rarr; <code>_invoices_avg_rows_sum_quantity</code>. Con <code>template(...)</code> o una stringa libera <code>AS</code> &egrave; obbligatorio. Aperto: la regola di troncamento oltre il limite degli identificatori (63 caratteri su PostgreSQL).</p>
+<p>Senza <code>AS</code> il nome viene dalla struttura dell&#39;espressione, nella convenzione di <code>_invoices_total</code>: <code>@invoices.COUNT()</code> &rarr; <code>_invoices_count</code>; <code>@invoices.SUM($total)</code> &rarr; <code>_invoices_sum_total</code>; <code>@invoices.AVG(@rows.SUM($quantity))</code> &rarr; <code>_invoices_avg_rows_sum_quantity</code>. Con <code>#TEMPLATE(...)</code> o una stringa libera <code>AS</code> &egrave; obbligatorio. Aperto: la regola di troncamento oltre il limite degli identificatori (63 caratteri su PostgreSQL).</p>
 
-<h3>Funzioni di riga: <code>sum</code>, <code>template</code>, <code>sql</code></h3>
-<p>Una funzione di riga calcola un valore dai campi di una riga: della tabella principale o della riga collegata da una relazione verso una riga. Ogni argomento segue la grammatica generale, quindi un aggregato &egrave; un argomento valido: prima si calcolano gli aggregati, poi la funzione di riga li combina.</p>
+<h3>Funzioni di riga: <code>#SUM</code>, <code>#TEMPLATE</code>, <code>#JSON</code></h3>
+<p>Una funzione di riga calcola un valore dai campi di una riga. Le funzioni di riga sono macro (sezione &laquo;Macro&raquo;): <code>#</code> e nome maiuscolo, registrate per livello e contesto. Ogni argomento segue la grammatica generale, quindi un path verso una riga collegata o un aggregato sono argomenti validi: prima si calcolano gli aggregati, poi la funzione di riga li combina.</p>
 <ul>
-  <li><b><code>sum(a, b, ...)</code></b> somma i numeri e concatena il testo; i valori non testuali in un <code>sum</code> di testo diventano testo. <code>sum(@invoices.sum($total), @credit_notes.sum($total))</code> somma due subquery.</li>
-  <li><b><code>template('...')</code></b> formatta una riga: <code>$x</code> &egrave; sempre un campo della riga, <code>#x</code> un argomento con nome: <code>template('totale #ttl su #n fatture', @invoices.sum($total) AS ttl, @invoices.count() AS n)</code>. Su una relazione verso molte righe serve un aggregato: <code>@invoices.sum(template('$year-$number'))</code>. I nomi degli argomenti non possono coincidere con quelli delle macro.</li>
-  <li><b><code>sql('...')</code></b> passa un'espressione SQL del dialetto in uso, con i segnaposto <code>$campo</code> risolti come in <code>sql_formula</code> (CAST, COALESCE, CASE). Aperto: una forma con un testo per dialetto, <code>sql(postgres='...', sqlite='...')</code>.</li>
+  <li><b><code>#SUM(a, b, ...)</code></b> somma i numeri e concatena il testo; i valori non testuali in un <code>#SUM</code> di testo diventano testo. <code>#SUM(@invoices.SUM($total), @credit_notes.SUM($total))</code> somma due subquery.</li>
+  <li><b><code>#TEMPLATE(&#39;...&#39;)</code></b> formatta una riga: <code>$x</code> &egrave; sempre un campo della riga, <code>#x</code> un argomento con nome: <code>#TEMPLATE(&#39;totale #ttl su #n fatture&#39;, @invoices.SUM($total) AS ttl, @invoices.COUNT() AS n)</code>. Su una relazione verso molte righe serve un aggregato: <code>@invoices.SUM(#TEMPLATE(&#39;$year-$number&#39;))</code>. I nomi degli argomenti non possono coincidere con quelli delle macro.</li>
+  <li><b><code>#JSON(campi)</code></b> costruisce un oggetto dai campi della riga: <code>#JSON($date, @customer_id.name AS customer, $total)</code>. Senza <code>AS</code> la chiave segue la regola dei nomi automatici (<code>$date</code> d&agrave; <code>date</code>).</li>
 </ul>
 <div class="fb" data-item="row-functions"></div>
 
@@ -596,27 +596,29 @@ opts.auto_counter('parent_id')</pre></div>
 <div class="tablewrap"><table>
   <thead><tr><th>Tipo</th><th><code>aggregate=True</code></th><th>Altri valori</th></tr></thead>
   <tbody>
-    <tr><td>numerico (<code>N</code>, <code>L</code>, <code>R</code>, <code>I</code>)</td><td><code>sum</code></td><td>elenco di funzioni: <code>aggregate='sum,avg,min,max'</code></td></tr>
-    <tr><td>testo (<code>A</code>, <code>T</code>)</td><td>unione con <code>','</code></td><td>il separatore: <code>aggregate=' / '</code></td></tr>
-    <tr><td>data, timestamp, booleano</td><td>testo in formato ISO, unito con <code>','</code></td><td>il separatore; <code>aggregate='min,max'</code> usa le funzioni SQL native</td></tr>
+    <tr><td>numerico (<code>N</code>, <code>L</code>, <code>R</code>, <code>I</code>)</td><td><code>SUM</code></td><td>elenco di funzioni: <code>aggregate=&#39;SUM,AVG,MIN,MAX&#39;</code></td></tr>
+    <tr><td>testo (<code>A</code>, <code>T</code>)</td><td>unione con <code>&#39;,&#39;</code></td><td>il separatore: <code>aggregate=&#39; / &#39;</code></td></tr>
+    <tr><td>data, timestamp, booleano</td><td>testo in formato ISO, unito con <code>&#39;,&#39;</code></td><td>il separatore; <code>aggregate=&#39;MIN,MAX&#39;</code> usa le funzioni SQL native</td></tr>
   </tbody>
 </table></div>
-<p>Su una singola relazione <code>.aggregations('quantity:sum,avg', 'unit_price:sum')</code>, concatenato a <code>relation()</code>, restringe o estende le funzioni di quella relazione e prevale sulla colonna. La dichiarazione &egrave; facoltativa e serve alle interfacce: i metadati del modello elencano gli aggregati disponibili sotto ogni relazione verso molte righe, con il loro tipo.</p>
+<p>Su una singola relazione <code>.aggregations(&#39;quantity:SUM,AVG&#39;, &#39;unit_price:SUM&#39;)</code>, concatenato a <code>relation()</code>, restringe o estende le funzioni di quella relazione e prevale sulla colonna. La dichiarazione &egrave; facoltativa e serve alle interfacce: i metadati del modello elencano gli aggregati disponibili sotto ogni relazione verso molte righe, con il loro tipo.</p>
 <div class="fb" data-item="aggregate-decl"></div>
 
 <h3>Dialetti</h3>
 <div class="tablewrap"><table>
   <thead><tr><th>Funzione</th><th>PostgreSQL</th><th>SQLite</th></tr></thead>
   <tbody>
-    <tr><td><code>count</code>, <code>sum</code>, <code>avg</code>, <code>min</code>, <code>max</code>, <code>count(distinct(x))</code></td><td>standard</td><td>standard</td></tr>
-    <tr><td><code>sum</code> sul testo</td><td><code>string_agg(expr, sep ORDER BY ...)</code></td><td><code>group_concat(expr, sep)</code>, ordine non garantito</td></tr>
-    <tr><td><code>template</code>, <code>sum</code> di riga sul testo</td><td><code>||</code></td><td><code>||</code></td></tr>
-    <tr><td><code>to_array</code>, <code>to_json</code></td><td><code>json_agg</code>, <code>json_build_object</code></td><td><code>json_group_array</code>, <code>json_object</code></td></tr>
+    <tr><td><code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, <code>COUNT(DISTINCT(x))</code></td><td>standard</td><td>standard</td></tr>
+    <tr><td><code>SUM</code> sul testo</td><td><code>string_agg(expr, sep ORDER BY ...)</code></td><td><code>group_concat(expr, sep)</code>, ordine non garantito</td></tr>
+    <tr><td><code>#TEMPLATE</code>, <code>#SUM</code> sul testo</td><td><code>||</code></td><td><code>||</code></td></tr>
+    <tr><td><code>#JSON</code></td><td><code>json_build_object</code></td><td><code>json_object</code></td></tr>
+    <tr><td><code>JSON_LIST</code></td><td><code>json_agg</code></td><td><code>json_group_array</code></td></tr>
+    <tr><td><code>JSON_DICT</code></td><td><code>json_object_agg</code></td><td><code>json_group_object</code>; le chiavi duplicate non danno errore, il controllo lo fa asqueel in compilazione</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="vrel">Relazioni virtuali <span class="status s-proposed">Proposta</span></h2>
-<p><code>virtualRelation</code> dichiara una relazione derivata: non fisica, in sola lettura. Copre le relazioni filtrate, i collegamenti senza FK, una riga scelta per ordine e limite. &Egrave; l'unico modo di legare una condizione a una relazione. Si naviga come ogni relazione (<code>@last_invoice.date</code>) e le funzioni di relazione valgono anche su di essa (<code>@invoices_current_year.sum($total)</code>).</p>
+<p><code>virtualRelation</code> dichiara una relazione derivata: non fisica, in sola lettura. Copre le relazioni filtrate, i collegamenti senza FK, una riga scelta per ordine e limite. &Egrave; l'unico modo di legare una condizione a una relazione. Si naviga come ogni relazione (<code>@last_invoice.date</code>) e le funzioni di relazione valgono anche su di essa (<code>@invoices_current_year.SUM($total)</code>).</p>
 <pre>tbl.virtualRelation(name, relation=None, table=None, condition=None,
                     order_by=None, limit=None, one_one=False, ask=None,
                     var_&lt;nome&gt;=&lt;espressione della tabella&gt;, **attrs)</pre>
@@ -641,7 +643,7 @@ tbl.virtualRelation('invoices_over_credit', relation='@invoices',
                     var_credit_limit='@category_id.credit_limit')
 tbl.virtualRelation('invoices_above_prev_avg', relation='@invoices_current_year',
                     condition='$total &gt; :var_prev_avg',
-                    var_prev_avg='@invoices_prev_year.avg($total)')
+                    var_prev_avg='@invoices_prev_year.AVG($total)')
 tbl.virtualRelation('last_invoice', relation='@invoices',
                     order_by='$date DESC', limit=1)</pre>
 
@@ -661,7 +663,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   <li><b>Ordine di valutazione</b>: accoppiamento, poi <code>condition</code>, poi <code>order_by</code> e <code>limit</code>.</li>
   <li><b><code>order_by</code> con <code>limit</code></b>: l'ordine dev'essere totale, il compiler aggiunge la chiave primaria per gli spareggi. Derivare da una relazione con <code>limit</code> &egrave; vietato, oppure eredita solo accoppiamento e condizione e rif&agrave; ordine e limite. Si compila come <code>LEFT JOIN LATERAL (... ORDER BY ... LIMIT 1) ON true</code> su PostgreSQL, o come subquery correlata nell'ON, valida anche su SQLite.</li>
   <li><b><code>one_one</code> senza <code>limit</code></b> &egrave; una garanzia sui dati, non sullo schema: serve un vincolo (indice unico parziale, vincolo di esclusione per gli intervalli), altrimenti il join moltiplica le righe.</li>
-  <li><b>Tipo di join</b>: la navigazione &egrave; sempre LEFT. Un INNER &egrave; un semi-join e si scrive come filtro (<code>@rel.count() &gt; 0</code>); il compiler pu&ograve; usare INNER da solo quando la relazione &egrave; totale (FK NOT NULL). La condizione va nell'ON del LEFT JOIN, non nel WHERE.</li>
+  <li><b>Tipo di join</b>: la navigazione &egrave; sempre LEFT. Un INNER &egrave; un semi-join e si scrive come filtro (<code>@rel.COUNT() &gt; 0</code>); il compiler pu&ograve; usare INNER da solo quando la relazione &egrave; totale (FK NOT NULL). La condizione va nell'ON del LEFT JOIN, non nel WHERE.</li>
   <li><b>Path della tabella di partenza nelle variabili</b>: solo verso una riga; il compiler mette quel join prima di quello della relazione. Un path verso molte righe richiede un aggregato.</li>
   <li><b>NULL</b>: una FK intermedia nulla o un aggregato su un insieme vuoto danno NULL e il confronto esclude ogni riga; un altro comportamento richiede un COALESCE esplicito.</li>
   <li><b>Parametri <code>:env_*</code></b>: rendono il risultato dipendente dal momento della valutazione e fanno parte della sua identit&agrave; per cache o materializzazione.</li>
@@ -682,7 +684,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     <tr><td><code>joinColumn(nome).relation(target, cnd=...)</code> (circa 12 usi in 8 repository)</td><td><code>virtualRelation(..., table=target, condition=..., var_...=...)</code></td></tr>
     <tr><td><code>relation(..., cnd= / join_on= / between=)</code></td><td><code>virtualRelation(..., relation=..., condition=...)</code></td></tr>
     <tr><td><code>joinConditions</code>, <code>setJoinCondition</code> (condizioni date dalla pagina al momento della query)</td><td>una relazione virtuale con <code>:env_*</code> o <code>ask</code></td></tr>
-    <tr><td><code>formulaColumn(select=...)</code> che esiste solo per un aggregato filtrato</td><td><code>@relazione_virtuale.sum(...)</code></td></tr>
+    <tr><td><code>formulaColumn(select=...)</code> che esiste solo per un aggregato filtrato</td><td><code>@relazione_virtuale.SUM(...)</code></td></tr>
   </tbody>
 </table></div>
 <p>L'adattatore traduce le forme di GenroPy. Aperto, oltre all'inversa: un prefisso distinto per i parametri di <code>ask</code>; la presenza in <code>*</code> (<code>static=True</code> delle <code>joinColumn</code>); se la relazione espone come colonna il valore del collegamento (l'id della riga collegata).</p>
@@ -696,7 +698,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     <tr><td><code>*</code></td><td>colonne fisiche (<code>X</code> solo con <code>bagFields</code>), poi le virtuali con <code>static=True</code></td><td>uguale</td><td>&mdash;</td></tr>
     <tr><td><code>*prefix_</code></td><td>restituisce tutte le colonne dopo una regressione del 2020</td><td>errore</td><td>genropy/genropy#1504</td></tr>
     <tr><td><code>*name</code>, <code>*@rel</code>, <code>*@rel.prefix_</code></td><td>espande le colonne della relazione, pu&ograve; moltiplicare le righe</td><td>errore</td><td>nessun uso nei progetti indicizzati; genropy/genropy#623</td></tr>
-    <tr><td><code>*@rel.(a,b)</code></td><td>moltiplica le righe e le riaggrega in Python</td><td>errore</td><td>lo sostituisce <code>@rel.to_json($a, $b)</code></td></tr>
+    <tr><td><code>*@rel.(a,b)</code></td><td>moltiplica le righe e le riaggrega in Python</td><td>errore</td><td>lo sostituisce <code>@rel.JSON_LIST(#JSON($a, $b))</code></td></tr>
     <tr><td>path senza <code>AS</code></td><td><code>_customer_id_name</code></td><td>uguale</td><td>client ed export calcolano lo stesso nome</td></tr>
     <tr><td>colonna <code>pkey</code> nei risultati</td><td>aggiunta di default</td><td>non la aggiunge il nucleo; la aggiunge l'adattatore</td><td>un risultato del nucleo contiene ci&ograve; che si &egrave; chiesto</td></tr>
     <tr><td><code>count()</code></td><td>&mdash;</td><td>stessi numeri di GenroPy; errore con <code>limit</code> o <code>offset</code></td><td>&mdash;</td></tr>
@@ -781,7 +783,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     <tr><td><code>indexed</code> su una relazione ignorato</td><td>sempre indicizzata salvo copertura delle prime colonne</td><td>GenroPy controlla l'appartenenza alla pkey, non la posizione</td><td>&mdash;</td></tr>
     <tr><td>Relazione verso target non unico accettata</td><td><code>relation</code>: errore; <code>weak_relation</code>: creduto unico</td><td>duplicazione silenziosa delle righe</td><td>&mdash;</td></tr>
     <tr><td>Elemento <code>constraint</code></td><td>tolto; <code>CHECK</code> con gli oggetti nativi</td><td>l'<code>UNIQUE</code> su pi&ugrave; colonne &egrave; una <code>compositeColumn</code></td><td>&mdash;</td></tr>
-    <tr><td><code>*prefix_</code>, <code>*@rel</code>, <code>*@rel.(a,b)</code>, <code>*name</code></td><td>errore</td><td>#1504, #623; sostituito da <code>to_json</code></td><td>&mdash;</td></tr>
+    <tr><td><code>*prefix_</code>, <code>*@rel</code>, <code>*@rel.(a,b)</code>, <code>*name</code></td><td>errore</td><td>#1504, #623; sostituito da <code>JSON_LIST</code> con <code>#JSON</code></td><td>&mdash;</td></tr>
     <tr><td><code>#THIS.@rel.col</code> non espanso in <code>sql_formula</code></td><td>espanso</td><td>#1505</td><td>&mdash;</td></tr>
     <tr><td><code>#PERIOD</code> con <code>BETWEEN</code></td><td>intervallo semiaperto</td><td>ultimo giorno perso sui timestamp</td><td>&mdash;</td></tr>
     <tr><td>Difetti delle tabelle gerarchiche</td><td>cicli, filtri, posizioni, <code>LIKE</code> corretti</td><td>#1523&ndash;#1526</td><td>&mdash;</td></tr>
@@ -802,7 +804,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   <li>Tabelle gerarchiche: valori nulli nel path, <code>/</code> nei valori, <code>copyFromParent</code>, <code>_parent_h_*</code>.</li>
   <li>La forma di sottoalbero, antenati e radice, insieme alle funzioni di relazione e a <code>virtualRelation</code>.</li>
   <li><code>virtualRelation</code>: inversa con termini di filtro, prefisso dei parametri di <code>ask</code>, presenza in <code>*</code>, valore del collegamento come colonna.</li>
-  <li>Funzioni di relazione: regola di troncamento dei nomi, <code>sql()</code> con un testo per dialetto, nomi definitivi di <code>to_array</code> e <code>to_json</code>.</li>
+  <li>Funzioni di relazione: regola di troncamento dei nomi; nome delle chiavi di <code>#JSON</code> per i path (<code>_customer_id_name</code> o <code>name</code>).</li>
   <li>Subtable: nome, colonne proprie, scrittura, forma di package.</li>
   <li><code>bagItemColumn</code>: SQL di estrazione per dialetto e tipo del risultato.</li>
   <li><code>toolColumn</code>, <code>aliasTable</code>, colonne localizzate.</li>
@@ -947,12 +949,12 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["hier-model", "Tabelle gerarchiche: modello di GenroPy", "decided"],
     ["hier-fixes", "Tabelle gerarchiche: correzioni", "decided", "2026-10-05T09:30:47Z"],
     ["hier-open", "Tabelle gerarchiche: punti aperti", "open"],
-    ["syntax", "Sintassi delle espressioni", "decided"],
+    ["syntax", "Sintassi delle espressioni", "decided", "2026-10-05T11:49:38Z"],
     ["relation-names", "Nomi delle relazioni, anche inverse", "proposed"],
-    ["many-side", "Funzioni di relazione: regola, aggregazioni, uso ovunque", "proposed"],
-    ["row-functions", "Funzioni di riga: sum, template, sql", "proposed"],
-    ["aggregate-decl", "Colonne aggregabili: aggregate= e .aggregations()", "proposed"],
-    ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed"],
+    ["many-side", "Funzioni di relazione: regola, aggregazioni, uso ovunque", "proposed", "2026-10-05T11:49:38Z"],
+    ["row-functions", "Funzioni di riga come macro: #SUM, #TEMPLATE, #JSON", "proposed", "2026-10-05T11:49:38Z"],
+    ["aggregate-decl", "Colonne aggregabili: aggregate= e .aggregations()", "proposed", "2026-10-05T11:49:38Z"],
+    ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed", "2026-10-05T11:49:38Z"],
     ["macros", "Macro #THIS, #IN_RANGE, #PERIOD, #ENV", "decided"],
     ["column-api", "column() sul modello costruito ed eccezioni", "decided", "2026-10-04T12:18:54Z"],
     ["get-column", "get_column al posto di column per la lettura", "open"],

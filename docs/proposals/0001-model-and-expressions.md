@@ -354,11 +354,15 @@ physical.
 | `:name` | bound parameter |
 | `:env_name` | value from the environment |
 | `#THIS.<path>` | column of the outer row inside a correlated subquery |
-| `#NAME(arguments)` | macro (section 3.4) |
-| `#name` | named subquery of a formula |
+| `#NAME(arguments)` | macro, upper case, registered per level and context; includes the row functions (section 3.4) |
+| `#name` | named subquery of a formula, lower case, no parentheses |
 
 - `@customer.country.name` (an intermediate segment without `@`) is an error.
   GenroPy does not accept it either.
+- `#THIS` is a path root, like `$` and `@`, not a macro: it is not registered
+  and is allowed only in a correlated context. **Proposed.**
+- Native SQL of the dialect (`COALESCE`, `CASE`, `||`, ...) passes through an
+  expression unchanged, as in GenroPy. There is no `sql()` escape. **Proposed.**
 - Expressions are parsed once, by one parser, and resolved by one resolver
   shared by queries, formulas, row policies and `column()` on the built model.
 
@@ -372,8 +376,8 @@ physical.
 ### 3.3 Relation functions — Proposed
 
 A function applied to a relation path gives one value per row of the main
-table: `@invoices.count()`, `@invoices.sum($total)`,
-`@invoices.@rows.count(distinct($product_id))`. Each expression compiles to a
+table: `@invoices.COUNT()`, `@invoices.SUM($total)`,
+`@invoices.@rows.COUNT(DISTINCT($product_id))`. Each expression compiles to a
 correlated subquery on the related table, with the right grain by
 construction. asqueel never compiles a join that multiplies the rows of the
 main table, and never regroups rows in Python.
@@ -383,78 +387,88 @@ says which:
 
 | Form | Operates on | Example |
 |---|---|---|
-| `function(args)` | the row of the main table | `sum($name, ' ', $surname)` |
-| `@one.function(args)` | the related row of a one-side relation | `@customer_id.sum($name, ' ', $surname)` |
-| `@many.function(args)` | the set of rows of a many-side relation | `@invoices.sum($total)` |
+| `#FUNCTION(args)` | the row; paths in the arguments reach one-side related rows | `#SUM($name, ' ', @customer_id.name)` |
+| `@many.FUNCTION(args)` | the set of rows of a many-side relation | `@invoices.SUM($total)` |
 
-The compiler tells the last two apart from the cardinality of the relation in
-the model. A many-side relation in a path always requires an aggregating
-function with explicit arguments; a path through it without a function
+asqueel functions are written in upper case. A lower-case function
+(`@invoices.sum(...)`) is an error that names the right form. A function on a
+one-side relation (`@customer_id.SUM(...)`) is an error: paths go inside the
+macro. A many-side relation in a path always requires an aggregating function
+with explicit arguments; a path through it without a function
 (`@invoices.total`) is an error.
 
-**Aggregating functions.** Form `<relpath>.<function>(<args>)`; functions
-`count`, `sum`, `avg`, `min`, `max`, `to_array`, `to_json`; the modifier
-`distinct(...)` applies to the argument; `count()` takes none. Arguments follow
+**Aggregating functions.** Form `<relpath>.<FUNCTION>(<args>)`; functions
+`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`, `JSON_DICT`, `JSON_LIST`; the modifier
+`DISTINCT(...)` applies to the argument; `COUNT()` takes none. Arguments follow
 the general field grammar on the related table: `$col`, a path, an expression
-(`@rows.sum($quantity * $unit_price)`).
+(`@rows.SUM($quantity * $unit_price)`).
 
 | Expression | Compiled subquery |
 |---|---|
-| `@invoices.count()` | `SELECT COUNT(*) FROM invoice t WHERE t.customer_id = t0.id` |
-| `@invoices.sum($total)` | `SELECT SUM(t.total) FROM invoice t WHERE t.customer_id = t0.id` |
-| `@invoices.@rows.sum($quantity)` | `SELECT SUM(r.quantity) FROM invoice_row r JOIN invoice i ON r.invoice_id = i.id WHERE i.customer_id = t0.id` |
+| `@invoices.COUNT()` | `SELECT COUNT(*) FROM invoice t WHERE t.customer_id = t0.id` |
+| `@invoices.SUM($total)` | `SELECT SUM(t.total) FROM invoice t WHERE t.customer_id = t0.id` |
+| `@invoices.@rows.SUM($quantity)` | `SELECT SUM(r.quantity) FROM invoice_row r JOIN invoice i ON r.invoice_id = i.id WHERE i.customer_id = t0.id` |
 
-- **Multi-hop.** `@invoices.@rows.sum($quantity)` aggregates over every row
+- **Multi-hop.** `@invoices.@rows.SUM($quantity)` aggregates over every row
   reachable through the path. A nested aggregate is a different quantity:
-  `@invoices.avg(@rows.sum($quantity))` is the average over the invoices of the
+  `@invoices.AVG(@rows.SUM($quantity))` is the average over the invoices of the
   per-invoice sum. Both coexist because the argument differs (column or
   relation function).
-- **`sum` on text** is string aggregation: `@invoices.sum($number)` joins with
-  the separator declared in the model, else `','`; `@invoices.sum($number, ' | ')`
+- **`SUM` on text** is string aggregation: `@invoices.SUM($number)` joins with
+  the separator declared in the model, else `','`; `@invoices.SUM($number, ' | ')`
   gives it explicitly. Order: the `order_by` of the related table, else its
   primary key.
-- **`to_array`, `to_json`** give a JSON array of values or of objects
-  (`@rows.to_json($product_id, $quantity)`), dtype `X`. They replace
-  `*@rel.(a,b)`. Names tentative.
-- **No filter inside the function.** `@rel.function(...)` applies to the whole
+- **`JSON_DICT`, `JSON_LIST`** give JSON, dtype `X`.
+  `@invoices.JSON_DICT($date, $total)` is a dictionary keyed by the related
+  table's primary key: `{"<id>": {"date": ..., "total": ...}, ...}`; with
+  `key=$number` the key is another column, which must be unique, else an
+  error. `@invoices.JSON_LIST($number)` is a list of values;
+  `@invoices.JSON_LIST(#JSON($date, $total))` a list of objects. Order: the
+  `order_by` of the related table, else its primary key. They replace
+  `*@rel.(a,b)`.
+- **No filter inside the function.** `@rel.FUNCTION(...)` applies to the whole
   relation. A filtered set is a virtual relation (section 3.6):
-  `@invoices_current_year.sum($total)`.
+  `@invoices_current_year.SUM($total)`.
 - **Everywhere.** A relation function can appear wherever a field can:
   columns, `where` (hand-written or built by a query editor), `order_by`,
   `group_by`, `having`, `sql_formula`, relation conditions. One resolver
   serves all of them.
 - **Output name.** Without `AS` the name comes from the structure of the
   expression: `_invoices_count`, `_invoices_sum_total`,
-  `_invoices_avg_rows_sum_quantity`. `AS` is mandatory with `template(...)` or
+  `_invoices_avg_rows_sum_quantity`. `AS` is mandatory with `#TEMPLATE(...)` or
   a free string. **Open**: the truncation rule above 63 characters.
 
-**Row functions.** Every argument follows the general grammar, so an
-aggregate is a valid argument: aggregates are computed first, the row function
-combines them.
+**Row functions** are macros (section 3.4): `#` and an upper-case name,
+registered per level and context. Every argument follows the general grammar,
+so a path to a one-side related row or an aggregate is a valid argument:
+aggregates are computed first, the row function combines them.
 
-- `sum(a, b, ...)` adds numbers and concatenates text; non-text values in a
-  text `sum` are cast to text.
-- `template('...')` formats one row: `$x` is a field of the row, `#x` a named
-  argument (`template('total #ttl', @invoices.sum($total) AS ttl)`). On a
-  many-side relation it needs an aggregate: `@invoices.sum(template('$year-$number'))`.
+- `#SUM(a, b, ...)` adds numbers and concatenates text; non-text values in a
+  text `#SUM` are cast to text.
+- `#TEMPLATE('...')` formats one row: `$x` is a field of the row, `#x` a named
+  argument (`#TEMPLATE('total #ttl', @invoices.SUM($total) AS ttl)`). On a
+  many-side relation it needs an aggregate: `@invoices.SUM(#TEMPLATE('$year-$number'))`.
   Argument names must not coincide with macro names.
-- `sql('...')` passes an SQL expression of the dialect in use, with `$field`
-  placeholders resolved as in `sql_formula`. **Open**: one text per dialect,
-  `sql(postgres='...', sqlite='...')`.
+- `#JSON(fields)` builds an object from the fields of the row:
+  `#JSON($date, @customer_id.name AS customer, $total)`. Without `AS` the key
+  follows the automatic name rule (`$date` gives `date`). **Open**: the key of
+  a path (`_customer_id_name` or `name`).
 
 **Aggregable columns.** A column declares it with `aggregate=`: on a numeric
-column `True` means `sum`, a list (`'sum,avg,min,max'`) names the functions; on
+column `True` means `SUM`, a list (`'SUM,AVG,MIN,MAX'`) names the functions; on
 text `True` joins with `','`, a string is the separator; date, datetime and
-boolean are cast to ISO text and joined, `'min,max'` uses the native
-functions. `.aggregations('quantity:sum,avg', 'unit_price:sum')` chained on
+boolean are cast to ISO text and joined, `'MIN,MAX'` uses the native
+functions. `.aggregations('quantity:SUM,AVG', 'unit_price:SUM')` chained on
 `relation()` restricts or extends the functions of that relation and prevails
 over the column. The declaration is opt-in and feeds the model metadata that
 interfaces read.
 
-**Dialects.** `count`, `sum`, `avg`, `min`, `max`: standard. `sum` on text:
+**Dialects.** `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`: standard. `SUM` on text:
 `string_agg(expr, sep ORDER BY ...)` on PostgreSQL, `group_concat` on SQLite
-(order not guaranteed). `to_array`, `to_json`: `json_agg` / `json_build_object`
-on PostgreSQL, `json_group_array` / `json_object` on SQLite.
+(order not guaranteed). `#JSON`: `json_build_object` / `json_object`.
+`JSON_LIST`: `json_agg` / `json_group_array`. `JSON_DICT`: `json_object_agg` /
+`json_group_object`; SQLite does not reject duplicate keys, so asqueel checks
+the key's uniqueness at compile time.
 
 ### 3.4 Macros
 
@@ -534,7 +548,7 @@ In the examples below `invoice = db.table('sales.invoice')`.
 covers filtered relations, pairings without a foreign key, and one row chosen
 by order and limit. It is the only way to attach a condition to a relation. It
 is navigated like any relation (`@last_invoice.date`) and relation functions
-apply to it (`@invoices_current_year.sum($total)`).
+apply to it (`@invoices_current_year.SUM($total)`).
 
 ```python
 tbl.virtualRelation(name, relation=None, table=None, condition=None,
@@ -562,7 +576,7 @@ tbl.virtualRelation('discount_tiers', table='invc.discount_tier',
                     var_type='$customer_type_code')
 tbl.virtualRelation('invoices_above_prev_avg', relation='@invoices_current_year',
                     condition='$total > :var_prev_avg',
-                    var_prev_avg='@invoices_prev_year.avg($total)')
+                    var_prev_avg='@invoices_prev_year.AVG($total)')
 tbl.virtualRelation('last_invoice', relation='@invoices',
                     order_by='$date DESC', limit=1)
 ```
@@ -591,7 +605,7 @@ as paths) and for the inverse.
   (partial unique index, exclusion constraint for intervals), otherwise the
   join multiplies rows.
 - Navigation is always LEFT; INNER is a semi-join written as a filter
-  (`@rel.count() > 0`); the compiler may use INNER when the relation is total
+  (`@rel.COUNT() > 0`); the compiler may use INNER when the relation is total
   (FK NOT NULL). The condition goes in the ON, not in the WHERE.
 - Paths of the starting table in a binding: single-valued only, joined before
   the relation; many-side paths need an aggregate.
@@ -636,7 +650,7 @@ rule.
 | `*prefix_` | error | Superfluous; since 2020 GenroPy returns every column for it ([genropy/genropy#1504](https://github.com/genropy/genropy/issues/1504)) |
 | `*name` (virtual column) | error | Only feeds `*@rel.(a,b)` |
 | `*@rel`, `*@rel.prefix_` | error | No usage in indexed projects ([genropy/genropy#623](https://github.com/genropy/genropy/issues/623)) |
-| `*@rel.(a,b)` | error | Replaced by `@rel.to_json($a, $b)` |
+| `*@rel.(a,b)` | error | Replaced by `@rel.JSON_LIST(#JSON($a, $b))` |
 
 ### 4.3 Automatic result names — Decided
 
@@ -686,7 +700,7 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | `mode='insensitive'` | `weak_relation(insensitive=True)` | a foreign key cannot compare case-insensitively; no usage of `mode='insensitive'` in the same repositories |
 | `group='<name>.<NNN>'` on columns, `group_<name>=` on the table; `'_'`, `'*'`, `one_group`, `many_group` | `colgroup` only | the legacy encoding mixes grouping, ordering and interface visibility; its `colgroup` counter never advances (every column gets `.001`) |
 | `*prefix_` returns every column | error | regression of commit `87e8c97018` (2020); genropy/genropy#1504 |
-| `*@rel`, `*@rel.prefix_`, `*name`, `*@rel.(a,b)` | error | genropy/genropy#623; replaced by `to_json` |
+| `*@rel`, `*@rel.prefix_`, `*name`, `*@rel.(a,b)` | error | genropy/genropy#623; replaced by `JSON_LIST` with `#JSON` |
 | `joinColumn` | `virtualRelation` | a link through a condition is a relation, not a column |
 | subtable as a named filter | subtable as a model object inheriting from the table | it is queried and linked like a table |
 | `indexed` on a relation is ignored (always indexed) | always indexed, skipped only when covered by leading columns of another key or index | GenroPy checks pkey membership, not leading position |
@@ -708,7 +722,7 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | — | Which model-build hooks asqueel supports ([analysis 35](https://github.com/asqueel-org/asqueel/blob/main/docs/design/35-model-build-hooks.md)) |
 | — | Primary key generation and new records: `pkeyValue`, `newPkeyValue`, `newRecord` |
 | — | `virtualRelation`: inverse with filter terms, prefix of `ask` parameters, presence in `*`, link value as a column |
-| — | Relation functions: name truncation rule, `sql()` per dialect, final names of `to_array` / `to_json` |
+| — | Relation functions: name truncation rule; the key of a path in `#JSON` (`_customer_id_name` or `name`) |
 | — | Subtables: query name, own columns, writes, package form |
 | — | `bagItemColumn`: extraction SQL per dialect and result type |
 | — | `toolColumn`, `aliasTable`, `localized` and `ext_*` columns |
