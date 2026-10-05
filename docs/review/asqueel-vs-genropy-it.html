@@ -126,7 +126,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
     <li><a href="#builders">Perch&eacute; contano i builder</a></li>
     <li><a href="#source">Sorgente e modello costruito</a></li>
     <li><a href="#model">Dichiarare un modello</a></li>
-    <li><a href="#options">Funzioni di tabella e options</a></li>
+    <li><a href="#options">Opzioni della tabella</a></li>
     <li><a href="#hier">Tabelle gerarchiche</a></li>
     <li><a href="#expr">Scrivere espressioni</a></li>
     <li><a href="#modelapi">Leggere il modello costruito</a></li>
@@ -386,8 +386,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <div class="fb" data-item="keys"></div>
 <div class="fb-missing" data-section="model"></div>
 
-<h2 id="options">Funzioni di tabella e <code>options</code></h2>
-<p>GenroPy aggiunge colonne di sistema e comportamenti con gli argomenti di <code>sysFields(...)</code>, con attributi di tabella e con classi base. Asqueel raccoglie le funzioni di tabella in un blocco visibile, <code>tbl.options()</code>, dove ogni funzione &egrave; un elemento. Le funzioni si prendono da ci&ograve; che GenroPy offre, non da come lo implementa.</p>
+<h2 id="options">Opzioni della tabella: <code>options</code></h2>
+<p>GenroPy aggiunge colonne di sistema e comportamenti con gli argomenti di <code>sysFields(...)</code>, con attributi di tabella e con classi base. Asqueel raccoglie questi comportamenti in un blocco visibile, <code>tbl.options()</code>, dove ogni opzione &egrave; un elemento. Le funzioni si prendono da ci&ograve; che GenroPy offre, non da come lo implementa.</p>
 
 <h3>Le prime tre opzioni <span class="status s-decided">Decisa</span></h3>
 <div class="tablewrap"><table>
@@ -429,6 +429,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 
 <h3>Opzioni registrate da un package <span class="status s-open">Aperta</span></h3>
 <p>Dieci package GenroPy in sette repository aggiungono comportamento a tabelle di <em>altri</em> package nello stesso modo: la tabella dichiara un attributo del package (<code>multidb</code>, <code>wkfl</code>, <code>survey</code>, <code>e2l</code>, <code>tmsh_bookable</code>, <code>multi_tenant</code>, ...) e il package lo legge e aggiunge un mixin alla tabella. Asqueel deve permettere a un package di registrare le proprie opzioni, con firma e documentazione. I default di package per tutte le tabelle sono rari (politica dei dbstore in sei package) e non sono un primo bisogno. Le classi <code>Table</code> di package nei <code>main.py</code> (199 package) non ridefiniscono mai gli hook di scrittura n&eacute; <code>sysFields</code>.</p>
+<p>Esempio in GenroPy: la tabella dichiara <code>pkg.table(&#39;customer&#39;, ..., multidb=True)</code>. Il package <code>multidb</code>, nel suo hook <code>onBuildingDbobj</code>, legge l&#39;attributo <code>multidb</code> di ogni tabella nel sorgente e aggiunge alla tabella le colonne e le relazioni che servono (<code>projects/gnrcore/packages/multidb/main.py:70</code>). L&#39;attributo non ha firma n&eacute; documentazione: un refuso viene ignorato.</p>
+<p>Obiettivo in Asqueel: la tabella chiede la funzione del package come un elemento di <code>options</code>, con firma e documentazione, come <code>sys_fields</code>. Domanda aperta: con quale meccanismo un package registra un proprio elemento di <code>options</code>.</p>
 <div class="fb" data-item="package-options"></div>
 <div class="fb-missing" data-section="options"></div>
 
@@ -453,7 +455,7 @@ opts.auto_counter('parent_id')</pre></div>
   <tbody>
     <tr><td>Spostare un nodo sotto un suo discendente non &egrave; controllato sul server: cascata senza fine</td><td>Errore</td><td>genropy/genropy#1523</td></tr>
     <tr><td>Padre e figli letti con i filtri di bozza e cancellazione logica: il figlio di un padre archiviato diventa radice</td><td>Lettura senza filtri</td><td>#1524</td></tr>
-    <tr><td>Un nodo spostato tiene la vecchia posizione fra i fratelli; <code>_h_count</code> diventa vuoto oltre 1295 fratelli</td><td>Ultima posizione sotto il nuovo padre; errore esplicito al 1296&deg; fratello</td><td>#1525</td></tr>
+    <tr><td>Un nodo spostato tiene la vecchia posizione fra i fratelli; <code>_h_count</code> diventa vuoto oltre 1295 fratelli: usa 2 caratteri in base 36 per livello, e 36&sup2; &minus; 1 = 1295</td><td>Ultima posizione sotto il nuovo padre; errore esplicito al 1296&deg; fratello</td><td>#1525</td></tr>
     <tr><td><code>LIKE</code> sui path senza escape (gli id contengono <code>_</code>); nessun indice utilizzabile da <code>LIKE 'x%'</code></td><td><code>LIKE</code> con escape; indice <code>text_pattern_ops</code> su PostgreSQL</td><td>#1526</td></tr>
   </tbody>
 </table></div>
@@ -701,6 +703,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   </tbody>
 </table></div>
 <div class="fb" data-item="star"></div>
+<p>Colonna <code>pkey</code>: in GenroPy ogni query aggiunge alle colonne richieste <code>$pkey AS pkey</code> (<code>gnrsqldata/compiler.py:950</code>), e il codice applicativo legge <code>row[&#39;pkey&#39;]</code>. In Asqueel il nucleo restituisce solo le colonne richieste. Per il codice GenroPy la colonna la aggiunge l&#39;adattatore, con le esclusioni di GenroPy (sezione &laquo;L&#39;adattatore GenroPy&raquo;).</p>
 <div class="fb" data-item="pkey-column"></div>
 <div class="fb-missing" data-section="select"></div>
 
@@ -771,7 +774,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   <tbody>
     <tr><td><code>config_db</code>, attributi scritti in una Bag</td><td><code>configure</code>, elementi della grammatica</td><td>una dichiarazione controllata e documentata</td><td>elementi tipizzati, costruzione in due fasi</td></tr>
     <tr><td>Attributi sconosciuti accettati in silenzio</td><td>Errore; le estensioni usano <code>x_</code></td><td>refusi delle applicazioni mai letti</td><td>firme chiuse</td></tr>
-    <tr><td>Funzioni di tabella come argomenti di <code>sysFields</code>, attributi, classi base</td><td>elementi di <code>tbl.options()</code></td><td>un blocco visibile, una voce di documentazione per opzione</td><td>regole di contenimento, introspezione</td></tr>
+    <tr><td>Comportamenti della tabella come argomenti di <code>sysFields</code>, attributi, classi base</td><td>elementi di <code>tbl.options()</code></td><td>un blocco visibile, una voce di documentazione per opzione</td><td>regole di contenimento, introspezione</td></tr>
     <tr><td><code>relation()</code> logica, <code>mode='foreignkey'</code> aggiunge la FK</td><td><code>relation()</code> &egrave; la FK; <code>weak_relation()</code> logica</td><td>l'86% delle relazioni usa <code>mode='foreignkey'</code></td><td>un elemento per tipo, parametri propri</td></tr>
     <tr><td><code>mode='insensitive'</code></td><td><code>weak_relation(insensitive=True)</code></td><td>una FK non confronta senza maiuscole; nessun uso trovato</td><td>parametro solo dove vale</td></tr>
     <tr><td><code>group='name.NNN'</code>, <code>group_&lt;name&gt;=</code></td><td><code>colgroup</code></td><td>la codifica mescola gruppo, ordine e visibilit&agrave;; il contatore non avanza</td><td>gruppo come elemento con errori controllati</td></tr>
@@ -825,7 +828,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     <label><input type="radio" name="map-mode" value="mine" checked> I miei pareri</label>
     <label><input type="radio" name="map-mode" value="all"> I pareri di tutti</label>
   </span>
-  <label class="fb-filter map-f-mine"><input type="checkbox" id="map-only-todo"> Solo le decisioni senza risposta</label>
+  <label class="fb-filter map-f-mine"><input type="checkbox" id="map-only-todo"> Solo le decisioni senza risposta o da rivedere</label>
   <label class="fb-filter map-f-all"><input type="checkbox" id="map-only-split"> Solo i punti discordi</label>
   <label class="fb-filter map-f-all"><input type="checkbox" id="map-only-notes"> Solo con note o segnalazioni</label>
 </div>
@@ -914,6 +917,10 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
 .fb-summary td a { color: var(--ink); }
 .fb-summary tr.split td:first-child { box-shadow: inset 3px 0 0 #b3261e; }
 .fb-empty { color: var(--muted); }
+.fb-stale { margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: var(--open-soft); color: var(--open); font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.fb-stale button { font: inherit; font-size: 13px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--open); background: var(--surface); color: var(--open); cursor: pointer; }
+.fb-tag.stale { background: var(--open-soft); color: var(--open); }
+.map-list a.stale { border-left: 4px solid var(--open); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fb-btn[aria-pressed="true"][data-stance="disagree"], :root:not([data-theme="light"]) .fb-tag.disagree { background: #3b1d1b; color: #f2a29b; border-color: #f2a29b; } :root:not([data-theme="light"]) .fb-summary tr.split td:first-child { box-shadow: inset 3px 0 0 #f2a29b; } }
 :root[data-theme="dark"] .fb-btn[aria-pressed="true"][data-stance="disagree"], :root[data-theme="dark"] .fb-tag.disagree { background: #3b1d1b; color: #f2a29b; border-color: #f2a29b; }
 :root[data-theme="dark"] .fb-summary tr.split td:first-child { box-shadow: inset 3px 0 0 #f2a29b; }
@@ -932,13 +939,13 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["configure", "Un solo metodo configure", "decided"],
     ["colgroup", "Gruppi di colonne con colgroup", "decided"],
     ["relations", "relation con FK, weak_relation logica", "decided"],
-    ["keys", "Chiavi composite, indici delle relazioni, constraint fuori", "decided"],
-    ["options", "Contenitore options con sys_fields, auto_counter, hierarchical", "decided"],
+    ["keys", "Chiavi composite, indici delle relazioni, constraint fuori", "decided", "2026-10-04T12:18:54Z"],
+    ["options", "Contenitore options con sys_fields, auto_counter, hierarchical", "decided", "2026-10-05T09:30:47Z"],
     ["sys-params", "Parametri delle opzioni: False, True o dict", "proposed"],
     ["which-options", "Quali attributi diventano opzioni", "open"],
-    ["package-options", "Opzioni registrate da un package", "open"],
+    ["package-options", "Opzioni registrate da un package", "open", "2026-10-05T09:30:47Z"],
     ["hier-model", "Tabelle gerarchiche: modello di GenroPy", "decided"],
-    ["hier-fixes", "Tabelle gerarchiche: correzioni", "decided"],
+    ["hier-fixes", "Tabelle gerarchiche: correzioni", "decided", "2026-10-05T09:30:47Z"],
     ["hier-open", "Tabelle gerarchiche: punti aperti", "open"],
     ["syntax", "Sintassi delle espressioni", "decided"],
     ["relation-names", "Nomi delle relazioni, anche inverse", "proposed"],
@@ -947,12 +954,12 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["aggregate-decl", "Colonne aggregabili: aggregate= e .aggregations()", "proposed"],
     ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed"],
     ["macros", "Macro #THIS, #IN_RANGE, #PERIOD, #ENV", "decided"],
-    ["column-api", "column() sul modello costruito ed eccezioni", "decided"],
+    ["column-api", "column() sul modello costruito ed eccezioni", "decided", "2026-10-04T12:18:54Z"],
     ["get-column", "get_column al posto di column per la lettura", "open"],
     ["planned", "Relazioni virtuali: parametri, accoppiamento e filtro, regole", "proposed"],
     ["vrel-open", "Relazioni virtuali: inversa, sostituzioni, punti aperti", "open"],
     ["star", "Espansione di * e forme non supportate", "decided"],
-    ["pkey-column", "Colonna pkey aggiunta dall'adattatore", "decided"],
+    ["pkey-column", "Colonna pkey aggiunta dall'adattatore", "decided", "2026-10-05T09:30:47Z"],
     ["migrations", "Effetti sulle migrazioni", "decided"],
     ["grouping", "Raggruppamento nel nucleo", "direction"],
     ["pkey", "Chiavi primarie", "open"],
@@ -992,6 +999,11 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     });
     var counts = document.createElement("span"); counts.className = "fb-counts"; head.appendChild(counts);
     el.appendChild(head);
+    var st = document.createElement("div"); st.className = "fb-stale"; st.hidden = true;
+    var stt = document.createElement("span"); st.appendChild(stt);
+    var stb = document.createElement("button"); stb.type = "button"; stb.textContent = "Confermo il parere";
+    stb.addEventListener("click", function () { confirmItem(id); });
+    st.appendChild(stb); el.appendChild(st);
     var ta = document.createElement("textarea");
     ta.id = "fb-note-" + id; ta.placeholder = "Motivazione, punto dimenticato o frainteso (facoltativo)";
     ta.setAttribute("aria-label", "Nota per: " + itemTitle(id)); ta.disabled = true;
@@ -1024,13 +1036,22 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   }
 
   function itemTitle(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i][0] === id) return ITEMS[i][1]; return id; }
+  function itemRev(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i][0] === id) return ITEMS[i][3] || ""; return ""; }
+  function entryAt(doc, id) { var v = doc && doc.items && doc.items[id]; return (v && v.at) || (doc && doc.updatedAt) || ""; }
+  function isStale(doc, id) {
+    var rev = itemRev(id), v = doc && doc.items && doc.items[id];
+    if (!rev || !v || !(v.stance || v.note)) return false;
+    var at = entryAt(doc, id);
+    return !!at && at < rev;
+  }
+  function revDate(id) { var r = itemRev(id); return r ? r.slice(8, 10) + "/" + r.slice(5, 7) + "/" + r.slice(0, 4) : ""; }
 
   function setStance(id, stance) {
     if (!canWrite) return;
     touched = true;
     var cur = mine.items[id] || {};
     var next = cur.stance === stance ? "" : stance;
-    mine.items[id] = { stance: next, note: cur.note || "" };
+    mine.items[id] = { stance: next, note: cur.note || "", at: new Date().toISOString() };
     render(); save();
   }
   function setNote(id, text) {
@@ -1039,7 +1060,13 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     var v = text.slice(0, 4000);
     if ((cur.note || "") === v) return;
     touched = true;
-    mine.items[id] = { stance: cur.stance || "", note: v };
+    mine.items[id] = { stance: cur.stance || "", note: v, at: new Date().toISOString() };
+    render(); save();
+  }
+  function confirmItem(id) {
+    if (!canWrite || !mine.items[id]) return;
+    touched = true;
+    mine.items[id].at = new Date().toISOString();
     render(); save();
   }
   function setMissing(sec, text) {
@@ -1076,7 +1103,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       if (!v) return;
       if (c[v.stance] !== undefined && v.stance) c[v.stance]++;
       if (v.note) c.notes++;
-      if (v.stance || v.note) c.entries.push({ uid: uid, stance: v.stance, note: v.note || "" });
+      if (v.stance || v.note) c.entries.push({ uid: uid, stance: v.stance, note: v.note || "", stale: isStale(votes[uid], id) });
     });
     return c;
   }
@@ -1089,7 +1116,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     p.then(function (ps) { if (seq === renderSeq) paint(ps || {}); }, function () { if (seq === renderSeq) paint({}); });
   }
 
-  function personRow(ul, ps, uid, stance, text) {
+  function personRow(ul, ps, uid, stance, text, stale) {
     var li = document.createElement("li");
     var img = document.createElement("img"); img.alt = "";
     var pr = ps[uid]; if (pr && pr.avatarUrl) img.src = pr.avatarUrl;
@@ -1099,6 +1126,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     who.textContent = (pr && pr.name) || (uid === myId ? "Tu" : "Qualcuno");
     box.appendChild(who);
     if (stance) { var tag = document.createElement("span"); tag.className = "fb-tag " + stance; tag.textContent = STANCE_LABEL[stance]; box.appendChild(tag); }
+    if (stale) { var sg = document.createElement("span"); sg.className = "fb-tag stale"; sg.textContent = "precedente alla modifica"; box.appendChild(sg); }
     if (text) { var n = document.createElement("p"); n.className = "fb-note"; n.textContent = text; box.appendChild(n); }
     li.appendChild(box); ul.appendChild(li);
   }
@@ -1107,6 +1135,9 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     document.querySelectorAll(".fb[data-item]").forEach(function (el) {
       var id = el.getAttribute("data-item");
       var my = mine.items[id] || {};
+      var st = el.querySelector(".fb-stale"), stale = isStale(mine, id);
+      st.hidden = !stale;
+      if (stale) st.querySelector("span").textContent = "Il testo di questa decisione \u00e8 cambiato il " + revDate(id) + ", dopo il tuo parere. Rileggilo, poi modifica il parere o confermalo.";
       el.querySelectorAll(".fb-btn").forEach(function (b) { b.setAttribute("aria-pressed", my.stance === b.dataset.stance ? "true" : "false"); });
       var ta = el.querySelector("textarea");
       if (ta && document.activeElement !== ta && ta.value !== (my.note || "")) ta.value = my.note || "";
@@ -1114,7 +1145,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       el.querySelector(".fb-counts").textContent = c.agree + " d'accordo \u00b7 " + c.disagree + " contrari \u00b7 " + c.unsure + " non so";
       var det = el.querySelector("details"), ul = det.querySelector("ul");
       ul.textContent = "";
-      c.entries.forEach(function (e) { personRow(ul, ps, e.uid, e.stance, e.note); });
+      c.entries.forEach(function (e) { personRow(ul, ps, e.uid, e.stance, e.note, e.stale); });
       det.hidden = c.entries.length === 0;
       det.querySelector("summary").textContent = "Vedi i pareri (" + c.entries.length + ")";
     });
@@ -1172,7 +1203,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     var onlySplit = document.getElementById("map-only-split").checked;
     var onlyNotes = document.getElementById("map-only-notes").checked;
     var byId = {}; ITEMS.forEach(function (it) { byId[it[0]] = it; });
-    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 }, written = 0, splitCount = 0, people = Object.keys(votes).length, reports = 0;
+    var n = { agree: 0, disagree: 0, unsure: 0, todo: 0 }, staleCount = 0, written = 0, splitCount = 0, people = Object.keys(votes).length, reports = 0;
     tree.textContent = "";
     var ov = document.getElementById("map-overall");
     ov.textContent = "";
@@ -1199,7 +1230,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
       var det = document.createElement("details"), sum = document.createElement("summary");
       sum.textContent = label + " (" + entries.length + ")"; det.appendChild(sum);
       var ul = document.createElement("ul"); ul.className = "fb-list"; det.appendChild(ul);
-      entries.forEach(function (e) { personRow(ul, ps, e.uid, e.stance, e.note); });
+      entries.forEach(function (e) { personRow(ul, ps, e.uid, e.stance, e.note, e.stale); });
       li.appendChild(det);
     }
     document.querySelectorAll("main h2[id]").forEach(function (h2) {
@@ -1216,11 +1247,12 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
         if (el.hasAttribute("data-item")) {
           var id = el.getAttribute("data-item"), it = byId[id]; if (!it) return;
           var chip = document.createElement("span"); chip.className = "status " + STATUS[it[2]][1]; chip.textContent = STATUS[it[2]][0];
-          var my = mine.items[id] || {}, mycls = my.stance || "todo";
+          var my = mine.items[id] || {}, mycls = my.stance || "todo", mystale = isStale(mine, id);
+          if (mystale) staleCount++;
           n[mycls]++; total++; if (mycls !== "todo") answered++;
           if (!all) {
-            if (onlyTodo && mycls !== "todo") return;
-            row(ul, "#fb-" + id, mycls, mycls, it[1], my.note ? "nota" : "", [chip]);
+            if (onlyTodo && mycls !== "todo" && !mystale) return;
+            row(ul, "#fb-" + id, mystale ? "stale" : mycls, mycls, it[1], mystale ? "da rivedere" : (my.note ? "nota" : ""), [chip]);
             return;
           }
           var c = tally(id), split = c.agree > 0 && c.disagree > 0;
@@ -1266,7 +1298,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     if (all) {
       counts.textContent = people + (people === 1 ? " persona ha risposto" : " persone hanno risposto") + " \u00b7 " + splitCount + (splitCount === 1 ? " punto discorde" : " punti discordi") + " \u00b7 " + reports + (reports === 1 ? " segnalazione" : " segnalazioni");
     } else {
-      counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " senza risposta \u00b7 " + written + " segnalazioni scritte" + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
+      counts.textContent = (ITEMS.length - n.todo) + " risposte su " + ITEMS.length + " \u00b7 " + n.agree + " d'accordo \u00b7 " + n.disagree + " contrari \u00b7 " + n.unsure + " non so \u00b7 " + n.todo + " senza risposta \u00b7 " + written + " segnalazioni scritte" + (staleCount ? " \u00b7 " + staleCount + " da rivedere" : "") + (canWrite ? "" : " \u00b7 per compilare serve l'accesso da Contributor");
     }
   }
 
@@ -1326,7 +1358,11 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
         var next = {};
         snap.docs.forEach(function (d) { if (d.exists) next[d.id] = d.data(); });
         votes = next;
-        if (myId && !loadedMine && !touched && votes[myId]) { mine = { items: clone(votes[myId].items), missing: clone(votes[myId].missing) }; loadedMine = true; }
+        if (myId && !loadedMine && !touched && votes[myId]) {
+          mine = { items: clone(votes[myId].items), missing: clone(votes[myId].missing) };
+          Object.keys(mine.items).forEach(function (k) { if (!mine.items[k].at) mine.items[k].at = votes[myId].updatedAt || ""; });
+          loadedMine = true;
+        }
         render();
       }, function (e) {
         setStatus(e && e.code === "revoked" ? "L'accesso all'archivio dei pareri non \u00e8 pi\u00f9 disponibile." : "I pareri degli altri non si aggiornano pi\u00f9: ricarica la pagina.");
