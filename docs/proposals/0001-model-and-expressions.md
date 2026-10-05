@@ -199,7 +199,11 @@ tbl.column('legacy_code', size=':10').weak_relation('sales.customer.code', insen
 `on_update_sql` defaults to `'cascade'`, as in GenroPy. Every foreign key is
 created with `ON UPDATE CASCADE`: when the key of a referenced record changes,
 the database updates the rows that point to it. Without this default the
-database would refuse the key change while related rows exist.
+database would refuse the key change while related rows exist. GenroPy made
+it the default on 2018-11-27 (commit `8f5dd4e950`, "onUpdate_sql='cascade' is
+default"), in the same commit that introduced `changePrimaryKeyValue(pkey,
+newpkey)`: the cascade lets a record's primary key, or a referenced code,
+change value.
 
 ```python
 tbl.column('customer_id', dtype='L').relation('sales.customer.id')

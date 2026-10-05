@@ -272,6 +272,17 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
     <tr><td>Instradamento dei figli (<code>SqlBuilder.set_child</code>)</td><td>Chi scrive usa <code>tbl.column(...)</code> sulla tabella; il builder lo mette nel contenitore interno giusto. Verificato con un prototipo.</td><td>Stessa esperienza per chi scrive, meccanismo diverso.</td></tr>
   </tbody>
 </table></div>
+<p>Un esempio: un refuso nel nome di un attributo.</p>
+<div class="cmp">
+  <div class="legacy"><p class="label">GenroPy</p>
+<pre>tbl.column('stato', grouo='_')
+# accettato: l'attributo grouo viene salvato
+# e nessuno lo legge; group resta vuoto</pre></div>
+  <div class="asq"><p class="label">Asqueel</p>
+<pre>tbl.column('stato', grouo='_')
+# errore di validazione alla costruzione:
+# column() non ha il parametro 'grouo'</pre></div>
+</div>
 <div class="fb" data-item="grammar"></div>
 <div class="fb-missing" data-section="builders"></div>
 
@@ -285,6 +296,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
 <ul>
   <li>A sistema avviato il sorgente non &egrave; raggiungibile: nessun oggetto lo tiene e nessuna API lo restituisce.</li>
   <li>Tutto ci&ograve; che serve a sistema avviato sta negli oggetti. Se un dato manca, lo copia il renderer.</li>
+  <li>A sistema avviato esiste quindi una sola fonte di verit&agrave; sul modello: gli oggetti. Nessun codice legge una seconda versione che potrebbe essere diversa.</li>
   <li>Gli hook che modificano il modello girano durante la costruzione, prima del render.</li>
   <li><code>db.table(&#39;sales.invoice&#39;)</code> restituisce l&#39;oggetto tabella. Lo stesso vale per gli altri livelli.</li>
   <li>Un proxy aggiunto per non affollare un namespace collega oggetti fra loro. Non esiste un passaggio dal sorgente agli oggetti.</li>
@@ -376,6 +388,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule);
   </tbody>
 </table></div>
 <p>I parametri tengono i nomi di GenroPy in snake_case: <code>related_column</code>, <code>relation_name</code>, <code>one_name</code>, <code>many_name</code>, <code>one_one</code>, <code>on_delete</code> / <code>on_update</code> (azioni Python sui record collegati), <code>on_delete_sql</code> / <code>on_update_sql</code> (azioni SQL della FK), <code>deferred</code>, <code>deferrable</code>, <code>initially_deferred</code>. La relazione uscente prende il nome della sua colonna (<code>@customer_id</code>).</p>
+<p>Ogni FK nasce con <code>ON UPDATE CASCADE</code>, come in GenroPy dal 27 novembre 2018 (commit <code>8f5dd4e950</code>, &laquo;onUpdate_sql=&#39;cascade&#39; is default&raquo;). Lo stesso commit introduce <code>changePrimaryKeyValue(pkey, newpkey)</code>: la cascata serve a cambiare il valore della chiave primaria di un record, e quello dei codici referenziati, con le FK che seguono il nuovo valore invece di bloccare l&#39;update. <code>on_update_sql=None</code> la toglie su una singola relazione.</p>
 <div class="why"><p><b>Perch&eacute; cambia.</b> In GenroPy un <code>relation()</code> semplice &egrave; logico e <code>mode='foreignkey'</code> aggiunge il vincolo. Negli otto repository applicativi pi&ugrave; grandi 3555 relazioni su 4134 (86%) usano <code>mode='foreignkey'</code>, quindi il caso comune diventa quello breve. Due elementi al posto di una stringa <code>mode</code> danno a ciascun tipo il suo insieme chiuso di parametri: <code>insensitive</code> esiste solo dove pu&ograve; funzionare, perch&eacute; una FK non confronta senza maiuscole. Target non unici, relazioni filtrate e &laquo;una riga per ordine&raquo; li copre <code>virtualRelation</code> (sezione &laquo;Relazioni virtuali&raquo;).</p></div>
 <div class="fb" data-item="relations"></div>
 
@@ -522,6 +535,7 @@ opts.auto_counter('parent_id')</pre></div>
 <p>Dichiarare e leggere sono due API distinte.</p>
 <ul>
   <li><code>configure(self, tables)</code> dichiara. <code>tbl.column(...)</code> crea sempre una colonna e non ne cerca mai una. Dentro <code>configure</code> non esiste lettura del modello.</li>
+  <li>Una dichiarazione che dipende da un&#39;altra tabella la nomina con un nome o un path: <code>relation(&#39;sales.customer.id&#39;)</code>, <code>aliasColumn(&#39;customer_name&#39;, relation_path=&#39;@customer_id.name&#39;)</code>. Il renderer la risolve dopo, quando tutte le tabelle sono dichiarate; un riferimento sbagliato &egrave; un errore al render.</li>
   <li>Il modello costruito si legge dagli oggetti: <code>db.table(&#39;sales.invoice&#39;)</code> restituisce l&#39;oggetto tabella (sezione &laquo;Sorgente e modello costruito&raquo;).</li>
 </ul>
 <p>Negli esempi di questa sezione <code>invoice = db.table(&#39;sales.invoice&#39;)</code>.</p>
@@ -932,15 +946,15 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
   var ITEMS = [
     ["porting", "Asqueel come porting del layer SQL di GenroPy, con adattatore", "direction"],
     ["principles", "Principi", "decided"],
-    ["grammar", "Il modello come grammatica genro-builders", "decided"],
-    ["src-obj", "Sorgente inaccessibile a sistema avviato; tutto negli oggetti", "decided"],
+    ["grammar", "Il modello come grammatica genro-builders", "decided", "2026-10-05T11:57:40Z"],
+    ["src-obj", "Sorgente inaccessibile a sistema avviato; tutto negli oggetti", "decided", "2026-10-05T11:57:40Z"],
     ["columns", "Colonne dichiarate sulla tabella", "decided"],
     ["bagitem", "bagItemColumn: valori dentro una colonna Bag", "direction"],
     ["subtable", "Subtable come oggetti di prima classe", "direction"],
     ["other-columns", "Altri elementi di colonna", "open"],
     ["configure", "Un solo metodo configure", "decided"],
     ["colgroup", "Gruppi di colonne con colgroup", "decided"],
-    ["relations", "relation con FK, weak_relation logica", "decided"],
+    ["relations", "relation con FK, weak_relation logica", "decided", "2026-10-05T11:57:40Z"],
     ["keys", "Chiavi composite, indici delle relazioni, constraint fuori", "decided", "2026-10-04T12:18:54Z"],
     ["options", "Contenitore options con sys_fields, auto_counter, hierarchical", "decided", "2026-10-05T09:30:47Z"],
     ["sys-params", "Parametri delle opzioni: False, True o dict", "proposed"],
@@ -956,7 +970,7 @@ tbl.virtualRelation('last_invoice', relation='@invoices',
     ["aggregate-decl", "Colonne aggregabili: aggregate= e .aggregations()", "proposed", "2026-10-05T11:49:38Z"],
     ["macro-registry", "Macro: definizione e registrazione per livello e contesto", "proposed", "2026-10-05T11:49:38Z"],
     ["macros", "Macro #THIS, #IN_RANGE, #PERIOD, #ENV", "decided"],
-    ["column-api", "column() sul modello costruito ed eccezioni", "decided", "2026-10-04T12:18:54Z"],
+    ["column-api", "column() sul modello costruito ed eccezioni", "decided", "2026-10-05T11:57:40Z"],
     ["get-column", "get_column al posto di column per la lettura", "open"],
     ["planned", "Relazioni virtuali: parametri, accoppiamento e filtro, regole", "proposed"],
     ["vrel-open", "Relazioni virtuali: inversa, sostituzioni, punti aperti", "open"],
