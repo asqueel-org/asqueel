@@ -49,8 +49,8 @@ DDL or serialized configuration. Structural changes belong to the migration inte
 
 The root declares `name`, `implementation='postgresql'`, `conninfo=''`, and
 optional `connect_kwargs`. An empty connection string uses the driver's normal
-connection defaults when an operation is eventually executed. PostgreSQL is the
-only supported implementation. `connect_kwargs={'autocommit': True}` is rejected.
+connection defaults when an operation is eventually executed. The supported
+implementations are `postgresql` and `sqlite` (see [SQLite](sqlite.md)). `connect_kwargs={'autocommit': True}` is rejected.
 
 `AsqueelDb(source, *, parents=None, driver=None, dialect=None,
 environment=None)` accepts a recipe class, an existing builder instance, or a

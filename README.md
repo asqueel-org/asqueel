@@ -93,7 +93,7 @@ schemas, table declarations and business logic. It includes users/access logs
 and customers/products/invoices/rows, with explicit imports and `EnvResolver`
 connection settings.
 
-From this source checkout (the CLI is not assumed to be in older PyPI releases):
+From this source checkout:
 
 ```sh
 python -m pip install -e ".[postgresql,migration]"

@@ -37,7 +37,7 @@ it uploads to PyPI only when the selected ref is a matching `v*` version tag.
 Do not create the release tag until the publisher configuration and release
 contents have been reviewed. Uploaded PyPI files cannot be replaced in place.
 
-The `migration` and `dev` extras require `asqueel-migration>=0.1.2`.
+The `migration` and `dev` extras require `asqueel-migration>=0.1.2,<0.2`: asqueel uses its structure factories.
 Validate the selected dependency version before release. The source revision in
 `requirements/core.in` is a development/CI input, not wheel dependency metadata.
 

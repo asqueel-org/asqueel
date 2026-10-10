@@ -36,8 +36,8 @@ it. Each `.fetch()` or `.execute()` compiles and executes again.
 |---|---|
 | `columns` | Projection string or sequence; `'*'` by default. |
 | `where` | Trusted SQL predicate using model references and value parameters. |
-| `params` | Mapping of bound values. `sqlparams` is also accepted. |
-| `order_by` | SQL ordering expression using model references. Overrides the model’s default table ordering. |
+| keyword bindings | Bound values as keyword arguments (`minimum=100`), or the `sqlparams={...}` mapping. |
+| `order_by` | SQL ordering expression using model references. Tables have no default ordering: without `order_by` the row order is not guaranteed. |
 | `limit`, `offset` | Nonnegative integers; `limit=0` returns no rows. |
 | `for_update` | `False`; when true, lock base-table rows until transaction completion. |
 | `exclude_draft` | `True`; applies a declared draft policy. |
@@ -62,7 +62,7 @@ accepted; do not supply both spellings of the same option.
 | SQL expression | Trusted PostgreSQL expression. | `COALESCE($total, 0) AS amount` |
 
 A direct column keeps its logical name. A relation projection defaults to a
-path-derived name such as `_customer_id_name`; prefer explicit `AS` when defining
+path-derived name such as `customer_id_name` for `@customer_id.name`; prefer explicit `AS` when defining
 a public result shape. Give computed projections explicit aliases for clarity.
 Result names must be unique.
 
@@ -71,8 +71,8 @@ as in `$"a""b"`. Result aliases containing spaces also need double quotes.
 Quoted SQL strings, comments, quoted identifiers and dollar-quoted bodies protect
 their contents from reference expansion.
 
-`*` follows the model's physical/static-column selection rules. Choose dynamic
-virtual columns explicitly when they belong in the result. Prefer explicit projections for lists and other stable interfaces:
+`*` currently expands every resolved column, formulas and alias columns
+included (see [current status](limitations.md)). Prefer explicit projections for lists and other stable interfaces:
 new formulas can otherwise change both the output and the cost of a query.
 
 ## Bind values, including collections
