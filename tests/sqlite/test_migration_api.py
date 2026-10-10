@@ -1,5 +1,6 @@
 """An application creates and evolves its tables from Python, without the CLI."""
 import sqlite3
+import sys
 
 import pytest
 
@@ -91,3 +92,75 @@ def test_an_in_memory_sqlite_database_cannot_be_migrated():
             db.migration_plan()
     finally:
         db.close()
+
+
+def test_a_model_without_tables_cannot_be_migrated(tmp_path):
+    class Empty(SqlDatabaseConfig):
+        def main(self, root):
+            db = root.db()
+            db.connection(name=str(tmp_path / 'empty.db'), implementation='sqlite')
+            db.schemas().schema('app')
+    db = AsqueelDb(Empty)
+    try:
+        with pytest.raises(MigrationError, match='nonempty managed schema'):
+            db.migration_plan()
+    finally:
+        db.close()
+
+
+def test_a_legacy_connection_without_a_database_name_cannot_be_migrated():
+    class Unnamed(SqlDatabaseConfig):
+        def main(self, root):
+            root.db(implementation='sqlite').schemas().schema('app').tables().table(
+                'item', pkey='id').columns().column('id', dtype='L')
+    db = AsqueelDb(Unnamed)
+    try:
+        with pytest.raises(MigrationError, match='Declare connection.name'):
+            db.migration_plan()
+    finally:
+        db.close()
+
+
+CONFIGURE = '''
+from asqueel import SqlDatabaseConfig
+
+
+class Recipe(SqlDatabaseConfig):
+    def main(self, root):
+        db = root.db()
+        db.connection(name={path!r}, implementation='sqlite')
+        columns = db.schemas().schema('app').tables().table('item', pkey='id').columns()
+        columns.column('id', dtype='L')
+        columns.column('name', dtype={dtype!r})
+'''
+
+
+def test_the_cli_refuses_a_skipped_change_and_names_it(tmp_path, capsys):
+    from asqueel.cli import main
+    path = tmp_path / 'sample.db'
+    recipe_file = tmp_path / 'configure.py'
+    recipe_file.write_text(CONFIGURE.format(path=str(path), dtype='T'))
+    assert main(['db', 'apply', '--config', str(recipe_file)]) == 0
+    recipe_file.write_text(CONFIGURE.format(path=str(path), dtype='L'))
+    capsys.readouterr()
+    assert main(['db', 'plan', '--config', str(recipe_file)]) == 0
+    assert "Warning: unsupported 'alter_column_type'" in capsys.readouterr().err
+    assert main(['db', 'apply', '--config', str(recipe_file)]) == 1
+    assert 'cannot apply these changes' in capsys.readouterr().err
+    assert ('name', 'TEXT') in item_columns(path)
+
+
+@pytest.mark.parametrize('module, implementation, hint', [
+    ('asqueel_migration', 'sqlite', 'Install asqueel[migration]'),
+    ('psycopg', 'postgresql', 'Install asqueel[postgresql]'),
+])
+def test_the_cli_names_the_missing_extra(tmp_path, monkeypatch, capsys, module, implementation, hint):
+    from asqueel.cli import main
+    recipe_file = tmp_path / 'configure.py'
+    recipe_file.write_text(CONFIGURE.format(path=str(tmp_path / 'sample.db'), dtype='T').replace(
+        "implementation='sqlite'", f"implementation={implementation!r}"))
+    # The extra is not installed: Python finds None in sys.modules and refuses the import.
+    monkeypatch.delitem(sys.modules, 'asqueel.migration', raising=False)
+    monkeypatch.setitem(sys.modules, module, None)
+    assert main(['db', 'plan', '--config', str(recipe_file)]) == 1
+    assert hint in capsys.readouterr().err
