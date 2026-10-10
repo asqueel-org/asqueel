@@ -2,7 +2,7 @@
 
 ## 0.5.1
 
-To be released as `v0.5.1`.
+Released on PyPI and tagged `v0.5.1`.
 
 - Migrate from Python. `AsqueelDb.migration_plan()` compares the model with the
   live database and returns a `MigrationPlan` (`commands`, `warnings`,
