@@ -4,16 +4,46 @@ Query execution and schema migration are separate operations. Asqueel builds
 a physical description; `asqueel-migration` compares that description with a
 database and prepares migration commands.
 
-Install the migration and PostgreSQL dependencies when you need this path:
+Install the migration dependency, plus the PostgreSQL one for PostgreSQL databases:
 
 ```sh
-pip install 'asqueel[postgresql,migration]'
+pip install 'asqueel[migration]'              # SQLite
+pip install 'asqueel[postgresql,migration]'   # PostgreSQL
 ```
 
+## Migrate from Python
+
+An application creates and evolves its tables from its `AsqueelDb`, on SQLite
+and PostgreSQL, with two methods:
+
+```python
+from asqueel import AsqueelDb, MigrationError
+
+db = AsqueelDb(ChatArchive)
+
+plan = db.migration_plan()       # compares the model with the live database; changes nothing
+print(plan.commands)             # the DDL that migrate() would run
+print(plan.warnings)             # backend warnings, including skipped changes
+print(plan.skipped)              # changes the backend cannot apply
+
+db.migrate()                     # applies the plan and returns it
+```
+
+`migrate()` refuses before running any DDL when `plan.skipped` is not empty, for
+example a column type change on SQLite. After applying, it compares the model
+with the database again and raises `MigrationError` if differences remain. On an
+up-to-date database it returns an empty plan (`plan.empty`).
+
+Both methods work for every way of building an `AsqueelDb`, including a database
+declared in a host configuration (`AsqueelDb(node)`, see
+[cascading grammars](configuration-grammars.md)). The database name comes from
+the connection settings; a missing PostgreSQL database is created. An in-memory
+SQLite database cannot be migrated.
+
+`allow_removals=True` enables the supported removals, currently columns only.
+
 The [CLI](cli.md) provides `asqueel db plan NAME` and `asqueel db apply NAME`
-using the same registered configuration as the application. It also handles
-creating a missing PostgreSQL database through the existing migration adapter.
-The lower-level API below remains available.
+on top of the same methods. The lower-level API below remains available.
 
 ## Resolve names before producing migration data
 
@@ -43,8 +73,10 @@ pipeline rather than expecting `builder.renderer_sql` to create tables.
 
 ## Prepare commands for an existing database
 
-The function below inspects only the physical schemas selected by the model
-and returns the migrator and its prepared command text:
+`AsqueelDb.migration_plan()` and `migrate()` cover the usual case. The function
+below shows the same steps with the `asqueel-migration` objects, for PostgreSQL.
+It inspects only the physical schemas selected by the model and returns the
+migrator and its prepared command text:
 
 ```python
 from psycopg.conninfo import conninfo_to_dict
@@ -55,13 +87,13 @@ from asqueel_migration import PgDatabase, SqlMigrator
 def prepare_migration(dsn, model):
     physical = to_physical_builder(model)
     desired = SqlMigrationRenderer(physical).render()
+    params = conninfo_to_dict(dsn)
+    # The database to create or migrate is the DSN one, not the recipe root label.
+    desired['root']['entity_name'] = params['dbname']
     schemas = sorted({table.physical_schema for table in model.tables.values()})
     if not schemas:
         raise ValueError('Choose a nonempty application schema to migrate')
-    database = PgDatabase(
-        conninfo_to_dict(dsn),
-        application_schemas=schemas,
-    )
+    database = PgDatabase(params, application_schemas=schemas)
     migrator = SqlMigrator(
         database,
         ignore_constraint_name=True,

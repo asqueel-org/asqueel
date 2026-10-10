@@ -7,6 +7,7 @@ import sys
 
 from .application import AsqueelDb
 from .configuration import connection_settings
+from .errors import MigrationError
 from .registry import DatabaseRegistry, RegistrationError
 
 
@@ -48,70 +49,19 @@ def target_arguments(command):
     command.add_argument('--config', help='Explicit configuration source, instead of a target')
 
 
-def prepare_migration(db, *, allow_removals=False):
-    """Project the model and delegate to the existing backend migration adapter."""
-    from asqueel_migration import PgDatabase, SqliteDatabase, SqlMigrator
-    from .migration import SqlMigrationRenderer
-    from .projection import to_physical_builder
-
-    implementation, conninfo, kwargs = connection_settings(db.config)
-    if implementation == 'sqlite':
-        params = dict(kwargs or {})
-        params.setdefault('dbname', conninfo)
-        if params['dbname'] == ':memory:':
-            raise CliError('CLI migrations require persistent SQLite files')
-    elif implementation == 'postgresql':
-        from psycopg.conninfo import conninfo_to_dict
-        params = conninfo_to_dict(conninfo or '', **(kwargs or {}))
-    else:
-        raise CliError('Unsupported migration backend')
-    if not params.get('dbname'):
-        raise CliError('Declare connection.name (or an explicit dbname in the legacy connection settings)')
-    desired = SqlMigrationRenderer(to_physical_builder(db.model)).render()
-    # The physical destination is owned by connection settings, not the recipe root label.
-    desired['root']['entity_name'] = params['dbname']
-    schemas = sorted(desired['root']['schemas'])
-    if not schemas:
-        raise CliError('Declare at least one nonempty managed schema before migrating')
-    database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase
-    database = database_class(params, application_schemas=schemas)
-    migrator = SqlMigrator(database, ignore_constraint_name=True,
-                          removeDisabled=not allow_removals)
-    migrator.ormStructure = desired
-    try:
-        migrator.prepareMigrationCommands()
-        changes = migrator.getChanges()
-    except BaseException:
-        database.closeConnection()
-        raise
-    return migrator, changes
-
-
 def run_migration(db, operation, *, allow_removals=False):
-    migrator, changes = prepare_migration(db, allow_removals=allow_removals)
-    try:
-        for warning in migrator.warnings:
-            write_line(f'Warning: {warning}', file=sys.stderr)
-        if not changes.strip():
-            write_line('No changes.')
-            return 0
-        write_line(changes)
-        if operation == 'plan':
-            return 0
-        migrator.applyChanges()
-    finally:
-        migrator.db.closeConnection()
-    # Re-introspect using a fresh migrator; never infer convergence from successful DDL.
-    verification, remaining = prepare_migration(db, allow_removals=allow_removals)
-    try:
-        if remaining.strip():
-            write_line('Migration applied, but differences remain:', file=sys.stderr)
-            write_line(remaining, file=sys.stderr)
-            return 1
-        write_line('Migration applied. No remaining commands under the selected removal policy.')
+    """Print the plan; on apply, migrate and confirm. Errors reach ``main``."""
+    plan = (db.migration_plan(allow_removals=allow_removals) if operation == 'plan'
+            else db.migrate(allow_removals=allow_removals))
+    for warning in plan.warnings:
+        write_line(f'Warning: {warning}', file=sys.stderr)
+    if plan.empty:
+        write_line('No changes.')
         return 0
-    finally:
-        verification.db.closeConnection()
+    write_line(plan.commands)
+    if operation == 'apply':
+        write_line('Migration applied. No remaining commands under the selected removal policy.')
+    return 0
 
 
 def run(options):
@@ -154,11 +104,13 @@ def main(argv=None):
     options = parser().parse_args(argv)
     try:
         return run(options)
-    except (CliError, RegistrationError) as error:
+    except (CliError, RegistrationError, MigrationError) as error:
         write_line(f'Error: {error}', file=sys.stderr)
     except ModuleNotFoundError as error:
-        if error.name in ('psycopg', 'asqueel_migration'):
-            write_line("Install asqueel[postgresql,migration] for database commands.", file=sys.stderr)
+        if error.name == 'asqueel_migration':
+            write_line('Install asqueel[migration] for database commands.', file=sys.stderr)
+        elif error.name == 'psycopg':
+            write_line('Install asqueel[postgresql] for PostgreSQL databases.', file=sys.stderr)
         else:
             write_line('Configuration import failed; ensure its Python dependencies are importable.', file=sys.stderr)
     except KeyboardInterrupt:

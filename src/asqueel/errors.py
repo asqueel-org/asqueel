@@ -11,3 +11,10 @@ class TransactionStateError(RuntimeError):
 
 class DeferredCommitError(RuntimeError):
     """One or more errors deliberately queued for the commit boundary."""
+
+
+class MigrationError(ValueError):
+    """A migration cannot run, or ran and left differences; the message says which.
+
+    The message carries DDL and backend warnings, never connection credentials.
+    """

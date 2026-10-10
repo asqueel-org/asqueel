@@ -38,7 +38,7 @@ from .runtime import (
     DatabaseClosedError, Database, PostgresDatabase,
     TransactionStateError,
 )
-from .errors import DeferredCommitError
+from .errors import DeferredCommitError, MigrationError
 from .triggers import TriggerStack, TriggerStackItem
 
 __version__ = "0.5.0"
@@ -58,7 +58,7 @@ __all__ = [
     "SqliteDialect", "SqliteDriver",
     "SqlEnvironment", "EnvironmentMismatchError", "PartitionScope", "RowPolicies",
     "TriggerStack", "TriggerStackItem",
-    "DeferredCommitError",
+    "DeferredCommitError", "MigrationError",
 ]
 
 _MIGRATION_EXTRA = (
@@ -67,6 +67,7 @@ _MIGRATION_EXTRA = (
 
 _MIGRATION_NAMES = {
     "SqlMigrationRenderer": ".migration",
+    "MigrationPlan": ".migration",
     "SqlModelReader": ".reader",
 }
 

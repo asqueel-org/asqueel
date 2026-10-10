@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable, TransactionStateError
-from asqueel.cli import prepare_migration, run_migration
+from asqueel.cli import run_migration
 
 
 class Item(SqlTable):
@@ -122,11 +122,7 @@ def test_sqlite_cli_reuses_existing_migrator_and_file_layout(tmp_path):
         db.table('item').insert({'id': 1, 'name': 'migrated'})
         db.commit()
         assert observed(path) == [(1, 'migrated')]
-        migrator, changes = prepare_migration(db)
-        try:
-            assert not changes.strip()
-        finally:
-            migrator.db.closeConnection()
+        assert db.migration_plan().empty
     finally:
         db.close()
 

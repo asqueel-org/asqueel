@@ -87,8 +87,12 @@ asqueel db plan gestionale
 
 `check` constructs and validates the model and connection settings without
 connecting. `db plan` introspects the selected database and prints migration
-SQL without applying it. `db apply` prepares and prints a fresh plan, executes
+SQL without applying it. `db apply` prepares a fresh plan, executes it, prints
 it, then runs a fresh comparison. It does not replay a previously saved plan.
+Both commands use `AsqueelDb.migration_plan()` and `AsqueelDb.migrate()`, the
+same methods an application calls from Python (see [migrations](migrations.md)).
+`db apply` refuses before any DDL when the backend cannot apply a change, for
+example a column type change on SQLite, and names the skipped changes.
 The existing `asqueel-migration` PostgreSQL adapter creates a missing database
 using its maintenance connection; the configured account needs the appropriate
 privileges. The physical target comes from the connection declaration, even
@@ -105,8 +109,8 @@ column drops; whole-table, index, relation and constraint removals are no-ops
 even with `--allow-removals`. The CLI preserves those existing semantics.
 An empty managed table set is rejected by migration commands.
 
-Exit status is zero on success, one on operation failure or remaining migration
-commands, two for command syntax errors, and 130 for interruption. Failed DDL
+Exit status is zero on success, one on operation failure, skipped changes or
+remaining migration commands, two for command syntax errors, and 130 for interruption. Failed DDL
 can leave a separately created database behind; the CLI reports the migrator's
 rollback/partial-state flags when available. Arbitrary configuration/driver
 exception text is not echoed, because it can contain resolved credentials.

@@ -116,7 +116,6 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
     dsn = postgres_dsn()
     schema = 'fk_regression_' + uuid.uuid4().hex[:12]
     from asqueel import AsqueelDb, SqlDatabaseConfig
-    from asqueel.cli import prepare_migration
 
     class Config(SqlDatabaseConfig):
         def main(self, root):
@@ -136,12 +135,7 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
 
     db = AsqueelDb(Config)
     try:
-        migrator, changes = prepare_migration(db)
-        try:
-            assert changes
-            migrator.applyChanges()
-        finally:
-            migrator.db.closeConnection()
+        assert not db.migrate().empty
         db.table('s.parent').insert({'x': 1, 'y': 2})
         db.table('s.child').insert({'id': 1, 'ax': 1, 'ay': 2})
         db.commit()

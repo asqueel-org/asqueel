@@ -84,6 +84,25 @@ class AsqueelDb(SqlDatabase):
 
     grammar = SqlDatabaseConfig
 
+    def migration_plan(self, *, allow_removals=False):
+        """The DDL that would bring the live database to this model; changes nothing.
+
+        Needs ``asqueel[migration]``. Returns a :class:`~asqueel.migration.MigrationPlan`.
+        """
+        # asqueel-migration is an optional extra: import it only when migrating.
+        from .migration import migration_plan
+        return migration_plan(self, allow_removals=allow_removals)
+
+    def migrate(self, *, allow_removals=False):
+        """Bring the live database to this model and return the applied plan.
+
+        Needs ``asqueel[migration]``. Raises :class:`~asqueel.migration.MigrationError`
+        before any DDL when the backend cannot apply a change, and after applying
+        when differences remain.
+        """
+        from .migration import migrate
+        return migrate(self, allow_removals=allow_removals)
+
     def __init__(self, source, *, parents=None, driver=None, dialect=None, environment=None):
         from .configuration import _effective_model_builder, _owned_handler
         from .model import resolve_model
