@@ -6,6 +6,7 @@ from typing import Any
 
 from .application_table import SqlTable
 from .compiler import QueryCompiler
+from .configuration import SqlDatabaseConfig
 from .contracts import ResolvedModel, UnsupportedFeatureError
 from .environment import ApplicationEnvironment, SqlEnvironment
 from .runtime import Database
@@ -69,11 +70,19 @@ class SqlDatabase(WriteMixin, Database):
 
 
 class AsqueelDb(SqlDatabase):
-    """Load a configured database by registered name, recipe, folder or file.
+    """Load a configured database by registered name, recipe, folder, file or mounted node.
 
     Construction validates the model without connecting. Use table(), commit(),
     rollback() and close() directly on this long-lived database object.
+
+    ``grammar`` is the configuration grammar a host document mounts to declare
+    Asqueel databases in its own configuration: an element carrying
+    ``_meta={"subbuilder": "db_class:grammar"}`` with ``db_class=AsqueelDb``.
+    The database is written under that element starting from ``db()``, and
+    ``AsqueelDb(node)`` builds it from the resulting ``db`` node.
     """
+
+    grammar = SqlDatabaseConfig
 
     def __init__(self, source, *, parents=None, driver=None, dialect=None, environment=None):
         from .configuration import _effective_model_builder, _owned_handler
