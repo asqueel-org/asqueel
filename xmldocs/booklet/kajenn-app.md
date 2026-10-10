@@ -17,8 +17,7 @@ Kajenn e Asqueel funzionano già così, senza modifiche al codice.
 
 - Python 3.11 o successivo.
 - `kajenn` 0.4.1.
-- `asqueel` 0.4.0. Per PostgreSQL serve l'extra `asqueel[postgresql]`. SQLite usa `sqlite3` della libreria standard.
-- Per creare le tabelle con la CLI serve l'extra `asqueel[migration]`.
+- `asqueel` 0.5.1 con l'extra `asqueel[migration]`, che crea e aggiorna le tabelle. Per PostgreSQL serve anche `asqueel[postgresql]`. SQLite usa `sqlite3` della libreria standard.
 
 #### 1. Dichiarare l'archivio
 
@@ -36,8 +35,9 @@ class ChatArchive(SqlDatabaseConfig):
         db = root.db()
         db.connection(name="/srv/myapp/data/chat.db", implementation="sqlite")
         columns = db.schemas().schema("chat").tables().table("message", pkey="id").columns()
-        columns.column("id", dtype="L")
+        columns.column("id", dtype="T")
         columns.column("conversation_id", dtype="T")
+        columns.column("sent_at", dtype="DHZ")
         columns.column("text", dtype="T")
 ```
 
@@ -47,12 +47,13 @@ Per PostgreSQL la connessione si dichiara con `implementation="postgresql"`, `ho
 
 #### 2. Creare le tabelle
 
-Asqueel non crea tabelle quando costruisce il database. Le crea la CLI di migrazione, partendo dalla recipe.
+Asqueel non crea tabelle quando costruisce il database. Le crea `db.migrate()`, che confronta il modello con il database e applica le differenze. L'app lo chiama all'avvio, per esempio dopo aver costruito il server.
 
-```console
-asqueel db plan --config myapp/archive.py
-asqueel db apply --config myapp/archive.py
+```python
+server.databases["default"].migrate()
 ```
+
+`db.migration_plan()` mostra i comandi senza applicarli. Se una modifica non è applicabile, come un cambio di tipo su SQLite, `migrate()` solleva `MigrationError` prima di eseguire qualunque comando. Dal terminale le stesse operazioni sono `asqueel db plan` e `asqueel db apply`.
 
 Su SQLite la cartella del file deve già esistere.
 
@@ -91,19 +92,24 @@ L'app non chiama Asqueel direttamente nelle route. Chiama una classe store, con 
 
 `myapp/app.py`
 ```python
+import uuid
+from datetime import datetime, timezone
+
+
 class SqlMessageStore:
     def __init__(self, db):
         self.db = db
 
     def append(self, conversation_id, text):
-        self.db.table("chat.message").insert(
-            {"conversation_id": conversation_id, "text": text})
+        self.db.table("chat.message").insert({
+            "id": uuid.uuid4().hex, "conversation_id": conversation_id,
+            "sent_at": datetime.now(timezone.utc), "text": text})
         self.db.commit()
 
     def history(self, conversation_id):
         return self.db.table("chat.message").query(
-            columns="$id, $text", where="$conversation_id = :cid",
-            cid=conversation_id, order_by="$id").fetch()
+            columns="$text", where="$conversation_id = :cid",
+            cid=conversation_id, order_by="$sent_at").fetch()
 ```
 
 Uno store su filesystem ha gli stessi metodi e ignora `db`. Per passare da filesystem a database si cambia solo `message_store_class` nella configurazione.
@@ -187,16 +193,20 @@ sequenceDiagram
 - Asqueel non ha API async, streaming dei risultati né pool di connessioni. I risultati sono liste di dict materializzate in memoria. · `docs/guide/limitations.md`
 - Asqueel naviga solo relazioni to-one. Per leggere i figli di un record si interroga la tabella figlia con un filtro sulla chiave, come in `history`. · `docs/guide/limitations.md`
 - Un update o un delete ordinario tocca esattamente una riga, identificata dalla chiave primaria. · `docs/guide/limitations.md`
-- La grammatica di Asqueel è in revisione. Le firme possono cambiare tra una release e l'altra. · `docs/guide/limitations.md`
+- Asqueel non genera chiavi primarie. Lo store dell'esempio genera un identificativo testuale con `uuid4` e ordina la cronologia su `sent_at`. · `docs/guide/writes.md`
+- La proposta 0001 cambia la grammatica dei modelli. Le recipe andranno aggiornate quando sarà implementata. · `docs/proposals/0001-model-and-expressions.md`
 
 ### Verified facts
 
 - `READ` `kajenn/src/kajenn/asgi_server.py:223` · 2026-10-10 — Il server costruisce ogni database come `db_class(**params)` e lo avvolge in `AsgiDbHandlerBase`, che inoltra gli attributi pubblici.
 - `READ` `kajenn/src/kajenn/routed_application.py:351` · 2026-10-10 — `route_cleanup` gira sullo stesso thread del pool che ha eseguito la route sync. Non gira per le route async.
 - `READ` `src/asqueel/runtime.py:34` · 2026-10-10 — Asqueel tiene le connessioni in uno stato per thread (`threading.local`).
-- `RUN` `probe con httpx.ASGITransport su kajenn 0.4.1 e asqueel main 6567e95` · 2026-10-10 — L'app di questo booklet ha risposto 200 a due `post` e a `history`. `history` ha restituito le due righe in ordine.
-- `RUN` `probe con httpx.ASGITransport su kajenn 0.4.1 e asqueel main 6567e95` · 2026-10-10 — Route e `route_cleanup` sono girate sullo stesso thread (`kajenn-pool_0`). Dopo `closeConnection` le connessioni del thread sono passate da 1 a 0.
+- `RUN` `probe con httpx.ASGITransport su kajenn 0.4.1, asqueel main a274896, asqueel-migration 0.1.2` · 2026-10-10 — `migrate()` ha creato la tabella. L'app di questo booklet ha risposto 200 a due `post` e a `history`, che ha restituito le due righe nell'ordine di invio.
+- `RUN` `probe con httpx.ASGITransport su kajenn 0.4.1, asqueel main a274896, asqueel-migration 0.1.2` · 2026-10-10 — Route e `route_cleanup` sono girate sullo stesso thread (`kajenn-pool_0`). Dopo `closeConnection` le connessioni del thread sono passate da 1 a 0.
 
 ### Decisions
 
-- **d-config-grammar** `open` — Il modello Asqueel si scriverà dentro la configurazione kajenn, come `storage`, invece che in una recipe separata? Finché la decisione è aperta, vale la recipe descritta in Dichiarare l'archivio (→ s-recipe).
+- **d-config-grammar** `decided` — Il modello Asqueel si scrive dentro la configurazione kajenn, come `storage`, invece che in una recipe separata?
+   1. **Dentro la configurazione kajenn**: Asqueel lo permette dalla 0.5.0 con `AsqueelDb.grammar` e `AsqueelDb(node)`. Il lato kajenn è [kajenn-org/kajenn#59](https://github.com/kajenn-org/kajenn/issues/59).
+   2. **In una recipe separata**
+   → Choice: **Dentro la configurazione kajenn** (Giovanni Porcari, 2026-10-10) — Finché kajenn#59 non è implementata, vale la recipe descritta in Dichiarare l'archivio (→ s-recipe).

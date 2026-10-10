@@ -1,8 +1,8 @@
 # CLI, named configurations and Python console
 
 For this source checkout, install `python -m pip install -e ".[postgresql,migration]"`
-from the repository root for the complete PostgreSQL path. The CLI is new in
-this checkout; an older PyPI release may not contain it. The
+from the repository root for the complete PostgreSQL path; from PyPI install
+`asqueel[migration]` (plus `postgresql` for PostgreSQL). The
 installed `asqueel` command and `python -m asqueel` share one entry point.
 
 Follow the [two-schema walkthrough](two-schemas.md) for the complete configuration,

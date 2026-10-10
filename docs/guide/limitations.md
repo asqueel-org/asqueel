@@ -133,9 +133,10 @@ integration, legacy-package import and native SQL objects. These belong to the p
 matrix above describes which parts execute in this checkout.
 
 The Genropy guide records agreed differences: removal of aggregateRows and explicit
-partition semantics. Output naming, implicit pkey/default ordering, wildcard
-selection and other unapproved divergences in the current implementation are
-compatibility work, not accepted product differences. Native query results still
+partition semantics. Output naming, default ordering, wildcard selection and
+other unapproved divergences in the current implementation are compatibility
+work, not accepted product differences. The implicit `pkey` column of GenroPy
+queries is left to a future GenroPy adapter, not to the core. Native query results still
 use dictionary rows; path lookup on live columns is not complete. Collection
 bindings, count, grouping and distinct are implemented; Selection is not.
 

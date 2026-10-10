@@ -153,34 +153,5 @@ le primitive del nucleo fin dall'inizio.
 
 Questa sezione conosce il corpo della sottoclasse e i principali passaggi
 costruzione/scrittura/eventi. Restano aperti il censimento completo di provider
- e chiamanti, i percorsi dettagliati di modello/query/record/selection, tutte
+e chiamanti, i percorsi dettagliati di modello/query/record/selection, tutte
 le diramazioni CRUD, introspezione/migrazione e la verifica eseguibile.
-'''
-python3 - <<'PY'
-from pathlib import Path
-p=Path('docs/design/16-legacy-db-application-boundary.md')
-p.write_text(p.read_text().replace('\n e chiamanti','\ne chiamanti'))
-p=Path('docs/design/15-operational-plan.md')
-s=p.read_text().replace('## Obbligo di tracciabilità completa del legacy\n','''## Confine DB autonomo / integrazione applicativa
-
-La [revisione 16](16-legacy-db-application-boundary.md) segue GnrSqlDb,
-GnrSqlAppDb e i consumer applicativi/web. Ogni contratto deve distinguere
-implementazione base, override e chiamante. Prevedere un livello d'integrazione
-analogo alla sottoclasse legacy è la direzione proposta; nomi e forma concreta
-restano da definire. Non confondere integrazione per nuove app, ponte Genropy e
-adapter di dialect. Sessioni e pending work restano primitive del nucleo.
-
-## Obbligo di tracciabilità completa del legacy
-''',1)
-p.write_text(s)
-p=Path('docs/design/README.md')
-s=p.read_text().replace('## Revisione corrente\n','''## Revisione corrente
-
-La [revisione per percorsi 16](16-legacy-db-application-boundary.md) inizia dal
-confine GnrSqlDb/GnrSqlAppDb, segue costruzione e scrittura/eventi fino all'app
-web e distingue responsabilità autonome, integrazione app e compatibilità.
-È la prima sezione del riesame, non una dichiarazione di completezza.
-''',1)
-p.write_text(s)
-PY
-git diff --check

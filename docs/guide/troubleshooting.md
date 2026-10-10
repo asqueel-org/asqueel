@@ -49,7 +49,6 @@ or its physical-name mapping differs from the existing database.
 | A formula total includes deleted/draft rows | Formula subqueries include these by default. Set `excludeDraft=True` / `excludeLogicalDeleted=True` in the definition. |
 | Empty SUM is NULL | This is PostgreSQL aggregate behavior. Use an explicit `COALESCE` when zero is intended. |
 | Scalar subquery returns multiple rows | Choose an aggregate or explicit ordered `limit=1`; no implicit limit is added. |
-| `IN :ids` fails | Collection expansion is absent. Use PostgreSQL `= ANY(:ids)` and a list. |
 | Changes to a fetched dictionary are not saved | Results are data. Pass writable fields to `table.update(...)`. |
 | An updated record reader shows old data | `SqlRecord` caches its snapshot. Call `refresh()` or construct a new reader. |
 | SELECT `*` becomes expensive or gains fields | It includes virtual columns; choose an explicit projection. |
@@ -59,7 +58,6 @@ or its physical-name mapping differs from the existing database.
 | Symptom | Explanation and recovery |
 |---|---|
 | Writes disappear after leaving `with db:` | Closing rolls back pending work. Use `db.commit()` / `db.rollback()` or explicit `db.commit()`. |
-| Cannot enter a transaction scope | A prior read or write may already have opened a pending transaction. Complete it deliberately first; nested scopes are not supported. |
 | Connection is rollback-only | A table/shared write hook failed or rollback failed. Roll back explicitly; ordinary SQL execution errors already trigger automatic rollback. |
 | `EnvironmentMismatchError` | A saved compiled statement captured different context. Recompile within the intended scope or use a lazy query terminal there. |
 | `RecordNotFoundError` | No visible record matched, or a hooked write failed to identify its row. Review the selector and scope. |
