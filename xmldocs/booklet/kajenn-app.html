@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!-- generated from kajenn-app.xml by xmldocs: do not edit, edit the XML -->
+<html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Salvare dati con Asqueel in un'app kajenn</title><style>
+:root {
+  --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --line: #e2dfd8; --panel: #f3f1ec;
+  --code-bg: #f0eee8; --accent: #2f5d8a;
+  --ok: #2e7d4f; --warn: #a86b00; --bad: #b23b3b; --info: #2f5d8a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18181a; --fg: #e8e6e1; --muted: #9a9890; --line: #33332f; --panel: #212123;
+    --code-bg: #26262a; --accent: #8fb4dc;
+    --ok: #6cc28f; --warn: #e0a940; --bad: #e57373; --info: #8fb4dc;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18181a; --fg: #e8e6e1; --muted: #9a9890; --line: #33332f; --panel: #212123;
+  --code-bg: #26262a; --accent: #8fb4dc;
+  --ok: #6cc28f; --warn: #e0a940; --bad: #e57373; --info: #8fb4dc;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 4px 0 8px; }
+h2 { font-size: 1.35rem; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.12rem; margin: 28px 0 8px; }
+h4 { font-size: 1rem; margin: 20px 0 6px; }
+a { color: var(--accent); }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg);
+  padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; overflow-x: auto; }
+pre code { display: block; padding: 12px 14px; background: none; }
+figure { margin: 16px 0; }
+figure.code { background: var(--code-bg); border-radius: 8px; }
+figure.code figcaption { font-size: 0.8rem; color: var(--muted); padding: 8px 14px 0; }
+figure.diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+figure.embed { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+figure.embed figcaption { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 8px; }
+figure.embed svg { max-width: 100%; height: auto; }
+.tag-script { color: var(--bad); }
+figure.diagram figcaption { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 8px; }
+.doc-type { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem; color: var(--muted); }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 0.9rem; }
+.muted { color: var(--muted); font-size: 0.9em; }
+.box { border: 1px solid var(--line); border-left: 4px solid var(--line); background: var(--panel);
+  border-radius: 6px; padding: 10px 14px; margin: 12px 0; }
+.box-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.box-foot { margin-top: 6px; }
+.box.fact { border-left-color: var(--info); }
+.box.rule-must { border-left-color: var(--ok); }
+.box.rule-must-not { border-left-color: var(--bad); }
+.box.rule-should { border-left-color: var(--warn); }
+.box.limit { border-left-color: var(--warn); }
+.box.decision-open, .box.decision-proposed { border-left-color: var(--warn); }
+.box.decision-decided { border-left-color: var(--ok); }
+.box.decision-rejected { border-left-color: var(--bad); }
+.box.example { border-left-color: var(--accent); }
+.box.done { border-left-color: var(--ok); }
+.tag-done { color: var(--ok); }
+.tag-doing, .tag-in-progress { color: var(--info); }
+.tag-todo { color: var(--muted); }
+.tag-approved { color: var(--ok); }
+.source { font-size: 0.8rem; }
+.why { margin-top: 4px; }
+.tag { display: inline-block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 1px 7px; border-radius: 10px; border: 1px solid currentColor; color: var(--muted); }
+.tag-test, .tag-run, .tag-must, .tag-decided, .tag-accepted { color: var(--ok); }
+.tag-read, .tag-review { color: var(--info); }
+.tag-should, .tag-open, .tag-proposed, .tag-draft { color: var(--warn); }
+.tag-must-not, .tag-rejected { color: var(--bad); }
+.options li { margin: 6px 0; }
+.options li.chosen b { color: var(--ok); }
+.choice { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.step-num { color: var(--muted); font-weight: 400; margin-right: 6px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; color: var(--muted); padding-bottom: 6px; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: var(--panel); }
+  </style></head><body><main><header class="doc-head"><div class="doc-type">Instruction booklet</div><h1>Salvare dati con Asqueel in un'app kajenn</h1><div class="doc-meta"><span>booklet/kajenn-app</span><span>2026-10-10</span><span>Giovanni Porcari</span></div></header><section class="part purpose"><h2>Purpose</h2>
+    <p>Un'applicazione kajenn salva i propri archivi in SQLite o PostgreSQL attraverso Asqueel. Esempi di archivi: utenti, token, conversazioni.</p>
+    <p>Il database si dichiara nella configurazione del server, nella sezione <code>databases</code>. L'app lo riceve da <code>_request.db</code>.</p>
+    <p>Un archivio passa da filesystem a database cambiando una riga di configurazione. Le route restano uguali.</p>
+    <p>Kajenn e Asqueel funzionano già così, senza modifiche al codice.</p>
+  </section><section class="part requires"><h2>Requirements</h2>
+    <ul>
+      <li>Python 3.11 o successivo.</li>
+      <li><code>kajenn</code> 0.4.1.</li>
+      <li><code>asqueel</code> 0.4.0. Per PostgreSQL serve l'extra <code>asqueel[postgresql]</code>. SQLite usa <code>sqlite3</code> della libreria standard.</li>
+      <li>Per creare le tabelle con la CLI serve l'extra <code>asqueel[migration]</code>.</li>
+    </ul>
+  </section><section class="part steps"><h2>Steps</h2><section class="section step" id="s-recipe"><h3><span class="step-num">1.</span>Dichiarare l'archivio</h3>
+    <p>Il modello e la connessione stanno in una recipe <code>SqlDatabaseConfig</code>. Lo schema si chiama <code>chat</code> e contiene una tabella <code>message</code>.</p>
+    <div class="box example"><div class="box-head"><b>Recipe SQLite</b></div>
+      <figure class="code"><figcaption>myapp/archive.py · python</figcaption><pre><code>from asqueel import SqlDatabaseConfig
+
+
+class ChatArchive(SqlDatabaseConfig):
+    def main(self, root):
+        db = root.db()
+        db.connection(name="/srv/myapp/data/chat.db", implementation="sqlite")
+        columns = db.schemas().schema("chat").tables().table("message", pkey="id").columns()
+        columns.column("id", dtype="L")
+        columns.column("conversation_id", dtype="T")
+        columns.column("text", dtype="T")</code></pre></figure>
+    </div>
+    <p>Su SQLite ogni schema logico è un file separato, collegato con ATTACH. Lo schema <code>chat</code> di <code>chat.db</code> sta nel file <code>chat_chat.db</code>.</p>
+    <p>Per PostgreSQL la connessione si dichiara con <code>implementation="postgresql"</code>, <code>host</code>, <code>user</code> e <code>password</code>. La password va passata con un <code>EnvResolver</code>, così il segreto resta fuori dalla recipe.</p>
+  </section><section class="section step" id="s-tables"><h3><span class="step-num">2.</span>Creare le tabelle</h3>
+    <p>Asqueel non crea tabelle quando costruisce il database. Le crea la CLI di migrazione, partendo dalla recipe.</p>
+    <figure class="code"><figcaption>console</figcaption><pre><code>asqueel db plan --config myapp/archive.py
+asqueel db apply --config myapp/archive.py</code></pre></figure>
+    <p>Su SQLite la cartella del file deve già esistere.</p>
+  </section><section class="section step" id="s-register"><h3><span class="step-num">3.</span>Registrare il database nel server</h3>
+    <p>Nella configurazione kajenn la sezione <code>databases</code> riceve <code>db_class=AsqueelDb</code> e la recipe in <code>source</code>. Il server chiama <code>AsqueelDb(source=ChatArchive)</code> e registra il risultato sotto <code>code</code>.</p>
+    <div class="box example"><div class="box-head"><b>Configurazione del server</b></div>
+      <figure class="code"><figcaption>myapp/config.py · python</figcaption><pre><code>from asqueel import AsqueelDb
+from kajenn.config import AsgiConfigBuilder
+
+from .app import ChatApp, SqlMessageStore
+from .archive import ChatArchive
+
+
+class Configuration(AsgiConfigBuilder):
+    def main(self, root):
+        cfg = root.configuration()
+        cfg.databases().database(code="default", db_class=AsqueelDb, source=ChatArchive)
+        cfg.applications().application(
+            code="chat", mount="", app_class=ChatApp,
+            message_store_class=SqlMessageStore,
+        )</code></pre></figure>
+    </div>
+    <p>Un'app usa il database registrato come <code>default</code>. Per usarne un altro, l'app riceve <code>db_name="&lt;code&gt;"</code> nella configurazione.</p>
+  </section><section class="section step" id="s-store"><h3><span class="step-num">4.</span>Scrivere l'archivio come classe store</h3>
+    <p>L'app non chiama Asqueel direttamente nelle route. Chiama una classe store, con metodi propri dell'archivio. La classe store riceve il database nel costruttore.</p>
+    <div class="box example"><div class="box-head"><b>Store su database</b></div>
+      <figure class="code"><figcaption>myapp/app.py · python</figcaption><pre><code>class SqlMessageStore:
+    def __init__(self, db):
+        self.db = db
+
+    def append(self, conversation_id, text):
+        self.db.table("chat.message").insert(
+            {"conversation_id": conversation_id, "text": text})
+        self.db.commit()
+
+    def history(self, conversation_id):
+        return self.db.table("chat.message").query(
+            columns="$id, $text", where="$conversation_id = :cid",
+            cid=conversation_id, order_by="$id").fetch()</code></pre></figure>
+    </div>
+    <p>Uno store su filesystem ha gli stessi metodi e ignora <code>db</code>. Per passare da filesystem a database si cambia solo <code>message_store_class</code> nella configurazione.</p>
+  </section><section class="section step" id="s-routes"><h3><span class="step-num">5.</span>Usare lo store nelle route</h3>
+    <p>L'app riceve la classe store come argomento del costruttore. Le route sono sync e costruiscono lo store con <code>_request.db</code>.</p>
+    <div class="box example"><div class="box-head"><b>Applicazione</b></div>
+      <figure class="code"><figcaption>myapp/app.py · python</figcaption><pre><code>from genro_routes import route
+from kajenn import RoutedApplication
+
+
+class ChatApp(RoutedApplication):
+    def __init__(self, message_store_class=None, **kwargs):
+        self.message_store_class = message_store_class
+        super().__init__(**kwargs)
+
+    def store(self, request):
+        return self.message_store_class(request.db)
+
+    @route()
+    def post(self, conversation_id: str, text: str, _request=None) -&gt; dict:
+        self.store(_request).append(conversation_id, text)
+        return {"ok": True}
+
+    @route()
+    def history(self, conversation_id: str, _request=None) -&gt; list:
+        return self.store(_request).history(conversation_id)</code></pre></figure>
+    </div>
+  </section><section class="section step" id="s-cleanup"><h3><span class="step-num">6.</span>Chiudere la connessione sul thread della route</h3>
+    <p>Kajenn esegue una route sync su un thread del pool. Asqueel tiene una connessione per thread. La connessione va chiusa su quel thread, in <code>route_cleanup</code>.</p>
+    <div class="box example"><div class="box-head"><b>Chiusura in route_cleanup</b></div>
+      <figure class="code"><figcaption>myapp/app.py · python</figcaption><pre><code>class ChatApp(RoutedApplication):
+    ...
+
+    def route_cleanup(self):
+        self.server.databases["default"].closeConnection()</code></pre></figure>
+    </div>
+    <p><code>closeConnection</code> fa rollback del lavoro non committato e rilascia le connessioni del thread. Il database resta utilizzabile per la richiesta successiva.</p>
+    <figure class="diagram"><pre class="mermaid">sequenceDiagram
+    participant EventLoop
+    participant Pool as Thread del pool
+    participant Db as AsqueelDb
+    EventLoop-&gt;&gt;Pool: run_sync(route)
+    Pool-&gt;&gt;Db: insert / query
+    Pool-&gt;&gt;Db: commit
+    Pool-&gt;&gt;Db: route_cleanup → closeConnection
+    Pool--&gt;&gt;EventLoop: risposta
+    EventLoop-&gt;&gt;EventLoop: cleanup di request.db (non tocca il thread del pool)</pre><figcaption>Una richiesta sync</figcaption></figure>
+  </section></section><section class="part rules"><h2>Rules</h2>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Usare Asqueel solo da route sync.</div><div class="muted why">route_cleanup gira solo dopo una route sync; una route async non ha un punto di chiusura sul proprio thread.</div></div>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Fare <code>commit()</code> esplicito alla fine di ogni unità di lavoro.</div><div class="muted why">execute() e le scritture non fanno mai commit da soli; closeConnection annulla il lavoro non committato.</div></div>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Chiudere le connessioni in <code>route_cleanup</code>, sullo stesso thread della route.</div></div>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Passare i valori esterni come parametri (<code>:cid</code>), mai dentro il testo SQL.</div><div class="muted why">I valori interpolati nel testo SQL sono codice; i parametri no.</div></div>
+    <div class="box rule rule-must-not"><div class="box-head"><span class="tag tag-must-not">must-not</span></div><div>Fare query durante la costruzione del server o nel processo template di kajenn-orchestra, prima del fork dei worker.</div><div class="muted why">Una connessione aperta prima del fork verrebbe condivisa tra processi.</div></div>
+    <div class="box rule rule-should"><div class="box-head"><span class="tag tag-should">should</span></div><div>Tenere brevi le unità di lavoro su SQLite. Con molti writer concorrenti usare PostgreSQL.</div><div class="muted why">Su SQLite ogni unità di lavoro apre con BEGIN IMMEDIATE, anche per una sola lettura, e blocca gli altri writer fino al commit o al rollback.</div></div>
+    <div class="box rule rule-should"><div class="box-head"><span class="tag tag-should">should</span></div><div>Usare un solo <code>AsqueelDb</code> per database, condiviso da tutti i thread.</div></div>
+  </section><section class="part limits"><h2>Current limits</h2>
+    <div class="box limit"><div>La cleanup che <code>_request.db</code> registra gira sul thread dell'event loop. Lì non ci sono connessioni Asqueel, quindi non chiude quella del thread del pool. Per questo serve <code>route_cleanup</code>.</div><div class="box-foot"><code class="source">kajenn/src/kajenn/server.py:416</code></div></div>
+    <div class="box limit"><div>Uno <code>store_class</code> per <code>users</code> o <code>tokens</code> riceve lo storage del server e le opzioni, non il registro <code>databases</code>. Uno store SQL per questi archivi oggi deve costruirsi un proprio <code>AsqueelDb</code>.</div><div class="box-foot"><code class="source">kajenn/src/kajenn/auth/mixin.py:191</code></div></div>
+    <div class="box limit"><div>Lo store dei task è <code>FileTaskStore</code>, fisso nel codice. La configurazione non lo può sostituire.</div><div class="box-foot"><code class="source">kajenn/src/kajenn/tasks/manager.py:92</code></div></div>
+    <div class="box limit"><div>Asqueel non ha API async, streaming dei risultati né pool di connessioni. I risultati sono liste di dict materializzate in memoria.</div><div class="box-foot"><code class="source">docs/guide/limitations.md</code></div></div>
+    <div class="box limit"><div>Asqueel naviga solo relazioni to-one. Per leggere i figli di un record si interroga la tabella figlia con un filtro sulla chiave, come in <code>history</code>.</div><div class="box-foot"><code class="source">docs/guide/limitations.md</code></div></div>
+    <div class="box limit"><div>Un update o un delete ordinario tocca esattamente una riga, identificata dalla chiave primaria.</div><div class="box-foot"><code class="source">docs/guide/limitations.md</code></div></div>
+    <div class="box limit"><div>La grammatica di Asqueel è in revisione. Le firme possono cambiare tra una release e l'altra.</div><div class="box-foot"><code class="source">docs/guide/limitations.md</code></div></div>
+  </section><section class="part facts"><h2>Verified facts</h2>
+    <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">kajenn/src/kajenn/asgi_server.py:223</code><span class="muted">2026-10-10</span></div><div>Il server costruisce ogni database come <code>db_class(**params)</code> e lo avvolge in <code>AsgiDbHandlerBase</code>, che inoltra gli attributi pubblici.</div></div>
+    <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">kajenn/src/kajenn/routed_application.py:351</code><span class="muted">2026-10-10</span></div><div><code>route_cleanup</code> gira sullo stesso thread del pool che ha eseguito la route sync. Non gira per le route async.</div></div>
+    <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">src/asqueel/runtime.py:34</code><span class="muted">2026-10-10</span></div><div>Asqueel tiene le connessioni in uno stato per thread (<code>threading.local</code>).</div></div>
+    <div class="box fact"><div class="box-head"><span class="tag tag-run">run</span><code class="source">probe con httpx.ASGITransport su kajenn 0.4.1 e asqueel main 6567e95</code><span class="muted">2026-10-10</span></div><div>L'app di questo booklet ha risposto 200 a due <code>post</code> e a <code>history</code>. <code>history</code> ha restituito le due righe in ordine.</div></div>
+    <div class="box fact"><div class="box-head"><span class="tag tag-run">run</span><code class="source">probe con httpx.ASGITransport su kajenn 0.4.1 e asqueel main 6567e95</code><span class="muted">2026-10-10</span></div><div>Route e <code>route_cleanup</code> sono girate sullo stesso thread (<code>kajenn-pool_0</code>). Dopo <code>closeConnection</code> le connessioni del thread sono passate da 1 a 0.</div></div>
+  </section><section class="part decisions"><h2>Decisions</h2>
+    <div class="box decision decision-open" id="d-config-grammar"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">d-config-grammar</span></div><div class="question">Il modello Asqueel si scriverà dentro la configurazione kajenn, come <code>storage</code>, invece che in una recipe separata? Finché la decisione è aperta, vale la recipe descritta in <a class="ref" href="#s-recipe">Dichiarare l'archivio</a>.</div></div>
+  </section></main><script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'neutral' });
+          </script></body></html>

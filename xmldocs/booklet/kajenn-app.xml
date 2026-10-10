@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<booklet id="booklet/kajenn-app" title="Salvare dati con Asqueel in un'app kajenn" date="2026-10-10" lang="it" author="Giovanni Porcari">
+
+  <purpose>
+    <p>Un'applicazione kajenn salva i propri archivi in SQLite o PostgreSQL attraverso Asqueel. Esempi di archivi: utenti, token, conversazioni.</p>
+    <p>Il database si dichiara nella configurazione del server, nella sezione <c>databases</c>. L'app lo riceve da <c>_request.db</c>.</p>
+    <p>Un archivio passa da filesystem a database cambiando una riga di configurazione. Le route restano uguali.</p>
+    <p>Kajenn e Asqueel funzionano già così, senza modifiche al codice.</p>
+  </purpose>
+
+  <requires>
+    <list>
+      <item>Python 3.11 o successivo.</item>
+      <item><c>kajenn</c> 0.4.1.</item>
+      <item><c>asqueel</c> 0.4.0. Per PostgreSQL serve l'extra <c>asqueel[postgresql]</c>. SQLite usa <c>sqlite3</c> della libreria standard.</item>
+      <item>Per creare le tabelle con la CLI serve l'extra <c>asqueel[migration]</c>.</item>
+    </list>
+  </requires>
+
+  <step id="s-recipe" title="Dichiarare l'archivio">
+    <p>Il modello e la connessione stanno in una recipe <c>SqlDatabaseConfig</c>. Lo schema si chiama <c>chat</c> e contiene una tabella <c>message</c>.</p>
+    <example title="Recipe SQLite">
+      <code lang="python" file="myapp/archive.py"><![CDATA[
+from asqueel import SqlDatabaseConfig
+
+
+class ChatArchive(SqlDatabaseConfig):
+    def main(self, root):
+        db = root.db()
+        db.connection(name="/srv/myapp/data/chat.db", implementation="sqlite")
+        columns = db.schemas().schema("chat").tables().table("message", pkey="id").columns()
+        columns.column("id", dtype="L")
+        columns.column("conversation_id", dtype="T")
+        columns.column("text", dtype="T")
+]]></code>
+    </example>
+    <p>Su SQLite ogni schema logico è un file separato, collegato con ATTACH. Lo schema <c>chat</c> di <c>chat.db</c> sta nel file <c>chat_chat.db</c>.</p>
+    <p>Per PostgreSQL la connessione si dichiara con <c>implementation="postgresql"</c>, <c>host</c>, <c>user</c> e <c>password</c>. La password va passata con un <c>EnvResolver</c>, così il segreto resta fuori dalla recipe.</p>
+  </step>
+
+  <step id="s-tables" title="Creare le tabelle">
+    <p>Asqueel non crea tabelle quando costruisce il database. Le crea la CLI di migrazione, partendo dalla recipe.</p>
+    <code lang="console"><![CDATA[
+asqueel db plan --config myapp/archive.py
+asqueel db apply --config myapp/archive.py
+]]></code>
+    <p>Su SQLite la cartella del file deve già esistere.</p>
+  </step>
+
+  <step id="s-register" title="Registrare il database nel server">
+    <p>Nella configurazione kajenn la sezione <c>databases</c> riceve <c>db_class=AsqueelDb</c> e la recipe in <c>source</c>. Il server chiama <c>AsqueelDb(source=ChatArchive)</c> e registra il risultato sotto <c>code</c>.</p>
+    <example title="Configurazione del server">
+      <code lang="python" file="myapp/config.py"><![CDATA[
+from asqueel import AsqueelDb
+from kajenn.config import AsgiConfigBuilder
+
+from .app import ChatApp, SqlMessageStore
+from .archive import ChatArchive
+
+
+class Configuration(AsgiConfigBuilder):
+    def main(self, root):
+        cfg = root.configuration()
+        cfg.databases().database(code="default", db_class=AsqueelDb, source=ChatArchive)
+        cfg.applications().application(
+            code="chat", mount="", app_class=ChatApp,
+            message_store_class=SqlMessageStore,
+        )
+]]></code>
+    </example>
+    <p>Un'app usa il database registrato come <c>default</c>. Per usarne un altro, l'app riceve <c>db_name="&lt;code&gt;"</c> nella configurazione.</p>
+  </step>
+
+  <step id="s-store" title="Scrivere l'archivio come classe store">
+    <p>L'app non chiama Asqueel direttamente nelle route. Chiama una classe store, con metodi propri dell'archivio. La classe store riceve il database nel costruttore.</p>
+    <example title="Store su database">
+      <code lang="python" file="myapp/app.py"><![CDATA[
+class SqlMessageStore:
+    def __init__(self, db):
+        self.db = db
+
+    def append(self, conversation_id, text):
+        self.db.table("chat.message").insert(
+            {"conversation_id": conversation_id, "text": text})
+        self.db.commit()
+
+    def history(self, conversation_id):
+        return self.db.table("chat.message").query(
+            columns="$id, $text", where="$conversation_id = :cid",
+            cid=conversation_id, order_by="$id").fetch()
+]]></code>
+    </example>
+    <p>Uno store su filesystem ha gli stessi metodi e ignora <c>db</c>. Per passare da filesystem a database si cambia solo <c>message_store_class</c> nella configurazione.</p>
+  </step>
+
+  <step id="s-routes" title="Usare lo store nelle route">
+    <p>L'app riceve la classe store come argomento del costruttore. Le route sono sync e costruiscono lo store con <c>_request.db</c>.</p>
+    <example title="Applicazione">
+      <code lang="python" file="myapp/app.py"><![CDATA[
+from genro_routes import route
+from kajenn import RoutedApplication
+
+
+class ChatApp(RoutedApplication):
+    def __init__(self, message_store_class=None, **kwargs):
+        self.message_store_class = message_store_class
+        super().__init__(**kwargs)
+
+    def store(self, request):
+        return self.message_store_class(request.db)
+
+    @route()
+    def post(self, conversation_id: str, text: str, _request=None) -> dict:
+        self.store(_request).append(conversation_id, text)
+        return {"ok": True}
+
+    @route()
+    def history(self, conversation_id: str, _request=None) -> list:
+        return self.store(_request).history(conversation_id)
+]]></code>
+    </example>
+  </step>
+
+  <step id="s-cleanup" title="Chiudere la connessione sul thread della route">
+    <p>Kajenn esegue una route sync su un thread del pool. Asqueel tiene una connessione per thread. La connessione va chiusa su quel thread, in <c>route_cleanup</c>.</p>
+    <example title="Chiusura in route_cleanup">
+      <code lang="python" file="myapp/app.py"><![CDATA[
+class ChatApp(RoutedApplication):
+    ...
+
+    def route_cleanup(self):
+        self.server.databases["default"].closeConnection()
+]]></code>
+    </example>
+    <p><c>closeConnection</c> fa rollback del lavoro non committato e rilascia le connessioni del thread. Il database resta utilizzabile per la richiesta successiva.</p>
+    <diagram kind="mermaid" title="Una richiesta sync"><![CDATA[
+sequenceDiagram
+    participant EventLoop
+    participant Pool as Thread del pool
+    participant Db as AsqueelDb
+    EventLoop->>Pool: run_sync(route)
+    Pool->>Db: insert / query
+    Pool->>Db: commit
+    Pool->>Db: route_cleanup → closeConnection
+    Pool-->>EventLoop: risposta
+    EventLoop->>EventLoop: cleanup di request.db (non tocca il thread del pool)
+]]></diagram>
+  </step>
+
+  <rules>
+    <rule level="must" why="route_cleanup gira solo dopo una route sync; una route async non ha un punto di chiusura sul proprio thread.">Usare Asqueel solo da route sync.</rule>
+    <rule level="must" why="execute() e le scritture non fanno mai commit da soli; closeConnection annulla il lavoro non committato.">Fare <c>commit()</c> esplicito alla fine di ogni unità di lavoro.</rule>
+    <rule level="must">Chiudere le connessioni in <c>route_cleanup</c>, sullo stesso thread della route.</rule>
+    <rule level="must" why="I valori interpolati nel testo SQL sono codice; i parametri no.">Passare i valori esterni come parametri (<c>:cid</c>), mai dentro il testo SQL.</rule>
+    <rule level="must-not" why="Una connessione aperta prima del fork verrebbe condivisa tra processi.">Fare query durante la costruzione del server o nel processo template di kajenn-orchestra, prima del fork dei worker.</rule>
+    <rule level="should" why="Su SQLite ogni unità di lavoro apre con BEGIN IMMEDIATE, anche per una sola lettura, e blocca gli altri writer fino al commit o al rollback.">Tenere brevi le unità di lavoro su SQLite. Con molti writer concorrenti usare PostgreSQL.</rule>
+    <rule level="should">Usare un solo <c>AsqueelDb</c> per database, condiviso da tutti i thread.</rule>
+  </rules>
+
+  <limits>
+    <limit source="kajenn/src/kajenn/server.py:416">La cleanup che <c>_request.db</c> registra gira sul thread dell'event loop. Lì non ci sono connessioni Asqueel, quindi non chiude quella del thread del pool. Per questo serve <c>route_cleanup</c>.</limit>
+    <limit source="kajenn/src/kajenn/auth/mixin.py:191">Uno <c>store_class</c> per <c>users</c> o <c>tokens</c> riceve lo storage del server e le opzioni, non il registro <c>databases</c>. Uno store SQL per questi archivi oggi deve costruirsi un proprio <c>AsqueelDb</c>.</limit>
+    <limit source="kajenn/src/kajenn/tasks/manager.py:92">Lo store dei task è <c>FileTaskStore</c>, fisso nel codice. La configurazione non lo può sostituire.</limit>
+    <limit source="docs/guide/limitations.md">Asqueel non ha API async, streaming dei risultati né pool di connessioni. I risultati sono liste di dict materializzate in memoria.</limit>
+    <limit source="docs/guide/limitations.md">Asqueel naviga solo relazioni to-one. Per leggere i figli di un record si interroga la tabella figlia con un filtro sulla chiave, come in <c>history</c>.</limit>
+    <limit source="docs/guide/limitations.md">Un update o un delete ordinario tocca esattamente una riga, identificata dalla chiave primaria.</limit>
+    <limit source="docs/guide/limitations.md">La grammatica di Asqueel è in revisione. Le firme possono cambiare tra una release e l'altra.</limit>
+  </limits>
+
+  <facts>
+    <fact source="kajenn/src/kajenn/asgi_server.py:223" method="read" verified="2026-10-10">Il server costruisce ogni database come <c>db_class(**params)</c> e lo avvolge in <c>AsgiDbHandlerBase</c>, che inoltra gli attributi pubblici.</fact>
+    <fact source="kajenn/src/kajenn/routed_application.py:351" method="read" verified="2026-10-10"><c>route_cleanup</c> gira sullo stesso thread del pool che ha eseguito la route sync. Non gira per le route async.</fact>
+    <fact source="src/asqueel/runtime.py:34" method="read" verified="2026-10-10">Asqueel tiene le connessioni in uno stato per thread (<c>threading.local</c>).</fact>
+    <fact source="probe con httpx.ASGITransport su kajenn 0.4.1 e asqueel main 6567e95" method="run" verified="2026-10-10">L'app di questo booklet ha risposto 200 a due <c>post</c> e a <c>history</c>. <c>history</c> ha restituito le due righe in ordine.</fact>
+    <fact source="probe con httpx.ASGITransport su kajenn 0.4.1 e asqueel main 6567e95" method="run" verified="2026-10-10">Route e <c>route_cleanup</c> sono girate sullo stesso thread (<c>kajenn-pool_0</c>). Dopo <c>closeConnection</c> le connessioni del thread sono passate da 1 a 0.</fact>
+  </facts>
+
+  <decisions>
+    <decision id="d-config-grammar" status="open">
+      <question>Il modello Asqueel si scriverà dentro la configurazione kajenn, come <c>storage</c>, invece che in una recipe separata? Finché la decisione è aperta, vale la recipe descritta in <ref to="s-recipe">Dichiarare l'archivio</ref>.</question>
+    </decision>
+  </decisions>
+
+</booklet>
