@@ -157,6 +157,62 @@ model and connection settings are the same as `AsqueelDb(ChatArchive)` gives.
 The SQL naming rules apply in the host as in a recipe: one `db` per mount point,
 no duplicate names in the same namespace. A node other than `db` is refused.
 
+## Own databases in a server and its applications
+
+A host — a server and its applications — mixes in `AsqueelDbMixin` to own
+Asqueel databases by name and hand them to each call. The host defines two
+members: `asqueel_owner_name` (`''` for the server, the application code for an
+application) and `asqueel_owner(name)` (the owner with that name, `''` for the
+server).
+
+```python
+from asqueel import AsqueelDbMixin
+
+
+class Server(AsqueelDbMixin):
+    def __init__(self):
+        super().__init__()
+        self.applications = {}
+
+    @property
+    def asqueel_owner_name(self):
+        return ''
+
+    def asqueel_owner(self, name):
+        return self if name == '' else self.applications[name]
+
+
+class App(AsqueelDbMixin):
+    def __init__(self, server, code):
+        super().__init__()
+        self.server, self.code = server, code
+        server.applications[code] = self
+
+    @property
+    def asqueel_owner_name(self):
+        return self.code
+
+    def asqueel_owner(self, name):
+        return self.server.asqueel_owner(name)
+```
+
+Each owner registers its databases with `set_asqueel_db(name, source)`, where
+`source` is anything `AsqueelDb` accepts, including a mounted `db` node. A call
+then takes them:
+
+| Expression | Database |
+|---|---|
+| `app.db` | the application's `default`, or the server's when the application has none |
+| `app.get_db("betadb")` | the server's `betadb` |
+| `app.get_db("chat:alfadb")` | the `alfadb` of application `chat` |
+
+Every take goes through `AsqueelDb.acquire()`. The first take on a thread
+clears `currentEnv`, so a call never sees the context left by the previous call
+on that thread. At the end of the call, on the same thread, the host calls
+`release_databases()` on the owner the call used: it closes the connections of
+every database taken through that owner, and the next take starts a new call.
+One call runs on one thread; each thread releases only its own takes.
+
 ## Boundaries of customization
 
 - The effective model is built from a private copy; resolving defaults does not
