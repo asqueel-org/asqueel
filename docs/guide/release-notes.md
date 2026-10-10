@@ -1,5 +1,33 @@
 # Release notes
 
+## 0.5.1
+
+To be released as `v0.5.1`.
+
+- Migrate from Python. `AsqueelDb.migration_plan()` compares the model with the
+  live database and returns a `MigrationPlan` (`commands`, `warnings`,
+  `skipped`, `empty`) without changing anything; `AsqueelDb.migrate()` applies
+  it. `migrate()` refuses before any DDL when the backend cannot apply a change
+  (for example a column type change on SQLite) and raises `MigrationError` when
+  differences remain afterwards. Both work for a `db` node mounted in a host
+  configuration. See "Migrate from Python" in the migrations guide.
+- `asqueel db plan/apply` use the same methods. Changed behaviour: `db apply`
+  now exits 1, naming the skipped changes, instead of 0 with a warning.
+- Databases per call. `AsqueelDb.acquire()` takes a database for the current
+  call: the first take on a thread clears `currentEnv`, and `closeConnection()`
+  ends the take. `AsqueelDbMixin` gives a server and its applications databases
+  by name (`set_asqueel_db`, `db`, `get_db` with `app:db` names) and closes the
+  ones taken through an owner (`release_databases`). See "Own databases in a
+  server and its applications" in the configuration grammars guide.
+- `asqueel-migration` is required as `>=0.1.2,<0.2`.
+- The CLI install hint asks for `asqueel[migration]`, and for
+  `asqueel[postgresql]` only on PostgreSQL.
+- Guides aligned with the code: query bindings, default ordering, relation
+  result names, `*` expansion, SQLite support, troubleshooting entries.
+
+Validation: 868 tests passed on PostgreSQL and SQLite, with 95% coverage.
+Ruff, mypy and the strict documentation build passed.
+
 ## 0.5.0
 
 Released on PyPI and tagged `v0.5.0`.
