@@ -8,7 +8,7 @@ import sys
 
 from genro_builders.builder import BuilderBase, element
 from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
-from genro_bag import BagResolver
+from genro_bag import Bag, BagNode, BagResolver
 
 from .builder import SqlBuilder
 
@@ -93,7 +93,9 @@ def _owned_handler(source, parents=None):
 
 
 def configuration_source(source):
-    """Resolve a registered name, a recipe path/directory or a Python class."""
+    """Resolve a registered name, a recipe path/directory, a Python class or a mounted ``db`` node."""
+    if isinstance(source, BagNode):
+        return _recipe_from_node(source)
     if isinstance(source, str) and ':' in source and not source.endswith('.py'):
         from pkgutil import resolve_name
         return resolve_name(source)
@@ -104,6 +106,35 @@ def configuration_source(source):
         path = Path(source).expanduser().resolve()
         return path / 'configure.py' if path.is_dir() else path
     return source
+
+
+def _recipe_from_node(node):
+    """Recipe class that rebuilds a ``db`` subtree written in a host document.
+
+    A host configuration mounts ``AsqueelDb.grammar`` and writes the database
+    under its own node; this replays that subtree, element by element, into a
+    standalone recipe, so the database is built exactly as from a recipe class.
+    """
+    if node.node_tag != 'db':
+        raise TypeError(f"a mounted Asqueel database starts at a 'db' node, not {node.node_tag!r}")
+
+    class MountedDatabase(SqlDatabaseConfig):
+        def main(self, root):
+            _replay_node(node, root)
+
+    return MountedDatabase
+
+
+def _replay_node(node, target):
+    """Call the element of ``node`` on ``target`` with its attributes, then its children."""
+    attributes = {key: value for key, value in node.attr.items() if key != '_meta'}
+    value = node.value
+    if value is not None and not isinstance(value, Bag):
+        raise TypeError(f"{node.node_tag!r} carries a value: only attributes and children can be replayed")
+    child = getattr(target, node.node_tag)(**attributes)
+    if isinstance(value, Bag):
+        for subnode in value:
+            _replay_node(subnode, child)
 
 
 @contextmanager
