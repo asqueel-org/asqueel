@@ -1,5 +1,23 @@
 # Release notes
 
+## 0.5.0
+
+To be released as `v0.5.0`.
+
+- A host configuration can declare Asqueel databases in place. `AsqueelDb.grammar`
+  is `SqlDatabaseConfig`: a host mounts it on an element with
+  `_meta={"subbuilder": "db_class:grammar"}` and writes the database under that
+  element starting from `db()`. `AsqueelDb(node)` builds the database from the
+  resulting `db` node; model and connection settings equal those of a standalone
+  recipe calling the same function. See "Mount Asqueel in a host configuration"
+  in the configuration grammars guide.
+- Changed messages: the compiler reports `Unsupported asqueel expression syntax`
+  (was `Genro`), and the catalog importer warns that a type `has no asqueel code`
+  (was `Genro code`). Code matching those texts must be updated.
+
+Validation: 850 tests passed on PostgreSQL and SQLite, with 95% coverage.
+CI passed ruff, mypy and the strict documentation build.
+
 ## 0.4.0
 
 Released on PyPI and tagged `v0.4.0`.

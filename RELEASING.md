@@ -1,7 +1,7 @@
 # Release Asqueel
 
 Distribution: `asqueel`. Python package: `asqueel`.
-Repository: `asqueel-org/asqueel`. Prepared version: `0.4.0`.
+Repository: `asqueel-org/asqueel`. Prepared version: `0.5.0`.
 
 ## One-time PyPI setup
 
