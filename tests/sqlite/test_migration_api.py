@@ -141,11 +141,13 @@ def test_the_cli_refuses_a_skipped_change_and_names_it(tmp_path, capsys):
     recipe_file = tmp_path / 'configure.py'
     recipe_file.write_text(CONFIGURE.format(path=str(path), dtype='T'))
     assert main(['db', 'apply', '--config', str(recipe_file)]) == 0
-    recipe_file.write_text(CONFIGURE.format(path=str(path), dtype='L'))
+    # A second file: rewriting the first one in the same second can reuse its cached bytecode.
+    changed_file = tmp_path / 'changed.py'
+    changed_file.write_text(CONFIGURE.format(path=str(path), dtype='L'))
     capsys.readouterr()
-    assert main(['db', 'plan', '--config', str(recipe_file)]) == 0
+    assert main(['db', 'plan', '--config', str(changed_file)]) == 0
     assert "Warning: unsupported 'alter_column_type'" in capsys.readouterr().err
-    assert main(['db', 'apply', '--config', str(recipe_file)]) == 1
+    assert main(['db', 'apply', '--config', str(changed_file)]) == 1
     assert 'cannot apply these changes' in capsys.readouterr().err
     assert ('name', 'TEXT') in item_columns(path)
 
