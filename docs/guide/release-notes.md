@@ -2,7 +2,7 @@
 
 ## 0.5.0
 
-To be released as `v0.5.0`.
+Released on PyPI and tagged `v0.5.0`.
 
 - A host configuration can declare Asqueel databases in place. `AsqueelDb.grammar`
   is `SqlDatabaseConfig`: a host mounts it on an element with
