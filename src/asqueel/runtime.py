@@ -37,6 +37,7 @@ class _ThreadState(local):
         self.write_depth = 0
         self.trigger_stack = TriggerStack()
         self.closed = False
+        self.acquired = False
 
 
 class Database:
@@ -142,6 +143,19 @@ class Database:
 
     def clearCurrentEnv(self):
         self.currentEnv = {}
+
+    def acquire(self):
+        """Take this database for the current call and return it.
+
+        The first take on a thread clears ``currentEnv``, so a call never sees
+        the context of the previous call on the same thread; ``closeConnection``
+        ends the take, and the next one belongs to the next call.
+        """
+        self._check_open()
+        if not self._thread_state.acquired:
+            self.clearCurrentEnv()
+            self._thread_state.acquired = True
+        return self
 
     @property
     def workdate(self):
@@ -260,6 +274,7 @@ class Database:
             self._close_connections()
         finally:
             self._connections.clear()
+            self._thread_state.acquired = False
 
     def _close_connections(self) -> None:
         error = None

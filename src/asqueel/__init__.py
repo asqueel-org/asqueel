@@ -39,12 +39,13 @@ from .runtime import (
     TransactionStateError,
 )
 from .errors import DeferredCommitError, MigrationError
+from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
 __version__ = "0.5.0"
 
 __all__ = [
-    "AsqueelDb", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
+    "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
     "SqlTable", "SqlColumn", "SqlRelation", "SqlQuery", "SqlRecord",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
