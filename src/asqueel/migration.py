@@ -27,9 +27,10 @@ Two grammar conveniences become real entities here:
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import cast
 
-from asqueel_migration import StructureValidator
+from asqueel_migration import PgDatabase, SqliteDatabase, SqlMigrator, StructureValidator
 from asqueel_migration.structures import (
     COL_JSON_KEYS,
     new_column_item,
@@ -43,8 +44,11 @@ from asqueel_migration.structures import (
 )
 
 from .catalog import SqlModelCatalog
+from .configuration import connection_settings
+from .errors import MigrationError
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
 from .common import split_names as _names
+from .projection import to_physical_builder
 from .validators import SqlModelValidator
 
 #: Relation attributes that reach the JSON, mapped to their contract key.
@@ -249,3 +253,100 @@ class SqlMigrationRenderer:
 
 
 __all__ = ["SqlMigrationRenderer"]
+
+
+# ---------------------------------------------------------------------------
+# Plan and apply a migration against the live database
+# ---------------------------------------------------------------------------
+
+#: Prefix asqueel-migration gives a change the backend cannot apply
+#: (``CommandBuilder.unsupported``). Matched as text until asqueel-migration
+#: reports skipped changes as data; the dependency upper bound keeps it stable.
+_SKIPPED_PREFIX = "unsupported '"
+
+
+@dataclass(frozen=True)
+class MigrationPlan:
+    """The DDL that brings a live database to its model, computed against that database.
+
+    ``skipped`` lists the changes the backend cannot apply (for example a
+    column type change on SQLite); ``warnings`` includes them.
+    """
+
+    commands: str
+    warnings: tuple[str, ...]
+    skipped: tuple[str, ...]
+
+    @property
+    def empty(self) -> bool:
+        return not self.commands.strip()
+
+
+def migration_plan(db, *, allow_removals=False) -> MigrationPlan:
+    """Compare ``db.model`` with the live database and return the plan; change nothing."""
+    migrator = _prepared_migrator(db, allow_removals=allow_removals)
+    try:
+        return _plan_of(migrator)
+    finally:
+        migrator.db.closeConnection()
+
+
+def migrate(db, *, allow_removals=False) -> MigrationPlan:
+    """Apply the plan and return it.
+
+    Refuses before any DDL when the plan has skipped changes. After applying,
+    compares again and raises :class:`MigrationError` if differences remain.
+    """
+    migrator = _prepared_migrator(db, allow_removals=allow_removals)
+    try:
+        plan = _plan_of(migrator)
+        if plan.skipped:
+            raise MigrationError('The backend cannot apply these changes: ' + '; '.join(plan.skipped))
+        if not plan.empty:
+            migrator.applyChanges()
+    finally:
+        migrator.db.closeConnection()
+    remaining = migration_plan(db, allow_removals=allow_removals)
+    if not remaining.empty:
+        raise MigrationError('Migration applied, but differences remain:\n' + remaining.commands)
+    return plan
+
+
+def _plan_of(migrator) -> MigrationPlan:
+    warnings = tuple(migrator.warnings)
+    skipped = tuple(warning for warning in warnings if warning.startswith(_SKIPPED_PREFIX))
+    return MigrationPlan(migrator.getChanges(), warnings, skipped)
+
+
+def _prepared_migrator(db, *, allow_removals):
+    """Project the model and prepare the backend migrator, its commands computed."""
+    implementation, conninfo, kwargs = connection_settings(db.config)
+    if implementation == 'sqlite':
+        params = dict(kwargs or {})
+        params.setdefault('dbname', conninfo)
+        if params['dbname'] == ':memory:':
+            raise MigrationError('Migrations require persistent SQLite files')
+    elif implementation == 'postgresql':
+        # psycopg is the PostgreSQL extra: a SQLite-only install does not have it.
+        from psycopg.conninfo import conninfo_to_dict
+        params = conninfo_to_dict(conninfo or '', **(kwargs or {}))
+    else:
+        raise MigrationError(f'Unsupported migration backend: {implementation}')
+    if not params.get('dbname'):
+        raise MigrationError('Declare connection.name (or an explicit dbname in the legacy connection settings)')
+    desired = SqlMigrationRenderer(to_physical_builder(db.model)).render()
+    # The physical destination is owned by connection settings, not the recipe root label.
+    desired['root']['entity_name'] = params['dbname']
+    schemas = sorted(desired['root']['schemas'])
+    if not schemas:
+        raise MigrationError('Declare at least one nonempty managed schema before migrating')
+    database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase
+    database = database_class(params, application_schemas=schemas)
+    migrator = SqlMigrator(database, ignore_constraint_name=True, removeDisabled=not allow_removals)
+    migrator.ormStructure = desired
+    try:
+        migrator.prepareMigrationCommands()
+    except BaseException:
+        database.closeConnection()
+        raise
+    return migrator
