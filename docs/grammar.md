@@ -114,8 +114,8 @@ The explicit collection of a schema's tables.
 
 A table.
 
-- Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1], options[:1], colgroup
-- Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes, options, colgroup
+- Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1], options[:1], colgroup, subtable, virtualRelation
+- Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes, options, colgroup, subtable, virtualRelation
 - Projection flags: none declared
 - Extra keys: accepted (`x_` prefix required)
 
@@ -135,6 +135,8 @@ A table.
 | order_by | `str \| None` | `None` | physical |  |
 | lookup | `bool` | `False` | physical |  |
 | tabletype | `str \| None` | `None` | physical |  |
+| sqlname | `str \| None` | `None` | physical |  |
+| sqlschema | `str \| None` | `None` | physical |  |
 
 ### `columns`
 
@@ -152,8 +154,8 @@ The explicit collection of physical columns.
 
 The explicit collection of non-physical columns.
 
-- Contains: aliasColumn, formulaColumn, subQueryColumn, pyColumn
-- Child addressing: SQL-name labels for aliasColumn, formulaColumn, subQueryColumn, pyColumn
+- Contains: aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn
+- Child addressing: SQL-name labels for aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -200,15 +202,15 @@ The explicit collection of table indexes.
 
 A physical column — the only element that projects as a column.
 
-- Contains: relation
-- Child addressing: ordered internal labels for relation
+- Contains: relation, validation[:1], normalize[:1], generation[:1], encryption[:1]
+- Child addressing: ordered internal labels for relation, validation, normalize, generation, encryption
 - Projection flags: `projects_column`, `projects_relation`
 - Extra keys: accepted (`x_` prefix required)
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name — physical, and this node's key. |
-| dtype | `DTYPE \| None` | `None` | physical | asqueel normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
+| dtype | `DTYPE \| str \| None` | `None` | physical | asqueel normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
 | size | `str \| None` | `None` | physical | `'n'` or `'min:max'` character size. |
 | notnull | `bool` | `False` | physical | NOT NULL. Pkey members get it from their pkey membership, not from this flag. |
 | unique | `bool` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. |
@@ -222,6 +224,12 @@ A physical column — the only element that projects as a column.
 | group | `str \| None` | `None` | semantic | field-group key. |
 | x_ui | `dict \| None` | `None` | physical |  |
 | metadata | `dict \| None` | `None` | physical |  |
+| sqlname | `str \| None` | `None` | physical |  |
+| default | `object` | `None` | physical |  |
+| default_from | `str \| None` | `None` | physical |  |
+| sql_value | `str \| None` | `None` | physical |  |
+| read_only | `bool` | `False` | physical |  |
+| unmodifiable | `bool` | `False` | physical |  |
 
 ### `aliasColumn`
 
@@ -239,7 +247,7 @@ carries one of its own.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the alias name. |
 | relation_path | `str` | *required* | physical | `@relation.column` path to the source column. |
-| dtype | `DTYPE \| None` | `None` | physical |  |
+| dtype | `str \| None` | `None` | physical |  |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
@@ -260,9 +268,14 @@ A virtual column defined by SQL. Never physical.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
 | sql_formula | `str \| bool \| None` | `None` | physical | an expression over the row's own columns. |
+| expression | `str \| None` | `None` | physical |  |
+| parameters | `dict \| None` | `None` | physical |  |
+| subqueries | `dict \| None` | `None` | physical |  |
+| handler | `str \| None` | `None` | physical |  |
+| static | `bool` | `False` | physical |  |
 | select | `dict \| str \| None` | `None` | physical | a scalar sub-select. |
 | exists | `dict \| str \| None` | `None` | physical | an EXISTS predicate. |
-| dtype | `DTYPE \| None` | `None` | physical | the resulting type code. |
+| dtype | `str \| None` | `None` | physical | the resulting type code. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
@@ -282,7 +295,7 @@ A virtual column defined by a sub-query. Never physical.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
-| query | `str` | *required* | physical | the sub-query. |
+| query | `str \| dict` | *required* | physical | the sub-query. |
 | mode | `str \| None` | `None` | physical | `json`, `xml` or a scalar aggregate. Expanding it is the renderer's job, not grammar-time. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
@@ -304,7 +317,10 @@ A virtual column computed in Python. Never physical.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
 | py_method | `str \| None` | `None` | physical | the method computing it; defaults to `pyColumn_<name>` on the table class. |
-| dtype | `DTYPE \| None` | `None` | physical | the resulting type code. |
+| method | `str \| None` | `None` | physical |  |
+| required_columns | `str \| tuple \| list \| None` | `None` | physical |  |
+| static | `bool` | `False` | physical |  |
+| dtype | `str \| None` | `None` | physical | the resulting type code. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
@@ -365,7 +381,7 @@ A table index.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| name | `str` | *required* | physical | the index name. |
+| name | `str \| None` | `None` | physical | the index name. |
 | columns | `object \| None` | `None` | physical | comma-joined names, or a `{name: None \| 'DESC'}` dict when per-column ordering matters. |
 | unique | `bool` | `False` | physical | a UNIQUE index. |
 | method | `str \| None` | `None` | physical | access method (`btree`, `gin`, …). |
@@ -390,8 +406,8 @@ reports every conflicting relation together.
 | --- | --- | --- | --- | --- |
 | to | `str` | *required* | physical | the target, `schema.table.column` or `schema.table` (target columns default to the target pkey). |
 | foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project into the migration JSON. |
-| on_delete | `FK_ACTION \| None` | `None` | physical | referential action on delete. |
-| on_update | `FK_ACTION \| None` | `None` | physical | referential action on update. |
+| on_delete | `FK_ACTION \| str \| None` | `None` | physical | referential action on delete. |
+| on_update | `FK_ACTION \| str \| None` | `None` | physical | referential action on update. |
 | deferred | `bool` | `False` | physical | compatibility sugar for DEFERRABLE INITIALLY DEFERRED. |
 | deferrable | `bool` | `False` | physical | make the foreign key DEFERRABLE. Without `initially_deferred` it is initially immediate. |
 | initially_deferred | `bool` | `False` | physical | start a deferrable foreign key deferred. |
@@ -401,6 +417,14 @@ reports every conflicting relation together.
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
 | one_one | `bool` | `False` | semantic | the relation is 1:1. |
 | case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
+| name | `str \| None` | `None` | physical |  |
+| inverse | `str \| None` | `None` | physical |  |
+| on_delete_sql | `str \| None` | `None` | physical |  |
+| on_update_sql | `str \| None` | `None` | physical |  |
+| on_duplicate | `str \| None` | `None` | physical |  |
+| constraint_name | `str \| None` | `None` | physical |  |
+| one_group | `str \| None` | `None` | physical |  |
+| many_group | `str \| None` | `None` | physical |  |
 
 ### `colgroup`
 
@@ -595,3 +619,161 @@ Describe generated system fields without generating fields or values yet.
 | group | `str` | `'zzz'` | physical |  |
 | group_name | `str` | `'System'` | physical |  |
 | enabled | `bool` | `True` | physical |  |
+
+### `validation`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| notnull | `bool` | `False` | physical |  |
+| len | `int \| str \| None` | `None` | physical |  |
+| min | `object` | `None` | physical |  |
+| max | `object` | `None` | physical |  |
+| regex | `str \| None` | `None` | physical |  |
+| email | `bool` | `False` | physical |  |
+| values | `list \| None` | `None` | physical |  |
+| nodup | `bool` | `False` | physical |  |
+| exists | `str \| None` | `None` | physical |  |
+| messages | `dict \| None` | `None` | physical |  |
+
+### `normalize`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| case | `Literal['upper', 'lower', 'title'] \| None` | `None` | physical |  |
+| trim | `bool` | `False` | physical |  |
+
+### `generation`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| type | `Literal['uuid', 'manual', 'sequence']` | *required* | physical |  |
+| sequence | `str \| None` | `None` | physical |  |
+
+### `encryption`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| mode | `Literal['X', 'R', 'Q']` | *required* | physical |  |
+| provider | `str` | *required* | physical |  |
+
+### `weak_relation`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| to | `str` | *required* | physical |  |
+| name | `str \| None` | `None` | physical |  |
+| inverse | `str \| None` | `None` | physical |  |
+| indexed | `bool` | `True` | physical |  |
+| one_one | `bool` | `False` | physical |  |
+| on_delete | `str \| None` | `None` | physical |  |
+| on_update | `str \| None` | `None` | physical |  |
+| on_duplicate | `str \| None` | `None` | physical |  |
+| one_name | `str \| None` | `None` | physical |  |
+| many_name | `str \| None` | `None` | physical |  |
+| one_group | `str \| None` | `None` | physical |  |
+| many_group | `str \| None` | `None` | physical |  |
+
+### `bagItemColumn`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| bagcolumn | `str` | *required* | physical |  |
+| itempath | `str` | *required* | physical |  |
+| dtype | `str \| None` | `None` | physical |  |
+| group | `str \| None` | `None` | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
+
+### `subtable`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| condition | `str` | *required* | physical |  |
+| parameters | `dict \| None` | `None` | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
+
+### `virtualRelation`
+
+
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| relation | `str \| None` | `None` | physical |  |
+| table | `str \| None` | `None` | physical |  |
+| condition | `str \| None` | `None` | physical |  |
+| parameters | `dict \| None` | `None` | physical |  |
+| source_parameters | `dict \| None` | `None` | physical |  |
+| ask | `dict \| None` | `None` | physical |  |
+| order_by | `str \| tuple \| list \| None` | `None` | physical |  |
+| limit | `int \| None` | `None` | physical |  |
+| one_one | `bool` | `False` | physical |  |
+| inverse | `str \| None` | `None` | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |

@@ -20,13 +20,17 @@ e virtual relations, capace di configurare **tutti** i package di
 `test_invoice_pg`: sys, adm e invc. Il censimento include 75 modelli attesi
 e un contributo adm→sys.task; non è una build né un collaudo delle migrations.
 **Piano operativo:** il [piano 44](44-core-release-plan.md) porta la grammatica
-all'implementazione e alla prossima release proposta 0.6.0. P0 è completata
-([report 45](45-release-baseline-and-oracle.md)); P1 è in corso
-([report 46](46-source-configuration-progress.md)); seguono modello
-completo, JSON migrations, compilazione, ricette trasferibili e comportamenti.
-Branch di lavoro `codex/core-release-0.6`, base main `4641a0e` (0.5.2).
-Ultima suite: 919 passati, 1 skip. La nuova source non è ancora un modello
-eseguibile completo; nessuna migrazione dell'istanza esistente.
+all'implementazione e alla prossima release proposta 0.6.0. P0/P1 sono
+completate ([45](45-release-baseline-and-oracle.md),
+[46](46-source-configuration-progress.md), chiusura P1 `d88c822`).
+Il [report 47](47-invoice-migration-json.md) documenta il JSON integrale dei tre
+package: 75 tabelle, 796 colonne, 58 FK, identico all'oracolo legacy;
+applicazione PostgreSQL temporanea, introspezione e seconda diff vuota.
+Il bridge usa la source legacy già espansa: registro provider ed espansioni
+native avanzate P2–P5 restano aperti, seguiti da compilazione e scritture.
+Branch `codex/core-release-0.6`, base main `4641a0e` (0.5.2).
+Nessuna migrazione dell'istanza esistente e nessun incremento di versione/tag.
+
 
 ## Obiettivo e confini
 

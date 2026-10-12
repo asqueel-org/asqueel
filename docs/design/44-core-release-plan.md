@@ -1,6 +1,8 @@
 # 44 — Piano di implementazione del core e prossima release
 
-Data: 12 ottobre 2026. Stato: **P0/P1 completate, P2 in corso**.
+Data: 12 ottobre 2026. Stato: **P0/P1 completate; JSON integrale verificato sul
+bridge legacy espanso; completamento nativo P2–P5 ancora aperto**.
+Esito e confini: [report 47](47-invoice-migration-json.md).
 Target proposto: **0.6.0**, dalla baseline aggiornata 0.5.2. Il numero è una scelta
 di pianificazione per il cambiamento della grammatica pubblica; versione, tag
 e pubblicazione verranno aggiornati soltanto nella fase di release.
@@ -95,10 +97,10 @@ riportati come risultati nuovi. La preparazione del piano non crea commit o tag.
 | P0 | Baseline, contratti e corpus riproducibile | — | Completata: report 45 |
 | P1 | Source DB/schema/package/options e composizione | P0 | Completata: report 46 |
 | P2 | Oggetti completi e registro delle estensioni | P1 | In corso |
-| P3 | Colonne fisiche, chiavi, FK e indici | P2 | Da fare |
-| P4 | Validation, colonne virtuali e virtual relations nel modello | P3 | Da fare |
-| P5 | Espansioni options e modello completo dei tre package | P4 | Da fare |
-| P6 | JSON del migratore e verifica PostgreSQL completa | P5 | Da fare |
+| P3 | Colonne fisiche, chiavi, FK e indici | P2 | Parziale: contratti verificati nel report 47 |
+| P4 | Validation, colonne virtuali e virtual relations nel modello | P3 | Parziale: descrittori e codec nel report 47 |
+| P5 | Espansioni options e modello completo dei tre package | P4 | Bridge completo verificato; options native avanzate aperte |
+| P6 | JSON del migratore e verifica PostgreSQL completa | P5 | Gate fisico superato sul bridge; chiusura nativa dipende da P2–P5 |
 | P7 | Compilazione delle espressioni e navigazioni mancanti | P6 | Da fare |
 | P8 | Ricette delle operazioni, codec e compilazione separata | P7 | Da fare |
 | P9 | Esecuzione dei comportamenti e ciclo delle scritture | P8 | Da fare |

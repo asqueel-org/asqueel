@@ -3,6 +3,9 @@
 12 ottobre 2026. **P1 completata**, piano 44. Nessun incremento della versione
 0.5.2, tag o pubblicazione: questo report non annuncia la release 0.6.0.
 
+Questo report fotografa la chiusura P1. Gli incrementi successivi di modello,
+espansione e proiezione sono registrati nel [report 47](47-invoice-migration-json.md).
+
 ## Implementato e verificato
 
 - Package logici separati dagli schemi fisici; catalogo e validatore vedono

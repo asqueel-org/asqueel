@@ -18,6 +18,7 @@ from genro_builders.builder import BuilderBase, SourceBag
 from genro_builders.builder.base import SOURCE_ROOT
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
+from .semantic_elements import SemanticElements
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
 from .renderer import SqlRenderer
 from .validators import SqlModelValidator
@@ -46,7 +47,7 @@ class SqlSourceBag(SourceBag):
         return cast(BagNode | None, self.get_node(path))
 
 
-class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, ModelElements,
+class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, ModelElements, SemanticElements,
                  BuilderBase):
     """SQL model dialect builder.
 
@@ -61,14 +62,14 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     _name_label_tags = frozenset({
         "schema", "package", "table", "column", "aliasColumn", "formulaColumn",
         "subQueryColumn", "pyColumn", "compositeColumn", "extension",
-        "constraint", "index",
+        "constraint", "index", "bagItemColumn",
     })
     _positional_arguments = {
         **dict.fromkeys(_name_label_tags | {"db"}, "name"),
         "relation": "to",
         'context': 'name', 'type': 'name', 'macro': 'name',
         'metadata': 'namespace', 'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
-        'connection': 'name',
+        'connection': 'name', 'weak_relation': 'to', 'subtable': 'name', 'virtualRelation': 'name',
     }
     _singletons = frozenset({'schemas', 'packages', 'extensions', 'tables',
                             'columns', 'virtual_columns', 'composites',
@@ -77,7 +78,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         'column': 'columns', 'formulaColumn': 'virtual_columns',
         'aliasColumn': 'virtual_columns', 'subQueryColumn': 'virtual_columns',
         'pyColumn': 'virtual_columns', 'compositeColumn': 'composites',
-        'index': 'indexes',
+        'index': 'indexes', 'bagItemColumn': 'virtual_columns',
     }
 
     def __init__(self, name: str | None = None) -> None:
@@ -280,6 +281,49 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if positional is not None and attr.get(positional) == node_value:
             node_value = None
         parent = build_where.parent_node
+        if node_tag == 'column' and self._package_ancestor(parent) is None:
+            from .elements import DTYPE
+            if attr.get('dtype') is not None and attr['dtype'] not in get_args(DTYPE):
+                raise ValueError(f'Unknown dtype: {attr["dtype"]!r}')
+        if node_tag == 'weak_relation':
+            return self.set_child(build_where, 'relation', node_value,
+                                  foreign_key=False, x_weak=True, **attr)
+        if node_tag == 'relation' and self._package_ancestor(parent) is not None:
+            attr.setdefault('foreign_key', True)
+            attr['x_canonical'] = True
+        if node_tag in ('subtable', 'virtualRelation'):
+            node_label = f'{node_tag}_{attr["name"]}'
+            existing = build_where.node(node_label)
+            if existing is not None:
+                return self._compose_attributes(existing, attr)
+        if node_tag == 'index' and attr.get('name') is None:
+            if self._package_ancestor(parent) is None and not attr.get('x_auto_name'):
+                raise ValueError('index: name is required outside a package')
+            import hashlib
+            import json
+            key = json.dumps(attr.get('columns'), sort_keys=False)
+            attr['name'] = 'index_' + hashlib.sha256(key.encode()).hexdigest()[:12]
+            attr['x_auto_name'] = True
+        if node_tag == 'column':
+            embedded = {key[9:]: value for key, value in attr.items() if key.startswith('validate_')}
+            if embedded:
+                from .validation import normalize_embedded, validate_spec
+                rules, normalization = normalize_embedded(embedded)
+                validate_spec(rules)
+                clean = {key: value for key, value in attr.items() if not key.startswith('validate_')}
+                child = self.set_child(build_where, node_tag, node_value, node_label, node_position, **clean)
+                if rules:
+                    child.validation(**rules)
+                if normalization:
+                    child.normalize(**normalization)
+                return child
+        if node_tag == 'validation':
+            from .validation import validate_spec
+            validate_spec(attr)
+        if node_tag in ('validation', 'normalize', 'generation', 'encryption'):
+            existing = build_where.node(node_tag)
+            if existing is not None:
+                return self._compose_attributes(existing, attr)
         if node_tag == 'connection':
             if node_label is not None:
                 raise ValueError('connection: node_label is fixed by its name')

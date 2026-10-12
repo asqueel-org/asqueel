@@ -2,7 +2,6 @@
 import pytest
 
 from asqueel import SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.contracts import UnsupportedFeatureError
 from asqueel.model import resolve_model
 from asqueel.validators import SqlModelValidationError
 
@@ -133,13 +132,14 @@ def test_reset_removes_accumulated_configuration_without_creating_a_runtime_node
         opts.reset('typo')
 
 
-def test_incomplete_package_source_cannot_silently_export_an_empty_database():
+def test_package_source_exports_the_declared_table():
     builder, _, pkg = source()
     pkg.table('customer').column('id', dtype='L')
-    with pytest.raises(UnsupportedFeatureError, match='Package/options'):
-        resolve_model(builder)
-    with pytest.raises(UnsupportedFeatureError, match='Package/options'):
-        SqlMigrationRenderer(builder).render()
+    model = resolve_model(builder)
+    assert len(model.tables) == 1
+    table = next(iter(model.tables.values()))
+    physical = SqlMigrationRenderer(builder).render()['root']['schemas']
+    assert physical[table.physical_schema]['tables'][table.physical_name]['columns']['id']['attributes']['dtype'] == 'L'
 
 
 def test_direct_declarations_also_work_on_legacy_schema_tables():

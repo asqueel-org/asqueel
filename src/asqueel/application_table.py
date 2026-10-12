@@ -188,7 +188,7 @@ class SqlTable:
         self.db = db
         self.model = model
         self.fullname = model.key
-        self._config_prefix = f'schemas.{model.schema}.tables.{model.name}'
+        self._config_prefix = f'{"packages" if model.package_name else "schemas"}.{model.schema}.tables.{model.name}'
         self.config = ConfigurationView(db.config, self._config_prefix)
         self.columns = MappingProxyType({name: SqlColumn(self, column)
                                          for name, column in model.columns.items()})

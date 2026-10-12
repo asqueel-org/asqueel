@@ -1,0 +1,9 @@
+{
+  "name": "test_invoice_pg",
+  "type_aliases": {
+    "invc": {
+      "money": {"dtype": "N", "size": "14,2", "x_ui": {"format": "#,###.00"}},
+      "perc": {"dtype": "N", "size": "5,2", "x_ui": {"format": "##.00"}}
+    }
+  }
+}

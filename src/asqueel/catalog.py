@@ -8,7 +8,7 @@ from typing import Any
 
 
 _VIRTUAL_COLUMN_TAGS = frozenset({
-    "aliasColumn", "formulaColumn", "subQueryColumn", "pyColumn",
+    "aliasColumn", "formulaColumn", "subQueryColumn", "pyColumn", "bagItemColumn",
 })
 _COLLECTION_TAGS = frozenset({
     "schemas", "extensions", "tables", "columns", "virtual_columns",
@@ -124,6 +124,9 @@ class SqlModelCatalog:
                     ].append(node)
                 continue
             name = node.get_attr("name")
+            if tag not in ('constraint', 'index', 'compositeColumn') and not (
+                    tag in _VIRTUAL_COLUMN_TAGS or node._get_meta('projects_column')):
+                continue
             if tag == "constraint":
                 table["constraints"].append((path, node))
                 self.constraints[(schema_name, table_name, name)] = node

@@ -435,6 +435,8 @@ class _Context:
             column = table.columns[name]
         except KeyError:
             raise ValueError(f'Unknown column {table.key}.{name}') from None
+        if column.attributes.get('x_requires_compilation'):
+            raise UnsupportedFeatureError(f'{table.key}.{name}: requires {column.attributes["x_requires_compilation"]} compiler capability')
         if sum(value is not None for value in
                (column.formula, column.relation_path, column.select, column.exists)) > 1:
             raise ValueError(f'Column has conflicting virtual definitions: {table.key}.{name}')
@@ -475,6 +477,8 @@ class _Context:
                 relation = table.relations[name]
             except KeyError:
                 raise ValueError(f'Unknown relation {table.key}.{name}') from None
+            if relation.kind in ('inverse', 'virtual'):
+                raise UnsupportedFeatureError(f'{table.key}.{name}: {relation.kind} navigation requires an additional compiler capability')
             target = self.model.table(relation.target)
             key = (alias, name)
             if key not in self.joins:
@@ -605,6 +609,8 @@ class QueryCompiler:
 
     def __init__(self, model: ResolvedModel, dialect: DataDialect, formatter: BindingFormatter,
                  *, environment: SqlEnvironment | None = None):
+        if model.attributes.get('metadata', {}).get('legacy', {}).get('expanded'):
+            raise UnsupportedFeatureError('Expanded legacy model requires legacy runtime/compiler providers; migration projection remains available')
         if dialect.name != formatter.dialect:
             raise ValueError('The data dialect and binding formatter are incompatible')
         if any(column.relation_path is not None and column.alias_target is None
@@ -623,7 +629,11 @@ class QueryCompiler:
         return replace(query, input_parameters=plan.input_parameters)
 
     def _context(self, table, params=None, joins=True):
-        return _Context(self.model, self.model.table(table), params, self.dialect,
+        resolved = self.model.table(table)
+        if not joins:
+            from .model_source import require_write_capabilities
+            require_write_capabilities(resolved)
+        return _Context(self.model, resolved, params, self.dialect,
                         self.environment.snapshot(), joins=joins)
 
     def plan_select(self, table, columns='*', where=None, sqlparams=None, order_by=None,

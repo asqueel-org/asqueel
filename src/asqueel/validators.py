@@ -290,7 +290,7 @@ class SqlModelValidator:
         return table_key, columns
 
     def _check_relation(self, path: str, node) -> None:
-        if not node.get_attr("foreign_key"):
+        if not node.get_attr("foreign_key") and not node.get_attr("x_weak"):
             physical = [
                 name for name in (
                     "on_delete", "on_update", "deferred", "deferrable",

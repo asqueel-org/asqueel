@@ -22,6 +22,8 @@ class WriteMixin:
         table = self.table(table) if isinstance(table, str) else table
         if table.db is not self:
             raise ValueError('The table belongs to another database')
+        from .model_source import require_write_capabilities
+        require_write_capabilities(table.model)
         return table
 
     def insert(self, table, values, returning='*', *, ignore_partition=False):
