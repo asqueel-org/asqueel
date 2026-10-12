@@ -1,5 +1,17 @@
 # Release notes
 
+## 0.5.2
+
+- Accept `asqueel-migration>=0.1.2,<0.3`, including the 0.2 series used by
+  Asqueel DB Manager. The migration engine remains an optional dependency;
+  Asqueel does not require Kajenn or DB Manager to migrate a database.
+- Development and CI use the published migration engine 0.2.0 instead of a
+  temporary Git revision. Dictionary-based migration inputs remain compatible
+  with the engine's independent source snapshots.
+
+Validation: 868 tests passed, 1 skipped, including PostgreSQL integration,
+against the coordinated migration engine 0.2.0 wheel.
+
 ## 0.5.1
 
 Released on PyPI and tagged `v0.5.1`.

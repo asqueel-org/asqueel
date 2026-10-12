@@ -71,3 +71,23 @@ quoting workaround, monkeypatch of production writers or invented release.
 Replace the pinned revision and remove the expectations after the upstream
 fixes become available. The original local commit identifiers above remain
 historical evidence, not installable dependency references.
+
+
+## DB Manager extraction — 2026-10-12
+
+The development/CI migration pin advances to `a74f71b99c2b082f081f78c1671fd466cadc2d23`, preparing
+`asqueel-migration` 0.2 and the separate `asqueel-dbmanager` Kajenn application.
+The Python migration extra accepts both the 0.1 and 0.2 series; Asqueel does not
+depend on Kajenn or the manager for database migrations. The new engine snapshots
+input dictionaries and preserves the existing assignment-based integration.
+
+Validation against this source revision: 868 tests passed, 1 skipped, including
+PostgreSQL integration. This record describes source compatibility; publishing
+new distributions and merging the coordinated PRs remain separate release steps.
+
+## Coordinated 0.5.2 delivery — 2026-10-12
+
+The 0.5.2 release makes migration engine 0.2 compatibility available to package
+consumers. Development and CI now pin `asqueel-migration==0.2.0` from PyPI;
+the optional package dependency remains `>=0.1.2,<0.3`. The earlier source pins
+above describe historical validation and are no longer installation requirements.
