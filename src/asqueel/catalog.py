@@ -25,6 +25,7 @@ class SqlModelCatalog:
         self.db_name = None
         self.nodes: list[tuple[str, Any]] = []
         self.schemas: dict[str, Any] = {}
+        self.packages: dict[str, Any] = {}
         self.extensions: dict[str, Any] = {}
         self.tables: dict[tuple[str, str], dict[str, Any]] = {}
         self.physical_columns: dict[tuple[str, str, str], Any] = {}
@@ -73,11 +74,14 @@ class SqlModelCatalog:
             if tag == "schema":
                 self.schemas[node.get_attr("name")] = node
                 continue
+            if tag == 'package':
+                self.packages[node.get_attr('name')] = node
+                continue
             if tag == "extension":
                 self.extensions[node.get_attr("name")] = node
                 continue
 
-            schema = self._ancestor(node, "schema")
+            schema = self._ancestor(node, 'package') or self._ancestor(node, "schema")
             if schema is None:
                 continue
             schema_name = schema.get_attr("name")

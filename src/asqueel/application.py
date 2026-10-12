@@ -60,7 +60,7 @@ class SqlDatabase(WriteMixin, Database):
 
     def _connection_settings(self):
         from .configuration import connection_settings
-        implementation, conninfo, kwargs = connection_settings(self.config)
+        implementation, conninfo, kwargs = connection_settings(self.config, self.currentConnectionName)
         if implementation != self.dialect.name:
             raise ValueError('Configured implementation changed after database construction')
         kwargs = dict(kwargs or {})

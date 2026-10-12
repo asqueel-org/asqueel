@@ -46,6 +46,7 @@ from asqueel_migration.structures import (
 from .catalog import SqlModelCatalog
 from .configuration import connection_settings
 from .errors import MigrationError
+from .contracts import UnsupportedFeatureError
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
 from .common import split_names as _names
 from .projection import to_physical_builder
@@ -82,6 +83,9 @@ class SqlMigrationRenderer:
         """
         SqlModelValidator().validate(self.builder)
         self._catalog = SqlModelCatalog(self.builder)
+        if self._catalog.packages or any(node.node_tag == 'options' and node.parent_node.node_tag != 'connection'
+                                        for _, node in self._catalog.nodes):
+            raise UnsupportedFeatureError('Package/options source must be resolved before migration projection')
         self._db_name = self._catalog.db_name
         self._schemas = self._catalog.schemas
         self._extensions = self._catalog.extensions

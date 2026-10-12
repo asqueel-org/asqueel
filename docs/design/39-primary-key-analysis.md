@@ -1,7 +1,13 @@
 # 39 — Analisi della chiave primaria nel legacy: `pkey`, `pkeyValue`, `newPkeyValue`
 
-Stato: analisi, nessuna decisione presa. Serve a decidere come asqueel genera
-la chiave primaria di un nuovo record (proposta 0001 §8).
+Stato: analisi del legacy; le strategie descritte non sono decisioni per
+Asqueel. Aggiornamento del 12 ottobre: il
+[contratto 40](40-model-and-operation-recipes.md) registra la scelta di
+`sys_fields(id=dict(type='uuid'))`, con default `id=True` e UUID testuale di
+22 caratteri. Questa scelta supera `pkey_type` sulla tabella per il campo
+di sistema `id`. È deciso anche l'uso dello stesso algoritmo `getUuid()` legacy
+descritto nella sezione 3. Altri generatori e lifecycle restano da chiudere
+(proposta 0001 §8).
 
 Riferimenti: genropy `origin/develop` `5e7f02e8d774`, letto con `git show`.
 Path relativi a `gnrpy/gnr/sql/` salvo indicazione. L'uso nelle applicazioni

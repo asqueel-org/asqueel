@@ -38,6 +38,9 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
     """
     builder.validate_model()
     catalog = SqlModelCatalog(builder)
+    if catalog.packages or any(node.node_tag == 'options' and node.parent_node.node_tag != 'connection'
+                               for _, node in catalog.nodes):
+        raise UnsupportedFeatureError('Package/options source requires complete model resolution')
     policy_keys = {'x_partition', 'x_partitions', 'x_draft_field', 'x_logical_deletion_field'}
     for path, node in catalog.nodes:
         misplaced = policy_keys.intersection(node.attr) if node.node_tag != 'table' else set()

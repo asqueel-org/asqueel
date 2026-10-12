@@ -111,6 +111,7 @@ class SqlModelValidator:
             declared = info.get("declared_names") or set()
             for key in node.attr:
                 if (key == _META_KEY or key in declared or key.startswith("x_")
+                        or (node.node_tag == 'colgroup' and key.startswith('col_'))
                         or (node.node_tag == "formulaColumn"
                             and re.fullmatch(r"select_[A-Za-z_][A-Za-z0-9_]*", key))):
                     continue

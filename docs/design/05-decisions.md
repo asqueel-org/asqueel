@@ -68,6 +68,70 @@ valide le decisioni già acquisite: aggregateRows non viene reintrodotto nemmeno
 nell'adapter; i bisogni coperti vanno ricondotti a raccolte esplicite. La semantica
 partition esplicita concordata non viene annullata dal ponte di compatibilità.
 
+## Modello e ricette trasferibili — accordo del 12 ottobre 2026
+
+**Requisito aggiunto nella stessa sessione:** definire una grammatica completa
+e revisionabile, comprese relazioni e virtual relations, sufficientemente
+espressiva per **tutti** i package di `test_invoice_pg` (sys, adm, invc).
+La [specifica 42](42-configuration-grammar.md) contiene le scelte redazionali
+proposte su incarico dell'utente; la [matrice 43](43-test-invoice-model-coverage.md)
+registra il censimento. Non trasformare queste proposte in funzionalità già
+implementate né restringere l'accettazione al solo package invc.
+
+Il [contratto 40](40-model-and-operation-recipes.md) registra queste decisioni
+e recupera quelle del 6 ottobre sulla struttura DB:
+
+- `db` distingue `connection`, `schemas` fisici, `packages` logici,
+  `extensions` e `options`; le dichiarazioni di tabella ricevono il package
+  con `configure(self, pkg)` e usano `pkg.table(...)`.
+- Le options sono sezioni estensibili per livello, ammesse su DB, connessione,
+  schema, package e tabella. Le funzioni concrete e l'eventuale propagazione
+  ai figli richiedono il proprio contratto. Per le colonne generate
+  vale `False` / `True` / `dict`. Foglietti ordinati completano la ricetta;
+  grammatica e costruttori vengono estesi insieme, prima dell'unica render.
+- Le validazioni di colonna hanno una grammatica `validation`, utilizzabile
+  anche tramite attributi embedded `validate_*`; entrambe le forme producono
+  la stessa source. L'embedding è locale ad Asqueel; l'eventuale estensione
+  di Builders si valuterà dopo. Le regole sono esportabili a Gramlot per
+  l'esecuzione client, conservando la validazione autorevole sul server.
+- Per il campo di sistema `id`, la generazione si configura con
+  `sys_fields(id=dict(type='uuid'))`. `sys_fields()` usa `id=True`: la
+  configurazione standard genera un UUID testuale compatto di 22 caratteri
+  con lo stesso algoritmo legacy `getUuid()` (UUID3 su UUID1 e id thread,
+  base64 URL-safe, primi 22 caratteri, `-` sostituito da `_`).
+  `id=False` disabilita l'aggiunta del campo. Questa scelta supera `pkey_type`
+  sulla tabella per questo caso; `custom` è ritirato. Il metodo applicativo
+  concordato è `new_pkey_value(self, record)`, con collegamento e precedenza
+  sulle strategie ancora da definire. Chiavi senza `sys_fields`, altri
+  generatori e dettagli del lifecycle restano aperti nel contratto 40.
+- `sys_fields` ha anche i default `ins=True` e `upd=True`: colonne
+  `__ins_ts` e `__mod_ts`, entrambe valorizzate all'inserimento; alle modifiche
+  si aggiorna `__mod_ts`. Timezone, tipo fisico e dettagli esecutivi restano
+  aperti; gli altri campi di sistema vanno discussi separatamente.
+- `user_ins=True` e `user_upd=True` sono i default di `sys_fields`:
+  `__ins_user` è assegnato all'inserimento; `__mod_user` all'inserimento e alle
+  modifiche. Fonte: ambiente autenticato del server; senza utente il valore
+  è `NULL`. Tipo e rappresentazione dell'identità, trigger e RAW restano aperti.
+- `ldel=True` aggiunge `__del_ts` per cancellazione logica e ripristino;
+  queste sono operazioni esplicite e `delete()` resta una cancellazione fisica.
+  `draft=False` non aggiunge il campo bozza; `draft=True` aggiunge `__is_draft`
+  e abilita la policy. Valore iniziale della bozza e dettagli esecutivi restano
+  da definire separatamente dall'attivazione della funzione.
+- La sequenza di lavoro è modello → verifica migrations → lettura/scrittura.
+  Il JSON fisico viene proiettato dagli oggetti nel contratto del migratore;
+  gli elementi senza effetto SQL restano parte dell'analisi del modello.
+- Ogni operazione nasce come ricetta dichiarativa serializzabile in JSON/XML,
+  costruibile anche nel browser e trasferibile a un altro esecutore.
+  Costruzione, compilazione ed esecuzione sono passaggi separati.
+- Le ricette remote ammettono solo grammatica validata, riferimenti risolti
+  sul modello e valori parametrizzati, senza SQL arbitrario. Il server applica
+  autorizzazioni, policy e contesto autenticato; conserva RECORD/RAW, hook e
+  transazioni. JSON/XML da soli non costituiscono protezione dalle injection.
+
+Restano aperti le firme dettagliate del modello e il formato concreto delle
+operazioni, inclusi codec, compatibilità, contesto e unità di lavoro remote.
+Queste decisioni non certificano che le nuove API siano implementate.
+
 ## Decisioni da chiudere al momento opportuno
 
 Ogni voce indica una raccomandazione, non un consenso già acquisito. Non è
@@ -119,6 +183,9 @@ separato; nessuna dipendenza obbligatoria da widget nel compiler.
 ### D-06 — Frontend nativo delle query
 
 **Scelta:** sintassi testuale iniziale, API strutturata e nomi delle operazioni.
+**Decisione del 12 ottobre:** ogni operazione ha una ricetta trasferibile;
+la grammatica remota esclude SQL arbitrario. Vedi il contratto 40: resta da
+definire il formato, non l'esistenza del percorso strutturato.
 **Raccomandazione:** mantenere riferimenti familiari, un solo resolver, QuerySpec
 esplicito e result plan; niente secondo motore semantico per Bag o oggetti Python.
 **Vincolo aggiornato:** il percorso DB → tabella → query → fetch appartiene alla

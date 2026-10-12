@@ -50,19 +50,20 @@ class ConfigurationView:
 class SqlDatabaseElements:
     """Keep root grammar in a mixin so recipe subclasses retain its defaults."""
 
-    @element(sub_tags='connection[:1], schemas[:1], extensions[:1]', node_label='db')
+    @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
     def db(self, name: str = 'db', implementation: str = 'postgresql', conninfo: str = '',
            connect_kwargs: dict | None = None):
         ...
 
-    @element(parent_tags='db', sub_tags='', node_label='connection')
-    def connection(self, name: str | BagResolver, implementation: str | None = None,
+    @element(parent_tags='db', sub_tags='options[:1]')
+    def connection(self, name: str | BagResolver = 'main', implementation: str | None = None,
                    host: str | BagResolver | None = None,
                    port: int | BagResolver | None = None,
                    user: str | BagResolver | None = None,
                    password: str | BagResolver | None = None,
-                   options: dict | None = None):
-        """Single connection configuration; name is the physical database name."""
+                   options: dict | None = None, database: str | BagResolver | None = None,
+                   dsn: str | BagResolver | None = None):
+        """Named connection; legacy declarations without database/dsn keep name as database."""
         ...
 
 
@@ -89,7 +90,90 @@ def _owned_handler(source, parents=None):
         return _copy_recipe(recipe) if isinstance(recipe, BuilderBase) else recipe
     sources = [configuration_source(item) for item in (*(parents or ()), source)]
     with _recipe_imports(sources):
-        return ConfigHandler(own(sources[-1]), parents=[own(item) for item in sources[:-1]])
+        layers = [SqlConfigHandler(own(item)) for item in sources]
+        handler = layers[0]
+        for index, layer in enumerate(layers[1:], 1):
+            with handler.builder.contribution(f'layer[{index}]'):
+                _compose_source(handler.builder, handler.builder.source, layer.builder.source)
+        _normalize_connection_options(handler)
+        return handler
+
+
+def _normalize_connection_options(handler):
+    """Translate the 0.5 connection dictionary on an owned administrative source."""
+    for _, node in list(handler.builder.source.query('#p,#n', deep=True)):
+        if node.node_tag != 'connection' or node.get_attr('options') is None:
+            continue
+        values = deepcopy(node.get_attr('options'))
+        existing = node.value.get_node('options.driver') if isinstance(node.value, Bag) else None
+        if existing is not None:
+            raise ValueError('Use connection.options().driver() or legacy options, not both')
+        del node.attr['options']
+        node.options().driver(**values)
+
+
+class SqlConfigHandler(ConfigHandler):
+    """Use Builders' loader/defaults, preserving explicit nullable SQL values."""
+
+    def __call__(self, path, default=_MISSING):
+        node_path, attribute = self._split_path(path)
+        node = self.builder.source.get_node(node_path)
+        if node is not None and attribute in node.attr:
+            return node.get_value(_query_string=attribute)
+        if default is _MISSING:
+            return super().__call__(path)
+        return super().__call__(path, default=default)
+
+
+def _compose_source(builder, target, incoming):
+    """Fold explicit attributes, retaining reset directives until layers meet.
+
+    Work on owned sources only. Walking static values avoids resolving secrets
+    or importing a provider as a side effect of the merge.
+    """
+    for node in incoming:
+        existing = target.get_node(node.label)
+        if node.node_tag == 'connection' and not {'database', 'dsn'}.intersection(node.attr):
+            name = node.get_attr('name')
+            if isinstance(name, str) and name != 'main':
+                named = target.get_node(f'connection_{name}')
+                if named is not None and {'database', 'dsn'}.intersection(named.attr):
+                    existing = named
+                elif existing is not None and {'database', 'dsn'}.intersection(existing.attr):
+                    raise ValueError('Ambiguous connection override: declare database or dsn explicitly')
+        if existing is None:
+            added = target.set_item(node.label, deepcopy(node.get_value(static=True)),
+                                    _attributes=deepcopy(dict(node.attr)), _remove_null_attributes=False,
+                                    node_tag=node.node_tag)
+            added_nodes = [added]
+            if isinstance(added.value, Bag):
+                added_nodes.extend(added.value.query('#n', deep=True))
+            for child in added_nodes:
+                builder._attribute_origins.update({(builder._node_path(child), key): builder._contribution
+                                                   for key in child.attr if key != '_meta'})
+            continue
+        if existing.node_tag != node.node_tag:
+            raise ValueError(f'{existing.fullpath}: conflicting element kinds '
+                             f'{existing.node_tag!r} and {node.node_tag!r}')
+        builder._compose_attributes(existing, dict(node.attr))
+        value = node.get_value(static=True)
+        previous = existing.get_value(static=True)
+        if node.node_tag == 'options' and isinstance(previous, Bag):
+            resets = (node.attr.get('_meta') or {}).get('option_resets', ())
+            for child in list(previous):
+                if child.node_tag in resets:
+                    previous.pop(child.label)
+            if resets:
+                meta = deepcopy(existing.attr.get('_meta') or {})
+                meta['option_resets'] = sorted(set(meta.get('option_resets', ())) | set(resets))
+                existing.attr['_meta'] = meta
+        if isinstance(value, Bag):
+            if previous is None:
+                existing.value = deepcopy(value)
+            elif isinstance(previous, Bag):
+                _compose_source(builder, previous, value)
+            else:
+                raise ValueError(f'{existing.fullpath}: a model node cannot replace a scalar')
 
 
 def configuration_source(source):
@@ -132,6 +216,9 @@ def _replay_node(node, target):
     if value is not None and not isinstance(value, Bag):
         raise TypeError(f"{node.node_tag!r} carries a value: only attributes and children can be replayed")
     child = getattr(target, node.node_tag)(**attributes)
+    if node.node_tag == 'options':
+        for name in (node.attr.get('_meta') or {}).get('option_resets', ()):
+            child.reset(name)
     if isinstance(value, Bag):
         for subnode in value:
             _replay_node(subnode, child)
@@ -161,35 +248,97 @@ def _recipe_imports(sources):
             sys.path.remove(root)
 
 
-def connection_settings(config):
+def connection_settings(config, connection_name='main'):
     """Read standard config attributes, resolving EnvResolver via ConfigHandler."""
-    name = config('connection.name', default=None)
+    prefix = 'connection'
+    if connection_name not in ('main', '_main_connection') and isinstance(config, ConfigHandler):
+        candidate = f'connection_{connection_name}'
+        node = config.builder.source.get_node(f'{config.root_label}.{candidate}')
+        if node is not None:
+            prefix = candidate
+        else:
+            root = config.builder.source.get_node(config.root_label)
+            if root is not None and isinstance(root.value, Bag) and any(
+                    child.node_tag == 'connection' and {'database', 'dsn'}.intersection(child.attr)
+                    for child in root.value):
+                raise ValueError(f'Unknown named connection: {connection_name!r}')
+    return _connection_settings(config, prefix)
+
+
+def _connection_settings(config, prefix):
+    def read(path, default=None):
+        # ConfigHandler's generic None-as-missing semantics must not replace a
+        # failed explicit resolver with the signature's default connection name.
+        if isinstance(config, ConfigHandler):
+            head, _, attribute = path.rpartition('.')
+            node_path = '.'.join(filter(None, (config.root_label, prefix, head)))
+            node = config.builder.source.get_node(node_path)
+            if node is not None and attribute in node.attr:
+                return node.get_value(_query_string=attribute)
+        return config(f'{prefix}.{path}', default=default)
+
+    name = read('name')
     has_connection = (isinstance(config, ConfigHandler)
-                      and config.builder.source.get_node(f'{config.root_label}.connection') is not None)
+                      and config.builder.source.get_node(f'{config.root_label}.{prefix}') is not None)
     if not has_connection and name is None:
+        if isinstance(config, ConfigHandler):
+            root = config.builder.source.get_node(config.root_label)
+            if root is not None and isinstance(root.value, Bag) and any(
+                    child.node_tag == 'connection' for child in root.value):
+                raise ValueError('Named connections require an explicit main connection')
         return (config('implementation', default='postgresql'),
                 config('conninfo', default=''), config('connect_kwargs', default=None))
-    implementation = config('connection.implementation', default=None)
+    implementation = read('implementation')
     if implementation is None:
         implementation = config('implementation', default='postgresql')
     if config('conninfo', default='') or config('connect_kwargs', default=None):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
-    options = dict(config('connection.options', default=None) or {})
+    options = dict(read('options') or {})
+    fields = ('connect_timeout', 'application_name', 'sslmode', 'sslrootcert',
+              'options', 'timeout', 'cached_statements')
+    driver_options = {field: value for field in fields
+                      if (value := read(f'options.driver.{field}')) is not None}
+    if driver_options:
+        if options:
+            raise ValueError('Use connection.options().driver() or legacy options, not both')
+        options = driver_options
     reserved = {'dbname', 'host', 'port', 'user', 'password'} & options.keys()
     if reserved:
         raise ValueError('Connection fields must be declared directly, not inside options')
+    database = read('database')
+    dsn = read('dsn')
+    connection_node = (config.builder.source.get_node(f'{config.root_label}.{prefix}')
+                       if isinstance(config, ConfigHandler) else None)
+    explicit_database = connection_node is not None and 'database' in connection_node.attr
+    explicit_dsn = connection_node is not None and 'dsn' in connection_node.attr
+    if explicit_database and database is None:
+        raise ValueError('connection.database must resolve to a nonempty database name')
+    if explicit_dsn and dsn is None:
+        raise ValueError('connection.dsn must resolve to a nonempty string')
+    if (database is not None or dsn is not None) and implementation != config('implementation', default='postgresql'):
+        raise ValueError('Named connections must use the database dialect')
+    if dsn is not None:
+        if database is not None or any(read(field) is not None
+                                       for field in ('host', 'port', 'user', 'password')):
+            raise ValueError('dsn and individual connection fields cannot be combined')
+        if not isinstance(dsn, str) or not dsn.strip():
+            raise ValueError('connection.dsn must resolve to a nonempty string')
+        if implementation != 'postgresql':
+            raise ValueError('dsn requires a PostgreSQL connection')
+        return implementation, dsn, options
+    name = database if database is not None else name
     if not isinstance(name, str) or not name.strip():
         raise ValueError('connection.name must resolve to a nonempty database name')
     options['dbname'] = name
     if implementation == 'sqlite':
-        if any(config(f'connection.{key}', default=None) is not None
+        if any(read(key) is not None
                for key in ('host', 'port', 'user', 'password')):
             raise ValueError('SQLite uses a filename, not host/user/password/port')
         if set(options) - {'dbname', 'timeout', 'cached_statements'}:
             raise ValueError('Unsupported SQLite connection options')
         return implementation, '', options
     for name in ('host', 'port', 'user', 'password'):
-        value = config(f'connection.{name}', default=None)
+        value = read(name)
         if value is not None:
             expected = int if name == 'port' else str
             if not isinstance(value, expected) or isinstance(value, bool):

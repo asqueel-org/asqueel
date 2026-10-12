@@ -4,6 +4,7 @@
 |---|---|
 | **Status** | Proposal — for team review |
 | **Date** | 2026-10-02 |
+| **Updated** | 2026-10-12 — DB/package/options decisions and portable operation recipes |
 | **Applies to** | asqueel |
 | **Plans** | [32 — expression parser and resolver](../design/32-expression-resolver-plan.md), [33 — model structure](../design/33-structure-rectification-plan.md) |
 | **Legacy reference** | GenroPy `origin/develop` `51e4270c54` |
@@ -13,6 +14,19 @@ written in asqueel once plans 32 and 33 are implemented. It is written as the
 final documentation, so that the team can review the result rather than the
 plans. Each rule is marked **Decided** or **Open**. Nothing here is implemented
 yet.
+
+The [model and operation recipe contract 40](../design/40-model-and-operation-recipes.md)
+records the October 6 decisions recovered during the October 12 review and
+the new agreement on portable operations. It supersedes older descriptions
+that conflate packages with physical schemas or pass `tables` to a table's
+`configure` method. Concrete signatures marked Proposed remain open.
+
+The subsequent [configuration grammar 42](../design/42-configuration-grammar.md)
+provides a complete, reviewable target for these signatures, including relations
+and virtual relations. Its editorial choices fill this proposal's open questions
+without claiming implementation. Acceptance must cover all `test_invoice_pg`
+packages (`sys`, `adm`, `invc`), as recorded in the
+[coverage inventory 43](../design/43-test-invoice-model-coverage.md).
 
 ## 0. Source and built model — Decided
 
@@ -72,13 +86,18 @@ the `.model` proxy (`gnrsqltable/table.py:123`, `columns.py:203`).
 
 ## 2. Declaring a table's content
 
-Schema and table declarations are unchanged by this proposal. Table and column
-names in the examples are illustrative.
+The database has separate `connection`, `schemas`, `packages`, `extensions`
+and `options` sections. Schemas are physical SQL namespaces; packages group
+logical tables and select `sqlschema` and `sqlprefix`. The default prefix is
+the package name; the default schema comes from the dialect. Detailed
+signatures remain open in contract 40. A table's `configure(self, pkg)`
+receives its package and declares through `pkg.table(...)`. **Decided.**
+Table and column names in the examples are illustrative.
 
 ### 2.1 Columns are declared on the table — Decided
 
 ```python
-tbl = tables.table('invoice', pkey='id')
+tbl = pkg.table('invoice', pkey='id')
 tbl.column('id', dtype='L')
 tbl.column('customer_id', dtype='L').relation('sales.customer.id')
 tbl.column('total', dtype='N', size='12,2', notnull=True)
@@ -107,9 +126,34 @@ Column elements: `column`, `formulaColumn`, `aliasColumn`, `subQueryColumn`,
   dialect and the result type.
 - `joinColumn(...).relation(target, cnd=...)` is replaced by `virtualRelation`
   (section 3.6); the adapter translates it. **Direction decided.**
-- `toolColumn` (a link to an external tool; 1 application use), `aliasTable`
-  (a short name for a relation path; no active use), `localized` columns (one
+- `toolColumn` (a link to an external tool; 1 application use) is **Deferred**
+  by the October 12 decision: omitted from the current model work, with no
+  replacement approved. See [deferred features, R-01](../design/41-deferred-features.md#r-01--toolcolumn).
+- `aliasTable` (a short name for a relation path; no active use), `localized` columns (one
   value per database language; few uses) and `ext_*` columns. **Open.**
+
+#### Column validation — Decided October 12
+
+A column's `validation` section has its own grammar. Asqueel also supports
+embedding that grammar with the legacy `validate_*` prefix; both declaration
+forms produce the same source section and reject unknown validation names:
+
+```python
+tbl.column('code', validate_len='2:20', validate_notnull=True)
+# Equivalent alternative:
+tbl.column('code').validation(len='2:20', notnull=True)
+```
+
+This embedding is an **Asqueel feature**. Generalizing it to Builders is a
+later evaluation, not a prerequisite or an approved Builders change.
+Rules are model declarations exportable to Gramlot for client execution;
+server validation remains authoritative. The physical `column(notnull=True)`
+constraint and the validation rule are distinct; no automatic propagation
+between them has been decided.
+
+The complete rule vocabulary, mixed-form merge/conflict behavior,
+normalizations, messages and execution timing remain open. See contract 40.
+These are target declarations, not claims of current runtime support.
 
 ### 2.1.1 Subtables — Direction decided
 
@@ -215,12 +259,12 @@ tbl.column('owner_id', dtype='L').relation('sales.user.id', on_update_sql=None)
 ### 2.4 Composite keys — Decided
 
 ```python
-tbl = tables.table('price_year', pkey='product_year_key')
+tbl = pkg.table('price_year', pkey='product_year_key')
 tbl.column('product_id', dtype='L')
 tbl.column('year', dtype='L')
 tbl.compositeColumn('product_year_key', columns='product_id,year', unique=True)
 
-note = tables.table('price_year_note', pkey='id')
+note = pkg.table('price_year_note', pkey='id')
 note.compositeColumn('product_year_ref', columns='product_id,year').relation('invc.price_year.product_year_key')
 ```
 
@@ -237,6 +281,40 @@ One concept covers every key on several columns, as in GenroPy:
 - The serialized value is the identity of a record with a composite key: it is
   the `pkey` value of query results and of records, and GenroPy reads it back
   with `parseSerializedKey`.
+
+#### Explicit primary-key generation — October 12
+
+**Decided, revised placement:** the system `id` field's generator is configured
+through `sys_fields`:
+
+```python
+tbl = pkg.table('customer', pkey='id')
+tbl.options().sys_fields(id=dict(type='uuid'))
+```
+
+`sys_fields()` defaults to `id=True`, equivalent to `id=dict(type='uuid')`:
+a compact **22-character textual UUID**. `id=False` disables adding the field.
+These alternatives settle the `id` default, not all other `sys_fields` defaults.
+The option creates the column and the behavior that generates a missing key.
+`pkey` names the key column; `id.type` selects generation, not the SQL dtype.
+Generation belongs to execution, not construction, serialization or compilation.
+
+This supersedes `table(..., pkey_type=...)` for the system `id` field and the
+earlier `options().pkey_generator(...)` proposal. `custom` was withdrawn as a
+generation value. The agreed application method name remains
+`new_pkey_value(self, record)`, returning the key; its connection and precedence
+relative to standard strategies remain open. Its Python code is not transported.
+
+**Decided:** use the legacy `getUuid()` algorithm unchanged:
+`uuid.uuid3(uuid.uuid1(), str(_thread.get_ident())).bytes`, encoded with
+`base64.urlsafe_b64encode`, sliced to the first 22 characters, replacing `-`
+with `_`, then decoded to a string. This fixes the algorithm and alphabet,
+not just the length; it does not require a GenroPy runtime dependency.
+
+**Open:** other enumerated `id.type` values, generation without `sys_fields`, exact physical
+dtype, existing-column/key conflicts, supplied/empty keys, generator diagnostics,
+hook order, composite keys, database generation and RAW/batch behavior.
+`sequence` and `manual` remain proposals. See contract 40 and analysis 39.
 
 ### 2.5 Indexes created by relations — Decided
 
@@ -277,15 +355,34 @@ onto them.
   dict does not change the column name (`__ins_ts`) nor the attributes that
   make its function (`onInserting='setTSNow'`). There is no prefixed-kwargs
   form. In GenroPy these parameters accept only true or false and the columns
-  have fixed attributes (`gnrdbo.py:324`). **Proposed.**
-- The other parameters of each element are **Open**.
+  have fixed attributes (`gnrdbo.py:324`). **Decided** in the configuration
+  review of October 6, recovered and confirmed on October 12 (contract 40).
+- **Decided October 12:** `sys_fields` defaults to `ins=True` and `upd=True`.
+  They create `__ins_ts` and `__mod_ts`; both are set on insert, and
+  `__mod_ts` is updated on modification. Timezone, physical dtype, use of a
+  shared timestamp, indexes, supplied-value handling, trigger order and RAW
+  semantics remain **Open**. The `id` default is defined in section 2.4.
+- **Decided October 12:** `user_ins=True` and `user_upd=True` are both defaults.
+  `__ins_user` is set on insert; `__mod_user` on insert and modification.
+  Values come from the server's authenticated environment; without a user
+  they are `NULL`, allowing scripts and processes without a user identity.
+  Enabling `user_upd` by default explicitly differs from the legacy default.
+  Identity representation, physical dtype, environment key, supplied-value
+  handling, trigger order and RAW behavior remain **Open**.
+- **Decided October 12:** `ldel=True` adds `__del_ts` for explicit soft deletion
+  and restoration. `delete()` remains physical deletion; the field does not
+  automatically change that operation. `draft=False` omits the draft field
+  by default; `draft=True` adds `__is_draft` and enables its policy. The initial
+  draft value, transitions, indexes, related-record propagation and RAW
+  details are **Open**, separately from the feature-enabling defaults.
+- The remaining parameters and defaults of each element are **Open**.
 
 #### The `options` container — Decided
 
 ```python
 class ProductTypeModel:
-    def configure(self, tables):
-        tbl = tables.table('product_type', pkey='id')
+    def configure(self, pkg):
+        tbl = pkg.table('product_type', pkey='id')
         tbl.column('description')
         opts = tbl.options()
         opts.sys_fields()
@@ -294,7 +391,7 @@ class ProductTypeModel:
         return tbl
 ```
 
-- A table is declared in one method, `configure(self, tables)`. There is no
+- A table is declared in one method, `configure(self, pkg)`. There is no
   `config_db` and no method per role.
 - Table features are declared inside an explicit container, `tbl.options()`:
   a child of `table`, at most one per table, holding `sys_fields`,
@@ -313,6 +410,19 @@ class ProductTypeModel:
   byte by a test) documents each option, its parameters and its defaults. In
   GenroPy the same information is spread over `sysFields` keyword arguments
   and table attributes read in many places.
+
+`options` is also a section under `db`, `connection`, `schema` and `package`,
+for functions of those levels. Schema and package support was explicitly
+confirmed on October 12. Each level's grammar determines its valid options;
+this does not imply automatic inheritance by child objects. The current
+driver keyword dictionary `connection(options=...)` is not this section;
+its compatibility with the new form remains to be settled. **Decided.**
+
+Ordered recipe contributions may complete or correct earlier options before
+the single render. The core applies the ordered contributions; discovery
+and ordering policy belong to the host framework. A grammar extension brings
+the constructors for its new parts. Detailed merge rules and extension API
+signatures remain open. **Decided**, see contract 40.
 
 ### 2.7 Hierarchical tables — Decided
 
@@ -349,6 +459,16 @@ physical.
 ## 3. Writing expressions
 
 ### 3.1 Syntax — Decided
+
+**Trust boundary — October 12 decision:** the syntax below describes
+application-authored expressions. Operations received from a browser or
+another untrusted client use a validated declarative recipe with model-bound
+references, allowed operators/functions and bound values. They cannot contain
+arbitrary SQL. JSON/XML serialization alone is not an injection defense.
+The SQL pass-through proposal below does not apply to that remote input.
+Construction, serialization, compilation and execution are separate steps;
+the server retains authorization, policies, authenticated context and
+RECORD/RAW semantics. The wire format is still open (contract 40).
 
 | Form | Meaning |
 |---|---|
@@ -519,7 +639,7 @@ the key's uniqueness at compile time.
 
 Declaring and reading are two separate APIs.
 
-- `configure(self, tables)` declares. `tbl.column(...)` always creates a column
+- `configure(self, pkg)` declares. `tbl.column(...)` always creates a column
   and never looks one up. There is no model reading inside `configure`.
 - The built model is read from the objects: `db.table('sales.invoice')`
   returns the table object (section 0).
@@ -724,10 +844,10 @@ becomes `_`, and a leading digit gets a `_` prefix. `@customer_id.name` becomes
 | — | Which GenroPy table attributes become `options` elements and which stay attributes of the table ([analysis 38](https://github.com/asqueel-org/asqueel/blob/main/docs/design/38-table-attributes-analysis.md)) |
 | — | How a package registers its own options, the mechanism GenroPy packages emulate with table attributes and mixins (analysis 38 §7.3) |
 | — | Which model-build hooks asqueel supports ([analysis 35](https://github.com/asqueel-org/asqueel/blob/main/docs/design/35-model-build-hooks.md)) |
-| — | Primary key generation and new records: `pkeyValue`, `newPkeyValue`, `newRecord` |
+| — | Other `sys_fields.id.type` values, generation without `sys_fields`, application-method precedence and lifecycle; default `id=True` with the legacy 22-character `getUuid()` algorithm is decided |
 | — | `virtualRelation`: inverse with filter terms, prefix of `ask` parameters, presence in `*`, link value as a column |
 | — | Relation functions: name truncation rule; the key of a path in `#JSON` (`_customer_id_name` or `name`) |
 | — | Subtables: query name, own columns, writes, package form |
 | — | `bagItemColumn`: extraction SQL per dialect and result type |
-| — | `toolColumn`, `aliasTable`, `localized` and `ext_*` columns |
+| — | `aliasTable`, `localized` and `ext_*` columns (`toolColumn` is recorded separately as deferred in document 41) |
 | — | Reading the built model: `get_column` instead of `column`, with `column` accepted by the adapter and deprecated |

@@ -75,8 +75,8 @@ _VIRTUAL_TAGS = "aliasColumn, formulaColumn, subQueryColumn, pyColumn"
 class DbElements:
     """Database-level grammar: the root and its collections."""
 
-    @element(sub_tags="schemas[:1], extensions[:1]", node_label="db")
-    def db(self, name: str):
+    @element(sub_tags="schemas[:1], packages[:1], extensions[:1], options[:1]", node_label="db")
+    def db(self, name: str, implementation: str = 'postgresql'):
         """Database root, one per model.
 
         Args:
@@ -119,8 +119,11 @@ class DbElements:
 class SchemaElements:
     """Schema-level grammar."""
 
-    @element(parent_tags="schemas", sub_tags="tables[:1]")
-    def schema(self, name: str, comment: str | None = None, **extra):
+    @element(parent_tags="schemas", sub_tags="tables[:1], options[:1]")
+    def schema(self, name: str, comment: str | None = None,
+               sqlname: str | None = None, name_long: str | None = None,
+               name_short: str | None = None, x_ui: dict | None = None,
+               metadata: dict | None = None, **extra):
         """A database schema (a 'package' in GenroPy vocabulary).
 
         Args:
@@ -131,7 +134,7 @@ class SchemaElements:
         ...
 
     @element(
-        parent_tags="schema",
+        parent_tags="schema, package",
         sub_tags="table",
         collection_key="name",
         node_label="tables",
@@ -148,14 +151,15 @@ class TableElements:
         parent_tags="tables",
         sub_tags=(
             "columns[:1], virtual_columns[:1], composites[:1], "
-            "constraints[:1], indexes[:1]"
+            "constraints[:1], indexes[:1], options[:1], colgroup"
         ),
     )
     def table(self, name: str, pkey: str | None = None,
               comment: str | None = None,
               caption_field: str | None = None,
               name_long: str | None = None,
-              name_plural: str | None = None, **extra):
+              name_plural: str | None = None,
+              name_short: str | None = None, **extra):
         """A table.
 
         Args:
@@ -165,6 +169,7 @@ class TableElements:
             comment: physical; free description.
             caption_field: semantic; the column that captions a row.
             name_long: semantic; human label.
+            name_short: semantic; short human label.
             name_plural: semantic; human label, plural form.
         """
         ...

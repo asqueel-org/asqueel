@@ -9,7 +9,9 @@ Domain element signatures are **semi-closed**: they declare their physical and e
 ```
 db
 ├── schemas[:1]
-└── extensions[:1]
+├── packages[:1]
+├── extensions[:1]
+└── options[:1]
 ```
 
 ## Elements
@@ -18,14 +20,15 @@ db
 
 Database root, one per model.
 
-- Contains: schemas[:1], extensions[:1]
-- Child addressing: ordered internal labels for schemas, extensions
+- Contains: schemas[:1], packages[:1], extensions[:1], options[:1]
+- Child addressing: ordered internal labels for schemas, packages, extensions, options
 - Projection flags: none declared
 - Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the database name — the JSON `entity_name`. |
+| implementation | `str` | `'postgresql'` | physical |  |
 
 ### `schemas`
 
@@ -70,8 +73,8 @@ Rendered `CREATE EXTENSION IF NOT EXISTS` and never dropped.
 
 A database schema (a 'package' in GenroPy vocabulary).
 
-- Contains: tables[:1]
-- Child addressing: ordered internal labels for tables
+- Contains: tables[:1], options[:1]
+- Child addressing: ordered internal labels for tables, options
 - Projection flags: none declared
 - Extra keys: accepted (`x_` prefix required)
 
@@ -79,6 +82,11 @@ A database schema (a 'package' in GenroPy vocabulary).
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the schema name — physical, and this node's key. |
 | comment | `str \| None` | `None` | semantic | source-only free description; structure-1.0 schemas have no physical attribute slot. |
+| sqlname | `str \| None` | `None` | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `tables`
 
@@ -96,8 +104,8 @@ The explicit collection of a schema's tables.
 
 A table.
 
-- Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1]
-- Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes
+- Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1], options[:1], colgroup
+- Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes, options, colgroup
 - Projection flags: none declared
 - Extra keys: accepted (`x_` prefix required)
 
@@ -109,6 +117,7 @@ A table.
 | caption_field | `str \| None` | `None` | semantic | the column that captions a row. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_plural | `str \| None` | `None` | semantic | human label, plural form. |
+| name_short | `str \| None` | `None` | semantic | short human label. |
 
 ### `columns`
 
@@ -353,3 +362,193 @@ reports every conflicting relation together.
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
 | one_one | `bool` | `False` | semantic | the relation is 1:1. |
 | case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
+
+### `colgroup`
+
+Ordered group handle; col_* defaults apply to declarations made through it.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: accepted (`x_` prefix required)
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+
+### `packages`
+
+Logical packages; distinct from physical schemas.
+
+- Contains: package
+- Child addressing: SQL-name labels for package
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+
+### `package`
+
+Logical table namespace with an explicit physical placement.
+
+- Contains: tables[:1], options[:1]
+- Child addressing: ordered internal labels for tables, options
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | semantic | package identifier. |
+| sqlschema | `str \| None` | `None` | physical | physical schema identifier; None selects the dialect default. |
+| sqlprefix | `bool \| str` | `True` | physical | True uses the package name, False omits the prefix. |
+| name_long | `str \| None` | `None` | semantic | human label. |
+| name_short | `str \| None` | `None` | semantic | short label. |
+| comment | `str \| None` | `None` | semantic | package description. |
+| x_ui | `dict \| None` | `None` | semantic | presentation metadata. |
+| metadata | `dict \| None` | `None` | semantic | namespaced metadata. |
+
+### `options`
+
+Singleton section of typed functions, validated for its owning level.
+
+- Contains: metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset
+- Child addressing: ordered internal labels for metadata, context, requires, type, macro, sys_fields, driver, reset
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+
+### `reset`
+
+Remove an accumulated option before subsequent declarations rebuild it.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+
+### `driver`
+
+Driver options, checked against the connection's configured dialect.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| connect_timeout | `int \| None` | `None` | physical |  |
+| application_name | `str \| None` | `None` | physical |  |
+| sslmode | `str \| None` | `None` | physical |  |
+| sslrootcert | `str \| None` | `None` | physical |  |
+| options | `str \| None` | `None` | physical |  |
+| timeout | `float \| int \| None` | `None` | physical |  |
+| cached_statements | `int \| None` | `None` | physical |  |
+
+### `metadata`
+
+Namespaced descriptive values; does not introduce behavior.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| namespace | `str` | *required* | physical |  |
+| values | `dict` | *required* | physical |  |
+
+### `context`
+
+Declare typed context supplied by the executing server.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| dtype | `DTYPE` | *required* | physical |  |
+| required | `bool` | `False` | physical |  |
+| default | `object` | `None` | physical |  |
+
+### `requires`
+
+Names of packages that must be present when resolving the model.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| packages | `str \| list[str] \| tuple[str, ...]` | *required* | physical |  |
+
+### `type`
+
+Package-local column type and its explicit presentation defaults.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| dtype | `DTYPE` | *required* | physical |  |
+| size | `str \| None` | `None` | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
+
+### `macro`
+
+Reference a registered server-side macro handler and its parameter contract.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | physical |  |
+| handler | `str` | *required* | physical |  |
+| parameters | `dict` | *required* | physical |  |
+
+### `sys_fields`
+
+Describe generated system fields without generating fields or values yet.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| id | `bool \| dict` | `True` | physical |  |
+| ins | `bool \| dict` | `True` | physical |  |
+| upd | `bool \| dict` | `True` | physical |  |
+| user_ins | `bool \| dict` | `True` | physical |  |
+| user_upd | `bool \| dict` | `True` | physical |  |
+| ldel | `bool \| dict` | `True` | physical |  |
+| draft | `bool \| dict` | `False` | physical |  |
+| timestamp_type | `str` | `'DHZ'` | physical |  |
+| group | `str` | `'zzz'` | physical |  |
+| group_name | `str` | `'System'` | physical |  |
