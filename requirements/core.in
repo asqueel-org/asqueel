@@ -10,6 +10,6 @@ mypy>=1.0
 build
 hatchling
 editables
-# Reviewed migration source revision for development/CI; wheel extras use PyPI.
-asqueel-migration[postgresql,validation] @ git+https://github.com/asqueel-org/asqueel-migration.git@a74f71b99c2b082f081f78c1671fd466cadc2d23
+# Reviewed migration release for development/CI; wheel extras keep compatible bounds.
+asqueel-migration[postgresql,validation]==0.2.0
 psycopg[binary]>=3.3.6

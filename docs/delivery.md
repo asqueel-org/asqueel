@@ -84,3 +84,10 @@ input dictionaries and preserves the existing assignment-based integration.
 Validation against this source revision: 868 tests passed, 1 skipped, including
 PostgreSQL integration. This record describes source compatibility; publishing
 new distributions and merging the coordinated PRs remain separate release steps.
+
+## Coordinated 0.5.2 delivery — 2026-10-12
+
+The 0.5.2 release makes migration engine 0.2 compatibility available to package
+consumers. Development and CI now pin `asqueel-migration==0.2.0` from PyPI;
+the optional package dependency remains `>=0.1.2,<0.3`. The earlier source pins
+above describe historical validation and are no longer installation requirements.
