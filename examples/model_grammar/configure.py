@@ -14,9 +14,6 @@ def source(*, workdate=None, current_state=None):
                   host=EnvResolver('PGHOST', default='localhost'),
                   port=EnvResolver('PGPORT', default=5432, dtype='L'),
                   user=EnvResolver('PGUSER'), password=EnvResolver('PGPASSWORD'))
-    schemas = db.schemas()
-    for name in ('sys', 'adm', 'invc'):
-        schemas.schema(name)
     packages = db.packages()
     sys = packages.package('sys', sqlschema='sys', sqlprefix=True)
     adm = packages.package('adm', sqlschema='adm', sqlprefix=True)

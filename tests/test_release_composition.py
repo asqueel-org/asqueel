@@ -103,7 +103,6 @@ def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
 
     def populate(root):
         db = root.db('invoice')
-        db.schemas().schema('sales').options().metadata('ui', {'label': 'Sales'})
         db.connection('main', database='invoice').options().driver(connect_timeout=2)
         pkg = db.packages().package('invc', sqlschema='sales')
         table = pkg.table('customer', caption_field='name')
@@ -170,12 +169,11 @@ def test_logical_package_names_are_not_paths(name):
         builder.source.db('d').packages().package(name)
 
 
-def test_common_metadata_is_declared_on_db_schema_package_table_and_column():
+def test_common_metadata_is_declared_on_db_package_table_and_column():
     builder = SqlDatabaseConfig()
     meta = {'name_long': 'Long', 'name_short': 'Short', 'comment': 'Comment',
             'x_ui': {'color': 'green'}, 'metadata': {'app': {'section': 'invoices'}}}
     db = builder.source.db('d', **meta)
-    db.schemas().schema('s', **meta)
     pkg = db.packages().package('p', **meta)
     pkg.table('t', **meta).column('id', dtype='L', **meta)
     builder.validate_model()

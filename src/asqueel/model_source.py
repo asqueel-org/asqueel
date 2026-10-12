@@ -64,10 +64,7 @@ def sections(catalog):
     packages = {}
     for name, node in catalog.packages.items():
         schema = node.get_attr('sqlschema') or default_schema
-        if schema == default_schema and schema not in schemas:
-            schemas[schema] = Schema(schema, attributes={'implicit': True})
-        if schema not in schemas:
-            raise ValueError(f'package {name}: unknown schema {schema!r}')
+        schemas.setdefault(schema, Schema(schema, attributes={'implicit': True}))
         configured = options(node)
         requires = configured.get('requires')
         if requires:
@@ -78,6 +75,10 @@ def sections(catalog):
                 raise ValueError(f'package {name}: missing required packages {sorted(missing)}')
         packages[name] = Package(name, schema, node.get_attr('sqlprefix'), attributes(node), configured,
                                  tuple(f'{p}.{t}' for p, t in catalog.tables if p == name))
+    for (package, name), entry in catalog.tables.items():
+        override = entry['node'].get_attr('sqlschema')
+        if package in packages and override and override not in schemas:
+            raise ValueError(f'{package}.{name}: sqlschema {override!r} is not derived from a package')
     return schemas, packages
 
 

@@ -1,5 +1,8 @@
 # 44 — Piano di implementazione del core e prossima release
 
+**Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
+nessuna dichiarazione schemas nella nuova configurazione.
+
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
 Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB,
 nessun provider obbligatorio inventato. Rendering a oggetti vivi ancora rinviato.
@@ -163,7 +166,7 @@ Le firme fisiche, virtuali e delle options avanzate restano attribuite a P3/P4/P
 come nella sequenza: P1 chiude contenitori e composizione, non le espansioni.
 
 **Lavoro:** intervenire su builder, elements e configuration. DB contiene
-connection/schemas/packages/extensions/options; table riceve pkg; colonne,
+connection/packages/extensions/options (schemi dedotti dai package); table riceve pkg; colonne,
 virtuali e indici si dichiarano direttamente sulla tabella. Implementare
 contenitori singleton, attributi standard di table, gruppi, routing interno,
 resolver di connessione e options per livello. Composizione con provenienza,

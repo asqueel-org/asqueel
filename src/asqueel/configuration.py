@@ -108,6 +108,10 @@ def _validate_source_shape(builder):
     """Validate composition without resolving defaults, references or secrets."""
     from .model_elements import OPTION_LEVELS
     from .option_elements import TABLE_OPTIONS
+    tags = {node.node_tag for _, node in builder.source.query('#p,#n', deep=True)}
+    if 'packages' in tags and 'schemas' in tags:
+        raise ValueError('Package configuration derives schemas from package.sqlschema; '
+                         'remove the explicit schemas section')
     for _, node in builder.source.query('#p,#n', deep=True):
         if node.node_tag in ('context', 'generation'):
             raise ValueError(f'{node.node_tag}: removed from the source grammar')

@@ -19,14 +19,10 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
         raise ValueError('Expected an expanded legacy source with packages')
     builder = SqlDatabaseConfig()
     db = builder.source.db(name, metadata={'legacy': {'expanded': True}})
-    created_schemas = set()
     pending_relations = []
     for package in packages:
         attrs = dict(package.attr)
         schema = attrs.get('sqlschema') or 'public'
-        if schema not in created_schemas:
-            db.schemas().schema(schema)
-            created_schemas.add(schema)
         pkg = db.packages().package(package.label, sqlschema=schema,
                 sqlprefix=attrs.get('sqlprefix', True), metadata={'legacy': attrs})
         for alias_name, spec in (type_aliases or {}).get(package.label, {}).items():

@@ -46,12 +46,15 @@ aperte non vengono rinviate automaticamente.
 | Sezione della radice `db` | Responsabilità |
 | --- | --- |
 | `connection` | Collegamento al database fisico; valori esterni tramite resolver. |
-| `schemas` | Schemi SQL fisici, dichiarati prima dei package. |
 | `packages` | Gruppi logici di tabelle; ogni package stabilisce `sqlschema` e `sqlprefix`. |
 | `extensions` | Estensioni del database. |
 | `options` | Funzioni facoltative del database intero. |
 
-Package e schema fisico sono distinti. Il prefisso predefinito è il nome del
+Decisione aggiornata: gli schemi fisici sono dedotti dai package, come nel
+legacy. Non si dichiara una sezione schemas, né options di schema separate.
+Package e schema fisico restano distinti. Più package possono usare lo stesso
+sqlschema; anche un package senza tabelle contribuisce il proprio schema.
+Il prefisso predefinito è il nome del
 package; lo schema predefinito viene dal dialetto. Firme, rappresentazione
 dell'assenza di prefisso e regole complete sugli override restano da chiudere.
 
@@ -81,11 +84,12 @@ I contenitori interni delle tabelle non cambiano il contratto pubblico
 ## Options e composizione — Deciso
 
 - `options` è una sezione di funzioni facoltative, ammessa sotto `db`,
-  `connection`, `schema`, `package` e `table`. La possibilità di options su
-  schema e package è stata esplicitamente confermata il 12 ottobre.
+  `connection`, `package` e `table`. La possibilità di options su
+  package è stata confermata; la precedente sezione schema è superata dalla
+  decisione successiva di dedurre gli schemi dai package.
   Le funzioni valide dipendono dalla grammatica del
   livello; la sezione comune non rende ogni opzione valida ovunque.
-  Questo non decide quali funzioni aggiungere a schema e package, né implica
+  Questo non decide quali funzioni aggiungere ai package, né implica
   ereditarietà automatica delle loro options sulle tabelle.
 - Ogni opzione ha firma tipizzata e documentazione. Un'opzione sconosciuta è
   un errore. La grammatica si estende per aggiunta, conservando le ricette base.
@@ -339,7 +343,7 @@ delle unità di lavoro remote. Non è stata scelta un'API HTTP/MCP o una libreri
 browser. Il JSON delle operazioni e quello delle migrations sono contratti
 distinti; non si usa il secondo come formato delle query.
 
-## Primo blocco da chiudere: firme di db, schemas, packages e options
+## Primo blocco da chiudere: firme di db, packages e options
 
 La gerarchia e le responsabilità sopra sono acquisite. Si chiudono ora le
 firme, una decisione alla volta, senza riaprire quelle responsabilità.
@@ -374,3 +378,11 @@ Per valori esterni e calcolati si usano i resolver esistenti (`EnvResolver`,
 registro aggiuntivo di variabili nel DB. La costruzione di oggetti vivi resta
 alla fase successiva. Il [report 49](49-grammar-corrections-and-audit.md) registra
 le rimozioni e la verifica delle aggiunte rispetto alle decisioni e al legacy.
+
+## Schemi dedotti dai package — decisione successiva
+
+L’utente ritira la sezione di dichiarazione degli schemi: ogni package indica
+il nome fisico con sqlschema; assente, si usa il default del dialetto. Non
+servono authorization, alias o metadati/options di schema indipendenti.
+Gli schemi restano nella proiezione fisica richiesta da asqueel-migration.
+Dettagli e verifiche nel [report 50](50-schemas-from-packages.md).

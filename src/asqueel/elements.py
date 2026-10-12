@@ -94,7 +94,11 @@ class DbElements:
         node_label="schemas",
     )
     def schemas(self):
-        """The explicit collection of database schemas."""
+        """Physical/legacy source collection, not a package configuration section.
+
+        Package configurations infer schemas from package.sqlschema.
+        This collection remains for physical migration input and older sources.
+        """
         ...
 
     @element(

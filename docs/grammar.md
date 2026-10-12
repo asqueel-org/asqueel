@@ -37,7 +37,10 @@ Database root, one per model.
 
 ### `schemas`
 
-The explicit collection of database schemas.
+Physical/legacy source collection, not a package configuration section.
+
+Package configurations infer schemas from package.sqlschema.
+This collection remains for physical migration input and older sources.
 
 - Contains: schema
 - Child addressing: SQL-name labels for schema
@@ -468,7 +471,7 @@ Logical table namespace with an explicit physical placement.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | semantic | package identifier. |
-| sqlschema | `str \| None` | `None` | physical | physical schema identifier; None selects the dialect default. |
+| sqlschema | `str \| None` | `None` | physical | physical schema name, inferred without a schema declaration; None selects the dialect default. Packages can share a schema. |
 | sqlprefix | `bool \| str` | `True` | physical | True uses the package name, False omits the prefix. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | short label. |

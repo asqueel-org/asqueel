@@ -1,5 +1,8 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
+nessuna dichiarazione schemas nella nuova configurazione.
+
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
 Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB,
 nessun provider obbligatorio inventato. Rendering a oggetti vivi ancora rinviato.
@@ -140,7 +143,8 @@ al nuovo modello e al resolver comune, completando i comportamenti mancanti.
 ## Modello: decisioni acquisite da attuare
 
 - **DB e package distinti dagli schemi fisici.** `db` contiene `connection`,
-  `schemas`, `packages`, `extensions` e `options`. Il package seleziona
+  `packages`, `extensions` e `options`. Gli schemi sono dedotti dai package,
+  senza sezione schemas separata. Il package seleziona
   `sqlschema` e `sqlprefix`; le tabelle vengono dichiarate con `pkg.table(...)`.
 - **Build e render separati.** `configure(self, pkg)` produce la ricetta;
   gli hook di costruzione operano prima del render. A runtime rimangono gli

@@ -1,5 +1,8 @@
 # 49 — Correzioni e verifica delle aggiunte alla grammatica
 
+**Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
+nessuna dichiarazione schemas nella nuova configurazione.
+
 12 ottobre 2026. Richiesta dell'utente: togliere la dichiarazione di variabili
 DB introdotta dall'assistente, usare EnvResolver e resolver esistenti, incluso
 BagCbResolver per valori calcolati; controllare le altre aggiunte non concordate.

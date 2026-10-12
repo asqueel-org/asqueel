@@ -48,7 +48,8 @@ class ModelElements:
 
         Args:
             name: semantic; package identifier.
-            sqlschema: physical schema identifier; None selects the dialect default.
+            sqlschema: physical schema name, inferred without a schema declaration;
+                None selects the dialect default. Packages can share a schema.
             sqlprefix: True uses the package name, False omits the prefix.
             name_long: semantic; human label.
             name_short: semantic; short label.

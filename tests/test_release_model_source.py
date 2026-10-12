@@ -9,18 +9,15 @@ from asqueel.validators import SqlModelValidationError
 def source():
     builder = SqlDatabaseConfig()
     db = builder.source.db('test_invoice_pg', implementation='postgresql')
-    db.schemas().schema('invc')
     pkg = db.packages().package('invc', sqlschema='invc', sqlprefix=True)
     return builder, db, pkg
 
 
 def test_package_is_distinct_from_schema_and_containers_are_idempotent():
     builder, db, pkg = source()
-    assert db.schemas() is db.schemas()
     assert db.packages() is db.packages()
-    assert db.schemas().schema('invc') is builder.source['db.schemas.invc']
     assert pkg.options() is pkg.options()
-    assert builder.source['db.schemas.invc'] is not pkg
+    assert builder.source.get_node('db.schemas') is None
     assert builder.source['db.packages.invc'] is pkg
 
 

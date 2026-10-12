@@ -16,6 +16,9 @@ migrations, operazioni e distribuzione.
 ritira le aggiunte non concordate e distingue origine legacy, proposte di firma
 e decisioni esplicite. Prevale sui contratti runtime proposti in questo testo.
 
+**Decisione successiva sugli schemi:** [report 50](50-schemas-from-packages.md).
+La configurazione dichiara solo package; gli schemi SQL vengono dedotti.
+
 ## 1. Criterio di completezza
 
 La configurazione deve esprimere **tutto il modello** di `test_invoice_pg`:
@@ -67,7 +70,7 @@ non sono stati decisi. Le estensioni SQL del DB sono un'altra cosa.
 Il core espone la grammatica anche per il montaggio in altri builder; la
 riscrittura delle keyword `validate_*` resta locale ad Asqueel.
 
-## 3. DB, connessioni, schemi e package
+## 3. DB, connessioni e package; schemi dedotti
 
 ```python
 from genro_bag.resolvers import EnvResolver
@@ -75,10 +78,6 @@ from genro_bag.resolvers import EnvResolver
 db = source.db('test_invoice_pg', implementation='postgresql')
 db.connection('main', database='test_invoice_pg', host=EnvResolver('PGHOST'),
               user=EnvResolver('PGUSER'), password=EnvResolver('PGPASSWORD'))
-schemas = db.schemas()
-schemas.schema('sys')
-schemas.schema('adm')
-schemas.schema('invc')
 packages = db.packages()
 sys = packages.package('sys', sqlschema='sys', sqlprefix=True)
 adm = packages.package('adm', sqlschema='adm', sqlprefix=True)
@@ -96,11 +95,10 @@ tramite JSON; serializzazione e binding remoto restano da definire.
 | --- | --- |
 | `source.db(name, *, implementation, **meta)` | Un DB per source; `name` identità logica, `database` nome fisico della connessione. Dialetto richiesto. |
 | `db.connection(name='main', *, database=UNSET, dsn=UNSET, host=UNSET, port=UNSET, user=UNSET, password=UNSET)` | Connessioni nominate, stesso dialetto del DB. DSN e campi di connessione non possono essere definiti insieme. Resolver ammessi sui valori. Nessuna connessione aperta durante build/render. |
-| `db.schemas()`, `db.packages()`, `db.extensions()`, `node.options()` | Contenitori singleton, accesso ripetuto idempotente. |
-| `schemas.schema(name, *, sqlname=None, **meta)` | `sqlname=None` usa `name`; schema di default del dialetto sempre disponibile. Gli altri vanno dichiarati. |
-| `packages.package(name, *, sqlschema=None, sqlprefix=True, **meta)` | `sqlschema` riferisce lo schema logico; `None` seleziona quello di default. |
+| `db.packages()`, `db.extensions()`, `node.options()` | Contenitori singleton, accesso ripetuto idempotente. |
+| `packages.package(name, *, sqlschema=None, sqlprefix=True, **meta)` | `sqlschema` è direttamente il nome fisico, senza dichiarazione separata; `None` seleziona il default del dialetto. |
 | `extensions.extension(name)` | Nome di estensione SQL; richiede capability del dialetto. Nessun import Python. |
-| `pkg.table(name, *, pkey=UNSET, name_long=UNSET, name_short=UNSET, name_plural=UNSET, caption_field=UNSET, sqlname=None, sqlschema=None, **table_meta)` | I quattro attributi descrittivi sono sempre previsti nella grammatica della tabella. `sqlschema=None` eredita solo il mapping fisico del package. `sqlname` esplicito è il nome SQL completo della tabella. |
+| `pkg.table(name, *, pkey=UNSET, name_long=UNSET, name_short=UNSET, name_plural=UNSET, caption_field=UNSET, sqlname=None, sqlschema=None, **table_meta)` | I quattro attributi descrittivi sono sempre previsti nella grammatica della tabella. `sqlschema=None` eredita il mapping fisico del package; un override sceglie uno schema dedotto da un altro package. `sqlname` esplicito è il nome SQL completo della tabella. |
 
 `sqlprefix=True` produce `<package>_<table>`, `False` produce `<table>`, una
 stringa non vuota produce `<prefisso>_<table>`. Il separatore è aggiunto una
@@ -108,8 +106,8 @@ sola volta dal core; prefissi terminanti in `_` e stringa vuota sono rifiutati
 per evitare due notazioni della stessa configurazione. Un `sqlname` esplicito
 non riceve prefissi. Nessuna collisione fisica è ammessa, neppure fra package.
 
-Il nome fisico completo è risolto prima delle FK. Package e schemi sono oggetti
-distinti e sopravvivono anche vuoti. `db.table('invc.customer')` risolve il nome
+Il nome fisico completo è risolto prima delle FK. Gli schemi sono dedotti e deduplicati dai package, inclusi quelli vuoti.
+Non esiste più un alias logico di schema distinto dal suo nome fisico. `db.table('invc.customer')` risolve il nome
 logico; `db.package('invc')` e `db.schema('invc')` restituiscono oggetti diversi.
 L'accesso runtime espone attributi in sola lettura; non torna alla source.
 
@@ -119,11 +117,10 @@ L'accesso runtime espone attributi in sola lettura; non torna alla source.
 | --- | --- |
 | DB | `macro(name, *, handler, parameters)`; `metadata(namespace, values)` |
 | Connection | `driver(**parameters)` con vocabolario del driver selezionato; `metadata(namespace, values)` |
-| Schema | `metadata(namespace, values)`; ulteriori funzioni tramite provider dichiarati |
 | Package | `requires(*packages)`; `type(name, *, dtype, size=None, **column_defaults)`; `macro(name, *, handler, parameters)`; `metadata(namespace, values)` |
 | Table | Catalogo §§5–9; `metadata(namespace, values)` |
 
-Non c'è ereditarietà implicita delle options DB/schema/package sulle tabelle.
+Non c'è ereditarietà implicita delle options DB/package sulle tabelle.
 `requires` valida dipendenze presenti nel modello; discovery e caricamento sono
 responsabilità dell'host. La firma macro conserva per ora un riferimento opaco; il binding è una
 proposta da rivedere, non un registro server deciso. Tipi e macro locali hanno

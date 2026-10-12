@@ -1,5 +1,8 @@
 # 48 — Grammatica delle options: stato corretto dopo la revisione
 
+**Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
+nessuna dichiarazione schemas nella nuova configurazione.
+
 12 ottobre 2026. **Solo grammatica; oggetti vivi nella fase successiva.**
 La precedente versione conteneva scelte non concordate. Le correzioni e la
 provenienza delle funzioni sono nel [report 49](49-grammar-corrections-and-audit.md).
