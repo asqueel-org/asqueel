@@ -1,5 +1,9 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
+Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB,
+nessun provider obbligatorio inventato. Rendering a oggetti vivi ancora rinviato.
+
 Aggiornato il **12 ottobre 2026**. Documento di ripartenza dopo la separazione
 di Asqueel Migration e Asqueel DB Manager. Questa consegna prepara il lavoro:
 non implementa le funzionalità descritte e non approva automaticamente le

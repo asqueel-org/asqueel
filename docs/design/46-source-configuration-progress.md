@@ -18,7 +18,7 @@ espansione e proiezione sono registrati nel [report 47](47-invoice-migration-jso
   `name_plural` e `caption_field`.
 - `colgroup(...)` distribuisce default e ordine alle colonne senza duplicarle;
   ripetere una dichiarazione conserva gli override espliciti precedenti.
-- Options con firme chiuse e controllo del livello: metadata, context,
+- Options con firme chiuse e controllo del livello: metadata,
   requires, type, macro, sys_fields e driver. I payload sys_fields distinguono
   bool e dict, controllano le chiavi e consentono soltanto `id.type='uuid'`.
   Sono dichiarazioni: non espandono campi e non generano chiavi.

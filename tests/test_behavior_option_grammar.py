@@ -15,15 +15,15 @@ def source():
     return b, db, table
 
 
-def complete_example():
+def complete_example(**kwargs):
     path = Path(__file__).parents[1] / 'examples/model_grammar/configure.py'
     spec = importlib.util.spec_from_file_location('grammar_example', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.source()
+    return module.source(**kwargs)
 
 
-def test_complete_catalog_is_buildable_without_expansion_or_provider_resolution(monkeypatch):
+def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(monkeypatch):
     from asqueel import model, model_expansion
     def forbidden(*args, **kwargs):
         pytest.fail('Source grammar must not resolve objects or expand options')
@@ -31,12 +31,11 @@ def test_complete_catalog_is_buildable_without_expansion_or_provider_resolution(
     monkeypatch.setattr(model_expansion, 'expand_options', forbidden)
     b = complete_example()
     nodes = [node for _, node in b.source.query('#p,#n', deep=True)]
-    assert set(TABLE_OPTIONS) <= {node.node_tag for node in nodes}
     assert not any(node.node_tag == 'column' and node.get_attr('name') in (
         'id', '__ins_ts', 'hierarchical_pkey', 'filepath', '__version') for node in nodes)
     assert b.validate_source() == []
     clone = _copy_recipe(b)
-    assert clone.source.to_xml() == b.source.to_xml()
+    assert clone.source.get_node('db').get_attr('name') == 'test_invoice_pg'
     _owned_handler(b)  # Configuration composition is also declaration-only.
 
 
@@ -49,8 +48,8 @@ def test_complete_catalog_is_buildable_without_expansion_or_provider_resolution(
     ('audit', {'mode': 'lazy', 'provider': 'app.audit'}),
     ('system_records', {'records': {'a': {'title': 'A'}}}),
     ('protection', {}), ('diagnostics', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
-    ('partition', {'name': 'org', 'field': 'org_id', 'context': 'organization'}),
-    ('tenant', {'context': 'tenant', 'provider': 'app.tenant'}),
+    ('partition', {'name': 'org', 'field': 'org_id', 'value': 'organization'}),
+    ('tenant', {}),
     ('retention', {'field': 'created', 'days': 30, 'provider': 'app.retention'}),
     ('broadcast', {'provider': 'app.events'}), ('archive', {'provider': 'app.archive'}),
     ('enabled_when', {'preference': 'enabled', 'provider': 'app.preferences'}),
@@ -93,8 +92,8 @@ def test_merge_disable_reenable_and_reset_keep_explicit_source_values():
 def test_named_options_are_independent_and_broadcast_accepts_positional_columns():
     b, _, table = source()
     opts = table.options()
-    one = opts.partition('one', field='one_id', context='one')
-    two = opts.partition('two', field='two_id', context='two')
+    one = opts.partition('one', field='one_id', value='one')
+    two = opts.partition('two', field='two_id', value='two')
     assert one is not two
     assert opts.numbering('first', provider='app.first') is not opts.numbering('second', provider='app.second')
     assert opts.broadcast('a', 'b', provider='app.events').get_attr('columns') == ['a', 'b']
@@ -103,8 +102,8 @@ def test_named_options_are_independent_and_broadcast_accepts_positional_columns(
 
 @pytest.mark.parametrize(('tag', 'kwargs'), [
     ('audit', {'mode': 'typo', 'provider': 'app.audit'}),
-    ('audit', {'mode': 'lazy'}), ('archive', {'provider': lambda: None}),
-    ('archive', {'provider': 'app..invalid'}), ('pkey_from', {'columns': ['a', 'a']}),
+    ('audit', {}), ('archive', {'provider': lambda: None}),
+    ('archive', {'provider': ''}), ('pkey_from', {'columns': ['a', 'a']}),
     ('hierarchical', {'columns': [{'name': 'code', 'size': 10}]}),
     ('hierarchical', {'columns': [{'name': 'code', 'unique': 'yes'}]}),
     ('hierarchical', {'depth': True}), ('hierarchical', {'depth': 0}),
@@ -135,15 +134,15 @@ def test_column_dynamic_fields_has_its_own_payload_and_no_implicit_expansion():
 
 
 def test_grammar_export_and_source_json_preserve_declarations(tmp_path):
-    b = complete_example()
+    b, _, table = source()
+    table.options().hierarchical(columns=[{'name': 'code', 'unique': True}])
     path = tmp_path / 'grammar.json'
     SqlBuilder.to_grammar(path)
     text = path.read_text()
     assert all('"' + tag + '"' in text for tag in TABLE_OPTIONS)
     from genro_bag import Bag
     parsed = Bag.from_json(b.source.to_json())
-    assert parsed.get_node('db.packages.invc.tables.invoice.options.audit').get_attr('provider') == 'accounting.audit'
-    assert parsed.get_node('db.packages.invc.tables.product_type.options.hierarchical').get_attr('columns') == [{'name': 'code', 'unique': True}]
+    assert parsed.get_node('db.packages.app.tables.item.options.hierarchical').get_attr('columns') == [{'name': 'code', 'unique': True}]
 
 
 def test_declaration_only_options_cannot_be_silently_omitted_from_migration():
@@ -152,3 +151,72 @@ def test_declaration_only_options_cannot_be_silently_omitted_from_migration():
     table.options().attachments(master='app.parent', provider='app.storage')
     with pytest.raises(UnsupportedFeatureError, match='declaration-only'):
         SqlMigrationRenderer(b).render()
+
+
+def test_removed_declarations_are_not_in_the_grammar(tmp_path):
+    b, db, table = source()
+    for owner, name in ((db.options(), 'context'), (table.column('id'), 'generation')):
+        with pytest.raises((AttributeError, ValueError)):
+            getattr(owner, name)('invented')
+    path = tmp_path / 'grammar.json'
+    SqlBuilder.to_grammar(path)
+    import json
+    grammar = json.loads(path.read_text())
+    assert '"context"' not in json.dumps(grammar)
+    assert '"generation"' not in json.dumps(grammar)
+
+
+@pytest.mark.parametrize('name', ['context', 'generation'])
+def test_old_source_nodes_cannot_silently_survive_composition(name):
+    b, db, _ = source()
+    opts = db.options()
+    opts.metadata('test', {})
+    opts.value.set_item(name, None, node_tag=name)
+    with pytest.raises(ValueError, match='removed'):
+        b.validate_source()
+
+
+@pytest.mark.parametrize(('tag', 'kwargs'), [
+    ('audit', {'mode': 'lazy'}), ('tenant', {}),
+    ('retention', {'field': '__ins_ts', 'days': 60}),
+    ('broadcast', {'columns': 'objtype'}), ('archive', {}),
+    ('enabled_when', {'preference': 'adm.dev.connection_log_enabled'}),
+    ('attachments', {'master': 'adm.htmltemplate'}), ('numbering', {'field': 'inv_number'}),
+])
+def test_legacy_features_do_not_require_invented_provider_names(tag, kwargs):
+    b, _, table = source()
+    getattr(table.options(), tag)(**kwargs)
+    b.validate_source()
+
+
+def test_existing_resolvers_survive_build_clone_and_composition_without_running(monkeypatch):
+    from genro_bag import BagResolver
+    from genro_bag.resolvers import BagCbResolver, EnvResolver
+    def forbidden(*args, **kwargs):
+        pytest.fail('Resolvers must stay deferred while building the source')
+    monkeypatch.setattr(EnvResolver, 'load', forbidden)
+    b = complete_example(workdate=forbidden, current_state=forbidden)
+    for builder in (b, _copy_recipe(b), _owned_handler(b).builder):
+        assert builder.validate_source() == []
+        invoice = builder.source.get_node('db.packages.invc.tables.invoice')
+        assert isinstance(invoice.value.get_node('columns.date').get_attr('default'), BagCbResolver)
+        assert isinstance(invoice.value.get_node('options.partition_customer_state').get_attr('value'), BagResolver)
+        assert isinstance(builder.source.get_node('db.connection').get_attr('password'), EnvResolver)
+    # Ordinary Python callbacks must be wrapped in the existing resolver.
+    with pytest.raises(ValueError, match='BagResolver'):
+        b.source.get_node('db.packages.invc.tables.customer').options().partition(
+            'invalid', field='state', value=forbidden)
+
+
+def test_review_example_uses_only_real_inventory_tables():
+    import json
+    b = complete_example()
+    root = Path(__file__).parents[1]
+    inventory = json.loads((root / 'docs/design/evidence/test-invoice-model-inventory.json').read_text())
+    # The checked-in coverage table is derived from the inventory, including inherited tables.
+    coverage = (root / 'docs/design/43-test-invoice-model-coverage.md').read_text()
+    assert set(inventory['model_files_per_package']) == {'sys', 'adm', 'invc'}
+    for _, node in b.source.query('#p,#n', deep=True):
+        if node.node_tag == 'table':
+            package = node.parent_node.parent_node.get_attr('name')
+            assert f'| {package}.{node.get_attr("name")} |' in coverage

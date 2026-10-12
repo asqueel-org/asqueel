@@ -1,114 +1,72 @@
-# 48 — Completamento della grammatica delle options
+# 48 — Grammatica delle options: stato corretto dopo la revisione
 
-12 ottobre 2026. Perimetro aggiornato su indicazione dell'utente:
-**solo grammatica; rendering a oggetti vivi nella prossima fase**.
+12 ottobre 2026. **Solo grammatica; oggetti vivi nella fase successiva.**
+La precedente versione conteneva scelte non concordate. Le correzioni e la
+provenienza delle funzioni sono nel [report 49](49-grammar-corrections-and-audit.md).
 
-È disponibile il catalogo dichiarativo della sezione 7 della specifica 42,
-oltre a `pkey_from` e `column.dynamic_fields`. Costruire la source non genera
-colonne, non cerca provider, non importa classi applicative, non alloca chiavi
-e non apre connessioni. I metodi degli elementi descrivono soltanto la grammatica.
-
-Esempio completo costruibile: [configure.py](../../examples/model_grammar/configure.py).
-Firme generate dal codice: [grammar.md](../grammar.md).
+Esempio costruibile con tabelle reali selezionate dai tre package:
+[configure.py](../../examples/model_grammar/configure.py).
+Non è la trascrizione completa delle 75 tabelle e non produce il modello risolto.
+Le firme effettive sono nella [grammatica generata](../grammar.md).
 
 ```python
-tbl = pkg.table('product_type', pkey='id')
-tbl.options().sys_fields(id={'type': 'uuid'}, user_upd=False)
-tbl.options().hierarchical(columns=[{'name': 'code', 'unique': True}])
-tbl.options().auto_counter(scope='parent_id')
-tbl.options().dynamic_fields(templates={'default': 'product.template'})
-tbl.column('code', dtype='T')
+from genro_bag.resolvers import EnvResolver, BagCbResolver
 
-invoice = pkg.table('invoice', pkey='id')
-invoice.options().audit('full', provider='accounting.audit')
-invoice.options().numbering('inv_number', provider='accounting.numbering',
-                            parameters={'yearly': True})
-invoice.options().broadcast('id', 'inv_number', provider='events.invoice')
+customer.options().partition(
+    'state', field='state', value=EnvResolver('INVC_STATE'))
+# In alternativa, un callback locale legge l'ambiente applicativo:
+# value=BagCbResolver(lambda: application.db.currentEnv.get('invc_state'))
 
-pkg.table('invoice_atc', pkey='id').options().attachments(
-    master='invc.invoice', provider='storage.attachments')
+invoice.column('date', dtype='D',
+               default=BagCbResolver(lambda: application.db.workdate))
+invoice.options().numbering('inv_number', parameters={
+    'format': '$K$YY/$NNNNNN', 'code': 'A', 'period': 'YY',
+    'date_field': 'date', 'showOnLoad': True, 'recycle': True})
 
-config.validate_source()
+adm.table('htmltemplate_atc', pkey='id').options().attachments(
+    master='adm.htmltemplate')
 ```
 
-`validate_source()` controlla dichiarazioni e composizione; non risolve riferimenti
-fra tabelle e non richiede che i campi promessi dalle options siano già presenti.
-Conserva il contratto esistente: restituisce la lista dei problemi di cardinalità
-dei figli (vuota se valida); gli errori nelle options sollevano `ValueError`.
-`validate_model()` resta la verifica di dominio del modello esistente, distinta
-da questo controllo della source.
+Il callback è racchiuso nel resolver esistente. Non viene eseguito costruendo,
+validando, copiando o componendo la source. `EnvResolver` legge variabili di
+processo quando risolto; per l'ambiente applicativo si usa un resolver/callback
+adatto, senza confondere i due ambienti. Non si aggiungono classi resolver al core.
 
-## Catalogo aggiunto
+## Catalogo e firme
 
-Tutte sono options di tabella:
+Le 21 options comportamentali conservano le famiglie del legacy: behavior,
+pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields,
+record_hash, full_update, audit, system_records, protection, diagnostics,
+release, partition, tenant, retention, broadcast, archive, enabled_when,
+attachments e numbering. Le funzioni DB/schema/package già presenti restano
+ai rispettivi livelli. La provenienza dei nomi e i dettagli ancora proposti
+sono esplicitati nell'audit 49: presenza nel codice non equivale ad approvazione.
 
-- `behavior`, `pkey_from`, `hierarchical`, `auto_counter`, `relative_index`;
-- `dynamic_fields`, `record_hash`, `full_update`, `audit`, `system_records`;
-- `protection`, `diagnostics`, `release`, `partition`, `tenant`, `retention`;
-- `broadcast`, `archive`, `enabled_when`, `attachments`, `numbering`.
+Le firme sono chiuse. Il parametro provider, dove già presente, è facoltativo:
+non inventare nomi per poter dichiarare audit, contatori, allegati o cifratura.
+I riferimenti sono stringhe opache; non è definita una sintassi di versionamento
+né implementato un registro. Il binding appartiene alla fase successiva.
 
-`column.dynamic_fields(source='package.table.column')` ha un payload distinto:
-richiede `source`, mentre l'opzione della tabella ammette `templates`.
-Le options di DB/schema/package/connection già disponibili restano ai propri livelli.
+## Composizione e verifica
 
-Le firme sono chiuse: keyword errate e opzioni usate al livello sbagliato danno
-un errore. I provider sono riferimenti simbolici, per esempio `storage.attachments`
-o `storage.attachments@1`; l'esistenza, le versioni compatibili e le capability
-verranno verificate nella fase degli oggetti. Il riferimento non è un import.
+- Le options sono singleton salvo partition (name) e numbering (field).
+- enabled=False conserva una dichiarazione disattivata; le singleton, salvo
+  behavior, ammettono anche option(False). reset elimina la dichiarazione.
+- Parametri richiesti verificati sulla dichiarazione composta; audit richiede
+  mode, non un provider arbitrario. Partition richiede field e ammette value
+  letterale o resolver; tenant non richiede una variabile aggiuntiva.
+- parameters, templates, records e handlers si compongono per chiave.
+- I payload dati ammettono resolver Bag già esistenti senza eseguirli.
+  Un callback nudo non sostituisce BagCbResolver.
+- validate_source() conserva il contratto: lista dei problemi di cardinalità,
+  vuota se valida; errori di firma sollevano ValueError. Non risolve riferimenti
+  tra tabelle né richiede colonne che saranno generate dalle options.
 
-## Payload e composizione
+Il codec JSON Bag viene verificato separatamente su dichiarazioni di soli dati.
+Questo non certifica la trasportabilità di un callback Python: codec e binding
+remoto restano da definire, senza serializzare o eseguire automaticamente codice.
 
-- Un'opzione senza identità ripetuta è singleton; `partition` è identificata
-  da `name`, `numbering` da `field`. I rispettivi nodi possono coesistere.
-- `enabled=False` disattiva una dichiarazione conservandola. Per le options
-  singleton salvo `behavior` è ammesso anche `option(False)`. Le options nominate
-  usano, per esempio, `partition('area', enabled=False)`.
-- I parametri obbligatori quando l'opzione è attiva sono verificati sulla
-  dichiarazione composta. Per consentire disattivazione/riattivazione le firme
-  riportano `None` come default di alcuni parametri: ciò non rende valido
-  `audit()` senza `mode` e `provider` quando attiva.
-- I contributi nominati conservano le regole P1: completamento nello stesso
-  contributo, errore sui valori incompatibili, override esplicito nei successivi.
-  `reset('audit')` elimina l'opzione; resettare una famiglia nominata elimina
-  tutte le dichiarazioni di quella famiglia.
-- `parameters`, `templates`, `records` e `handlers` si compongono per chiave;
-  liste e valori della singola chiave vengono sostituiti, senza merge ricorsivo.
-- `hierarchical.columns` accetta nomi oppure mappe chiuse `{name, unique}`;
-  queste rendono esplicita l'unicità di uno specifico percorso gerarchico.
-- `system_records.records` è una mappa codice → valori oppure riferimento
-  simbolico. `release.handlers` è una mappa versione scritta come stringa
-  numerica → riferimento al relativo handler.
-- I payload sono dati portabili: primitive JSON, mappe a chiavi stringa,
-  liste/tuple. Callback, oggetti vivi e numeri non finiti sono rifiutati.
-  `rules` contiene espressioni/riferimenti come stringhe, senza eseguirli.
-- Profili chiusi per `audit.mode`, `pkey_from.missing`, `record_hash.algorithm`;
-  flag booleani, profondità positiva, retention non negativa e liste prive di
-  nomi vuoti o duplicati. I nuovi default vengono applicati dal futuro renderer,
-  non inseriti automaticamente a ogni dichiarazione.
-
-## Confine con la fase successiva
-
-Il renderer esistente rifiuta le nuove options attive con un errore esplicito
-`declaration-only`: evita di produrre un JSON apparentemente completo ignorando
-campi che queste options dovranno generare. Questo controllo non implementa
-l'espansione né il rendering a oggetti.
-
-Non è stata sostituita la source espansa usata dall'artefatto del report 47.
-Costruzione degli oggetti, espansioni, registro/binding dei provider e produzione
-del JSON interamente dalla configurazione nativa restano il lavoro successivo.
-Nessuna modifica alla versione o pubblicazione della release.
-
-## Verifiche
-
-Suite completa: **987 passed, 1 skipped**, inclusi i test PostgreSQL locali.
-Ruff superato; mypy senza errori nei 50 file sorgente. Le nuove prove sono 43.
-
-`tests/test_behavior_option_grammar.py` copre tutte le 21 options, firme chiuse,
-ambiti, composizione/disattivazione/reset, payload invalidi, nomi indipendenti,
-esportazione della grammatica e round-trip JSON della source Bag. La prova
-principale impedisce esplicitamente chiamate al resolver e all'espansore e
-verifica l'assenza delle colonne generate. I provider dell'esempio non esistono
-nell'ambiente: costruire la source resta comunque possibile.
-
-La serializzazione JSON della source usa il codec Bag esistente; non introduce
-il codec delle ricette delle operazioni, che appartiene alla fase successiva.
+Il renderer esistente continua a rifiutare le nuove options attive con errore
+esplicito: non produce una proiezione apparentemente completa ignorandone gli
+effetti. L'artefatto del report 47 continua a provenire dalla source legacy
+espansa. Nessun incremento di versione o pubblicazione.

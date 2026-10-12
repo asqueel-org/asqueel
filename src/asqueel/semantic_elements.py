@@ -17,12 +17,8 @@ class SemanticElements:
     def normalize(self, case: Literal['upper', 'lower', 'title'] | None = None, trim: bool = False):
         ...
 
-    @element(parent_tags='column', sub_tags='', node_label='generation')
-    def generation(self, type: Literal['uuid', 'manual', 'sequence'], sequence: str | None = None):
-        ...
-
     @element(parent_tags='column', sub_tags='', node_label='encryption')
-    def encryption(self, mode: Literal['X', 'R', 'Q'], provider: str):
+    def encryption(self, mode: Literal['X', 'R', 'Q'], provider: str | None = None):
         ...
 
     @element(parent_tags='column, compositeColumn, virtual_columns', sub_tags='')

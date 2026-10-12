@@ -109,6 +109,8 @@ def _validate_source_shape(builder):
     from .model_elements import OPTION_LEVELS
     from .option_elements import TABLE_OPTIONS
     for _, node in builder.source.query('#p,#n', deep=True):
+        if node.node_tag in ('context', 'generation'):
+            raise ValueError(f'{node.node_tag}: removed from the source grammar')
         if node.node_tag in OPTION_LEVELS:
             if node.node_tag in TABLE_OPTIONS:
                 owner = node._resolve_builder()

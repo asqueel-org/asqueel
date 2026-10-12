@@ -2,18 +2,16 @@
 from __future__ import annotations
 
 import math
-import re
+from genro_bag import BagResolver
 
 from .option_elements import TABLE_OPTIONS, NAMED_OPTIONS
 
 REQUIRED = {
     'pkey_from': ('columns',), 'relative_index': ('relation',),
-    'audit': ('mode', 'provider'), 'system_records': ('records',),
-    'release': ('handlers',), 'partition': ('field', 'context'),
-    'tenant': ('context', 'provider'), 'retention': ('field', 'days', 'provider'),
-    'broadcast': ('provider',), 'archive': ('provider',),
-    'enabled_when': ('preference', 'provider'), 'attachments': ('master', 'provider'),
-    'numbering': ('provider',),
+    'audit': ('mode',), 'system_records': ('records',),
+    'release': ('handlers',), 'partition': ('field',),
+    'retention': ('field', 'days'),
+    'enabled_when': ('preference',), 'attachments': ('master',),
 }
 
 
@@ -22,20 +20,22 @@ def option_label(tag, attributes):
     return f'{tag}_{attributes[key]}' if key else tag
 
 
-def json_payload(value, path):
+def source_payload(value, path):
+    if isinstance(value, BagResolver):
+        return  # Preserve existing resolvers without calling or serializing them.
     if value is None or type(value) in (str, bool, int):
         return
     if isinstance(value, float) and math.isfinite(value):
         return
     if isinstance(value, (list, tuple)):
         for item in value:
-            json_payload(item, path)
+            source_payload(item, path)
         return
     if isinstance(value, dict) and all(isinstance(k, str) for k in value):
         for key, item in value.items():
-            json_payload(item, f'{path}.{key}')
+            source_payload(item, f'{path}.{key}')
         return
-    raise ValueError(f'{path}: expected portable data, not callbacks or live objects')
+    raise ValueError(f'{path}: expected source data or BagResolver, not bare callbacks or live objects')
 
 
 def nonempty(value, path):
@@ -80,13 +80,10 @@ def validate_option(tag, parent, attributes):
         for key in required:
             if spec.get(key) is None or spec[key] == '' or spec[key] == [] or spec[key] == ():
                 raise ValueError(f'{tag}.{key}: required when enabled')
-    for key in ('provider', 'reference', 'master', 'linked_to', 'context', 'preference',
+    for key in ('provider', 'reference', 'master', 'linked_to', 'preference',
                 'field', 'parent', 'version_field', 'relation', 'source', 'caption_field', 'masterfield'):
         if spec.get(key) is not None:
             nonempty(spec[key], f'{tag}.{key}')
-    for key in ('provider', 'reference'):
-        if spec.get(key) is not None and not re.fullmatch(r'[A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*(?:@[0-9]+(?:\.[0-9]+)*)?', spec[key]):
-            raise ValueError(f'{tag}.{key}: expected a symbolic registry reference')
     for key in ('enabled', 'required', 'root_id', 'virtual_roots', 'invalid_fields'):
         if key in spec and not isinstance(spec[key], bool):
             raise ValueError(f'{tag}.{key}: expected bool')
@@ -97,19 +94,21 @@ def validate_option(tag, parent, attributes):
         names(spec.get(key), f'{tag}.{key}', hierarchical=tag == 'hierarchical' and key == 'columns')
     if spec.get('rules') is not None:
         for rule in spec['rules']:
-            nonempty(rule, f'{tag}.rules')
+            if not isinstance(rule, BagResolver):
+                nonempty(rule, f'{tag}.rules')
     if spec.get('records') is not None:
         for code, record in spec['records'].items():
             nonempty(code, f'{tag}.records')
-            if not isinstance(record, (dict, str)):
-                raise ValueError('system_records.records: expected values mapping or symbolic reference')
+            if not isinstance(record, (dict, str, BagResolver)):
+                raise ValueError('system_records.records: expected values mapping, reference or BagResolver')
             if isinstance(record, str):
                 nonempty(record, f'{tag}.records.{code}')
     if spec.get('handlers') is not None:
         for version, handler in spec['handlers'].items():
             if not isinstance(version, str) or not version.isdecimal():
                 raise ValueError('release.handlers: keys must be version numbers written as strings')
-            nonempty(handler, 'release.handlers')
+            if not isinstance(handler, BagResolver):
+                nonempty(handler, 'release.handlers')
     if tag == 'dynamic_fields':
         if parent.node_tag == 'column' and spec.get('templates') is not None:
             raise ValueError('column.dynamic_fields accepts source, not templates')
@@ -117,4 +116,4 @@ def validate_option(tag, parent, attributes):
             raise ValueError('table dynamic_fields accepts templates, not source')
     for key, value in spec.items():
         if key != '_meta':
-            json_payload(value, f'{tag}.{key}')
+            source_payload(value, f'{tag}.{key}')

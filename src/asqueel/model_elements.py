@@ -13,7 +13,6 @@ from .option_elements import TABLE_OPTIONS
 
 OPTION_LEVELS = {
     'metadata': {'db', 'connection', 'schema', 'package', 'table'},
-    'context': {'db'},
     'requires': {'package'},
     'type': {'package'},
     'macro': {'db', 'package'},
@@ -60,7 +59,7 @@ class ModelElements:
         ...
 
     @element(parent_tags='db, connection, schema, package, table',
-             sub_tags='metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
+             sub_tags='metadata, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
              node_label='options')
     def options(self):
         """Singleton section of typed functions, validated for its owning level."""
@@ -82,12 +81,6 @@ class ModelElements:
     @element(parent_tags='options', sub_tags='')
     def metadata(self, namespace: str, values: dict):
         """Namespaced descriptive values; does not introduce behavior."""
-        ...
-
-    @element(parent_tags='options', sub_tags='')
-    def context(self, name: str, dtype: DTYPE, required: bool = False,
-                default: object = None):
-        """Declare typed context supplied by the executing server."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='requires')

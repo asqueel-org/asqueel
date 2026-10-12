@@ -202,8 +202,8 @@ The explicit collection of table indexes.
 
 A physical column — the only element that projects as a column.
 
-- Contains: relation, validation[:1], normalize[:1], generation[:1], encryption[:1], dynamic_fields[:1]
-- Child addressing: ordered internal labels for relation, validation, normalize, generation, encryption, dynamic_fields
+- Contains: relation, validation[:1], normalize[:1], encryption[:1], dynamic_fields[:1]
+- Child addressing: ordered internal labels for relation, validation, normalize, encryption, dynamic_fields
 - Projection flags: `projects_column`, `projects_relation`
 - Extra keys: accepted (`x_` prefix required)
 
@@ -480,8 +480,8 @@ Logical table namespace with an explicit physical placement.
 
 Singleton section of typed functions, validated for its owning level.
 
-- Contains: metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
-- Child addressing: ordered internal labels for metadata, context, requires, type, macro, sys_fields, driver, reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Contains: metadata, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Child addressing: ordered internal labels for metadata, requires, type, macro, sys_fields, driver, reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -533,22 +533,6 @@ Namespaced descriptive values; does not introduce behavior.
 | --- | --- | --- | --- | --- |
 | namespace | `str` | *required* | physical |  |
 | values | `dict` | *required* | physical |  |
-
-### `context`
-
-Declare typed context supplied by the executing server.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| name | `str` | *required* | physical |  |
-| dtype | `DTYPE` | *required* | physical |  |
-| required | `bool` | `False` | physical |  |
-| default | `object` | `None` | physical |  |
 
 ### `requires`
 
@@ -656,20 +640,6 @@ Describe generated system fields without generating fields or values yet.
 | case | `Literal['upper', 'lower', 'title'] \| None` | `None` | physical |  |
 | trim | `bool` | `False` | physical |  |
 
-### `generation`
-
-
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| type | `Literal['uuid', 'manual', 'sequence']` | *required* | physical |  |
-| sequence | `str \| None` | `None` | physical |  |
-
 ### `encryption`
 
 
@@ -682,7 +652,7 @@ Describe generated system fields without generating fields or values yet.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | mode | `Literal['X', 'R', 'Q']` | *required* | physical |  |
-| provider | `str` | *required* | physical |  |
+| provider | `str \| None` | `None` | physical |  |
 
 ### `weak_relation`
 
@@ -780,7 +750,7 @@ Describe generated system fields without generating fields or values yet.
 
 ### `behavior`
 
-Declare a server registry reference; never import or instantiate it.
+Declare an application behavior reference; binding remains deferred.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -904,7 +874,7 @@ Declare the timestamp for updates including related content.
 
 ### `audit`
 
-Declare audit; mode and provider required when enabled.
+Declare audit; mode required when enabled.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -981,7 +951,7 @@ Declare version-to-handler references; no transformations run at build time.
 
 ### `partition`
 
-Declare a named logical partition; field/context required when enabled.
+Declare a logical partition with a value or an existing lazy resolver.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -992,13 +962,13 @@ Declare a named logical partition; field/context required when enabled.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | semantic |  |
 | field | `str \| None` | `None` | semantic |  |
-| context | `str \| None` | `None` | semantic |  |
+| value | `object` | `None` | semantic |  |
 | required | `bool` | `False` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `tenant`
 
-Declare tenant scope; context/provider required when enabled.
+Declare the legacy multi-tenant flag; runtime binding is deferred.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -1007,14 +977,13 @@ Declare tenant scope; context/provider required when enabled.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| context | `str \| None` | `None` | semantic |  |
 | field | `str \| None` | `None` | semantic |  |
 | provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `retention`
 
-Declare retention; field, nonnegative days and provider required when enabled.
+Declare retention by field and nonnegative days.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -1030,7 +999,7 @@ Declare retention; field, nonnegative days and provider required when enabled.
 
 ### `broadcast`
 
-Declare change events; provider required; no events emitted at build time.
+Declare change events; no events emitted at build time.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -1074,7 +1043,7 @@ Declare a preference condition without evaluating it.
 
 ### `attachments`
 
-Declare attachment expansion; master/provider required when enabled.
+Declare attachment expansion for its master table.
 
 - Contains: *nothing*
 - Child addressing: no children

@@ -1,5 +1,9 @@
 # 44 — Piano di implementazione del core e prossima release
 
+**Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
+Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB,
+nessun provider obbligatorio inventato. Rendering a oggetti vivi ancora rinviato.
+
 Data: 12 ottobre 2026. Stato: **P0/P1 completate; JSON integrale verificato sul
 bridge legacy espanso; completamento nativo P2–P5 ancora aperto**.
 Esito e confini: [report 47](47-invoice-migration-json.md).

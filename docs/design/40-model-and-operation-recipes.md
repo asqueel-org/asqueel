@@ -366,3 +366,11 @@ firme, una decisione alla volta, senza riaprire quelle responsabilità.
    pkey generata. Le altre funzioni vanno censite prima di decidere il rinvio.
 
 Nessuna firma proposta in questa sezione è una decisione acquisita.
+
+## Correzione della grammatica — 12 ottobre, revisione successiva
+
+Per valori esterni e calcolati si usano i resolver esistenti (`EnvResolver`,
+`BagCbResolver`), conservati nella source senza esecuzione anticipata. Nessun
+registro aggiuntivo di variabili nel DB. La costruzione di oggetti vivi resta
+alla fase successiva. Il [report 49](49-grammar-corrections-and-audit.md) registra
+le rimozioni e la verifica delle aggiunte rispetto alle decisioni e al legacy.

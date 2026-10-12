@@ -100,10 +100,10 @@ def test_virtual_relation_alias_and_python_provider_are_model_data_only():
     t.column('customer_id', 'L')
     t.virtualRelation('customer', table='sales.customer', condition='$customer_id = #THIS.id', one_one=True)
     t.aliasColumn('customer_name', '@customer.name')
-    t.pyColumn('computed', method='invoice.total@1', required_columns=['customer_id'])
+    t.pyColumn('computed', method='invoice.total', required_columns=['customer_id'])
     m = resolve_model(b)
     assert m.table('invoice').columns['customer_name'].alias_target == ('sales.customer', 'name')
-    assert m.table('invoice').columns['computed'].attributes['method'] == 'invoice.total@1'
+    assert m.table('invoice').columns['computed'].attributes['method'] == 'invoice.total'
     with pytest.raises(UnsupportedFeatureError, match='virtual navigation'):
         PostgresCompiler(m).select('invoice', '$customer_name')
     with pytest.raises(UnsupportedFeatureError, match='pyColumn'):

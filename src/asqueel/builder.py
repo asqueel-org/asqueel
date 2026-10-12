@@ -68,7 +68,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     _positional_arguments = {
         **dict.fromkeys(_name_label_tags | {"db"}, "name"),
         "relation": "to",
-        'context': 'name', 'type': 'name', 'macro': 'name',
+        'type': 'name', 'macro': 'name',
         'metadata': 'namespace', 'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
         'connection': 'name', 'weak_relation': 'to', 'subtable': 'name', 'virtualRelation': 'name',
         'behavior': 'reference', 'pkey_from': 'columns', 'hierarchical': 'columns',
@@ -103,7 +103,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     def __getattr__(self, name):
         handler = super().__getattr__(name)
         fields = {
-            'metadata': ('namespace', 'values'), 'context': ('name', 'dtype'),
+            'metadata': ('namespace', 'values'),
             'column': ('name', 'dtype'), 'formulaColumn': ('name', 'sql_formula'),
             'aliasColumn': ('name', 'relation_path'), 'subQueryColumn': ('name', 'query'),
             'compositeColumn': ('name', 'columns'),
@@ -341,7 +341,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if node_tag == 'validation':
             from .validation import validate_spec
             validate_spec(attr)
-        if node_tag in ('validation', 'normalize', 'generation', 'encryption'):
+        if node_tag in ('validation', 'normalize', 'encryption'):
             existing = build_where.node(node_tag)
             if existing is not None:
                 return self._compose_attributes(existing, attr)

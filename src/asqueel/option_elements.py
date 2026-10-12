@@ -16,7 +16,7 @@ NAMED_OPTIONS = {'partition': 'name', 'numbering': 'field'}
 class BehaviorOptionElements:
     @element(parent_tags='options', sub_tags='', node_label='behavior')
     def behavior(self, reference: str):
-        """Declare a server registry reference; never import or instantiate it."""
+        """Declare an application behavior reference; binding remains deferred."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='pkey_from')
@@ -65,7 +65,7 @@ class BehaviorOptionElements:
     @element(parent_tags='options', sub_tags='', node_label='audit')
     def audit(self, mode: Literal['full', 'lazy'] | None = None, *, version_field: str = '__version',
               provider: str | None = None, enabled: bool = True):
-        """Declare audit; mode and provider required when enabled."""
+        """Declare audit; mode required when enabled."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='system_records')
@@ -92,27 +92,27 @@ class BehaviorOptionElements:
         ...
 
     @element(parent_tags='options', sub_tags='')
-    def partition(self, name: str, *, field: str | None = None, context: str | None = None,
+    def partition(self, name: str, *, field: str | None = None, value: object = None,
                   required: bool = False, enabled: bool = True):
-        """Declare a named logical partition; field/context required when enabled."""
+        """Declare a logical partition with a value or an existing lazy resolver."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='tenant')
-    def tenant(self, *, context: str | None = None, field: str | None = None,
+    def tenant(self, *, field: str | None = None,
                provider: str | None = None, enabled: bool = True):
-        """Declare tenant scope; context/provider required when enabled."""
+        """Declare the legacy multi-tenant flag; runtime binding is deferred."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='retention')
     def retention(self, *, field: str | None = None, days: int | None = None,
                   provider: str | None = None, enabled: bool = True):
-        """Declare retention; field, nonnegative days and provider required when enabled."""
+        """Declare retention by field and nonnegative days."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='broadcast')
     def broadcast(self, columns: str | list | tuple | None = None, *,
                   provider: str | None = None, enabled: bool = True):
-        """Declare change events; provider required; no events emitted at build time."""
+        """Declare change events; no events emitted at build time."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='archive')
@@ -129,7 +129,7 @@ class BehaviorOptionElements:
     @element(parent_tags='options', sub_tags='', node_label='attachments')
     def attachments(self, *, master: str | None = None, provider: str | None = None,
                     enabled: bool = True):
-        """Declare attachment expansion; master/provider required when enabled."""
+        """Declare attachment expansion for its master table."""
         ...
 
     @element(parent_tags='options', sub_tags='')
