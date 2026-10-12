@@ -8,6 +8,7 @@ from __future__ import annotations
 from genro_builders.builder import element
 
 from .elements import DTYPE
+from .option_elements import TABLE_OPTIONS
 
 
 OPTION_LEVELS = {
@@ -19,6 +20,8 @@ OPTION_LEVELS = {
     'sys_fields': {'table'},
     'driver': {'connection'},
 }
+
+OPTION_LEVELS.update({tag: {'table'} for tag in TABLE_OPTIONS})
 
 SYS_FIELD_KEYS = {'name_long', 'name_short', 'comment', 'group', 'x_ui', 'metadata', 'indexed'}
 SYS_FIELDS = ('id', 'ins', 'upd', 'user_ins', 'user_upd', 'ldel', 'draft')
@@ -57,7 +60,7 @@ class ModelElements:
         ...
 
     @element(parent_tags='db, connection, schema, package, table',
-             sub_tags='metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset',
+             sub_tags='metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
              node_label='options')
     def options(self):
         """Singleton section of typed functions, validated for its owning level."""

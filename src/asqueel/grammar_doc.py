@@ -104,6 +104,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
     marker = _marker(tag)
     signature = inspect.signature(marker._func)
     descriptions = _arg_docs(inspect.getdoc(marker._func) or "")
+    from .option_elements import TABLE_OPTIONS
     rows: list[tuple[str, str, str, str, str]] = []
     open_signature = False
     for name, param in signature.parameters.items():
@@ -123,7 +124,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
         )
         description = descriptions.get(name, "")
         rows.append((name, type_name, default,
-                     _plane(description), _prose(description)))
+                     'semantic' if tag in TABLE_OPTIONS else _plane(description), _prose(description)))
     return rows, open_signature
 
 

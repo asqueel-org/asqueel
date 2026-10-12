@@ -107,8 +107,13 @@ def _owned_handler(source, parents=None):
 def _validate_source_shape(builder):
     """Validate composition without resolving defaults, references or secrets."""
     from .model_elements import OPTION_LEVELS
+    from .option_elements import TABLE_OPTIONS
     for _, node in builder.source.query('#p,#n', deep=True):
         if node.node_tag in OPTION_LEVELS:
+            if node.node_tag in TABLE_OPTIONS:
+                owner = node._resolve_builder()
+                owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
+                    {key: value for key, value in node.attr.items() if key != '_meta'}, node.node_tag)
             builder._validate_option(node.node_tag, node.parent_node, dict(node.attr))
         if node.node_tag == 'table' and isinstance(node.value, Bag):
             names = {}

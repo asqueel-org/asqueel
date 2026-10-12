@@ -6,7 +6,12 @@ from .model_source import options
 
 
 def expand_options(builder):
+    from .option_elements import TABLE_OPTIONS
+    from .contracts import UnsupportedFeatureError
     catalog = SqlModelCatalog(builder)
+    for path, node in catalog.nodes:
+        if node.node_tag in TABLE_OPTIONS and node.get_attr('enabled', True):
+            raise UnsupportedFeatureError(f'{path}: {node.node_tag} is declaration-only; object rendering belongs to the next phase')
     with builder.contribution('@options'):
         for (package, name), entry in catalog.tables.items():
             table = entry['node']

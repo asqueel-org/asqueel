@@ -19,6 +19,7 @@ from genro_builders.builder.base import SOURCE_ROOT
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
 from .semantic_elements import SemanticElements
+from .option_elements import BehaviorOptionElements, TABLE_OPTIONS, NAMED_OPTIONS
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
 from .renderer import SqlRenderer
 from .validators import SqlModelValidator
@@ -47,7 +48,7 @@ class SqlSourceBag(SourceBag):
         return cast(BagNode | None, self.get_node(path))
 
 
-class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, ModelElements, SemanticElements,
+class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, ModelElements, SemanticElements, BehaviorOptionElements,
                  BuilderBase):
     """SQL model dialect builder.
 
@@ -70,6 +71,9 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         'context': 'name', 'type': 'name', 'macro': 'name',
         'metadata': 'namespace', 'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
         'connection': 'name', 'weak_relation': 'to', 'subtable': 'name', 'virtualRelation': 'name',
+        'behavior': 'reference', 'pkey_from': 'columns', 'hierarchical': 'columns',
+        'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
+        'partition': 'name', 'numbering': 'field', 'broadcast': 'columns',
     }
     _singletons = frozenset({'schemas', 'packages', 'extensions', 'tables',
                             'columns', 'virtual_columns', 'composites',
@@ -106,6 +110,16 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         }.get(name)
 
         def call(destination, *args, **kwargs):
+            if name in TABLE_OPTIONS and name not in (*NAMED_OPTIONS, 'behavior') and len(args) == 1 and args[0] is False:
+                if 'enabled' in kwargs:
+                    raise ValueError(f'{name}: enabled passed twice')
+                kwargs['enabled'] = False
+                args = ()
+            if name == 'broadcast' and args:
+                if 'columns' in kwargs:
+                    raise ValueError('broadcast: columns passed twice')
+                kwargs['columns'] = args[0] if len(args) == 1 else list(args)
+                args = ()
             if name == 'requires' and args:
                 if 'packages' in kwargs:
                     raise ValueError('requires: packages passed twice')
@@ -182,7 +196,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 if value is False and isinstance(old, dict):
                     disabled[key] = deepcopy(old)
             depth = (2 if key == 'metadata' else
-                     1 if key in ('x_ui', 'values') or
+                     1 if key in ('x_ui', 'values', 'records', 'handlers', 'parameters', 'templates') or
                      (node.node_tag == 'sys_fields' and key in SYS_FIELDS) else 0)
             assign(result, key, value, (key,), depth)
         if not disabled:
@@ -204,9 +218,16 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
 
     @staticmethod
     def _validate_option(tag, parent, attributes):
+        if tag == 'dynamic_fields' and parent is not None and parent.node_tag == 'column':
+            from .option_validation import validate_option
+            validate_option(tag, parent, attributes)
+            return
         owner = parent.parent_node if parent is not None else None
         if owner is None or owner.node_tag not in OPTION_LEVELS[tag]:
             raise ValueError(f'{tag}: option is not available at this level')
+        if tag in TABLE_OPTIONS:
+            from .option_validation import validate_option
+            validate_option(tag, parent, attributes)
         if tag == 'driver':
             if owner.get_attr('options') is not None:
                 raise ValueError('Use driver() or legacy connection options, not both')
@@ -416,7 +437,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             self._validate_option(node_tag, parent, attr)
             if node_label is not None:
                 raise ValueError(f'{node_tag}: node_label is fixed by the option identity')
-            identity = attr.get('namespace' if node_tag == 'metadata' else 'name')
+            identity = attr.get('namespace' if node_tag == 'metadata' else NAMED_OPTIONS.get(node_tag, 'name'))
             if identity is not None:
                 if not isinstance(identity, str) or not identity or '.' in identity:
                     raise ValueError(f'{node_tag}: invalid option identifier')
@@ -468,6 +489,12 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         child.attr.update({key: None for key, value in attr.items() if value is None})
         self._attribute_origins.update({(self._node_path(child), key): self._contribution for key in attr})
         return child
+
+    def validate_source(self) -> list[tuple[str, list[str]]]:
+        """Validate declarations and composition without resolving a live model."""
+        from .configuration import _validate_source_shape
+        _validate_source_shape(self)
+        return super().validate_source()
 
     def validate_model(self):
         """Run the domain validation on this model and return it.

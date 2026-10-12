@@ -3,6 +3,12 @@
 Data: 12 ottobre 2026. Stato: **P0/P1 completate; JSON integrale verificato sul
 bridge legacy espanso; completamento nativo P2–P5 ancora aperto**.
 Esito e confini: [report 47](47-invoice-migration-json.md).
+
+**Ultima indicazione dell'utente:** completare prima la sola grammatica delle
+options; rendering a oggetti vivi nella fase successiva. La consegna della
+grammatica è nel [report 48](48-options-source-grammar.md). Il traguardo del JSON
+senza source legacy espansa rimane aperto e non è attestato da questo incremento.
+
 Target proposto: **0.6.0**, dalla baseline aggiornata 0.5.2. Il numero è una scelta
 di pianificazione per il cambiamento della grammatica pubblica; versione, tag
 e pubblicazione verranno aggiornati soltanto nella fase di release.

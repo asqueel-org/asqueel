@@ -32,6 +32,11 @@ Branch `codex/core-release-0.6`, base main `4641a0e` (0.5.2).
 Nessuna migrazione dell'istanza esistente e nessun incremento di versione/tag.
 
 
+**Ultimo aggiornamento:** completata la sola grammatica delle options native,
+con riferimenti simbolici ai provider ([report 48](48-options-source-grammar.md)).
+Per indicazione esplicita dell'utente, il prossimo passo è il rendering a oggetti
+vivi; nessuna espansione/provider aggiunta in questo incremento.
+
 ## Obiettivo e confini
 
 Riprendere Asqueel core per completare il modo di dichiarare e leggere il

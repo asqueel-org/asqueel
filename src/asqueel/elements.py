@@ -233,7 +233,7 @@ class TableElements:
         """The explicit collection of table indexes."""
         ...
 
-    @element(parent_tags="columns", sub_tags="relation, validation[:1], normalize[:1], generation[:1], encryption[:1]",
+    @element(parent_tags="columns", sub_tags="relation, validation[:1], normalize[:1], generation[:1], encryption[:1], dynamic_fields[:1]",
              _meta={"projects_column": True, "projects_relation": True})
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,

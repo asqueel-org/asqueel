@@ -202,8 +202,8 @@ The explicit collection of table indexes.
 
 A physical column — the only element that projects as a column.
 
-- Contains: relation, validation[:1], normalize[:1], generation[:1], encryption[:1]
-- Child addressing: ordered internal labels for relation, validation, normalize, generation, encryption
+- Contains: relation, validation[:1], normalize[:1], generation[:1], encryption[:1], dynamic_fields[:1]
+- Child addressing: ordered internal labels for relation, validation, normalize, generation, encryption, dynamic_fields
 - Projection flags: `projects_column`, `projects_relation`
 - Extra keys: accepted (`x_` prefix required)
 
@@ -480,8 +480,8 @@ Logical table namespace with an explicit physical placement.
 
 Singleton section of typed functions, validated for its owning level.
 
-- Contains: metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset
-- Child addressing: ordered internal labels for metadata, context, requires, type, macro, sys_fields, driver, reset
+- Contains: metadata, context, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Child addressing: ordered internal labels for metadata, context, requires, type, macro, sys_fields, driver, reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -777,3 +777,328 @@ Describe generated system fields without generating fields or values yet.
 | comment | `str \| None` | `None` | physical |  |
 | x_ui | `dict \| None` | `None` | physical |  |
 | metadata | `dict \| None` | `None` | physical |  |
+
+### `behavior`
+
+Declare a server registry reference; never import or instantiate it.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| reference | `str` | *required* | semantic |  |
+
+### `pkey_from`
+
+Declare a textual key derived from fields; columns required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| columns | `str \| list \| tuple \| None` | `None` | semantic |  |
+| joiner | `str` | `'_'` | semantic |  |
+| missing | `Literal['error', 'skip']` | `'error'` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `hierarchical`
+
+Declare a hierarchy; column entries are names or {name, unique} mappings.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| columns | `str \| list \| tuple \| None` | `None` | semantic |  |
+| parent | `str` | `'parent_id'` | semantic |  |
+| root_id | `bool` | `False` | semantic |  |
+| virtual_roots | `bool` | `False` | semantic |  |
+| linked_to | `str \| None` | `None` | semantic |  |
+| depth | `int \| None` | `None` | semantic |  |
+| caption_field | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `auto_counter`
+
+Declare a counter and its scope; no value allocation during construction.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| scope | `str \| list \| tuple \| None` | `None` | semantic |  |
+| field | `str` | `'_row_count'` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `relative_index`
+
+Declare a relative index; relation required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| relation | `str \| None` | `None` | semantic |  |
+| field | `str` | `'_relidx'` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `dynamic_fields`
+
+Table option uses templates; column declaration requires source.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| templates | `dict \| str \| None` | `None` | semantic |  |
+| source | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `record_hash`
+
+Declare a record comparison hash, independent of SQL defaults.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| field | `str` | `'__rec_md5'` | semantic |  |
+| columns | `str \| list \| tuple \| None` | `None` | semantic |  |
+| algorithm | `Literal['md5']` | `'md5'` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `full_update`
+
+Declare the timestamp for updates including related content.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| field | `str` | `'__full_mod_ts'` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `audit`
+
+Declare audit; mode and provider required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| mode | `Literal['full', 'lazy'] \| None` | `None` | semantic |  |
+| version_field | `str` | `'__version'` | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `system_records`
+
+Declare system records or symbolic factories; never insert data at build time.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| records | `dict \| None` | `None` | semantic |  |
+| masterfield | `str \| None` | `None` | semantic |  |
+| tag | `str` | `'superadmin'` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `protection`
+
+Declare protection expressions or symbolic rules.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| rules | `list \| tuple \| None` | `None` | semantic |  |
+| tag | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `diagnostics`
+
+Declare diagnostics and invalidity sources without creating fields.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| rules | `list \| tuple \| None` | `None` | semantic |  |
+| invalid_fields | `bool` | `False` | semantic |  |
+| invalid_relations | `str \| list \| tuple \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `release`
+
+Declare version-to-handler references; no transformations run at build time.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| handlers | `dict \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `partition`
+
+Declare a named logical partition; field/context required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| name | `str` | *required* | semantic |  |
+| field | `str \| None` | `None` | semantic |  |
+| context | `str \| None` | `None` | semantic |  |
+| required | `bool` | `False` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `tenant`
+
+Declare tenant scope; context/provider required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| context | `str \| None` | `None` | semantic |  |
+| field | `str \| None` | `None` | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `retention`
+
+Declare retention; field, nonnegative days and provider required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| field | `str \| None` | `None` | semantic |  |
+| days | `int \| None` | `None` | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `broadcast`
+
+Declare change events; provider required; no events emitted at build time.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| columns | `str \| list \| tuple \| None` | `None` | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `archive`
+
+Declare an archive provider without invoking storage.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `enabled_when`
+
+Declare a preference condition without evaluating it.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| preference | `str \| None` | `None` | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `attachments`
+
+Declare attachment expansion; master/provider required when enabled.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| master | `str \| None` | `None` | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |
+
+### `numbering`
+
+Declare a named numbering rule and symbolic provider.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+| field | `str` | *required* | semantic |  |
+| provider | `str \| None` | `None` | semantic |  |
+| parameters | `dict \| None` | `None` | semantic |  |
+| enabled | `bool` | `True` | semantic |  |

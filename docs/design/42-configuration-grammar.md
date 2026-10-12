@@ -329,6 +329,11 @@ Queste scelte aggiuntive sono proposte operative, non risultati di test runtime.
 
 ## 7. Options comportamentali richieste dai modelli
 
+**Stato implementativo:** la grammatica dichiarativa di questa sezione è ora
+costruibile e validata ([report 48](48-options-source-grammar.md)). Su indicazione
+dell'utente, espansioni e rendering a oggetti vivi appartengono alla prossima fase.
+Le firme effettive e i payload di disattivazione sono nella [grammatica generata](../grammar.md).
+
 Tutte le seguenti opzioni entrano nel modello risolto e dichiarano gli oggetti
 generati. Le funzioni salvo `behavior` ammettono `enabled=False`; i default
 interni si applicano solo quando l'opzione viene attivata. Gli effetti richiesti
