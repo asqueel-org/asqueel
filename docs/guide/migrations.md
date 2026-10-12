@@ -184,3 +184,18 @@ or row-policy configuration; this round trip cannot reconstruct them.
 
 See [Models](models.md) for application declarations and [Importing](importing.md)
 for the read-only PostgreSQL catalog API.
+
+## PostgreSQL serial key widths
+
+`dtype="serial"` retains its existing 64-bit BIGSERIAL meaning. The additive
+`dtype="serial4"` declaration requests a 32-bit PostgreSQL SERIAL key. Native
+migration requires an asqueel-migration build with `serial4` support; the published
+migration 0.2.1 does not include it. Existing applications using other dtypes keep
+working with the previously supported migration versions.
+
+With the updated migration engine, a populated SERIAL4 column declared as
+`serial4` produces no DDL and retains its sequence/default. Declaring it as `I`
+also preserves the existing column, but an `I` declaration on a fresh database
+does not request a sequence. Changing to the 64-bit `serial` declaration is a
+separate explicit migration, tracked in
+[asqueel-migration #27](https://github.com/asqueel-org/asqueel-migration/issues/27).

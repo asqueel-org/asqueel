@@ -52,12 +52,13 @@ from typing import Literal
 from genro_builders.builder import element
 
 #: asqueel normalized type codes. Mirrors
-#: ``asqueel_migration.structures.DTYPE_CODES`` — declared locally because
+#: ``asqueel_migration.structures.DTYPE_CODES`` plus the additive serial4
+#: declaration on older engine versions — declared locally because
 #: the grammar must not import the migration package (the dependency is
-#: one-way). The renderer's golden test asserts the two stay in step.
+#: one-way). The renderer's golden test pins the compatibility boundary.
 DTYPE = Literal[
     "A", "B", "C", "D", "DH", "DHZ", "DT", "H", "HZ", "I", "L", "M", "N",
-    "O", "P", "R", "T", "TSV", "VEC", "X", "Z", "jsonb", "serial",
+    "O", "P", "R", "T", "TSV", "VEC", "X", "Z", "jsonb", "serial", "serial4",
 ]
 
 #: Referential actions a foreign key may declare. ``NO ACTION`` is absent on

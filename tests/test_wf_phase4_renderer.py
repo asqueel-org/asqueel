@@ -240,10 +240,11 @@ def test_indexed_true_materializes_an_index_item():
 
 def test_dtype_and_fk_action_literals_match_the_installed_contract():
     # wf:contract: the Literal aliases declared in elements.py must
-    # wf:contract: enumerate exactly asqueel_migration.structures.DTYPE_CODES
+    # wf:contract: accept the installed migration contract plus serial4,
+    # wf:contract: an additive grammar declaration requiring migration support.
     # wf:contract: and the fk_action enum of schemas/structure-1.0.json
     # wf:contract: (RESTRICT, CASCADE, SET NULL, SET DEFAULT).
-    assert set(typing.get_args(elements.DTYPE)) == set(DTYPE_CODES)
+    assert set(typing.get_args(elements.DTYPE)) == set(DTYPE_CODES) | {"serial4"}
     assert set(typing.get_args(elements.FK_ACTION)) == {
         "RESTRICT", "CASCADE", "SET NULL", "SET DEFAULT"}
 
