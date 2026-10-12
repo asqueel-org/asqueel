@@ -1,6 +1,6 @@
 # 44 — Piano di implementazione del core e prossima release
 
-Data: 12 ottobre 2026. Stato: **P0 completata, P1 in corso**.
+Data: 12 ottobre 2026. Stato: **P0/P1 completate, P2 in corso**.
 Target proposto: **0.6.0**, dalla baseline aggiornata 0.5.2. Il numero è una scelta
 di pianificazione per il cambiamento della grammatica pubblica; versione, tag
 e pubblicazione verranno aggiornati soltanto nella fase di release.
@@ -93,8 +93,8 @@ riportati come risultati nuovi. La preparazione del piano non crea commit o tag.
 | Fase | Consegna | Dipende da | Stato |
 | --- | --- | --- | --- |
 | P0 | Baseline, contratti e corpus riproducibile | — | Completata: report 45 |
-| P1 | Source DB/schema/package/options e composizione | P0 | In corso: primo incremento nel report 46 |
-| P2 | Oggetti completi e registro delle estensioni | P1 | Da fare |
+| P1 | Source DB/schema/package/options e composizione | P0 | Completata: report 46 |
+| P2 | Oggetti completi e registro delle estensioni | P1 | In corso |
 | P3 | Colonne fisiche, chiavi, FK e indici | P2 | Da fare |
 | P4 | Validation, colonne virtuali e virtual relations nel modello | P3 | Da fare |
 | P5 | Espansioni options e modello completo dei tre package | P4 | Da fare |
@@ -144,13 +144,11 @@ indipendente dal producer nuovo. Blocchi infrastrutturali sono visibili.
 
 ## P1 — Grammatica della source e contributi ordinati
 
-**Avanzamento:** [report 46](46-source-configuration-progress.md). Implementati
-package distinti dagli schemi, accessi singleton, routing diretto dalla tabella,
-gruppi, options di base, connessioni nominate e composizione con reset/None.
-Suite completa: 919 passati, 1 skip; Ruff e mypy verdi. Questa è una consegna
-intermedia: non chiude P1 e non certifica ancora il nuovo modello risolto.
-Il test storico che vietava `tbl.column(...)` è aggiornato alla decisione
-esplicita del 42; conserva la prova di equivalenza dei contenitori interni.
+**Esito:** [report 46](46-source-configuration-progress.md), P1 chiusa con
+930 test passati e 1 skip. Completati metadati comuni, nomi logici, merge per
+namespace, riattivazione/reset e rilevazione dei cambi di tipo fra contributi.
+Le firme fisiche, virtuali e delle options avanzate restano attribuite a P3/P4/P5
+come nella sequenza: P1 chiude contenitori e composizione, non le espansioni.
 
 **Lavoro:** intervenire su builder, elements e configuration. DB contiene
 connection/schemas/packages/extensions/options; table riceve pkg; colonne,
@@ -405,7 +403,7 @@ con versione, commit, dipendenze, esiti e residui esplicitamente concordati.
 ## Avvio operativo
 
 P0 è completata nel commit `d767299`; il corpus completo e la baseline sono
-nel report 45. Proseguire **P1** dai residui del report 46, quindi P2: non
+nel report 45. P1 è chiusa nel report 46. Proseguire **P2**: non
 anticipare un export dei nuovi package usando il vecchio modello parziale.
 Package/schema, composizione e modello risolto sono le dipendenze comuni di
 tutte le funzionalità richieste.

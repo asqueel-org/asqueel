@@ -27,7 +27,8 @@ SYS_FIELDS = ('id', 'ins', 'upd', 'user_ins', 'user_upd', 'ldel', 'draft')
 class ModelElements:
     @element(parent_tags='table', sub_tags='')
     def colgroup(self, name: str, name_long: str | None = None,
-                 x_ui: dict | None = None, **col_defaults):
+                 name_short: str | None = None, comment: str | None = None,
+                 x_ui: dict | None = None, metadata: dict | None = None, **col_defaults):
         """Ordered group handle; col_* defaults apply to declarations made through it."""
         ...
 
@@ -108,6 +109,6 @@ class ModelElements:
                    upd: bool | dict = True, user_ins: bool | dict = True,
                    user_upd: bool | dict = True, ldel: bool | dict = True,
                    draft: bool | dict = False, timestamp_type: str = 'DHZ',
-                   group: str = 'zzz', group_name: str = 'System'):
+                   group: str = 'zzz', group_name: str = 'System', enabled: bool = True):
         """Describe generated system fields without generating fields or values yet."""
         ...

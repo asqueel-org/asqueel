@@ -29,6 +29,11 @@ Database root, one per model.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the database name — the JSON `entity_name`. |
 | implementation | `str` | `'postgresql'` | physical |  |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `schemas`
 
@@ -68,10 +73,15 @@ Rendered `CREATE EXTENSION IF NOT EXISTS` and never dropped.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the extension name (`pg_trgm`, `unaccent`, …). |
+| name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `schema`
 
-A database schema (a 'package' in GenroPy vocabulary).
+A physical database schema, separate from logical packages.
 
 - Contains: tables[:1], options[:1]
 - Child addressing: ordered internal labels for tables, options
@@ -118,6 +128,13 @@ A table.
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_plural | `str \| None` | `None` | semantic | human label, plural form. |
 | name_short | `str \| None` | `None` | semantic | short human label. |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
+| rowcaption | `str \| None` | `None` | physical |  |
+| newrecord_caption | `str \| None` | `None` | physical |  |
+| order_by | `str \| None` | `None` | physical |  |
+| lookup | `bool` | `False` | physical |  |
+| tabletype | `str \| None` | `None` | physical |  |
 
 ### `columns`
 
@@ -203,6 +220,8 @@ A physical column — the only element that projects as a column.
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | human label, short form. |
 | group | `str \| None` | `None` | semantic | field-group key. |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `aliasColumn`
 
@@ -223,6 +242,10 @@ carries one of its own.
 | dtype | `DTYPE \| None` | `None` | physical |  |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `formulaColumn`
 
@@ -242,6 +265,10 @@ A virtual column defined by SQL. Never physical.
 | dtype | `DTYPE \| None` | `None` | physical | the resulting type code. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `subQueryColumn`
 
@@ -259,6 +286,10 @@ A virtual column defined by a sub-query. Never physical.
 | mode | `str \| None` | `None` | physical | `json`, `xml` or a scalar aggregate. Expanding it is the renderer's job, not grammar-time. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `pyColumn`
 
@@ -276,6 +307,10 @@ A virtual column computed in Python. Never physical.
 | dtype | `DTYPE \| None` | `None` | physical | the resulting type code. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `compositeColumn`
 
@@ -298,6 +333,10 @@ composite UNIQUE is `unique=True` here.
 | unique | `bool` | `False` | physical | projects a multi-column UNIQUE constraint. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
+| x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `constraint`
 
@@ -376,7 +415,10 @@ Ordered group handle; col_* defaults apply to declarations made through it.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical |  |
 | name_long | `str \| None` | `None` | physical |  |
+| name_short | `str \| None` | `None` | physical |  |
+| comment | `str \| None` | `None` | physical |  |
 | x_ui | `dict \| None` | `None` | physical |  |
+| metadata | `dict \| None` | `None` | physical |  |
 
 ### `packages`
 
@@ -552,3 +594,4 @@ Describe generated system fields without generating fields or values yet.
 | timestamp_type | `str` | `'DHZ'` | physical |  |
 | group | `str` | `'zzz'` | physical |  |
 | group_name | `str` | `'System'` | physical |  |
+| enabled | `bool` | `True` | physical |  |

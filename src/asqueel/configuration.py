@@ -52,7 +52,9 @@ class SqlDatabaseElements:
 
     @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
     def db(self, name: str = 'db', implementation: str = 'postgresql', conninfo: str = '',
-           connect_kwargs: dict | None = None):
+           connect_kwargs: dict | None = None, name_long: str | None = None,
+           name_short: str | None = None, comment: str | None = None,
+           x_ui: dict | None = None, metadata: dict | None = None):
         ...
 
     @element(parent_tags='db', sub_tags='options[:1]')
@@ -62,7 +64,9 @@ class SqlDatabaseElements:
                    user: str | BagResolver | None = None,
                    password: str | BagResolver | None = None,
                    options: dict | None = None, database: str | BagResolver | None = None,
-                   dsn: str | BagResolver | None = None):
+                   dsn: str | BagResolver | None = None, name_long: str | None = None,
+                   name_short: str | None = None, comment: str | None = None,
+                   x_ui: dict | None = None, metadata: dict | None = None):
         """Named connection; legacy declarations without database/dsn keep name as database."""
         ...
 
@@ -96,7 +100,26 @@ def _owned_handler(source, parents=None):
             with handler.builder.contribution(f'layer[{index}]'):
                 _compose_source(handler.builder, handler.builder.source, layer.builder.source)
         _normalize_connection_options(handler)
+        _validate_source_shape(handler.builder)
         return handler
+
+
+def _validate_source_shape(builder):
+    """Validate composition without resolving defaults, references or secrets."""
+    from .model_elements import OPTION_LEVELS
+    for _, node in builder.source.query('#p,#n', deep=True):
+        if node.node_tag in OPTION_LEVELS:
+            builder._validate_option(node.node_tag, node.parent_node, dict(node.attr))
+        if node.node_tag == 'table' and isinstance(node.value, Bag):
+            names = {}
+            for container in node.value:
+                if container.node_tag not in ('columns', 'virtual_columns', 'composites'):
+                    continue
+                for child in container.value or ():
+                    if child.label in names:
+                        raise ValueError(f'{node.fullpath}.{child.label}: conflicting element kinds '
+                                         f'{names[child.label]!r} and {child.node_tag!r}')
+                    names[child.label] = child.node_tag
 
 
 def _normalize_connection_options(handler):
@@ -142,15 +165,15 @@ def _compose_source(builder, target, incoming):
                 elif existing is not None and {'database', 'dsn'}.intersection(existing.attr):
                     raise ValueError('Ambiguous connection override: declare database or dsn explicitly')
         if existing is None:
-            added = target.set_item(node.label, deepcopy(node.get_value(static=True)),
+            value = node.get_value(static=True)
+            added = target.set_item(node.label, None if isinstance(value, Bag) else deepcopy(value),
                                     _attributes=deepcopy(dict(node.attr)), _remove_null_attributes=False,
                                     node_tag=node.node_tag)
-            added_nodes = [added]
-            if isinstance(added.value, Bag):
-                added_nodes.extend(added.value.query('#n', deep=True))
-            for child in added_nodes:
-                builder._attribute_origins.update({(builder._node_path(child), key): builder._contribution
-                                                   for key in child.attr if key != '_meta'})
+            builder._attribute_origins.update({(builder._node_path(added), key): builder._contribution
+                                               for key in added.attr if key != '_meta'})
+            if isinstance(value, Bag):
+                added.value = type(value)(builder=builder)
+                _compose_source(builder, added.value, value)
             continue
         if existing.node_tag != node.node_tag:
             raise ValueError(f'{existing.fullpath}: conflicting element kinds '
@@ -169,7 +192,8 @@ def _compose_source(builder, target, incoming):
                 existing.attr['_meta'] = meta
         if isinstance(value, Bag):
             if previous is None:
-                existing.value = deepcopy(value)
+                existing.value = type(value)(builder=builder)
+                _compose_source(builder, existing.value, value)
             elif isinstance(previous, Bag):
                 _compose_source(builder, previous, value)
             else:

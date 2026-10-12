@@ -123,3 +123,59 @@ def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
                 for path, node in handler.builder.source.query('#p,#n', deep=True)]
 
     assert declarations(mounted) == declarations(standalone)
+
+
+def test_metadata_merges_namespaces_then_keys_without_arbitrary_recursion():
+    source = SqlDatabaseConfig()
+    pkg = source.source.db('d').packages().package('p', metadata={
+        'ui': {'color': 'blue', 'position': 2, 'layout': {'width': 10, 'height': 20}}})
+    with source.contribution('later'):
+        source.source['db.packages'].package('p', metadata={
+            'ui': {'color': 'green', 'layout': {'width': 30}}})
+    assert pkg.get_attr('metadata') == {'ui': {
+        'color': 'green', 'position': 2, 'layout': {'width': 30}}}
+
+
+def test_field_disable_and_reenable_preserves_configuration_until_reset():
+    source = Base()
+    source.create()
+    opts = source.source['db.' + PATH].options()
+    with source.contribution('disable'):
+        opts.sys_fields(id=False, enabled=False)
+    with source.contribution('enable'):
+        fields = opts.sys_fields(id=True, enabled=True)
+    assert fields.get_attr('id') == {'type': 'uuid', 'indexed': True}
+    with source.contribution('restart'):
+        opts.reset('sys_fields')
+        assert opts.sys_fields(id=True).get_attr('id') is True
+
+
+def test_layered_change_of_column_kind_is_rejected_before_model_resolution():
+    class Physical(SqlDatabaseConfig):
+        def main(self, root):
+            root.db('d').packages().package('p').table('t').column('value', 'T')
+
+    class Virtual(SqlDatabaseConfig):
+        def main(self, root):
+            root.db('d').packages().package('p').table('t').formulaColumn('value', '1')
+
+    with pytest.raises(ValueError, match='conflicting element kinds'):
+        _owned_handler(Virtual, [Physical])
+
+
+@pytest.mark.parametrize('name', ['', ' ', 'bad.name', 'bad@name', '$name', 'bad/name', 'bad\\name'])
+def test_logical_package_names_are_not_paths(name):
+    builder = SqlDatabaseConfig()
+    with pytest.raises(ValueError, match='name|separator'):
+        builder.source.db('d').packages().package(name)
+
+
+def test_common_metadata_is_declared_on_db_schema_package_table_and_column():
+    builder = SqlDatabaseConfig()
+    meta = {'name_long': 'Long', 'name_short': 'Short', 'comment': 'Comment',
+            'x_ui': {'color': 'green'}, 'metadata': {'app': {'section': 'invoices'}}}
+    db = builder.source.db('d', **meta)
+    db.schemas().schema('s', **meta)
+    pkg = db.packages().package('p', **meta)
+    pkg.table('t', **meta).column('id', dtype='L', **meta)
+    builder.validate_model()

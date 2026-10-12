@@ -76,7 +76,10 @@ class DbElements:
     """Database-level grammar: the root and its collections."""
 
     @element(sub_tags="schemas[:1], packages[:1], extensions[:1], options[:1]", node_label="db")
-    def db(self, name: str, implementation: str = 'postgresql'):
+    def db(self, name: str, implementation: str = 'postgresql',
+           name_long: str | None = None, name_short: str | None = None,
+           comment: str | None = None, x_ui: dict | None = None,
+           metadata: dict | None = None):
         """Database root, one per model.
 
         Args:
@@ -105,7 +108,9 @@ class DbElements:
         ...
 
     @element(parent_tags="extensions", sub_tags="")
-    def extension(self, name: str, **extra):
+    def extension(self, name: str, name_long: str | None = None,
+                  name_short: str | None = None, comment: str | None = None,
+                  x_ui: dict | None = None, metadata: dict | None = None, **extra):
         """A PostgreSQL extension.
 
         Rendered ``CREATE EXTENSION IF NOT EXISTS`` and never dropped.
@@ -124,7 +129,7 @@ class SchemaElements:
                sqlname: str | None = None, name_long: str | None = None,
                name_short: str | None = None, x_ui: dict | None = None,
                metadata: dict | None = None, **extra):
-        """A database schema (a 'package' in GenroPy vocabulary).
+        """A physical database schema, separate from logical packages.
 
         Args:
             name: the schema name — physical, and this node's key.
@@ -159,7 +164,10 @@ class TableElements:
               caption_field: str | None = None,
               name_long: str | None = None,
               name_plural: str | None = None,
-              name_short: str | None = None, **extra):
+              name_short: str | None = None, x_ui: dict | None = None,
+              metadata: dict | None = None, rowcaption: str | None = None,
+              newrecord_caption: str | None = None, order_by: str | None = None,
+              lookup: bool = False, tabletype: str | None = None, **extra):
         """A table.
 
         Args:
@@ -235,7 +243,8 @@ class TableElements:
                comment: str | None = None,
                name_long: str | None = None,
                name_short: str | None = None,
-               group: str | None = None, **extra):
+               group: str | None = None, x_ui: dict | None = None,
+               metadata: dict | None = None, **extra):
         """A physical column — the only element that projects as a column.
 
         Args:
@@ -264,7 +273,9 @@ class TableElements:
     def aliasColumn(self, name: str, relation_path: str,
                     dtype: DTYPE | None = None,
                     name_long: str | None = None,
-                    group: str | None = None, **extra):
+                    group: str | None = None, name_short: str | None = None,
+                    comment: str | None = None, x_ui: dict | None = None,
+                    metadata: dict | None = None, **extra):
         """A virtual column projecting a related column. Never physical.
 
         An alias reads through a relation that already exists, so it never
@@ -284,7 +295,9 @@ class TableElements:
                       exists: dict | str | None = None,
                       dtype: DTYPE | None = None,
                       name_long: str | None = None,
-                      group: str | None = None, **extra):
+                      group: str | None = None, name_short: str | None = None,
+                      comment: str | None = None, x_ui: dict | None = None,
+                      metadata: dict | None = None, **extra):
         """A virtual column defined by SQL. Never physical.
 
         Args:
@@ -302,7 +315,9 @@ class TableElements:
     def subQueryColumn(self, name: str, query: str,
                        mode: str | None = None,
                        name_long: str | None = None,
-                       group: str | None = None, **extra):
+                       group: str | None = None, name_short: str | None = None,
+                       comment: str | None = None, x_ui: dict | None = None,
+                       metadata: dict | None = None, **extra):
         """A virtual column defined by a sub-query. Never physical.
 
         Args:
@@ -319,7 +334,9 @@ class TableElements:
     def pyColumn(self, name: str, py_method: str | None = None,
                  dtype: DTYPE | None = None,
                  name_long: str | None = None,
-                 group: str | None = None, **extra):
+                 group: str | None = None, name_short: str | None = None,
+                 comment: str | None = None, x_ui: dict | None = None,
+                 metadata: dict | None = None, **extra):
         """A virtual column computed in Python. Never physical.
 
         Args:
@@ -336,7 +353,9 @@ class TableElements:
              _meta={"projects_relation": True})
     def compositeColumn(self, name: str, columns: str, unique: bool = False,
                         name_long: str | None = None,
-                        group: str | None = None, **extra):
+                        group: str | None = None, name_short: str | None = None,
+                        comment: str | None = None, x_ui: dict | None = None,
+                        metadata: dict | None = None, **extra):
         """N physical columns packed as one navigable key.
 
         Not a column of its own — it projects no column, only what its

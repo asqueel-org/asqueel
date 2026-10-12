@@ -138,37 +138,59 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
 
     def _compose_attributes(self, node, attributes):
         result = deepcopy(dict(node.attr))
-        changes = {}
-        replaced = set()
+        origins = dict(self._attribute_origins)
+        path = self._node_path(node)
+        meta = result.setdefault('_meta', {})
+        disabled = meta.setdefault('disabled_fields', {}) if node.node_tag == 'sys_fields' else {}
+
+        def origin(parts):
+            for length in range(len(parts), 0, -1):
+                found = origins.get((path, '.'.join(parts[:length])))
+                if found is not None:
+                    return found
+            return 'main'
+
+        def assign(target, key, value, parts, depth=0):
+            previous = target.get(key)
+            if depth and isinstance(previous, dict) and isinstance(value, dict):
+                for subkey, item in value.items():
+                    assign(previous, subkey, item, (*parts, subkey), depth - 1)
+                return
+            if key in target and previous != value and origin(parts) == self._contribution:
+                raise ValueError(f'{path}: conflicting {".".join(parts)!r} '
+                                 f'in contribution {self._contribution!r}')
+            target[key] = deepcopy(value)
+            prefix = '.'.join(parts)
+            for stored in list(origins):
+                if stored[0] == path and stored[1].startswith(prefix + '.'):
+                    del origins[stored]
+            origins[(path, prefix)] = self._contribution
+
         for key, value in attributes.items():
             if key == '_meta':
                 continue
-            merge_dict = (key in ('x_ui', 'metadata', 'values')
-                          or (node.node_tag == 'sys_fields' and key in SYS_FIELDS))
-            updates = ({f'{key}.{part}': item for part, item in value.items()}
-                       if merge_dict and isinstance(value, dict) and isinstance(result.get(key), dict)
-                       else {key: value})
-            for attribute, item in updates.items():
-                part = attribute[len(key) + 1:] if attribute != key else None
-                present = part in result[key] if part is not None else key in result
-                old = result[key].get(part) if part is not None else result.get(key)
-                origin_key = (self._node_path(node), attribute)
-                previous = self._attribute_origins.get(origin_key,
-                            self._attribute_origins.get((self._node_path(node), key), 'main'))
-                if present and old != item and previous == self._contribution:
-                    raise ValueError(f'{self._node_path(node)}: conflicting {attribute!r} '
-                                     f'in contribution {self._contribution!r}')
-                if part is not None:
-                    result[key][part] = deepcopy(item)
-                else:
-                    result[key] = deepcopy(item)
-                    replaced.add(key)
-                changes[origin_key] = self._contribution
+            if node.node_tag == 'sys_fields' and key in SYS_FIELDS:
+                old = result.get(key)
+                if old is False and (value is True or isinstance(value, dict)) and key in disabled:
+                    # Check the activation itself before recovering customization.
+                    assign(result, key, value, (key,))
+                    result[key] = deepcopy(disabled.pop(key))
+                    if isinstance(value, dict):
+                        result[key].update(deepcopy(value))
+                    continue
+                if value is False and isinstance(old, dict):
+                    disabled[key] = deepcopy(old)
+            depth = (2 if key == 'metadata' else
+                     1 if key in ('x_ui', 'values') or
+                     (node.node_tag == 'sys_fields' and key in SYS_FIELDS) else 0)
+            assign(result, key, value, (key,), depth)
+        if not disabled:
+            meta.pop('disabled_fields', None)
+        if not meta:
+            result.pop('_meta', None)
+        node.attr.clear()
         node.attr.update(result)
-        self._attribute_origins = {key: value for key, value in self._attribute_origins.items()
-                                   if not (key[0] == self._node_path(node)
-                                           and any(key[1].startswith(name + '.') for name in replaced))}
-        self._attribute_origins.update(changes)
+        self._attribute_origins = origins
         return node
 
     @staticmethod
@@ -223,6 +245,25 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError(f"'{node_tag}': {parameter} passed twice")
             attr[parameter] = node_value
             node_value = None
+        for key in ('name', 'namespace'):
+            if key in attr and node_tag != 'connection' and attr[key] is not None:
+                value = attr[key]
+                if (not isinstance(value, str) or not value.strip()
+                        or any(c in value for c in '.@$/\\')):
+                    raise ValueError(f'{node_tag}.{key}: invalid name or path separator')
+        for key in ('metadata', 'x_ui'):
+            value = attr.get(key)
+            if value is not None:
+                if not isinstance(value, dict) or any(not isinstance(k, str) for k in value):
+                    raise ValueError(f'{node_tag}.{key}: expected a string-keyed mapping')
+                if key == 'metadata' and any(not isinstance(v, dict) for v in value.values()):
+                    raise ValueError(f'{node_tag}.metadata: each namespace must contain a mapping')
+        if node_tag == 'requires' and 'packages' in attr:
+            values = attr['packages']
+            values = [values] if isinstance(values, str) else values
+            if not isinstance(values, (list, tuple)) or any(
+                    not isinstance(v, str) or not v or any(c in v for c in '.@$/\\') for v in values):
+                raise ValueError('requires: expected package names')
         if node_tag in OPTION_LEVELS or node_tag in ('package', 'colgroup'):
             for key, value in attr.items():
                 entry = (info.get('call_args_validations') or {}).get(key)
@@ -283,7 +324,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError('colgroup: node_label is fixed by the group name')
             declared = self._get_schema_info('column').get('declared_names') or set()
             for key in attr:
-                if key in ('name', 'name_long', 'x_ui', '_meta'):
+                if key in ('name', 'name_long', 'name_short', 'comment', 'x_ui', 'metadata', '_meta'):
                     continue
                 if not key.startswith('col_') or key[4:] not in declared or key == 'col_name':
                     raise ValueError(f'colgroup: unknown column default {key!r}')

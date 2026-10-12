@@ -1,6 +1,6 @@
 # 46 — Primo incremento della source di configurazione
 
-12 ottobre 2026. **P1 in corso**, piano 44. Nessun incremento della versione
+12 ottobre 2026. **P1 completata**, piano 44. Nessun incremento della versione
 0.5.2, tag o pubblicazione: questo report non annuncia la release 0.6.0.
 
 ## Implementato e verificato
@@ -60,18 +60,20 @@ contraddiceva la scelta successiva di `tbl.column(...)`. È aggiornato per
 verificare l'equivalenza della dichiarazione diretta con la struttura interna,
 conservando le verifiche di contenimento ancora valide; non è stato saltato.
 
-## Residui prima di chiudere P1
+## Chiusura P1
 
-1. Completare le firme comuni e le regole dei nomi della source del 42;
-   completare l'inventario delle forme legacy traducibili. Le due forme delle
-   driver options sono alternative prima della normalizzazione, senza
-   precedenze implicite fra dizionari.
-2. Completare l'inventario eseguibile dei casi di composizione: metadati
-   annidati per namespace, cambi di tipo di nodo e payload incompatibili
-   fra ricette, diagnostica di provenienza e disattivazione delle opzioni.
-3. Rivedere l'intero diff P1 prima del commit di chiusura, poi procedere agli
-   oggetti P2 e al registro di provider. Le options avanzate hanno la propria
-   espansione in P5; dichiararle non ne certifica il funzionamento.
+Completate le firme descrittive comuni, la validazione dei nomi logici,
+il merge metadata per namespace/chiave (senza ricorsione arbitraria), la
+conservazione delle personalizzazioni di un campo disattivato e riattivato,
+e gli errori su cambi di tipo di colonna fra contributi. Una nuova prova ha
+rilevato un ciclo nel deepcopy dei sottoalberi: la composizione ora ricostruisce
+i nodi statici copiando gli attributi, senza copiare i riferimenti circolari
+al builder. Sono conservati tag, provenienza e reset.
 
-Restano integralmente i gate P6 (modello+migrations su tutte le 75 tabelle),
-P9 (operazioni e comportamenti) e P11/P12 (distribuzione/pubblicazione).
+`sys_fields(enabled=False)` disattiva tutta l'opzione conservandone i parametri;
+`sys_fields(id=False)` disattiva soltanto il campo id. Il reset azzera entrambe
+le personalizzazioni. La generazione effettiva resta nella fase di espansione.
+
+Suite di chiusura: **930 passati, 1 skip**, PostgreSQL e SQLite, 18,24 secondi.
+I risultati precedenti sopra restano la cronologia del primo incremento.
+Il prossimo passo è P2; i gate P6/P9/P11 restano da superare.

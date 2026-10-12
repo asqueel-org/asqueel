@@ -258,7 +258,8 @@ tbl.options().sys_fields(
     timestamp_type='DHZ', group='zzz', group_name='System')
 ```
 
-`sys_fields()` usa questi default. `id=True` equivale al dict indicato, `False`
+`sys_fields(enabled=False)` disattiva tutta l'opzione mantenendone la configurazione;
+`enabled=True` la riattiva. `sys_fields()` usa questi default. `id=True` equivale al dict indicato, `False`
 non aggiunge la colonna. `type` è enum di generazione, non dtype SQL; per ora
 l'unico membro di questo enum del campo di sistema è `uuid`. Nessun `custom`.
 Senza sys_fields la tabella deve dichiarare la propria pkey; con `id=True`,
