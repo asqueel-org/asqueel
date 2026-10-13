@@ -1,5 +1,10 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Release 0.6.0, 13 ottobre 2026:** bump del core e documentazione aggiornata;
+[release notes](../guide/release-notes.md#060). Il perimetro consegnato è
+source nativa → oggetti completi → JSON migrations. Compilazione delle nuove
+dichiarazioni ed esecuzione dei comportamenti restano la fase successiva.
+
 **Fasi strutturali 0–6 completate, 13 ottobre 2026:** [rapporto 53](53-native-invoice-render-and-migration.md).
 Source nativa di 74 modelli (sys 16, adm 40, invc 18), oggetti completi e JSON
 migrations senza source legacy espansa. 789 colonne fisiche, 526 virtuali,
@@ -55,19 +60,19 @@ scostamento richiede una motivazione concreta e l'approvazione dell'utente
 prima dell'applicazione. Restano valide le differenze già concordate, fra cui
 DHZ/UTC. Perimetro attuale: grammatica e traduzione, senza anticipare esecuzione.
 
-**Piano corrente:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md), fasi 0–3 completate.
+**Piano strutturale completato:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md), fasi 0–6 completate.
 Piano aggiornato il 13 ottobre con fasi 0–6: mappa di copertura; render di base;
 espansioni locali; completamenti fra tabelle; relazioni e finalizzazione;
 source nativa dei 74 modelli inclusi; JSON dagli oggetti e prova migrations.
 Ogni fase ha criteri di completamento e un commit previsto. La mappa degli
 effetti legacy è ora verificata nel [rapporto 52](52-invoice-render-coverage.md):
-75 modelli coperti dal censimento, nessun port nativo completo ancora certificato.
+75 modelli censiti, 74 inclusi nel port nativo completo verificato.
 D-01/D-02 sono risolte: system_records e sys.locked_record fuori perimetro,
 con divergenze documentate; il corpus nativo comprende 74 tabelle. Asqueel non
 deve ora rimpiazzare integralmente GenroPy. sys_fields(syscode=True) è stata
 successivamente approvata e implementata per __syscode A :20, indicizzata e
 UNIQUE, False per default; non reintroduce il concetto di system_records.
-C-02/C-03/C-04 corrette; C-01 riguarda la proiezione fisica, C-05 i limiti di copertura;
+C-01/C-02/C-03/C-04 corrette; copertura nativa verificata nel rapporto 53;
 compilatore escluso.
 
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
@@ -79,7 +84,7 @@ descritti nel piano generale non sono requisiti da anticipare nelle firme.
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
 Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB.
 Nessun parametro provider o dichiarazione behavior nella grammatica.
-Render completo degli oggetti da implementare secondo il piano 51.
+Render completo degli oggetti implementato e verificato secondo il piano 51.
 
 Aggiornato il **12 ottobre 2026**. Documento di ripartenza dopo la separazione
 di Asqueel Migration e Asqueel DB Manager. Questa consegna prepara il lavoro:
