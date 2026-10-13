@@ -148,6 +148,20 @@ class _TableExpansion:
                          **_legacy(_sysfield=True))
 
     def local(self):
+        # DbModelSrc._subtable_table exposes each declared filter as a boolean
+        # virtual column. Keep the SQL and its bindings as model data.
+        for child in list(self.table.value or ()):
+            if child.node_tag != 'subtable':
+                continue
+            name = child.get_attr('name')
+            bindings = {f'var_{key}': value for key, value in
+                        (child.get_attr('parameters') or {}).items()}
+            bindings.update({f'var_{key[10:]}': value for key, value in child.attr.items()
+                             if key.startswith('condition_')})
+            self.formula('subtable_' + name, child.get_attr('condition'), dtype='B',
+                         name_long=child.get_attr('name_long') or name, group='subtables',
+                         **_legacy(_addClass='subtable_' + name), **bindings)
+            self.table_default(group_subtables='!![en]Subtables')
         spec = self.spec('full_update')
         if spec is not None:
             self.add(spec['field'], 'DHZ', indexed=True, group=self.group,

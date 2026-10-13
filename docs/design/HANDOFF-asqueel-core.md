@@ -1,5 +1,15 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Fasi strutturali 0–6 completate, 13 ottobre 2026:** [rapporto 53](53-native-invoice-render-and-migration.md).
+Source nativa di 74 modelli (sys 16, adm 40, invc 18), oggetti completi e JSON
+migrations senza source legacy espansa. 789 colonne fisiche, 526 virtuali,
+58 FK, 282 indici, una UNIQUE composita. JSON uguale all'oracolo legacy dopo
+la sola esclusione concordata di sys.locked_record; sei virtuali system_records
+escluse dal modello. PostgreSQL: applicazione, introspezione, seconda diff vuota
+e modifiche controllate verificate. Suite: 1278 pass, 1 skip; Ruff/mypy superati.
+Artefatti nativi in artifacts/test_invoice_pg/native; source in examples/test_invoice_pg.
+I checkpoint sotto restano cronologia; non indicano lavoro strutturale ancora aperto.
+
 **Rinvio successivo:** diagnostic, invalidFields e invalidRelations non sono
 portati; da rivedere come opzioni di tabella. La firma diagnostics è rimossa
 dalla grammatica attiva: [R-07](41-deferred-features.md#r-07--diagnostica-e-invalidità-configurabili-sulla-tabella).

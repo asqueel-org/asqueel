@@ -1,5 +1,5 @@
 {
-  "scope": "Phase 0: checked original sources + unchanged independent legacy capture + native probes; no DB I/O",
+  "scope": "Original sources + unchanged independent legacy capture + complete native render and physical projection; no DB I/O",
   "legacy_sources_changed": [],
   "legacy_imported_sources_changed": [],
   "verified_model_source_count": 79,
@@ -15,15 +15,21 @@
     "physical.json": true
   },
   "native_source_sha256": {
-    "src/asqueel/elements.py": "5b4053bd992496eff7f49243d475940556008a3d94af8d0661b818ce8714f067",
+    "src/asqueel/elements.py": "5747eec5e96d4749150294b45fe5196abe0a62a6e271c8fbbd328aabcf1f5fe7",
     "src/asqueel/model_elements.py": "4b6cbd2e29491f45ff47de6f8fa79f7b693f17d383fe50714c713e026efa7036",
-    "src/asqueel/semantic_elements.py": "a50d3b3f50a01ed81eb9019d42fa03b94fe238f688475bc70000df31969d1979",
+    "src/asqueel/semantic_elements.py": "712bb577fb5bd39b3dec306232180570c7c73fa5205b63d78f25cd58378b2008",
     "src/asqueel/option_elements.py": "e632dd9776eb6b7e811395e2a4dc4cd93536ef4206d80b87c8c0d7a19ebdfa35",
     "src/asqueel/option_validation.py": "a4db4d40664d2d13bca7303b08a55b64e7ed2bb9d39c57cb80b921875a82ed79",
-    "src/asqueel/model_expansion.py": "a7f35d72b8e6be734c41aae38b5c0044b35936329f45200d6146bc23921e21f4",
-    "src/asqueel/model_source.py": "0d36d138f766a01b237d9332b7fc434e8fea62abe26c9be9f9c6bd19aa548194",
-    "src/asqueel/projection.py": "0adc5bfc71107ff9000722a01dcd36bf5f88d63136d46220fa59bd517142e31b",
-    "src/asqueel/builder.py": "14936874e0b0f10a004e699e33f6dda16f94250605021d6e1b7d29c62b8cf05f"
+    "src/asqueel/model_expansion.py": "05af13044c7233923deee29180784afd9d9ce9057083f6c68d33e2349dff4e50",
+    "src/asqueel/model_source.py": "f83ce2e898f1b340d9e0b083cd7ac6329b64642235a281e7861cf43893215e67",
+    "src/asqueel/model.py": "5808bb7df96a357085aa25702ca663a562c4773c702c72198fefabb425f731b9",
+    "src/asqueel/validators.py": "8cbe14651815526ceb85b302967b75c0be35a0f0df9544f7d1d568e358f56d84",
+    "src/asqueel/projection.py": "759993bf6af1a597eb23472888841d128401b08f9b035b2a312b4ccf43f99d9a",
+    "src/asqueel/builder.py": "29261b5ecb9f18db7bbb7e0e70ed1eed19b87134b3f9dbde2201f081a344b3ca",
+    "examples/test_invoice_pg/__init__.py": "dd2597b0f634cade5b104017f0da1debcf85ed2ac09fd54e7890c745b0ecbe20",
+    "examples/test_invoice_pg/adm.py": "2c48e1e0ceb869f2e477e0776f3f4760ca88f75aee57a2ec966c458e9c77a5d1",
+    "examples/test_invoice_pg/invc.py": "e21ef31ef8e47cdc084714140f2477fd03c2659e96aa784ce4cf642c7cbc4ff7",
+    "examples/test_invoice_pg/sys.py": "5e5bf0cfa52937b45437d885c3d9f031a59853463661e823c111fd3482c41b37"
   },
   "package_counts": {
     "sys": {
@@ -441,7 +447,94 @@
     "invc": 18
   },
   "system_records_scope": "excluded; structural divergences recorded in report 52, D-01",
-  "native_complete_corpus_verified": false,
+  "native_complete_corpus_verified": true,
+  "native_verification": {
+    "independent_physical_oracle_matches": true,
+    "package_tables": {
+      "sys": 16,
+      "adm": 40,
+      "invc": 18
+    },
+    "physical_columns": 789,
+    "virtual_columns": 526,
+    "tables": [
+      "adm.access_group",
+      "adm.api_token",
+      "adm.api_token_tag",
+      "adm.audit",
+      "adm.authorization",
+      "adm.backup",
+      "adm.ckstyle",
+      "adm.connection",
+      "adm.counter",
+      "adm.day",
+      "adm.group",
+      "adm.group_helpdoc",
+      "adm.helpdoc",
+      "adm.htag",
+      "adm.htmltemplate",
+      "adm.htmltemplate_atc",
+      "adm.install_checklist",
+      "adm.language",
+      "adm.letterhead_type",
+      "adm.menu",
+      "adm.menu_page",
+      "adm.notification",
+      "adm.pkginfo",
+      "adm.preference",
+      "adm.record_tag",
+      "adm.sent_email",
+      "adm.served_page",
+      "adm.shortcut",
+      "adm.tblinfo",
+      "adm.tblinfo_item",
+      "adm.user",
+      "adm.user_access_group",
+      "adm.user_config",
+      "adm.user_group",
+      "adm.user_notification",
+      "adm.user_setting",
+      "adm.user_tag",
+      "adm.userobject",
+      "adm.week",
+      "adm.xgroup",
+      "invc.customer",
+      "invc.customer_type",
+      "invc.discount_tier",
+      "invc.invoice",
+      "invc.invoice_note",
+      "invc.invoice_row",
+      "invc.payment_type",
+      "invc.postcode",
+      "invc.price_year",
+      "invc.price_year_note",
+      "invc.product",
+      "invc.product_group",
+      "invc.product_type",
+      "invc.region",
+      "invc.staff",
+      "invc.staff_role",
+      "invc.state",
+      "invc.vat_type",
+      "sys.batch_log",
+      "sys.calendar",
+      "sys.dataretention",
+      "sys.dbchange",
+      "sys.error",
+      "sys.external_token",
+      "sys.external_token_use",
+      "sys.externalcall_log",
+      "sys.service",
+      "sys.shared_object",
+      "sys.shorturl",
+      "sys.task",
+      "sys.task_execution",
+      "sys.task_result",
+      "sys.upgrade",
+      "sys.widget"
+    ],
+    "postgresql_gate": "tests/test_native_invoice_migration.py; run separately"
+  },
   "families": {
     "alias": [
       "adm.api_token_tag",
@@ -918,7 +1011,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.api_token": {
       "sources": [
@@ -1155,7 +1248,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.api_token_tag": {
       "sources": [
@@ -1294,7 +1387,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.audit": {
       "sources": [
@@ -1450,7 +1543,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.authorization": {
       "sources": [
@@ -1635,7 +1728,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.backup": {
       "sources": [
@@ -1762,7 +1855,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.ckstyle": {
       "sources": [
@@ -1888,7 +1981,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.connection": {
       "sources": [
@@ -2078,7 +2171,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.counter": {
       "sources": [
@@ -2388,7 +2481,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.day": {
       "sources": [
@@ -2458,7 +2551,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.group": {
       "sources": [
@@ -2625,7 +2718,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.group_helpdoc": {
       "sources": [
@@ -2762,7 +2855,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.helpdoc": {
       "sources": [
@@ -2875,7 +2968,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.htag": {
       "sources": [
@@ -3077,7 +3170,7 @@
         "__invalid_by_duplicate_sysrecord",
         "authorization_tag"
       ],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.htmltemplate": {
       "sources": [
@@ -3309,7 +3402,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.htmltemplate_atc": {
       "sources": [
@@ -3435,7 +3528,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.install_checklist": {
       "sources": [
@@ -3593,7 +3686,7 @@
       "syscode_dependent_virtuals": [
         "__record_pointer"
       ],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.language": {
       "sources": [
@@ -3722,7 +3815,7 @@
         "__protected_by_syscode",
         "__invalid_by_duplicate_sysrecord"
       ],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.letterhead_type": {
       "sources": [
@@ -3819,7 +3912,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.menu": {
       "sources": [
@@ -4028,7 +4121,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.menu_page": {
       "sources": [
@@ -4143,7 +4236,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.notification": {
       "sources": [
@@ -4399,7 +4492,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.pkginfo": {
       "sources": [
@@ -4504,7 +4597,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.preference": {
       "sources": [
@@ -4649,7 +4742,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.record_tag": {
       "sources": [
@@ -4752,7 +4845,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.sent_email": {
       "sources": [
@@ -4867,7 +4960,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.served_page": {
       "sources": [
@@ -5014,7 +5107,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.shortcut": {
       "sources": [
@@ -5128,7 +5221,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.tblinfo": {
       "sources": [
@@ -5263,7 +5356,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.tblinfo_item": {
       "sources": [
@@ -5462,7 +5555,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user": {
       "sources": [
@@ -5986,7 +6079,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user_access_group": {
       "sources": [
@@ -6122,7 +6215,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user_config": {
       "sources": [
@@ -6391,7 +6484,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user_group": {
       "sources": [
@@ -6519,7 +6612,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user_notification": {
       "sources": [
@@ -6685,7 +6778,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user_setting": {
       "sources": [
@@ -6841,7 +6934,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.user_tag": {
       "sources": [
@@ -7053,7 +7146,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.userobject": {
       "sources": [
@@ -7435,7 +7528,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.week": {
       "sources": [
@@ -7505,7 +7598,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "adm.xgroup": {
       "sources": [
@@ -7631,7 +7724,7 @@
         "__protected_by_syscode",
         "__invalid_by_duplicate_sysrecord"
       ],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.customer": {
       "sources": [
@@ -8009,7 +8102,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.customer_type": {
       "sources": [
@@ -8104,7 +8197,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.discount_tier": {
       "sources": [
@@ -8235,7 +8328,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.invoice": {
       "sources": [
@@ -8604,7 +8697,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.invoice_note": {
       "sources": [
@@ -8760,7 +8853,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.invoice_row": {
       "sources": [
@@ -9061,7 +9154,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.payment_type": {
       "sources": [
@@ -9156,7 +9249,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.postcode": {
       "sources": [
@@ -9308,7 +9401,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.price_year": {
       "sources": [
@@ -9451,7 +9544,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.price_year_note": {
       "sources": [
@@ -9602,7 +9695,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.product": {
       "sources": [
@@ -9909,7 +10002,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.product_group": {
       "sources": [
@@ -10063,7 +10156,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.product_type": {
       "sources": [
@@ -10226,7 +10319,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.region": {
       "sources": [
@@ -10331,7 +10424,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.staff": {
       "sources": [
@@ -10532,7 +10625,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.staff_role": {
       "sources": [
@@ -10627,7 +10720,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.state": {
       "sources": [
@@ -10754,7 +10847,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "invc.vat_type": {
       "sources": [
@@ -10855,7 +10948,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.batch_log": {
       "sources": [
@@ -11019,7 +11112,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.calendar": {
       "sources": [
@@ -11124,7 +11217,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.dataretention": {
       "sources": [
@@ -11228,7 +11321,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.dbchange": {
       "sources": [
@@ -11379,7 +11472,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.error": {
       "sources": [
@@ -11596,7 +11689,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.external_token": {
       "sources": [
@@ -11850,7 +11943,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.external_token_use": {
       "sources": [
@@ -11950,7 +12043,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.externalcall_log": {
       "sources": [
@@ -12085,7 +12178,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.locked_record": {
       "sources": [
@@ -12435,7 +12528,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.shared_object": {
       "sources": [
@@ -12583,7 +12676,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.shorturl": {
       "sources": [
@@ -12741,7 +12834,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.task": {
       "sources": [
@@ -13168,7 +13261,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.task_execution": {
       "sources": [
@@ -13436,7 +13529,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.task_result": {
       "sources": [
@@ -13583,7 +13676,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.upgrade": {
       "sources": [
@@ -13727,7 +13820,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     },
     "sys.widget": {
       "sources": [
@@ -13891,7 +13984,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "verified; native objects + scoped physical oracle"
     }
   },
   "grammar_probes": {
@@ -13955,16 +14048,16 @@
     },
     "native_physical_projection": {
       "id": {
-        "dtype": "A",
+        "dtype": "C",
         "size": "22",
         "notnull": "_auto_"
       },
       "bag": {
-        "dtype": "X"
+        "dtype": "T"
       },
       "prefix": {
         "dtype": "A",
-        "size": ":20"
+        "size": "0:20"
       }
     },
     "set_null_implicit_deferral": {

@@ -34,7 +34,7 @@ def test_syscode_is_opt_in_and_does_not_expand_the_source():
     physical = SqlMigrationRenderer(to_physical_builder(first)).render()
     attrs = physical['root']['schemas']['adm']['tables']['adm_htag']['columns']['__syscode']['attributes']
     assert attrs['unique'] is True
-    assert attrs['size'] == ':20'
+    assert attrs['size'] == '0:20'  # Logical :20 is normalized only at the storage boundary.
     assert 'notnull' not in attrs
 
 

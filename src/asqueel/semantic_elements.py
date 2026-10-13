@@ -20,7 +20,7 @@ class SemanticElements:
     def encryption(self, mode: Literal['X', 'R', 'Q']):
         ...
 
-    @element(parent_tags='column, compositeColumn, virtual_columns', sub_tags='')
+    @element(parent_tags='column, compositeColumn, formulaColumn', sub_tags='')
     def weak_relation(self, to: str, name: str | None = None, inverse: str | None = None,
                       indexed: bool = True, one_one: bool = False, on_delete: str | None = None,
                       on_update: str | None = None, on_duplicate: str | bool | None = None,

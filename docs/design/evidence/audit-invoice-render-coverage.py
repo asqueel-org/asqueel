@@ -117,6 +117,32 @@ def grammar_probes():
     return results
 
 
+def native_verification(expected_tables):
+    # This audit runs in a repository checkout, not in the production package.
+    sys.path.insert(0, str(REPO))
+    from examples.test_invoice_pg import source
+    from asqueel.configuration import build_database
+    from asqueel.projection import to_physical_builder
+    from asqueel import SqlMigrationRenderer
+    db = build_database(source())
+    try:
+        assert set(db.model.tables) == set(expected_tables) - EXCLUDED_NATIVE_TABLES.keys()
+        structure = SqlMigrationRenderer(to_physical_builder(db.model)).render()
+        expected = json.loads((ORACLE / 'physical.json').read_text())
+        del expected['root']['schemas']['sys']['tables']['sys_locked_record']
+        assert structure == expected, 'Native physical projection differs from the scoped independent oracle'
+        return {
+            'independent_physical_oracle_matches': True,
+            'package_tables': {name: len(pkg.tables) for name, pkg in db.model.packages.items()},
+            'physical_columns': sum(not c.is_virtual for t in db.model.tables.values() for c in t.columns.values()),
+            'virtual_columns': sum(c.is_virtual for t in db.model.tables.values() for c in t.columns.values()),
+            'tables': sorted(db.model.tables),
+            'postgresql_gate': 'tests/test_native_invoice_migration.py; run separately',
+        }
+    finally:
+        db.close()
+
+
 def audit(legacy_root):
     scanner = runpy.run_path(str(Path(__file__).with_name('inventory-test-invoice.py')))
     inventory = scanner['inventory'](legacy_root)
@@ -228,9 +254,15 @@ def audit(legacy_root):
                 for name in sorted(OPTION_FAMILIES | {f for t in tables.values() for f in t['families']})}
     native_sources = ['src/asqueel/' + name for name in (
         'elements.py', 'model_elements.py', 'semantic_elements.py', 'option_elements.py',
-        'option_validation.py', 'model_expansion.py', 'model_source.py', 'projection.py', 'builder.py')]
+        'option_validation.py', 'model_expansion.py', 'model_source.py', 'model.py',
+        'validators.py', 'projection.py', 'builder.py')]
+    native_sources += [str(path.relative_to(REPO)) for path in sorted((REPO / 'examples/test_invoice_pg').glob('*.py'))]
+    verification = native_verification(tables)
+    for key, entry in tables.items():
+        if key not in EXCLUDED_NATIVE_TABLES:
+            entry['native_status'] = 'verified; native objects + scoped physical oracle'
     return {
-        'scope': 'Phase 0: checked original sources + unchanged independent legacy capture + native probes; no DB I/O',
+        'scope': 'Original sources + unchanged independent legacy capture + complete native render and physical projection; no DB I/O',
         'legacy_sources_changed': changes, 'legacy_imported_sources_changed': imported_changes,
         'verified_model_source_count': len(manifest['model_sources']),
         'verified_imported_source_count': len(manifest['imported_legacy_sources']),
@@ -245,7 +277,8 @@ def audit(legacy_root):
             pkg: sum(key.startswith(pkg + '.') and key not in EXCLUDED_NATIVE_TABLES for key in tables)
             for pkg in model},
         'system_records_scope': 'excluded; structural divergences recorded in report 52, D-01',
-        'native_complete_corpus_verified': False,
+        'native_complete_corpus_verified': True,
+        'native_verification': verification,
         'families': families, 'tables': dict(sorted(tables.items())),
         'grammar_probes': grammar_probes(),
     }

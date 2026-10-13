@@ -10,6 +10,24 @@ from .contracts import ResolvedModel, UnsupportedFeatureError
 _ACTIONS = {'a': None, 'r': 'RESTRICT', 'c': 'CASCADE', 'n': 'SET NULL', 'd': 'SET DEFAULT'}
 
 
+def _package_storage(dtype, attributes):
+    """Legacy logical types -> storage; never change the resolved column."""
+    dtype = {'X': 'T', 'Z': 'T', 'P': 'T'}.get(dtype, dtype)
+    size = attributes.get('size')
+    if size:
+        if ':' in size:
+            attributes['size'] = '0:' + size.split(':')[1]
+            dtype = 'A'
+        elif ',' not in size:
+            if dtype in ('A', 'T'):
+                dtype = 'C'
+            elif dtype == 'N':
+                attributes['size'] = size + ',0'
+    elif dtype in ('A', 'C'):
+        dtype = 'T'
+    return dtype
+
+
 def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) -> SqlBuilder:
     """Project supported physical semantics, rejecting anything lossy.
 
@@ -65,8 +83,10 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                     ) if metadata.get(k) is not None}
                     if metadata.get('default') is not None and metadata.get('raw_type'):
                         kwargs['sqldefault'] = metadata['default']
+                    dtype = (_package_storage(column.dtype, kwargs)
+                             if table.package_name else column.dtype)
                     column_nodes[(table.key, column.name)] = cols.column(
-                        column.physical_name, dtype=column.dtype, **kwargs)
+                        column.physical_name, dtype=dtype, **kwargs)
                 constraints_node = None
                 constraints = table.attributes.get('constraints', ())
                 for index, constraint in enumerate(constraints):

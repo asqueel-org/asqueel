@@ -347,6 +347,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if node_tag == 'weak_relation':
             return self.set_child(build_where, 'relation', node_value,
                                   foreign_key=False, x_weak=True, **attr)
+        if node_tag == 'relation' and parent is not None and parent.node_tag == 'formulaColumn' and not attr.get('x_weak'):
+            raise ValueError('A scalar virtual column requires weak_relation, never a physical relation')
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
             attr.setdefault('foreign_key', True)
             attr['x_canonical'] = True

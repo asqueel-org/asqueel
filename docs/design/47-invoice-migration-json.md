@@ -1,5 +1,10 @@
 # 47 — JSON completo di test_invoice_pg e verifica migrations
 
+**Aggiornamento successivo:** il producer scripts/export_invoice_migration.py ora
+usa la source nativa e scrive in artifacts/test_invoice_pg/native. Questo
+rapporto resta la verifica storica del bridge; il percorso nativo è verificato
+nel [rapporto 53](53-native-invoice-render-and-migration.md).
+
 **Aggiornamento del 13 ottobre:** questo report attesta il percorso dal legacy
 già espanso. Le successive decisioni grammaticali prevalgono sui riferimenti
 storici a normalize/provider e altre proposte. La

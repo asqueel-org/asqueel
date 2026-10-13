@@ -1,5 +1,9 @@
 # 52 — Fase 0: copertura legacy e differenze prima del render
 
+**Esito successivo:** le fasi 4–6 sono ora verificate su tutti i 74 modelli nativi,
+compreso il JSON dagli oggetti e il gate PostgreSQL: [rapporto 53](53-native-invoice-render-and-migration.md).
+Le note di assenza di certificazione sotto descrivono i checkpoint precedenti.
+
 13 ottobre 2026. **Ricognizione completata sui tre package e sui 75 modelli;
 render non modificato.** D-01 e D-02 sono chiuse dalle esclusioni confermate
 dall'utente: system_records e sys.locked_record fuori perimetro. La copertura
@@ -188,12 +192,13 @@ superata; il supporto generale agli indici rimane nel perimetro.
 
 ## Correzioni necessarie, non nuove scelte di prodotto
 
-**C-01 — Proiezione dei tipi.** Il probe nativo corrente restituisce
+**C-01 — Proiezione dei tipi: corretta nella fase 6.** Il probe iniziale restituiva
 `id: A/22`, `bag: X`, `prefix: A/:20`; l'estrattore legacy normalizza a
 `C/22`, `T`, `A/0:20`. Nel corpus ci sono 91 CHAR(22), oltre ad altre lunghezze
 fisse. X/Z/P vanno proiettati allo storage legacy mantenendo il tipo logico
 negli oggetti; alias money/perc e size numeriche richiedono la stessa verifica.
-Questa normalizzazione oggi è nel bridge, non nella proiezione nativa completa.
+La normalizzazione ora avviene nella proiezione degli oggetti dei package;
+il confronto nativo con l'oracolo fisico è esatto dopo l'esclusione di locked_record.
 Non cambiare colonne native in C/T nella source solo per copiare il JSON:
 rispettare la separazione tipo logico/storage. Fase 6, con controlli già in 2/4.
 
@@ -284,7 +289,7 @@ certificare, inclusa la normalizzazione fisica C-01.
 
 Nella tabella seguente C/V indica colonne fisiche/elementi virtuali legacy,
 incluse le composite. Tutte le righe hanno sorgenti e aspettative verificati
-nell'audit JSON; le 74 incluse restano **da certificare sul percorso nativo**.
+nell'audit JSON; le 74 incluse sono ora **verificate sul percorso nativo** (rapporto 53).
 sys.locked_record resta soltanto come riferimento escluso.
 Le famiglie elencate evidenziano dichiarazioni particolari, non sostituiscono
 l'elenco completo di colonne, virtuali e riferimenti conservato nell'evidenza.

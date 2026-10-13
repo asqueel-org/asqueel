@@ -114,6 +114,7 @@ class SqlModelValidator:
                     self._error(path, f'unsupported attribute {key!r} on <{node.node_tag}>')
                     continue
                 if (key == _META_KEY or key in declared
+                        or key in (node.attr.get(_META_KEY) or {}).get('type_defaults', ())
                         or (info.get('accepts_var_keyword') and '_' in key and not key.startswith('_'))
                         or node.node_tag == 'validation'
                         or (node.node_tag == 'virtualRelation'
@@ -329,7 +330,9 @@ class SqlModelValidator:
                     "foreign_key is allowed only on a relation under a "
                     "column or a compositeColumn",
                 )
-            return
+                return
+            if owner is None or owner.node_tag != 'formulaColumn' or not node.get_attr('x_weak'):
+                return
         if owner.node_tag == "compositeColumn":
             local = self._names(owner.get_attr("columns"))
         else:

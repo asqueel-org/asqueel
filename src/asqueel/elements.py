@@ -284,7 +284,7 @@ class TableElements:
                     dtype: str | None = None,
                     name_long: str | None = None,
                     group: str | None = None, name_short: str | None = None,
-                    comment: str | None = None, **extra):
+                    comment: str | None = None, static: bool = False, **extra):
         """A virtual column projecting a related column. Never physical.
 
         An alias reads through a relation that already exists, so it never
@@ -295,10 +295,11 @@ class TableElements:
             relation_path: ``@relation.column`` path to the source column.
             name_long: semantic; human label.
             group: semantic; field-group key.
+            static: semantic; retain the legacy static declaration without executing it.
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def formulaColumn(self, name: str, sql_formula: str | bool | None = None,
                       expression: str | None = None, parameters: dict | None = None,
                       subqueries: dict | None = None, handler: str | None = None, static: bool = False,
@@ -421,7 +422,7 @@ class TableElements:
 class ColumnElements:
     """Column-level grammar: the relation."""
 
-    @element(parent_tags="column, compositeColumn", sub_tags="")
+    @element(parent_tags="column, compositeColumn, formulaColumn", sub_tags="")
     def relation(self, to: str, foreign_key: bool = False,
                  on_delete: FK_ACTION | str | None = None,
                  on_update: FK_ACTION | str | None = None,

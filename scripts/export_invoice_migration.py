@@ -1,29 +1,34 @@
-"""Build the complete migration artifact from portable expanded legacy source.
+"""Export native test_invoice_pg objects and migration JSON, without GenroPy.
 
-Run with the project's environment: python scripts/export_invoice_migration.py.
-The independent physical oracle is used by tests only, never by this producer.
+Run from the repository with its dependencies installed:
+    PYTHONPATH=.:src:../asqueel-migration/src python scripts/export_invoice_migration.py
+
+The independent legacy snapshots are test expectations only. Historical bridge
+artifacts remain in artifacts/test_invoice_pg; native outputs are in native/.
 """
 from pathlib import Path
 import json
 
 from asqueel import SqlMigrationRenderer
-from asqueel.legacy_source import from_expanded_legacy_xml
-from asqueel.model import resolve_model
+from asqueel.configuration import build_database
 from asqueel.model_codec import model_to_json
+from asqueel.projection import to_physical_builder
+from examples.test_invoice_pg import source
 
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    source = root / 'tests/oracles/test_invoice_pg'
-    profile = json.loads((source / 'adapter-profile.json').read_text())
-    builder = from_expanded_legacy_xml((source / 'source.xml').read_text(), **profile)
-    model = resolve_model(builder)
-    structure = SqlMigrationRenderer(builder).render()
-    destination = root / 'artifacts/test_invoice_pg'
-    destination.mkdir(parents=True, exist_ok=True)
-    (destination / 'migration.json').write_text(json.dumps(structure, ensure_ascii=False, indent=2) + '\n')
-    (destination / 'model.json').write_text(model_to_json(model))
-    print(f'{len(model.tables)} tables; migration.json and model.json written to {destination}')
+    db = build_database(source())
+    try:
+        # Projection reads the completed objects. It never renders source again.
+        structure = SqlMigrationRenderer(to_physical_builder(db.model)).render()
+        destination = root / 'artifacts/test_invoice_pg/native'
+        destination.mkdir(parents=True, exist_ok=True)
+        (destination / 'migration.json').write_text(json.dumps(structure, ensure_ascii=False, indent=2) + '\n')
+        (destination / 'model.json').write_text(model_to_json(db.model))
+        print(f'{len(db.model.tables)} native tables; migration.json and model.json written to {destination}')
+    finally:
+        db.close()
 
 
 if __name__ == '__main__':

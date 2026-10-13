@@ -81,10 +81,14 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             subqueries = {}
             relation_path = None
             if node.node_tag == 'aliasColumn':
+                # An omitted alias attribute inherits the target; a signature
+                # default must not override an explicit static target value.
+                for key in (node.attr.get('_meta') or {}).get('signature_defaults', ()):
+                    metadata.pop(key, None)
                 relation_path = metadata.get('relation_path')
                 if not isinstance(relation_path, str) or not relation_path.strip():
                     raise ValueError(f'{schema}.{name}.{colname}: alias requires a relation_path')
-            elif package and node.node_tag != 'column' and (database.get_attr('x_legacy_expanded') or node.node_tag != 'formulaColumn' or metadata.get('handler') or metadata.get('parameters') or metadata.get('subqueries') or metadata.get('sql_formula') is True or metadata.get('x_requires_compilation')):
+            elif package and node.node_tag != 'column':
                 # Formulas and method references remain declarations, never executed here.
                 metadata['x_requires_compilation'] = node.node_tag
             elif node.node_tag != 'column':

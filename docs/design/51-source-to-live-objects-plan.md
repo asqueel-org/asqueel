@@ -6,7 +6,8 @@ la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
 La baseline salvata del corpus usa già use_timezone=True (report 45).
 
 Aggiornato il **13 ottobre 2026**, dopo il checkpoint grammaticale
-`61bbbb5` e la fase 1 `43663f8`. **Fasi 0–3 completate; prossima verifica: relazioni e finalizzazione (4).**
+`61bbbb5` e la fase 1 `43663f8`. **Fasi 0–6 completate nel perimetro strutturale concordato.**
+Esito finale e artefatti: [rapporto 53](53-native-invoice-render-and-migration.md).
 La richiesta corrente è organizzare la costruzione degli oggetti e il JSON
 migrations. Questo documento sostituisce la precedente sequenza A–E con fasi
 verificabili, senza aprire il lavoro sul compilatore o introdurre nuove firme.
@@ -14,7 +15,7 @@ Prevalgono le decisioni 40, i rinvii 41, la grammatica 42 e le correzioni 49–5
 
 ## Stato verificato e risultato da raggiungere
 
-- La suite dopo le fasi 2–3 conta **1124 test superati e 1 saltato**. Ruff e mypy
+- La suite dopo le fasi 4–6 conta **1278 test superati e 1 saltato**. Ruff e mypy
   passano nell'ambiente di verifica. Il mypy dell'hook locale usa un ambiente
   diverso e segnala dipendenze/firme non allineate: verificare con l'ambiente
   riproducibile dei test, senza considerare ignorabili futuri errori di tipo.
@@ -23,8 +24,8 @@ Prevalgono le decisioni 40, i rinvii 41, la grammatica 42 e le correzioni 49–5
 - `expand_options` espande le options strutturali concordate, incluse quelle
   con contributi fra tabelle, e conserva le altre nel modello. System_records
   e release attive restano rifiutate perché rinviate; diagnostics è rimossa.
-- Il JSON di sys/adm/invc è verificato attraverso il ponte dalla source legacy
-  espansa. L'esempio nativo corrente contiene soltanto una selezione di tabelle.
+- Il JSON nativo di sys/adm/invc è verificato su tutti i 74 modelli inclusi,
+  dagli oggetti e senza il ponte legacy. L'esempio parziale resta separato.
 - Il traguardo aggiornato è una source nativa di **74 modelli** (sys 16, adm 40,
   invc 18; sys.locked_record esclusa), senza usare come ingresso
   XML espanso o snapshot JSON, da cui costruire oggetti completi e proiettare il
@@ -523,11 +524,13 @@ le verifiche già disponibili in test_release_* e gli oracoli test_invoice_pg.
 - [x] Fase 1 — Percorso di render e oggetti esistenti.
 - [x] Fase 2 — Espansioni locali.
 - [x] Fase 3 — Espansioni fra tabelle.
-- [ ] Fase 4 — Relazioni e finalizzazione.
-- [ ] Fase 5 — Source nativa dei 74 modelli inclusi.
-- [ ] Fase 6 — JSON dagli oggetti e verifica migrations.
+- [x] Fase 4 — Relazioni e finalizzazione.
+- [x] Fase 5 — Source nativa dei 74 modelli inclusi.
+- [x] Fase 6 — JSON dagli oggetti e verifica migrations.
 
 La fase 0 è conclusa come ricognizione; D-01/D-02 sono divergenze concordate.
-Le fasi 1–3 sono completate nel perimetro concordato. Restano le verifiche di
-finalizzazione (4), il corpus nativo completo (5) e il JSON dagli oggetti (6).
-P2 e la release non sono ancora chiuse.
+Le fasi 1–6 sono completate nel perimetro concordato: source nativa di 74
+modelli, oggetti, confronto fisico indipendente e gate PostgreSQL con seconda
+diff vuota. Le fasi 4–6 sono consegnate insieme nell'incremento richiesto
+dall'utente; dettagli nel rapporto 53. Non è una certificazione del compilatore,
+delle scritture applicative o della release pubblica.

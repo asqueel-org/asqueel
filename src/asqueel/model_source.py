@@ -105,13 +105,14 @@ def resolve_source_types(builder):
     for (namespace, table_name), entry in catalog.tables.items():
         pkg = catalog.packages.get(namespace)
         aliases = options(pkg) if pkg is not None else {}
-        for name, column in entry['columns'].items():
+        for name, column in entry['family'].items():
             dtype = column.get_attr('dtype')
             if dtype is not None and dtype not in known:
                 alias = aliases.get('type_' + dtype)
                 if alias is None:
                     raise ValueError(f'{namespace}.{table_name}.{name}: unknown dtype {dtype!r}')
                 defaults = {key: value for key, value in alias.attributes.items() if key != 'name'}
+                column.attr.setdefault('_meta', {})['type_defaults'] = list(defaults)
                 column.attr.update({key: value for key, value in defaults.items() if key not in column.attr})
                 column.attr['dtype'] = defaults['dtype']
 
@@ -139,6 +140,13 @@ def resolve_source_references(builder):
             if len(target) == 2 and target[0] not in catalog.packages and (namespace, target[0]) in catalog.tables:
                 attrs['to'] = namespace + '.' + attrs['to']
             if attrs.get('x_canonical'):
+                column = relation.parent_node
+                group = column.get_attr('group')
+                if attrs.get('one_group') is None and group and group != '_':
+                    # DbModelSrc.relation moves the FK display group to the
+                    # one-side relation unless one_group was supplied.
+                    attrs['one_group'] = group
+                    column.attr.update(group='_', one_group=group)
                 for action in ('on_delete', 'on_update'):
                     value = attrs.get(action)
                     if value is not None and value not in ('CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT'):
@@ -181,11 +189,41 @@ def resolve_source_references(builder):
                 if remote.get_attr('size') is not None and owner.get_attr('size') is None:
                     owner.attr['size'] = remote.get_attr('size')
                 changed = True
-            if relation.get_attr('x_weak') and relation.get_attr('indexed', True):
-                owner.attr.setdefault('indexed', True)
-                remote.attr.setdefault('indexed', True)
         if not changed:
             break
+    # Weak relations have no FK but the legacy model indexes their physical
+    # ends. Do this after inference, including composite owners, once only.
+    for _, relation in catalog.relations:
+        if not relation.get_attr('x_weak') or not relation.get_attr('indexed', True):
+            continue
+        owner = relation.parent_node
+        if owner.node_tag not in ('column', 'compositeColumn'):
+            continue  # A virtual scalar must not become a physical index.
+        parts = relation.get_attr('to').split('.')
+        target = catalog.tables.get(tuple(parts[:2]))
+        if target is None:
+            continue
+        names = parts[2:] or split_names(target['node'].get_attr('pkey'))
+        remote = target['family'].get(names[0]) if len(names) == 1 else None
+        for column in (owner, remote):
+            if column is None:
+                continue
+            if column.node_tag == 'compositeColumn':
+                if not column.get_attr('unique'):
+                    table = column.parent_node.parent_node
+                    members = split_names(column.get_attr('columns'))
+                    existing = [idx for idx in table.value.get_item('indexes') or ()
+                                if split_names(idx.get_attr('columns')) == members]
+                    if existing:
+                        if any(idx.get_attr('where') or idx.get_attr('method') not in (None, 'btree')
+                               for idx in existing):
+                            raise ValueError(f'{table.label}: partial/non-btree index cannot cover weak relation {members}')
+                    else:
+                        table.index(columns=column.get_attr('columns'))
+            elif column.node_tag == 'column':
+                defaults = (column.attr.get('_meta') or {}).get('signature_defaults', ())
+                if 'indexed' not in column.attr or 'indexed' in defaults:
+                    column.attr['indexed'] = True
 
 
 def require_write_capabilities(table):

@@ -247,13 +247,14 @@ carries one of its own.
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
+| static | `bool` | `False` | semantic | retain the legacy static declaration without executing it. |
 
 ### `formulaColumn`
 
 A virtual column defined by SQL. Never physical.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
 - Extra keys: accepted (flat namespace prefixes)
 
