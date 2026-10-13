@@ -1,5 +1,11 @@
 # Audit delle funzionalità del modello: dichiarazione ed esecuzione
 
+**Rettifica grammaticale del 13 ottobre 2026:** i riferimenti storici qui sotto
+al contenitore `x_ui` non descrivono la grammatica corrente. Gli attributi
+sono piatti, con eventuale prefisso; non si raggruppano in `metadata` o `x_ui`.
+Vedere il documento 42 e l'esito della fase 1 nel documento 51.
+
+
 ## Conclusione
 
 `aliasColumn` è un requisito fondamentale mancante, non un dettaglio cosmetico:

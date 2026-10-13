@@ -13,14 +13,14 @@ class Base(SqlDatabaseConfig):
     def main(self, root):
         table = root.db('invoice').packages().package('invc').table('customer', name_long='Cliente')
         table.options().sys_fields(id={'type': 'uuid', 'indexed': True}, draft=True)
-        table.options().metadata('ui', {'color': 'blue', 'position': 2})
+        table.attr.update(foo_bar_color='blue', foo_bar_position=2)
 
 
 class Overlay(SqlDatabaseConfig):
     def main(self, root):
         table = root.db('invoice').packages().package('invc').table('customer', name_long=None)
         table.options().sys_fields(id={'name_short': 'ID'})
-        table.options().metadata('ui', {'color': 'green'})
+        table.attr.update(foo_bar_color='green')
 
 
 PATH = 'packages.invc.tables.customer'
@@ -36,7 +36,8 @@ def test_owned_layers_merge_dictionary_keys_and_preserve_explicit_none():
     assert config(PATH + '.options.sys_fields.id') == {
         'type': 'uuid', 'indexed': True, 'name_short': 'ID'}
     assert config(PATH + '.options.sys_fields.draft') is True
-    assert config(PATH + '.options.metadata_ui.values') == {'color': 'green', 'position': 2}
+    assert config(PATH + '.foo_bar_color') == 'green'
+    assert config(PATH + '.foo_bar_position') == 2
     assert base.source['db.' + PATH].get_attr('name_long') == 'Cliente'
     assert 'draft' not in overlay.source['db.' + PATH + '.options.sys_fields'].attr
 
@@ -51,7 +52,7 @@ def test_reset_in_a_later_recipe_erases_only_its_option_before_defaults():
     config = _owned_handler(Reset, [Base, Overlay])
     assert config(PATH + '.options.sys_fields.id') is False
     assert config(PATH + '.options.sys_fields.draft') is False
-    assert config(PATH + '.options.metadata_ui.values')['color'] == 'green'
+    assert config(PATH + '.foo_bar_color') == 'green'
 
 
 def test_reset_without_reactivation_keeps_the_option_absent():
@@ -124,15 +125,14 @@ def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
     assert declarations(mounted) == declarations(standalone)
 
 
-def test_metadata_merges_namespaces_then_keys_without_arbitrary_recursion():
+def test_flat_namespaces_compose_by_attribute():
     source = SqlDatabaseConfig()
-    pkg = source.source.db('d').packages().package('p', metadata={
-        'ui': {'color': 'blue', 'position': 2, 'layout': {'width': 10, 'height': 20}}})
+    pkg = source.source.db('d').packages().package(
+        'p', foo_bar_color='blue', foo_bar_position=2)
     with source.contribution('later'):
-        source.source['db.packages'].package('p', metadata={
-            'ui': {'color': 'green', 'layout': {'width': 30}}})
-    assert pkg.get_attr('metadata') == {'ui': {
-        'color': 'green', 'position': 2, 'layout': {'width': 30}}}
+        source.source['db.packages'].package('p', foo_bar_color='green')
+    assert pkg.get_attr('foo_bar_color') == 'green'
+    assert pkg.get_attr('foo_bar_position') == 2
 
 
 def test_field_disable_and_reenable_preserves_configuration_until_reset():
@@ -172,7 +172,7 @@ def test_logical_package_names_are_not_paths(name):
 def test_common_metadata_is_declared_on_db_package_table_and_column():
     builder = SqlDatabaseConfig()
     meta = {'name_long': 'Long', 'name_short': 'Short', 'comment': 'Comment',
-            'x_ui': {'color': 'green'}, 'metadata': {'app': {'section': 'invoices'}}}
+            'foo_bar_color': 'green', 'app_section': 'invoices'}
     db = builder.source.db('d', **meta)
     pkg = db.packages().package('p', **meta)
     pkg.table('t', **meta).column('id', dtype='L', **meta)

@@ -12,7 +12,6 @@ from .option_elements import TABLE_OPTIONS
 
 
 OPTION_LEVELS = {
-    'metadata': {'db', 'connection', 'schema', 'package', 'table'},
     'requires': {'package'},
     'type': {'package'},
     'sys_fields': {'table'},
@@ -21,15 +20,15 @@ OPTION_LEVELS = {
 
 OPTION_LEVELS.update({tag: {'table'} for tag in TABLE_OPTIONS})
 
-SYS_FIELD_KEYS = {'name_long', 'name_short', 'comment', 'group', 'x_ui', 'metadata', 'indexed'}
-SYS_FIELDS = ('id', 'ins', 'upd', 'user_ins', 'user_upd', 'ldel', 'draft')
+SYS_FIELD_KEYS = {'name_long', 'name_short', 'comment', 'group', 'indexed'}
+SYS_FIELDS = ('id', 'ins', 'upd', 'user_ins', 'user_upd', 'ldel', 'draft', 'syscode')
 
 
 class ModelElements:
     @element(parent_tags='table', sub_tags='')
     def colgroup(self, name: str, name_long: str | None = None,
                  name_short: str | None = None, comment: str | None = None,
-                 x_ui: dict | None = None, metadata: dict | None = None, **col_defaults):
+                 **col_defaults):
         """Ordered group handle; col_* defaults apply to declarations made through it."""
         ...
 
@@ -41,8 +40,7 @@ class ModelElements:
     @element(parent_tags='packages', sub_tags='tables[:1], options[:1]')
     def package(self, name: str, sqlschema: str | None = None,
                 sqlprefix: bool | str = True, name_long: str | None = None,
-                name_short: str | None = None, comment: str | None = None,
-                x_ui: dict | None = None, metadata: dict | None = None):
+                name_short: str | None = None, comment: str | None = None, **extra):
         """Logical table namespace with an explicit physical placement.
 
         Args:
@@ -53,13 +51,11 @@ class ModelElements:
             name_long: semantic; human label.
             name_short: semantic; short label.
             comment: semantic; package description.
-            x_ui: semantic; presentation metadata.
-            metadata: semantic; namespaced metadata.
         """
         ...
 
     @element(parent_tags='db, connection, schema, package, table',
-             sub_tags='metadata, requires[:1], type, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
+             sub_tags='requires[:1], type, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
              node_label='options')
     def options(self):
         """Singleton section of typed functions, validated for its owning level."""
@@ -78,11 +74,6 @@ class ModelElements:
         """Driver options, checked against the connection's configured dialect."""
         ...
 
-    @element(parent_tags='options', sub_tags='')
-    def metadata(self, namespace: str, values: dict):
-        """Namespaced descriptive values; does not introduce behavior."""
-        ...
-
     @element(parent_tags='options', sub_tags='', node_label='requires')
     def requires(self, packages: str | list[str] | tuple[str, ...]):
         """Names of packages that must be present when resolving the model."""
@@ -90,8 +81,7 @@ class ModelElements:
 
     @element(parent_tags='options', sub_tags='')
     def type(self, name: str, dtype: DTYPE, size: str | None = None,
-             name_long: str | None = None, name_short: str | None = None,
-             x_ui: dict | None = None, metadata: dict | None = None):
+             name_long: str | None = None, name_short: str | None = None, **extra):
         """Package-local column type and its explicit presentation defaults."""
         ...
 
@@ -100,6 +90,11 @@ class ModelElements:
                    upd: bool | dict = True, user_ins: bool | dict = True,
                    user_upd: bool | dict = True, ldel: bool | dict = True,
                    draft: bool | dict = False,
-                   group: str = 'zzz', group_name: str = 'System', enabled: bool = True):
-        """Describe generated system fields without generating fields or values yet."""
+                   group: str = 'zzz', group_name: str = 'System', enabled: bool = True,
+                   syscode: bool = False):
+        """Describe system fields; expansion happens only during rendering.
+
+        syscode opts into __syscode, A size :20, indexed and unique.
+        It adds no system-record behavior, virtual columns or generated values.
+        """
         ...

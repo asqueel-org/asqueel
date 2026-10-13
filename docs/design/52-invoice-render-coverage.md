@@ -1,8 +1,16 @@
 # 52 — Fase 0: copertura legacy e differenze prima del render
 
 13 ottobre 2026. **Ricognizione completata sui tre package e sui 75 modelli;
-render non modificato.** Sono aperte due decisioni, D-01 e D-02. La copertura
+render non modificato.** D-01 e D-02 sono chiuse dalle esclusioni confermate
+dall'utente: system_records e sys.locked_record fuori perimetro. La copertura
 qui attestata è del censimento e delle aspettative, non del porting nativo.
+
+Il riferimento legacy resta di 75 tabelle. Il corpus nativo previsto è di
+**74 tabelle: sys 16, adm 40, invc 18**. L'obiettivo è la vicinanza al legacy
+nel perimetro concordato, con divergenze esplicite, non il suo rimpiazzo
+integrale. **Incremento successivo approvato:** `sys_fields(syscode=True)` è
+implementata per la sola colonna indicizzata e UNIQUE; system_records resta
+escluso. Le osservazioni sul render invariato descrivono la ricognizione iniziale.
 
 Questo rapporto aggiorna il [censimento 43](43-test-invoice-model-coverage.md)
 secondo le decisioni successive 40/41/49/50 e la fase 0 del
@@ -63,6 +71,7 @@ generate dalle altre options.
 | Dichiarazione nativa | Evidenza / fixture | Effetto atteso e dipendenze | Stato / fase |
 | --- | --- | --- | --- |
 | `sys_fields(...)` | 67 tabelle: sys 13, adm 36, invc 18; `GnrDboTable.sysFields` | PK se richiesta; id, timestamp, utente, logicalDeletionField, lastTS, draftField, gruppo e metadati; `__record_pointer` anche con id=False; quattro virtuali di protezione/invalidità | Parziale; completare in 2. Preservare metodi come dati, senza invocarli. R-02/R-03 separati |
+| `sys_fields(syscode=True)` | Campo __syscode legacy di adm.htag/language/xgroup; nuova attivazione esplicita concordata | Solo __syscode A :20, indicizzata e UNIQUE; flag False per default | Implementata con prove in test_syscode.py; nessun system_records |
 | `hierarchical(columns=...)` | sys.widget, adm.htag/menu, invc.product_group/product_type | parent_id + FK differita/inversa `_children`, hierarchical_pkey UNIQUE, `_parent_h_pkey`, coppie hierarchical_* / _parent_h_*, child_count, hlevel, attributi ordine/broadcast | Da espandere, 2 e 4. Attenzione a product_group: gerarchia su `code,_row_count`, contatore dichiarato nello stesso sysFields |
 | `auto_counter(scope=...)` | 10 tabelle, inclusa AttachmentTable; invoice_row scope invoice_id | `_row_count` L; nelle quattro gerarchie con counter anche `_h_count`, `_parent_h_count`, `_h_sortcol`; conservare scope/order_by | Da espandere in 2. Nessuna assegnazione del contatore |
 | `dynamic_fields(templates=...)` | sys.widget, invc.product_type | df_fields X, df_fbcolumns L, df_custom_templates X con templates, df_colswidth; nessuna compilazione dei campi dinamici | Da espandere in 2 |
@@ -76,7 +85,7 @@ generate dalle altre options.
 | `broadcast(columns=...)`, `archive()` | adm.userobject: objtype e archivable=True | Conservare dati; broadcast parent_id delle gerarchie è invece prodotto dalla loro espansione | Solo dati; nessun evento |
 | `enabled_when(preference=...)` | adm.connection e served_page: adm.dev.connection_log_enabled | Conservare checkpref | Solo dati; non eliminare le tabelle durante il render |
 | `numbering('inv_number', parameters=...)` | invc.invoice.counter_inv_number | Conservare il dict della regola; non invocare il metodo durante il render né allocare numeri | Solo dati; fase 5 trascrive la dichiarazione originale |
-| `system_records(...)` | adm.htag esplicita sysrecords=True; language e xgroup hanno sysRecord_* | Genererebbe __syscode UNIQUE e due virtuali per tabella | **Rinviata R-02; D-01 aperta**. Firma records/masterfield/tag non approvata |
+| `system_records(...)` | adm.htag esplicita sysrecords=True; language e xgroup hanno sysRecord_* | Genererebbe __syscode UNIQUE e due virtuali per tabella | **Fuori perimetro R-02; divergenza D-01 accettata**. Firma records/masterfield/tag non approvata |
 | `release(...)` | Nessun _release_* né __release nel corpus | Il legacy genera __release L quando rileva i metodi | R-03; nessuno scarto nel corpus. Firma handlers non approvata |
 | `full_update()` | Nessun impiego nel corpus; sysFields full_upd | __full_mod_ts DHZ indicizzato | Evidenza nel helper, non copertura del corpus; fixture minima in 2 |
 | `protection(...)` | Nessun useProtectionTag nel corpus; sysFields_protectionTag | __protection_tag e __protected_by_tag. Distinti dai quattro virtuali di base, presenti sulle 67 tabelle | Variante da verificare in 2; `rules` non giustificato dal corpus |
@@ -99,7 +108,7 @@ diventano requisiti impliciti dei 75 modelli.
 | pkey_columns / pkey_columns_joiner | Attributi di tabella nei sei casi censiti, incluso `$domain,$key` di shorturl | Non calcolare la chiave; non convertire in PK SQL multicolonna |
 | CompositeColumn unique / relazione composite | Due composite price_year/price_year_note, UNIQUE su year,product_id e FK ordinata | Test release_model_semantics + oracolo fisico |
 | relation mode=foreignkey, relazione senza mode, relazione su formula | FK fisica oppure relazione debole; conservare azioni applicative, gruppi, one_one e inverse ordinarie | Collegamenti dopo espansioni; non inferire UNIQUE da one_one. C-02/C-03 |
-| index('lock_table,lock_pkey', unique=True) | Indice unico composto sulla tabella sys.locked_record | **D-02**: dichiarazione reale assente nell'oracolo JSON |
+| index('lock_table,lock_pkey', unique=True) | Indice unico composto sulla tabella sys.locked_record | **D-02**: intera tabella fuori perimetro nativo; evidenza storica conservata |
 | joinColumn + cnd | VirtualRelation con table/condition/var_* e aliasColumn della chiave target | invoice.discount_tier_id; nessuna colonna/FK fisica. Escludere inverse/one_one virtuali come deciso |
 | aliasTable customer | virtualRelation('customer', relation='@invoice_id.@customer_id') | invoice_row; firma aliasTable esclusa, funzione rappresentata dalla virtualRelation |
 | aliasColumn, static, dtype | Conservare percorso e override; risolvere identità dopo le relazioni | 13 modelli espliciti; static accettato dalla grammatica attuale |
@@ -128,7 +137,7 @@ invoice.virtualRelation(
 invoice.aliasColumn('discount_tier_id', relation_path='@discount_tier_id.id')
 ```
 
-## Differenze da decidere
+## Divergenze concordate e proposta residua
 
 ### D-01 — Rinvio di system_records contro completezza del corpus
 
@@ -145,30 +154,37 @@ produce questa conseguenza precisa:
 - **adm.install_checklist.__syscode resta:** dichiarazione esplicita, PK,
   nessun metodo sysRecord_* e nessuna delle due virtuali di sistema.
 
-Non possono valere contemporaneamente «nessuna espansione system_records» e
-«modello/JSON integralmente uguali al legacy». **Proposta da approvare:**
-riammettere soltanto l'espansione strutturale necessaria, lasciando rinviate
-creazione/gestione dei record e firma operativa. La dichiarazione minima va
-riesaminata col legacy; non considerare approvata `records/masterfield/tag`.
-In alternativa mantenere il rinvio e approvare esplicitamente una copertura
-ridotta e la sorte della formula. Non copiare i campi espansi nella source
-per aggirare il rinvio. Nessuna delle due alternative è stata applicata.
+**Decisione dell'utente:** system_records resta fuori perimetro, anche per
+l'espansione strutturale. Si valuterà in futuro se reintrodurre il concetto;
+la precedente proposta di riaprirlo per ottenere parità non è accolta.
+Le differenze sopra restano nel registro, senza modificare l'oracolo o
+reintrodurre funzionalità solo per far coincidere il JSON.
 
-Con il rinvio invariato le sole tre colonne mancanti porterebbero da 796 a 793:
-è l'impatto isolato, **non** il conteggio certificato di un nuovo JSON nativo.
+**Alternativa approvata dall'utente e implementata:**
+`sys_fields(syscode=True)` dichiara soltanto `__syscode` A size `:20`,
+indicizzata e **UNIQUE come nel legacy**. `syscode=False` è il default.
+Non genera le due virtuali di system_records, non rileva sysRecord_*,
+non crea record e non assegna codici.
 
-### D-02 — Indice dichiarato dal legacy ma omesso dal suo estrattore
+Nel port di adm.htag, adm.language e adm.xgroup usare questa attivazione
+esplicita per conservare il campo e la UNIQUE; non rilevare automaticamente
+i metodi legacy. La dipendenza di authorization_tag può così essere soddisfatta
+senza cambiare la formula o reintrodurre system_records. Restano escluse le
+sei virtuali di sistema e tutta la gestione dei record. Il precedente scarto
+ipotizzato di tre colonne non si applica quando syscode è attivata; la source
+nativa completa e i relativi conteggi restano da verificare nelle fasi 5–6.
+
+### D-02 — sys.locked_record fuori perimetro
 
 `sys/model/locked_record.py:15` dichiara un indice unico su
 `lock_table,lock_pkey`. Esiste nel modello catturato come
 `locked_record_lock_table_lock_pkey_key`, ma `OrmExtractor` non lo esporta.
 
-La grammatica nativa proietta gli indici espliciti. **Proposta da approvare:**
-mantenere l'indice come dichiarato dal legacy e registrare **un indice in più**
-rispetto all'oracolo fisico, senza sovrascrivere l'oracolo. Una prova dedicata
-attesterà l'eccezione. Chiedere identità JSON assoluta implicherebbe invece
-replicare l'omissione; non verrà fatto implicitamente. Il report 47 documentava
-già il diverso profilo: qui si rende esplicita la scelta per il nuovo corpus.
+**Decisione dell'utente:** sys.locked_record è fuori perimetro, non soltanto
+il suo indice. La tabella resta nel censimento/oracolo legacy, ma non entra
+nella source nativa né nel relativo JSON migrations. Il corpus nativo passa
+quindi a 74 tabelle. La proposta di aggiungere quell'indice al nuovo JSON è
+superata; il supporto generale agli indici rimane nel perimetro.
 
 ## Correzioni necessarie, non nuove scelte di prodotto
 
@@ -250,11 +266,20 @@ Nessuna operazione sul DB applicativo test_invoice_pg. Il gate PostgreSQL del
 percorso nativo rimane in fase 6: questi test non lo certificano. Nessuna
 modifica a `src/`, alle firme o ai resolver.
 
+**Verifiche dell'incremento successivo syscode:** aggiunte firma booleana ed
+espansione circoscritta della colonna, con 11 casi in `tests/test_syscode.py`:
+default/disattivazione, source invariata, render ripetibile, UNIQUE nel JSON,
+assenza di comportamenti system_records, PK esplicita, conflitti e tipi del
+flag. Suite completa: **1078 superati, 1 saltato**; Ruff e mypy nell'ambiente
+di audit superati. Grammatica generata e hash dell'audit aggiornati; nessun
+oracolo legacy modificato.
+
 ## Registro dei 75 modelli
 
 Nella tabella seguente C/V indica colonne fisiche/elementi virtuali legacy,
 incluse le composite. Tutte le righe hanno sorgenti e aspettative verificati
-nell'audit JSON; tutte restano **da certificare sul percorso nativo completo**.
+nell'audit JSON; le 74 incluse restano **da certificare sul percorso nativo**.
+sys.locked_record resta soltanto come riferimento escluso.
 Le famiglie elencate evidenziano dichiarazioni particolari, non sostituiscono
 l'elenco completo di colonne, virtuali e riferimenti conservato nell'evidenza.
 
@@ -326,7 +351,7 @@ l'elenco completo di colonne, virtuali e riferimenti conservato nell'evidenza.
 | sys.external_token | 13/1 | python_column |
 | sys.external_token_use | 4/0 | base / metadati |
 | sys.externalcall_log | 10/5 | base / metadati |
-| sys.locked_record | 7/0 | indexes; D-02 |
+| sys.locked_record | 7/0 | Esclusa dal corpus nativo; riferimento legacy, D-02 |
 | sys.service | 11/5 | pkey_columns |
 | sys.shared_object | 9/5 | base / metadati |
 | sys.shorturl | 12/5 | pkey_columns |

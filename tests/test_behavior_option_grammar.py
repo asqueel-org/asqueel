@@ -174,7 +174,7 @@ def test_removed_declarations_are_not_in_the_grammar(tmp_path):
 def test_old_source_nodes_cannot_silently_survive_composition(name):
     b, db, _ = source()
     opts = db.options()
-    opts.metadata('test', {})
+    opts.value = type(b.source)(builder=b)
     opts.value.set_item(name, None, node_tag=name)
     with pytest.raises(ValueError, match='removed'):
         b.validate_source()

@@ -70,7 +70,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         **dict.fromkeys(_name_label_tags | {"db"}, "name"),
         "relation": "to",
         'type': 'name',
-        'metadata': 'namespace', 'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
+        'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
         'connection': 'name', 'weak_relation': 'to', 'subtable': 'name', 'virtualRelation': 'name',
         'hierarchical': 'columns',
         'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
@@ -104,7 +104,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     def __getattr__(self, name):
         handler = super().__getattr__(name)
         fields = {
-            'metadata': ('namespace', 'values'),
             'column': ('name', 'dtype'), 'formulaColumn': ('name', 'sql_formula'),
             'aliasColumn': ('name', 'relation_path'), 'subQueryColumn': ('name', 'query'),
             'compositeColumn': ('name', 'columns'),
@@ -153,6 +152,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             self._contribution = previous
 
     def _compose_attributes(self, node, attributes):
+        validation_overrides = self._validation_overrides(node, attributes)
         result = deepcopy(dict(node.attr))
         origins = dict(self._attribute_origins)
         path = self._node_path(node)
@@ -196,8 +196,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                     continue
                 if value is False and isinstance(old, dict):
                     disabled[key] = deepcopy(old)
-            depth = (2 if key == 'metadata' else
-                     1 if key in ('x_ui', 'values', 'records', 'handlers', 'parameters', 'templates') or
+            depth = (1 if key in ('records', 'handlers', 'parameters', 'templates') or
                      (node.node_tag == 'sys_fields' and key in SYS_FIELDS) else 0)
             assign(result, key, value, (key,), depth)
         if not disabled:
@@ -207,7 +206,33 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         node.attr.clear()
         node.attr.update(result)
         self._attribute_origins = origins
+        for other, key in validation_overrides:
+            other.attr.pop(key, None)
         return node
+
+    def _validation_overrides(self, node, attributes):
+        """The two existing validation spellings share contribution rules."""
+        if node.node_tag == 'column':
+            other = node.value.get_node('validation') if node.value is not None else None
+            incoming = {key[9:]: value for key, value in attributes.items()
+                        if key.startswith('validate_')}
+        elif node.node_tag == 'validation':
+            other = node.parent_node
+            incoming = {f'validate_{key}': value for key, value in attributes.items() if key != '_meta'}
+        else:
+            return []
+        if other is None:
+            return []
+        overridden = []
+        for key, value in incoming.items():
+            if key not in other.attr:
+                continue
+            origin = self._attribute_origins.get((self._node_path(other), key), 'main')
+            if other.attr[key] != value and origin == self._contribution:
+                raise ValueError(f'{node.fullpath}: conflicting validation {key!r} '
+                                 f'in contribution {self._contribution!r}')
+            overridden.append((other, key))
+        return overridden
 
     @staticmethod
     def _package_ancestor(node):
@@ -247,6 +272,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError('sys_fields.timestamp_type removed: system timestamps use DHZ')
             for field in SYS_FIELDS:
                 value = attributes.get(field, True)
+                if field == 'syscode' and not isinstance(value, bool):
+                    raise ValueError('sys_fields.syscode: expected bool')
                 if not isinstance(value, (dict, bool)):
                     raise ValueError(f'sys_fields.{field}: expected bool or dict')
                 if isinstance(value, dict):
@@ -257,7 +284,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                     if field == 'id' and value.get('type', 'uuid') != 'uuid':
                         raise ValueError('sys_fields.id.type must be uuid')
                     for key, item in value.items():
-                        expected = dict if key in ('x_ui', 'metadata') else bool if key == 'indexed' else str
+                        expected = bool if key == 'indexed' else str
                         if not isinstance(item, expected):
                             raise ValueError(f'sys_fields.{field}.{key}: expected {expected.__name__}')
 
@@ -272,6 +299,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError(f'virtualRelation: unsupported attributes {sorted(unknown)}')
         if node_tag == 'validation':
             return super()._validate_call_args(info, node_value, attr, node_tag)
+        if node_tag in ('db', 'connection', 'package', 'type', 'bagItemColumn', 'subtable'):
+            unknown = set(attr) - set(info.get('declared_names') or ())
+            unknown = {key for key in unknown if '_' not in key}
+            if unknown:
+                raise ValueError(f'{node_tag}: does not accept {sorted(unknown)}')
         parameter = self._positional_arguments.get(node_tag)
         if parameter is not None and node_value is not None:
             if parameter in attr:
@@ -284,13 +316,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 if (not isinstance(value, str) or not value.strip()
                         or any(c in value for c in '.@$/\\')):
                     raise ValueError(f'{node_tag}.{key}: invalid name or path separator')
-        for key in ('metadata', 'x_ui'):
-            value = attr.get(key)
-            if value is not None:
-                if not isinstance(value, dict) or any(not isinstance(k, str) for k in value):
-                    raise ValueError(f'{node_tag}.{key}: expected a string-keyed mapping')
-                if key == 'metadata' and any(not isinstance(v, dict) for v in value.values()):
-                    raise ValueError(f'{node_tag}.metadata: each namespace must contain a mapping')
+        if 'metadata' in attr or 'x_ui' in attr:
+            raise ValueError(f'{node_tag}: use flat namespaced attributes, not metadata/x_ui mappings')
         if node_tag == 'requires' and 'packages' in attr:
             values = attr['packages']
             values = [values] if isinstance(values, str) else values
@@ -336,13 +363,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             key = json.dumps(attr.get('columns'), sort_keys=False)
             attr['name'] = 'index_' + hashlib.sha256(key.encode()).hexdigest()[:12]
             attr['x_auto_name'] = True
-        if node_tag == 'column':
-            embedded = {key[9:]: value for key, value in attr.items() if key.startswith('validate_')}
-            if embedded:
-                clean = {key: value for key, value in attr.items() if not key.startswith('validate_')}
-                child = self.set_child(build_where, node_tag, node_value, node_label, node_position, **clean)
-                child.validation(**embedded)
-                return child
         if node_tag in ('validation', 'encryption'):
             existing = build_where.node(node_tag)
             if existing is not None:
@@ -391,7 +411,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError('colgroup: node_label is fixed by the group name')
             declared = self._get_schema_info('column').get('declared_names') or set()
             for key in attr:
-                if key in ('name', 'name_long', 'name_short', 'comment', 'x_ui', 'metadata', '_meta'):
+                if key in ('name', 'name_long', 'name_short', 'comment', '_meta'):
                     continue
                 if not key.startswith('col_') or key[4:] not in declared or key == 'col_name':
                     raise ValueError(f'colgroup: unknown column default {key!r}')
@@ -439,7 +459,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             self._validate_option(node_tag, parent, attr)
             if node_label is not None:
                 raise ValueError(f'{node_tag}: node_label is fixed by the option identity')
-            identity = attr.get('namespace' if node_tag == 'metadata' else NAMED_OPTIONS.get(node_tag, 'name'))
+            identity = attr.get(NAMED_OPTIONS.get(node_tag, 'name'))
             if identity is not None:
                 if not isinstance(identity, str) or not identity or '.' in identity:
                     raise ValueError(f'{node_tag}: invalid option identifier')
@@ -489,6 +509,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         # Bag drops None attributes by default; here omission and explicit None
         # are different contributions and must survive composition.
         child.attr.update({key: None for key, value in attr.items() if value is None})
+        for other, key in self._validation_overrides(child, attr):
+            other.attr.pop(key, None)
         self._attribute_origins.update({(self._node_path(child), key): self._contribution for key in attr})
         return child
 

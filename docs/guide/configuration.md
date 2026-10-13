@@ -29,7 +29,7 @@ class Shop(SqlDatabaseConfig):
         )
         columns = table.columns()
         columns.column("id", dtype="L")
-        columns.column("name", dtype="T", x_ui={"label": "Name"})
+        columns.column("name", dtype="T", x_ui_label='Name')
 
 
 db = AsqueelDb(Shop)
@@ -165,8 +165,10 @@ semantics and transaction rules.
 A database shares its model and table handles between threads. Connections and
 mutable execution state are isolated per thread. Repeated table lookup within one
 instance preserves identity; custom table classes must not store per-request state
-on shared attributes. Treat configuration as fixed after construction: editing its tree does
-not rebuild the resolved model or reconfigure an already-open physical connection.
+on shared attributes. Table and column `.config` views read the completed model;
+editing the source or `db.config.builder` does not alter their structural values.
+`db.config` retains administrative connection configuration. Editing it does not
+reconfigure an already-open physical connection.
 
 `SqlBuilder`, `resolve_model`, `QueryCompiler` and the low-level `Database` remain
 available independently. `SqlDatabase` binds those responsibilities for application

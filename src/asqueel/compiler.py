@@ -609,7 +609,7 @@ class QueryCompiler:
 
     def __init__(self, model: ResolvedModel, dialect: DataDialect, formatter: BindingFormatter,
                  *, environment: SqlEnvironment | None = None):
-        if model.attributes.get('metadata', {}).get('legacy', {}).get('expanded'):
+        if model.attributes.get('x_legacy_expanded'):
             raise UnsupportedFeatureError('Expanded legacy model requires legacy runtime/compiler providers; migration projection remains available')
         if dialect.name != formatter.dialect:
             raise ValueError('The data dialect and binding formatter are incompatible')

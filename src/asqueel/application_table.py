@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from types import MappingProxyType
 
-from .configuration import ConfigurationView
+from .configuration import ConfigurationView, _MISSING
 from .contracts import UnsupportedFeatureError
 
 
@@ -65,8 +65,42 @@ def _reference(name):
     return '$"' + name.replace('"', '""') + '"'
 
 
+def _model_config(model):
+    """Keep the existing scoped read API, using only finalized model data."""
+    def values(item):
+        result = dict(item.attributes)
+        if hasattr(item, 'dtype'):
+            result['dtype'] = item.dtype
+        for child in getattr(item, 'declarations', getattr(item, 'children', ())):
+            key = (f'{child.kind}_{child.name}'
+                   if child.kind in ('subtable', 'virtualRelation') else child.name)
+            result[key] = values(child)
+        if hasattr(item, 'options'):
+            result['options'] = {key: values(option) for key, option in item.options.items()}
+        if hasattr(item, 'columns'):
+            for collection, virtual in (('columns', False), ('virtual_columns', True)):
+                result[collection] = {name: values(column) for name, column in item.columns.items()
+                                      if column.is_virtual == virtual}
+        return result
+
+    data = values(model)
+
+    def read(path, default=_MISSING):
+        current = data
+        try:
+            for key in path.split('.'):
+                current = current[key]
+        except (KeyError, TypeError):
+            if default is not _MISSING:
+                return default
+            raise KeyError(path) from None
+        return deepcopy(current)
+
+    return read
+
+
 class SqlColumn:
-    """A stable live column handle linked to its owner's configuration tree."""
+    """A stable live column handle backed by the completed structural model."""
 
     def __init__(self, table, model):
         self.table = self.owner = table
@@ -74,10 +108,8 @@ class SqlColumn:
         self.model = model
         self.name = model.name
         self.fullname = f'{table.fullname}.{self.name}'
-        collection = 'virtual_columns' if model.is_virtual else 'columns'
         fallback = (lambda: self.originalColumn.config) if model.alias_target is not None else None
-        self.config = ConfigurationView(self.db.config, f'{table._config_prefix}.{collection}.{self.name}',
-                                        fallback=fallback)
+        self.config = ConfigurationView(_model_config(model), fallback=fallback)
 
     @property
     def validations(self):
@@ -193,8 +225,7 @@ class SqlTable:
         self.db = db
         self.model = model
         self.fullname = model.key
-        self._config_prefix = f'{"packages" if model.package_name else "schemas"}.{model.schema}.tables.{model.name}'
-        self.config = ConfigurationView(db.config, self._config_prefix)
+        self.config = ConfigurationView(_model_config(model))
         self.columns = MappingProxyType({name: SqlColumn(self, column)
                                          for name, column in model.columns.items()})
         self.relations = MappingProxyType({name: SqlRelation(self, relation)

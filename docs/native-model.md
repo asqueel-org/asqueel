@@ -19,7 +19,7 @@ un rename occorre quindi dichiararla esplicitamente: non esiste inferenza automa
 `attributes` conserva gli attributi dichiarati e la provenienza; il contenitore
 esterno è immutabile, i valori annidati sono metadati applicativi.
 
-I metadati `x_ui` sono arricchiti dall'overlay `ui` per percorso logico e infine
+I metadati `x_ui_*` sono arricchiti dall'overlay `ui` per percorso logico e infine
 per identità esplicita. Non è consentito ridefinire tipo, formula, nome SQL,
 chiave, unicità o obbligatorietà nell'overlay UI. Non sono richiesti widget.
 

@@ -35,6 +35,15 @@ La proposta di ricondurre la firma a `sys_fields(sysrecords=...)` non è stata
 approvata né applicata. La dichiarazione `system_records` già presente nel
 codice resta soltanto una proposta grammaticale, non una funzione implementata.
 
+**Conferma successiva del 13 ottobre:** system_records resta fuori perimetro;
+si valuterà in futuro se reintrodurre il concetto. Asqueel deve avvicinarsi al
+legacy nel perimetro concordato, non sostituire ora GenroPy integralmente.
+Gli scarti strutturali sono accettati come divergenze da documentare (52, D-01).
+**Decisione successiva:** `sys_fields(syscode=True)` è approvata e implementata
+per la sola colonna `__syscode`, A size `:20`, indicizzata e UNIQUE. È un flag
+False per default. Non riattiva system_records, i relativi virtuali, la
+rilevazione di metodi sysRecord_* o la creazione/gestione dei record.
+
 **Riferimento legacy:** `gnrpy/gnr/app/gnrdbo.py`, `sysFields`, ramo `sysrecords`:
 attivazione esplicita o rilevamento dei metodi `sysRecord_*`; aggiunta di
 `__syscode`, `__protected_by_syscode` e `__invalid_by_duplicate_sysrecord`.

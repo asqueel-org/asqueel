@@ -1,5 +1,11 @@
 # 43 — Copertura della configurazione di test_invoice_pg
 
+**Rettifica grammaticale del 13 ottobre 2026:** i riferimenti storici qui sotto
+al contenitore `x_ui` non descrivono la grammatica corrente. Gli attributi
+sono piatti, con eventuale prefisso; non si raggruppano in `metadata` o `x_ui`.
+Vedere il documento 42 e l'esito della fase 1 nel documento 51.
+
+
 **Aggiornamento del 13 ottobre:** la matrice qui sotto documenta la proposta
 iniziale, in parte superata. Per il render usare la
 [copertura verificata della fase 0](52-invoice-render-coverage.md), che applica

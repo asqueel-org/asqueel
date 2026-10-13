@@ -1,5 +1,12 @@
 # 49 — Correzioni e verifica delle aggiunte alla grammatica
 
+**Rettifica del 13 ottobre 2026:** `metadata` come attributo o elemento e
+`x_ui` come contenitore sono rimossi, non rinviati. Gli attributi sono piatti,
+con eventuale namespace nel nome; estrazione tramite `extract_kwargs` di
+Toolbox. `validate_*` è il caso di riferimento. Le proposte storiche nella
+tabella seguente non autorizzano contenitori speciali o risoluzione ricorsiva.
+
+
 **Stato corrente delle virtual relations:** `limit`, `order_by` e `one_one`
 sono rinviati ed esclusi dalla firma (41, R-06), come `inverse` (R-05).
 I riferimenti precedenti alla loro conservazione e alla regola limit/order_by

@@ -20,6 +20,7 @@ import sys
 
 REPO = Path(__file__).resolve().parents[3]
 ORACLE = REPO / 'tests/oracles/test_invoice_pg'
+EXCLUDED_NATIVE_TABLES = {'sys.locked_record': 'User decision; report 52, D-02'}
 METHOD_FAMILIES = {
     'table': 'base', 'column': 'base', 'sysFields': 'sys_fields',
     'aliasColumn': 'alias', 'formulaColumn': 'formula',
@@ -214,7 +215,8 @@ def audit(legacy_root):
             entry['release_column'] = '__release' in columns
             entry['syscode_dependent_virtuals'] = [n for n, v in virtuals.items()
                                                   if '__syscode' in str(v['attributes'])]
-            entry['native_status'] = 'not_certified; original declarations still to port'
+            entry['native_status'] = ('excluded_from_native_scope' if key in EXCLUDED_NATIVE_TABLES
+                                      else 'not_certified; original declarations still to port')
         package_counts[pkg] = dict(counts)
 
     tree = ast.parse((REPO / 'examples/model_grammar/configure.py').read_text())
@@ -238,6 +240,11 @@ def audit(legacy_root):
         'original_inventory': 'test-invoice-model-inventory.json',
         'keywords_by_method': inventory['keywords_by_method'],
         'native_example_partial_tables': example_tables,
+        'excluded_native_tables': EXCLUDED_NATIVE_TABLES,
+        'native_target_table_counts': {
+            pkg: sum(key.startswith(pkg + '.') and key not in EXCLUDED_NATIVE_TABLES for key in tables)
+            for pkg in model},
+        'system_records_scope': 'excluded; structural divergences recorded in report 52, D-01',
         'native_complete_corpus_verified': False,
         'families': families, 'tables': dict(sorted(tables.items())),
         'grammar_probes': grammar_probes(),

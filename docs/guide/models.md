@@ -18,7 +18,7 @@ def customer_table(tables):
     columns.column(
         'name', dtype='T', notnull=True,
         x_identity='customer-name',
-        x_ui={'label': 'Customer name'},
+        x_ui_label='Customer name',
     )
     return table
 
@@ -91,7 +91,7 @@ bytes instead of accepting server-side truncation.
 
 ## Attach UI metadata to the same column
 
-`x_ui` keeps display information alongside the declaration. An overlay lets
+`x_ui_*` keeps display information alongside the declaration. An overlay lets
 you manage that information separately without creating a second column model:
 
 ```python
@@ -104,7 +104,7 @@ assert column.ui['label'] == 'Account name'
 assert column.ui['placeholder'] == 'Enter a name'
 ```
 
-Precedence is inline `x_ui`, then the logical-path overlay, then the explicit
+Precedence is inline `x_ui_*`, then the logical-path overlay, then the explicit
 identity overlay. An identity defaults to `schema.table.column`; use
 `x_identity` when it must remain stable after a logical rename. Stable identity
 is metadata, not an automatic database-rename migration.
@@ -140,7 +140,7 @@ legacy model's target-and-override behavior:
 # Add inside invoice_table(), before returning; reuse its virtuals handle.
 virtuals.aliasColumn(
     'customer_name', relation_path='@customer.name', name_long='Customer',
-    x_ui={'label': 'Customer name'},
+    x_ui_label='Customer name',
 )
 ```
 

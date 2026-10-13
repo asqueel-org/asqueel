@@ -206,7 +206,7 @@ tbl.column('city', colgroup='address')
 - Groups only group. Visibility in a user interface and the placement of
   relation nodes in a fields tree are not part of the model core.
 - `colgroup` takes only `name_long` and `col_*` defaults. Interface attributes,
-  if needed, go through `x_ui`. **Decided.**
+  if needed, go through `x_ui_*`. **Decided.**
 
 ### 2.3 Relations — Decided
 

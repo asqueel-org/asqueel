@@ -1,5 +1,14 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Fase 1 del render completata, 13 ottobre 2026:** attributi piatti con namespace,
+`extract_kwargs` per validate_ e `runtime_values` di Builders per i resolver.
+`metadata` come contenitore/elemento è rimosso definitivamente; anche gli
+attributi UI sono piatti (`x_ui_*`). Table/column leggono la configurazione dal
+modello completato, indipendente dalla source. Suite: **1084 pass, 1 skip**;
+Ruff/mypy superati, JSON fisico del ponte legacy invariato. Prossima fase: 2
+nel [piano 51](51-source-to-live-objects-plan.md), espansioni locali delle options.
+
+
 **Checkpoint grammaticale del 13 ottobre 2026:** revisione intermedia prima
 del render completo. Validation conserva i validate_* nel dict della colonna;
 validate_values è una differenza approvata dal legacy. VirtualRelation conserva
@@ -9,7 +18,7 @@ SubQueryColumn mantiene query=None, mode=None e dtype, come il legacy.
 
 La base grammaticale consente di iniziare la traduzione strutturale. Restano
 da completare l'espansione nativa delle options, la configurazione di tutti i
-75 modelli e la verifica source nativa → oggetti completi → JSON migrations.
+74 modelli inclusi e la verifica source nativa → oggetti completi → JSON migrations.
 Il JSON di tutti i package è già verificato dal ponte legacy espanso; questo
 checkpoint non attesta la parità del percorso nativo né chiude la release.
 Le firme non ancora riviste e la struttura interna di query restano proposte;
@@ -25,13 +34,17 @@ DHZ/UTC. Perimetro attuale: grammatica e traduzione, senza anticipare esecuzione
 **Prossimo lavoro, pianificato ma non implementato:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md).
 Piano aggiornato il 13 ottobre con fasi 0–6: mappa di copertura; render di base;
 espansioni locali; completamenti fra tabelle; relazioni e finalizzazione;
-source nativa dei 75 modelli; JSON dagli oggetti e prova migrations.
+source nativa dei 74 modelli inclusi; JSON dagli oggetti e prova migrations.
 Ogni fase ha criteri di completamento e un commit previsto. La mappa degli
 effetti legacy è ora verificata nel [rapporto 52](52-invoice-render-coverage.md):
 75 modelli coperti dal censimento, nessun port nativo completo ancora certificato.
-Prima di intervenire sul render esaminare D-01 (system_records e formula htag)
-e D-02 (indice locked_record); C-01–C-05 sono correzioni di compatibilità già
-individuate. Nessuna decisione applicata implicitamente; compilatore escluso.
+D-01/D-02 sono risolte: system_records e sys.locked_record fuori perimetro,
+con divergenze documentate; il corpus nativo comprende 74 tabelle. Asqueel non
+deve ora rimpiazzare integralmente GenroPy. sys_fields(syscode=True) è stata
+successivamente approvata e implementata per __syscode A :20, indicizzata e
+UNIQUE, False per default; non reintroduce il concetto di system_records.
+C-01–C-05 restano correzioni di compatibilità;
+compilatore escluso.
 
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
@@ -192,7 +205,7 @@ al nuovo modello e al resolver comune, completando i comportamenti mancanti.
   colonne/virtuali/indici interni, non una seconda sintassi pubblica.
   Collisione fra nomi fisici e virtuali: errore.
 - **`colgroup`.** Dichiarazione unica, ordine di dichiarazione, appartenenza
-  tramite gruppo oppure `colgroup=`, default `col_*`, UI separata in `x_ui`.
+  tramite gruppo oppure `colgroup=`, default `col_*`, UI separata in `x_ui_*`.
 - **Relazioni.** `relation` significa FK, `weak_relation` collegamento logico;
   target FK univoco, target weak assunto univoco. `on_update_sql` di default
   `cascade`; azioni SQL esplicite con suffisso `_sql`. `on_delete/on_update`

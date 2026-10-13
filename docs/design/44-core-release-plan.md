@@ -12,9 +12,14 @@ prove e criteri di completamento. Compilatore e operazioni restano fuori da
 questo lavoro; il presente aggiornamento è di pianificazione.
 
 **Fase 0 del piano operativo verificata:** [copertura 52](52-invoice-render-coverage.md).
-Ricognizione completa dei 75 modelli; aperte le decisioni su system_records e
-sull'indice esplicito di locked_record. Nessuna modifica al render; fasi 1–6
+Ricognizione completa dei 75 modelli legacy; system_records e sys.locked_record
+esclusi dall'utente. Corpus nativo previsto: 74 tabelle, con divergenze esplicite,
+senza obiettivo di rimpiazzo integrale di GenroPy. Nessuna modifica al render; fasi 1–6
 ancora da eseguire. Non confondere questa fase 0 con la P0 storica del report 45.
+
+**Incremento successivo richiesto:** sys_fields(syscode=True) approvata e
+implementata per la sola __syscode A :20 indicizzata e UNIQUE, False per default.
+system_records resta escluso; questo non completa le altre espansioni native.
 
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.

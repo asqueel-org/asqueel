@@ -6,7 +6,7 @@ la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
 La baseline salvata del corpus usa già use_timezone=True (report 45).
 
 Aggiornato il **13 ottobre 2026**, dopo il checkpoint grammaticale
-`61bbbb5`. **Piano operativo del prossimo lavoro; implementazione non avviata.**
+`61bbbb5`. **Fasi 0 e 1 completate; prossima fase: espansioni locali (2).**
 La richiesta corrente è organizzare la costruzione degli oggetti e il JSON
 migrations. Questo documento sostituisce la precedente sequenza A–E con fasi
 verificabili, senza aprire il lavoro sul compilatore o introdurre nuove firme.
@@ -14,7 +14,7 @@ Prevalgono le decisioni 40, i rinvii 41, la grammatica 42 e le correzioni 49–5
 
 ## Stato verificato e risultato da raggiungere
 
-- La suite del checkpoint conta **1067 test superati e 1 saltato**. Ruff e mypy
+- La suite dopo la fase 1 conta **1084 test superati e 1 saltato**. Ruff e mypy
   passano nell'ambiente di verifica. Il mypy dell'hook locale usa un ambiente
   diverso e segnala dipendenze/firme non allineate: verificare con l'ambiente
   riproducibile dei test, senza considerare ignorabili futuri errori di tipo.
@@ -24,9 +24,17 @@ Prevalgono le decisioni 40, i rinvii 41, la grammatica 42 e le correzioni 49–5
   una prima espansione sys_fields, da completare rispetto al legacy.
 - Il JSON di sys/adm/invc è verificato attraverso il ponte dalla source legacy
   espansa. L'esempio nativo corrente contiene soltanto una selezione di tabelle.
-- Il traguardo è una source nativa dei **75 modelli**, senza usare come ingresso
+- Il traguardo aggiornato è una source nativa di **74 modelli** (sys 16, adm 40,
+  invc 18; sys.locked_record esclusa), senza usare come ingresso
   XML espanso o snapshot JSON, da cui costruire oggetti completi e proiettare il
   JSON per migrations. La baseline rimane un oracolo indipendente per i test.
+
+**Perimetro confermato dopo la fase 0:** system_records e sys.locked_record
+esclusi; D-01/D-02 sono divergenze concordate nel rapporto 52. Non si richiede
+un rimpiazzo integrale di GenroPy né identità del JSON oltre questo perimetro.
+sys_fields(syscode=True) è successivamente approvata e implementata per la sola
+colonna __syscode A :20, indicizzata e UNIQUE, disattivata per default.
+Non riattiva system_records o i relativi virtuali.
 
 ### Regole che non vanno riaperte implicitamente
 
@@ -234,7 +242,7 @@ fase non autorizza a dichiarare completata la successiva o l'intera release.
 | 2 — Espansioni locali | Campi standard e options locali complete, con prove per famiglia | 1 |
 | 3 — Espansioni fra tabelle | Gerarchie collegate, contatori relativi, allegati e contributi al master | 2 |
 | 4 — Relazioni e modello completo | Tipi, chiavi, percorsi, inverse ordinarie, indici e oggetti pubblicabili | 3 |
-| 5 — Source nativa del corpus | Tutti i 75 modelli configurati e confrontati con il legacy | 4 |
+| 5 — Source nativa del corpus | I 74 modelli inclusi, confrontati con il legacy e le divergenze concordate | 4 |
 | 6 — JSON dagli oggetti | Proiezione indipendente dalla source e migrations verificate su PostgreSQL | 5 |
 
 ### Fase 0 — Mappa di copertura e differenze
@@ -262,9 +270,11 @@ collegati da questo documento; nessun nuovo costrutto di grammatica.
 **Esito del 13 ottobre:** [rapporto 52](52-invoice-render-coverage.md) e
 [evidenza per tutti i modelli](evidence/invoice-render-coverage.json).
 Verificati 75 modelli, 79 sorgenti del manifest, 227 import legacy e integrità
-degli oracoli. D-01 (effetto strutturale di system_records) e D-02 (indice
-locked_record omesso dal JSON storico) sono presentate per decisione, non
-applicate. Le carenze native C-01–C-05 sono classificate separatamente.
+degli oracoli. D-01 (system_records) e D-02 (sys.locked_record) sono state
+risolte dall'utente escludendole dal perimetro; scarti registrati nel rapporto.
+La sola colonna syscode è stata successivamente approvata e implementata,
+distinta dal concetto di system_records.
+Le carenze native C-01–C-05 sono classificate separatamente.
 Nessuna modifica al render. Il rinvio di release non produce scarti nel corpus.
 
 ### Fase 1 — Percorso di render e oggetti esistenti
@@ -288,6 +298,31 @@ Nessuna connessione SQL o operazione applicativa durante il render.
 **Criterio di completamento:** modello minimo ispezionabile con oggetti esistenti,
 identità coerenti e source non modificata. Cambiare la source dopo il render
 non altera il modello già restituito. Un errore non pubblica un DB parziale.
+
+**Esito del 13 ottobre — fase 1 completata:**
+
+- Source con attributi piatti e namespace nel nome; rimossi definitivamente
+  `metadata` (attributo/elemento) e il contenitore `x_ui`. I consumatori dei
+  precedenti attributi UI usano il prefisso piatto `x_ui_*`.
+- `validate_*` rimane sulla colonna della source; `extract_kwargs(validate=True)`
+  produce le validations nella traduzione. La forma `.validation(**rules)` già
+  concordata segue le stesse precedenze dei contributi.
+- `_effective_model_builder` applica i default dopo la composizione e usa
+  `runtime_values` di Builders per tutti gli attributi strutturali, inclusi
+  quelli con prefisso. Nessuna nuova risoluzione ricorsiva dei valori.
+- Le connessioni amministrative non vengono attraversate dal render strutturale;
+  `connection_settings` mantiene il proprio percorso. `db.config` resta il
+  lettore amministrativo; `table.config` e `column.config` leggono il modello
+  completato, inclusi dtype inferiti, alias e validations.
+- Verificati oggetti stabili, schema condiviso, package vuoti, override fisici,
+  isolamento dalle modifiche alla source e mancata pubblicazione su errore.
+  Nessuna connessione SQL durante il render.
+
+Prove: `tests/application_config/test_render_structure.py`, suite applicativa,
+validazioni/composizione e suite completa (**1084 pass, 1 skip**); Ruff e mypy
+superati. L'audit dei 75 modelli legacy conferma gli snapshot immutati. Il JSON
+fisico del ponte legacy resta identico all'oracolo. Questo esito non completa
+l'espansione delle options né la source nativa dei 74 modelli inclusi.
 
 ### Fase 2 — Options con effetti locali
 
@@ -353,13 +388,15 @@ sono riconoscibili come dichiarazioni, non presentate come funzioni eseguibili.
 ### Fase 5 — Tutti i package di test_invoice_pg in source nativa
 
 **Lavoro:** trascrivere le configurazioni originali, le options ereditate e i
-contributi dei package per sys (17), adm (40), invc (18). Le fixture minime
+contributi dei package per sys (16), adm (40), invc (18), escludendo
+sys.locked_record e gli effetti system_records come concordato. Le fixture minime
 usate prima si estendono al corpus; non si ricopiano le colonne espanse per
 aggirare una option non implementata. L'XML legacy resta soltanto una fonte
 indipendente di confronto. Nessuna dipendenza del producer dal ponte legacy.
 
 **Prove:** confronto per package/table/column/relation/index e delle
-dichiarazioni non fisiche, con copertura nominativa dei 75 modelli; variazione
+dichiarazioni non fisiche, con copertura nominativa dei 74 modelli inclusi e
+registro delle divergenze rispetto ai 75 legacy; variazione
 controllata di una option e verifica degli effetti reali sugli oggetti;
 modifica della source originale dopo il render senza variazioni del modello.
 
@@ -454,14 +491,15 @@ le verifiche già disponibili in test_release_* e gli oracoli test_invoice_pg.
 
 ## Stato di avanzamento
 
-- [x] Fase 0 — Mappa di copertura e differenze: rapporto 52; D-01/D-02 aperte.
+- [x] Fase 0 — Mappa di copertura e differenze: rapporto 52; D-01/D-02 escluse per decisione.
 - [ ] Fase 1 — Percorso di render e oggetti esistenti.
 - [ ] Fase 2 — Espansioni locali.
 - [ ] Fase 3 — Espansioni fra tabelle.
 - [ ] Fase 4 — Relazioni e finalizzazione.
-- [ ] Fase 5 — Source nativa dei 75 modelli.
+- [ ] Fase 5 — Source nativa dei 74 modelli inclusi.
 - [ ] Fase 6 — JSON dagli oggetti e verifica migrations.
 
-La fase 0 è conclusa come ricognizione; le decisioni aperte non sono risolte
-implicitamente. Le fasi 1–6 non sono eseguite, la grammatica e il render restano
-invariati e P2 non è chiusa. Esaminare D-01/D-02 prima del lavoro dipendente.
+La fase 0 è conclusa come ricognizione; D-01/D-02 sono divergenze concordate.
+Le fasi 1–6 non sono completate e P2 non è chiusa. L'incremento circoscritto
+sys_fields(syscode=True), richiesto successivamente, aggiunge la firma e la
+sola espansione della colonna; non attesta il render completo delle options.

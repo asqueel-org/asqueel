@@ -1,5 +1,14 @@
 # 40 — Modello, proiezione fisica e ricette delle operazioni
 
+**Regola grammaticale confermata il 13 ottobre 2026:** attributi piatti,
+con eventuale namespace nel nome (`foo_bar_color`, `validate_len`). Il gruppo
+si ricava con `extract_kwargs` di genro-toolbox durante la traduzione.
+Nessun contenitore/elemento `metadata`, ora o in futuro. I resolver esistenti
+operano sui valori degli attributi secondo Builders, senza nuove ricorsioni.
+Restano le forme di dati esplicitamente concordate, incluso
+`sys_fields(id=dict(type='uuid'))`.
+
+
 **Regola vincolante:** il legacy prevale per nomi, firme e significato. Uno
 scostamento richiede una motivazione concreta e l'approvazione dell'utente
 prima dell'applicazione. Restano valide le differenze già concordate, fra cui
@@ -289,9 +298,14 @@ o i dettagli ancora aperti:
 opts.sys_fields(
     id=True, ins=True, upd=True,
     user_ins=True, user_upd=True,
-    ldel=True, draft=False,
+    ldel=True, draft=False, syscode=False,
 )
 ```
+
+**Deciso il 13 ottobre — syscode:** `sys_fields(syscode=True)` aggiunge soltanto
+`__syscode`, tipo A, size `:20`, indicizzata e UNIQUE come nel legacy.
+Flag booleano, False per default; nessuna generazione di valori, record di
+sistema o virtuali associati. Il concetto system_records resta fuori perimetro.
 
 Restano per `ldel` tipo/timezone, indici e dettagli delle operazioni di
 cancellazione logica/ripristino; per `draft` valore iniziale, nullabilità,

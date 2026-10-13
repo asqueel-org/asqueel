@@ -3,11 +3,10 @@ from __future__ import annotations
 
 from copy import deepcopy
 import inspect
+from genro_toolbox import extract_kwargs
 
 from .configuration import _copy_recipe, _validate_source_shape
 from .model_sections import Declaration, Option, Package, Schema
-
-COMMON = ('name_long', 'name_short', 'comment', 'x_ui', 'metadata')
 
 
 def attributes(node):
@@ -17,6 +16,18 @@ def attributes(node):
 def declaration(node):
     return Declaration(node.node_tag, node.get_attr('name') or node.label, attributes(node),
                        tuple(declaration(child) for child in node.value or ()))
+
+
+@extract_kwargs(validate=True)
+def column_declarations(node, *, validate_kwargs=None, **attrs):
+    """Extract flat validation attributes only when translating the source."""
+    children = tuple(declaration(child) for child in node.value or ())
+    rules = dict(validate_kwargs)
+    for child in children:
+        if child.kind == 'validation':
+            rules.update(child.attributes)
+    result = tuple(child for child in children if child.kind != 'validation')
+    return result + ((Declaration('validation', 'validation', rules),) if rules else ())
 
 
 def options(node):

@@ -50,15 +50,15 @@ def test_schema_and_package_objects_preserve_identity_mapping_and_empty_sections
     assert 'invc_customer' in physical['schemas']['billing']['tables']
 
 
-def test_metadata_options_do_not_propagate_and_model_round_trips_without_connections():
+def test_flat_attributes_do_not_propagate_and_model_round_trips_without_connections():
     builder, db, pkg = recipe()
     db.connection('main', database='invoice', password='secret-sentinel')
-    db.options().metadata('ui', {'color': 'red'})
-    pkg.options().metadata('ui', {'color': 'blue'})
+    db.attr['foo_bar_color'] = 'red'
+    pkg.attr['foo_bar_color'] = 'blue'
     model = resolve_model(builder)
-    assert model.table('invc.customer').options == {}
+    assert 'foo_bar_color' not in model.table('invc.customer').attributes
     with pytest.raises(TypeError):
-        model.packages['invc'].options['metadata_ui'].attributes['values']['color'] = 'x'
+        model.packages['invc'].attributes['foo_bar_color'] = 'x'
     encoded = model_to_json(model)
     assert 'secret-sentinel' not in encoded
     assert model_from_json(encoded) == model

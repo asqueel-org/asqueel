@@ -145,7 +145,7 @@ def test_live_column_exposes_the_translated_validation_dict_without_source_acces
         column = db.table('sales.item').column('code')
         assert column.validations == {'notnull': True, 'case': 'U', 'notnull_error': 'Required'}
         assert db.table('sales.item').column('other').validations == {}
-        table.value.get_node('columns.code.validation').attr['case'] = 'lower'
+        table.value.get_node('columns.code').attr['validate_case'] = 'lower'
         assert column.validations['case'] == 'U'
     finally:
         db.close()
@@ -171,19 +171,19 @@ def test_virtual_relation_alias_and_python_provider_are_model_data_only():
     assert model_from_json(model_to_json(m)) == m
 
 
-def test_nested_metadata_is_immutable_and_preserves_list_semantics():
+def test_flat_attribute_list_is_immutable():
     b, pkg = source()
     t = pkg.table('item')
     original = ['first']
-    t.column('value', 'T', metadata={'ui': {'choices': original}})
+    t.column('value', 'T', foo_choices=original)
     m = resolve_model(b)
     original.append('later')
-    data = m.table('item').columns['value'].attributes['metadata']['ui']
-    assert data['choices'] == ['first']
+    data = m.table('item').columns['value'].attributes
+    assert data['foo_choices'] == ['first']
     with pytest.raises(TypeError):
-        data['choices'].append('bad')
+        data['foo_choices'].append('bad')
     with pytest.raises(TypeError):
-        data['choices'][0] = 'bad'
+        data['foo_choices'][0] = 'bad'
     assert model_from_json(model_to_json(m)) == m
 
 

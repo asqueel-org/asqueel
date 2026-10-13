@@ -40,12 +40,12 @@ def alias_database():
                     country = tables.table('country', pkey='id').columns()
                     country.column('id', dtype='I')
                     country.column('name', dtype='T', name_long='Country',
-                                   x_ui={'label': 'Country label', 'width': 24})
+                                   x_ui_label='Country label', x_ui_width=24)
                     customer = tables.table('customer', pkey='id')
                     columns = customer.columns()
                     columns.column('id', dtype='I')
                     columns.column('name', dtype='T', name_long='Customer',
-                                   x_ui={'label': 'Customer label', 'width': 32})
+                                   x_ui_label='Customer label', x_ui_width=32)
                     columns.column('country_id', dtype='I').relation('app.country.id', foreign_key=True, x_name='country')
                     virtual = customer.virtual_columns()
                     virtual.formulaColumn('loud_name', sql_formula='upper($name)', dtype='T')
@@ -57,7 +57,7 @@ def alias_database():
                     columns.column('amount', dtype='I')
                     virtual = invoice.virtual_columns()
                     virtual.aliasColumn('customer_name', relation_path='@customer.name',
-                                        name_long='Buyer name', x_ui={'label': 'Buyer'})
+                                        name_long='Buyer name', x_ui_label='Buyer')
                     virtual.aliasColumn('country_name', relation_path='@customer.@country.name')
                     virtual.aliasColumn('country_chain', relation_path='@customer.country_name')
                     virtual.aliasColumn('loud_customer', relation_path='@customer.loud_name')

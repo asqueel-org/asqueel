@@ -13,7 +13,7 @@ class Example(SqlBuilder):
         customer = tables.table('customer', pkey='id')
         columns = customer.columns()
         columns.column('id', dtype='I')
-        columns.column('label', dtype='T', x_identity='customer-label', x_ui={'label': 'Inline'})
+        columns.column('label', dtype='T', x_identity='customer-label', x_ui_label='Inline')
         invoice = tables.table('invoice', pkey='id', x_sql_name='invoices')
         columns = invoice.columns()
         columns.column('id', dtype='I')

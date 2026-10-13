@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from copy import deepcopy
 from contextlib import contextmanager
+import inspect
 from pathlib import Path
 import sys
+from typing import Any, Callable
 
 from genro_builders.builder import BuilderBase, element
 from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
@@ -16,9 +18,9 @@ _MISSING = object()
 
 
 class ConfigurationView:
-    """A relative read view over one ConfigHandler, without copied attributes."""
+    """A relative read view over a configuration reader."""
 
-    def __init__(self, handler: ConfigHandler, prefix: str = '', *, fallback=None):
+    def __init__(self, handler: Callable[..., Any], prefix: str = '', *, fallback=None):
         self.handler = handler
         self.prefix = prefix.strip('.')
         self._fallback = fallback
@@ -53,8 +55,7 @@ class SqlDatabaseElements:
     @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
     def db(self, name: str = 'db', implementation: str = 'postgresql', conninfo: str = '',
            connect_kwargs: dict | None = None, name_long: str | None = None,
-           name_short: str | None = None, comment: str | None = None,
-           x_ui: dict | None = None, metadata: dict | None = None):
+           name_short: str | None = None, comment: str | None = None, **extra):
         ...
 
     @element(parent_tags='db', sub_tags='options[:1]')
@@ -65,8 +66,7 @@ class SqlDatabaseElements:
                    password: str | BagResolver | None = None,
                    options: dict | None = None, database: str | BagResolver | None = None,
                    dsn: str | BagResolver | None = None, name_long: str | None = None,
-                   name_short: str | None = None, comment: str | None = None,
-                   x_ui: dict | None = None, metadata: dict | None = None):
+                   name_short: str | None = None, comment: str | None = None, **extra):
         """Named connection; legacy declarations without database/dsn keep name as database."""
         ...
 
@@ -113,8 +113,10 @@ def _validate_source_shape(builder):
         raise ValueError('Package configuration derives schemas from package.sqlschema; '
                          'remove the explicit schemas section')
     for _, node in builder.source.query('#p,#n', deep=True):
+        if node.node_tag != 'validation' and {'metadata', 'x_ui'}.intersection(node.attr):
+            raise ValueError(f'{node.node_tag}: use flat namespaced attributes, not metadata/x_ui mappings')
         if node.node_tag in ('context', 'generation', 'behavior', 'pkey_from', 'macro',
-                             'normalize', 'aliasTable', 'table_alias'):
+                             'normalize', 'aliasTable', 'table_alias', 'metadata'):
             raise ValueError(f'{node.node_tag}: removed from the source grammar')
         if node.node_tag == 'virtualRelation':
             owner = node._resolve_builder()
@@ -187,6 +189,8 @@ def _compose_source(builder, target, incoming):
             added = target.set_item(node.label, None if isinstance(value, Bag) else deepcopy(value),
                                     _attributes=deepcopy(dict(node.attr)), _remove_null_attributes=False,
                                     node_tag=node.node_tag)
+            for other, key in builder._validation_overrides(added, dict(node.attr)):
+                other.attr.pop(key, None)
             builder._attribute_origins.update({(builder._node_path(added), key): builder._contribution
                                                for key in added.attr if key != '_meta'})
             if isinstance(value, Bag):
@@ -399,25 +403,35 @@ def build_database(source, *, parents=None, driver=None, dialect=None, environme
 
 
 def _effective_model_builder(config):
-    """Resolve read-time signature defaults on a private model-only source."""
+    """Apply signature defaults and Builders' renderer semantics on an owned source."""
     builder = _copy_recipe(config.builder)
-    for path, node in builder.source.query('#p,#n', deep=True, iter=True):
+    for _, node in builder.source.query('#p,#n', deep=True, iter=True):
+        current = node
+        while current is not None and current.node_tag != 'connection':
+            current = current.parent_node
+        if current is not None:
+            continue
         owner = (node.parent_bag._builder if node._get_meta('subbuilder')
                  else node._resolve_builder())
         info = owner._get_schema_info(node.node_tag)
-        relative = path.split('.', 1)[1] if '.' in path else ''
-        for name in info.get('call_args_validations') or {}:
-            if node.node_tag == 'validation' and name not in node.attr:
+        for name, (_, _, default) in (info.get('call_args_validations') or {}).items():
+            if (name in node.attr or default is inspect.Parameter.empty or default is None
+                    or node.node_tag == 'validation'):
                 continue
             # indexed is a physical-FK default. Materializing it on a logical
             # relation would turn an omitted option into a forbidden declaration.
-            if (node.node_tag == 'relation' and name == 'indexed' and name not in node.attr
-                    and not config(f'{relative}.foreign_key', default=False)):
+            if (node.node_tag == 'relation' and name == 'indexed'
+                    and not node.attr.get('foreign_key')):
                 continue
-            key = f'{relative}.{name}' if relative else name
-            try:
-                value = config(key)
-            except KeyError:
-                continue
-            node.attr[name] = deepcopy(value)
+            node.attr[name] = deepcopy(default)
+        # Administrative root attributes belong to connection_settings, not the model.
+        if node.node_tag == 'db':
+            for name in ('conninfo', 'connect_kwargs'):
+                node.attr.pop(name, None)
+        _, values = owner.runtime_values(node)
+        meta = node.attr.get('_meta')
+        node.attr.clear()
+        node.attr.update(deepcopy(values))
+        if meta is not None:
+            node.attr['_meta'] = meta
     return builder

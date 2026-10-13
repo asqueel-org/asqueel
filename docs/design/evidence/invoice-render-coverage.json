@@ -15,15 +15,15 @@
     "physical.json": true
   },
   "native_source_sha256": {
-    "src/asqueel/elements.py": "e65a60f17a118defb8b8eacb803887c0ba6396d688c315fd86b11102c1ffe7d9",
-    "src/asqueel/model_elements.py": "934be45e9e8866f81cf092641d859b81a0be2084dee0ef10eded6ef4e30234f2",
-    "src/asqueel/semantic_elements.py": "31710106757a906116865f1df1ce9eb124599d36e054be672a21506ca275c322",
+    "src/asqueel/elements.py": "73ee64a447171799c9d20d9aaf5c10d4b1726a1f1a868c5c3bd8fd37de9ebf51",
+    "src/asqueel/model_elements.py": "4b6cbd2e29491f45ff47de6f8fa79f7b693f17d383fe50714c713e026efa7036",
+    "src/asqueel/semantic_elements.py": "24cf4951f4d48c2eb60b91754ae823c7a43270fcc496a5a11727c610d8bbe914",
     "src/asqueel/option_elements.py": "7a9bde13fbd310e43f12e156f4533642eeb564926b725e64b1fd6c63e7cab2fb",
     "src/asqueel/option_validation.py": "f7fc854094b72fe0764d5ff9399e045d5254953ebdf09974c11faeeec8af325a",
-    "src/asqueel/model_expansion.py": "6c9d752286b355c7063936a2a9105d2f9ab5dfe5b98caa75fe00729b2af69159",
-    "src/asqueel/model_source.py": "aa2076106064f19e8bc951b070de1cb32ffd68fd2267a7e7879be5d56e9276fd",
+    "src/asqueel/model_expansion.py": "2b85d1bddcb1419bc8e969c08be29dd62a31693862a6c2f558a3ae3463d1a8e5",
+    "src/asqueel/model_source.py": "98d8fec804829e0e143afda556c3f553d4ba82cbd3d75e8e96858df3c10298a0",
     "src/asqueel/projection.py": "0adc5bfc71107ff9000722a01dcd36bf5f88d63136d46220fa59bd517142e31b",
-    "src/asqueel/builder.py": "74b2a8fd15fb079758c6bb3fd1c2806515bc8170ac33efbc68a8ce226473677f"
+    "src/asqueel/builder.py": "14936874e0b0f10a004e699e33f6dda16f94250605021d6e1b7d29c62b8cf05f"
   },
   "package_counts": {
     "sys": {
@@ -432,6 +432,15 @@
     "invc.product_type",
     "sys.service"
   ],
+  "excluded_native_tables": {
+    "sys.locked_record": "User decision; report 52, D-02"
+  },
+  "native_target_table_counts": {
+    "sys": 16,
+    "adm": 40,
+    "invc": 18
+  },
+  "system_records_scope": "excluded; structural divergences recorded in report 52, D-01",
   "native_complete_corpus_verified": false,
   "families": {
     "alias": [
@@ -12246,7 +12255,7 @@
       "generated_syscode": false,
       "release_column": false,
       "syscode_dependent_virtuals": [],
-      "native_status": "not_certified; original declarations still to port"
+      "native_status": "excluded_from_native_scope"
     },
     "sys.service": {
       "sources": [

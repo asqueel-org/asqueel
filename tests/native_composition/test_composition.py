@@ -37,7 +37,7 @@ class MountedModel(SqlBuilder):
         table = schema.tables().table(name='customer', pkey='id', x_config=TableConfig)
         columns = table.columns()
         columns.column(name='id', dtype='I')
-        columns.column(name='label', dtype='T', x_ui={'label': 'Customer'})
+        columns.column(name='label', dtype='T', x_ui_label='Customer')
 
 
 def build(cls):
@@ -73,7 +73,7 @@ def customer_recipe(tables):
     columns = table.columns()
     columns.column('id', dtype='I')
     columns.column('label', dtype='T', x_sql_name='display_name',
-                   x_identity='customer-label', x_ui={'label': 'Customer', 'format': 'text'})
+                   x_identity='customer-label', x_ui_label='Customer', x_ui_format='text')
 
 
 def invoice_recipe(tables):
@@ -149,7 +149,7 @@ def test_validator_still_checks_cross_module_relations():
         build(MissingDependency).validate_model()
 
 
-def test_indirect_mounted_grammar_override_is_not_resolved_by_builders():
+def test_indirect_mounted_grammar_preserves_namespaced_attribute():
     class CustomTableGrammar(TableGrammar):
         @element(parent_tags='columns', _meta={'projects_column': True})
         def column(self, name: str, dtype: str, domain_hint: str = ''):
@@ -165,7 +165,6 @@ def test_indirect_mounted_grammar_override_is_not_resolved_by_builders():
             table.columns().column(name='id', dtype='I', domain_hint='local grammar field')
 
     model = build(CustomMountedModel)
-    # The mounted subclass's indirect grammar override is not retained by
-    # Builders 0.27 node ownership; the node resolves the base column signature.
-    with pytest.raises(SqlModelValidationError, match="unknown attribute 'domain_hint'"):
-        model.validate_model()
+    # Namespaced attributes survive even when Builders owns the base signature.
+    model.validate_model()
+    assert resolve_model(model).table('customer').columns['id'].attributes['domain_hint'] == 'local grammar field'

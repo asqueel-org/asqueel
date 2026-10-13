@@ -27,6 +27,7 @@ def expand_options(builder):
                 'user_ins': ('__ins_user', 'T', {}), 'user_upd': ('__mod_user', 'T', {}),
                 'ldel': ('__del_ts', 'DHZ', {'indexed': True}),
                 'draft': ('__is_draft', 'B', {'indexed': True}),
+                'syscode': ('__syscode', 'A', {'size': ':20', 'indexed': True, 'unique': True}),
             }
             for setting, (column_name, dtype, defaults) in definitions.items():
                 enabled = spec[setting]
@@ -36,6 +37,8 @@ def expand_options(builder):
                 custom.pop('type', None)
                 existing = entry['columns'].get(column_name)
                 structural = {'dtype': dtype, **({'size': '22'} if setting == 'id' else {})}
+                if setting == 'syscode':
+                    structural.update(size=':20', indexed=True, unique=True)
                 if existing is not None:
                     for key, value in structural.items():
                         if existing.get_attr(key) is not None and existing.get_attr(key) != value:

@@ -190,7 +190,7 @@ def generate_grammar_md() -> str:
         "",
         "Domain element signatures are **semi-closed**: they declare their "
         "physical and enumerated semantic parameters. Where `**extra` is "
-        "accepted, each extra key must start with `x_`, except the opaque "
+        "accepted, extra keys use flat namespace prefixes, except the opaque "
         "declarations in `validation(**rules)` and `var_*` bindings of `virtualRelation`.",
         "",
         "## Hierarchy",
@@ -242,7 +242,7 @@ def generate_grammar_md() -> str:
             if tag == 'validation' else
             "- Extra keys: source expression bindings (`var_*`) and `x_*` metadata"
             if tag == 'virtualRelation' else
-            "- Extra keys: accepted (`x_` prefix required)"
+            "- Extra keys: accepted (flat namespace prefixes)"
             if open_signature
             else "- Extra keys: not accepted"
         )

@@ -65,10 +65,13 @@ linguaggio Asqueel **proveniente da configurazione server fidata**. SQL specific
 del dialetto può essere conservato in questo profilo. Le ricette remote delle
 operazioni hanno invece il contratto chiuso del documento 40: niente SQL libero.
 
-Ogni elemento nominato ammette metadati comuni: `name_long`, `name_short`,
-`comment`, `x_ui` (mappa JSON) e `metadata` (mappe JSON con namespace).
-La firma `**meta` nelle tabelle seguenti significa **questo elenco chiuso**,
-non accettazione di kwargs arbitrari. I metadati non introducono comportamento.
+Gli attributi descrittivi sono piatti: `name_long`, `name_short`, `comment`
+e attributi con namespace espresso nel nome, per esempio `foo_bar_color='xx'`.
+Non esistono un attributo-dizionario o un elemento `metadata`, né un contenitore
+`x_ui`. Le firme con `**meta`/`**extra` conservano gli attributi con prefisso;
+chi li usa estrae il gruppo tramite `extract_kwargs` di genro-toolbox.
+`foo=True` estrae `bar_color`, `foo_bar=True` estrae `color`.
+I prefissi strutturali già definiti conservano il proprio significato e perimetro.
 Testi `!!` del legacy si conservano come valori traducibili.
 
 La grammatica usa firme tipizzate. Estensioni tramite classi e costruttori
@@ -122,10 +125,10 @@ L'accesso runtime espone attributi in sola lettura; non torna alla source.
 
 | Livello | Vocabolario base proposto |
 | --- | --- |
-| DB | `metadata(namespace, values)` |
-| Connection | `driver(**parameters)` con vocabolario del driver selezionato; `metadata(namespace, values)` |
-| Package | `requires(*packages)`; `type(name, *, dtype, size=None, **column_defaults)`; `metadata(namespace, values)` |
-| Table | Catalogo §§5–9; `metadata(namespace, values)` |
+| DB | Contenitore options; nessuna option descrittiva dedicata |
+| Connection | `driver(**parameters)` con vocabolario del driver selezionato |
+| Package | `requires(*packages)`; `type(name, *, dtype, size=None, **column_defaults)` |
+| Table | Catalogo §§5–9 |
 
 Non c'è ereditarietà implicita delle options DB/package sulle tabelle.
 `requires` valida dipendenze presenti nel modello; discovery e caricamento sono
@@ -149,7 +152,7 @@ impostati; valori differenti per lo stesso attributo sono un errore. Tra
 contributi prevale l'ultimo attributo **esplicitamente** impostato. Ripetere
 un'opzione la aggiorna, non duplica colonne o hook. Liste sostituite interamente;
 dict di personalizzazione dei campi e sezioni validation si uniscono per chiave.
-Per `metadata`/`x_ui` merge per namespace/chiave, senza merge ricorsivo arbitrario.
+Gli attributi con prefisso si compongono singolarmente, come gli altri attributi piatti.
 
 `option(False)` disabilita l'opzione nel modello finale: le colonne che essa
 genererebbe non vengono generate. Non rimuove una colonna dichiarata manualmente.
@@ -244,7 +247,9 @@ tbl.column('account_name', validate_notnull=True, validate_len='2:40')
 ```
 
 **Decisione del 13 ottobre:** l'oggetto colonna espone `validations`, un dict
-con i parametri dichiarati. L'embedding rimuove soltanto il prefisso validate_:
+con i parametri dichiarati. La source conserva gli attributi `validate_*` piatti;
+la traduzione li raggruppa con `@extract_kwargs(validate=True)`, togliendo solo
+il prefisso. La forma esplicita `.validation(**rules)` resta disponibile:
 
 ```python
 tbl.column('code', validate_notnull=True, validate_case='U',
@@ -318,7 +323,7 @@ definisce esecutori crittografici o collegamenti a provider.
 tbl = pkg.table('customer', pkey='id')
 tbl.options().sys_fields(
     id=dict(type='uuid'), ins=True, upd=True,
-    user_ins=True, user_upd=True, ldel=True, draft=False,
+    user_ins=True, user_upd=True, ldel=True, draft=False, syscode=False,
     group='zzz', group_name='System')
 ```
 
@@ -337,9 +342,18 @@ Senza sys_fields la tabella deve dichiarare la propria pkey; con `id=True`,
 | `user_ins`, `user_upd` | `__ins_user`, `__mod_user`, `T`; identità autenticata server oppure NULL |
 | `ldel` | `__del_ts`, `DHZ`, indicizzata; inizialmente NULL |
 | `draft` | `__is_draft`, `B`, indicizzata, inizialmente False |
+| `syscode=False` | Se True aggiunge `__syscode`, `A`, size `:20`, indicizzata e UNIQUE; nessuna assegnazione automatica |
 
-I dict dei campi accettano `name_long`, `name_short`, `comment`, `group`,
-`x_ui`, `metadata`, `indexed`; soltanto `id` accetta anche `type`.
+**Deciso il 13 ottobre:** `syscode` è un flag booleano indipendente da
+system_records, che resta fuori perimetro. L'espansione avviene al render,
+senza modificare la source, creare record o generare i virtuali di protezione
+e invalidità dei record di sistema. La colonna resta nullable se non è una PK.
+Tipo, size, indexed e UNIQUE incompatibili su una colonna già dichiarata
+producono errore anziché essere sovrascritti. `syscode=False` non rimuove una
+colonna esplicita; `enabled=False` disattiva anche questa espansione.
+
+Per gli altri campi i dict accettano `name_long`, `name_short`, `comment`, `group`,
+`indexed`; soltanto `id` accetta anche `type`.
 Nomi, dtype, size del generatore, regole di assegnazione e contesto utente
 non sono personalizzabili attraverso questi dict. `__record_pointer` è una
 formula del modello anche con `id=False`, costruita dalla pkey effettiva.
@@ -437,7 +451,7 @@ funzioni esecutive. Gli effetti non ancora traducibili vanno segnalati.
 | `pyColumn(name, *, method=None, required_columns=(), dtype=None, static=False, group=None, **meta)` | Nome del metodo e dipendenze esplicite come dati del modello; la dichiarazione non esegue il metodo né lo rende automaticamente traducibile in SQL. |
 | `compositeColumn(name, columns, *, unique=False, static=True, group=None, **meta)` | Identità serializzata strutturalmente, componenti ordinate; PK/UNIQUE/FK multicolonna senza colonna SQL aggiuntiva. |
 | `bagItemColumn(name, *, bagcolumn, itempath, dtype=None, group=None, **meta)` | Estrazione Bag/XML tipizzata; itempath è un percorso dati, non XPath SQL interpolato. |
-| `colgroup(name, *, name_long=None, **col_defaults)` | Gruppo unico ordinato, default `col_*` dalle firme delle colonne e x_ui; handle reindirizza i costruttori alla tabella. |
+| `colgroup(name, *, name_long=None, **col_defaults)` | Gruppo unico ordinato, default `col_*` dalle firme delle colonne; handle reindirizza i costruttori alla tabella. |
 | `subtable(name, *, condition, parameters=None, **meta)` | Sottoinsieme logico della stessa tabella; niente tabella SQL. Filtri si compongono con policy. |
 
 **Decisione del 13 ottobre — subQueryColumn:** mantenere la firma legacy:

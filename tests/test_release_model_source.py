@@ -74,7 +74,8 @@ def test_options_have_closed_signatures_and_are_scoped_to_the_owner():
 
 def test_positional_option_arguments_are_not_silently_lost():
     _, db, pkg = source()
-    assert pkg.options().metadata('app', {'area': 'billing'}).get_attr('values') == {'area': 'billing'}
+    pkg.attr['app_area'] = 'billing'
+    assert pkg.get_attr('app_area') == 'billing'
     assert pkg.options().requires('sys', 'adm').get_attr('packages') == ['sys', 'adm']
     with pytest.raises(TypeError, match='positional'):
         pkg.table('bad', 'unexpected')

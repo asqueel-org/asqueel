@@ -6,6 +6,8 @@ from copy import deepcopy
 import re
 from typing import Any, Mapping
 
+from genro_toolbox import extract_kwargs
+
 from .catalog import SqlModelCatalog
 from .contracts import (
     Column, PartitionScope, Relation, ResolvedModel, RowPolicies, Table, UnsupportedFeatureError,
@@ -16,10 +18,15 @@ def _names(value) -> tuple[str, ...]:
     return tuple(part.strip() for part in (value.split(',') if isinstance(value, str) else value or ()) if part.strip())
 
 
+@extract_kwargs(x_ui=True)
+def _ui_attributes(*, x_ui_kwargs=None, **attributes) -> dict[str, Any]:
+    return dict(x_ui_kwargs or {})
+
+
 def column_ui(attributes: Mapping[str, Any], path: str, identity: str,
               ui: Mapping[str, Mapping[str, Any]] | None) -> dict[str, Any]:
     """Apply inline metadata, then path overlay, then stable identity overlay."""
-    result = dict(attributes.get('x_ui') or {})
+    result = _ui_attributes(**dict(attributes))
     overlays = ui or {}
     result.update(overlays.get(path, {}))
     if identity != path:
@@ -36,7 +43,7 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
     x_sql_schema/x_sql_prefix inherit from schema to table, x_sql_name is an
     explicit physical table/column override. No physical prefix is inferred.
     """
-    from .model_source import prepare_source, sections, options, declaration, attributes
+    from .model_source import prepare_source, sections, options, declaration, attributes, column_declarations
     builder = prepare_source(builder)
     builder.validate_model()
     catalog = SqlModelCatalog(builder)
@@ -77,7 +84,7 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
                 relation_path = metadata.get('relation_path')
                 if not isinstance(relation_path, str) or not relation_path.strip():
                     raise ValueError(f'{schema}.{name}.{colname}: alias requires a relation_path')
-            elif package and node.node_tag != 'column' and ((database.get_attr('metadata') or {}).get('legacy', {}).get('expanded') or node.node_tag != 'formulaColumn' or metadata.get('handler') or metadata.get('parameters') or metadata.get('subqueries') or metadata.get('sql_formula') is True):
+            elif package and node.node_tag != 'column' and (database.get_attr('x_legacy_expanded') or node.node_tag != 'formulaColumn' or metadata.get('handler') or metadata.get('parameters') or metadata.get('subqueries') or metadata.get('sql_formula') is True):
                 # Executable providers are symbolic model declarations, never called here.
                 metadata['x_requires_compilation'] = node.node_tag
             elif node.node_tag != 'column':
@@ -95,7 +102,7 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
                 colname, metadata.get('dtype') or ('A' if metadata.get('size') else 'T'), metadata.get('sqlname') or metadata.get('x_sql_name'),
                 formula, column_ui(metadata, path, identity, ui), identity, metadata, relation_path,
                 select=select, exists=exists, subqueries=subqueries, kind=node.node_tag,
-                declarations=tuple(declaration(child) for child in catalog.children(node)),
+                declarations=column_declarations(node, **attributes(node)),
             )
         attrs['provenance'] = {'kind': 'builder', 'path': entry['path']}
         attrs['indexes'] = tuple(dict(node.attr) for _, node in entry['indexes'])
@@ -162,7 +169,7 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
         tables[table.key] = replace(table, relations=relations)
     tables = _resolve_inverse_relations(tables)
     tables = _resolve_virtual_relations(tables)
-    if (database.get_attr('metadata') or {}).get('legacy', {}).get('expanded'):
+    if database.get_attr('x_legacy_expanded'):
         # Legacy expressions need the P7 compiler; retaining them is essential
         # for a complete model even when only its physical projection is used.
         tables = {key: replace(table, columns={name: replace(column, attributes={

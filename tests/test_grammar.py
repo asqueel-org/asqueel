@@ -147,8 +147,8 @@ def test_relations_with_the_same_local_structural_key_are_loud():
         model.validate_model()
 
 
-def test_undeclared_attribute_is_rejected_where_the_signature_is_closed():
-    """``db`` declares no ``**extra``, so a typo cannot become an attribute."""
+def test_undeclared_bare_attribute_is_rejected_on_db():
+    """Extra DB attributes need a namespace; a bare typo is rejected."""
     model = _mount()
     with pytest.raises(ValueError):
         model.source.db(name="d", dbnmae="typo")
