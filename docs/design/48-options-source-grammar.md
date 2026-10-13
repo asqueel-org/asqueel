@@ -1,5 +1,10 @@
 # 48 — Grammatica delle options: stato corretto dopo la revisione
 
+**Rettifica del 13 ottobre:** diagnostics, citata nel censimento storico sotto,
+è rimossa dalla grammatica attiva. Diagnostic/invalidFields/invalidRelations
+sono funzionalità non portate, da rivedere come opzioni di tabella (41, R-07).
+
+
 **Decisione successiva sui timestamp:** i timestamp di sistema sono DHZ;
 la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
 `timestamp_type` o `use_timezone`. Prevale sui punti ancora aperti citati sotto.
@@ -8,7 +13,11 @@ La baseline salvata del corpus usa già use_timezone=True (report 45).
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
 
-12 ottobre 2026. **Solo grammatica; oggetti vivi nella fase successiva.**
+**Aggiornamento del 13 ottobre:** espansioni strutturali e conservazione delle
+options negli oggetti implementate nelle fasi 2–3 del [piano 51](51-source-to-live-objects-plan.md).
+Il resoconto seguente descrive il checkpoint grammaticale precedente.
+
+12 ottobre 2026. **Checkpoint di sola grammatica.**
 La precedente versione conteneva scelte non concordate. Le correzioni e la
 provenienza delle funzioni sono nel [report 49](49-grammar-corrections-and-audit.md).
 

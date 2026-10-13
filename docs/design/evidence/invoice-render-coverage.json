@@ -15,13 +15,13 @@
     "physical.json": true
   },
   "native_source_sha256": {
-    "src/asqueel/elements.py": "73ee64a447171799c9d20d9aaf5c10d4b1726a1f1a868c5c3bd8fd37de9ebf51",
+    "src/asqueel/elements.py": "5b4053bd992496eff7f49243d475940556008a3d94af8d0661b818ce8714f067",
     "src/asqueel/model_elements.py": "4b6cbd2e29491f45ff47de6f8fa79f7b693f17d383fe50714c713e026efa7036",
-    "src/asqueel/semantic_elements.py": "24cf4951f4d48c2eb60b91754ae823c7a43270fcc496a5a11727c610d8bbe914",
-    "src/asqueel/option_elements.py": "7a9bde13fbd310e43f12e156f4533642eeb564926b725e64b1fd6c63e7cab2fb",
-    "src/asqueel/option_validation.py": "f7fc854094b72fe0764d5ff9399e045d5254953ebdf09974c11faeeec8af325a",
-    "src/asqueel/model_expansion.py": "2b85d1bddcb1419bc8e969c08be29dd62a31693862a6c2f558a3ae3463d1a8e5",
-    "src/asqueel/model_source.py": "98d8fec804829e0e143afda556c3f553d4ba82cbd3d75e8e96858df3c10298a0",
+    "src/asqueel/semantic_elements.py": "a50d3b3f50a01ed81eb9019d42fa03b94fe238f688475bc70000df31969d1979",
+    "src/asqueel/option_elements.py": "e632dd9776eb6b7e811395e2a4dc4cd93536ef4206d80b87c8c0d7a19ebdfa35",
+    "src/asqueel/option_validation.py": "a4db4d40664d2d13bca7303b08a55b64e7ed2bb9d39c57cb80b921875a82ed79",
+    "src/asqueel/model_expansion.py": "a7f35d72b8e6be734c41aae38b5c0044b35936329f45200d6146bc23921e21f4",
+    "src/asqueel/model_source.py": "0d36d138f766a01b237d9332b7fc434e8fea62abe26c9be9f9c6bd19aa548194",
     "src/asqueel/projection.py": "0adc5bfc71107ff9000722a01dcd36bf5f88d63136d46220fa59bd517142e31b",
     "src/asqueel/builder.py": "14936874e0b0f10a004e699e33f6dda16f94250605021d6e1b7d29c62b8cf05f"
   },
@@ -13934,8 +13934,13 @@
       }
     },
     "relation_on_duplicate_false": {
-      "accepted": false,
-      "error": "Validation failed: 'on_duplicate': expected str | None, got bool"
+      "accepted": true,
+      "attributes": {
+        "on_duplicate": false,
+        "to": "other.id",
+        "foreign_key": true,
+        "x_canonical": true
+      }
     },
     "subquery_aggregate": {
       "accepted": true,
@@ -13975,6 +13980,8 @@
             ],
             "constraint_type": "FOREIGN KEY",
             "on_update": "CASCADE",
+            "deferrable": true,
+            "initially_deferred": true,
             "columns": [
               "no2fa_alternative_group"
             ],

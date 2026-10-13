@@ -124,3 +124,27 @@ virtualRelation. Il JSON fisico per migrations non è interessato.
 **Alla ripresa:** ripartire dalla GEP e da questa semplificazione concordata,
 senza presumere approvate selezioni per record, propagazioni di cardinalità o
 regole di composizione dei limiti.
+
+
+## R-07 — Diagnostica e invalidità configurabili sulla tabella
+
+**Decisione del 13 ottobre 2026:** `diagnostic`, `invalidFields` e
+`invalidRelations` non sono portati in questa fase. Saranno riconsiderati
+come opzioni di tabella. La firma proposta `diagnostics(rules=...,
+invalid_fields=..., invalid_relations=...)` non era stata concordata ed è
+rimossa dalla grammatica attiva, non mantenuta come contratto futuro.
+
+**Riferimento legacy:** `gnrpy/gnr/app/gnrdbo.py`, `GnrDboTable.sysFields`:
+`diagnostic` è un attributo di tabella e aggiunge `__warnings` e `__errors`;
+`invalidFields` e `invalidRelations` sono parametri distinti, che aggiungono
+`__invalid_fields` quando richiesto e la formula `__is_invalid`.
+Nessuna di queste attivazioni compare nei package di `test_invoice_pg`
+auditati nel rapporto 52.
+
+Questi rami opzionali restano fuori dall'espansione. Il rinvio non riguarda
+le quattro virtuali di base che il legacy aggiunge sempre con sysFields
+(`__protecting_reasons`, `__is_protected_row`, `__invalid_reasons`,
+`__is_invalid_row`), già censite separatamente.
+
+**Alla ripresa:** riesaminare i singoli flag legacy e decidere le firme di
+tabella; non presumere approvati il raggruppamento diagnostics o rules.

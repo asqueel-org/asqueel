@@ -116,7 +116,7 @@ def _validate_source_shape(builder):
         if node.node_tag != 'validation' and {'metadata', 'x_ui'}.intersection(node.attr):
             raise ValueError(f'{node.node_tag}: use flat namespaced attributes, not metadata/x_ui mappings')
         if node.node_tag in ('context', 'generation', 'behavior', 'pkey_from', 'macro',
-                             'normalize', 'aliasTable', 'table_alias', 'metadata'):
+                             'normalize', 'aliasTable', 'table_alias', 'metadata', 'diagnostics'):
             raise ValueError(f'{node.node_tag}: removed from the source grammar')
         if node.node_tag == 'virtualRelation':
             owner = node._resolve_builder()
@@ -414,6 +414,7 @@ def _effective_model_builder(config):
         owner = (node.parent_bag._builder if node._get_meta('subbuilder')
                  else node._resolve_builder())
         info = owner._get_schema_info(node.node_tag)
+        signature_defaults = []
         for name, (_, _, default) in (info.get('call_args_validations') or {}).items():
             if (name in node.attr or default is inspect.Parameter.empty or default is None
                     or node.node_tag == 'validation'):
@@ -424,6 +425,9 @@ def _effective_model_builder(config):
                     and not node.attr.get('foreign_key')):
                 continue
             node.attr[name] = deepcopy(default)
+            signature_defaults.append(name)
+        if signature_defaults:
+            node.attr.setdefault('_meta', {})['signature_defaults'] = signature_defaults
         # Administrative root attributes belong to connection_settings, not the model.
         if node.node_tag == 'db':
             for name in ('conninfo', 'connect_kwargs'):

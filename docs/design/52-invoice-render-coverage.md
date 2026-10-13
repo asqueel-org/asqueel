@@ -60,26 +60,26 @@ per esempio i cicli di `sys.calendar` non sono espansioni di `sys_fields`.
 
 ## Matrice delle options
 
-Stato comune attuale: `expand_options` rifiuta tutte le TABLE_OPTIONS attive.
-`sys_fields` ha una prima espansione incompleta. La presenza di una firma non
-equivale quindi al supporto del render. Le tabelle citate sotto sono fixture
-legacy indipendenti in `tests/oracles/test_invoice_pg/model.json` e `source.xml`;
-le firme sono verificate dai test grammaticali, gli effetti nativi dalle fasi
-successive. I numeri indicano impieghi dichiarati o ereditati, non le formule
-generate dalle altre options.
+**Aggiornamento dopo le fasi 2–3:** le options strutturali concordate vengono
+espanse durante il render e le altre rimangono dati degli oggetti. I rinvii
+restano esclusi. Le tabelle citate sotto sono fixture legacy indipendenti in
+`tests/oracles/test_invoice_pg/model.json` e `source.xml`; gli effetti nativi
+sono verificati in `tests/test_native_option_expansion.py`. I numeri indicano
+impieghi dichiarati o ereditati, non le formule generate dalle altre options.
+Questo non certifica ancora la trascrizione completa dei 74 modelli nativi.
 
 | Dichiarazione nativa | Evidenza / fixture | Effetto atteso e dipendenze | Stato / fase |
 | --- | --- | --- | --- |
-| `sys_fields(...)` | 67 tabelle: sys 13, adm 36, invc 18; `GnrDboTable.sysFields` | PK se richiesta; id, timestamp, utente, logicalDeletionField, lastTS, draftField, gruppo e metadati; `__record_pointer` anche con id=False; quattro virtuali di protezione/invalidità | Parziale; completare in 2. Preservare metodi come dati, senza invocarli. R-02/R-03 separati |
+| `sys_fields(...)` | 67 tabelle: sys 13, adm 36, invc 18; `GnrDboTable.sysFields` | PK se richiesta; id, timestamp, utente, logicalDeletionField, lastTS, draftField, gruppo e metadati; `__record_pointer` anche con id=False; quattro virtuali di protezione/invalidità | Implementata, fase 2; metodi come dati. R-02/R-03/R-07 separati |
 | `sys_fields(syscode=True)` | Campo __syscode legacy di adm.htag/language/xgroup; nuova attivazione esplicita concordata | Solo __syscode A :20, indicizzata e UNIQUE; flag False per default | Implementata con prove in test_syscode.py; nessun system_records |
-| `hierarchical(columns=...)` | sys.widget, adm.htag/menu, invc.product_group/product_type | parent_id + FK differita/inversa `_children`, hierarchical_pkey UNIQUE, `_parent_h_pkey`, coppie hierarchical_* / _parent_h_*, child_count, hlevel, attributi ordine/broadcast | Da espandere, 2 e 4. Attenzione a product_group: gerarchia su `code,_row_count`, contatore dichiarato nello stesso sysFields |
-| `auto_counter(scope=...)` | 10 tabelle, inclusa AttachmentTable; invoice_row scope invoice_id | `_row_count` L; nelle quattro gerarchie con counter anche `_h_count`, `_parent_h_count`, `_h_sortcol`; conservare scope/order_by | Da espandere in 2. Nessuna assegnazione del contatore |
-| `dynamic_fields(templates=...)` | sys.widget, invc.product_type | df_fields X, df_fbcolumns L, df_custom_templates X con templates, df_colswidth; nessuna compilazione dei campi dinamici | Da espandere in 2 |
-| `column.dynamic_fields(source=...)` | invc.product.details: subfields='product_type_id' | Conservare il riferimento al campo; dipende dal collegamento a product_type. Non crea altre colonne fisiche | Traduzione dichiarativa, 2/4 |
-| `record_hash()` | adm.user, md5=True | `__rec_md5` e attributi legacy; il legacy non specifica un elenco columns | Da espandere in 2; nessun calcolo hash |
-| `audit(mode='lazy')` | sys.widget | `__version` L; il ramo legacy lo aggiunge quando audit è attivo | Da espandere in 2; nessun log o incremento |
-| `attachments(master='adm.htmltemplate')` | adm.htmltemplate_atc, base AttachmentTable | 16 colonne fisiche e 9 virtuali complessive nel profilo; sys_fields + counter maintable_id + FK differita con SQL cascade; attributo atc_attachmenttable sul master | Da espandere in 3. Riusare espansioni locali, non copiare campi già espansi. Correzione C-02 |
-| `partition(name, field=..., value=...)` | invc.customer.state e invoice.customer_state, riferimento legacy invc_state | Conservare campo e valore/resolver esistente; alias customer_state dipende da customer. Nessun DDL o filtro eseguito | Solo dati, 2/4; nessun context registry |
+| `hierarchical(columns=...)` | sys.widget, adm.htag/menu, invc.product_group/product_type | parent_id + FK differita/inversa `_children`, hierarchical_pkey UNIQUE, `_parent_h_pkey`, coppie hierarchical_* / _parent_h_*, child_count, hlevel, attributi ordine/broadcast | Implementata e confrontata sulle cinque gerarchie; incluso product_group su `code,_row_count` |
+| `auto_counter(scope=...)` | 10 tabelle, inclusa AttachmentTable; invoice_row scope invoice_id | `_row_count` L; nelle quattro gerarchie con counter anche `_h_count`, `_parent_h_count`, `_h_sortcol`; conservare scope/order_by | Implementata, fase 2; nessuna assegnazione del contatore |
+| `dynamic_fields(templates=...)` | sys.widget, invc.product_type | df_fields X, df_fbcolumns L, df_custom_templates X con templates, df_colswidth; nessuna compilazione dei campi dinamici | Implementata, fase 2 |
+| `column.dynamic_fields(source=...)` | invc.product.details: subfields='product_type_id' | Conservare il riferimento al campo; dipende dal collegamento a product_type. Non crea altre colonne fisiche | Dichiarazione conservata nel modello, insieme al riferimento legacy subfields |
+| `record_hash()` | adm.user, md5=True | `__rec_md5` e attributi legacy; il legacy non specifica un elenco columns | Implementata; nessun calcolo hash |
+| `audit(mode='lazy')` | sys.widget | `__version` L; il ramo legacy lo aggiunge quando audit è attivo | Implementata; nessun log o incremento |
+| `attachments(master='adm.htmltemplate')` | adm.htmltemplate_atc, base AttachmentTable | 16 colonne fisiche e 9 virtuali complessive nel profilo; sys_fields + counter maintable_id + FK differita con SQL cascade; attributo atc_attachmenttable sul master | Implementata, fase 3; usa le espansioni locali. Confronto indipendente delle 16 colonne e 9 virtuali; C-02 corretta |
+| `partition(name, field=..., value=...)` | invc.customer.state e invoice.customer_state, riferimento legacy invc_state | Conservare campo e valore/resolver esistente; alias customer_state dipende da customer. Nessun DDL o filtro eseguito | Conservata negli oggetti; resolver esistenti valutati da Builders; nessun context registry |
 | `tenant()` | adm.counter: multi_tenant=True | Conservare flag; profilo legacy senza tenant_schemas | Solo dati; non inventare tenant_id o schemi tenant |
 | `retention(field=..., days=...)` | sys.error: 60; sys.task_execution: 180; campo __ins_ts | Conservare politica | Solo dati; nessuna cancellazione |
 | `broadcast(columns=...)`, `archive()` | adm.userobject: objtype e archivable=True | Conservare dati; broadcast parent_id delle gerarchie è invece prodotto dalla loro espansione | Solo dati; nessun evento |
@@ -87,12 +87,12 @@ generate dalle altre options.
 | `numbering('inv_number', parameters=...)` | invc.invoice.counter_inv_number | Conservare il dict della regola; non invocare il metodo durante il render né allocare numeri | Solo dati; fase 5 trascrive la dichiarazione originale |
 | `system_records(...)` | adm.htag esplicita sysrecords=True; language e xgroup hanno sysRecord_* | Genererebbe __syscode UNIQUE e due virtuali per tabella | **Fuori perimetro R-02; divergenza D-01 accettata**. Firma records/masterfield/tag non approvata |
 | `release(...)` | Nessun _release_* né __release nel corpus | Il legacy genera __release L quando rileva i metodi | R-03; nessuno scarto nel corpus. Firma handlers non approvata |
-| `full_update()` | Nessun impiego nel corpus; sysFields full_upd | __full_mod_ts DHZ indicizzato | Evidenza nel helper, non copertura del corpus; fixture minima in 2 |
-| `protection(...)` | Nessun useProtectionTag nel corpus; sysFields_protectionTag | __protection_tag e __protected_by_tag. Distinti dai quattro virtuali di base, presenti sulle 67 tabelle | Variante da verificare in 2; `rules` non giustificato dal corpus |
-| `diagnostics(...)` | Nessun diagnostic/invalidFields/invalidRelations nel corpus | Rami distinti: __warnings/__errors; __invalid_fields e __is_invalid | Non certificata dal corpus; precisare il mapping prima di implementare varianti. Non dedurre i campi da `rules` |
-| `relative_index(relation=...)` | Nessun relidx nel corpus; sysFields_relidx/addRelXtdRelidxColumn | `_relidx` locale e contatore nella tabella master_xtd; richiede quella tabella | Fixture minima in 3, nessuna tabella xtd da inventare nel corpus |
-| varianti hierarchical root_id/virtual_roots/linked_to/depth | Assenti nel corpus; sysFields/linkHierarchicalToMaster | Campi root/virtuali/livelli; linked_to modifica entrambe le tabelle | Non certificabili con i 75 modelli; fixture dedicate e verifica firma, prima di implementarle |
-| `package.options().type(...)`, `.requires(...)` | invc.custom_type_money/perc; adm.required_packages | money N14,2, perc N5,2 e format; dipendenza adm→sys | Infrastruttura presente; portare anche i metadati format. Nessuna macro aggiunta |
+| `full_update()` | Nessun impiego nel corpus; sysFields full_upd | __full_mod_ts DHZ indicizzato | Implementata; fixture minima dal helper, non copertura del corpus |
+| `protection(...)` | Nessun useProtectionTag nel corpus; sysFields_protectionTag | __protection_tag e __protected_by_tag. Distinti dai quattro virtuali di base, presenti sulle 67 tabelle | Ramo tag verificato dal helper; rules solo conservato, nessun effetto inferito |
+| diagnostic / invalidFields / invalidRelations | Nessun impiego nel corpus | Rami opzionali legacy distinti | **Non portati, R-07**. Firma diagnostics rimossa; rivalutazione futura come opzioni di tabella |
+| `relative_index(relation=...)` | Nessun relidx nel corpus; sysFields_relidx/addRelXtdRelidxColumn | `_relidx` locale e contatore nella tabella master_xtd; richiede quella tabella | Implementata con fixture dedicata; master_xtd deve già esistere |
+| varianti hierarchical root_id/virtual_roots/linked_to/depth | Assenti nel corpus; sysFields/linkHierarchicalToMaster | Campi root/virtuali/livelli; linked_to modifica entrambe le tabelle | Implementate con fixture dedicata e riferimento agli helper; non attestate dal corpus |
+| `package.options().type(...)`, `.requires(...)` | invc.custom_type_money/perc; adm.required_packages | money N14,2, perc N5,2 e format; dipendenza adm→sys | Dati conservati; alias risolti prima delle espansioni e sui campi generati. Nessuna macro aggiunta |
 
 Per gli allegati non risultano atc_types/atc_download nel mixin effettivo:
 non generare atc_type/atc_download. Non risultano contributi sysFields_extra_*
@@ -197,31 +197,28 @@ Questa normalizzazione oggi è nel bridge, non nella proiezione nativa completa.
 Non cambiare colonne native in C/T nella source solo per copiare il JSON:
 rispettare la separazione tipo logico/storage. Fase 6, con controlli già in 2/4.
 
-**C-02 — onDuplicate=False.** AttachmentTable dichiara letteralmente False
-sulla relazione maintable_id; la firma `on_duplicate: str | None` lo rifiuta.
-Il validatore del render ammette inoltre un catalogo copy/ignore/raise,
-mentre il legacy usa anche recursive nella gestione delle duplicazioni.
-Il bridge attuale converte False in 'ignore' (e True in 'copy'), conservando
-anche l'originale in x_legacy: questa conversione non va trasferita alla source
-nativa come se fosse la dichiarazione originale. Per la traduzione conservare
-il dato legacy senza un vocabolario esecutivo inventato. Non implementare la
-duplicazione. Correzione grammaticale da fare prima dell'espansione allegati.
+**C-02 — onDuplicate=False: corretta.** La firma conserva bool e stringhe,
+inclusi False e recursive, senza il vocabolario inventato copy/ignore/raise.
+Gli allegati nativi mantengono False. Il bridge storico conserva ancora la
+sua conversione e l'originale in x_legacy; non è il producer nativo.
+Nessuna duplicazione eseguita.
 
-**C-03 — Deferrability implicita.** `adm.group.no2fa_alternative_group` ha onDelete='setnull'
-senza deferred esplicito. `DbModel.addRelation` lo rende differito; il bridge
-lo conserva, il percorso nativo attuale non applica questa inferenza.
-Riprodurre il legacy in fase 4. L'indicizzazione delle relazioni deboli resta
-da controllare su entrambi i lati; non basta il numero delle FK.
+**C-03 — Deferrability implicita: corretta.** Come DbModel.addRelation,
+set_null implica deferred=True se non specificato. Un valore esplicito False
+resta tale. Verificati percorso diretto e oggetti vivi; il probe di adm.group
+conferma l'inferenza. L'indicizzazione delle relazioni deboli resta nel controllo
+globale della fase 4.
 
-**C-04 — Sys_fields incompleta.** Nel codice mancano ancora gruppo/etichette,
-attributi di tabella, parte dei metadati e i quattro virtuali standard.
-Il fatto che questi descrivano protezione/invalidità non li trasforma in
-esecuzione operativa: conservarli come dichiarazioni. Fase 2.
+**C-04 — Sys_fields: completata nel perimetro concordato.** Gruppo/etichette,
+attributi di tabella, record_pointer e quattro virtuali standard sono presenti.
+I riferimenti ai metodi sono dati piatti x_legacy_*, mai invocati nel render.
+R-02/R-03/R-07 restano esclusi. Nel ramo gerarchico il contatore conserva
+solo gli attributi di quel ramo legacy, senza aggiungere setRowCounter.
 
 **C-05 — Documenti e varianti non certificate.** Le vecchie matrici 43/47
 parlano ancora di provider, normalize, pkey_from e inverse virtuali come parte
 della proposta di allora. Il rapporto presente prevale e le marca come storia.
-Le varianti assenti nel corpus (per esempio diagnostics.rules, protection.rules,
+Le varianti assenti nel corpus (per esempio protection.rules,
 counter_kwargs) non ricevono un'approvazione implicita dalla copertura dei 75
 modelli. Per usarle occorrono verifica specifica della firma o rinvio esplicito;
 non bloccano la traduzione delle dichiarazioni effettivamente presenti.
@@ -273,6 +270,15 @@ assenza di comportamenti system_records, PK esplicita, conflitti e tipi del
 flag. Suite completa: **1078 superati, 1 saltato**; Ruff e mypy nell'ambiente
 di audit superati. Grammatica generata e hash dell'audit aggiornati; nessun
 oracolo legacy modificato.
+
+**Verifiche delle espansioni native (fasi 2–3):** 40 casi mirati, suite completa
+**1124 superati, 1 saltato**, Ruff e mypy su 50 file superati. Le prove confrontano
+le cinque gerarchie e gli allegati con la cattura indipendente, e coprono le
+varianti strutturali tramite gli helper legacy. L'esempio grammaticale di otto
+tabelle rende aggiungendo nel test i target minimi state/product che omette;
+non è una source completa del corpus. Aggiornati hash e probe dell'audit;
+i tre oracoli legacy restano invariati. Il JSON dei 74 modelli nativi rimane da
+certificare, inclusa la normalizzazione fisica C-01.
 
 ## Registro dei 75 modelli
 

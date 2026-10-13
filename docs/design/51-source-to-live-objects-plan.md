@@ -6,7 +6,7 @@ la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
 La baseline salvata del corpus usa già use_timezone=True (report 45).
 
 Aggiornato il **13 ottobre 2026**, dopo il checkpoint grammaticale
-`61bbbb5`. **Fasi 0 e 1 completate; prossima fase: espansioni locali (2).**
+`61bbbb5` e la fase 1 `43663f8`. **Fasi 0–3 completate; prossima verifica: relazioni e finalizzazione (4).**
 La richiesta corrente è organizzare la costruzione degli oggetti e il JSON
 migrations. Questo documento sostituisce la precedente sequenza A–E con fasi
 verificabili, senza aprire il lavoro sul compilatore o introdurre nuove firme.
@@ -14,14 +14,15 @@ Prevalgono le decisioni 40, i rinvii 41, la grammatica 42 e le correzioni 49–5
 
 ## Stato verificato e risultato da raggiungere
 
-- La suite dopo la fase 1 conta **1084 test superati e 1 saltato**. Ruff e mypy
+- La suite dopo le fasi 2–3 conta **1124 test superati e 1 saltato**. Ruff e mypy
   passano nell'ambiente di verifica. Il mypy dell'hook locale usa un ambiente
   diverso e segnala dipendenze/firme non allineate: verificare con l'ambiente
   riproducibile dei test, senza considerare ignorabili futuri errori di tipo.
 - `SqlObjectRenderer` già compone la configurazione, prepara un modello e crea
   `SqlDatabase`: si completa questo percorso, non un secondo sistema di oggetti.
-- `expand_options` rifiuta ancora le TABLE_OPTIONS attive dichiarative; esiste
-  una prima espansione sys_fields, da completare rispetto al legacy.
+- `expand_options` espande le options strutturali concordate, incluse quelle
+  con contributi fra tabelle, e conserva le altre nel modello. System_records
+  e release attive restano rifiutate perché rinviate; diagnostics è rimossa.
 - Il JSON di sys/adm/invc è verificato attraverso il ponte dalla source legacy
   espansa. L'esempio nativo corrente contiene soltanto una selezione di tabelle.
 - Il traguardo aggiornato è una source nativa di **74 modelli** (sys 16, adm 40,
@@ -127,7 +128,7 @@ Non serve introdurre una grammatica pubblica di priorità o dipendenze.
 | --- | --- | --- |
 | Preparazione dei casi composti | attachments | Raccogliere gli effetti verificati di AttachmentTable e predisporre i campi richiesti; riusare le stesse routine interne di sys_fields e contatore. Registrare il collegamento al master per il completamento successivo. |
 | Identità e campi di base | sys_fields; dichiarazione pkey_columns | Stabilire PK, id, timestamp, campi utente, cancellazione logica e bozza. Registrare la modalità UUID concordata senza collegare o invocare un generatore. pkey_columns conserva componenti e regola senza calcolare chiavi. |
-| Campi locali aggiuntivi | full_update, record_hash, audit, dynamic_fields, parti locali di protection/diagnostics | Generare campi e descrizioni verificate senza interrogare l'audit. Record di sistema e release rinviati esplicitamente (41, R-02 e R-03). Gli altri effetti impliciti di sysFields nel legacy, come i virtuali di protezione/invalidità e record_pointer, non vanno persi. |
+| Campi locali aggiuntivi | full_update, record_hash, audit, dynamic_fields, parti locali di protection | Generare campi e descrizioni verificate senza interrogare l'audit. Record di sistema e release rinviati esplicitamente (41, R-02 e R-03). Gli altri effetti impliciti di sysFields nel legacy, come i virtuali di protezione/invalidità e record_pointer, non vanno persi. |
 | Strutture gerarchiche | hierarchical | PK e colonne base devono esistere. Creare parent_id, percorsi gerarchici, campi parent e varianti effettivamente richieste; registrare relazioni da collegare dopo. |
 | Ordinamento e contatori di riga | auto_counter, relative_index | Con hierarchical attiva usare il ramo gerarchico legacy, con _h_count, _parent_h_count e _h_sortcol. Senza gerarchia, gestire lo scope relativo. Rinviare i completamenti su altre tabelle. |
 | Comportamenti senza allocazione di valori | numbering, partition, tenant, retention, broadcast, archive, enabled_when; cifratura e metodi applicativi | Trasferire i valori di configurazione risolti sugli oggetti, senza collegare esecutori. Le espansioni non assegnano numeri, cancellano dati, emettono eventi o accedono allo storage. I resolver dichiarati seguono comunque la semantica di Builders descritta sotto; nessuna eccezione implicita per tenant o partition. |
@@ -326,11 +327,14 @@ l'espansione delle options né la source nativa dei 74 modelli inclusi.
 
 ### Fase 2 — Options con effetti locali
 
+Diagnostica configurabile, invalidFields e invalidRelations sono fuori perimetro
+per decisione del 13 ottobre (41, R-07); nessuna firma diagnostics da implementare.
+
 **Lavoro, in ordine di dipendenza:**
 
 1. Completare sys_fields, tipi locali, PK e dati pkey_columns.
 2. Riprodurre campi e virtuali locali di full_update, record_hash, audit,
-   protection/diagnostics e dynamic_fields secondo la matrice della fase 0.
+   protection e dynamic_fields secondo la matrice della fase 0.
 3. Espandere hierarchical e poi il ramo gerarchico di auto_counter.
 4. Conservare le options senza effetti strutturali individuati, senza eseguirle.
 
@@ -349,6 +353,16 @@ parità, o una differenza già approvata. sys_fields non è considerato completo
 solo perché produce id e timestamp: includere record_pointer e gli altri
 virtuali impliciti verificati, rispettando R-02/R-03.
 
+**Esito del 13 ottobre — fase 2 completata:** campi sys_fields, virtuali di
+base e record_pointer, full_update, record_hash, audit, dynamic_fields,
+protection con tag, gerarchie e contatori sono tradotti in dichiarazioni del
+modello. Le altre options rimangono accessibili negli oggetti con i loro valori;
+nessuna allocazione o esecuzione applicativa. Gli alias di tipo vengono risolti
+anche prima delle espansioni. I default impliciti sono distinti dagli attributi
+espliciti, così non annullano indexed/unique e le personalizzazioni compatibili.
+Confronto indipendente con source.xml per le cinque gerarchie del corpus e
+adm.user; varianti fuori corpus verificate contro i corrispondenti helper legacy.
+
 ### Fase 3 — Espansioni che coinvolgono altre tabelle
 
 **Lavoro:** completare attachments, relative_index, link gerarchici al master
@@ -364,6 +378,21 @@ contributi incrociati, riferimenti mancanti, completamenti ripetuti e conflitti.
 **Criterio di completamento:** tutti i campi e riferimenti strutturali attesi
 sono presenti una volta sola. I completamenti non dipendono dall'ordine delle
 dichiarazioni indipendenti e non producono accessi a storage o database.
+
+**Esito del 13 ottobre — fase 3 completata:** attachments riusa sys_fields e
+auto_counter; completa colonne, virtuali, FK e contributo atc_attachmenttable
+al master. Gerarchie linked_to e relative_index contribuiscono alle tabelle
+riferite dopo le espansioni locali. La tabella master_xtd deve già esistere.
+Verificati master prima/dopo, assenza di mutazioni sulla source, conflitti e
+render senza connessioni. Il confronto allegati usa adm.htmltemplate_atc con
+user_upd=False esplicito, mantenendo il default pubblico concordato True.
+On_duplicate conserva False/stringhe legacy; set_null implica deferred quando
+non specificato. Nessun callback di scrittura viene invocato.
+
+Le fasi 2 e 3 costituiscono questo unico incremento richiesto sulle options.
+Le 40 prove mirate sono in tests/test_native_option_expansion.py. Suite completa:
+**1124 pass, 1 skip**; Ruff e mypy (50 file) superati. Non certificano ancora
+il port nativo integrale dei 74 modelli né la relativa proiezione fisica.
 
 ### Fase 4 — Relazioni, virtuali dichiarative e finalizzazione
 
@@ -467,10 +496,9 @@ Dettagli rilevati da correggere/verificare all'inizio dell'incremento pertinente
 - L'esempio è corretto in hierarchical + auto_counter(), senza scope relativo,
   per rappresentare counter=True del legacy. La futura traduzione va verificata
   sui campi gerarchici di product_type; il controllo grammaticale non prova parità.
-- sys_fields nativo oggi non copre tutti i virtuali/protezioni/diagnostica
-  prodotti nel legacy. Record di sistema e release sono esclusi dall'espansione
-  corrente per rinvio esplicito (41, R-02 e R-03); la documentazione legacy
-  ne conserva il riferimento per la ripresa.
+- sys_fields copre i virtuali di base concordati. Diagnostica configurabile,
+  record di sistema e release restano esclusi (41, R-02/R-03/R-07);
+  la documentazione legacy ne conserva il riferimento per la ripresa.
 - I metodi applicativi non richiedono una dichiarazione behavior o provider.
   La traduzione conserva i dati del modello; non predispone esecutori, registri
   o precedenze degli hook per una fase successiva.
@@ -492,14 +520,14 @@ le verifiche già disponibili in test_release_* e gli oracoli test_invoice_pg.
 ## Stato di avanzamento
 
 - [x] Fase 0 — Mappa di copertura e differenze: rapporto 52; D-01/D-02 escluse per decisione.
-- [ ] Fase 1 — Percorso di render e oggetti esistenti.
-- [ ] Fase 2 — Espansioni locali.
-- [ ] Fase 3 — Espansioni fra tabelle.
+- [x] Fase 1 — Percorso di render e oggetti esistenti.
+- [x] Fase 2 — Espansioni locali.
+- [x] Fase 3 — Espansioni fra tabelle.
 - [ ] Fase 4 — Relazioni e finalizzazione.
 - [ ] Fase 5 — Source nativa dei 74 modelli inclusi.
 - [ ] Fase 6 — JSON dagli oggetti e verifica migrations.
 
 La fase 0 è conclusa come ricognizione; D-01/D-02 sono divergenze concordate.
-Le fasi 1–6 non sono completate e P2 non è chiusa. L'incremento circoscritto
-sys_fields(syscode=True), richiesto successivamente, aggiunge la firma e la
-sola espansione della colonna; non attesta il render completo delle options.
+Le fasi 1–3 sono completate nel perimetro concordato. Restano le verifiche di
+finalizzazione (4), il corpus nativo completo (5) e il JSON dagli oggetti (6).
+P2 e la release non sono ancora chiuse.

@@ -59,6 +59,8 @@ def prepare_source(builder):
                 if node.node_tag == 'relation' and key == 'indexed' and not node.get_attr('foreign_key'):
                     continue
                 node.attr[key] = deepcopy(default)
+                node.attr.setdefault('_meta', {}).setdefault('signature_defaults', []).append(key)
+    resolve_source_types(builder)
     from .model_expansion import expand_options
     expand_options(builder)
     resolve_source_references(builder)
@@ -93,16 +95,13 @@ def sections(catalog):
     return schemas, packages
 
 
-def resolve_source_references(builder):
-    """Resolve type aliases and references after all expansions are present."""
+def resolve_source_types(builder):
+    """Package types are available before options inspect existing columns."""
     from .catalog import SqlModelCatalog
     from .elements import DTYPE
-    from .common import split_names
     from typing import get_args
     catalog = SqlModelCatalog(builder)
     known = set(get_args(DTYPE))
-    sql_actions = {'cascade': 'CASCADE', 'restrict': 'RESTRICT', 'no_action': None,
-                   'set_null': 'SET NULL', 'set_default': 'SET DEFAULT'}
     for (namespace, table_name), entry in catalog.tables.items():
         pkg = catalog.packages.get(namespace)
         aliases = options(pkg) if pkg is not None else {}
@@ -115,6 +114,17 @@ def resolve_source_references(builder):
                 defaults = {key: value for key, value in alias.attributes.items() if key != 'name'}
                 column.attr.update({key: value for key, value in defaults.items() if key not in column.attr})
                 column.attr['dtype'] = defaults['dtype']
+
+
+def resolve_source_references(builder):
+    """Resolve references after all option-generated structures are present."""
+    from .catalog import SqlModelCatalog
+    from .common import split_names
+    resolve_source_types(builder)
+    catalog = SqlModelCatalog(builder)
+    sql_actions = {'cascade': 'CASCADE', 'restrict': 'RESTRICT', 'no_action': None,
+                   'set_null': 'SET NULL', 'set_default': 'SET DEFAULT'}
+    for (namespace, table_name), entry in catalog.tables.items():
         pkey = entry['node'].get_attr('pkey')
         if pkey in entry['composites']:
             entry['node'].attr['x_logical_pkey'] = pkey
@@ -140,11 +150,15 @@ def resolve_source_references(builder):
                     if action == 'on_update' and sql_key not in attrs and attrs.get('foreign_key'):
                         sql_value = 'cascade'
                     if sql_value is not None:
-                        if sql_value not in sql_actions:
+                        normalized_action = sql_value.lower().replace(' ', '_')
+                        if normalized_action not in sql_actions:
                             raise ValueError(f'{path}: invalid SQL action {sql_value!r}')
-                        attrs[action] = sql_actions[sql_value]
-                if attrs.get('on_duplicate') not in (None, 'copy', 'ignore', 'raise'):
-                    raise ValueError(f'{path}: invalid duplicate action')
+                        attrs[action] = sql_actions[normalized_action]
+                # onDuplicate is opaque legacy data (including False and recursive).
+                defaults = (attrs.get('_meta') or {}).get('signature_defaults', ())
+                if ('deferred' not in attrs or 'deferred' in defaults) and (
+                        attrs.get('x_app_on_delete') == 'set_null' or attrs.get('on_delete') == 'SET NULL'):
+                    attrs['deferred'] = True
     # Repeat for chains of inferred foreign-key columns (forward references).
     for _ in range(len(catalog.relations) + 1):
         changed = False
@@ -175,10 +189,11 @@ def resolve_source_references(builder):
 
 
 def require_write_capabilities(table):
-    """Fail before hooks/I/O until the new declarations have execution providers."""
+    """Fail before hooks/I/O while execution of these declarations is deferred."""
     from .contracts import UnsupportedFeatureError
     fields = table.options.get('sys_fields')
     pending = bool(fields and fields.enabled) or table.attributes.get('x_expanded_legacy')
+    pending = pending or any(option.enabled for option in table.options.values())
     pending = pending or any(any(d.kind != 'relation' for d in column.declarations) or any(column.attributes.get(key) is not None
         for key in ('default', 'default_from', 'sql_value', 'x_generation'))
         or column.attributes.get('read_only') or column.attributes.get('unmodifiable')
@@ -186,4 +201,4 @@ def require_write_capabilities(table):
     pending = pending or any(any(key.startswith('x_app_') for key in relation.attributes)
                             for relation in table.relations.values())
     if pending:
-        raise UnsupportedFeatureError(f'{table.key}: declared behaviors require write execution providers (P9)')
+        raise UnsupportedFeatureError(f'{table.key}: write execution for these declarations is not implemented')

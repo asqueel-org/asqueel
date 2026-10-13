@@ -398,30 +398,30 @@ Queste scelte aggiuntive sono proposte operative, non risultati di test runtime.
 
 ## 7. Options comportamentali richieste dai modelli
 
-**Stato implementativo:** la grammatica dichiarativa di questa sezione è ora
-costruibile e validata ([report 48](48-options-source-grammar.md)). Su indicazione
-dell'utente, espansioni e rendering a oggetti vivi appartengono alla prossima fase.
+**Stato implementativo, 13 ottobre:** il render espande le options strutturali
+concordate e conserva le altre negli oggetti ([piano 51](51-source-to-live-objects-plan.md),
+fasi 2–3). Restano esclusi gli effetti applicativi e i rinvii del registro 41.
 Le firme effettive e i payload di disattivazione sono nella [grammatica generata](../grammar.md).
 
 Tutte le seguenti opzioni entrano nel modello risolto e dichiarano gli oggetti
 generati. Le funzioni ammettono `enabled=False`; i default
-interni si applicano solo quando l'opzione viene attivata. Gli effetti richiesti
-andranno realizzati nella fase oggetti. La grammatica non contiene
+interni si applicano solo quando l'opzione viene attivata. Formule e nomi di
+metodi restano dati; la costruzione degli oggetti non esegue tali metodi.
+La grammatica non contiene
 chiavi provider né riferimenti generici a esecutori futuri.
 
 | Firma obiettivo | Effetto e riferimento concreto |
 | --- | --- |
-| `hierarchical(columns=(), *, parent='parent_id', root_id=False, virtual_roots=False, linked_to=None, depth=None, caption_field=None)` | Parent FK, `hierarchical_pkey`, `_parent_h_pkey`, coppie `hierarchical_<campo>`/`_parent_h_<campo>`, `child_count`, `hlevel`; manutenzione discendenti, rifiuto cicli. `invc.product_type/product_group`, `adm.htag/menu`, `sys.widget`. |
+| `hierarchical(columns=(), *, parent='parent_id', root_id=False, virtual_roots=False, linked_to=None, depth=None, caption_field=None)` | Parent FK, `hierarchical_pkey`, `_parent_h_pkey`, coppie `hierarchical_<campo>`/`_parent_h_<campo>`, `child_count`, `hlevel`; la manutenzione dei discendenti resta alla futura esecuzione. `invc.product_type/product_group`, `adm.htag/menu`, `sys.widget`. |
 | `auto_counter(scope=(), *, field='_row_count')` | `L`, ordine fra fratelli; scope può essere una FK, es. invoice_id. Con gerarchia scope parent e campi `_h_count`, `_parent_h_count`, `_h_sortcol`. La configurazione non alloca valori. |
 | `relative_index(relation, *, field='_relidx')` | Indice relativo alla relazione e contributo differito al lato collegato; controparte del legacy relidx. |
 | `dynamic_fields(*, templates=None)` | Genera `df_fields` X, `df_fbcolumns` L, `df_custom_templates` X, `df_colswidth` T; `subfields` della colonna diventa `col.dynamic_fields(source=ColumnRef)`. |
 | `record_hash(*, field='__rec_md5', columns=None, algorithm='md5')` | Hash applicativo per confronto record, non sicurezza; rappresentazione legacy per preservare valori esistenti, esclude il campo hash e i campi di sistema. `adm.user`. |
 | `full_update(*, field='__full_mod_ts')` | Timestamp DHZ per aggiornamenti anche del contenuto correlato dichiarato dal comportamento. Non attivo per default. |
 | `audit(mode='full'|'lazy', *, version_field='__version')` | Campo versione L e dichiarazione del modo audit, incluso `sys.widget` lazy. |
-| `system_records(*, records, masterfield=None, tag='superadmin')` | `__syscode` A `:20` UNIQUE, protezione associata; records è mappa codice→valori o riferimenti/resolver esistenti. `adm.language/xgroup/htag`; `adm.install_checklist` dichiara invece `__syscode` direttamente. Non inserisce dati al render né nel JSON DDL. |
-| `protection(*, rules=(), tag=None)` | Espressioni/resolver e virtuali `__protecting_reasons`, `__is_protected_row`; nessuna esecuzione remota di codice. |
-| `diagnostics(*, rules=(), invalid_fields=False, invalid_relations=())` | Reasons/flags virtuali; quando richiesti `__warnings`, `__errors`, `__invalid_fields` fisici e aggregazione delle relazioni. |
-| `release(*, handlers)` | `__release` L e riferimenti alle trasformazioni `_release_*`. |
+| `system_records(...)` | Rinviata, firma non approvata (41, R-02). Il render rifiuta l'attivazione. Per la sola colonna indicizzata UNIQUE usare sys_fields(syscode=True). |
+| `protection(*, rules=(), tag=None)` | Con tag: __protection_tag e __protected_by_tag come nel legacy. Rules è solo conservato, senza inferire espansioni. I quattro virtuali di base appartengono a sys_fields. |
+| `release(...)` | Rinviata, firma non approvata (41, R-03); il render rifiuta l'attivazione. |
 | `partition(name, *, field, value=None, required=False)` | Filtro/policy logica legata al contesto server; non partizionamento SQL. `customer.state` e `invoice.customer_state` usano un valore o un resolver esistente; preservare NULL e override autorizzati secondo policy dichiarata. |
 | `tenant(*, field=None)` | Flag multi-tenant; copre `adm.counter.multi_tenant`. Non implica una nuova colonna fisica. |
 | `retention(*, field, days)` | Registra politica `sys.error/task_execution`; scheduler esterno, nessuna cancellazione durante costruzione/migration. |
@@ -431,9 +431,12 @@ chiavi provider né riferimenti generici a esecutori futuri.
 | `attachments(*, master)` | Espansione di AttachmentTable: colonne, FK, virtuali, counter e collegamento del master. `adm.htmltemplate_atc` non è una tabella vuota. |
 | `numbering(field, *, parameters=None)` | Descrive il contatore applicativo, es. `counter_inv_number`; non confonderlo con `_row_count`. |
 
-Il bridge legacy deve rendere esplicite le funzioni prima attivate cercando
-metodi (`sysRecord_*`, `_release_*`, formule `True`, defaultValues, trigger).
-Le tre famiglie protection/diagnostics/record_pointer prima aggiunte da
+I nomi di metodi e le formule legacy sono conservati come dati; il render
+non cerca o invoca metodi applicativi. System_records e release restano rinviati.
+Diagnostica configurabile e invalidFields/invalidRelations non sono portati
+in questa fase; la precedente firma diagnostics è rimossa (41, R-07).
+
+Le virtuali di base di protezione/invalidità e record_pointer prima aggiunte da
 sysFields non vanno perse: il profilo di traduzione le configura esplicitamente.
 Il core non deve cercare convenzioni GenroPy in ogni classe applicativa.
 

@@ -84,13 +84,13 @@ def validate_option(tag, parent, attributes):
                 'field', 'parent', 'version_field', 'relation', 'source', 'caption_field', 'masterfield'):
         if spec.get(key) is not None:
             nonempty(spec[key], f'{tag}.{key}')
-    for key in ('enabled', 'required', 'root_id', 'virtual_roots', 'invalid_fields'):
+    for key in ('enabled', 'required', 'root_id', 'virtual_roots'):
         if key in spec and not isinstance(spec[key], bool):
             raise ValueError(f'{tag}.{key}: expected bool')
     for key in ('days', 'depth'):
         if spec.get(key) is not None and (type(spec[key]) is not int or spec[key] < (1 if key == 'depth' else 0)):
             raise ValueError(f'{tag}.{key}: expected {"positive" if key == "depth" else "nonnegative"} integer')
-    for key in ('columns', 'scope', 'invalid_relations'):
+    for key in ('columns', 'scope'):
         names(spec.get(key), f'{tag}.{key}', hierarchical=tag == 'hierarchical' and key == 'columns')
     if spec.get('rules') is not None:
         for rule in spec['rules']:

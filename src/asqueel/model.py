@@ -84,8 +84,8 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
                 relation_path = metadata.get('relation_path')
                 if not isinstance(relation_path, str) or not relation_path.strip():
                     raise ValueError(f'{schema}.{name}.{colname}: alias requires a relation_path')
-            elif package and node.node_tag != 'column' and (database.get_attr('x_legacy_expanded') or node.node_tag != 'formulaColumn' or metadata.get('handler') or metadata.get('parameters') or metadata.get('subqueries') or metadata.get('sql_formula') is True):
-                # Executable providers are symbolic model declarations, never called here.
+            elif package and node.node_tag != 'column' and (database.get_attr('x_legacy_expanded') or node.node_tag != 'formulaColumn' or metadata.get('handler') or metadata.get('parameters') or metadata.get('subqueries') or metadata.get('sql_formula') is True or metadata.get('x_requires_compilation')):
+                # Formulas and method references remain declarations, never executed here.
                 metadata['x_requires_compilation'] = node.node_tag
             elif node.node_tag != 'column':
                 if node.node_tag != 'formulaColumn':

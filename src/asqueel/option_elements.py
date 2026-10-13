@@ -7,7 +7,7 @@ from genro_builders.builder import element
 TABLE_OPTIONS = (
     'hierarchical', 'auto_counter', 'relative_index',
     'dynamic_fields', 'record_hash', 'full_update', 'audit', 'system_records',
-    'protection', 'diagnostics', 'release', 'partition', 'tenant', 'retention',
+    'protection', 'release', 'partition', 'tenant', 'retention',
     'broadcast', 'archive', 'enabled_when', 'attachments', 'numbering',
 )
 NAMED_OPTIONS = {'partition': 'name', 'numbering': 'field'}
@@ -67,12 +67,6 @@ class BehaviorOptionElements:
     def protection(self, *, rules: list | tuple | None = None, tag: str | None = None,
                    enabled: bool = True):
         """Declare protection expressions or symbolic rules."""
-        ...
-
-    @element(parent_tags='options', sub_tags='', node_label='diagnostics')
-    def diagnostics(self, *, rules: list | tuple | None = None, invalid_fields: bool = False,
-                    invalid_relations: str | list | tuple | None = None, enabled: bool = True):
-        """Declare diagnostics and invalidity sources without creating fields."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='release')

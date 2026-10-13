@@ -1,12 +1,26 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Rinvio successivo:** diagnostic, invalidFields e invalidRelations non sono
+portati; da rivedere come opzioni di tabella. La firma diagnostics è rimossa
+dalla grammatica attiva: [R-07](41-deferred-features.md#r-07--diagnostica-e-invalidità-configurabili-sulla-tabella).
+
+
+**Fasi 2–3 completate, 13 ottobre 2026:** espansione nativa di sys_fields,
+gerarchie, contatori, dynamic_fields, full_update, record_hash, audit e
+protection con tag; completamenti fra tabelle per attachments, linked_to e
+relative_index. Le options restano nel modello, anche quando non generano
+colonne. Nessuna esecuzione di hook, formule o scritture; nessun nuovo resolver
+o registro. C-02/C-03/C-04 del rapporto 52 corrette. Verifiche: **1124 pass,
+1 skip**, Ruff e mypy superati; oracoli legacy invariati. Prossimo controllo: fase 4,
+relazioni e finalizzazione; poi corpus nativo e JSON dagli oggetti.
+
 **Fase 1 del render completata, 13 ottobre 2026:** attributi piatti con namespace,
 `extract_kwargs` per validate_ e `runtime_values` di Builders per i resolver.
 `metadata` come contenitore/elemento è rimosso definitivamente; anche gli
 attributi UI sono piatti (`x_ui_*`). Table/column leggono la configurazione dal
 modello completato, indipendente dalla source. Suite: **1084 pass, 1 skip**;
-Ruff/mypy superati, JSON fisico del ponte legacy invariato. Prossima fase: 2
-nel [piano 51](51-source-to-live-objects-plan.md), espansioni locali delle options.
+Ruff/mypy superati, JSON fisico del ponte legacy invariato. Le espansioni delle
+options sono state completate nell'incremento successivo descritto sopra.
 
 
 **Checkpoint grammaticale del 13 ottobre 2026:** revisione intermedia prima
@@ -17,8 +31,8 @@ al compilatore. Inverse, limit, order_by e one_one virtuali sono rinviati.
 SubQueryColumn mantiene query=None, mode=None e dtype, come il legacy.
 
 La base grammaticale consente di iniziare la traduzione strutturale. Restano
-da completare l'espansione nativa delle options, la configurazione di tutti i
-74 modelli inclusi e la verifica source nativa → oggetti completi → JSON migrations.
+da verificare la finalizzazione completa, configurare tutti i 74 modelli inclusi
+e verificare source nativa → oggetti completi → JSON migrations.
 Il JSON di tutti i package è già verificato dal ponte legacy espanso; questo
 checkpoint non attesta la parità del percorso nativo né chiude la release.
 Le firme non ancora riviste e la struttura interna di query restano proposte;
@@ -31,7 +45,7 @@ scostamento richiede una motivazione concreta e l'approvazione dell'utente
 prima dell'applicazione. Restano valide le differenze già concordate, fra cui
 DHZ/UTC. Perimetro attuale: grammatica e traduzione, senza anticipare esecuzione.
 
-**Prossimo lavoro, pianificato ma non implementato:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md).
+**Piano corrente:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md), fasi 0–3 completate.
 Piano aggiornato il 13 ottobre con fasi 0–6: mappa di copertura; render di base;
 espansioni locali; completamenti fra tabelle; relazioni e finalizzazione;
 source nativa dei 74 modelli inclusi; JSON dagli oggetti e prova migrations.
@@ -43,7 +57,7 @@ con divergenze documentate; il corpus nativo comprende 74 tabelle. Asqueel non
 deve ora rimpiazzare integralmente GenroPy. sys_fields(syscode=True) è stata
 successivamente approvata e implementata per __syscode A :20, indicizzata e
 UNIQUE, False per default; non reintroduce il concetto di system_records.
-C-01–C-05 restano correzioni di compatibilità;
+C-02/C-03/C-04 corrette; C-01 riguarda la proiezione fisica, C-05 i limiti di copertura;
 compilatore escluso.
 
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);

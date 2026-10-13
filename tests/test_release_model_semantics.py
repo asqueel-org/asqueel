@@ -33,7 +33,7 @@ def test_custom_types_forward_fk_inference_inverse_and_application_sql_actions()
     physical = SqlMigrationRenderer(b).render()['root']['schemas']['public']['tables']['sales_invoice']
     assert not physical['columns']['customer_id']['attributes'].get('unique')
     assert next(iter(physical['relations'].values()))['attributes']['on_delete'] == 'SET NULL'
-    with pytest.raises(UnsupportedFeatureError, match='write execution providers'):
+    with pytest.raises(UnsupportedFeatureError, match='write execution'):
         PostgresCompiler(m).insert('invoice', {'id': 1})
 
 
@@ -92,7 +92,7 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
         validate_value('alice', {'nodup': True})
     t.column('opaque', 'T', validate_lne=8)
     assert resolve_model(b).table('item').columns['opaque'].validations == {'lne': 8}
-    with pytest.raises(UnsupportedFeatureError, match='write execution providers'):
+    with pytest.raises(UnsupportedFeatureError, match='write execution'):
         PostgresCompiler(m).insert('item', {'a': 'abc'})
 
 

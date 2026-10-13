@@ -3,7 +3,7 @@ from pathlib import Path
 import importlib.util
 
 import pytest
-from asqueel import SqlDatabaseConfig, SqlBuilder, SqlMigrationRenderer, UnsupportedFeatureError
+from asqueel import SqlDatabaseConfig, SqlBuilder, SqlMigrationRenderer
 from asqueel.configuration import _copy_recipe, _owned_handler
 from asqueel.option_elements import TABLE_OPTIONS
 
@@ -45,7 +45,7 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
     ('record_hash', {}), ('full_update', {}),
     ('audit', {'mode': 'lazy'}),
     ('system_records', {'records': {'a': {'title': 'A'}}}),
-    ('protection', {}), ('diagnostics', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
+    ('protection', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
     ('partition', {'name': 'org', 'field': 'org_id', 'value': 'organization'}),
     ('tenant', {}),
     ('retention', {'field': 'created', 'days': 30}),
@@ -141,11 +141,10 @@ def test_grammar_export_and_source_json_preserve_declarations(tmp_path):
     assert parsed.get_node('db.packages.app.tables.item.options.hierarchical').get_attr('columns') == [{'name': 'code', 'unique': True}]
 
 
-def test_declaration_only_options_cannot_be_silently_omitted_from_migration():
+def test_attachment_missing_master_cannot_be_silently_omitted_from_migration():
     b, _, table = source()
-    table.column('id', 'L')
     table.options().attachments(master='app.parent')
-    with pytest.raises(UnsupportedFeatureError, match='declaration-only'):
+    with pytest.raises(ValueError, match='unknown related table'):
         SqlMigrationRenderer(b).render()
 
 
@@ -168,9 +167,10 @@ def test_removed_declarations_are_not_in_the_grammar(tmp_path):
     assert '"pkey_from"' not in json.dumps(grammar)
     assert '"macro"' not in json.dumps(grammar)
     assert '"normalize"' not in json.dumps(grammar)
+    assert '"diagnostics"' not in json.dumps(grammar)
 
 
-@pytest.mark.parametrize('name', ['context', 'generation', 'behavior', 'pkey_from', 'macro', 'normalize'])
+@pytest.mark.parametrize('name', ['context', 'generation', 'behavior', 'pkey_from', 'macro', 'normalize', 'diagnostics'])
 def test_old_source_nodes_cannot_silently_survive_composition(name):
     b, db, _ = source()
     opts = db.options()

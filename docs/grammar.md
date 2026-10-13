@@ -407,7 +407,7 @@ reports every conflicting relation together.
 | inverse | `str \| None` | `None` | physical |  |
 | on_delete_sql | `str \| None` | `None` | physical |  |
 | on_update_sql | `str \| None` | `None` | physical |  |
-| on_duplicate | `str \| None` | `None` | physical |  |
+| on_duplicate | `str \| bool \| None` | `None` | physical |  |
 | constraint_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
 | many_group | `str \| None` | `None` | physical |  |
@@ -462,8 +462,8 @@ Logical table namespace with an explicit physical placement.
 
 Singleton section of typed functions, validated for its owning level.
 
-- Contains: requires[:1], type, sys_fields[:1], driver[:1], reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
-- Child addressing: ordered internal labels for requires, type, sys_fields, driver, reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Contains: requires[:1], type, sys_fields[:1], driver[:1], reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Child addressing: ordered internal labels for requires, type, sys_fields, driver, reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -605,7 +605,7 @@ rule-specific type checks. Translation never executes these rules.
 | one_one | `bool` | `False` | physical |  |
 | on_delete | `str \| None` | `None` | physical |  |
 | on_update | `str \| None` | `None` | physical |  |
-| on_duplicate | `str \| None` | `None` | physical |  |
+| on_duplicate | `str \| bool \| None` | `None` | physical |  |
 | one_name | `str \| None` | `None` | physical |  |
 | many_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
@@ -815,22 +815,6 @@ Declare protection expressions or symbolic rules.
 | --- | --- | --- | --- | --- |
 | rules | `list \| tuple \| None` | `None` | semantic |  |
 | tag | `str \| None` | `None` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `diagnostics`
-
-Declare diagnostics and invalidity sources without creating fields.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| rules | `list \| tuple \| None` | `None` | semantic |  |
-| invalid_fields | `bool` | `False` | semantic |  |
-| invalid_relations | `str \| list \| tuple \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `release`

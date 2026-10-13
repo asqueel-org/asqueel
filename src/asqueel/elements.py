@@ -433,7 +433,7 @@ class ColumnElements:
                  one_one: bool = False, case_insensitive: bool = False,
                  name: str | None = None, inverse: str | None = None,
                  on_delete_sql: str | None = None, on_update_sql: str | None = None,
-                 on_duplicate: str | None = None, constraint_name: str | None = None,
+                 on_duplicate: str | bool | None = None, constraint_name: str | None = None,
                  one_group: str | None = None, many_group: str | None = None,
                  **extra):
         """A relation on a column. Navigable by default, physical on demand.
