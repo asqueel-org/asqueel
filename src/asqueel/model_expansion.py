@@ -22,10 +22,10 @@ def expand_options(builder):
             spec = fields.attributes
             definitions = {
                 'id': ('id', 'A', {'size': '22', 'x_generation': {'type': 'uuid', 'algorithm': 'legacy22'}}),
-                'ins': ('__ins_ts', spec['timestamp_type'], {'indexed': True}),
-                'upd': ('__mod_ts', spec['timestamp_type'], {'indexed': True}),
+                'ins': ('__ins_ts', 'DHZ', {'indexed': True}),
+                'upd': ('__mod_ts', 'DHZ', {'indexed': True}),
                 'user_ins': ('__ins_user', 'T', {}), 'user_upd': ('__mod_user', 'T', {}),
-                'ldel': ('__del_ts', spec['timestamp_type'], {'indexed': True}),
+                'ldel': ('__del_ts', 'DHZ', {'indexed': True}),
                 'draft': ('__is_draft', 'B', {'indexed': True}),
             }
             for setting, (column_name, dtype, defaults) in definitions.items():

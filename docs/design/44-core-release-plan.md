@@ -1,11 +1,23 @@
 # 44 — Piano di implementazione del core e prossima release
 
+**Rinvii del 13 ottobre:** non implementare per ora i record di sistema
+(`sysrecords` / `system_records`) e il versionamento dei dati (`release`),
+come registrato in R-02 e R-03 del documento 41.
+Prevale sulle inclusioni precedenti nelle fasi sotto descritte; firma da rivedere.
+
+**Piano del render da rivedere:** [source → oggetti vivi → JSON](51-source-to-live-objects-plan.md).
+Gli incrementi A–E dettagliano P2–P6 rispettando le correzioni della grammatica.
+
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
 
+**Perimetro attuale:** grammatica e traduzione del modello. I passaggi esecutivi
+descritti nel piano generale non sono requisiti da anticipare nelle firme.
+
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
-Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB,
-nessun provider obbligatorio inventato. Rendering a oggetti vivi ancora rinviato.
+Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB.
+Nessun parametro provider o dichiarazione behavior nella grammatica.
+Rendering a oggetti vivi ancora rinviato.
 
 Data: 12 ottobre 2026. Stato: **P0/P1 completate; JSON integrale verificato sul
 bridge legacy espanso; completamento nativo P2–P5 ancora aperto**.
@@ -76,9 +88,10 @@ Tutta la grammatica 42 è nel piano, comprese options avanzate, validation,
 metadati e virtuali senza DDL. La sola accettazione delle keyword non costituisce
 implementazione: ciascuna deve avere oggetto, significato e verifica osservabile.
 
-Per behavior esterni il core consegna protocollo, registro, binding e controlli
-di capability; l'integrazione legacy consegna il raccordo dei provider necessari
-al corpus. Non occorre riscrivere frontend, autenticazione, storage o scheduler
+Per behavior esterni il collegamento deve partire dai meccanismi esistenti e
+dai casi legacy del corpus. Protocollo e registro aggiuntivi non sono requisiti
+concordati; i binding ancora aperti non vanno implementati implicitamente.
+Non occorre riscrivere frontend, autenticazione, storage o scheduler
 di GenroPy nel core, ma non si può dichiarare eseguibile una funzione richiesta
 lasciando un handler fittizio o ignorato. Nessun import GenroPy obbligatorio per
 installare/usare il core; il bridge deve restare opzionale e separato.
@@ -109,7 +122,7 @@ riportati come risultati nuovi. La preparazione del piano non crea commit o tag.
 | --- | --- | --- | --- |
 | P0 | Baseline, contratti e corpus riproducibile | — | Completata: report 45 |
 | P1 | Source DB/schema/package/options e composizione | P0 | Completata: report 46 |
-| P2 | Oggetti completi e registro delle estensioni | P1 | In corso |
+| P2 | Render e oggetti completi | P1 | Piano da rivedere: documento 51 |
 | P3 | Colonne fisiche, chiavi, FK e indici | P2 | Parziale: contratti verificati nel report 47 |
 | P4 | Validation, colonne virtuali e virtual relations nel modello | P3 | Parziale: descrittori e codec nel report 47 |
 | P5 | Espansioni options e modello completo dei tre package | P4 | Bridge completo verificato; options native avanzate aperte |
@@ -185,15 +198,18 @@ esplicite le capability ancora prive di oggetti/esecuzione nelle fasi successive
 
 **Lavoro:** estendere contracts/model/object_renderer con DB, Schema, Package,
 Table, gruppi, Options e descrittori di behavior; conservare schemi/package
-vuoti e metadati. Separare identità logica e fisica. Registro di estensioni con
-firme, costruttori, versioni e dipendenze. Registro separato dei provider server.
+vuoti e metadati. Separare identità logica e fisica. Riutilizzare i meccanismi di estensione e i resolver esistenti; non
+introdurre registri o versionamenti di provider. I binding non concordati
+richiedono prima un caso legacy concreto, come specificato nel piano 51.
 Accesso runtime agli oggetti e attributes coerenti, senza ricetta conservata
 come seconda fonte di verità. Definire export del modello distinto da connection
 config, JSON migrations e ricette delle operazioni.
 
 **Prove:** mapping schema/package/prefix/sqlname, collisioni fisiche, forward
 reference, isolamento delle mappe restituite, niente dipendenza dalla source
-dopo render; provider sconosciuti e versioni incompatibili rilevati con percorso.
+dopo render; resolver valutati nel render secondo Builders e valori risultanti
+negli oggetti; riferimenti non risolvibili
+segnalati con percorso. Nessun registro di versioni come prerequisito.
 
 **Uscita:** il modello conserva ogni dichiarazione riconosciuta; nessuna sparisce
 perché non ha un effetto SQL.
@@ -203,7 +219,7 @@ perché non ha un effetto SQL.
 **Lavoro:** tipi nativi/custom di package, size/default SQL/generated columns,
 colonne e composite, PK/UNIQUE/FK multicolonna, weak relations e inverse, nomi
 fisici, indici semplici/composti/ordinati/univoci/parziali e opzioni del dialetto.
-Distinguere pkey_from testuale, composite SQL e descrittore di generazione.
+Distinguere pkey_columns testuale, composite SQL e descrittore di generazione.
 Registrare le azioni applicative delle relazioni senza convertirle in DDL.
 
 **Prove:** inferenza dei tipi delle FK, target univoci, componenti ordinate e
@@ -218,15 +234,17 @@ solo perché one_one=True.
 
 ## P4 — Validation e modello virtuale
 
-**Lavoro:** validation con embedding validate_* locale ad Asqueel, normalizzazioni
-separate, messaggi e capability client/server. Modello per formulaColumn,
+**Lavoro:** validation con embedding validate_* locale ad Asqueel; controlli,
+trasformazioni e messaggi confluiscono nel dizionario column.validations,
+senza esecuzione delle regole durante la traduzione. Modello per formulaColumn,
 aliasColumn, subQueryColumn, pyColumn, compositeColumn, bagItemColumn, subtable
 e virtualRelation; parametri, dipendenze, tipi e handler simbolici. Tradurre
 joinColumn/aliasTable legacy in costrutti canonici senza mantenere due semantiche.
 
 **Prove:** embedded ed esplicito equivalenti, errore su typo, codec dei valori,
-regole NULL/len/regex e nodup server; risoluzione di alias e cicli; pairing,
-cardinalità, ask/source_parameters, limit/ordine e inversa virtuale; descrittori
+conservazione delle regole, inclusi exist/nodup, senza eseguirle; risoluzione di alias e cicli; pairing,
+ask/var_*; inverse virtuali rinviate (41, R-05), così come limit/order_by/one_one
+sulle virtual relations (R-06); descrittori
 di calcolo Python non eseguiti durante il render. Definire fixture di conformità
 esportabili a Gramlot e provare le regole client supportate nel consumer reale,
 senza promettere località per nodup/exists.
@@ -241,8 +259,9 @@ di generazione. Coprire l'intero catalogo 42: sys_fields; hierarchical;
 auto_counter/relative_index; dynamic_fields; record_hash/full_update; audit;
 system_records/protection/diagnostics/release; partition/tenant; retention;
 broadcast/archive/enabled_when; attachments/numbering; behavior e cifratura.
-Per i provider esterni implementare contratto e raccordo necessario al corpus;
-espansione fisica e runtime devono avere capability distinte.
+Per i comportamenti esterni riusare il collegamento applicativo esistente
+verificato sul corpus; nessun nome di provider inventato obbligatorio.
+Separare costruzione della struttura ed esecuzione degli effetti.
 
 Generazione UUID con algoritmo legacy esatto come servizio testabile, collegato
 al descrittore senza eseguirlo durante build/serialize/compile. Default dei campi
@@ -252,7 +271,7 @@ metodi ereditati incluse. Gestire AttachmentTable e la modifica del master.
 
 **Prove:** oggetti generati e metadati corrispondono all'oracolo completo; ordine
 delle chiamate alle options irrilevante dove concordato; disattivazione e
-collisioni; versione/hash delle dipendenze; nessuna creazione di dati, ID,
+collisioni e dipendenze effettive; nessuna creazione di dati, ID,
 connessioni o side effect esterno nel render. Copertura per ciascuna riga del 43.
 
 **Uscita:** build completa dei tre package, con manifest di colonne/virtuali/
@@ -290,7 +309,9 @@ registrare input/output e test consumer; non inserire un DDL alternativo nel cor
 usando il piano 32 e i test correnti. Portare le espressioni effettive del corpus:
 tipi custom, macro, sottoquery nominate/correlate, gruppi e aggregati, Bag/XML,
 alias multipasso, composite, contesti e policy; calcoli Python post-fetch con
-dipendenze. Compilare virtualRelation, pairing/inverse, ordine/limit e collezioni.
+dipendenze. Compilare virtualRelation, pairing e collezioni. Le inverse virtuali restano
+rinviate (41, R-05); limit, order_by e one_one sulla virtualRelation sono
+esclusi dalla grammatica corrente (R-06).
 
 **Prove:** risultati reali PostgreSQL con dataset deterministico per sys/adm/invc;
 cardinalità scalare violata, intervalli sovrapposti, NULL, legami compositi,
@@ -331,7 +352,7 @@ senza trasportare connessioni, segreti, oggetti runtime o codice applicativo.
 
 **Lavoro:** collegare options e behavior al lifecycle esistente. Default,
 normalizzazione, before, generazione/calcoli, validation/invarianti, SQL e after;
-new_pkey_value, pkey_from e UUID legacy; timestamp/utenti, draft, soft-delete,
+new_pkey_value, pkey_columns e UUID legacy; timestamp/utenti, draft, soft-delete,
 protezioni, cifratura, hash, gerarchie e contatori concorrenti. Azioni applicative
 delle relazioni, duplicazione e scritture collegate. Integrare provider audit,
 tenant, numbering, ecc. con errori espliciti e capability verificabili.

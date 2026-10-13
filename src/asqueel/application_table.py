@@ -80,6 +80,11 @@ class SqlColumn:
                                         fallback=fallback)
 
     @property
+    def validations(self):
+        """Validation declarations from the translated column, without execution."""
+        return self.model.validations
+
+    @property
     def originalColumn(self):
         """Legacy-style link to an alias's target live column, if it is an alias."""
         if self.model.alias_target is None:

@@ -1,13 +1,13 @@
 """Grammar review using real test_invoice_pg models, not the full 75-table port.
 
-Only selected declarations are shown. Provider binding and object rendering are
-not performed. workdate/current_state may be application callbacks.
+Only selected declarations are shown; object rendering is not performed.
+current_state is an optional callback supplying a configuration value at render.
 """
 from genro_bag.resolvers import BagCbResolver, EnvResolver
 from asqueel import SqlDatabaseConfig
 
 
-def source(*, workdate=None, current_state=None):
+def source(*, current_state=None):
     config = SqlDatabaseConfig()
     db = config.source.db('test_invoice_pg', implementation='postgresql')
     db.connection('main', database='test_invoice_pg',
@@ -22,10 +22,10 @@ def source(*, workdate=None, current_state=None):
     invc.options().type('money', dtype='N', size='14,2')
     invc.options().type('perc', dtype='N', size='5,2')
 
-    service = sys.table('service', pkey='service_identifier', name_long='Servizio',
+    service = sys.table('service', pkey='service_identifier',
+                        pkey_columns='service_type,service_name', name_long='Servizio',
                         name_short='Serv.', name_plural='Servizi', caption_field='service_identifier')
-    service.options().sys_fields(id=False, user_upd=False, timestamp_type='DH')
-    service.options().pkey_from(['service_type', 'service_name'], missing='skip')
+    service.options().sys_fields(id=False, user_upd=False)
     service.column('service_identifier', size=':60')
     service.column('service_type', size=':30')
     service.column('service_name', size=':30')
@@ -33,13 +33,12 @@ def source(*, workdate=None, current_state=None):
 
     # AttachmentTable belongs to adm, not to a fabricated invc.invoice_atc.
     template = adm.table('htmltemplate', pkey='id')
-    template.options().sys_fields(user_upd=False, timestamp_type='DH')
+    template.options().sys_fields(user_upd=False)
     attachments = adm.table('htmltemplate_atc', pkey='id')
     attachments.options().attachments(master='adm.htmltemplate')
-    counter = adm.table('counter', pkey='codekey')
-    counter.options().sys_fields(id=False, user_upd=False, timestamp_type='DH')
+    counter = adm.table('counter', pkey='codekey', pkey_columns='pkg,tbl,code,fld,period')
+    counter.options().sys_fields(id=False, user_upd=False)
     counter.options().tenant()
-    counter.options().pkey_from('pkg,tbl,code,fld,period', missing='skip')
     counter.column('codekey', size=':80')
     for name, size in (('pkg', ':12'), ('tbl', ':30'), ('code', ':12'),
                        ('fld', ':30'), ('period', ':10')):
@@ -48,7 +47,7 @@ def source(*, workdate=None, current_state=None):
     customer = invc.table('customer', pkey='id', name_long='Cliente',
                          name_short='Cli.', name_plural='Clienti', caption_field='account_name')
     customer.options().sys_fields(id={'type': 'uuid'}, draft=True,
-                                  user_upd=False, timestamp_type='DH')
+                                  user_upd=False)
     state = (BagCbResolver(current_state) if current_state is not None
              else EnvResolver('INVC_STATE'))
     customer.options().partition('state', field='state', value=state)
@@ -61,15 +60,15 @@ def source(*, workdate=None, current_state=None):
     product_type = invc.table('product_type', pkey='id', name_long='Tipo prodotto',
                              name_short='Tipo', name_plural='Tipi prodotto',
                              caption_field='hierarchical_description')
-    product_type.options().sys_fields(user_upd=False, timestamp_type='DH')
+    product_type.options().sys_fields(user_upd=False)
     product_type.options().hierarchical('description')
-    product_type.options().auto_counter('parent_id')
+    product_type.options().auto_counter()
     product_type.options().dynamic_fields()
     product_type.column('description', size=':50')
 
     invoice = invc.table('invoice', pkey='id', name_long='Fattura',
                         name_short='Fatt.', name_plural='Fatture', caption_field='inv_number')
-    invoice.options().sys_fields(user_upd=False, timestamp_type='DH')
+    invoice.options().sys_fields(user_upd=False)
     invoice.options().numbering('inv_number', parameters={
         'format': '$K$YY/$NNNNNN', 'code': 'A', 'period': 'YY',
         'date_field': 'date', 'showOnLoad': True, 'recycle': True})
@@ -78,9 +77,8 @@ def source(*, workdate=None, current_state=None):
     invoice.column('customer_id', size='22').relation(
         'invc.customer.id', foreign_key=True, inverse='invoices',
         on_delete='raise', on_update_sql='CASCADE')
-    date_value = (BagCbResolver(workdate) if workdate is not None
-                  else EnvResolver('INVOICE_WORKDATE', dtype='D'))
-    invoice.column('date', dtype='D', validate_notnull=True, default=date_value)
+    # Legacy defaultValues supplies workdate during writes, outside this example.
+    invoice.column('date', dtype='D', validate_notnull=True)
     invoice.column('total', dtype='money')
     invoice.aliasColumn('customer_state', relation_path='@customer_id.state')
     invoice.formulaColumn('row_count', select={
@@ -92,7 +90,7 @@ def source(*, workdate=None, current_state=None):
 
     row = invc.table('invoice_row', pkey='id', name_long='Riga fattura',
                     name_short='Riga', name_plural='Righe fattura', caption_field='product_name')
-    row.options().sys_fields(user_upd=False, timestamp_type='DH')
+    row.options().sys_fields(user_upd=False)
     row.options().auto_counter('invoice_id')
     row.column('invoice_id', size='22').relation(
         'invc.invoice.id', foreign_key=True, inverse='rows',

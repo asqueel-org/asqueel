@@ -113,8 +113,15 @@ def _validate_source_shape(builder):
         raise ValueError('Package configuration derives schemas from package.sqlschema; '
                          'remove the explicit schemas section')
     for _, node in builder.source.query('#p,#n', deep=True):
-        if node.node_tag in ('context', 'generation'):
+        if node.node_tag in ('context', 'generation', 'behavior', 'pkey_from', 'macro',
+                             'normalize', 'aliasTable', 'table_alias'):
             raise ValueError(f'{node.node_tag}: removed from the source grammar')
+        if node.node_tag == 'virtualRelation':
+            owner = node._resolve_builder()
+            owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
+                                     dict(node.attr), node.node_tag)
+        if node.node_tag in (*TABLE_OPTIONS, 'encryption') and 'provider' in node.attr:
+            raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
         if node.node_tag in OPTION_LEVELS:
             if node.node_tag in TABLE_OPTIONS:
                 owner = node._resolve_builder()
@@ -400,6 +407,8 @@ def _effective_model_builder(config):
         info = owner._get_schema_info(node.node_tag)
         relative = path.split('.', 1)[1] if '.' in path else ''
         for name in info.get('call_args_validations') or {}:
+            if node.node_tag == 'validation' and name not in node.attr:
+                continue
             # indexed is a physical-FK default. Materializing it on a logical
             # relation would turn an omitted option into a forbidden declaration.
             if (node.node_tag == 'relation' and name == 'indexed' and name not in node.attr

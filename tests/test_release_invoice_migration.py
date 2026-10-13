@@ -28,6 +28,12 @@ def test_all_packages_match_the_independent_legacy_physical_oracle():
     model = resolve_model(builder)
     assert {key: len(pkg.tables) for key, pkg in model.packages.items()} == {'sys': 17, 'adm': 40, 'invc': 18}
     assert sum(not col.is_virtual for table in model.tables.values() for col in table.columns.values()) == 796
+    assert model.table('invc.invoice_row').relations['customer'].target == 'invc.customer'
+    assert 'invoices_in_tier' not in model.table('invc.discount_tier').relations
+    for table in model.tables.values():
+        for relation in table.relations.values():
+            if relation.kind == 'virtual':
+                assert not {'limit', 'order_by', 'one_one', 'inverse'} & relation.attributes.keys()
     assert sum(col.is_virtual for table in model.tables.values() for col in table.columns.values()) == 532
     composites = [d for table in model.tables.values() for section in table.declarations
                   if section.kind == 'composites' for d in section.children]

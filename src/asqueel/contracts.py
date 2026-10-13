@@ -74,6 +74,14 @@ class Column:
     declarations: tuple[Declaration, ...] = ()
 
     @property
+    def validations(self) -> dict[str, Any]:
+        """Declared rules and transformations as a detached dictionary."""
+        for declaration in self.declarations:
+            if declaration.kind == 'validation':
+                return deepcopy(dict(declaration.attributes))
+        return {}
+
+    @property
     def is_virtual(self) -> bool:
         return (self.kind != 'column' or self.formula is not None or self.relation_path is not None
                 or self.select is not None or self.exists is not None

@@ -1,5 +1,10 @@
 # 48 — Grammatica delle options: stato corretto dopo la revisione
 
+**Decisione successiva sui timestamp:** i timestamp di sistema sono DHZ;
+la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
+`timestamp_type` o `use_timezone`. Prevale sui punti ancora aperti citati sotto.
+La baseline salvata del corpus usa già use_timezone=True (report 45).
+
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
 
@@ -20,8 +25,7 @@ customer.options().partition(
 # In alternativa, un callback locale legge l'ambiente applicativo:
 # value=BagCbResolver(lambda: application.db.currentEnv.get('invc_state'))
 
-invoice.column('date', dtype='D',
-               default=BagCbResolver(lambda: application.db.workdate))
+invoice.column('date', dtype='D')
 invoice.options().numbering('inv_number', parameters={
     'format': '$K$YY/$NNNNNN', 'code': 'A', 'period': 'YY',
     'date_field': 'date', 'showOnLoad': True, 'recycle': True})
@@ -34,27 +38,29 @@ Il callback è racchiuso nel resolver esistente. Non viene eseguito costruendo,
 validando, copiando o componendo la source. `EnvResolver` legge variabili di
 processo quando risolto; per l'ambiente applicativo si usa un resolver/callback
 adatto, senza confondere i due ambienti. Non si aggiungono classi resolver al core.
+Durante il render il resolver fornisce il valore della configurazione. Questo
+non definisce un default da ricalcolare a ogni scrittura; defaultValues/workdate
+del legacy appartengono all'esecuzione, fuori dal presente esempio.
 
 ## Catalogo e firme
 
-Le 21 options comportamentali conservano le famiglie del legacy: behavior,
-pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields,
+Le 19 options conservano le famiglie dichiarative del legacy:
+hierarchical, auto_counter, relative_index, dynamic_fields,
 record_hash, full_update, audit, system_records, protection, diagnostics,
 release, partition, tenant, retention, broadcast, archive, enabled_when,
-attachments e numbering. Le funzioni DB/schema/package già presenti restano
+attachments e numbering. Le funzioni DB/package già presenti restano
 ai rispettivi livelli. La provenienza dei nomi e i dettagli ancora proposti
 sono esplicitati nell'audit 49: presenza nel codice non equivale ad approvazione.
 
-Le firme sono chiuse. Il parametro provider, dove già presente, è facoltativo:
-non inventare nomi per poter dichiarare audit, contatori, allegati o cifratura.
-I riferimenti sono stringhe opache; non è definita una sintassi di versionamento
-né implementato un registro. Il binding appartiene alla fase successiva.
+Le firme sono chiuse. Il parametro provider e la dichiarazione behavior sono
+rimossi: anticipavano collegamenti esecutivi estranei a grammatica e traduzione.
+La source dichiara dati del modello, senza predisporre registri di esecutori.
 
 ## Composizione e verifica
 
 - Le options sono singleton salvo partition (name) e numbering (field).
-- enabled=False conserva una dichiarazione disattivata; le singleton, salvo
-  behavior, ammettono anche option(False). reset elimina la dichiarazione.
+- enabled=False conserva una dichiarazione disattivata; le singleton
+  ammettono anche option(False). reset elimina la dichiarazione.
 - Parametri richiesti verificati sulla dichiarazione composta; audit richiede
   mode, non un provider arbitrario. Partition richiede field e ammette value
   letterale o resolver; tenant non richiede una variabile aggiuntiva.
@@ -73,3 +79,6 @@ Il renderer esistente continua a rifiutare le nuove options attive con errore
 esplicito: non produce una proiezione apparentemente completa ignorandone gli
 effetti. L'artefatto del report 47 continua a provenire dalla source legacy
 espansa. Nessun incremento di versione o pubblicazione.
+
+La chiave testuale derivata usa pkey_columns e pkey_columns_joiner sulla
+tabella, come nel legacy. pkey_from è ritirata; non è un’opzione separata.

@@ -11,6 +11,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 from typing import cast, get_args
+import re
 
 from genro_bag import BagNode
 
@@ -68,10 +69,10 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     _positional_arguments = {
         **dict.fromkeys(_name_label_tags | {"db"}, "name"),
         "relation": "to",
-        'type': 'name', 'macro': 'name',
+        'type': 'name',
         'metadata': 'namespace', 'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
         'connection': 'name', 'weak_relation': 'to', 'subtable': 'name', 'virtualRelation': 'name',
-        'behavior': 'reference', 'pkey_from': 'columns', 'hierarchical': 'columns',
+        'hierarchical': 'columns',
         'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
         'partition': 'name', 'numbering': 'field', 'broadcast': 'columns',
     }
@@ -110,7 +111,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         }.get(name)
 
         def call(destination, *args, **kwargs):
-            if name in TABLE_OPTIONS and name not in (*NAMED_OPTIONS, 'behavior') and len(args) == 1 and args[0] is False:
+            if name in TABLE_OPTIONS and name not in NAMED_OPTIONS and len(args) == 1 and args[0] is False:
                 if 'enabled' in kwargs:
                     raise ValueError(f'{name}: enabled passed twice')
                 kwargs['enabled'] = False
@@ -242,8 +243,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                                           or attributes[key] is not None and attributes[key] < 0):
                     raise ValueError(f'driver.{key}: expected a nonnegative number')
         if tag == 'sys_fields':
-            if attributes.get('timestamp_type', 'DHZ') not in ('DH', 'DHZ'):
-                raise ValueError('sys_fields.timestamp_type must be DH or DHZ')
+            if 'timestamp_type' in attributes:
+                raise ValueError('sys_fields.timestamp_type removed: system timestamps use DHZ')
             for field in SYS_FIELDS:
                 value = attributes.get(field, True)
                 if not isinstance(value, (dict, bool)):
@@ -261,6 +262,16 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                             raise ValueError(f'sys_fields.{field}.{key}: expected {expected.__name__}')
 
     def _validate_call_args(self, info, node_value, attr, node_tag=""):
+        if node_tag == 'virtualRelation':
+            declared = info.get('declared_names') or set()
+            unknown = [key for key in attr if key not in declared
+                       and key not in ('_meta', '_tag', 'node_label', 'node_position')
+                       and not key.startswith('x_')
+                       and not re.fullmatch(r'var_[A-Za-z_][A-Za-z0-9_]*', key)]
+            if unknown:
+                raise ValueError(f'virtualRelation: unsupported attributes {sorted(unknown)}')
+        if node_tag == 'validation':
+            return super()._validate_call_args(info, node_value, attr, node_tag)
         parameter = self._positional_arguments.get(node_tag)
         if parameter is not None and node_value is not None:
             if parameter in attr:
@@ -328,20 +339,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if node_tag == 'column':
             embedded = {key[9:]: value for key, value in attr.items() if key.startswith('validate_')}
             if embedded:
-                from .validation import normalize_embedded, validate_spec
-                rules, normalization = normalize_embedded(embedded)
-                validate_spec(rules)
                 clean = {key: value for key, value in attr.items() if not key.startswith('validate_')}
                 child = self.set_child(build_where, node_tag, node_value, node_label, node_position, **clean)
-                if rules:
-                    child.validation(**rules)
-                if normalization:
-                    child.normalize(**normalization)
+                child.validation(**embedded)
                 return child
-        if node_tag == 'validation':
-            from .validation import validate_spec
-            validate_spec(attr)
-        if node_tag in ('validation', 'normalize', 'encryption'):
+        if node_tag in ('validation', 'encryption'):
             existing = build_where.node(node_tag)
             if existing is not None:
                 return self._compose_attributes(existing, attr)

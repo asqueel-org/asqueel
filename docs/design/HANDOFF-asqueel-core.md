@@ -1,11 +1,40 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**Checkpoint grammaticale del 13 ottobre 2026:** revisione intermedia prima
+del render completo. Validation conserva i validate_* nel dict della colonna;
+validate_values è una differenza approvata dal legacy. VirtualRelation conserva
+relation/table, condition, var_* e ask; :ask_<nome> è provvisorio e rivedibile
+al compilatore. Inverse, limit, order_by e one_one virtuali sono rinviati.
+SubQueryColumn mantiene query=None, mode=None e dtype, come il legacy.
+
+La base grammaticale consente di iniziare la traduzione strutturale. Restano
+da completare l'espansione nativa delle options, la configurazione di tutti i
+75 modelli e la verifica source nativa → oggetti completi → JSON migrations.
+Il JSON di tutti i package è già verificato dal ponte legacy espanso; questo
+checkpoint non attesta la parità del percorso nativo né chiude la release.
+Le firme non ancora riviste e la struttura interna di query restano proposte;
+eventuali lacune emerse durante il render vanno discusse, non colmate con API
+non concordate. Riferimenti correnti: 41 (rinvii), 42 (grammatica), 49 (decisioni),
+51 (piano del render).
+
+**Regola vincolante:** il legacy prevale per nomi, firme e significato. Uno
+scostamento richiede una motivazione concreta e l'approvazione dell'utente
+prima dell'applicazione. Restano valide le differenze già concordate, fra cui
+DHZ/UTC. Perimetro attuale: grammatica e traduzione, senza anticipare esecuzione.
+
+**Prossimo lavoro, pianificato ma non implementato:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md).
+Espansioni durante il render; JSON migrations soltanto dagli oggetti completi.
+
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
 
+**Perimetro attuale:** grammatica e traduzione del modello. I passaggi esecutivi
+descritti nel piano generale non sono requisiti da anticipare nelle firme.
+
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
-Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB,
-nessun provider obbligatorio inventato. Rendering a oggetti vivi ancora rinviato.
+Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB.
+Nessun parametro provider o dichiarazione behavior nella grammatica.
+Rendering a oggetti vivi ancora rinviato.
 
 Aggiornato il **12 ottobre 2026**. Documento di ripartenza dopo la separazione
 di Asqueel Migration e Asqueel DB Manager. Questa consegna prepara il lavoro:

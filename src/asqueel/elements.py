@@ -172,7 +172,9 @@ class TableElements:
               metadata: dict | None = None, rowcaption: str | None = None,
               newrecord_caption: str | None = None, order_by: str | None = None,
               lookup: bool = False, tabletype: str | None = None,
-              sqlname: str | None = None, sqlschema: str | None = None, **extra):
+              sqlname: str | None = None, sqlschema: str | None = None,
+              pkey_columns: str | None = None,
+              pkey_columns_joiner: str | None = None, **extra):
         """A table.
 
         Args:
@@ -184,6 +186,10 @@ class TableElements:
             name_long: semantic; human label.
             name_short: semantic; short human label.
             name_plural: semantic; human label, plural form.
+            pkey_columns: semantic; legacy comma-separated source fields for a
+                single textual primary key; not SQL primary-key members.
+            pkey_columns_joiner: semantic; legacy separator for that textual key.
+                Absent or empty, the legacy uses underscore. Declaration only.
         """
         ...
 
@@ -237,7 +243,7 @@ class TableElements:
         """The explicit collection of table indexes."""
         ...
 
-    @element(parent_tags="columns", sub_tags="relation, validation[:1], normalize[:1], encryption[:1], dynamic_fields[:1]",
+    @element(parent_tags="columns", sub_tags="relation, validation[:1], encryption[:1], dynamic_fields[:1]",
              _meta={"projects_column": True, "projects_relation": True})
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
@@ -322,8 +328,8 @@ class TableElements:
         ...
 
     @element(parent_tags="virtual_columns", sub_tags="")
-    def subQueryColumn(self, name: str, query: str | dict,
-                       mode: str | None = None,
+    def subQueryColumn(self, name: str, query: str | dict | None = None,
+                       mode: str | None = None, dtype: str | None = None,
                        name_long: str | None = None,
                        group: str | None = None, name_short: str | None = None,
                        comment: str | None = None, x_ui: dict | None = None,
@@ -332,9 +338,10 @@ class TableElements:
 
         Args:
             name: the column name.
-            query: the sub-query.
-            mode: ``json``, ``xml`` or a scalar aggregate. Expanding it is
-                the renderer's job, not grammar-time.
+            query: the sub-query declaration; may be supplied by a later contribution.
+            mode: None, ``json``, ``xml`` or a legacy aggregate name; preserved
+                without expansion or execution by the grammar.
+            dtype: the declared result type.
             name_long: semantic; human label.
             group: semantic; field-group key.
         """

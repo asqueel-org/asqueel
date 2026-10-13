@@ -1,5 +1,10 @@
 # 42 — Grammatica di configurazione del modello, prima specifica completa
 
+**Decisione successiva sui timestamp:** i timestamp di sistema sono DHZ;
+la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
+`timestamp_type` o `use_timezone`. Prevale sui punti ancora aperti citati sotto.
+La baseline salvata del corpus usa già use_timezone=True (report 45).
+
 12 ottobre 2026. **Specifica obiettivo da revisionare, non API già implementata.**
 L'utente ha incaricato di completare autonomamente le firme usando il legacy,
 il contratto del migratore e tutti i package di `test_invoice_pg`.
@@ -36,7 +41,9 @@ Tre risultati distinti:
 Un attributo senza effetto DDL resta nel modello. Una dichiarazione non certifica un comportamento eseguibile. La grammatica
 non impone provider inventati per le funzioni del legacy; il futuro rendering
 dovrà segnalare gli effetti non implementati.
-`toolColumn` resta l'unico rinvio esplicito nel [registro 41](41-deferred-features.md).
+I rinvii espliciti sono nel [registro 41](41-deferred-features.md): `toolColumn`
+e, dal 13 ottobre, l'implementazione dei record di sistema e di `release`.
+Le firme `system_records` e `release` sotto riportate restano proposte non approvate.
 
 ## 2. Convenzioni comuni
 
@@ -115,16 +122,18 @@ L'accesso runtime espone attributi in sola lettura; non torna alla source.
 
 | Livello | Vocabolario base proposto |
 | --- | --- |
-| DB | `macro(name, *, handler, parameters)`; `metadata(namespace, values)` |
+| DB | `metadata(namespace, values)` |
 | Connection | `driver(**parameters)` con vocabolario del driver selezionato; `metadata(namespace, values)` |
-| Package | `requires(*packages)`; `type(name, *, dtype, size=None, **column_defaults)`; `macro(name, *, handler, parameters)`; `metadata(namespace, values)` |
+| Package | `requires(*packages)`; `type(name, *, dtype, size=None, **column_defaults)`; `metadata(namespace, values)` |
 | Table | Catalogo §§5–9; `metadata(namespace, values)` |
 
 Non c'è ereditarietà implicita delle options DB/package sulle tabelle.
 `requires` valida dipendenze presenti nel modello; discovery e caricamento sono
-responsabilità dell'host. La firma macro conserva per ora un riferimento opaco; il binding è una
-proposta da rivedere, non un registro server deciso. Tipi e macro locali hanno
-nomi qualificati; il nome breve si risolve nel package, non in package arbitrari.
+responsabilità dell'host. I tipi locali hanno nomi qualificati; il nome breve
+si risolve nel package, non in package arbitrari. La dichiarazione di macro
+è esclusa dalla grammatica strutturale: nel legacy registerMacros/addMacro
+appartengono alla configurazione del compilatore delle query, separata da
+config_db. Le formule possono conservare riferimenti a macro senza espanderli.
 
 `connection(options={...})` dell'API attuale si traduce in
 `connection.options().driver(...)`. Non mantenere due dizionari con precedenze
@@ -148,7 +157,7 @@ Le funzioni con parametri nominati usano `enabled=False`. La riattivazione usa
 gli attributi espliciti accumulati; per ripartire dai default si usa
 `options.reset('nome')`, che cancella la configurazione accumulata di quell'opzione.
 
-Ordine: composizione → default → espansione options/provider → risoluzione
+Ordine: composizione → default → espansione options → risoluzione
 tipi/riferimenti → validazione → oggetti. Le espansioni possono creare colonne
 usate da dichiarazioni precedenti. Nessuna dipendenza dall'ordine fra
 `sys_fields`, `hierarchical`, `auto_counter`. Cicli fra espansioni sono errori.
@@ -168,9 +177,9 @@ def configure(self, pkg):
     task.column('user_id').relation('adm.user.id', on_delete='raise')
 ```
 
-La firma proposta `tbl.options().behavior('package.table')` conserva un
-riferimento applicativo opaco. La scelta di un registro, il collegamento alla
-classe e la precedenza di `new_pkey_value`, default e hook non sono approvati.
+La dichiarazione `behavior(...)` è ritirata insieme ai parametri `provider`.
+Grammatica e traduzione non richiedono di anticipare il collegamento di classi,
+metodi esecutivi o hook.
 Un valore calcolato si può dichiarare con `BagCbResolver`, senza inventare un
 registro di funzioni; costruire la source non esegue il callback.
 
@@ -196,8 +205,9 @@ tbl = pkg.table(
 `table_meta` aggiunge ai metadati comuni rimanenti:
 `rowcaption`, `newrecord_caption`, `order_by`, `lookup=False`, `tabletype=None`.
 Questi sono metadati tipizzati; `caption_field`/`order_by` si validano sul modello.
-Gli attributi legacy con effetti (audit, partition, pkey_columns, ecc.) sono
-options esplicite, secondo la matrice del documento 43.
+pkey_columns e pkey_columns_joiner restano attributi della tabella, come nel
+legacy. La collocazione degli altri attributi va verificata singolarmente
+secondo la regola di precedenza del legacy.
 
 ```text
 tbl.column(name, dtype=None, *, size=None, sqlname=None,
@@ -233,28 +243,74 @@ col.validation(notnull=True, len='2:40')
 tbl.column('account_name', validate_notnull=True, validate_len='2:40')
 ```
 
-Vocabolario validation: `notnull: bool`, `len: int | 'min:max'`, `min`, `max`
-(valori confrontabili col dtype), `regex: str`, `email: bool`, `values: list`,
-`nodup: bool`, `exists: ColumnRef`, `messages: dict[rule,str]`.
-`len` conta caratteri Unicode, estremi inclusivi; `:max`/`min:` ammessi.
-Valore NULL salta gli altri controlli salvo `notnull`; stringa vuota è mancante
-per `notnull`. `validate_notnull_error` si normalizza a `messages['notnull']`.
-Regole sconosciute, intervalli invertiti e flags di tipo scorretto sono errori.
+**Decisione del 13 ottobre:** l'oggetto colonna espone `validations`, un dict
+con i parametri dichiarati. L'embedding rimuove soltanto il prefisso validate_:
 
-`col.normalize(case='upper'|'lower'|'title'|None, trim=False)` separa trasformazioni
-e controlli; `validate_case` è alias di compatibilità locale per `normalize.case`.
-`values` legacy con etichette si separa in valori ammessi e metadati UI.
-`nodup`/`exists` richiedono server; `nodup` non promette unicità concorrente senza
-UNIQUE. Ogni regola esporta capability e versione. Il client Gramlot esegue solo
-quelle supportate con uguale semantica (incluso profilo regex); tutte sono
-rieseguite sul server. Non esportare callback Python/JavaScript come validation.
+```python
+tbl.column('code', validate_notnull=True, validate_case='U',
+           validate_notnull_error='Obbligatorio')
+# Equivalente:
+tbl.column('code').validation(notnull=True, case='U', notnull_error='Obbligatorio')
+# Oggetto risultante:
+column.validations == {'notnull': True, 'case': 'U', 'notnull_error': 'Obbligatorio'}
+```
 
-`col.encryption(mode='X'|'R'|'Q', *, provider=None)` rappresenta i modi già presenti
-in `invc.customer`. Il provider dichiara trasformazioni in scrittura/lettura,
-ricerca, formato persistito e dipendenze; deve rispettare il contratto legacy
-del modo scelto. Chiavi e materiale crittografico sono risolti solo sul server.
-Il modello registra il modo; il DDL vede la colonna fisica risultante. Non
-promettere portabilità fra provider solo perché usano la stessa lettera.
+Controlli, trasformazioni e messaggi restano insieme. La sezione `normalize`
+è rimossa; `*_error` mantiene il nome legacy, senza convertirlo in `messages`. I valori case (upper/u,
+lower/l, title/t, capitalize/c, anche maiuscoli) sono conservati senza conversioni.
+La costruzione/traduzione non esegue controlli né trasformazioni sui record;
+validate_notnull non produce automaticamente un vincolo NOT NULL nel JSON DDL.
+Le regex sono dati della regola, non espressioni da interpretare come Python
+per validare la grammatica. La vista dict è separata dalla source e una sua
+modifica non cambia il modello già tradotto.
+
+**exist e nodup, 13 ottobre:** nel legacy usano bool o str.
+Il nome legacy è `exist`, non `exists`; il nome SQL `exists` delle formule
+resta distinto. La grammatica non impone questi nomi né questi tipi. `exist=False`/`nodup=False`, stringhe vuote e
+riferimenti a campi sono conservati esattamente come dichiarati. Non vengono
+risolti contro il modello durante questa traduzione.
+
+```python
+tbl.column('code', validate_exist='other.table.code', validate_nodup=True,
+           validate_nodup_relative='parent_id', validate_nodup_error='Duplicato')
+# Equivalente:
+tbl.column('code').validation(exist='other.table.code', nodup=True,
+                              nodup_relative='parent_id', nodup_error='Duplicato')
+```
+
+Si conservano i parametri legacy con prefisso `exist_`/`nodup_`, inclusi
+messaggi, `_if`, `_warning`, `_iswarning`, `nodup_relative`, `nodup_condition`
+e i parametri di query `nodup_*`. Nel legacy nodup inoltra questi ultimi al
+conteggio: qui rimangono solo dati nel dict. Nessuna query, nessun UNIQUE/FK
+implicito, nessun nuovo esecutore.
+
+**Semplificazione concordata, 13 ottobre:** `validation(**rules)` conserva
+nomi e valori senza un vocabolario chiuso e senza controlli sui tipi delle
+singole regole. Vale anche per le source importate. L'embedding `validate_*`
+toglie soltanto il prefisso. Non si inseriscono default, non si correggono
+nomi e non si interpretano i valori. Le regole saranno esaminate quando
+verranno usate: non occorre decidere ora una firma per ciascuna di esse.
+
+**Differenza dal legacy approvata il 13 ottobre:** nel legacy `values` è un
+attributo della colonna per le scelte disponibili, usato dai widget. In Asqueel
+si sceglie invece `validate_values`, equivalente a `validation(values=...)`:
+la dichiarazione dei valori ammessi appartiene a `column.validations['values']`.
+
+```python
+tbl.column('stato', validate_values='B:Bozza,C:Confermato,A:Annullato')
+# Equivalente:
+tbl.column('stato').validation(values='B:Bozza,C:Confermato,A:Annullato')
+# Oggetto risultante:
+column.validations == {'values': 'B:Bozza,C:Confermato,A:Annullato'}
+```
+
+Per ora si conserva il valore dichiarato senza interpretarlo. L'esecuzione
+della regola e l'uso da parte dei widget saranno decisi quando serviranno;
+questa scelta non introduce vincoli SQL né un vocabolario chiuso di validation.
+
+`col.encryption(mode='X'|'R'|'Q')` registra i modi presenti in
+`invc.customer`. La traduzione conserva il modo e la colonna fisica; non
+definisce esecutori crittografici o collegamenti a provider.
 
 ## 6. Sys fields e generazione delle chiavi
 
@@ -263,7 +319,7 @@ tbl = pkg.table('customer', pkey='id')
 tbl.options().sys_fields(
     id=dict(type='uuid'), ins=True, upd=True,
     user_ins=True, user_upd=True, ldel=True, draft=False,
-    timestamp_type='DHZ', group='zzz', group_name='System')
+    group='zzz', group_name='System')
 ```
 
 `sys_fields(enabled=False)` disattiva tutta l'opzione mantenendone la configurazione;
@@ -301,28 +357,24 @@ appartiene all'esecuzione. La firma separata `column.generation` è stata ritira
 `manual`, `sequence` e la precedenza rispetto a `new_pkey_value` non erano
 decisioni acquisite (contratto 40). Non fissare ora un nuovo oggetto Generation.
 
-`tbl.options().pkey_from(columns, *, joiner='_', missing='error')` genera una
-**singola chiave testuale persistita**. `missing='skip'` riproduce il caso legacy
-che salta i valori None; non garantisce assenza di collisioni, controllate dalla
-PK. I riferimenti `$campo` sono normalizzati; non modificare i valori esistenti
-al cambio di sintassi. La precedenza rispetto al metodo applicativo resta da concordare.
-Per `adm.user_config`, il comportamento `new_pkey_value` sostituisce `pkeyValue`.
+`table(..., pkey_columns='campo1,campo2', pkey_columns_joiner=None)` conserva
+gli attributi legacy per una singola chiave testuale persistita. Il separatore
+assente o vuoto equivale a `_` nel legacy, che salta i valori None.
+La grammatica conserva i dati senza calcolare la chiave o normalizzare i nomi
+dei campi. `pkey_from` e il parametro `missing` sono ritirati.
 
 `compositeColumn(..., columns=...)` invece rappresenta componenti SQL distinte;
 non concatena valori persistiti. `table.pkey` è sempre un solo nome logico;
 `table.pkeys` espone le componenti fisiche ordinate.
 
-Ordine di scrittura obiettivo: default → normalizzazione → hook applicativi
-before → calcoli e generazione → validation e invarianti → SQL → hook after.
-Le modifiche dei before vengono validate; gli after restano nella transazione.
-Gli aggiornamenti automatici usano un timestamp coerente per operazione.
-`timestamp_type='DHZ'` è il nuovo default; `'DH'` è ammesso esplicitamente per
-rappresentare gli schemi legacy configurati senza timezone. In quel profilo
-il provider deve dichiarare la timezone usata per convertire a valori naive;
-il cambio di tipo non è una normalizzazione innocua dei dati già persistiti.
-RAW salta default/hook/validation applicativi, richiede record fisici completi,
-non genera UUID; restano vincoli DB e autorizzazione dell'esecutore. Un'API bulk
-RECORD applica il medesimo ciclo RECORD, non un bypass RAW accidentale.
+Ordine di default, normalizzazione, hook, generazione e validation, condivisione
+del timestamp per operazione e comportamento RAW/bulk restano da definire nella
+fase lettura/scrittura. La sequenza precedentemente indicata qui era una proposta,
+non un contratto acquisito.
+
+I timestamp di sistema sono DHZ, con scrittura in UTC come convenzione
+decisa. Nessun parametro per scegliere DH/DHZ in questa fase. La traduzione
+del modello stabilisce il tipo; non implementa il ciclo delle scritture.
 
 `delete` resta fisica. Soft-delete e restore sono operazioni esplicite;
 letture ordinarie escludono le righe con `__del_ts` valorizzato e richiedono
@@ -338,33 +390,32 @@ dell'utente, espansioni e rendering a oggetti vivi appartengono alla prossima fa
 Le firme effettive e i payload di disattivazione sono nella [grammatica generata](../grammar.md).
 
 Tutte le seguenti opzioni entrano nel modello risolto e dichiarano gli oggetti
-generati. Le funzioni salvo `behavior` ammettono `enabled=False`; i default
+generati. Le funzioni ammettono `enabled=False`; i default
 interni si applicano solo quando l'opzione viene attivata. Gli effetti richiesti
-andranno realizzati nella fase oggetti. Non è richiesta una chiave provider per
-dichiarare una funzione del legacy; il binding non è deciso.
+andranno realizzati nella fase oggetti. La grammatica non contiene
+chiavi provider né riferimenti generici a esecutori futuri.
 
 | Firma obiettivo | Effetto e riferimento concreto |
 | --- | --- |
-| `behavior(reference)` | Propone un riferimento a metodi applicativi, default e trigger Python; non trigger SQL. |
 | `hierarchical(columns=(), *, parent='parent_id', root_id=False, virtual_roots=False, linked_to=None, depth=None, caption_field=None)` | Parent FK, `hierarchical_pkey`, `_parent_h_pkey`, coppie `hierarchical_<campo>`/`_parent_h_<campo>`, `child_count`, `hlevel`; manutenzione discendenti, rifiuto cicli. `invc.product_type/product_group`, `adm.htag/menu`, `sys.widget`. |
-| `auto_counter(scope=(), *, field='_row_count')` | `L`, ordine fra fratelli; scope può essere una FK, es. invoice_id. Con gerarchia scope parent e campi `_h_count`, `_parent_h_count`, `_h_sortcol`. Allocazione concorrente protetta, non MAX senza lock. |
+| `auto_counter(scope=(), *, field='_row_count')` | `L`, ordine fra fratelli; scope può essere una FK, es. invoice_id. Con gerarchia scope parent e campi `_h_count`, `_parent_h_count`, `_h_sortcol`. La configurazione non alloca valori. |
 | `relative_index(relation, *, field='_relidx')` | Indice relativo alla relazione e contributo differito al lato collegato; controparte del legacy relidx. |
 | `dynamic_fields(*, templates=None)` | Genera `df_fields` X, `df_fbcolumns` L, `df_custom_templates` X, `df_colswidth` T; `subfields` della colonna diventa `col.dynamic_fields(source=ColumnRef)`. |
-| `record_hash(*, field='__rec_md5', columns=None, algorithm='md5')` | Hash applicativo per confronto record, non sicurezza; codec legacy del provider per preservare valori esistenti, esclude il campo hash e i campi di sistema. `adm.user`. |
+| `record_hash(*, field='__rec_md5', columns=None, algorithm='md5')` | Hash applicativo per confronto record, non sicurezza; rappresentazione legacy per preservare valori esistenti, esclude il campo hash e i campi di sistema. `adm.user`. |
 | `full_update(*, field='__full_mod_ts')` | Timestamp DHZ per aggiornamenti anche del contenuto correlato dichiarato dal comportamento. Non attivo per default. |
-| `audit(mode='full'|'lazy', *, version_field='__version', provider=None)` | Versione L e integrazione audit, incluso `sys.widget` lazy; binding da definire. |
+| `audit(mode='full'|'lazy', *, version_field='__version')` | Campo versione L e dichiarazione del modo audit, incluso `sys.widget` lazy. |
 | `system_records(*, records, masterfield=None, tag='superadmin')` | `__syscode` A `:20` UNIQUE, protezione associata; records è mappa codice→valori o riferimenti/resolver esistenti. `adm.language/xgroup/htag`; `adm.install_checklist` dichiara invece `__syscode` direttamente. Non inserisce dati al render né nel JSON DDL. |
 | `protection(*, rules=(), tag=None)` | Espressioni/resolver e virtuali `__protecting_reasons`, `__is_protected_row`; nessuna esecuzione remota di codice. |
 | `diagnostics(*, rules=(), invalid_fields=False, invalid_relations=())` | Reasons/flags virtuali; quando richiesti `__warnings`, `__errors`, `__invalid_fields` fisici e aggregazione delle relazioni. |
 | `release(*, handlers)` | `__release` L e riferimenti alle trasformazioni `_release_*`. |
 | `partition(name, *, field, value=None, required=False)` | Filtro/policy logica legata al contesto server; non partizionamento SQL. `customer.state` e `invoice.customer_state` usano un valore o un resolver esistente; preservare NULL e override autorizzati secondo policy dichiarata. |
-| `tenant(*, field=None, provider=None)` | Flag multi-tenant; il collegamento al runtime resta da definire; copre `adm.counter.multi_tenant`. Non inventa una colonna se il provider legacy usa store/schema. |
-| `retention(*, field, days, provider=None)` | Registra politica `sys.error/task_execution`; scheduler esterno, nessuna cancellazione durante costruzione/migration. |
-| `broadcast(*columns, provider=None)` | Eventi di modifica, es. `adm.userobject`; consegna esterna dopo commit, non invio dalla configurazione. |
-| `archive(*, provider=None)` | Esportazione/archiviazione e contributi correlati, compresi file allegati. |
-| `enabled_when(*, preference, provider=None)` | Registra `checkpref` come capability applicativa, senza far scomparire lo schema fisico al cambiare di una preferenza. |
-| `attachments(*, master, provider=None)` | Espansione di AttachmentTable: colonne, FK, virtuali, counter e collegamento del master. `adm.htmltemplate_atc` non è una tabella vuota. |
-| `numbering(field, *, provider=None, parameters=None)` | Descrive il contatore applicativo, es. `counter_inv_number`; non confonderlo con `_row_count`. |
+| `tenant(*, field=None)` | Flag multi-tenant; copre `adm.counter.multi_tenant`. Non implica una nuova colonna fisica. |
+| `retention(*, field, days)` | Registra politica `sys.error/task_execution`; scheduler esterno, nessuna cancellazione durante costruzione/migration. |
+| `broadcast(*columns)` | Eventi di modifica, es. `adm.userobject`; dichiarazione senza invio di eventi. |
+| `archive()` | Esportazione/archiviazione e contributi correlati, compresi file allegati. |
+| `enabled_when(*, preference)` | Registra `checkpref` come capability applicativa, senza far scomparire lo schema fisico al cambiare di una preferenza. |
+| `attachments(*, master)` | Espansione di AttachmentTable: colonne, FK, virtuali, counter e collegamento del master. `adm.htmltemplate_atc` non è una tabella vuota. |
+| `numbering(field, *, parameters=None)` | Descrive il contatore applicativo, es. `counter_inv_number`; non confonderlo con `_row_count`. |
 
 Il bridge legacy deve rendere esplicite le funzioni prima attivate cercando
 metodi (`sysRecord_*`, `_release_*`, formule `True`, defaultValues, trigger).
@@ -372,11 +423,9 @@ Le tre famiglie protection/diagnostics/record_pointer prima aggiunte da
 sysFields non vanno perse: il profilo di traduzione le configura esplicitamente.
 Il core non deve cercare convenzioni GenroPy in ogni classe applicativa.
 
-Gli handler esterni (storage, preference, cifratura, audit, ecc.) sono contratti
-richiesti dal modello; implementare le app `sys`/`adm` non è compito del core.
-La build per sola ispezione può elencare capability non disponibili, ma non
-marcare quel modello eseguibile. La proiezione DDL richiede tutte le espansioni
-fisiche risolte; non può saltare un provider che genera colonne.
+La traduzione deve completare tutti gli effetti strutturali delle options
+prima della proiezione DDL. Non richiede handler di storage, audit o altre
+funzioni esecutive. Gli effetti non ancora traducibili vanno segnalati.
 
 ## 8. Colonne virtuali, gruppi e subtable
 
@@ -384,12 +433,29 @@ fisiche risolte; non può saltare un provider che genera colonne.
 | --- | --- |
 | `formulaColumn(name, expression=None, *, select=None, exists=None, dtype=None, static=False, parameters=None, subqueries=None, handler=None, group=None, **meta)` | Una sola sorgente principale expression/select/exists/handler. Subqueries nominate componibili nell'espressione; parametri tipizzati legati allo scope. `sql_formula` alias di migrazione per expression, non seconda sorgente. |
 | `aliasColumn(name, relation_path, *, dtype=None, static=False, group=None, **meta)` | Percorso verso colonna fisica o virtuale; eredita metadati target salvo override esplicito; rileva cicli. |
-| `subQueryColumn(name, query, *, mode='scalar', dtype=None, group=None, **meta)` | `scalar`, `json`, `xml`; query strutturata con colonne, where, group_by, having, order_by, limit, offset, distinct, parametri. |
-| `pyColumn(name, *, method=None, required_columns=(), dtype=None, static=False, group=None, **meta)` | Default method `pyColumn_<name>`, riferimento al behavior; dipendenze esplicite, solo post-fetch salvo provider che compili. Non filtrabile/ordinabile SQL per magia. |
+| `subQueryColumn(name, query=None, mode=None, dtype=None, group=None, **meta)` | Firma legacy confermata: query facoltativa nella source, mode senza enum chiusa, dtype e metadati di colonna. Query e mode sono conservati senza espansione SQL. |
+| `pyColumn(name, *, method=None, required_columns=(), dtype=None, static=False, group=None, **meta)` | Nome del metodo e dipendenze esplicite come dati del modello; la dichiarazione non esegue il metodo né lo rende automaticamente traducibile in SQL. |
 | `compositeColumn(name, columns, *, unique=False, static=True, group=None, **meta)` | Identità serializzata strutturalmente, componenti ordinate; PK/UNIQUE/FK multicolonna senza colonna SQL aggiuntiva. |
 | `bagItemColumn(name, *, bagcolumn, itempath, dtype=None, group=None, **meta)` | Estrazione Bag/XML tipizzata; itempath è un percorso dati, non XPath SQL interpolato. |
 | `colgroup(name, *, name_long=None, **col_defaults)` | Gruppo unico ordinato, default `col_*` dalle firme delle colonne e x_ui; handle reindirizza i costruttori alla tabella. |
 | `subtable(name, *, condition, parameters=None, **meta)` | Sottoinsieme logico della stessa tabella; niente tabella SQL. Filtri si compongono con policy. |
+
+**Decisione del 13 ottobre — subQueryColumn:** mantenere la firma legacy:
+query=None, mode=None e attributi di colonna, incluso dtype. Il default non è
+`'scalar'`. Il legacy tratta specificamente json/xml e conserva gli altri
+valori di mode in subquery_aggr: non si introduce un enum chiuso. La source
+può ricevere query in un contributo successivo. La sua struttura interna è
+il prossimo punto da rivedere; quanto segue resta proposta, non nuovo contratto
+approvato dalla sola conferma di questa firma.
+
+Esempio reale di invc.invoice, conservato come dichiarazione:
+
+```python
+tbl.subQueryColumn('max_row_price',
+    query=dict(table='invc.invoice_row', columns='MAX($unit_price)',
+               where='$invoice_id=#THIS.id'),
+    dtype='N', name_long='Max Row Price')
+```
 
 Per le sottoquery: `query(table, *, columns=(), where=None, group_by=(),
 having=None, order_by=(), limit=None, offset=None, distinct=False,
@@ -456,55 +522,86 @@ Questo è rilevante per `adm.htmltemplate` e `adm.group`.
 
 ### Relazioni virtuali di tabella
 
-```text
-tbl.virtualRelation(name, *, relation=None, table=None,
-                    condition=None, parameters=None, source_parameters=None,
-                    ask=None, order_by=(), limit=None, one_one=False,
-                    inverse=None, **meta)
+**Decisione del 13 ottobre:** riallineare la grammatica alla
+[revisione della GEP 2](https://github.com/genropy/genropy_meta/issues/1#issuecomment-5803053743).
+`aliasTable` è rinviato (41, R-04); `virtualRelation` resta, compresa la forma
+con `relation`. Le inverse delle relazioni virtuali sono rinviate (41, R-05).
+**Semplificazione successiva approvata rispetto alla GEP:** anche `limit`,
+`order_by` e `one_one` sono rinviati ed esclusi dalla firma (41, R-06).
+
+```python
+tbl.virtualRelation(name, relation=None, table=None, condition=None,
+                    ask=None, **attrs)  # var_<nome> e metadati della grammatica
 ```
 
-- Esattamente uno fra `relation` (percorso esistente) e `table` (target logico).
-  Nessuna colonna o FK SQL. Navigazione con `@name`, sola lettura.
-- `source_parameters` associa un nome a un'espressione sul record sorgente;
-  `parameters` contiene costanti; `ask` è mappa nome→specifica tipizzata per
-  input esplicito dell'operazione. Namespace disgiunti, tutti i placeholder
-  devono essere risolti; niente input che si spaccia per contesto autenticato.
-- Nel target `condition` usa `$campo`, `@percorso`, `:parametro`. Per `table`
-  deve esserci un legame al record sorgente. `relation` eredita il legame e
-  aggiunge il filtro. Nessuna estrazione ingenua di termini da OR.
-- `limit` intero positivo, ordinamento deterministico completato con PK target.
-  `limit=1` restituisce zero/una riga; senza limit, `one_one=True` è un'asserzione
-  con controllo di cardinalità, non una selezione arbitraria del primo match.
-- Derivare da una relazione già limitata non cambia il significato del limite:
-  per questa prima grammatica è errore; dichiarare esplicitamente una nuova
-  relazione dal target. Cicli fra definizioni virtuali sono errori; FK cicliche
-  fra tabelle restano valide.
-- Inversa automatica solo per pairing puro invertibile, senza filter/ask/limit.
-  Negli altri casi va dichiarata una seconda virtualRelation esplicita.
-  Nessun alias inverso ingannevole su una relazione filtrata per sorgente.
-- Collezioni many richiedono aggregazione/subquery/unnest esplicito in una
-  proiezione scalare; non moltiplicano silenziosamente i record del chiamante.
-  NULL nelle uguaglianze segue SQL; null-safe va richiesto con operatore esplicito.
+- `relation` identifica una relazione o un percorso esistente, anche virtuale.
+  Può essere accompagnato da `condition` per dichiarare un filtro.
+- `table` identifica la destinazione di un collegamento senza una relazione
+  di partenza. Si usa in alternativa a `relation`.
+- In `condition`, `$campo` e `@rel.campo` appartengono alla destinazione B.
+  `var_<nome>` contiene un'espressione della sorgente A e viene richiamato
+  come `:var_<nome>`. Non si introduce `#THIS` in questa grammatica.
+- `ask` conserva la dichiarazione dei parametri richiesti, come nella GEP
+  (es. `{'title': 'Year', 'fields': [{'name': 'year', 'dtype': 'I'}]}`).
+  **Decisione provvisoria del 13 ottobre:** il campo `name='year'` viene
+  referenziato nella condizione come `:ask_year`; in generale `:ask_<nome>`.
+  Il nome del campo resta senza prefisso. Ogni ask appartiene alla propria
+  dichiarazione, anche se altre relazioni usano lo stesso nome di campo.
+- `limit`, `order_by` e `one_one` non sono ammessi, anche nelle source
+  importate. Non si dichiara una selezione dei primi N né una cardinalità
+  scalare sulla virtualRelation. Query e subQueryColumn restano distinti.
+- `source_parameters` e `parameters` sono rimossi dalla firma virtualRelation;
+  nessuna conversione implicita di queste precedenti proposte.
+- `inverse` è rimosso e non viene generata una relazione inversa virtuale.
+  Questo non cambia `inverse` e la generazione delle inverse delle relazioni
+  ordinarie. Non si sostituisce `inverse` con `reverse_name` o un'altra API.
 
-Traduzione del join condizionale realmente presente in `invc.invoice`:
+I binding sono espressioni della futura riga sorgente, non valori da calcolare
+al render della configurazione. Per ora source e traduzione conservano
+condizione, binding e ask: nessuna query, nuova FK o vincolo.
+Il collegamento dei riferimenti già presente nel modello accetta anche le
+relazioni filtrate, senza eseguire o riscrivere il filtro.
+
+Esempio della grammatica semplificata per il join condizionale di `invc.invoice`:
 
 ```python
 tbl.virtualRelation('discount_tier', table='invc.discount_tier',
-    condition='$customer_type_code=:customer_type AND '
-              '$min_amount<=:amount AND $max_amount>:amount',
-    source_parameters={'customer_type': '@customer_id.customer_type_code',
-                       'amount': '$total'},
-    one_one=True)
+    condition='$customer_type_code=:var_customer_type AND '
+              '$min_amount<=:var_total AND $max_amount>:var_total',
+    var_customer_type='@customer_id.customer_type_code',
+    var_total='$total')
 tbl.aliasColumn('discount_tier_id', '@discount_tier.id')
+
+# Relazione filtrata, dichiarata su customer:
+tbl.virtualRelation('invoices_current_year', relation='@invoices',
+                    condition='$year=:env_current_year')
+
+# Anno richiesto, dichiarato su customer:
+tbl.virtualRelation('invoices_year', relation='@invoices',
+    condition='EXTRACT(YEAR FROM $date)=:ask_year',
+    ask=dict(title='Anno delle fatture',
+             fields=[dict(name='year', dtype='I', lbl='Anno')]))
+
+# Percorso dichiarato su invoice_row:
+tbl.virtualRelation('customer', relation='@invoice_id.@customer_id')
 ```
 
-Intervalli sovrapposti causano errore di cardinalità: non sono resi univoci
-da `one_one`. Il vecchio inverso `invoices_in_tier` richiede una relazione
-virtuale esplicita sul tier con il pairing opposto. `aliasTable('customer',
-relation_path='@invoice_id.@customer_id')` si rappresenta con
-`virtualRelation('customer', relation='@invoice_id.@customer_id')`.
-`joinColumn` e `aliasTable` sono quindi costrutti di traduzione, non due nuovi
-tipi di colonna da introdurre nel core.
+Il ponte offline dalla source legacy espansa conserva ancora la `cnd` legacy
+come espressione opaca nel suo profilo legacy: questa revisione non introduce
+un riscrittore SQL generico di `cnd` verso la GEP. Conserva `relation_name`
+e `one_one` nei metadati legacy senza attribuire loro effetti nella
+virtualRelation e senza generare l’inversa `invoices_in_tier`.
+
+**Decisioni rivedibili al compilatore:** il namespace ask è ora stabilito
+provvisoriamente come `:ask_<nome>`, distinto da `:var_<nome>` e `:env_<nome>`.
+La grammatica conserva i nomi dei campi e il testo della condizione; non
+riscrive placeholder, non raccoglie valori e non introduce un validatore SQL.
+Nomi dei parametri SQL generati, isolamento tra più usi della stessa relazione
+e controlli sui riferimenti verranno definiti nella fase del compilatore,
+quando queste decisioni potranno essere riviste su indicazione dell'utente.
+
+La derivazione da una relazione limitata esce dal perimetro corrente insieme
+a limit/order_by. Le inverse e la dichiarazione one_one restano rinviate.
 
 ## 10. Indici e proiezione verso il migratore
 
@@ -551,14 +648,14 @@ censimento ha una rappresentazione esplicita. L'implementazione è completata
 solo con queste prove, ancora da realizzare:
 
 1. Build completa dei tre package, eredità AttachmentTable e contributo
-   adm→sys.task inclusi, con provider e nomi fisici verificati.
+   adm→sys.task inclusi, con dichiarazioni e nomi fisici verificati.
 2. JSON/XML del modello preservano tipi, options, relazioni, metadati e binding
    simbolici; nessuna credenziale o callable serializzato.
 3. Proiezione normalized validata da StructureValidator, confronto con snapshot
    legacy reale e spiegazione di ogni differenza voluta (es. user_upd=True).
 4. Migrazione su DB PostgreSQL temporaneo, rilettura schema e seconda diff vuota;
    **mai** applicare direttamente DDL a test_invoice_pg per questa verifica.
-5. Test negativi su typo delle options, collisioni/override, provider assenti,
+5. Test negativi su typo delle options, collisioni/override, parametri rimossi,
    source/target composite, scalar multiriga, limiti e inverse virtuali.
 6. Esecuzione delle espressioni e dei comportamenti nel passo lettura/scrittura;
    compatibilità SQLite limitata a capability dichiarate, non presunta dal JSON.

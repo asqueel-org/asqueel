@@ -83,13 +83,21 @@ def test_positional_option_arguments_are_not_silently_lost():
 @pytest.mark.parametrize('config', [
     {'id': {'type': 'custom'}}, {'id': {'size': '36'}},
     {'upd': {'indexed': 'yes'}}, {'upd': {'name_long': 17}},
-    {'timestamp_type': 'T'}, {'id': 1},
+    {'timestamp_type': 'T'}, {'timestamp_type': 'DH'}, {'timestamp_type': 'DHZ'}, {'id': 1},
     {'id': None},
 ])
 def test_system_field_payloads_are_typed_and_closed(config):
     _, _, pkg = source()
     with pytest.raises(ValueError):
         pkg.table('customer').options().sys_fields(**config)
+
+
+def test_imported_timestamp_choice_is_rejected_instead_of_silently_ignored():
+    builder, _, pkg = source()
+    option = pkg.table('customer').options().sys_fields()
+    option.attr['timestamp_type'] = 'DH'
+    with pytest.raises(ValueError, match='timestamp_type removed'):
+        builder.validate_source()
 
 
 def test_options_copy_input_without_expanding_or_generating_values():

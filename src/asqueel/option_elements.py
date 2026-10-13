@@ -5,7 +5,7 @@ from typing import Literal
 from genro_builders.builder import element
 
 TABLE_OPTIONS = (
-    'behavior', 'pkey_from', 'hierarchical', 'auto_counter', 'relative_index',
+    'hierarchical', 'auto_counter', 'relative_index',
     'dynamic_fields', 'record_hash', 'full_update', 'audit', 'system_records',
     'protection', 'diagnostics', 'release', 'partition', 'tenant', 'retention',
     'broadcast', 'archive', 'enabled_when', 'attachments', 'numbering',
@@ -14,17 +14,6 @@ NAMED_OPTIONS = {'partition': 'name', 'numbering': 'field'}
 
 
 class BehaviorOptionElements:
-    @element(parent_tags='options', sub_tags='', node_label='behavior')
-    def behavior(self, reference: str):
-        """Declare an application behavior reference; binding remains deferred."""
-        ...
-
-    @element(parent_tags='options', sub_tags='', node_label='pkey_from')
-    def pkey_from(self, columns: str | list | tuple | None = None, *, joiner: str = '_',
-                  missing: Literal['error', 'skip'] = 'error', enabled: bool = True):
-        """Declare a textual key derived from fields; columns required when enabled."""
-        ...
-
     @element(parent_tags='options', sub_tags='', node_label='hierarchical')
     def hierarchical(self, columns: str | list | tuple | None = None, *, parent: str = 'parent_id',
                      root_id: bool = False, virtual_roots: bool = False,
@@ -64,7 +53,7 @@ class BehaviorOptionElements:
 
     @element(parent_tags='options', sub_tags='', node_label='audit')
     def audit(self, mode: Literal['full', 'lazy'] | None = None, *, version_field: str = '__version',
-              provider: str | None = None, enabled: bool = True):
+              enabled: bool = True):
         """Declare audit; mode required when enabled."""
         ...
 
@@ -98,42 +87,37 @@ class BehaviorOptionElements:
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='tenant')
-    def tenant(self, *, field: str | None = None,
-               provider: str | None = None, enabled: bool = True):
-        """Declare the legacy multi-tenant flag; runtime binding is deferred."""
+    def tenant(self, *, field: str | None = None, enabled: bool = True):
+        """Declare the legacy multi-tenant flag."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='retention')
     def retention(self, *, field: str | None = None, days: int | None = None,
-                  provider: str | None = None, enabled: bool = True):
+                  enabled: bool = True):
         """Declare retention by field and nonnegative days."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='broadcast')
-    def broadcast(self, columns: str | list | tuple | None = None, *,
-                  provider: str | None = None, enabled: bool = True):
+    def broadcast(self, columns: str | list | tuple | None = None, *, enabled: bool = True):
         """Declare change events; no events emitted at build time."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='archive')
-    def archive(self, *, provider: str | None = None, enabled: bool = True):
-        """Declare an archive provider without invoking storage."""
+    def archive(self, *, enabled: bool = True):
+        """Declare the legacy archivable flag."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='enabled_when')
-    def enabled_when(self, *, preference: str | None = None, provider: str | None = None,
-                     enabled: bool = True):
+    def enabled_when(self, *, preference: str | None = None, enabled: bool = True):
         """Declare a preference condition without evaluating it."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='attachments')
-    def attachments(self, *, master: str | None = None, provider: str | None = None,
-                    enabled: bool = True):
+    def attachments(self, *, master: str | None = None, enabled: bool = True):
         """Declare attachment expansion for its master table."""
         ...
 
     @element(parent_tags='options', sub_tags='')
-    def numbering(self, field: str, *, provider: str | None = None,
-                  parameters: dict | None = None, enabled: bool = True):
-        """Declare a named numbering rule and symbolic provider."""
+    def numbering(self, field: str, *, parameters: dict | None = None, enabled: bool = True):
+        """Declare the parameters of a named numbering rule."""
         ...

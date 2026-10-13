@@ -7,18 +7,17 @@ from genro_builders.builder import element
 
 class SemanticElements:
     @element(parent_tags='column', sub_tags='', node_label='validation')
-    def validation(self, notnull: bool = False, len: int | str | None = None,
-                   min: object = None, max: object = None, regex: str | None = None,
-                   email: bool = False, values: list | None = None, nodup: bool = False,
-                   exists: str | None = None, messages: dict | None = None):
-        ...
+    def validation(self, **rules):
+        """Preserve column validation declarations without interpreting rules.
 
-    @element(parent_tags='column', sub_tags='', node_label='normalize')
-    def normalize(self, case: Literal['upper', 'lower', 'title'] | None = None, trim: bool = False):
+        Embedded validate_* attributes produce the same dictionary, stripping
+        only the prefix. Names and values are retained without vocabulary or
+        rule-specific type checks. Translation never executes these rules.
+        """
         ...
 
     @element(parent_tags='column', sub_tags='', node_label='encryption')
-    def encryption(self, mode: Literal['X', 'R', 'Q'], provider: str | None = None):
+    def encryption(self, mode: Literal['X', 'R', 'Q']):
         ...
 
     @element(parent_tags='column, compositeColumn, virtual_columns', sub_tags='')
@@ -44,10 +43,17 @@ class SemanticElements:
 
     @element(parent_tags='table', sub_tags='')
     def virtualRelation(self, name: str, relation: str | None = None, table: str | None = None,
-                        condition: str | None = None, parameters: dict | None = None,
-                        source_parameters: dict | None = None, ask: dict | None = None,
-                        order_by: str | tuple | list | None = None, limit: int | None = None,
-                        one_one: bool = False, inverse: str | None = None,
+                        condition: str | None = None, ask: dict | None = None,
                         name_long: str | None = None, name_short: str | None = None,
-                        comment: str | None = None, x_ui: dict | None = None, metadata: dict | None = None):
+                        comment: str | None = None, x_ui: dict | None = None,
+                        metadata: dict | None = None, **bindings):
+        """GEP virtual relation; var_* binds source expressions as declaration data.
+
+        condition refers to the target. var_* expressions refer to the source
+        and are used as :var_* in condition. An ask field named <name> is
+        referenced as :ask_<name>. This namespace is provisional until compiler
+        design. ask and bindings are preserved as data, without SQL rewriting.
+        Unlike the GEP, order_by, limit and one_one are deferred, along with
+        virtual inverses.
+        """
         ...

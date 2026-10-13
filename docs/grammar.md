@@ -2,7 +2,7 @@
 
 Generated from the live grammar by `asqueel.grammar_doc.generate_grammar_md()`. Do not edit by hand: regenerate with `python -m asqueel.grammar_doc`.
 
-Domain element signatures are **semi-closed**: they declare their physical and enumerated semantic parameters. Where `**extra` is accepted, each extra key must start with `x_`.
+Domain element signatures are **semi-closed**: they declare their physical and enumerated semantic parameters. Where `**extra` is accepted, each extra key must start with `x_`, except the opaque declarations in `validation(**rules)` and `var_*` bindings of `virtualRelation`.
 
 ## Hierarchy
 
@@ -140,6 +140,8 @@ A table.
 | tabletype | `str \| None` | `None` | physical |  |
 | sqlname | `str \| None` | `None` | physical |  |
 | sqlschema | `str \| None` | `None` | physical |  |
+| pkey_columns | `str \| None` | `None` | semantic | legacy comma-separated source fields for a single textual primary key; not SQL primary-key members. |
+| pkey_columns_joiner | `str \| None` | `None` | semantic | legacy separator for that textual key. Absent or empty, the legacy uses underscore. Declaration only. |
 
 ### `columns`
 
@@ -205,8 +207,8 @@ The explicit collection of table indexes.
 
 A physical column — the only element that projects as a column.
 
-- Contains: relation, validation[:1], normalize[:1], encryption[:1], dynamic_fields[:1]
-- Child addressing: ordered internal labels for relation, validation, normalize, encryption, dynamic_fields
+- Contains: relation, validation[:1], encryption[:1], dynamic_fields[:1]
+- Child addressing: ordered internal labels for relation, validation, encryption, dynamic_fields
 - Projection flags: `projects_column`, `projects_relation`
 - Extra keys: accepted (`x_` prefix required)
 
@@ -298,8 +300,9 @@ A virtual column defined by a sub-query. Never physical.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
-| query | `str \| dict` | *required* | physical | the sub-query. |
-| mode | `str \| None` | `None` | physical | `json`, `xml` or a scalar aggregate. Expanding it is the renderer's job, not grammar-time. |
+| query | `str \| dict \| None` | `None` | physical | the sub-query declaration; may be supplied by a later contribution. |
+| mode | `str \| None` | `None` | physical | None, `json`, `xml` or a legacy aggregate name; preserved without expansion or execution by the grammar. |
+| dtype | `str \| None` | `None` | physical | the declared result type. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
@@ -483,8 +486,8 @@ Logical table namespace with an explicit physical placement.
 
 Singleton section of typed functions, validated for its owning level.
 
-- Contains: metadata, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
-- Child addressing: ordered internal labels for metadata, requires, type, macro, sys_fields, driver, reset, behavior, pkey_from, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Contains: metadata, requires[:1], type, sys_fields[:1], driver[:1], reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Child addressing: ordered internal labels for metadata, requires, type, sys_fields, driver, reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, diagnostics, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -569,21 +572,6 @@ Package-local column type and its explicit presentation defaults.
 | x_ui | `dict \| None` | `None` | physical |  |
 | metadata | `dict \| None` | `None` | physical |  |
 
-### `macro`
-
-Reference a registered server-side macro handler and its parameter contract.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| name | `str` | *required* | physical |  |
-| handler | `str` | *required* | physical |  |
-| parameters | `dict` | *required* | physical |  |
-
 ### `sys_fields`
 
 Describe generated system fields without generating fields or values yet.
@@ -602,46 +590,25 @@ Describe generated system fields without generating fields or values yet.
 | user_upd | `bool \| dict` | `True` | physical |  |
 | ldel | `bool \| dict` | `True` | physical |  |
 | draft | `bool \| dict` | `False` | physical |  |
-| timestamp_type | `str` | `'DHZ'` | physical |  |
 | group | `str` | `'zzz'` | physical |  |
 | group_name | `str` | `'System'` | physical |  |
 | enabled | `bool` | `True` | physical |  |
 
 ### `validation`
 
+Preserve column validation declarations without interpreting rules.
 
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| notnull | `bool` | `False` | physical |  |
-| len | `int \| str \| None` | `None` | physical |  |
-| min | `object` | `None` | physical |  |
-| max | `object` | `None` | physical |  |
-| regex | `str \| None` | `None` | physical |  |
-| email | `bool` | `False` | physical |  |
-| values | `list \| None` | `None` | physical |  |
-| nodup | `bool` | `False` | physical |  |
-| exists | `str \| None` | `None` | physical |  |
-| messages | `dict \| None` | `None` | physical |  |
-
-### `normalize`
-
-
+Embedded validate_* attributes produce the same dictionary, stripping
+only the prefix. Names and values are retained without vocabulary or
+rule-specific type checks. Translation never executes these rules.
 
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: not accepted
+- Extra keys: preserved as validation data without rule-specific checks
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| case | `Literal['upper', 'lower', 'title'] \| None` | `None` | physical |  |
-| trim | `bool` | `False` | physical |  |
 
 ### `encryption`
 
@@ -655,7 +622,6 @@ Describe generated system fields without generating fields or values yet.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | mode | `Literal['X', 'R', 'Q']` | *required* | physical |  |
-| provider | `str \| None` | `None` | physical |  |
 
 ### `weak_relation`
 
@@ -725,12 +691,19 @@ Describe generated system fields without generating fields or values yet.
 
 ### `virtualRelation`
 
+GEP virtual relation; var_* binds source expressions as declaration data.
 
+condition refers to the target. var_* expressions refer to the source
+and are used as :var_* in condition. An ask field named <name> is
+referenced as :ask_<name>. This namespace is provisional until compiler
+design. ask and bindings are preserved as data, without SQL rewriting.
+Unlike the GEP, order_by, limit and one_one are deferred, along with
+virtual inverses.
 
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: not accepted
+- Extra keys: source expression bindings (`var_*`) and `x_*` metadata
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -738,47 +711,12 @@ Describe generated system fields without generating fields or values yet.
 | relation | `str \| None` | `None` | physical |  |
 | table | `str \| None` | `None` | physical |  |
 | condition | `str \| None` | `None` | physical |  |
-| parameters | `dict \| None` | `None` | physical |  |
-| source_parameters | `dict \| None` | `None` | physical |  |
 | ask | `dict \| None` | `None` | physical |  |
-| order_by | `str \| tuple \| list \| None` | `None` | physical |  |
-| limit | `int \| None` | `None` | physical |  |
-| one_one | `bool` | `False` | physical |  |
-| inverse | `str \| None` | `None` | physical |  |
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
 | x_ui | `dict \| None` | `None` | physical |  |
 | metadata | `dict \| None` | `None` | physical |  |
-
-### `behavior`
-
-Declare an application behavior reference; binding remains deferred.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| reference | `str` | *required* | semantic |  |
-
-### `pkey_from`
-
-Declare a textual key derived from fields; columns required when enabled.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| columns | `str \| list \| tuple \| None` | `None` | semantic |  |
-| joiner | `str` | `'_'` | semantic |  |
-| missing | `Literal['error', 'skip']` | `'error'` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
 
 ### `hierarchical`
 
@@ -888,7 +826,6 @@ Declare audit; mode required when enabled.
 | --- | --- | --- | --- | --- |
 | mode | `Literal['full', 'lazy'] \| None` | `None` | semantic |  |
 | version_field | `str` | `'__version'` | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `system_records`
@@ -971,7 +908,7 @@ Declare a logical partition with a value or an existing lazy resolver.
 
 ### `tenant`
 
-Declare the legacy multi-tenant flag; runtime binding is deferred.
+Declare the legacy multi-tenant flag.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -981,7 +918,6 @@ Declare the legacy multi-tenant flag; runtime binding is deferred.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | field | `str \| None` | `None` | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `retention`
@@ -997,7 +933,6 @@ Declare retention by field and nonnegative days.
 | --- | --- | --- | --- | --- |
 | field | `str \| None` | `None` | semantic |  |
 | days | `int \| None` | `None` | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `broadcast`
@@ -1012,12 +947,11 @@ Declare change events; no events emitted at build time.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | columns | `str \| list \| tuple \| None` | `None` | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `archive`
 
-Declare an archive provider without invoking storage.
+Declare the legacy archivable flag.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -1026,7 +960,6 @@ Declare an archive provider without invoking storage.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `enabled_when`
@@ -1041,7 +974,6 @@ Declare a preference condition without evaluating it.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | preference | `str \| None` | `None` | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `attachments`
@@ -1056,12 +988,11 @@ Declare attachment expansion for its master table.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | master | `str \| None` | `None` | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `numbering`
 
-Declare a named numbering rule and symbolic provider.
+Declare the parameters of a named numbering rule.
 
 - Contains: *nothing*
 - Child addressing: no children
@@ -1071,6 +1002,5 @@ Declare a named numbering rule and symbolic provider.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | field | `str` | *required* | semantic |  |
-| provider | `str \| None` | `None` | semantic |  |
 | parameters | `dict \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |

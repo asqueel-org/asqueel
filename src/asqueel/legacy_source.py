@@ -42,7 +42,7 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
                 _normalize_physical(physical)
                 # Runtime defaults/hooks are deliberately not SQL defaults.
                 embedded = {key: value for key, value in data.items()
-                            if key.startswith('validate_') and key != 'validate_case'}
+                    if key.startswith('validate_')}
                 if isinstance(embedded.get('validate_notnull'), str):
                     embedded['validate_notnull'] = bool(embedded['validate_notnull'])
                 c = t.column(column.label, **physical, **embedded, metadata={'legacy': data})
@@ -69,8 +69,8 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
                         raise ValueError(f'{column.label}: join_column needs relation')
                     target = _target(package.label, rel.attr['related_column'])
                     t.virtualRelation(column.label, table='.'.join(target.split('.')[:2]),
-                        condition=rel.attr.get('cnd'), one_one=rel.attr.get('one_one', False),
-                        inverse=rel.attr.get('relation_name'), metadata={'legacy': dict(rel.attr)})
+                        condition=rel.attr.get('cnd'),
+                        metadata={'legacy': dict(rel.attr)})
                     t.aliasColumn(column.label, relation_path='@' + column.label + '.' + target.split('.')[-1], **common)
                 elif data.get('relation_path'):
                     t.aliasColumn(column.label, relation_path=data['relation_path'], **common)

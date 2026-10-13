@@ -15,6 +15,25 @@ def recipe():
     return builder, db, pkg
 
 
+@pytest.mark.parametrize('joiner', [None, '_', '|', ''])
+def test_legacy_textual_key_declaration_stays_distinct_from_sql_primary_key(joiner):
+    builder, _, pkg = recipe()
+    table = pkg.table('service', pkey='identifier',
+                      pkey_columns='service_type,service_name', pkey_columns_joiner=joiner)
+    table.column('identifier', size=':60')
+    table.column('service_type', size=':30')
+    table.column('service_name', size=':30')
+    builder.validate_source()
+    resolved = resolve_model(builder).table('invc.service')
+    assert resolved.attributes['pkey_columns'] == 'service_type,service_name'
+    assert resolved.attributes['pkey_columns_joiner'] == joiner
+    assert resolved.pkey == ('identifier',)
+    physical = SqlMigrationRenderer(builder).render()['root']['schemas']['billing']['tables']['invc_service']
+    assert physical['attributes']['pkeys'] == 'identifier'
+    assert 'pkey_columns' not in physical['attributes']
+    assert 'pkey_columns_joiner' not in physical['attributes']
+
+
 def test_schema_and_package_objects_preserve_identity_mapping_and_empty_sections():
     builder, db, pkg = recipe()
     db.packages().package('unused', sqlschema='empty', sqlprefix=False)
@@ -71,6 +90,8 @@ def test_system_field_expansion_is_repeatable_and_keeps_source_unexpanded():
     assert '__mod_user' not in resolved.columns
     assert resolved.columns['__is_draft'].dtype == 'B'
     assert resolved.columns['__record_pointer'].is_virtual
+    for name in ('__ins_ts', '__mod_ts', '__del_ts'):
+        assert resolved.columns[name].dtype == 'DHZ'
     physical = SqlMigrationRenderer(builder).render()['root']['schemas']['billing']['tables']['invc_invoice']
     assert '__record_pointer' not in physical['columns']
     assert 'id' in physical['columns']

@@ -190,10 +190,6 @@ def _resolve_virtual_relations(tables):
                 raise ValueError(f'{table.key}.{declaration.name}: specify either relation or table')
             if target_key and not attrs.get('condition'):
                 raise ValueError(f'{table.key}.{declaration.name}: conditional relation requires condition')
-            if path and attrs.get('condition'):
-                raise ValueError(f'{table.key}.{declaration.name}: alias relation cannot declare condition')
-            if attrs.get('limit') is not None and (isinstance(attrs['limit'], bool) or attrs['limit'] < 1):
-                raise ValueError(f'{table.key}.{declaration.name}: limit must be positive')
             if path:
                 target_key = table.key
                 for part in path.split('.'):
@@ -210,12 +206,6 @@ def _resolve_virtual_relations(tables):
                 raise ValueError(f'{table.key}: duplicate relation {declaration.name!r}')
             relations[table.key][declaration.name] = Relation(declaration.name, target_key, (), (),
                 kind='virtual', attributes=attrs)
-            inverse = attrs.get('inverse')
-            if inverse:
-                if inverse in relations[target_key]:
-                    raise ValueError(f'{target_key}: duplicate inverse {inverse!r}')
-                relations[target_key][inverse] = Relation(inverse, table.key, (), (), kind='virtual',
-                    attributes={**attrs, 'forward': declaration.name, 'source_table': table.key})
             pending.remove((table, declaration))
             progress = True
         if not progress:
@@ -228,6 +218,8 @@ def _resolve_inverse_relations(tables):
     inverses = {key: dict(table.relations) for key, table in tables.items()}
     for table in tables.values():
         for relation in table.relations.values():
+            if relation.kind == 'virtual':
+                continue
             name = relation.attributes.get('inverse') or relation.attributes.get('back_reference')
             if not name:
                 continue

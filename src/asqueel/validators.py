@@ -103,7 +103,7 @@ class SqlModelValidator:
     # -- checks ----------------------------------------------------------
 
     def _check_attributes(self, builder) -> None:
-        """D2: any attribute outside the signature must start with ``x_``."""
+        """D2: extras require x_, apart from supported domain-specific prefixes."""
         for path, node in self._catalog.nodes:
             owner = (node.parent_bag._builder if node._get_meta("subbuilder")
                      else node._resolve_builder())
@@ -111,6 +111,9 @@ class SqlModelValidator:
             declared = info.get("declared_names") or set()
             for key in node.attr:
                 if (key == _META_KEY or key in declared or key.startswith("x_")
+                        or node.node_tag == 'validation'
+                        or (node.node_tag == 'virtualRelation'
+                            and re.fullmatch(r'var_[A-Za-z_][A-Za-z0-9_]*', key))
                         or (node.node_tag == 'colgroup' and key.startswith('col_'))
                         or (node.node_tag == "formulaColumn"
                             and re.fullmatch(r"select_[A-Za-z_][A-Za-z0-9_]*", key))):

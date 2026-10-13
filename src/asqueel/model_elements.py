@@ -1,7 +1,7 @@
 """Package and option declarations of the complete model source grammar.
 
-Elements describe source only. Expansions and provider execution happen after
-all contributions have been composed, never in an element constructor.
+Elements describe source only. Model expansions belong to rendering after
+composition, never to an element constructor. No execution binding is defined.
 """
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ OPTION_LEVELS = {
     'metadata': {'db', 'connection', 'schema', 'package', 'table'},
     'requires': {'package'},
     'type': {'package'},
-    'macro': {'db', 'package'},
     'sys_fields': {'table'},
     'driver': {'connection'},
 }
@@ -60,7 +59,7 @@ class ModelElements:
         ...
 
     @element(parent_tags='db, connection, schema, package, table',
-             sub_tags='metadata, requires[:1], type, macro, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
+             sub_tags='metadata, requires[:1], type, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
              node_label='options')
     def options(self):
         """Singleton section of typed functions, validated for its owning level."""
@@ -96,16 +95,11 @@ class ModelElements:
         """Package-local column type and its explicit presentation defaults."""
         ...
 
-    @element(parent_tags='options', sub_tags='')
-    def macro(self, name: str, handler: str, parameters: dict):
-        """Reference a registered server-side macro handler and its parameter contract."""
-        ...
-
     @element(parent_tags='options', sub_tags='', node_label='sys_fields')
     def sys_fields(self, id: bool | dict = True, ins: bool | dict = True,
                    upd: bool | dict = True, user_ins: bool | dict = True,
                    user_upd: bool | dict = True, ldel: bool | dict = True,
-                   draft: bool | dict = False, timestamp_type: str = 'DHZ',
+                   draft: bool | dict = False,
                    group: str = 'zzz', group_name: str = 'System', enabled: bool = True):
         """Describe generated system fields without generating fields or values yet."""
         ...

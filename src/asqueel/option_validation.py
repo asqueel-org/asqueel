@@ -7,7 +7,7 @@ from genro_bag import BagResolver
 from .option_elements import TABLE_OPTIONS, NAMED_OPTIONS
 
 REQUIRED = {
-    'pkey_from': ('columns',), 'relative_index': ('relation',),
+    'relative_index': ('relation',),
     'audit': ('mode',), 'system_records': ('records',),
     'release': ('handlers',), 'partition': ('field',),
     'retention': ('field', 'days'),
@@ -80,7 +80,7 @@ def validate_option(tag, parent, attributes):
         for key in required:
             if spec.get(key) is None or spec[key] == '' or spec[key] == [] or spec[key] == ():
                 raise ValueError(f'{tag}.{key}: required when enabled')
-    for key in ('provider', 'reference', 'master', 'linked_to', 'preference',
+    for key in ('master', 'linked_to', 'preference',
                 'field', 'parent', 'version_field', 'relation', 'source', 'caption_field', 'masterfield'):
         if spec.get(key) is not None:
             nonempty(spec[key], f'{tag}.{key}')

@@ -1,5 +1,10 @@
 # 40 — Modello, proiezione fisica e ricette delle operazioni
 
+**Regola vincolante:** il legacy prevale per nomi, firme e significato. Uno
+scostamento richiede una motivazione concreta e l'approvazione dell'utente
+prima dell'applicazione. Restano valide le differenze già concordate, fra cui
+DHZ/UTC. Perimetro attuale: grammatica e traduzione, senza anticipare esecuzione.
+
 Data: **12 ottobre 2026**. Stato: decisioni della conversazione di ripresa e
 contratti ancora da chiudere. Questo documento non certifica implementazioni.
 
@@ -141,11 +146,24 @@ La regola `validation(notnull=True)` non va confusa con il vincolo fisico
 `column(notnull=True)`: la prima riguarda la validazione del valore, il secondo
 la struttura SQL. Non è stata decisa una propagazione automatica fra i due.
 
-Restano aperti il vocabolario completo e le firme delle regole, la composizione
-fra forma embedded e sezione esplicita sulla stessa colonna, messaggi/errori,
-il trattamento delle normalizzazioni (ad esempio `validate_case`), e l'ordine
-di esecuzione rispetto a default, trigger e percorsi RECORD/RAW. La separazione
-fra controlli e trasformazioni è stata discussa, non approvata.
+**Decisione del 13 ottobre:** forma embedded e sezione esplicita alimentano
+lo stesso dizionario `column.validations`. Il prefisso `validate_` viene tolto;
+chiavi e valori restano quelli dichiarati, compresi `case` e `notnull_error`.
+Controlli e trasformazioni non vengono separati: eliminata `normalize`.
+I messaggi mantengono le chiavi legacy `*_error`, senza un dizionario `messages`.
+La traduzione non esegue le regole e non aggiunge controlli non dichiarati.
+
+**Semplificazione successiva, 13 ottobre:** per ora si salvano soltanto i
+parametri. `validation(**rules)` non impone un vocabolario né tipi specifici:
+nomi e valori restano dichiarazioni da interpretare quando saranno usate.
+Ordine di esecuzione, default, trigger e percorsi RECORD/RAW appartengono
+alla fase delle operazioni.
+
+**Eccezione al legacy approvata il 13 ottobre — values:** il legacy usa
+`column(values=...)` come attributo per le scelte dei widget. Asqueel usa
+`column(validate_values=...)`, equivalente a `column.validation(values=...)`,
+e conserva la dichiarazione in `column.validations['values']`. Per ora nessuna
+interpretazione o esecuzione della regola e nessun vincolo SQL implicito.
 
 ## Generazione della primary key nella source — 12 ottobre
 
@@ -386,3 +404,54 @@ il nome fisico con sqlschema; assente, si usa il default del dialetto. Non
 servono authorization, alias o metadati/options di schema indipendenti.
 Gli schemi restano nella proiezione fisica richiesta da asqueel-migration.
 Dettagli e verifiche nel [report 50](50-schemas-from-packages.md).
+
+## Timestamp di sistema — decisione successiva
+
+I timestamp generati dalle options usano DHZ. La convenzione di scrittura
+nel database è UTC. Per ora non si espone né timestamp_type su sys_fields
+né use_timezone sul DB: un’eventuale opzione sarà valutata in seguito.
+Questa decisione chiude la scelta di tipo/timezone lasciata aperta sopra;
+non implementa né anticipa il ciclo delle scritture. Le colonne dichiarate
+esplicitamente mantengono il proprio dtype.
+
+Il file dell’istanza test_invoice_pg non esplicita use_timezone, ma la baseline
+salvata per i confronti è stata acquisita con use_timezone=True (report 45
+e tests/oracles/test_invoice_pg/manifest.json). Non va quindi descritta
+come una baseline DH.
+
+## Chiave testuale derivata — decisione successiva
+
+Si mantengono gli attributi legacy della tabella pkey_columns e
+pkey_columns_joiner. Ritirata l'opzione pkey_from e la sua policy missing.
+La grammatica conserva la stringa dei campi nell'ordine dichiarato e
+l'eventuale separatore; non calcola una chiave. Nel legacy il separatore
+assente o vuoto equivale a underscore e i valori None vengono saltati.
+Questa dichiarazione non trasforma pkey in una chiave SQL multicolonna.
+
+## Macro — confine confermato il 13 ottobre
+
+La registrazione e l'espansione delle macro SQL appartengono alla compilazione
+delle query, non alla struttura del modello. Nel legacy invc/main.py separa
+registerMacros da config_db; addMacro in gnrsql/db.py configura le compilazioni.
+Rimossa quindi options().macro dalla grammatica strutturale e dall'export.
+Restano le espressioni del modello che contengono riferimenti a macro:
+conservarle non richiede registrare o eseguire macro durante la traduzione
+strutturale. Nessuna nuova API del compilatore è definita in questa revisione.
+
+## exist e nodup — grammatica, 13 ottobre
+
+Conservare le dichiarazioni, senza implementarne l'uso. Il nome legacy è
+exist, non exists; nel legacy exist e nodup usano bool o str, senza imporre
+questa restrizione nel dizionario dichiarativo. Il prefisso validate_
+viene tolto per produrre column.validations, mantenendo valori, parametri e
+messaggi legacy (exist_* e nodup_*). Nessuna risoluzione del campo di confronto,
+ricerca sul DB o deduzione di vincoli fisici durante la traduzione.
+
+
+## VirtualRelation — semplificazione rispetto alla GEP, 13 ottobre
+
+Per decisione dell'utente limit, order_by e one_one sono rinviati ed esclusi
+dalla firma di virtualRelation (41, R-06). Restano relation/table, condition,
+var_*, ask e i metadati; inverse è già fuori perimetro (R-05). La selezione
+ordinata e limitata non fa parte di questa dichiarazione. Gli altri costrutti,
+incluse query, subQueryColumn e relazioni ordinarie, restano invariati.

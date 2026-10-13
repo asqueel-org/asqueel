@@ -80,8 +80,8 @@ def test_copying_a_source_does_not_lose_same_contribution_conflict_detection():
 def test_omission_does_not_materialize_option_defaults_in_source():
     config = _owned_handler(Overlay, [Base])
     option = config.builder.source['db.' + PATH + '.options.sys_fields']
-    assert 'timestamp_type' not in option.attr
-    assert config(PATH + '.options.sys_fields.timestamp_type') == 'DHZ'
+    assert 'group' not in option.attr
+    assert config(PATH + '.options.sys_fields.group') == 'zzz'
 
 
 def test_nonnullable_options_reject_none():
