@@ -23,7 +23,15 @@ prima dell'applicazione. Restano valide le differenze già concordate, fra cui
 DHZ/UTC. Perimetro attuale: grammatica e traduzione, senza anticipare esecuzione.
 
 **Prossimo lavoro, pianificato ma non implementato:** [render dalla source agli oggetti vivi](51-source-to-live-objects-plan.md).
-Espansioni durante il render; JSON migrations soltanto dagli oggetti completi.
+Piano aggiornato il 13 ottobre con fasi 0–6: mappa di copertura; render di base;
+espansioni locali; completamenti fra tabelle; relazioni e finalizzazione;
+source nativa dei 75 modelli; JSON dagli oggetti e prova migrations.
+Ogni fase ha criteri di completamento e un commit previsto. La mappa degli
+effetti legacy è ora verificata nel [rapporto 52](52-invoice-render-coverage.md):
+75 modelli coperti dal censimento, nessun port nativo completo ancora certificato.
+Prima di intervenire sul render esaminare D-01 (system_records e formula htag)
+e D-02 (indice locked_record); C-01–C-05 sono correzioni di compatibilità già
+individuate. Nessuna decisione applicata implicitamente; compilatore escluso.
 
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
@@ -34,7 +42,7 @@ descritti nel piano generale non sono requisiti da anticipare nelle firme.
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
 Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB.
 Nessun parametro provider o dichiarazione behavior nella grammatica.
-Rendering a oggetti vivi ancora rinviato.
+Render completo degli oggetti da implementare secondo il piano 51.
 
 Aggiornato il **12 ottobre 2026**. Documento di ripartenza dopo la separazione
 di Asqueel Migration e Asqueel DB Manager. Questa consegna prepara il lavoro:

@@ -1,5 +1,11 @@
 # 47 — JSON completo di test_invoice_pg e verifica migrations
 
+**Aggiornamento del 13 ottobre:** questo report attesta il percorso dal legacy
+già espanso. Le successive decisioni grammaticali prevalgono sui riferimenti
+storici a normalize/provider e altre proposte. La
+[fase 0 del render nativo](52-invoice-render-coverage.md) verifica la copertura
+e registra gli scarti da decidere prima di attestare parità nativa.
+
 12 ottobre 2026. **P1 chiusa nel commit `d88c822`; traguardo richiesto
 “produrre e verificare il JSON di tutti i package” raggiunto.**
 Questo incremento non chiude automaticamente P2–P5, né annuncia la release 0.6.0.

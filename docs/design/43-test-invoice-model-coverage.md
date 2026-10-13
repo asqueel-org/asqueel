@@ -1,5 +1,12 @@
 # 43 — Copertura della configurazione di test_invoice_pg
 
+**Aggiornamento del 13 ottobre:** la matrice qui sotto documenta la proposta
+iniziale, in parte superata. Per il render usare la
+[copertura verificata della fase 0](52-invoice-render-coverage.md), che applica
+le decisioni successive: niente provider/behavior, normalize o pkey_from;
+rinvii espliciti per system_records, release e funzioni virtuali. L'inventario
+dei sorgenti resta valido e i suoi hash sono stati ricontrollati.
+
 12 ottobre 2026. **Censimento statico e matrice della grammatica obiettivo**,
 non certificazione del porting né verifica sul database. Completa la
 [specifica 42](42-configuration-grammar.md).

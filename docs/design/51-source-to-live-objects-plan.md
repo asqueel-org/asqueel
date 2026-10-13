@@ -5,10 +5,43 @@ la convenzione di scrittura nel DB è UTC. Per ora nessuna opzione
 `timestamp_type` o `use_timezone`. Prevale sui punti ancora aperti citati sotto.
 La baseline salvata del corpus usa già use_timezone=True (report 45).
 
-12 ottobre 2026. **Piano da rivedere, non implementazione né nuove API approvate.**
-Incarico: definire ordine di espansione delle options e risoluzione delle
-relazioni basandosi sul legacy e sui resolver esistenti. Prevalgono le decisioni
-40 e le correzioni 49–50. In questo incremento si modificano solo documenti.
+Aggiornato il **13 ottobre 2026**, dopo il checkpoint grammaticale
+`61bbbb5`. **Piano operativo del prossimo lavoro; implementazione non avviata.**
+La richiesta corrente è organizzare la costruzione degli oggetti e il JSON
+migrations. Questo documento sostituisce la precedente sequenza A–E con fasi
+verificabili, senza aprire il lavoro sul compilatore o introdurre nuove firme.
+Prevalgono le decisioni 40, i rinvii 41, la grammatica 42 e le correzioni 49–50.
+
+## Stato verificato e risultato da raggiungere
+
+- La suite del checkpoint conta **1067 test superati e 1 saltato**. Ruff e mypy
+  passano nell'ambiente di verifica. Il mypy dell'hook locale usa un ambiente
+  diverso e segnala dipendenze/firme non allineate: verificare con l'ambiente
+  riproducibile dei test, senza considerare ignorabili futuri errori di tipo.
+- `SqlObjectRenderer` già compone la configurazione, prepara un modello e crea
+  `SqlDatabase`: si completa questo percorso, non un secondo sistema di oggetti.
+- `expand_options` rifiuta ancora le TABLE_OPTIONS attive dichiarative; esiste
+  una prima espansione sys_fields, da completare rispetto al legacy.
+- Il JSON di sys/adm/invc è verificato attraverso il ponte dalla source legacy
+  espansa. L'esempio nativo corrente contiene soltanto una selezione di tabelle.
+- Il traguardo è una source nativa dei **75 modelli**, senza usare come ingresso
+  XML espanso o snapshot JSON, da cui costruire oggetti completi e proiettare il
+  JSON per migrations. La baseline rimane un oracolo indipendente per i test.
+
+### Regole che non vanno riaperte implicitamente
+
+Schemi dedotti dai package; timestamp di sistema DHZ e convenzione UTC;
+UUID legacy a 22 caratteri dichiarato senza generare valori; pkey_columns
+come dati della tabella; validations come dict opaco, incluso validate_values.
+VirtualRelation mantiene relation/table, condition, var_* e ask; :ask_<nome>
+resta provvisorio fino al compilatore. Non reintrodurre inverse virtuali,
+limit, order_by o one_one virtuali. SubQueryColumn conserva query=None,
+mode=None e dtype; la sua query rimane dichiarativa.
+
+ToolColumn, firma aliasTable, system_records, release e funzioni virtuali
+rinviate seguono il registro 41. Nessun provider, behavior, nuovo resolver,
+registro di hook o grammatica SQL aggiuntiva. I resolver di configurazione
+restano quelli esistenti, inclusi EnvResolver e BagCbResolver.
 
 ## Confine e risultato
 
@@ -45,7 +78,7 @@ Riferimenti nel checkout `/Users/gporcari/Sviluppo/Genropy/genropy`:
 - `gnrpy/gnr/app/gnrdbo.py`, sysFields (323–525): campi standard, gerarchia,
   contatori, audit, diagnostica, dynamic fields, protezioni, release, sysrecords.
 - Stesso file, sysFields_df/counter/relidx e linkHierarchicalToMaster (546 ss.);
-  AttachmentTable.config_db (1697 ss.): allegati con campi di sistema, contatore,
+  AttachmentTable.config_db: allegati con campi di sistema, contatore,
   FK al master, virtuali e contributo agli attributi del master.
 - `gnrpy/gnr/sql/gnrsqlmodel/columns.py`, DbColumnObj.doInit: raccoglie le relazioni
   durante la costruzione; non richiede che il target sia già costruito.
@@ -141,14 +174,17 @@ limit, order_by e one_one sono esclusi dalla firma
 per rinvio esplicito (41, R-06). Non generare inverse
 delle virtual relations: funzione rinviata (41, R-05).
 
-Risolvere aliasColumn e percorsi verso colonne generate/virtuali, dipendenze di
-formule/sottoquery, pyColumn e bagItemColumn. Se questi elementi dipendono l'uno
-dall'altro, seguirne le dipendenze effettive: l'elenco sopra non impone di risolvere
-un alias prima della virtual relation che gli serve. Segnalare cicli di alias o
-dipendenze non risolvibili; non equipararli a una normale FK circolare.
+Risolvere aliasColumn e percorsi esplicitamente dichiarati verso colonne
+fisiche/generate/virtuali. Collegare i riferimenti strutturali già espressi
+dalla grammatica; conservare formule, sottoquery, pyColumn e bagItemColumn
+con attributi e descrittori, senza analizzare o compilare le loro espressioni
+per inventare ulteriori dipendenze. Un alias può richiedere il completamento
+di una virtualRelation: seguire questa dipendenza strutturale. Segnalare cicli
+di alias o percorsi non risolvibili, distinti dalle normali FK circolari.
 
-Le formule e i metodi vengono collegati e validati quanto necessario al modello,
-non eseguiti su dati. Una relazione one_one non crea automaticamente UNIQUE.
+Le funzioni Python dichiarate non vengono invocate sui record. Non occorre
+implementare aggregati, macro, query o validazioni per conservare il modello.
+Una relazione ordinaria one_one non crea automaticamente UNIQUE.
 Il caso invoice → discount_tier e invoice_row → customer è obbligatorio.
 
 ### 7. Finalizzare vincoli, indici e grafo
@@ -185,17 +221,197 @@ fase. Questo piano non decide il comportamento futuro di default dei record,
 workdate o partition. Il JSON migrations deriva dalla struttura fisica degli
 oggetti completati; nessun nuovo codec remoto in questa fase.
 
-## Incrementi di implementazione e prove di uscita
+## Piano di implementazione per fasi
 
-| Incremento | Lavoro | Prova prima di proseguire |
+La sequenza segue le dipendenze. Ogni fase termina con un risultato verificabile,
+un aggiornamento di questo piano e un commit dedicato. Il completamento di una
+fase non autorizza a dichiarare completata la successiva o l'intera release.
+
+| Fase | Risultato | Dipende da |
 | --- | --- | --- |
-| A — Percorso di render e resolver | Riutilizzare SqlObjectRenderer, model_source e i costruttori esistenti; isolare costruzione/pubblicazione e rispettare la semantica dei resolver di Builders. | Render minimo con package, colonne, EnvResolver e BagCbResolver: valutazione durante il render e valori risultanti negli oggetti; nessuna esecuzione SQL da parte del render, source invariata, nessun accesso alla source del modello dopo la pubblicazione. |
-| B — Espansioni locali | sys_fields completo, campi accessori, gerarchie, contatori, dynamic fields, audit e parti locali degli allegati. | Confronto puntuale con output legacy; inversione dell'ordine delle options indipendenti; composizione, disattivazione e conflitti; nessun UUID/numero/record creato. |
-| C — Completamenti e relazioni | Dipendenze inter-tabella, composite, FK/weak, inverse, virtual relations, alias e indici. | Relazioni in avanti, sys↔adm, adm→sys.task, gerarchie, allegati, price_year/price_year_note, discount_tier e alias di customer; errori leggibili per riferimenti e cicli non risolvibili. |
-| D — Corpus nativo completo | Trascrivere tutte le configurazioni dei 75 modelli e il contributo inter-package usando la grammatica, senza source legacy già espansa. | Confronto degli oggetti e delle dichiarazioni virtuali/comportamentali, non solo conteggio delle tabelle. Registro delle differenze rispetto al legacy. |
-| E — Proiezione migrations | Partire esclusivamente dal grafo completato; usare la proiezione fisica esistente dopo averla verificata. | Source e resolver non consultati; StructureValidator, confronto del JSON, apply/introspection/seconda diff vuota su DB temporaneo. |
+| 0 — Mappa di copertura e confronto | Effetti legacy e differenze attese espliciti per ogni option e modello | Checkpoint 61bbbb5 |
+| 1 — Percorso di render e oggetti | Render minimo coerente, resolver corretti, source invariata | 0 |
+| 2 — Espansioni locali | Campi standard e options locali complete, con prove per famiglia | 1 |
+| 3 — Espansioni fra tabelle | Gerarchie collegate, contatori relativi, allegati e contributi al master | 2 |
+| 4 — Relazioni e modello completo | Tipi, chiavi, percorsi, inverse ordinarie, indici e oggetti pubblicabili | 3 |
+| 5 — Source nativa del corpus | Tutti i 75 modelli configurati e confrontati con il legacy | 4 |
+| 6 — JSON dagli oggetti | Proiezione indipendente dalla source e migrations verificate su PostgreSQL | 5 |
 
-A parità di source e valori strutturali risolti, render ripetute devono dare lo
+### Fase 0 — Mappa di copertura e differenze
+
+**Lavoro:** riesaminare il censimento 43, gli effetti di gnrdbo.sysFields e
+AttachmentTable, le estensioni dei package e gli oracoli del report 47. Creare
+una matrice tracciabile con: dichiarazione nativa, sorgente legacy, colonne/
+relazioni/indici/virtuali prodotti, dati soltanto conservati, dipendenze,
+rinvio applicabile, fixture di verifica e stato. Usare il corpus per trovare
+casi concreti, non solo per contare tabelle.
+
+**Confronto indipendente:** aspettative ricavate da sorgenti/catture legacy,
+non dalla stessa funzione Asqueel da verificare. Distinguere dichiarazioni
+originali da effetti generati. Annotare in anticipo gli impatti fisici dei
+rinvii e l'indice di sys.locked_record omesso dall'estrattore storico.
+
+**Criterio di completamento:** ogni famiglia di options e ogni costrutto usato
+nei 75 modelli ha un effetto atteso o un rinvio documentato. Una differenza
+non concordata viene presentata all'utente prima di adattare il contratto o
+l'oracolo. Si può continuare sui casi indipendenti mentre quel punto resta aperto.
+
+**Consegna:** matrice di copertura del render e registro delle differenze,
+collegati da questo documento; nessun nuovo costrutto di grammatica.
+
+**Esito del 13 ottobre:** [rapporto 52](52-invoice-render-coverage.md) e
+[evidenza per tutti i modelli](evidence/invoice-render-coverage.json).
+Verificati 75 modelli, 79 sorgenti del manifest, 227 import legacy e integrità
+degli oracoli. D-01 (effetto strutturale di system_records) e D-02 (indice
+locked_record omesso dal JSON storico) sono presentate per decisione, non
+applicate. Le carenze native C-01–C-05 sono classificate separatamente.
+Nessuna modifica al render. Il rinvio di release non produce scarti nel corpus.
+
+### Fase 1 — Percorso di render e oggetti esistenti
+
+**Lavoro:** seguire SqlObjectRenderer → configurazione effettiva → resolve_model
+→ SqlDatabase. Definire nel percorso esistente quando si applicano default,
+si leggono i resolver e si finalizzano gli oggetti. Indicizzare tutti i package
+e le tabelle prima dei collegamenti. Separare i dati strutturali risolti dalla
+configurazione amministrativa delle connessioni.
+
+**File principali:** object_renderer.py, configuration.py, model_source.py,
+application.py, application_table.py, contracts.py e model_sections.py.
+
+**Prove:** modello piccolo con più package e schema condiviso, override fisici,
+package vuoti, contributi, EnvResolver e BagCbResolver. Build/clone/composizione
+non eseguono i resolver; il render segue la semantica Builders esistente e
+porta negli oggetti i valori risultanti. Non imporre un nuovo conteggio globale
+di chiamate: verificare caching e invalidazione secondo i resolver già usati.
+Nessuna connessione SQL o operazione applicativa durante il render.
+
+**Criterio di completamento:** modello minimo ispezionabile con oggetti esistenti,
+identità coerenti e source non modificata. Cambiare la source dopo il render
+non altera il modello già restituito. Un errore non pubblica un DB parziale.
+
+### Fase 2 — Options con effetti locali
+
+**Lavoro, in ordine di dipendenza:**
+
+1. Completare sys_fields, tipi locali, PK e dati pkey_columns.
+2. Riprodurre campi e virtuali locali di full_update, record_hash, audit,
+   protection/diagnostics e dynamic_fields secondo la matrice della fase 0.
+3. Espandere hierarchical e poi il ramo gerarchico di auto_counter.
+4. Conservare le options senza effetti strutturali individuati, senza eseguirle.
+
+**File principali:** model_expansion.py, model_source.py; eventuali helper
+interni devono riflettere le famiglie esistenti, senza registry o priorità
+pubbliche. Le options non ancora gestite continuano a produrre un errore
+esplicito: non rimuovere in blocco il controllo che oggi ne impedisce l'omissione.
+
+**Prove:** confronto di nomi, dtype/size, default strutturali, metadati, virtuali
+e indici; disattivazione, personalizzazione delle colonne generate, conflitti,
+render ripetuti e permutazione delle dichiarazioni indipendenti. Campi con
+UUID22 restano dichiarazioni: nessun nuovo UUID, numero o record generato.
+
+**Criterio di completamento:** ogni famiglia locale prevista ha una prova di
+parità, o una differenza già approvata. sys_fields non è considerato completo
+solo perché produce id e timestamp: includere record_pointer e gli altri
+virtuali impliciti verificati, rispettando R-02/R-03.
+
+### Fase 3 — Espansioni che coinvolgono altre tabelle
+
+**Lavoro:** completare attachments, relative_index, link gerarchici al master
+e contributi come adm → sys.task. Una dichiarazione composta (attachments)
+riusa le espansioni locali già verificate; il collegamento al master avviene
+quando entrambe le strutture esistono. Non assumere un ordine alfabetico dei
+package né eseguire callback di scrittura per riprodurre effetti strutturali.
+
+**Prove:** adm.htmltemplate_atc e il suo master, gli usi reali di relidx e
+gerarchie collegate trovati nella fase 0; master dichiarato prima/dopo,
+contributi incrociati, riferimenti mancanti, completamenti ripetuti e conflitti.
+
+**Criterio di completamento:** tutti i campi e riferimenti strutturali attesi
+sono presenti una volta sola. I completamenti non dipendono dall'ordine delle
+dichiarazioni indipendenti e non producono accessi a storage o database.
+
+### Fase 4 — Relazioni, virtuali dichiarative e finalizzazione
+
+**Lavoro:** completare inferenza dtype/size, PK e composite; collegare FK e
+weak relations; produrre le inverse ordinarie; collegare i percorsi di
+virtualRelation e aliasColumn; finalizzare indici, nomi e vincoli. Conservare
+validations, query e mode di subQueryColumn, espressioni, ask/var_*, metadati
+e riferimenti simbolici ai metodi. Nessuna analisi SQL aggiuntiva necessaria
+per far apparire completi gli oggetti.
+
+**Prove:** relazioni dichiarate prima dei target, sys↔adm, adm→sys.task,
+price_year/price_year_note, invoice→discount_tier e invoice_row→customer;
+FK circolari determinabili, catene di tipi omessi, cicli di alias, collisioni
+di nomi fisici, differenze tra FK e weak, indici con ordine/metodo/predicato
+non equivalenti. Le virtual relations non producono inverse, limit o one_one.
+
+**Criterio di completamento:** nessun riferimento strutturale irrisolto o
+completamento pendente quando viene pubblicato il grafo. L'ispezione del
+modello usa gli oggetti, non la source. Le espressioni ancora da compilare
+sono riconoscibili come dichiarazioni, non presentate come funzioni eseguibili.
+
+### Fase 5 — Tutti i package di test_invoice_pg in source nativa
+
+**Lavoro:** trascrivere le configurazioni originali, le options ereditate e i
+contributi dei package per sys (17), adm (40), invc (18). Le fixture minime
+usate prima si estendono al corpus; non si ricopiano le colonne espanse per
+aggirare una option non implementata. L'XML legacy resta soltanto una fonte
+indipendente di confronto. Nessuna dipendenza del producer dal ponte legacy.
+
+**Prove:** confronto per package/table/column/relation/index e delle
+dichiarazioni non fisiche, con copertura nominativa dei 75 modelli; variazione
+controllata di una option e verifica degli effetti reali sugli oggetti;
+modifica della source originale dopo il render senza variazioni del modello.
+
+**Criterio di completamento:** tutti i modelli nativi rendono con esito positivo,
+nessuna option attiva viene ignorata e nessun elemento atteso scompare senza
+una voce nel registro delle differenze. Una dichiarazione non ancora rivista
+che blocca la copertura viene discussa, non sostituita con API nuove implicite.
+
+### Fase 6 — JSON migrations esclusivamente dagli oggetti
+
+**Lavoro:** usare la proiezione fisica esistente a partire dal modello completo.
+Verificare il percorso pubblico disponibile e adeguarne il collegamento agli
+oggetti senza un secondo passaggio di espansione. Un builder fisico interno
+può essere un dettaglio della proiezione, non un ritorno alla source originale.
+
+**File principali:** projection.py e migration.py; integrazione con il modello
+completato e con tests/test_release_invoice_migration.py.
+
+**Prove obbligatorie:**
+
+1. Produrre il JSON senza leggere source, resolver o ponte legacy; dopo il
+   render, renderli indisponibili nella prova per intercettare accessi residui.
+2. Validare con StructureValidator e confrontare con l'oracolo indipendente;
+   ogni differenza deve avere provenienza e decisione esplicite.
+3. Applicare a PostgreSQL temporaneo, fare introspezione e ottenere una seconda
+   diff vuota. Non usare test_invoice_pg come database su cui applicare DDL.
+4. Provare modifiche controllate a colonne, FK e indici, preservando oggetti
+   SQL esterni non gestiti secondo le verifiche già presenti.
+
+**Criterio di completamento:** source nativa → oggetti → JSON verificato su
+tutti i package, senza dipendenza produttiva dagli snapshot. Report finale
+con conteggi, differenze concordate e prove PostgreSQL. Questo chiude il
+traguardo strutturale, non certifica compiler, scritture o rilascio pubblico.
+
+## Verifiche e gestione delle decisioni durante il lavoro
+
+- Test mirati alla famiglia modificata in ogni incremento; suite completa,
+  Ruff e mypy nell'ambiente riproducibile alle chiusure di fase. Usare gli
+  oracoli esistenti senza riscriverli per far passare un test.
+- Ogni consegna indica comportamento aggiunto, prove eseguite, limiti rimasti
+  e prossima dipendenza. Un errore di traduzione deve riportare il percorso
+  del nodo e la dichiarazione che non può essere completata.
+- Ogni nuova necessità grammaticale o differenza sostanziale dal legacy viene
+  presentata prima di implementarla. Proseguire sulle parti indipendenti;
+  nessuna politica di fallback silenzioso per mantenere verdi i conteggi.
+- Una firma accettata non implica autorizzazione a implementarne i comportamenti
+  applicativi. L'esecuzione dei resolver di configurazione segue Builders;
+  record hooks, macro, validazioni sui dati e query applicative restano fuori.
+- Il piano prevede un commit per fase verificata. Nessun tag, pubblicazione di
+  release o push implicito. La numerazione della release resta nel piano 44.
+
+A parità di source e valori strutturali risolti, render ripetuti devono dare lo
 stesso modello. Non imporre tale uguaglianza se cambiano volontariamente valori
 esterni che determinano la struttura.
 
@@ -236,6 +452,16 @@ model.py, application.py/application_table.py e model_sections.py/contracts.py.
 Solo dopo, projection.py e migration.py. Test dedicati per ogni incremento più
 le verifiche già disponibili in test_release_* e gli oracoli test_invoice_pg.
 
-Questo piano non esegue gli incrementi, non cambia la grammatica e non dichiara
-chiusa P2. Il piano 44 viene riallineato per non imporre registri o versionamenti
-che la revisione ha ritirato.
+## Stato di avanzamento
+
+- [x] Fase 0 — Mappa di copertura e differenze: rapporto 52; D-01/D-02 aperte.
+- [ ] Fase 1 — Percorso di render e oggetti esistenti.
+- [ ] Fase 2 — Espansioni locali.
+- [ ] Fase 3 — Espansioni fra tabelle.
+- [ ] Fase 4 — Relazioni e finalizzazione.
+- [ ] Fase 5 — Source nativa dei 75 modelli.
+- [ ] Fase 6 — JSON dagli oggetti e verifica migrations.
+
+La fase 0 è conclusa come ricognizione; le decisioni aperte non sono risolte
+implicitamente. Le fasi 1–6 non sono eseguite, la grammatica e il render restano
+invariati e P2 non è chiusa. Esaminare D-01/D-02 prima del lavoro dipendente.

@@ -5,8 +5,16 @@
 come registrato in R-02 e R-03 del documento 41.
 Prevale sulle inclusioni precedenti nelle fasi sotto descritte; firma da rivedere.
 
-**Piano del render da rivedere:** [source → oggetti vivi → JSON](51-source-to-live-objects-plan.md).
-Gli incrementi A–E dettagliano P2–P6 rispettando le correzioni della grammatica.
+**Piano operativo aggiornato il 13 ottobre, dopo il commit 61bbbb5:**
+[source → oggetti vivi → JSON](51-source-to-live-objects-plan.md).
+Le fasi 0–6 dettagliano il traguardo strutturale di P2–P6 con dipendenze,
+prove e criteri di completamento. Compilatore e operazioni restano fuori da
+questo lavoro; il presente aggiornamento è di pianificazione.
+
+**Fase 0 del piano operativo verificata:** [copertura 52](52-invoice-render-coverage.md).
+Ricognizione completa dei 75 modelli; aperte le decisioni su system_records e
+sull'indice esplicito di locked_record. Nessuna modifica al render; fasi 1–6
+ancora da eseguire. Non confondere questa fase 0 con la P0 storica del report 45.
 
 **Decisione successiva:** [schemi dedotti dai package](50-schemas-from-packages.md);
 nessuna dichiarazione schemas nella nuova configurazione.
@@ -17,16 +25,17 @@ descritti nel piano generale non sono requisiti da anticipare nelle firme.
 **Correzione della grammatica:** vedere [audit 49](49-grammar-corrections-and-audit.md).
 Resolver esistenti per valori esterni/calcolati; nessun registro di variabili DB.
 Nessun parametro provider o dichiarazione behavior nella grammatica.
-Rendering a oggetti vivi ancora rinviato.
+Render completo degli oggetti da implementare secondo il piano 51.
 
 Data: 12 ottobre 2026. Stato: **P0/P1 completate; JSON integrale verificato sul
 bridge legacy espanso; completamento nativo P2–P5 ancora aperto**.
 Esito e confini: [report 47](47-invoice-migration-json.md).
 
-**Ultima indicazione dell'utente:** completare prima la sola grammatica delle
-options; rendering a oggetti vivi nella fase successiva. La consegna della
-grammatica è nel [report 48](48-options-source-grammar.md). Il traguardo del JSON
-senza source legacy espansa rimane aperto e non è attestato da questo incremento.
+**Stato dopo il checkpoint:** la revisione grammaticale è salvata in 61bbbb5;
+il prossimo lavoro è il render strutturale pianificato nel documento 51.
+Il [report 48](48-options-source-grammar.md) descrive la fase grammaticale
+precedente. Il JSON senza source legacy espansa rimane da completare e
+verificare; il compilatore non è anticipato da questo piano.
 
 Target proposto: **0.6.0**, dalla baseline aggiornata 0.5.2. Il numero è una scelta
 di pianificazione per il cambiamento della grammatica pubblica; versione, tag
