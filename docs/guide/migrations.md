@@ -45,6 +45,37 @@ SQLite database cannot be migrated.
 The [CLI](cli.md) provides `asqueel db plan NAME` and `asqueel db apply NAME`
 on top of the same methods. The lower-level API below remains available.
 
+(native-package-models)=
+## Native package models
+
+In 0.6.0, the native package configuration is rendered into completed objects
+before migration projection. Options that add columns are expanded once;
+relations and aliases are resolved across packages. Project `db.model`:
+
+```python
+from asqueel import AsqueelDb, SqlMigrationRenderer, to_physical_builder
+from examples.test_invoice_pg import source
+
+db = AsqueelDb(source())
+try:
+    migration_data = SqlMigrationRenderer(to_physical_builder(db.model)).render()
+finally:
+    db.close()
+```
+
+This example requires the repository checkout. To write the JSON artifacts,
+run `PYTHONPATH=.:src python scripts/export_invoice_migration.py` from its root,
+with the migration extra installed. The script writes
+`artifacts/test_invoice_pg/native/migration.json` and the serialized live model
+`artifacts/test_invoice_pg/native/model.json`; it does not connect to a database.
+
+The native corpus covers 74 tables in sys, adm and invc. Its JSON is checked
+against an independent legacy oracle, excluding the agreed `sys.locked_record`.
+A dedicated PostgreSQL test applies this structure, introspects it and verifies
+an empty second diff, including after controlled changes to columns, constraints
+and indexes. Application data migration and package formula execution are outside
+this verification.
+
 ## Resolve names before producing migration data
 
 For a model returned by `resolve_model()` or `inspect_postgres()`, use

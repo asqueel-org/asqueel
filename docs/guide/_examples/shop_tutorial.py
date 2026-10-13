@@ -25,7 +25,7 @@ class Shop(SqlDatabaseConfig):
         columns = customer.columns()
         columns.column("id", dtype="L")
         columns.column("name", dtype="T", notnull=True,
-                       x_ui={"label": "Customer name"})
+                       x_ui_label='Customer name')
 
     def invoice(self, tables):
         invoice = tables.table("invoice", pkey="id")

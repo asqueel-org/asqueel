@@ -32,6 +32,8 @@ from .contracts import (
 )
 from .environment import SqlEnvironment
 from .importers import ImportResult, inspect_postgres
+from .model_sections import Schema, Package, Option, Declaration
+from .model_codec import model_to_json, model_from_json
 from .model import resolve_model
 from .projection import to_physical_builder
 from .runtime import (
@@ -42,9 +44,10 @@ from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.5.2"
+__version__ = "0.6.0"
 
 __all__ = [
+    "Schema", "Package", "Option", "Declaration", "model_to_json", "model_from_json",
     "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
     "SqlTable", "SqlColumn", "SqlRelation", "SqlQuery", "SqlRecord",
     "RecordNotFoundError", "RecordMultipleRowsError",

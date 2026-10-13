@@ -85,11 +85,12 @@ _ORACLE = {
 }
 
 
-def test_explicit_collections_are_the_only_authoring_grammar():
+def test_explicit_collections_remain_compatible_with_direct_table_declarations():
     # wf:contract: the canonical chain is db.schemas().schema(...).tables()
     # wf:contract: .table(...).columns().column(...), with equivalent explicit
     # wf:contract: containers for extensions, virtual columns, composites,
-    # wf:contract: constraints and indexes; skipping a container is loud.
+    # Historical exclusivity superseded by the approved 0.6 grammar (design 42):
+    # direct table constructors route to these same internal collections.
     # wf:contract: singular column.relation(...) and compositeColumn.relation(...)
     # wf:contract: remain children of their source owner, never table.relations().
     model = _ExplicitRecipe()
@@ -115,8 +116,8 @@ def test_explicit_collections_are_the_only_authoring_grammar():
         schema.table("t")
     tables = schema.tables()
     table = tables.table("t")
-    with pytest.raises(ValueError, match="parent_tags"):
-        table.column("id")
+    column = table.column("id")
+    assert column is bare.source["db.schemas.s.tables.t.columns.id"]
     with pytest.raises(AttributeError):
         table.relations()
 

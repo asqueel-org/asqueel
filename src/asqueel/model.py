@@ -6,6 +6,8 @@ from copy import deepcopy
 import re
 from typing import Any, Mapping
 
+from genro_toolbox import extract_kwargs
+
 from .catalog import SqlModelCatalog
 from .contracts import (
     Column, PartitionScope, Relation, ResolvedModel, RowPolicies, Table, UnsupportedFeatureError,
@@ -13,13 +15,18 @@ from .contracts import (
 
 
 def _names(value) -> tuple[str, ...]:
-    return tuple(part.strip() for part in (value or '').split(',') if part.strip())
+    return tuple(part.strip() for part in (value.split(',') if isinstance(value, str) else value or ()) if part.strip())
+
+
+@extract_kwargs(x_ui=True)
+def _ui_attributes(*, x_ui_kwargs=None, **attributes) -> dict[str, Any]:
+    return dict(x_ui_kwargs or {})
 
 
 def column_ui(attributes: Mapping[str, Any], path: str, identity: str,
               ui: Mapping[str, Mapping[str, Any]] | None) -> dict[str, Any]:
     """Apply inline metadata, then path overlay, then stable identity overlay."""
-    result = dict(attributes.get('x_ui') or {})
+    result = _ui_attributes(**dict(attributes))
     overlays = ui or {}
     result.update(overlays.get(path, {}))
     if identity != path:
@@ -36,8 +43,14 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
     x_sql_schema/x_sql_prefix inherit from schema to table, x_sql_name is an
     explicit physical table/column override. No physical prefix is inferred.
     """
+    from .model_source import prepare_source, sections, options, declaration, attributes, column_declarations
+    builder = prepare_source(builder)
     builder.validate_model()
     catalog = SqlModelCatalog(builder)
+    schemas, packages = sections(catalog)
+    database = catalog.database
+    if database is None:
+        raise ValueError('Model requires a database root')
     policy_keys = {'x_partition', 'x_partitions', 'x_draft_field', 'x_logical_deletion_field'}
     for path, node in catalog.nodes:
         misplaced = policy_keys.intersection(node.attr) if node.node_tag != 'table' else set()
@@ -49,8 +62,9 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
     identities: set[str] = set()
     physical: set[tuple[str, str]] = set()
     for (schema, name), entry in catalog.tables.items():
-        attrs = dict(entry['node'].attr)
-        inherited = dict(catalog.schemas[schema].attr)
+        attrs = attributes(entry['node'])
+        package = packages.get(schema)
+        inherited = dict((catalog.packages[schema] if package else catalog.schemas[schema]).attr)
         for key in {**inherited, **attrs}:
             if key not in policy_keys and key.startswith(('x_partition', 'x_subtable', 'x_tenant', 'x_store', 'x_virtualRelation', 'x_virtual_relation')):
                 raise UnsupportedFeatureError(f'{schema}.{name}: unsupported scope {key}')
@@ -58,7 +72,7 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
         for colname, node in entry['family'].items():
             if node.node_tag == 'compositeColumn':
                 continue
-            metadata = dict(node.attr)
+            metadata = attributes(node)
             for key in metadata:
                 if key in ('select', 'exists') or key.startswith('select_'):
                     metadata[key] = deepcopy(metadata[key])
@@ -67,9 +81,16 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             subqueries = {}
             relation_path = None
             if node.node_tag == 'aliasColumn':
+                # An omitted alias attribute inherits the target; a signature
+                # default must not override an explicit static target value.
+                for key in (node.attr.get('_meta') or {}).get('signature_defaults', ()):
+                    metadata.pop(key, None)
                 relation_path = metadata.get('relation_path')
                 if not isinstance(relation_path, str) or not relation_path.strip():
                     raise ValueError(f'{schema}.{name}.{colname}: alias requires a relation_path')
+            elif package and node.node_tag != 'column':
+                # Formulas and method references remain declarations, never executed here.
+                metadata['x_requires_compilation'] = node.node_tag
             elif node.node_tag != 'column':
                 if node.node_tag != 'formulaColumn':
                     raise UnsupportedFeatureError(f'{schema}.{name}.{colname}: {node.node_tag}')
@@ -82,14 +103,15 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             identities.add(identity)
             metadata['provenance'] = {'kind': 'builder', 'path': catalog.path(node)}
             columns[colname] = Column(
-                colname, metadata.get('dtype') or ('A' if metadata.get('size') else 'T'), metadata.get('x_sql_name'),
+                colname, metadata.get('dtype') or ('A' if metadata.get('size') else 'T'), metadata.get('sqlname') or metadata.get('x_sql_name'),
                 formula, column_ui(metadata, path, identity, ui), identity, metadata, relation_path,
-                select=select, exists=exists, subqueries=subqueries,
+                select=select, exists=exists, subqueries=subqueries, kind=node.node_tag,
+                declarations=column_declarations(node, **attributes(node)),
             )
         attrs['provenance'] = {'kind': 'builder', 'path': entry['path']}
         attrs['indexes'] = tuple(dict(node.attr) for _, node in entry['indexes'])
         attrs['constraints'] = tuple(dict(node.attr) for _, node in entry['constraints']) + tuple(
-            {'constraint_type': 'UNIQUE', 'columns': node.get_attr('columns')}
+            {'constraint_type': 'UNIQUE', 'columns': node.get_attr('columns'), 'x_auto_name': True}
             for node in entry['composites'].values() if node.get_attr('unique')
         )
         # Keep the resolved relation name, including the composite owner name,
@@ -99,17 +121,23 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             dict(node.attr, x_name=node.get_attr('x_name') or owner)
             for _, owner, node in entry['relations']
         )
-        prefix = attrs.get('x_sql_prefix', inherited.get('x_sql_prefix', ''))
+        prefix = package.sqlprefix if package else attrs.get('x_sql_prefix', inherited.get('x_sql_prefix', ''))
         if prefix is True:
             prefix = schema + '_'
         elif prefix is False or prefix is None:
             prefix = ''
+        elif package and isinstance(prefix, str):
+            prefix += '_'
         if not isinstance(prefix, str):
             raise ValueError('x_sql_prefix must be a string or boolean')
         table = Table(name, schema, columns, {}, _names(attrs.get('pkey')),
-                      attrs.get('x_sql_name'),
-                      attrs.get('x_sql_schema', inherited.get('x_sql_schema')),
-                      prefix, attrs.get('x_identity', f'{schema}.{name}'), attrs, _parse_row_policies(attrs))
+                      attrs.get('sqlname') or attrs.get('x_sql_name'),
+                      (schemas[attrs.get('sqlschema') or package.sqlschema].physical_name if package else
+                       attrs.get('x_sql_schema', inherited.get('x_sql_schema', schemas[schema].physical_name))),
+                      prefix, attrs.get('x_identity', f'{schema}.{name}'), attrs, _parse_row_policies(attrs),
+                      options=options(entry['node']), package_name=schema if package else None,
+                      declarations=tuple(declaration(child) for child in catalog.children(entry['node'])
+                                         if child.node_tag in ('colgroup', 'subtable', 'virtualRelation', 'composites')))
         physical_key = (table.physical_schema, table.physical_name)
         if physical_key in physical:
             raise ValueError(f'Duplicate physical table: {physical_key}')
@@ -122,7 +150,7 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
         table = tables[f'{schema}.{name}']
         relations = {}
         for _, owner, node in entry['relations']:
-            attrs = dict(node.attr)
+            attrs = attributes(node)
             if attrs.get('case_insensitive'):
                 raise UnsupportedFeatureError('case_insensitive relations are outside V1')
             target_parts = attrs['to'].split('.')
@@ -135,15 +163,82 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             owner_node = entry['family'][owner]
             local_cols = (_names(owner_node.get_attr('columns'))
                           if owner_node.node_tag == 'compositeColumn' else (owner,))
-            if not _unique_target(target, target_cols):
+            if not attrs.get('x_weak') and not _unique_target(target, target_cols):
                 raise UnsupportedFeatureError(f'{table.key}.{owner}: target must have a unique key')
             relation_name = attrs.get('x_name') or owner
             if relation_name in relations:
                 raise ValueError(f'Duplicate relation: {relation_name}')
-            relations[relation_name] = Relation(relation_name, target_key, local_cols, target_cols)
+            relations[relation_name] = Relation(relation_name, target_key, local_cols, target_cols,
+                kind='weak' if attrs.get('x_weak') else 'relation', attributes=attrs)
         tables[table.key] = replace(table, relations=relations)
-    tables = _resolve_aliases(tables, ui=ui)
-    return validate_row_policies(ResolvedModel(tables, catalog.db_name or 'database'))
+    tables = _resolve_inverse_relations(tables)
+    tables = _resolve_virtual_relations(tables)
+    if database.get_attr('x_legacy_expanded'):
+        # Legacy expressions need the P7 compiler; retaining them is essential
+        # for a complete model even when only its physical projection is used.
+        tables = {key: replace(table, columns={name: replace(column, attributes={
+            **column.attributes, 'x_requires_compilation': 'legacy_expression'})
+            if column.is_virtual else column for name, column in table.columns.items()})
+            for key, table in tables.items()}
+    else:
+        tables = _resolve_aliases(tables, ui=ui)
+    root_attributes = {key: value for key, value in attributes(catalog.database).items()
+                       if key not in ('conninfo', 'connect_kwargs')}
+    return validate_row_policies(ResolvedModel(tables, catalog.db_name or 'database',
+                                 schemas=schemas, packages=packages, options=options(catalog.database),
+                                 attributes=root_attributes, extensions=tuple(catalog.extensions)))
+
+
+def _resolve_virtual_relations(tables):
+    relations = {key: dict(table.relations) for key, table in tables.items()}
+    pending = [(table, d) for table in tables.values() for d in table.declarations if d.kind == 'virtualRelation']
+    while pending:
+        progress = False
+        for table, declaration in list(pending):
+            attrs = declaration.attributes
+            path, target_key = attrs.get('relation'), attrs.get('table')
+            if bool(path) == bool(target_key):
+                raise ValueError(f'{table.key}.{declaration.name}: specify either relation or table')
+            if target_key and not attrs.get('condition'):
+                raise ValueError(f'{table.key}.{declaration.name}: conditional relation requires condition')
+            if path:
+                target_key = table.key
+                for part in path.split('.'):
+                    relation = relations[target_key].get(part.lstrip('@'))
+                    if relation is None:
+                        target_key = None
+                        break
+                    target_key = relation.target
+                if target_key is None:
+                    continue
+            if target_key not in tables:
+                raise ValueError(f'{table.key}.{declaration.name}: unknown target {target_key!r}')
+            if declaration.name in relations[table.key]:
+                raise ValueError(f'{table.key}: duplicate relation {declaration.name!r}')
+            relations[table.key][declaration.name] = Relation(declaration.name, target_key, (), (),
+                kind='virtual', attributes=attrs)
+            pending.remove((table, declaration))
+            progress = True
+        if not progress:
+            names = ', '.join(f'{t.key}.{d.name}' for t, d in pending)
+            raise ValueError(f'Unknown or cyclic virtual relations: {names}')
+    return {key: replace(table, relations=relations[key]) for key, table in tables.items()}
+
+
+def _resolve_inverse_relations(tables):
+    inverses = {key: dict(table.relations) for key, table in tables.items()}
+    for table in tables.values():
+        for relation in table.relations.values():
+            if relation.kind == 'virtual':
+                continue
+            name = relation.attributes.get('inverse') or relation.attributes.get('back_reference')
+            if not name:
+                continue
+            if name in inverses[relation.target]:
+                raise ValueError(f'{relation.target}: duplicate inverse relation {name!r}')
+            inverses[relation.target][name] = Relation(name, table.key, relation.target_columns,
+                relation.columns, kind='inverse', attributes={**relation.attributes, 'forward': relation.name})
+    return {key: replace(table, relations=inverses[key]) for key, table in tables.items()}
 
 
 def _subquery_definition(value, label):
@@ -159,7 +254,9 @@ def _subquery_definition(value, label):
 
 
 def _formula_definition(metadata, label):
-    formula = metadata.get('sql_formula')
+    if metadata.get('sql_formula') is not None and metadata.get('expression') is not None:
+        raise ValueError(f'{label}: sql_formula and expression are aliases; specify only one')
+    formula = metadata.get('sql_formula', metadata.get('expression'))
     select, exists = metadata.get('select'), metadata.get('exists')
     if formula is True:
         raise UnsupportedFeatureError(f'{label}: SQL formula method callbacks are unsupported')

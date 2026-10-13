@@ -8,7 +8,7 @@ from typing import Any
 
 
 _VIRTUAL_COLUMN_TAGS = frozenset({
-    "aliasColumn", "formulaColumn", "subQueryColumn", "pyColumn",
+    "aliasColumn", "formulaColumn", "subQueryColumn", "pyColumn", "bagItemColumn",
 })
 _COLLECTION_TAGS = frozenset({
     "schemas", "extensions", "tables", "columns", "virtual_columns",
@@ -25,6 +25,7 @@ class SqlModelCatalog:
         self.db_name = None
         self.nodes: list[tuple[str, Any]] = []
         self.schemas: dict[str, Any] = {}
+        self.packages: dict[str, Any] = {}
         self.extensions: dict[str, Any] = {}
         self.tables: dict[tuple[str, str], dict[str, Any]] = {}
         self.physical_columns: dict[tuple[str, str, str], Any] = {}
@@ -73,11 +74,14 @@ class SqlModelCatalog:
             if tag == "schema":
                 self.schemas[node.get_attr("name")] = node
                 continue
+            if tag == 'package':
+                self.packages[node.get_attr('name')] = node
+                continue
             if tag == "extension":
                 self.extensions[node.get_attr("name")] = node
                 continue
 
-            schema = self._ancestor(node, "schema")
+            schema = self._ancestor(node, 'package') or self._ancestor(node, "schema")
             if schema is None:
                 continue
             schema_name = schema.get_attr("name")
@@ -120,6 +124,9 @@ class SqlModelCatalog:
                     ].append(node)
                 continue
             name = node.get_attr("name")
+            if tag not in ('constraint', 'index', 'compositeColumn') and not (
+                    tag in _VIRTUAL_COLUMN_TAGS or node._get_meta('projects_column')):
+                continue
             if tag == "constraint":
                 table["constraints"].append((path, node))
                 self.constraints[(schema_name, table_name, name)] = node

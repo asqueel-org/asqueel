@@ -79,7 +79,7 @@ def db():
     return Application(ResolvedModel({customer.key: customer, invoice.key: invoice}))
 
 
-def test_stable_live_handles_and_shared_configuration(db):
+def test_stable_live_handles_and_model_configuration(db):
     table = db.table('customer')
     assert table is db.table('app.customer')
     assert table.column('name') is table.columns['name']
@@ -88,11 +88,12 @@ def test_stable_live_handles_and_shared_configuration(db):
     relation = db.table('invoice').relation('customer')
     assert relation is db.table('invoice').relations['customer']
     assert relation.target is table
-    assert table.config.handler is table.column('name').config.handler is db.config
+    assert table.config.handler is not db.config
+    assert table.column('name').config('dtype') == 'T'
     db.config.values['schemas.app.tables.customer.columns.name.name_long'] = 'Customer name'
     db.config.values['schemas.app.tables.customer.virtual_columns.label.name_long'] = 'Label'
-    assert table.column('name').config('name_long') == 'Customer name'
-    assert table.column('label').config('name_long') == 'Label'
+    assert table.column('name').config('name_long', default=None) is None
+    assert table.column('label').config('name_long', default=None) is None
     with pytest.raises(ValueError, match='Unknown column'):
         table.column('missing')
 

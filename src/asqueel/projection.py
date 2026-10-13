@@ -1,11 +1,31 @@
 """Explicit bridge from resolved names to the existing migration grammar."""
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from .builder import SqlBuilder
 from .contracts import ResolvedModel, UnsupportedFeatureError
 
 
 _ACTIONS = {'a': None, 'r': 'RESTRICT', 'c': 'CASCADE', 'n': 'SET NULL', 'd': 'SET DEFAULT'}
+
+
+def _package_storage(dtype, attributes):
+    """Legacy logical types -> storage; never change the resolved column."""
+    dtype = {'X': 'T', 'Z': 'T', 'P': 'T'}.get(dtype, dtype)
+    size = attributes.get('size')
+    if size:
+        if ':' in size:
+            attributes['size'] = '0:' + size.split(':')[1]
+            dtype = 'A'
+        elif ',' not in size:
+            if dtype in ('A', 'T'):
+                dtype = 'C'
+            elif dtype == 'N':
+                attributes['size'] = size + ',0'
+    elif dtype in ('A', 'C'):
+        dtype = 'T'
+    return dtype
 
 
 def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) -> SqlBuilder:
@@ -20,8 +40,13 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
 
     class PhysicalBuilder(SqlBuilder):
         def main(self, root):
-            schemas = root.db(model.name).schemas()
+            db = root.db(model.name)
+            for extension in model.extensions:
+                db.extensions().extension(extension)
+            schemas = db.schemas()
             schema_nodes = {}
+            for schema in model.schemas.values():
+                schema_nodes[schema.physical_name] = schemas.schema(schema.physical_name).tables()
             table_nodes = {}
             column_nodes = {}
             composite_nodes = {}
@@ -56,10 +81,12 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                         'size', 'notnull', 'unique', 'indexed', 'sqldefault',
                         'extra_sql', 'generated_expression', 'comment',
                     ) if metadata.get(k) is not None}
-                    if metadata.get('default') is not None:
+                    if metadata.get('default') is not None and metadata.get('raw_type'):
                         kwargs['sqldefault'] = metadata['default']
+                    dtype = (_package_storage(column.dtype, kwargs)
+                             if table.package_name else column.dtype)
                     column_nodes[(table.key, column.name)] = cols.column(
-                        column.physical_name, dtype=column.dtype, **kwargs)
+                        column.physical_name, dtype=dtype, **kwargs)
                 constraints_node = None
                 constraints = table.attributes.get('constraints', ())
                 for index, constraint in enumerate(constraints):
@@ -92,7 +119,8 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                             raise UnsupportedFeatureError(f'{table.key}: CHECK with remapped columns')
                     if constraints_node is None:
                         constraints_node = node.constraints()
-                    constraints_node.constraint(constraint.get('name') or f'unique_{index}', **data)
+                    constraints_node.constraint(constraint.get('name') or f'unique_{index}',
+                                                x_auto_name=constraint.get('x_auto_name', False), **data)
                 indexes = table.attributes.get('indexes', ())
                 idx_node = None
                 for item in indexes:
@@ -125,10 +153,10 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                             'columns', 'unique', 'method', 'where', 'tablespace', 'with_options'}}
                         names = data.get('columns', '')
                         data['columns'] = ({table.columns[n].physical_name: order for n, order in names.items()}
-                                           if isinstance(names, dict) else mapped(names.split(',')))
+                                           if isinstance(names, Mapping) else mapped(names.split(',')))
                         if data.get('where') and any(c.physical_name != c.name for c in table.columns.values()):
                             raise UnsupportedFeatureError(f'{table.key}: partial index with remapped columns')
-                    idx_node.index(item['name'], **data)
+                    idx_node.index(item['name'], x_auto_name=item.get('x_auto_name', False), **data)
             def composite(table, names):
                 key = (table.key, names)
                 if key not in composite_keys:
@@ -144,6 +172,8 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
 
             for table in model.tables.values():
                 for relation in table.relations.values():
+                    if relation.kind in ('inverse', 'virtual'):
+                        continue
                     target = model.table(relation.target)
                     declarations = table.attributes.get('relations', ())
                     imported = [c for c in table.attributes.get('constraints', ())
@@ -162,7 +192,7 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                                       else composite(target, relation.target_columns)[0])
                         target_ref += '.' + target_col
                     kwargs = {k: declaration[k] for k in (
-                        'on_delete', 'on_update', 'deferrable', 'initially_deferred', 'deferred', 'indexed'
+                        'on_delete', 'on_update', 'deferrable', 'initially_deferred', 'deferred', 'indexed', 'constraint_name'
                     ) if k in declaration}
                     if imported:
                         if declaration.get('delete_set_columns'):

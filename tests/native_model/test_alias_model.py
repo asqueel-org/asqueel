@@ -13,16 +13,16 @@ def recipe():
     nc.column('id', dtype='I')
     nc.column('name', dtype='A', size=':40', name_long='Nation', notnull=True,
               x_identity='nation-name', x_sql_name='nation_name',
-              x_ui={'label': 'Nation', 'width': 40})
+              x_ui_label='Nation', x_ui_width=40)
     nation.virtual_columns().formulaColumn('label', sql_formula='upper($name)', dtype='A',
-                                            x_ui={'format': 'uppercase'})
+                                            x_ui_format='uppercase')
     customer = tables.table('customer', pkey='id')
     cc = customer.columns()
     cc.column('id', dtype='I')
     cc.column('nation_id', dtype='I').relation('sales.nation.id')
     aliases = customer.virtual_columns()
     aliases.aliasColumn('nation', relation_path='@nation_id.name', name_long=None, dtype=None,
-                        x_identity='customer-nation', x_ui={'label': 'Customer nation'})
+                        x_identity='customer-nation', x_ui_label='Customer nation')
     aliases.aliasColumn('label', relation_path='@nation_id.label')
     aliases.aliasColumn('local', relation_path='$nation')
     invoice = tables.table('invoice', pkey='id')

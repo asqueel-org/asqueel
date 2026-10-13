@@ -58,9 +58,17 @@ class SqlDatabase(WriteMixin, Database):
         self._check_open()
         return self._tables[self.model.table(name).key]
 
+    def package(self, name: str):
+        self._check_open()
+        return self.model.packages[name]
+
+    def schema(self, name: str):
+        self._check_open()
+        return self.model.schemas[name]
+
     def _connection_settings(self):
         from .configuration import connection_settings
-        implementation, conninfo, kwargs = connection_settings(self.config)
+        implementation, conninfo, kwargs = connection_settings(self.config, self.currentConnectionName)
         if implementation != self.dialect.name:
             raise ValueError('Configured implementation changed after database construction')
         kwargs = dict(kwargs or {})

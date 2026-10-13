@@ -1,5 +1,42 @@
 # Release notes
 
+## 0.6.0
+
+This release completes the structural path from native package configuration to
+live model objects and migration JSON. Package schemas follow the legacy rules;
+table and column declarations retain labels, captions and flat namespaced
+attributes. Existing Builders resolvers supply external or calculated values.
+
+- Expand structural options, including system fields, hierarchies, counters,
+  dynamic fields, audit and attachments, before resolving cross-table relations
+  and aliases. Other options remain declarations on the completed model.
+- Produce migration data from the completed objects without reading an expanded
+  legacy source or repeating option expansion. Normalize logical types at the
+  physical projection boundary.
+- Include the native `test_invoice_pg` example: 74 tables across sys, adm and
+  invc, 789 physical columns, 526 virtual columns, 58 foreign keys and 282 indexes.
+  Its migration JSON equals the legacy oracle after excluding `sys.locked_record`.
+- Keep `validate_*` as column validations; `validate_values` deliberately replaces
+  legacy `values`. Attribute namespaces are flat: use `x_ui_label=...`, not an
+  `x_ui` dictionary. `sys_fields(syscode=True)` adds an indexed UNIQUE column
+  without reintroducing system records.
+
+System records, locked records, release options and optional diagnostics remain
+deferred. Virtual relations retain paths/conditions, `var_*` and `ask`; inverse,
+ordering, limits and virtual cardinality are deferred. Rendering these package
+declarations does not implement their formula compilation, hooks, validation or
+record-write behavior. The existing low-level compiler/runtime keeps its own
+supported profile; see [current status](limitations.md).
+
+Validation: 1278 tests passed, 1 skipped, including PostgreSQL application,
+introspection and an empty second diff, repeated after controlled schema changes.
+Ruff, mypy, the strict Sphinx build and wheel/source-distribution checks passed.
+The installed wheel with published dependencies (`asqueel-migration` 0.2.1)
+passed 1276 tests with 3 skipped and 95% coverage, including native corpus
+migrations. Two additional skips concern `serial4`, which requires migration
+engine support unavailable in that published version.
+See [native package migrations](migrations.md#native-package-models) for reproduction.
+
 ## 0.5.2
 
 - Accept `asqueel-migration>=0.1.2,<0.3`, including the 0.2 series used by

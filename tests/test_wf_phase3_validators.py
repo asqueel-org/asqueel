@@ -133,14 +133,14 @@ def test_check_requires_clause_unique_requires_columns():
     assert "ck" in msg and "uq" in msg
 
 
-def test_extra_attributes_must_be_x_prefixed():
+def test_extra_attributes_must_be_namespaced():
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         t = tables.table(name="t", pkey="id")
         t.columns().column(name="id", dtype="serial", dtypo="A")
 
     msg = _errors(main)
-    assert "dtypo" in msg and "x_" in msg
+    assert "dtypo" in msg and "namespace" in msg
 
 
 def test_all_errors_reported_together():

@@ -104,6 +104,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
     marker = _marker(tag)
     signature = inspect.signature(marker._func)
     descriptions = _arg_docs(inspect.getdoc(marker._func) or "")
+    from .option_elements import TABLE_OPTIONS
     rows: list[tuple[str, str, str, str, str]] = []
     open_signature = False
     for name, param in signature.parameters.items():
@@ -123,7 +124,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
         )
         description = descriptions.get(name, "")
         rows.append((name, type_name, default,
-                     _plane(description), _prose(description)))
+                     'semantic' if tag in TABLE_OPTIONS else _plane(description), _prose(description)))
     return rows, open_signature
 
 
@@ -189,7 +190,8 @@ def generate_grammar_md() -> str:
         "",
         "Domain element signatures are **semi-closed**: they declare their "
         "physical and enumerated semantic parameters. Where `**extra` is "
-        "accepted, each extra key must start with `x_`.",
+        "accepted, extra keys use flat namespace prefixes, except the opaque "
+        "declarations in `validation(**rules)` and `var_*` bindings of `virtualRelation`.",
         "",
         "## Hierarchy",
         "",
@@ -236,7 +238,11 @@ def generate_grammar_md() -> str:
                                       if projections else "none declared")
         )
         out.append(
-            "- Extra keys: accepted (`x_` prefix required)"
+            "- Extra keys: preserved as validation data without rule-specific checks"
+            if tag == 'validation' else
+            "- Extra keys: source expression bindings (`var_*`) and `x_*` metadata"
+            if tag == 'virtualRelation' else
+            "- Extra keys: accepted (flat namespace prefixes)"
             if open_signature
             else "- Extra keys: not accepted"
         )

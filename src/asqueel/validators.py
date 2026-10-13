@@ -103,21 +103,30 @@ class SqlModelValidator:
     # -- checks ----------------------------------------------------------
 
     def _check_attributes(self, builder) -> None:
-        """D2: any attribute outside the signature must start with ``x_``."""
+        """Extra attributes use flat namespace prefixes."""
         for path, node in self._catalog.nodes:
             owner = (node.parent_bag._builder if node._get_meta("subbuilder")
                      else node._resolve_builder())
             info = owner._get_schema_info(node.node_tag)
             declared = info.get("declared_names") or set()
             for key in node.attr:
-                if (key == _META_KEY or key in declared or key.startswith("x_")
+                if key == 'sql_type' or (key.startswith('select_') and node.node_tag != 'formulaColumn'):
+                    self._error(path, f'unsupported attribute {key!r} on <{node.node_tag}>')
+                    continue
+                if (key == _META_KEY or key in declared
+                        or key in (node.attr.get(_META_KEY) or {}).get('type_defaults', ())
+                        or (info.get('accepts_var_keyword') and '_' in key and not key.startswith('_'))
+                        or node.node_tag == 'validation'
+                        or (node.node_tag == 'virtualRelation'
+                            and re.fullmatch(r'var_[A-Za-z_][A-Za-z0-9_]*', key))
+                        or (node.node_tag == 'colgroup' and key.startswith('col_'))
                         or (node.node_tag == "formulaColumn"
                             and re.fullmatch(r"select_[A-Za-z_][A-Za-z0-9_]*", key))):
                     continue
                 self._error(
                     path,
                     f"unknown attribute '{key}' on <{node.node_tag}>: extras "
-                    f"must start with 'x_'; declared attributes are "
+                    f"must use a namespace prefix; declared attributes are "
                     f"{', '.join(sorted(declared))}",
                 )
 
@@ -289,7 +298,7 @@ class SqlModelValidator:
         return table_key, columns
 
     def _check_relation(self, path: str, node) -> None:
-        if not node.get_attr("foreign_key"):
+        if not node.get_attr("foreign_key") and not node.get_attr("x_weak"):
             physical = [
                 name for name in (
                     "on_delete", "on_update", "deferred", "deferrable",
@@ -321,7 +330,9 @@ class SqlModelValidator:
                     "foreign_key is allowed only on a relation under a "
                     "column or a compositeColumn",
                 )
-            return
+                return
+            if owner is None or owner.node_tag != 'formulaColumn' or not node.get_attr('x_weak'):
+                return
         if owner.node_tag == "compositeColumn":
             local = self._names(owner.get_attr("columns"))
         else:

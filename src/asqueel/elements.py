@@ -69,14 +69,16 @@ FK_ACTION = Literal["CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT"]
 #: attribute, not a constraint entity.
 CONSTRAINT_TYPE = Literal["UNIQUE", "CHECK"]
 
-_VIRTUAL_TAGS = "aliasColumn, formulaColumn, subQueryColumn, pyColumn"
+_VIRTUAL_TAGS = "aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn"
 
 
 class DbElements:
     """Database-level grammar: the root and its collections."""
 
-    @element(sub_tags="schemas[:1], extensions[:1]", node_label="db")
-    def db(self, name: str):
+    @element(sub_tags="schemas[:1], packages[:1], extensions[:1], options[:1]", node_label="db")
+    def db(self, name: str, implementation: str = 'postgresql',
+           name_long: str | None = None, name_short: str | None = None,
+           comment: str | None = None, **extra):
         """Database root, one per model.
 
         Args:
@@ -91,7 +93,11 @@ class DbElements:
         node_label="schemas",
     )
     def schemas(self):
-        """The explicit collection of database schemas."""
+        """Physical/legacy source collection, not a package configuration section.
+
+        Package configurations infer schemas from package.sqlschema.
+        This collection remains for physical migration input and older sources.
+        """
         ...
 
     @element(
@@ -105,7 +111,9 @@ class DbElements:
         ...
 
     @element(parent_tags="extensions", sub_tags="")
-    def extension(self, name: str, **extra):
+    def extension(self, name: str, name_long: str | None = None,
+                  name_short: str | None = None, comment: str | None = None,
+                  **extra):
         """A PostgreSQL extension.
 
         Rendered ``CREATE EXTENSION IF NOT EXISTS`` and never dropped.
@@ -119,9 +127,11 @@ class DbElements:
 class SchemaElements:
     """Schema-level grammar."""
 
-    @element(parent_tags="schemas", sub_tags="tables[:1]")
-    def schema(self, name: str, comment: str | None = None, **extra):
-        """A database schema (a 'package' in GenroPy vocabulary).
+    @element(parent_tags="schemas", sub_tags="tables[:1], options[:1]")
+    def schema(self, name: str, comment: str | None = None,
+               sqlname: str | None = None, name_long: str | None = None,
+               name_short: str | None = None, **extra):
+        """A physical database schema, separate from logical packages.
 
         Args:
             name: the schema name — physical, and this node's key.
@@ -131,7 +141,7 @@ class SchemaElements:
         ...
 
     @element(
-        parent_tags="schema",
+        parent_tags="schema, package",
         sub_tags="table",
         collection_key="name",
         node_label="tables",
@@ -148,14 +158,20 @@ class TableElements:
         parent_tags="tables",
         sub_tags=(
             "columns[:1], virtual_columns[:1], composites[:1], "
-            "constraints[:1], indexes[:1]"
+            "constraints[:1], indexes[:1], options[:1], colgroup, subtable, virtualRelation"
         ),
     )
     def table(self, name: str, pkey: str | None = None,
               comment: str | None = None,
               caption_field: str | None = None,
               name_long: str | None = None,
-              name_plural: str | None = None, **extra):
+              name_plural: str | None = None,
+              name_short: str | None = None, rowcaption: str | None = None,
+              newrecord_caption: str | None = None, order_by: str | None = None,
+              lookup: bool = False, tabletype: str | None = None,
+              sqlname: str | None = None, sqlschema: str | None = None,
+              pkey_columns: str | None = None,
+              pkey_columns_joiner: str | None = None, **extra):
         """A table.
 
         Args:
@@ -165,7 +181,12 @@ class TableElements:
             comment: physical; free description.
             caption_field: semantic; the column that captions a row.
             name_long: semantic; human label.
+            name_short: semantic; short human label.
             name_plural: semantic; human label, plural form.
+            pkey_columns: semantic; legacy comma-separated source fields for a
+                single textual primary key; not SQL primary-key members.
+            pkey_columns_joiner: semantic; legacy separator for that textual key.
+                Absent or empty, the legacy uses underscore. Declaration only.
         """
         ...
 
@@ -219,9 +240,9 @@ class TableElements:
         """The explicit collection of table indexes."""
         ...
 
-    @element(parent_tags="columns", sub_tags="relation",
+    @element(parent_tags="columns", sub_tags="relation, validation[:1], encryption[:1], dynamic_fields[:1]",
              _meta={"projects_column": True, "projects_relation": True})
-    def column(self, name: str, dtype: DTYPE | None = None,
+    def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
                notnull: bool = False, unique: bool = False,
                indexed: bool = False, sqldefault: str | None = None,
@@ -230,7 +251,10 @@ class TableElements:
                comment: str | None = None,
                name_long: str | None = None,
                name_short: str | None = None,
-               group: str | None = None, **extra):
+               group: str | None = None, sqlname: str | None = None,
+               default: object = None,
+               default_from: str | None = None, sql_value: str | None = None,
+               read_only: bool = False, unmodifiable: bool = False, **extra):
         """A physical column — the only element that projects as a column.
 
         Args:
@@ -257,9 +281,10 @@ class TableElements:
 
     @element(parent_tags="virtual_columns", sub_tags="")
     def aliasColumn(self, name: str, relation_path: str,
-                    dtype: DTYPE | None = None,
+                    dtype: str | None = None,
                     name_long: str | None = None,
-                    group: str | None = None, **extra):
+                    group: str | None = None, name_short: str | None = None,
+                    comment: str | None = None, static: bool = False, **extra):
         """A virtual column projecting a related column. Never physical.
 
         An alias reads through a relation that already exists, so it never
@@ -270,16 +295,20 @@ class TableElements:
             relation_path: ``@relation.column`` path to the source column.
             name_long: semantic; human label.
             group: semantic; field-group key.
+            static: semantic; retain the legacy static declaration without executing it.
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def formulaColumn(self, name: str, sql_formula: str | bool | None = None,
+                      expression: str | None = None, parameters: dict | None = None,
+                      subqueries: dict | None = None, handler: str | None = None, static: bool = False,
                       select: dict | str | None = None,
                       exists: dict | str | None = None,
-                      dtype: DTYPE | None = None,
+                      dtype: str | None = None,
                       name_long: str | None = None,
-                      group: str | None = None, **extra):
+                      group: str | None = None, name_short: str | None = None,
+                      comment: str | None = None, **extra):
         """A virtual column defined by SQL. Never physical.
 
         Args:
@@ -294,17 +323,19 @@ class TableElements:
         ...
 
     @element(parent_tags="virtual_columns", sub_tags="")
-    def subQueryColumn(self, name: str, query: str,
-                       mode: str | None = None,
+    def subQueryColumn(self, name: str, query: str | dict | None = None,
+                       mode: str | None = None, dtype: str | None = None,
                        name_long: str | None = None,
-                       group: str | None = None, **extra):
+                       group: str | None = None, name_short: str | None = None,
+                       comment: str | None = None, **extra):
         """A virtual column defined by a sub-query. Never physical.
 
         Args:
             name: the column name.
-            query: the sub-query.
-            mode: ``json``, ``xml`` or a scalar aggregate. Expanding it is
-                the renderer's job, not grammar-time.
+            query: the sub-query declaration; may be supplied by a later contribution.
+            mode: None, ``json``, ``xml`` or a legacy aggregate name; preserved
+                without expansion or execution by the grammar.
+            dtype: the declared result type.
             name_long: semantic; human label.
             group: semantic; field-group key.
         """
@@ -312,9 +343,11 @@ class TableElements:
 
     @element(parent_tags="virtual_columns", sub_tags="")
     def pyColumn(self, name: str, py_method: str | None = None,
-                 dtype: DTYPE | None = None,
+                 method: str | None = None, required_columns: str | tuple | list | None = None, static: bool = False,
+                 dtype: str | None = None,
                  name_long: str | None = None,
-                 group: str | None = None, **extra):
+                 group: str | None = None, name_short: str | None = None,
+                 comment: str | None = None, **extra):
         """A virtual column computed in Python. Never physical.
 
         Args:
@@ -331,7 +364,8 @@ class TableElements:
              _meta={"projects_relation": True})
     def compositeColumn(self, name: str, columns: str, unique: bool = False,
                         name_long: str | None = None,
-                        group: str | None = None, **extra):
+                        group: str | None = None, name_short: str | None = None,
+                        comment: str | None = None, **extra):
         """N physical columns packed as one navigable key.
 
         Not a column of its own — it projects no column, only what its
@@ -366,7 +400,7 @@ class TableElements:
         ...
 
     @element(parent_tags="indexes", sub_tags="")
-    def index(self, name: str, columns: object | None = None,
+    def index(self, name: str | None = None, columns: object | None = None,
               unique: bool = False, method: str | None = None,
               where: str | None = None, tablespace: str | None = None,
               with_options: dict | None = None, **extra):
@@ -388,16 +422,20 @@ class TableElements:
 class ColumnElements:
     """Column-level grammar: the relation."""
 
-    @element(parent_tags="column, compositeColumn", sub_tags="")
+    @element(parent_tags="column, compositeColumn, formulaColumn", sub_tags="")
     def relation(self, to: str, foreign_key: bool = False,
-                 on_delete: FK_ACTION | None = None,
-                 on_update: FK_ACTION | None = None,
+                 on_delete: FK_ACTION | str | None = None,
+                 on_update: FK_ACTION | str | None = None,
                  deferred: bool = False, deferrable: bool = False,
                  initially_deferred: bool = False, indexed: bool = True,
                  back_reference: str | None = None,
                  one_name: str | None = None,
                  many_name: str | None = None,
                  one_one: bool = False, case_insensitive: bool = False,
+                 name: str | None = None, inverse: str | None = None,
+                 on_delete_sql: str | None = None, on_update_sql: str | None = None,
+                 on_duplicate: str | bool | None = None, constraint_name: str | None = None,
+                 one_group: str | None = None, many_group: str | None = None,
                  **extra):
         """A relation on a column. Navigable by default, physical on demand.
 

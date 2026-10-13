@@ -5,6 +5,35 @@ requisiti acquisiti e proposte. Non avvia un'implementazione né una migrazione.
 
 ## Revisione corrente
 
+**Piano per la prossima release:** il [piano 44](44-core-release-plan.md)
+coordina l'implementazione completa fino al target proposto 0.6.0, con gate
+per modello/migrations, operazioni trasferibili e distribuzione installabile.
+Stato: P0 completata ([baseline 45](45-release-baseline-and-oracle.md)), P1 in
+corso ([source 46](46-source-configuration-progress.md)). È la sequenza corrente;
+i riferimenti ai piani operativi precedenti sotto conservano valore storico.
+
+**Grammatica obiettivo completa:** la [specifica 42](42-configuration-grammar.md)
+fissa firme, default, options, relazioni e proiezione migrations come proposta
+concreta da revisionare. La [matrice 43](43-test-invoice-model-coverage.md)
+usa tutti i package di `test_invoice_pg` (`sys`, `adm`, `invc`) come criterio
+di accettazione, con censimento riproducibile. Non certifica il runtime.
+
+**Decisioni del 12 ottobre 2026:** il
+[contratto 40 — modello e ricette delle operazioni](40-model-and-operation-recipes.md)
+aggiorna la struttura DB (schemi fisici, package e options), registra le ricette
+trasferibili anche dal browser e distingue accordi e firme ancora proposte.
+La sequenza acquisita è: definire il modello, verificare le migrations,
+definire lettura/scrittura tramite ricette, compilazione ed esecuzione.
+
+Il [registro 41 — funzionalità rinviate](41-deferred-features.md) raccoglie
+le esclusioni temporanee esplicitamente concordate, a partire da `toolColumn`.
+
+**Ripartenza del 12 ottobre 2026:** leggere prima il
+[handoff Asqueel core](HANDOFF-asqueel-core.md), che distingue stato implementato,
+decisioni sul modello e lavoro ancora aperto su compilatore/scritture/trigger.
+L'incremento query del piano 30 è stato consegnato. Il quadro seguente conserva
+la collocazione storica del dossier, non la sequenza operativa aggiornata.
+
 Il [piano operativo 15](15-operational-plan.md) è il riferimento attivo.
 F1 è chiusa per il profilo sincrono: connessioni nominate per thread, environment,
 recupero applicativo e callback sono verificati su PostgreSQL e SQLite. Il

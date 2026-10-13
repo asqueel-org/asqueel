@@ -61,7 +61,7 @@ def recipe(schema):
     customer = tables.table('customer', pkey='id').columns()
     customer.column('id', dtype='L')
     customer.column('name', dtype='T', notnull=True, x_sql_name='display name',
-                    x_ui={'label': 'Cliente'})
+                    x_ui_label='Cliente')
     invoice = tables.table('invoice', pkey='id')
     columns = invoice.columns()
     columns.column('id', dtype='L')

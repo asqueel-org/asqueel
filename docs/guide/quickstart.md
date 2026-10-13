@@ -30,7 +30,7 @@ class Shop(SqlDatabaseConfig):
         columns = tables.table("customer", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("name", dtype="T", notnull=True,
-                       x_ui={"label": "Customer name"})
+                       x_ui_label='Customer name')
 
 
 db = AsqueelDb(Shop)
@@ -77,7 +77,7 @@ Run it with `python quickstart.py`.
 - `SqlDatabase` owns the model, compiler, environment and lazy connections. It connects
   on the first executed operation, not during construction or SQL compilation.
 - `db.table()` returns a stable operational table. Its `.model` is the resolved
-  descriptor; `.config` is a scoped view of the shared configuration.
+  descriptor; `.config` reads the completed model, independently of the source recipe.
 - `query.fetch()` executes and returns ordinary dictionaries. `query.execute()`
   returns a `QueryResult` with rows and column metadata. Every call executes again.
 - `record(key).output('dict')` loads exactly one visible record. Missing and

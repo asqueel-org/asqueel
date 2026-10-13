@@ -73,6 +73,10 @@ def main():
         destination = Path(directory)
         for name in ('tests', 'docs', 'examples'):
             shutil.copytree(repository / name, destination / name)
+        for name in ('migration.json', 'native/migration.json'):
+            artifact = Path('artifacts/test_invoice_pg') / name
+            (destination / artifact).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(repository / artifact, destination / artifact)
         for name in ('README.md', 'pyproject.toml'):
             shutil.copy2(repository / name, destination / name)
         environment = dict(os.environ)

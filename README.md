@@ -36,6 +36,12 @@ remains to be implemented.
 
 ## Install
 
+Version **0.6.0** completes native package configuration → live model objects →
+migration JSON, verified on 74 `test_invoice_pg` tables across sys, adm and invc.
+See the [native source example](examples/test_invoice_pg/README.md) and
+[release notes](docs/guide/release-notes.md) for the delivered scope and deferred
+compiler/runtime behavior.
+
 ```sh
 python -m pip install "asqueel[postgresql]"
 ```
@@ -58,7 +64,7 @@ class Shop(SqlDatabaseConfig):
         customer = db.schemas().schema("sales").tables().table("customer", pkey="id")
         columns = customer.columns()
         columns.column("id", dtype="L")
-        columns.column("name", dtype="T", x_ui={"label": "Customer name"})
+        columns.column("name", dtype="T", x_ui_label="Customer name")
 
 
 db = AsqueelDb(Shop)

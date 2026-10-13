@@ -80,8 +80,13 @@ class SqlMigrationRenderer:
             SqlModelValidationError: the model itself is inconsistent.
             SqlValidationError: the projection breaks the contract.
         """
-        SqlModelValidator().validate(self.builder)
         self._catalog = SqlModelCatalog(self.builder)
+        if self._catalog.packages or any(node.node_tag == 'options' and node.parent_node.node_tag != 'connection'
+                                        for _, node in self._catalog.nodes):
+            from .model import resolve_model
+            from .projection import to_physical_builder
+            return SqlMigrationRenderer(to_physical_builder(resolve_model(self.builder))).render()
+        SqlModelValidator().validate(self.builder)
         self._db_name = self._catalog.db_name
         self._schemas = self._catalog.schemas
         self._extensions = self._catalog.extensions
@@ -172,6 +177,7 @@ class SqlMigrationRenderer:
                 attributes["initially_deferred"] = True
             relation = new_relation_item(
                 schema_name, table_name, columns, attributes=attributes,
+                constraint_name=node.get_attr("constraint_name"),
             )
             item["relations"][relation["entity_name"]] = relation
             if node.get_attr("indexed", True):
@@ -206,7 +212,7 @@ class SqlMigrationRenderer:
             else:
                 constraint = new_constraint_item(
                     schema_name, table_name, _names(node.get_attr("columns")),
-                    "UNIQUE", constraint_name=node.get_attr("name"),
+                    "UNIQUE", constraint_name=None if node.get_attr("x_auto_name") else node.get_attr("name"),
                 )
             item["constraints"][constraint["entity_name"]] = constraint
         for node in table["composites"].values():
@@ -229,7 +235,7 @@ class SqlMigrationRenderer:
                     attributes[key] = node.get_attr(key)
             index = new_index_item(
                 schema_name, table_name, list(columns),
-                attributes=attributes, index_name=node.get_attr("name"),
+                attributes=attributes, index_name=None if node.get_attr("x_auto_name") else node.get_attr("name"),
             )
             item["indexes"][index["entity_name"]] = index
 
@@ -243,12 +249,18 @@ class SqlMigrationRenderer:
         already one.
         """
         for columns in column_sets:
-            if columns == pkey_columns:
+            if columns == pkey_columns or (len(columns) == 1 and item['columns'][columns[0]]['attributes'].get('unique')):
                 continue
             index = new_index_item(
                 schema_name, table_name, columns,
                 attributes={"columns": dict.fromkeys(columns)},
             )
+            existing = item["indexes"].get(index['entity_name'])
+            if existing and (existing['attributes'].get('where') or
+                             existing['attributes'].get('method') not in (None, 'btree')):
+                from .contracts import UnsupportedFeatureError
+                raise UnsupportedFeatureError(
+                    f'{schema_name}.{table_name}: partial/non-btree index does not cover required full index on {columns}; migration engine permits one index per column set')
             item["indexes"].setdefault(index["entity_name"], index)
 
 
@@ -338,7 +350,7 @@ def _prepared_migrator(db, *, allow_removals):
     # The physical destination is owned by connection settings, not the recipe root label.
     desired['root']['entity_name'] = params['dbname']
     schemas = sorted(desired['root']['schemas'])
-    if not schemas:
+    if not schemas or not db.model.tables:
         raise MigrationError('Declare at least one nonempty managed schema before migrating')
     database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase
     database = database_class(params, application_schemas=schemas)

@@ -31,6 +31,15 @@ unexpected results, see [troubleshooting](troubleshooting.md).
 
 ## Query and result boundaries
 
+Version 0.6.0 completes native package source → live objects → migration JSON,
+including structural option expansion and relation resolution. This path is
+verified on all 74 included `test_invoice_pg` models and by applying the schema
+on a temporary PostgreSQL database. Package formulas, virtual relations and
+behavioral options are retained as declarations; their presence in the model
+does not certify compilation or execution. The query/write capabilities listed
+above refer to the existing supported compiler/runtime profile. System records,
+locked records and optional diagnostics remain deferred.
+
 The compiler resolves supported Asqueel field references and preserves authored
 SQL expressions. SQL fragments are trusted application code; bind external
 values through parameters. Successful rendering does not validate every SQL

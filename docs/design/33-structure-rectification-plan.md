@@ -190,7 +190,7 @@ tbl.column('city', colgroup='address')       # colonna sulla tabella, con il nom
   gerarchia e visibilità, e mescola raggruppamento e interfaccia. Un importatore
   legacy converte `group='x'` con `group_x='L'` in `colgroup('x', name_long='L')`
   più `colgroup='x'` sulle colonne. Visibilità e posizione delle relazioni
-  restano al livello dell'interfaccia (`x_ui`).
+  restano al livello dell'interfaccia (`x_ui_*`).
 
 **Uscita:** test su ordine, appartenenza nelle due forme, errori, default
 `col_*`, metodi chiamati sul gruppo, FK nel gruppo.
@@ -312,7 +312,7 @@ Decisione del 2026-10-02 (D11).
   relazioni appartengono al livello dell'interfaccia.
 - **D6 — Attributi di `colgroup` — DECISA (2026-10-02).** Solo `name_long` e i
   default `col_*`. `group=` non è accettato (nel legacy non ha effetto sulle
-  colonne). Eventuali attributi d'interfaccia passano da `x_ui`.
+  colonne). Eventuali attributi d'interfaccia passano da `x_ui_*`.
 - **D7 — Indice delle relazioni — DECISA (2026-10-02).** Vedi passo 4b.
 - **D10 — Nomi dei parametri di `relation` e `weak_relation` — DECISA
   (2026-10-02).** Nome legacy in forma snake: `related_column`,

@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from types import MappingProxyType
 from typing import Any, Mapping
+from .model_sections import FrozenMap, Schema, Package, Option, Declaration
 
 
 class UnsupportedFeatureError(ValueError):
@@ -69,23 +70,32 @@ class Column:
     select: Mapping[str, Any] | None = None
     exists: Mapping[str, Any] | None = None
     subqueries: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
+    kind: str = 'column'
+    declarations: tuple[Declaration, ...] = ()
+
+    @property
+    def validations(self) -> dict[str, Any]:
+        """Declared rules and transformations as a detached dictionary."""
+        for declaration in self.declarations:
+            if declaration.kind == 'validation':
+                return deepcopy(dict(declaration.attributes))
+        return {}
 
     @property
     def is_virtual(self) -> bool:
-        return (self.formula is not None or self.relation_path is not None
+        return (self.kind != 'column' or self.formula is not None or self.relation_path is not None
                 or self.select is not None or self.exists is not None
                 or bool(self.subqueries))
 
     def __post_init__(self):
-        object.__setattr__(self, "ui", MappingProxyType(dict(self.ui)))
-        object.__setattr__(self, "attributes", MappingProxyType(dict(self.attributes)))
+        object.__setattr__(self, "ui", FrozenMap(self.ui))
+        object.__setattr__(self, "attributes", FrozenMap(self.attributes))
         for name in ('select', 'exists'):
             value = getattr(self, name)
             if value is not None:
-                object.__setattr__(self, name, MappingProxyType(deepcopy(dict(value))))
-        object.__setattr__(self, 'subqueries', MappingProxyType({
-            name: MappingProxyType(deepcopy(dict(spec))) for name, spec in self.subqueries.items()
-        }))
+                object.__setattr__(self, name, FrozenMap(value))
+        object.__setattr__(self, 'subqueries', FrozenMap(self.subqueries))
+        object.__setattr__(self, 'declarations', tuple(self.declarations))
 
     @property
     def physical_name(self) -> str:
@@ -98,6 +108,11 @@ class Relation:
     target: str
     columns: tuple[str, ...]
     target_columns: tuple[str, ...]
+    kind: str = "relation"
+    attributes: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        object.__setattr__(self, "attributes", FrozenMap(self.attributes))
 
 
 @dataclass(frozen=True)
@@ -113,10 +128,16 @@ class Table:
     identity: str | None = None
     attributes: Mapping[str, Any] = field(default_factory=dict)
     policies: RowPolicies = field(default_factory=RowPolicies)
+    options: Mapping[str, Option] = field(default_factory=dict)
+    declarations: tuple[Declaration, ...] = ()
+    package_name: str | None = None
 
     def __post_init__(self):
-        for name in ("columns", "relations", "attributes"):
+        for name in ("columns", "relations"):
             object.__setattr__(self, name, MappingProxyType(dict(getattr(self, name))))
+        object.__setattr__(self, 'attributes', FrozenMap(self.attributes))
+        object.__setattr__(self, 'options', FrozenMap(self.options))
+        object.__setattr__(self, 'declarations', tuple(self.declarations))
 
     @property
     def key(self) -> str:
@@ -136,9 +157,19 @@ class ResolvedModel:
     tables: Mapping[str, Table]
     name: str = "database"
     warnings: tuple[str, ...] = ()
+    schemas: Mapping[str, Schema] = field(default_factory=dict)
+    packages: Mapping[str, Package] = field(default_factory=dict)
+    options: Mapping[str, Option] = field(default_factory=dict)
+    attributes: Mapping[str, Any] = field(default_factory=dict)
+    extensions: tuple[str, ...] = ()
+    capabilities: tuple[str, ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "tables", MappingProxyType(dict(self.tables)))
+        for name in ('schemas', 'packages', 'options', 'attributes'):
+            object.__setattr__(self, name, FrozenMap(getattr(self, name)))
+        object.__setattr__(self, 'extensions', tuple(self.extensions))
+        object.__setattr__(self, 'capabilities', tuple(self.capabilities))
 
     def table(self, name: str) -> Table:
         try:

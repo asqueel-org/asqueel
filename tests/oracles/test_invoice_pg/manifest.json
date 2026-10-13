@@ -1,0 +1,669 @@
+{
+  "format_version": 1,
+  "instance": "projects/test_invoice/instances/test_invoice_pg/instanceconfig.xml",
+  "profile": {
+    "implementation": "postgres",
+    "use_timezone": true,
+    "user_ins": true,
+    "user_upd": false,
+    "tenant_schemas": [],
+    "localization": "identity",
+    "application_startup": false
+  },
+  "scope": "Actual package model build in a sanitized profile, not a live instance/DB dump",
+  "packages": {
+    "gnrcore:sys": {
+      "name": "sys",
+      "path": "projects/gnrcore/packages/sys",
+      "requires": []
+    },
+    "gnrcore:adm": {
+      "name": "adm",
+      "path": "projects/gnrcore/packages/adm",
+      "requires": [
+        "gnrcore:sys"
+      ]
+    },
+    "invc": {
+      "name": "invc",
+      "path": "projects/test_invoice/packages/invc",
+      "requires": []
+    }
+  },
+  "table_counts": {
+    "sys": 17,
+    "adm": 40,
+    "invc": 18
+  },
+  "model_sources": [
+    {
+      "file": "projects/gnrcore/packages/sys/main.py",
+      "sha256": "7fb6302bf334d1f459a50640ce0ccde67a0281825cd68a8fab3a44de912d9b04",
+      "role": "package"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/batch_log.py",
+      "sha256": "b43c0a8faa957b3ccf64ae0e311b9c1c76d0e9f079bdc88b84ba928d7438ea16",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/calendar.py",
+      "sha256": "9930cb2e206bea9b1a60bedf708150d01878679e64037449ba7f3a621159f536",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/dataretention.py",
+      "sha256": "6b9d8a9b05916c5f044ebf173490411ba71316e0cccb28c2b2a66bdbc5334c6d",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/dbchange.py",
+      "sha256": "50f5672d7a29b924bf12ccfc1543f1241cbf4db65d8d72e04f81483fc9735677",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/error.py",
+      "sha256": "3628a4ddce290a0a437c244ddb8d38071e5f87fe4f437b64d6d4c672a6e5313a",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/external_token.py",
+      "sha256": "b165f8942cca0ed7974ddeac1692eef024aeba54415611b93e7cdee251d4ce9d",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/external_token_use.py",
+      "sha256": "ee364435e2f03033709beb2266076a538aac6c0b16d3363bebad595c5cfca92f",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/externalcall_log.py",
+      "sha256": "9155945c68e4a2ecdc77a451aeab360a8b799928f3fb86cb52bf3656de98e6e2",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/locked_record.py",
+      "sha256": "15da6da561544e499a2e35560954af98a9ee41272f857b76206951a3f77c0276",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/service.py",
+      "sha256": "da87c01ca4c9e83d93d3e326e47849208b09f10c2d52a481ae90150673e9a853",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/shared_object.py",
+      "sha256": "c496cdb230492554ac815160eb5a07a007c045e5cced3322131a111c4025d156",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/shorturl.py",
+      "sha256": "1f2a2e134e3f1d353753afb1c019c16ae0bf63ef93941f0d8b6a4d0e2d2b83f9",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/task.py",
+      "sha256": "2ed0868a185ab0a77f5d37773326638dcd4a471e190b32c44c709cf9216ab137",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/task_execution.py",
+      "sha256": "9f3279b30413ddb7004f887bfe32618d78ec25a2774657e4bf7241000031cda5",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/task_result.py",
+      "sha256": "fbc99a46858ca9f82cba2dfef8044b33f0fbc2893f220f656fc6fac51439ab60",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/upgrade.py",
+      "sha256": "b256d035a05d580eeeb2575c52eb81ab0d15bfc13edde54f23ff663c3e2f9440",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/sys/model/widget.py",
+      "sha256": "f0fa9b6419021899fadc943dbf25d65d974b4290df8f55d453f0d7d79b2e883c",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/main.py",
+      "sha256": "e32ded315b616b3c9c5c8e262a5501101601b5ba07a33c6bf23941b4a39f36c8",
+      "role": "package"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/_packages/sys/task.py",
+      "sha256": "40abd0b1f867381eb96213aaa8444ee770fecc378014a24bc148685d928e4fc9",
+      "role": "contribution"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/access_group.py",
+      "sha256": "e2bcddd3ce1b79cfade1e83b8d365c81adfb2cf325abcd8d0b9da83d22ce2811",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/api_token.py",
+      "sha256": "898e68417949db2b2989bb026a2fa03741416b5c15c864b8a3308da5488d4370",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/api_token_tag.py",
+      "sha256": "5b1f950098752fd888fe528d8460e4c09ea384c7b57738d0031816ff9c61f1f5",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/audit.py",
+      "sha256": "c8ce9d0bbf37f451955a3ec9cfa76164ff3f97c4b242413f59c5cee6608fe11c",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/authorization.py",
+      "sha256": "c1b4f9bd9f66abd88248db86c43965fc432140c9b2396fded98ea868077d30e2",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/backup.py",
+      "sha256": "0d32c160befdec3f83a27ae4782e3ac278fdc071a14023441053bc54e40fcc77",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/ckstyle.py",
+      "sha256": "667119d0c8147361e933aa919c48d0bdaee6180093baf9c7aef13cdb3edc1db3",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/connection.py",
+      "sha256": "25922e6b4bcbf3572306f958aad3c16e73cf77c2f1ba242feb0b4a449065d08f",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/counter.py",
+      "sha256": "543fa4c606a978c6befb783874c7de0b3318b0e04a958e94787cce92398e5332",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/day.py",
+      "sha256": "c30d7f03c80d4c9e84dea55821b9e491357653eda9a12df323d2edd9022738ca",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/group.py",
+      "sha256": "2edae1c79e42217cb98f3ebfdb145a2db4028905f4e092bbae23275e716bd20c",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/group_helpdoc.py",
+      "sha256": "a27d57f7946d10830b47b418919836e72d60a76994522addeec2f29dee32aee5",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/helpdoc.py",
+      "sha256": "7f362f8b23a22928a3cedb9d469bb370ca88d64caaeca1c45da10759fc0a810e",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/htag.py",
+      "sha256": "cc1c146c9c1315b878a216e630cd1881cad9bf1dec99f0f08755e66d53827270",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/htmltemplate.py",
+      "sha256": "ec0430136127531ea582daddc4f263746f6269a54802fdc6240cc6a7f207eaf1",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/htmltemplate_atc.py",
+      "sha256": "1bb40a448344e1c3b72062d6ed80f4fb6858ef85b05b5aa0f2d4b191463f86eb",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/install_checklist.py",
+      "sha256": "20ed0176b4a46a0ae2d9d5a364bc0845d45beae0898ad1c33472b02362fbf813",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/language.py",
+      "sha256": "dc068abbcdb347fc06b21606c7396c4f730fd8a8ba4ae859f2fc103c8eab70e4",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/letterhead_type.py",
+      "sha256": "114c622198873165bf4ce131aa830cfd6d54d4abcedf23e0c02c428ca31311e8",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/menu.py",
+      "sha256": "724f702d49e10f513c8d96257437d76927560437603148f006e3ab2f167584fe",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/menu_page.py",
+      "sha256": "e50d123b5757086f20bea8d9254e4bd4842e956bf089c4402dc49d2bac8335cf",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/notification.py",
+      "sha256": "7578129e611a533f1ed42a0d9f41afa3760d9b1e46aa2c60b254c9d4c3c9c6f8",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/pkginfo.py",
+      "sha256": "0e081ed451e78bafb6150236e41b1827c62b0b07be44a0b534a3277e4e3750b1",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/preference.py",
+      "sha256": "ba074cf58b4bf21b1f2f6728e0a232d54728d69fd28b6e0c1d619d1d9235fa86",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/record_tag.py",
+      "sha256": "06c231ecc1dc94753ece00060d0bf48934346331da8171ebe0d120eec74abf6c",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/sent_email.py",
+      "sha256": "52d74065aed1a460490475bb369b485f97173ec853e7f212580213f04c1000c1",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/served_page.py",
+      "sha256": "863a47ed32e3331267bb05444af93faa090348da282ec17c6ec14110c5c09761",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/shortcut.py",
+      "sha256": "e48adcb5c48f9ba211f01559ec6f4eb8eb51b40d275b9de17e52df6b4a8b77e8",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/tblinfo.py",
+      "sha256": "62441dab50c549d424819c6ff518f4b0e515113b7dfd7800b48000e8636e0384",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/tblinfo_item.py",
+      "sha256": "97a7af17cabfb43a7bad4f47116cb590d418987e11a54c12f5e9dfe15849c70f",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user.py",
+      "sha256": "a5aba23ecf28a376b6e4dd4bd293857f6d588aa91a80f157efe43f0cd2344b11",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user_access_group.py",
+      "sha256": "f321b5e6ba1ee55589dc612fd0ce37f15d792984308978239346dfd44ce88620",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user_config.py",
+      "sha256": "da717140d0406b5cd89c470b0a38745ac940b1277d93a2c2a0fc45ce42fe885b",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user_group.py",
+      "sha256": "c8c825ed64cbc76705d00b754221e272ebd1a19a6dca1d7b62e26bb1c7fe3e23",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user_notification.py",
+      "sha256": "ab6f7f086c4312b5ef507c29cf8461d22a1c83647524a6863a1b5168155e9273",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user_setting.py",
+      "sha256": "95bd97ee8e32d58175d8a9059d2b16548d87465248a159f239ddc2e755162aa9",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/user_tag.py",
+      "sha256": "48f17ae76da82d6f6be003583c5b82eecbc718991d0ebd2682a70019c35c57fd",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/userobject.py",
+      "sha256": "95f1eda3d637ab8c3266a1d5557d0db30a6e8ceef8beacdeee80547638ac031c",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/week.py",
+      "sha256": "546e517062efdf3a9ad61c68e467b74ae2f9db7a72e39b010f5aae6d0d40829b",
+      "role": "table"
+    },
+    {
+      "file": "projects/gnrcore/packages/adm/model/xgroup.py",
+      "sha256": "c5ba506d4c3486cff97fe321055d804e4eb2f650c69107e98fada791914df6f6",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/main.py",
+      "sha256": "23948bdd4ca75a3c478532ac0a1d65cb7dde709448a7daa2893bc9e60a1bc42c",
+      "role": "package"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/customer.py",
+      "sha256": "f3f76a6c57c6682502afabe328b5e18d9ff418efabdb56e36b7623c2ce5c45b4",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/customer_type.py",
+      "sha256": "2999028f75bd7f3ce73afbf4fccc8372df69a4aee2ab46836d840a15767cc242",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/discount_tier.py",
+      "sha256": "4a1f004b5eda312a863d13cc9f019ce9bba82f60fdf747e156eeaf23048c4761",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/invoice.py",
+      "sha256": "71f1ef0b6ad9cc20ddc37383ae08744e94b83fcf4a594204ef11d4947b6fbd8b",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/invoice_note.py",
+      "sha256": "fdf3e7d61cb64e9876bbfa273d7f45e5eebff48a0b23374a0ebca3d7550d55c3",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/invoice_row.py",
+      "sha256": "efe2006560c1753630a1873a3e33f09c28107c773e9ea82467d6391c355f3dd4",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/payment_type.py",
+      "sha256": "c5672daa4d420802f7088ad9482368b95713915c23a95e61060367785682eaec",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/postcode.py",
+      "sha256": "100df477a120d6e5cd7a18b3e303b9f0cedc38a4b105416181610c298bf985ef",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/price_year.py",
+      "sha256": "48961724f864f130c2c59b42cf50ba684bbb075c67ae990418a10417d0562983",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/price_year_note.py",
+      "sha256": "e22bea4fdfce53faf64d1974ad8a3fc826ca613e8c156d1c6804277d3dc7e49f",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/product.py",
+      "sha256": "2225c75ce1cf8fca62c46d8db7b6a3ce0b7ae72c38a71b24919e04382bf767b8",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/product_group.py",
+      "sha256": "843362e819ea035948036f0e4a441fed905998fc60c9693824beec19585fed41",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/product_type.py",
+      "sha256": "f8a6bc9a38bd27e366a60e3c14367092eb47e15cf119aa280fd64a410916ba0f",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/region.py",
+      "sha256": "3ad7ed5b7a0e9b00b9bfec034de6b6ac0f79f2c0d4f99ecd00bd6e87e324339d",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/staff.py",
+      "sha256": "4d315c52b346ce233df251ec2f7db514f01dd4e303698cbbd3b31a273e7f08b9",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/staff_role.py",
+      "sha256": "a5b8935b7f165eeddf85d12dd8ecce432e26308b2926fdcbe9560dcabfe2286e",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/state.py",
+      "sha256": "4a85671eba7775a08dbdcba977aed888ea602584ea2184db1e17c5c1e87aa97a",
+      "role": "table"
+    },
+    {
+      "file": "projects/test_invoice/packages/invc/model/vat_type.py",
+      "sha256": "c67510e283501730f02c50a65a80c68fd6a8c4b97c472b04f260f820c8c73a80",
+      "role": "table"
+    }
+  ],
+  "imported_legacy_sources": {
+    "gnrpy/gnr/__init__.py": "1fbe2a708152fd72f0ad6edbaa53d32ad865f04a6f6d08d1a6955cd7a5adbfac",
+    "gnrpy/gnr/_bag_mode.py": "5c0862d59eea2ed44bd5b1109a72295cc33967858f2d0090a6a431138ccd0efd",
+    "gnrpy/gnr/app/__init__.py": "95e1aa1ed859174ab2ed950c4b3fd3e03a7b9981d20daac8b5751458d8816d3c",
+    "gnrpy/gnr/app/gnrapp.py": "3b6f5d8d72cd6ff43ad4b2ecc77b572e71c9f4e3a0ce191781d644427cec29a7",
+    "gnrpy/gnr/app/gnrdbo.py": "713590700950f2b42d2228e4e6828a03707bc7d5e55132526bb7dd948f8315e2",
+    "gnrpy/gnr/app/gnrlocalization.py": "4332c5e0a8ab18a0f290f60a07ac3401d467d95b4c2741546b586285fb0e8c41",
+    "gnrpy/gnr/app/pathresolver.py": "27aac05761cc457eef9ba3d60eb50f0e9d33be0c74e215c04dee673dd586f3e6",
+    "gnrpy/gnr/core/__init__.py": "de808382c0d726477666a0c1743bd9f737b2c2d873266091bf3249714bec5ac6",
+    "gnrpy/gnr/core/flatfiles.py": "29ae03485df8fe9cc82319eb8426431e968e95b835f1a7102ae63f745cf2414a",
+    "gnrpy/gnr/core/gnranalyzingbag.py": "1260595035d7193f29498d98f5444bd6be35a0ea2972ee6ef19686200eff3253",
+    "gnrpy/gnr/core/gnrbag.py": "5de12bbdbc3bab4b8a3941ec0dd76adf3f4d3635861e3f1b187e33fbce5e1584",
+    "gnrpy/gnr/core/gnrbaghtml.py": "90d3a84ebd3dd5ca2b8fb75fdb5c97c1a20636189053f459d43381f5489e3607",
+    "gnrpy/gnr/core/gnrbagxml.py": "8d57d70830cf591022c2a9adc91217542e4d6b5f73e35d03c5229898cffff7da",
+    "gnrpy/gnr/core/gnrclasses.py": "8265fa752ac285ddcd92bb4cc774d2c03b2799d4aa299c4e3bafec37924ff207",
+    "gnrpy/gnr/core/gnrconfig.py": "f98d035028d344fafe5b176104d700c6992c588f4cc8b80801d0758d870b1ac7",
+    "gnrpy/gnr/core/gnrcrypto.py": "aa0ecf7958d8a5a95a056cf2f78758d85860040002070be4890416f48294d903",
+    "gnrpy/gnr/core/gnrdate.py": "49f3217546db3516d86c57f203c08f9d0d87fdd3f21e82ad878edc77c2afd2c2",
+    "gnrpy/gnr/core/gnrdatetime.py": "671a0bda091c95517c17b5a1e55d0ff4e9ac8b08629a64fe149e7ef87eefd426",
+    "gnrpy/gnr/core/gnrdecorator.py": "0a9ea6cd5ba08f84ff11ba96d86b7e0b03a50436fb7db0de4475d757b7c166ea",
+    "gnrpy/gnr/core/gnrdict.py": "d29a334a7ae7fa762e69fefde60e909564d54a4da25748403aa3d758747cd413",
+    "gnrpy/gnr/core/gnrerror.py": "e044a3e15c1c3463ea09da58ccaf455ca57d33944bbe9a97bc2eaf3552716806",
+    "gnrpy/gnr/core/gnrhtml.py": "c9e0ab542d70a5d58dca50cd30dc5fb3ba867fc70f265bd43bfa71c2b4b8c81f",
+    "gnrpy/gnr/core/gnrlang.py": "50de6128d3ab5a09c23b76956a17ba4bb6a3c9f04d75cc752a7d5632cb5de145",
+    "gnrpy/gnr/core/gnrlist.py": "2a0a762c30e185bedb2e7920fdd12a209cf1b5cd03cb09bbd0c165fa66ceb4db",
+    "gnrpy/gnr/core/gnrlocale.py": "e0c1915450db511912ce9bb94aab373fe8cf5c879436f58627bc27b57eb3d5de",
+    "gnrpy/gnr/core/gnrlog.py": "f3b1d024194a3e1287f4eaa9f2f5517de7bffeeb7b1877d5c123c479a79505c0",
+    "gnrpy/gnr/core/gnrstring.py": "251f37a0dfcae776665deb075ab7627c546f338c494dcdde1b707fb23497d58b",
+    "gnrpy/gnr/core/gnrstructures.py": "5d6307e0e91cc0c0c87de768583bf6fdea32ac6d07386b37e9e7f2b49e3f804f",
+    "gnrpy/gnr/core/gnrsys.py": "a359f246f4aeedb053e95eeeb1a806d8d63febda9f01a365d1870af963e5e536",
+    "gnrpy/gnr/core/loghandlers/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "gnrpy/gnr/core/loghandlers/auditor.py": "39e142003593793d04809b76df6ab2f823fd13ce3d41967232f618feff8cb93b",
+    "gnrpy/gnr/core/loghandlers/gnrcolour.py": "e8a9439ec94516f47d13043ec6e5ab0cf4888cc1bee489ab3c216c3fec7c665a",
+    "gnrpy/gnr/dev/__init__.py": "8d65bf645de702c37a4e130994b9f7be95b4ef8f78f49d2dbd2d81f380360821",
+    "gnrpy/gnr/dev/decorator.py": "3b5425f6ff2dbac73d209b72138d7039dbf283c8d758822dad350c8d51eb4353",
+    "gnrpy/gnr/lib/__init__.py": "8576dc96082ac7f0d4c0fadb5f40af61a53ae46b3a82bf9eab231e53fac07b80",
+    "gnrpy/gnr/lib/services/__init__.py": "bfbd5bc345625d94a905c7e6752f73e14576911219669c196692d9875cfd9411",
+    "gnrpy/gnr/lib/services/storage.py": "1840da838c99199fe45adb5c2bd2fd885dc506f66b7c3910e93fbf14e9c8a20c",
+    "gnrpy/gnr/sql/__init__.py": "8363496d01cbfe778628ed474a7731db3eaf67d5794cf449666c7614f95612e1",
+    "gnrpy/gnr/sql/_typing.py": "1997c0f14b03f87bc56e9139f3b586def91875e39580c42c7f991e6f8e5d79ac",
+    "gnrpy/gnr/sql/adapters/__init__.py": "f5a73c3d493afed86c520260797196558cdc67293f04b01f8e1e23d09209554f",
+    "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py": "0bd51adf7acfcf433982a0613f745dfe08255c92638ae158dd3c7dc02dfaa7d7",
+    "gnrpy/gnr/sql/adapters/_gnrbasepostgresadapter.py": "172307ad13fd6430c78c73a02a35c634db0cdaf64baa53b82338300876c2e498",
+    "gnrpy/gnr/sql/adapters/gnrmssql.py": "5a97d943a96088c78147c2ca23d73202ab04f948095891f250729e6cd97363da",
+    "gnrpy/gnr/sql/adapters/gnrmysql.py": "c7e0af3fd99bdb162b1f0c361c95ff8c6d20972ea299e1d9a13291dd1261a38f",
+    "gnrpy/gnr/sql/adapters/gnrpostgres.py": "b10a56bcf10d6a34a2b68a8b036a5d971422f39b7ad6705cbe4f1f9b2d71cd90",
+    "gnrpy/gnr/sql/adapters/gnrpostgres3.py": "ee9e8d0cbcf00494fb5eeae3e8ddb5905a1a426250ae815cf32341385d7d2df3",
+    "gnrpy/gnr/sql/adapters/gnrsqlite.py": "34d8afffcfb68ea378da5772dc99f4737f1cffdf7e7873fe83ea44481d3c1c28",
+    "gnrpy/gnr/sql/gnrsql/__init__.py": "44be59ebb0d96b7dbc22846e039be03ff8a2eb5d9efe5b4f6009d4d03d321f66",
+    "gnrpy/gnr/sql/gnrsql/connections.py": "2ba31361e635a54a98893f5efdab99f2588fdf00c7ca7708ea4d617cd66daf1c",
+    "gnrpy/gnr/sql/gnrsql/db.py": "5d73eb1ecbf4d863c94a5bf01d49ef1c225b953cfbbe30e47de910a5bdf2515d",
+    "gnrpy/gnr/sql/gnrsql/env.py": "35ec7e23652fe0cffc379e9f5fe821ebd6edfdec70942b44e031ebb484452394",
+    "gnrpy/gnr/sql/gnrsql/execute.py": "435d408b4e77f53896c4d79d000564026a9faf695e5ecc87b65b6c1f08de8861",
+    "gnrpy/gnr/sql/gnrsql/helpers.py": "ff33b1079fc90156789ac640c7731ef5173c93d91c5eeaab42a23299c6e15fad",
+    "gnrpy/gnr/sql/gnrsql/query.py": "275929089e4731d2a93f756cc923853989d1a47acaa875893d55657be82040ee",
+    "gnrpy/gnr/sql/gnrsql/schema.py": "3930c91aa0b7236632fe306aa4f2f8dfb321051dd54e0b14778dc5500c5d3817",
+    "gnrpy/gnr/sql/gnrsql/transactions.py": "7d13522189896b95e83004e9cbc94297e3e717a518f7ac149bc1dcdeddab7745",
+    "gnrpy/gnr/sql/gnrsql/write.py": "63b1d4f47c53bc798183bbfb2a990235d137d7c73fc28dbe1f2611c609eb28d2",
+    "gnrpy/gnr/sql/gnrsql_exceptions.py": "3696b1220bb3c6756efb28e06af8ee2cd8c106f927adad9f5d5502e801b6200e",
+    "gnrpy/gnr/sql/gnrsqldata/__init__.py": "9b7cdab434a004a6c1b9f3bd44917244bc5f705a6d34669270a6e80209c950ac",
+    "gnrpy/gnr/sql/gnrsqldata/compiler.py": "39f6867e6d3cf0f2c2ac7bb4670c97dd67b961722a423bce7decde266c07d836",
+    "gnrpy/gnr/sql/gnrsqldata/query.py": "9b7ff2eb8650774a60fc6bee73399980b208397526e1f2ccbfcec90cc145b7ad",
+    "gnrpy/gnr/sql/gnrsqldata/record.py": "21fb0388b72684e9d52caaab52eacd2f33c6456946e5ce3fcc1c2e4b909a3c30",
+    "gnrpy/gnr/sql/gnrsqldata/selection.py": "2c0dab997f10aa614ff26b91c2b44eb227acf641452212bab9b1108140447f55",
+    "gnrpy/gnr/sql/gnrsqlmigration/__init__.py": "6536b886c7abc8953e9746d09a28c7aace2069764d0a253dbe7d21789e0bae70",
+    "gnrpy/gnr/sql/gnrsqlmigration/command_builder.py": "60342b296c9d4f2022d440a41c95ccc08df09d59f88834057d49fba4477d75fc",
+    "gnrpy/gnr/sql/gnrsqlmigration/db_extractor.py": "d8c90bfdbcc03f63e2dfbd9004ae4b709d492e8b5c59feddb7cf29e024964c3f",
+    "gnrpy/gnr/sql/gnrsqlmigration/diff_engine.py": "96750a9130332ffca062f3c9049515c3d7d7c1a421f4f8cde9de3f2e446aea1a",
+    "gnrpy/gnr/sql/gnrsqlmigration/executor.py": "e38a6755526e89772db9e9a290dbc955476febc0ac0ad116449fbd1a1e7dbf3b",
+    "gnrpy/gnr/sql/gnrsqlmigration/migrator.py": "a14fb3c3e48e6a72678bd8259d30ed2894f2854bf4300e4e3bda26ebd14fa639",
+    "gnrpy/gnr/sql/gnrsqlmigration/orm_extractor.py": "c14349760319eb9a7e879bde238468ee8837fc92d35e0b822c9d920c8ff7e68d",
+    "gnrpy/gnr/sql/gnrsqlmigration/structures.py": "e2e35f5bf56816f784c5d62f6246bc38312ce87df7c6e3987498fb15f9d97758",
+    "gnrpy/gnr/sql/gnrsqlmodel/__init__.py": "5b1275a0fb5c1d2ce1cf6cb124fdd8d310a91106569e469a6a56e2f25e0660f7",
+    "gnrpy/gnr/sql/gnrsqlmodel/columns.py": "c2b80d21423e9c85d121549f4437cbe7ffb09873ac653434f97f756891bef4aa",
+    "gnrpy/gnr/sql/gnrsqlmodel/containers.py": "c2a0d3e319c89f1da374fd17f2c8b334c4e0c4474c263891127bcf6f358f783c",
+    "gnrpy/gnr/sql/gnrsqlmodel/helpers.py": "58428ff5bddaaa9614aaf2fc43170b3419f8c972f32efada59a9366cbc991df2",
+    "gnrpy/gnr/sql/gnrsqlmodel/model.py": "efe2461441340e9dc5cbf984d4f29a91504fcbc7668092e1e7e3a24192287c57",
+    "gnrpy/gnr/sql/gnrsqlmodel/obj.py": "d3ec475bda7e284b448ad9054dff4e4e8ea42e0b91dbbc1db2f29a4881b71327",
+    "gnrpy/gnr/sql/gnrsqlmodel/resolvers.py": "a8dec74882e5337fb9003508c58da9fbbb36a307d498855de95421dbfd4b79bd",
+    "gnrpy/gnr/sql/gnrsqlmodel/table.py": "e593e92007302503e8f818d287f1ebd9ca328f570084e59e346398bf0054966f",
+    "gnrpy/gnr/sql/gnrsqltable/__init__.py": "256be72454a8b3ec0116a653873f6fa46c8b15ddf1c5046e3429e88b05f21fcc",
+    "gnrpy/gnr/sql/gnrsqltable/columns.py": "12689509cf2fea0c0580076abc174e1c7dfd9f7f506b9c0db70c60d7cbc79d22",
+    "gnrpy/gnr/sql/gnrsqltable/copy.py": "f55a8416773b6ce9ed0a9e0b2fb7639ccbb5eba2c20f33401024fa068077b1ca",
+    "gnrpy/gnr/sql/gnrsqltable/crud.py": "bc6f0f34b6354f52a0ebe1aa0af9e768e877d1de745eede4a6255e68d9ce5939",
+    "gnrpy/gnr/sql/gnrsqltable/helpers.py": "996f605838488097df763c99d5a74c301ad58bb88139d3c730b3cdaade6f68bf",
+    "gnrpy/gnr/sql/gnrsqltable/query.py": "ef70e9310ce1f54cd7db2492a0ea5301d1de6429fb380c844a61a6169b6a45f8",
+    "gnrpy/gnr/sql/gnrsqltable/record.py": "c6cad6e5ba812a646c79f9f5c8525df22d6cb23a263991216bfb1a23b38a6cec",
+    "gnrpy/gnr/sql/gnrsqltable/serialization.py": "b4e5c086515cbf466b16cb1492b85a38c1e6768c18f4434e30f3bbac5e1f92cf",
+    "gnrpy/gnr/sql/gnrsqltable/table.py": "437c23757af141c2b08d0fe56043ce97ab1abaf26cd55b2829aed09564660d79",
+    "gnrpy/gnr/sql/gnrsqltable/triggers.py": "a345f672eddbd5d5f6236178898617ec2d906e458a4f0884105342ce5fcf02b4",
+    "gnrpy/gnr/sql/gnrsqltable/utils.py": "5c2cc9bd7bd70216869420518cc376616ce3e2c770731b19ab2cd40138067a32",
+    "gnrpy/gnr/sql/gnrsqltable_proxy/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "gnrpy/gnr/sql/gnrsqltable_proxy/hierarchical.py": "2089d6d7c8291362b3b3d0cc28434c06f61820d0fd44568ca14b98ba85bdf4ae",
+    "gnrpy/gnr/sql/gnrsqltable_proxy/xtd.py": "46c7359be1ed7dfdab3613f9616b21ee9c7a66e3f5dc856d8f5a63cf5e5b3563",
+    "gnrpy/gnr/sql/gnrsqlutils.py": "76f2c9a149f7b024caa3e211cb6ac0b34ea0046d1bb3cdcd5c85b2c8547a0e81",
+    "gnrpy/gnr/utils/__init__.py": "0248dd274b31e9fa57c7a0eacfc14b424a013b9c3f553fe0f572feaed9c05503",
+    "gnrpy/gnr/utils/fonts.py": "19257c74fe51721e157013b2230e89c4a8947f23323fa7fe24f71b3927e245ad",
+    "gnrpy/gnr/utils/ssmtplib.py": "10b742b882299f3c3366f16f8c023036662192045c8bf4691e921f04b1920971",
+    "gnrpy/gnr/web/__init__.py": "190b304a39b729d2adb80915bfc6ce0c1405998965375d92a34f7ae646bb4fbb",
+    "gnrpy/gnr/web/_gnrbasewebpage.py": "88193ff5de88225873b473996f8e77fef12f81896c98be0c4e88156351149b90",
+    "gnrpy/gnr/web/compression.py": "a084c6db9e4f9d143191ce38ece7a17ea1552db21483493a19e5f931382d8f51",
+    "gnrpy/gnr/web/daemon/__init__.py": "4891d7f274fbea8fe7ef69e1db86682584cec5a868796a545acec7d6136a56e6",
+    "gnrpy/gnr/web/daemon/siteregister.py": "082abe4c010d595672bde5d198948be01db16312abcf37ecbf7274d6cafd080f",
+    "gnrpy/gnr/web/daemon/siteregister_client.py": "d4a4624279be8c99b953998ccbc9b84b8fa639f8707afda78965256edd15b9ec",
+    "gnrpy/gnr/web/gnrbagtransport.py": "4c73c173c5eefeaea5901f72d9ba9d882928fe0a2453aedf9a8423ee166a76cc",
+    "gnrpy/gnr/web/gnrbaseclasses.py": "a8d781fdbe11757af235895daaf0fac874bcfff9c676d704f7e14943a3bac9f7",
+    "gnrpy/gnr/web/gnrcookie.py": "cce0217de0552e55874e64262ddf6f3c4b93288ae97ce874c727580469e1f188",
+    "gnrpy/gnr/web/gnrmenu.py": "cb060010a74b89f0167f8aeb4793202c5a9e2b150a6124cd3402cdbf04955adc",
+    "gnrpy/gnr/web/gnrtask.py": "3c849c2f9c8d71d9bb436fa03ff6d1369fa27e6b9f2f3ff0daaac377bec3384b",
+    "gnrpy/gnr/web/gnrwebapp.py": "896abdc7250e2f6b8e919af546e5f837e4bd105779725dda0256aa7f27d4d48f",
+    "gnrpy/gnr/web/gnrwebpage.py": "8a3fed3626c6b94d80b80199c85323061345fc3880063bdac1021abdd5984a40",
+    "gnrpy/gnr/web/gnrwebpage_proxy/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/__init__.py": "2d7d4b745f3ef38a772a701263f9993c85910c7e113e76cc3e1bd090e4525e33",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/batch.py": "01039a16858e01ff154a9fff448e5d989f0e5838490877da0508d9dd5752f7af",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/db_select.py": "f6c398aaedc31337c36049db0cde7f140df0722b1327292ac4434092d5c87d7c",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/export.py": "690603eee994aab83932c289f4fdce45abce1b11619d4ca73c0533928a8a0472",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/get_record.py": "fabed07149311b2673ac0f7d74a45796873f93a0575845191f9b9a3ef02291b1",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/get_selection.py": "bba75be58855bc7659386344d7fc870c9d10070b916051f383e177ad4139c985",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/misc.py": "4b0c4df401699f8b524d16177c89b062e949c07804732f080f78821f38fe9fa2",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/related.py": "75ceca6afed8ab2e3706df1518096e9c2135cc043a3bed7984663c57bf7b212e",
+    "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/structure.py": "9555302e43e5eef2e425adce5a1262dbe3b9eddc4ea62c47e9df6106424e6bbd",
+    "gnrpy/gnr/web/gnrwebpage_proxy/connection.py": "5648c8a80f362c52234bb54cdf28c0c83377e672c2b8a4201e2825faab80a2d6",
+    "gnrpy/gnr/web/gnrwebpage_proxy/developer.py": "7f6818dfdbec87c142027b593f5cdca0a15a6b2fb4f8e7c011fc773e9ae71101",
+    "gnrpy/gnr/web/gnrwebpage_proxy/frontend/__init__.py": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+    "gnrpy/gnr/web/gnrwebpage_proxy/frontend/template_lookup.py": "1767103e40e9da6e161a6ac44347f6c2e0a914df7d71d51533d37a4128b70262",
+    "gnrpy/gnr/web/gnrwebpage_proxy/gnrbaseproxy.py": "53e3e1c12c3711d25fcc1a84821d2c0f71d409e3dfa0c0df471f2d0b405a55c8",
+    "gnrpy/gnr/web/gnrwebpage_proxy/jstools.py": "7117b5b02699b62a95ddeeb228c27a0e8b8ec9e194c52b200a417fa857d89df7",
+    "gnrpy/gnr/web/gnrwebpage_proxy/menuproxy.py": "52752b448a155cb0cf74a54fd158a8ea004f9aae1dfea6c02fe204afb4d202e5",
+    "gnrpy/gnr/web/gnrwebpage_proxy/pluginhandler.py": "b40125f8c2721e204f609c5a9ae6bf7bf052df7dae505978b6296e40dfc53481",
+    "gnrpy/gnr/web/gnrwebpage_proxy/rpc.py": "013205dbabcd59418881b543c34827a7af3f307724b443f01d810755678ce170",
+    "gnrpy/gnr/web/gnrwebpage_proxy/serverbatch.py": "d0f025fdfd9e7727e9dfb91f1755373570c46f6db5664e3325f999c66ecd4bf1",
+    "gnrpy/gnr/web/gnrwebpage_proxy/utils.py": "33733fc58ba7711e1911394ffac4c952cecc9c457b510e47d6659924895f8cc4",
+    "gnrpy/gnr/web/gnrwebreqresp.py": "e7cab9c4bec29959d620c3044614be071ab2adbc7c2ccacf9aa52ea0396ad738",
+    "gnrpy/gnr/web/gnrwebstruct/__init__.py": "716bd8e203cae51064bd42f3aae43387943b29e152559fe32c62b134542bfbcd",
+    "gnrpy/gnr/web/gnrwebstruct/_helpers.py": "99b5ace2be32ef1b66bf9f12c043a64e3335e435d49060d1768cd6aecfb53c66",
+    "gnrpy/gnr/web/gnrwebstruct/base.py": "910e0a6d2e6495b57f1e9298c8a06d46069605458eec9596b28b6ea1e2cd2877",
+    "gnrpy/gnr/web/gnrwebstruct/dojo11.py": "5be7bdd87ac22cefbd5afe9fc6d5090c3fcf32fb09ab5269414aa429efeac62a",
+    "gnrpy/gnr/web/gnrwebstruct/dojo20.py": "2d3295b1b739d619e859f487a40bf2a3fb99f56b9a6c970194301780c50cefbd",
+    "gnrpy/gnr/web/gnrwebstruct/formbuilder.py": "677257a037eb38941849dadd01c32a5f533c05185a9428567c743b6d2ad33cfe",
+    "gnrpy/gnr/web/gnrwebstruct/gridstruct.py": "9f5d02b534c963829564da784b522b8409a065a1e2a691149614ecf3e8c8afa8",
+    "gnrpy/gnr/web/gnrwsgisite.py": "1f679275d922091c70918ab1124665da72b4236ca0a921541db2cf1b0aacd2ae",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/datacollector.py": "129a71eecfcf2c964ff1cb6710913355eba04ebb2bc5791d29272ea8ec68f46a",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrpwahandler.py": "bdeeb35d64d59679cd7c9639bfdcccb2b80c77869ee486a8e8066b36fa3a9c13",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrresourceloader.py": "7caf0615ebb07e58eb5b367cfbb803771c71990596137d386c6a4fc84e84a4c0",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrstatichandler.py": "9338c843e050b37a0cb9107f6b0ab0e6c2bb6b1d9daefcfd5a895b3910feb953",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrstoragehandler.py": "1db14576388ab3c4da4e2eda90cc793905d61b8c2f0b1f3fb9baf9f1203c05ea",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrwebsockethandler.py": "9f80d829d131c3a9c62b28f9cf75f2cc64a885b7cc8b42c86db8054c62cadfce",
+    "gnrpy/gnr/web/verifiers.py": "02dfb483c83244666edf04ba60493a063d71fe4981cd7bfdf3470359fd35ab4d",
+    "projects/gnrcore/packages/adm/main.py": "e32ded315b616b3c9c5c8e262a5501101601b5ba07a33c6bf23941b4a39f36c8",
+    "projects/gnrcore/packages/adm/model/_packages/sys/task.py": "40abd0b1f867381eb96213aaa8444ee770fecc378014a24bc148685d928e4fc9",
+    "projects/gnrcore/packages/adm/model/access_group.py": "e2bcddd3ce1b79cfade1e83b8d365c81adfb2cf325abcd8d0b9da83d22ce2811",
+    "projects/gnrcore/packages/adm/model/api_token.py": "898e68417949db2b2989bb026a2fa03741416b5c15c864b8a3308da5488d4370",
+    "projects/gnrcore/packages/adm/model/api_token_tag.py": "5b1f950098752fd888fe528d8460e4c09ea384c7b57738d0031816ff9c61f1f5",
+    "projects/gnrcore/packages/adm/model/audit.py": "c8ce9d0bbf37f451955a3ec9cfa76164ff3f97c4b242413f59c5cee6608fe11c",
+    "projects/gnrcore/packages/adm/model/authorization.py": "c1b4f9bd9f66abd88248db86c43965fc432140c9b2396fded98ea868077d30e2",
+    "projects/gnrcore/packages/adm/model/backup.py": "0d32c160befdec3f83a27ae4782e3ac278fdc071a14023441053bc54e40fcc77",
+    "projects/gnrcore/packages/adm/model/ckstyle.py": "667119d0c8147361e933aa919c48d0bdaee6180093baf9c7aef13cdb3edc1db3",
+    "projects/gnrcore/packages/adm/model/connection.py": "25922e6b4bcbf3572306f958aad3c16e73cf77c2f1ba242feb0b4a449065d08f",
+    "projects/gnrcore/packages/adm/model/counter.py": "543fa4c606a978c6befb783874c7de0b3318b0e04a958e94787cce92398e5332",
+    "projects/gnrcore/packages/adm/model/day.py": "c30d7f03c80d4c9e84dea55821b9e491357653eda9a12df323d2edd9022738ca",
+    "projects/gnrcore/packages/adm/model/group.py": "2edae1c79e42217cb98f3ebfdb145a2db4028905f4e092bbae23275e716bd20c",
+    "projects/gnrcore/packages/adm/model/group_helpdoc.py": "a27d57f7946d10830b47b418919836e72d60a76994522addeec2f29dee32aee5",
+    "projects/gnrcore/packages/adm/model/helpdoc.py": "7f362f8b23a22928a3cedb9d469bb370ca88d64caaeca1c45da10759fc0a810e",
+    "projects/gnrcore/packages/adm/model/htag.py": "cc1c146c9c1315b878a216e630cd1881cad9bf1dec99f0f08755e66d53827270",
+    "projects/gnrcore/packages/adm/model/htmltemplate.py": "ec0430136127531ea582daddc4f263746f6269a54802fdc6240cc6a7f207eaf1",
+    "projects/gnrcore/packages/adm/model/htmltemplate_atc.py": "1bb40a448344e1c3b72062d6ed80f4fb6858ef85b05b5aa0f2d4b191463f86eb",
+    "projects/gnrcore/packages/adm/model/install_checklist.py": "20ed0176b4a46a0ae2d9d5a364bc0845d45beae0898ad1c33472b02362fbf813",
+    "projects/gnrcore/packages/adm/model/language.py": "dc068abbcdb347fc06b21606c7396c4f730fd8a8ba4ae859f2fc103c8eab70e4",
+    "projects/gnrcore/packages/adm/model/letterhead_type.py": "114c622198873165bf4ce131aa830cfd6d54d4abcedf23e0c02c428ca31311e8",
+    "projects/gnrcore/packages/adm/model/menu.py": "724f702d49e10f513c8d96257437d76927560437603148f006e3ab2f167584fe",
+    "projects/gnrcore/packages/adm/model/menu_page.py": "e50d123b5757086f20bea8d9254e4bd4842e956bf089c4402dc49d2bac8335cf",
+    "projects/gnrcore/packages/adm/model/notification.py": "7578129e611a533f1ed42a0d9f41afa3760d9b1e46aa2c60b254c9d4c3c9c6f8",
+    "projects/gnrcore/packages/adm/model/pkginfo.py": "0e081ed451e78bafb6150236e41b1827c62b0b07be44a0b534a3277e4e3750b1",
+    "projects/gnrcore/packages/adm/model/preference.py": "ba074cf58b4bf21b1f2f6728e0a232d54728d69fd28b6e0c1d619d1d9235fa86",
+    "projects/gnrcore/packages/adm/model/record_tag.py": "06c231ecc1dc94753ece00060d0bf48934346331da8171ebe0d120eec74abf6c",
+    "projects/gnrcore/packages/adm/model/sent_email.py": "52d74065aed1a460490475bb369b485f97173ec853e7f212580213f04c1000c1",
+    "projects/gnrcore/packages/adm/model/served_page.py": "863a47ed32e3331267bb05444af93faa090348da282ec17c6ec14110c5c09761",
+    "projects/gnrcore/packages/adm/model/shortcut.py": "e48adcb5c48f9ba211f01559ec6f4eb8eb51b40d275b9de17e52df6b4a8b77e8",
+    "projects/gnrcore/packages/adm/model/tblinfo.py": "62441dab50c549d424819c6ff518f4b0e515113b7dfd7800b48000e8636e0384",
+    "projects/gnrcore/packages/adm/model/tblinfo_item.py": "97a7af17cabfb43a7bad4f47116cb590d418987e11a54c12f5e9dfe15849c70f",
+    "projects/gnrcore/packages/adm/model/user.py": "a5aba23ecf28a376b6e4dd4bd293857f6d588aa91a80f157efe43f0cd2344b11",
+    "projects/gnrcore/packages/adm/model/user_access_group.py": "f321b5e6ba1ee55589dc612fd0ce37f15d792984308978239346dfd44ce88620",
+    "projects/gnrcore/packages/adm/model/user_config.py": "da717140d0406b5cd89c470b0a38745ac940b1277d93a2c2a0fc45ce42fe885b",
+    "projects/gnrcore/packages/adm/model/user_group.py": "c8c825ed64cbc76705d00b754221e272ebd1a19a6dca1d7b62e26bb1c7fe3e23",
+    "projects/gnrcore/packages/adm/model/user_notification.py": "ab6f7f086c4312b5ef507c29cf8461d22a1c83647524a6863a1b5168155e9273",
+    "projects/gnrcore/packages/adm/model/user_setting.py": "95bd97ee8e32d58175d8a9059d2b16548d87465248a159f239ddc2e755162aa9",
+    "projects/gnrcore/packages/adm/model/user_tag.py": "48f17ae76da82d6f6be003583c5b82eecbc718991d0ebd2682a70019c35c57fd",
+    "projects/gnrcore/packages/adm/model/userobject.py": "95f1eda3d637ab8c3266a1d5557d0db30a6e8ceef8beacdeee80547638ac031c",
+    "projects/gnrcore/packages/adm/model/week.py": "546e517062efdf3a9ad61c68e467b74ae2f9db7a72e39b010f5aae6d0d40829b",
+    "projects/gnrcore/packages/adm/model/xgroup.py": "c5ba506d4c3486cff97fe321055d804e4eb2f650c69107e98fada791914df6f6",
+    "projects/gnrcore/packages/sys/main.py": "7fb6302bf334d1f459a50640ce0ccde67a0281825cd68a8fab3a44de912d9b04",
+    "projects/gnrcore/packages/sys/model/batch_log.py": "b43c0a8faa957b3ccf64ae0e311b9c1c76d0e9f079bdc88b84ba928d7438ea16",
+    "projects/gnrcore/packages/sys/model/calendar.py": "9930cb2e206bea9b1a60bedf708150d01878679e64037449ba7f3a621159f536",
+    "projects/gnrcore/packages/sys/model/dataretention.py": "6b9d8a9b05916c5f044ebf173490411ba71316e0cccb28c2b2a66bdbc5334c6d",
+    "projects/gnrcore/packages/sys/model/dbchange.py": "50f5672d7a29b924bf12ccfc1543f1241cbf4db65d8d72e04f81483fc9735677",
+    "projects/gnrcore/packages/sys/model/error.py": "3628a4ddce290a0a437c244ddb8d38071e5f87fe4f437b64d6d4c672a6e5313a",
+    "projects/gnrcore/packages/sys/model/external_token.py": "b165f8942cca0ed7974ddeac1692eef024aeba54415611b93e7cdee251d4ce9d",
+    "projects/gnrcore/packages/sys/model/external_token_use.py": "ee364435e2f03033709beb2266076a538aac6c0b16d3363bebad595c5cfca92f",
+    "projects/gnrcore/packages/sys/model/externalcall_log.py": "9155945c68e4a2ecdc77a451aeab360a8b799928f3fb86cb52bf3656de98e6e2",
+    "projects/gnrcore/packages/sys/model/locked_record.py": "15da6da561544e499a2e35560954af98a9ee41272f857b76206951a3f77c0276",
+    "projects/gnrcore/packages/sys/model/service.py": "da87c01ca4c9e83d93d3e326e47849208b09f10c2d52a481ae90150673e9a853",
+    "projects/gnrcore/packages/sys/model/shared_object.py": "c496cdb230492554ac815160eb5a07a007c045e5cced3322131a111c4025d156",
+    "projects/gnrcore/packages/sys/model/shorturl.py": "1f2a2e134e3f1d353753afb1c019c16ae0bf63ef93941f0d8b6a4d0e2d2b83f9",
+    "projects/gnrcore/packages/sys/model/task.py": "2ed0868a185ab0a77f5d37773326638dcd4a471e190b32c44c709cf9216ab137",
+    "projects/gnrcore/packages/sys/model/task_execution.py": "9f3279b30413ddb7004f887bfe32618d78ec25a2774657e4bf7241000031cda5",
+    "projects/gnrcore/packages/sys/model/task_result.py": "fbc99a46858ca9f82cba2dfef8044b33f0fbc2893f220f656fc6fac51439ab60",
+    "projects/gnrcore/packages/sys/model/upgrade.py": "b256d035a05d580eeeb2575c52eb81ab0d15bfc13edde54f23ff663c3e2f9440",
+    "projects/gnrcore/packages/sys/model/widget.py": "f0fa9b6419021899fadc943dbf25d65d974b4290df8f55d453f0d7d79b2e883c",
+    "projects/test_invoice/packages/invc/main.py": "23948bdd4ca75a3c478532ac0a1d65cb7dde709448a7daa2893bc9e60a1bc42c",
+    "projects/test_invoice/packages/invc/model/customer.py": "f3f76a6c57c6682502afabe328b5e18d9ff418efabdb56e36b7623c2ce5c45b4",
+    "projects/test_invoice/packages/invc/model/customer_type.py": "2999028f75bd7f3ce73afbf4fccc8372df69a4aee2ab46836d840a15767cc242",
+    "projects/test_invoice/packages/invc/model/discount_tier.py": "4a1f004b5eda312a863d13cc9f019ce9bba82f60fdf747e156eeaf23048c4761",
+    "projects/test_invoice/packages/invc/model/invoice.py": "71f1ef0b6ad9cc20ddc37383ae08744e94b83fcf4a594204ef11d4947b6fbd8b",
+    "projects/test_invoice/packages/invc/model/invoice_note.py": "fdf3e7d61cb64e9876bbfa273d7f45e5eebff48a0b23374a0ebca3d7550d55c3",
+    "projects/test_invoice/packages/invc/model/invoice_row.py": "efe2006560c1753630a1873a3e33f09c28107c773e9ea82467d6391c355f3dd4",
+    "projects/test_invoice/packages/invc/model/payment_type.py": "c5672daa4d420802f7088ad9482368b95713915c23a95e61060367785682eaec",
+    "projects/test_invoice/packages/invc/model/postcode.py": "100df477a120d6e5cd7a18b3e303b9f0cedc38a4b105416181610c298bf985ef",
+    "projects/test_invoice/packages/invc/model/price_year.py": "48961724f864f130c2c59b42cf50ba684bbb075c67ae990418a10417d0562983",
+    "projects/test_invoice/packages/invc/model/price_year_note.py": "e22bea4fdfce53faf64d1974ad8a3fc826ca613e8c156d1c6804277d3dc7e49f",
+    "projects/test_invoice/packages/invc/model/product.py": "2225c75ce1cf8fca62c46d8db7b6a3ce0b7ae72c38a71b24919e04382bf767b8",
+    "projects/test_invoice/packages/invc/model/product_group.py": "843362e819ea035948036f0e4a441fed905998fc60c9693824beec19585fed41",
+    "projects/test_invoice/packages/invc/model/product_type.py": "f8a6bc9a38bd27e366a60e3c14367092eb47e15cf119aa280fd64a410916ba0f",
+    "projects/test_invoice/packages/invc/model/region.py": "3ad7ed5b7a0e9b00b9bfec034de6b6ac0f79f2c0d4f99ecd00bd6e87e324339d",
+    "projects/test_invoice/packages/invc/model/staff.py": "4d315c52b346ce233df251ec2f7db514f01dd4e303698cbbd3b31a273e7f08b9",
+    "projects/test_invoice/packages/invc/model/staff_role.py": "a5b8935b7f165eeddf85d12dd8ecce432e26308b2926fdcbe9560dcabfe2286e",
+    "projects/test_invoice/packages/invc/model/state.py": "4a85671eba7775a08dbdcba977aed888ea602584ea2184db1e17c5c1e87aa97a",
+    "projects/test_invoice/packages/invc/model/vat_type.py": "c67510e283501730f02c50a65a80c68fd6a8c4b97c472b04f260f820c8c73a80"
+  },
+  "artifacts": {
+    "source.xml": "0c34f332e6e9682d1abcbc3726a5b4f206f007e6d80eb732365a59127e57f82c",
+    "model.json": "044e63b40d747826dd8e60aba0b0427ff15451a8f39d8cdc08485087b09530c7",
+    "physical.json": "12a005bac4f27084ee7329da1af8cec986f28cee17a8c10786389a46e7a49992"
+  }
+}

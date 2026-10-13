@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "asqueel"
-version = "0.5.2"
+version = "0.6.0"
 description = "SQL model, PostgreSQL compiler and synchronous runtime"
 readme = "README.md"
 license = "Apache-2.0"
@@ -38,6 +38,7 @@ classifiers = [
 dependencies = [
     "genro-builders>=0.27.0",
     "genro-bag>=0.27.0",
+    "genro-toolbox>=0.14.0",
 ]
 
 [project.optional-dependencies]
@@ -80,6 +81,8 @@ packages = ["src/asqueel"]
 
 [tool.hatch.build.targets.sdist]
 include = ["/src", "/tests", "/scripts", "/docs", "/examples", "/assets", "/requirements",
+           "/artifacts/test_invoice_pg/migration.json",
+           "/artifacts/test_invoice_pg/native/migration.json",
            "/README.md", "/LICENSE", "/NOTICE", "/pyproject.toml", "/.readthedocs.yaml"]
 exclude = ["/docs/_build"]
 
