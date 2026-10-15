@@ -1,0 +1,108 @@
+[
+  {
+    "label": "legacy",
+    "cases": 62,
+    "compile": {
+      "ok": 62
+    },
+    "execute": {
+      "ok": 31,
+      "not_run": 31
+    },
+    "same_rows_columns": 31
+  },
+  {
+    "label": "compound",
+    "cases": 62,
+    "compile": {
+      "ok": 62
+    },
+    "execute": {
+      "ok": 30,
+      "error": 1,
+      "not_run": 31
+    },
+    "same_rows_columns": 29
+  },
+  {
+    "label": "v2",
+    "cases": 62,
+    "compile": {
+      "ok": 60,
+      "error": 2
+    },
+    "execute": {
+      "ok": 19,
+      "error": 11,
+      "not_run": 32
+    },
+    "same_rows_columns": 19
+  },
+  {
+    "label": "v3",
+    "cases": 62,
+    "compile": {
+      "ok": 58,
+      "error": 4
+    },
+    "execute": {
+      "ok": 28,
+      "not_run": 33,
+      "error": 1
+    },
+    "same_rows_columns": 27
+  },
+  {
+    "label": "v3_merged",
+    "cases": 62,
+    "compile": {
+      "ok": 58,
+      "error": 4
+    },
+    "execute": {
+      "ok": 28,
+      "not_run": 33,
+      "error": 1
+    },
+    "same_rows_columns": 28
+  },
+  {
+    "label": "v4",
+    "cases": 62,
+    "compile": {
+      "ok": 58,
+      "error": 4
+    },
+    "execute": {
+      "ok": 28,
+      "not_run": 33,
+      "error": 1
+    },
+    "same_rows_columns": 28
+  },
+  {
+    "label": "simplify",
+    "cases": 62,
+    "compile": {
+      "ok": 62
+    },
+    "execute": {
+      "ok": 21,
+      "error": 10,
+      "not_run": 31
+    },
+    "same_rows_columns": 21
+  },
+  {
+    "label": "next",
+    "cases": 62,
+    "compile": {
+      "ok": 62
+    },
+    "execute": {
+      "ok": 31,
+      "not_run": 31
+    },
+    "same_rows_columns": 31
+  }
+]

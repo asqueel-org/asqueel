@@ -131,9 +131,9 @@ def test_adapter_mismatch_and_plan_mismatch_are_rejected(model):
 def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(model):
     compiler = PostgresCompiler(model)
     selected = compiler.select('invoice', '$id', where='$id=:id', sqlparams={'id': 4}, limit=0)
-    assert selected.sql == ('SELECT "t0"."ID%%" AS "id" FROM "physical"."Bills%%" AS "t0" '
-                            'WHERE "t0"."ID%%"=%(id)s LIMIT 0')
+    assert selected.sql == ('SELECT "t0"."ID%%" AS "id"\n FROM "physical"."Bills%%" AS "t0"\n'
+                            'WHERE "t0"."ID%%"=%(id)s\nLIMIT 0')
     inserted = compiler.insert('invoice', {'id': 4}, returning='$id')
     assert inserted.sql == ('INSERT INTO "physical"."Bills%%" AS "t0" ("ID%%") '
-                            'VALUES (%(__value_0)s) RETURNING "t0"."ID%%" AS "id"')
+                            'VALUES (%(__value_0)s)\nRETURNING "t0"."ID%%" AS "id"')
     assert quote_identifier('a"50%') == '"a""50%%"'

@@ -1,0 +1,42 @@
+{
+  "region": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/region.csv",
+    "sha256": "cf36f525c3e5c7003136acc6f5de71cdfff5e774ed2e16554b7274901b1dd992"
+  },
+  "state": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/state.csv",
+    "sha256": "e4111bce7f8f88706a5c8d8e2ca4eea5ea7c410e965beedddb4941f9b202573e"
+  },
+  "vat_type": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/vat_type.csv",
+    "sha256": "752113c2388bb9ef2618818100da8b7e569bfc2aa93348223d8be1f8e1ad2dec"
+  },
+  "customer": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/customer.csv",
+    "sha256": "0114f4dc7629a737c711db05e96dccce843722b08bcea412142a970798c25f12"
+  },
+  "product": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/product.csv",
+    "sha256": "e465514660b1f73f07a113e61a624e9b2f8f5d9a87548cc87e67ddc111f703f3"
+  },
+  "invoice": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/invoice.csv",
+    "sha256": "aeaf2ff3c329ae3bb94e969fb1101a94562e602675f876c01c2ed21da32b2d34"
+  },
+  "invoice_row": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/invoice_row.csv",
+    "sha256": "1228ccc0cb35d7dae76e916cd8e2ac7166a7527c516d34fb249efcf3c6b85c44"
+  },
+  "invoice_note": {
+    "path": "/Users/gporcari/Sviluppo/asqueel/asqueel/tests/native_formulas/data/invoice_note.csv",
+    "sha256": "129a4b094943179cebb3faa9d4b4f5f6787b001b19c467741d3f16c9c0162c10"
+  },
+  "price_year": {
+    "path": "/tmp/asqueel-formula-baseline/legacy/projects/test_invoice/data/export/price_year.csv",
+    "sha256": "5512d36893bd7c818447b9926674921acb43592ecefa11d3238e904972b63ab0"
+  },
+  "price_year_note": {
+    "path": "/tmp/asqueel-formula-baseline/legacy/projects/test_invoice/data/export/price_year_note.csv",
+    "sha256": "b0ac4446c8b77fcb937a8476e3a7d89950beef29227b5023659a996def0ef89c"
+  }
+}

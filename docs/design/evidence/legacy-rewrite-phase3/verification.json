@@ -1,0 +1,27 @@
+{
+  "phase": 3,
+  "full_suite": {
+    "passed": 4516,
+    "skipped": 21,
+    "xfail": 10
+  },
+  "runtime": {
+    "passed": 170,
+    "skipped": 8,
+    "xfail": 2
+  },
+  "scopes": {
+    "passed": 38
+  },
+  "ruff": "passed",
+  "sphinx": "passed",
+  "mypy": {
+    "new_errors": 0,
+    "preexisting_errors": 2
+  },
+  "supported_comparisons": 334,
+  "migration_tables": 74,
+  "migration_unchanged": true,
+  "many_handlers": 0,
+  "default_compiler_changed": false
+}

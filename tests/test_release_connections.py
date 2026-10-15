@@ -158,9 +158,9 @@ def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
         connection.close()
         db.connection(name, database=str(path)).options().driver(timeout=1)
     with build_database(builder) as database:
-        assert database.execute('SELECT value FROM marker').rows == [{'value': 'main'}]
+        assert [dict(row) for row in database.execute('SELECT value FROM marker').rows] == [{'value': 'main'}]
         database.commit()
         with database.tempEnv(connectionName='reporting'):
-            assert database.execute('SELECT value FROM marker').rows == [{'value': 'reporting'}]
+            assert [dict(row) for row in database.execute('SELECT value FROM marker').rows] == [{'value': 'reporting'}]
             database.commit()
-        assert database.execute('SELECT value FROM marker').rows == [{'value': 'main'}]
+        assert [dict(row) for row in database.execute('SELECT value FROM marker').rows] == [{'value': 'main'}]

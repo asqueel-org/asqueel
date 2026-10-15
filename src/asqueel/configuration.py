@@ -81,6 +81,11 @@ class SqlDatabaseConfig(SqlDatabaseElements, SqlBuilder, ConfigBuilder):
         from .object_renderer import SqlObjectRenderer
         return SqlObjectRenderer(self)
 
+    @property
+    def renderer_objects_tree(self):
+        from .object_tree_renderer import SqlObjectTreeRenderer
+        return SqlObjectTreeRenderer(self)
+
 
 def _copy_recipe(recipe):
     # Renderer products and delivery targets are live resources, not declaration
@@ -197,10 +202,12 @@ def _compose_source(builder, target, incoming):
                 added.value = type(value)(builder=builder)
                 _compose_source(builder, added.value, value)
             continue
+        attributes = dict(node.attr)
         if existing.node_tag != node.node_tag:
-            raise ValueError(f'{existing.fullpath}: conflicting element kinds '
-                             f'{existing.node_tag!r} and {node.node_tag!r}')
-        builder._compose_attributes(existing, dict(node.attr))
+            group = (node.attr.get('_meta') or {}).get('colgroup')
+            if group and (existing.get_attr('group') or '').startswith(group + '.'):
+                attributes.pop('group', None)
+        builder._compose_attributes(existing, attributes, node_tag=node.node_tag)
         value = node.get_value(static=True)
         previous = existing.get_value(static=True)
         if node.node_tag == 'options' and isinstance(previous, Bag):

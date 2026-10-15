@@ -1,0 +1,1 @@
+8 SELECT cases: proposed ClientCursor matches psycopg2; quoted parameter differs with server binding

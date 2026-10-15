@@ -97,7 +97,7 @@ def test_ordinary_cardinality_and_raw_predicates(make_db, table_hooks, db_hooks,
         assert before[2] == ({'name': 'raw'} if operation == 'update' else None)
         assert before[3:] == after[3:] == (None, True)
     db.rollback()
-    assert table.query(order_by='$id').fetch() == [{'id': 1, 'name': 'default'}, {'id': 2, 'name': 'default'}]
+    assert [dict(row) for row in table.query(order_by='$id').fetch()] == [{'id': 1, 'name': 'default'}, {'id': 2, 'name': 'default'}]
     result = raw({'name': 'raw'}, where='$id=99') if operation == 'update' else raw(where='$id=99')
     assert result.rowcount == 0
     db.rollback()
@@ -112,7 +112,7 @@ def test_raw_insert_list_results_defaults_and_no_implicit_commit(make_db):
     records = [{'id': 1, 'name': 'first'}, {'id': 2}]
     original = deepcopy(records)
     result = db.raw_insert('item', records)
-    assert result.rows == [{'id': 1, 'name': 'first'}, {'id': 2, 'name': 'default'}]
+    assert [dict(row) for row in result.rows] == [{'id': 1, 'name': 'first'}, {'id': 2, 'name': 'default'}]
     assert result.rowcount == 2 and [c.name for c in result.columns] == ['id', 'name']
     assert records == original
     assert db.currentEnv['table_events'] == []

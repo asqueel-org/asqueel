@@ -57,7 +57,7 @@ def alias_database():
                     columns.column('amount', dtype='I')
                     virtual = invoice.virtual_columns()
                     virtual.aliasColumn('customer_name', relation_path='@customer.name',
-                                        name_long='Buyer name', x_ui_label='Buyer')
+                                        name_long='Buyer name', x_ui_label='Buyer', static=True)
                     virtual.aliasColumn('country_name', relation_path='@customer.@country.name')
                     virtual.aliasColumn('country_chain', relation_path='@customer.country_name')
                     virtual.aliasColumn('loud_customer', relation_path='@customer.loud_name')
@@ -72,7 +72,7 @@ def test_alias_projection_filter_order_null_chains_and_formula(alias_database):
     table = alias_database.table('invoice')
     query = table.query('$id,$customer_name,$country_name,$country_chain,$loud_customer', order_by='$id')
     result = query.execute()
-    assert result.rows == [
+    assert [dict(row) for row in result.rows] == [
         {'id': 1, 'customer_name': 'Alice', 'country_name': 'Italy',
          'country_chain': 'Italy', 'loud_customer': 'ALICE'},
         {'id': 2, 'customer_name': 'Bob', 'country_name': None,
@@ -85,7 +85,7 @@ def test_alias_projection_filter_order_null_chains_and_formula(alias_database):
     assert metadata['customer_name'].dtype == 'T'
     assert metadata['customer_name'].ui['label'] == 'Buyer'
     filtered = table.query('$id,$customer_name', where='$customer_name=:name', name='Alice').fetch()
-    assert filtered == [{'id': 1, 'customer_name': 'Alice'}]
+    assert [dict(row) for row in filtered] == [{'id': 1, 'customer_name': 'Alice'}]
     assert [r['id'] for r in table.query('$id', where='$customer_name IS NOT NULL',
                                         order_by='$customer_name DESC').fetch()] == [2, 1]
 
@@ -118,9 +118,9 @@ def test_aliases_are_read_only_and_default_dml_returning_is_physical(alias_datab
     db.rollback()
     with completed(db):
         inserted = table.insert({'id': 4, 'customer_id': 1, 'amount': 40})
-        assert inserted.rows == [{'id': 4, 'customer_id': 1, 'amount': 40}]
+        assert [dict(row) for row in inserted.rows] == [{'id': 4, 'customer_id': 1, 'amount': 40}]
         updated = table.update({'amount': 41}, where='$id=4')
-        assert updated.rows == [{'id': 4, 'customer_id': 1, 'amount': 41}]
+        assert [dict(row) for row in updated.rows] == [{'id': 4, 'customer_id': 1, 'amount': 41}]
         assert table.record(4).output()['customer_name'] == 'Alice'
         deleted = table.delete(4)
-        assert deleted.rows == [{'id': 4, 'customer_id': 1, 'amount': 41}]
+        assert [dict(row) for row in deleted.rows] == [{'id': 4, 'customer_id': 1, 'amount': 41}]

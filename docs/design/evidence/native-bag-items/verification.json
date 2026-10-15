@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-14",
+  "legacy_original": {
+    "passed": 15,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "full_suite": {
+    "passed": 1974,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 13
+  },
+  "result_tests": {
+    "passed": 13,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_tests": {
+    "ported_legacy": 15,
+    "compile_only": 10,
+    "postgres_values": 9
+  },
+  "native_bag_columns": "3/3 compiled",
+  "ruff": "passed",
+  "mypy": "passed (52 source files)",
+  "sphinx": "passed (strict build)",
+  "documentation_examples": "10 passed after final guide updates",
+  "commands": {
+    "pytest": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts= --junitxml=docs/design/evidence/native-bag-items/asqueel-full.xml",
+    "legacy": "PYTHONPATH=gnrpy:gnrpy/tests /tmp/asqueel-formula-baseline/env/bin/python -m pytest -q -o addopts= gnrpy/tests/sql/test_compiler_coverage.py gnrpy/tests/sql/test_model_structure.py -k \"bagItem or bag_item\"",
+    "comparison": "venv/bin/python docs/design/probes/replay_bag_items.py",
+    "ruff": "venv/bin/python -m ruff check src tests scripts",
+    "mypy": "venv/bin/python -m mypy src/asqueel",
+    "sphinx": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m sphinx -W --keep-going -b html docs /tmp/asqueel-bag-docs"
+  },
+  "git_diff_check": "passed",
+  "limitations": [
+    "SQLite XPath extraction rejected at compilation; no emulation",
+    "No XML/Python decoding or BAG/BAGCOLS macro implementation",
+    "RuntimeModel integration remains separate; query chains and operators deferred"
+  ]
+}

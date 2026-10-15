@@ -9,6 +9,29 @@ The supported policies are logical partition scopes, draft visibility, and
 logical deletion. Logical partition scopes add query predicates; they do not
 create PostgreSQL partitions or route queries to other databases.
 
+## Native package options
+
+`sys_fields(draft=True)` supplies the draft marker; enabled logical deletion
+supplies its marker too. SELECT uses these render declarations, never guesses
+policy from a column name. Read flags override these filters as shown below.
+
+`partition(name, field=..., value=..., required=False)` currently supports one
+scalar current value. A present value becomes a bound equality; `None` adds no
+filter unless `required=True`, which raises an error. `ignorePartition=True`
+bypasses it. Zero, False and the empty string are present values. Disabled
+options do not filter. Collections are rejected; allowed sets remain undecided
+for this native option. An alias such as invoice.customer_state uses the
+existing relation path and JOIN.
+
+Existing resolvers resolve the value during source-to-model render. The compiler
+uses that model value; it does not invent environment keys or re-evaluate the
+resolver. Native partition write lifecycle is outside this increment. The older
+`x_partition` contract below retains its separate environment and write semantics.
+
+Filters apply to the SELECT root, not automatically to joined tables. Formula
+subqueries retain legacy defaults (include drafts/deleted rows, ignore partition)
+and can explicitly override them.
+
 ## Declare policies in a model
 
 ```python

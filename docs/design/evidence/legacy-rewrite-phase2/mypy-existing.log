@@ -1,0 +1,8 @@
+src/asqueel/validators.py:55: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/asqueel/validators.py:60: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/asqueel/validators.py:61: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/asqueel/dialects/postgres.py:127: error: Argument 1 to "Identifier" has incompatible type "str | None"; expected "str"  [arg-type]
+src/asqueel/dialects/postgres.py:313: error: Argument 3 to "SqlStatement" has incompatible type "tuple[ResultColumn | None, ...]"; expected "tuple[ResultColumn, ...]"  [arg-type]
+src/asqueel/object_tree.py:38: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/asqueel/object_tree_compiler.py:34: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+Found 2 errors in 1 file (checked 59 source files)

@@ -66,11 +66,11 @@ def test_manual_unit_of_work_is_shared_and_invisible_until_explicit_commit(appli
     assert item is db.table('app.item')
     assert db.table('audit').relation('item_id').target is item
     result = item.insert({'id': 1, 'name': ' first '})
-    assert result.rows == [{'id': 1, 'name': 'first'}]
+    assert [dict(row) for row in result.rows] == [{'id': 1, 'name': 'first'}]
     item.insert({'id': 2, 'name': 'second'})
-    assert item.query(order_by='$id').fetch() == [
+    assert [dict(row) for row in item.query(order_by='$id').fetch()] == [
         {'id': 1, 'name': 'first'}, {'id': 2, 'name': 'second'}]
-    assert db.table('audit').query(order_by='$id').fetch() == [
+    assert [dict(row) for row in db.table('audit').query(order_by='$id').fetch()] == [
         {'id': 1, 'item_id': 1}, {'id': 2, 'item_id': 2}]
     assert rows('item') == rows('audit') == []
     db.commit()
@@ -127,9 +127,9 @@ def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(
     query = db.table('item').query(where='$id=:env_item')
     with db.temp_env(item=1):
         compiled = query.compiled
-        assert query.fetch() == [{'id': 1, 'name': 'same'}]
+        assert [dict(row) for row in query.fetch()] == [{'id': 1, 'name': 'same'}]
     with db.temp_env(item=2):
-        assert query.fetch() == [{'id': 2, 'name': 'same'}]
+        assert [dict(row) for row in query.fetch()] == [{'id': 2, 'name': 'same'}]
         with pytest.raises(EnvironmentMismatchError):
             db.execute(compiled)
     record = db.table('item').record(1)

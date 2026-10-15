@@ -1,0 +1,38 @@
+.............................F.F.............                            [100%]
+=================================== FAILURES ===================================
+_____________ test_generated_markers_and_scalar_partition[sqlite] ______________
+
+backend = 'sqlite'
+
+    def test_generated_markers_and_scalar_partition(backend):
+        with tree_database(original.source(backend)) as db:
+            table = db.table('sales.customer')
+            query = table.query('$id', where='$state=:state OR $state IS NULL', state='VIC').compiled
+            # SQLite preparation retains the R3 legacy IS NOT TRUE -> IS NOT 1.
+            draft = 'TRUE' if backend == 'postgresql' else '1'
+>           assert f'"__is_draft" IS NOT {draft}' in query.sql
+E           assert '"__is_draft" IS NOT 1' in 'SELECT "t0"."id" AS "id"\n FROM "main"."sales_customer" AS "t0"\nWHERE ("t0"."state"=:state OR "t0"."state" IS NULL) AND ("t0"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL) AND (("t0"."__is_draft" IS NULL OR "t0"."__is_draft" !=1))'
+E            +  where 'SELECT "t0"."id" AS "id"\n FROM "main"."sales_customer" AS "t0"\nWHERE ("t0"."state"=:state OR "t0"."state" IS NULL) AND ("t0"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL) AND (("t0"."__is_draft" IS NULL OR "t0"."__is_draft" !=1))' = CompiledQuery(sql='SELECT "t0"."id" AS "id"\n FROM "main"."sales_customer" AS "t0"\nWHERE ("t0"."state"=:state OR "t0"...'sales.customer.id', ui={}),), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=('state',)).sql
+
+tests/object_tree/test_phase4_options.py:62: AssertionError
+__ test_child_defaults_and_overrides_keep_partition_bindings_isolated[sqlite] __
+
+backend = 'sqlite'
+
+    def test_child_defaults_and_overrides_keep_partition_bindings_isolated(backend):
+        with tree_database(original.source(backend)) as db:
+            table = db.table('sales.invoice')
+            default = table.query('$all_customers').compiled
+            assert '__is_draft' not in default.sql
+            assert list(default.params.values()) == ['NSW']
+            query = table.query('$visible_customers').compiled
+            draft = 'TRUE' if backend == 'postgresql' else '1'
+>           assert f'"__is_draft" IS NOT {draft}' in query.sql
+E           assert '"__is_draft" IS NOT 1' in 'SELECT (  ( SELECT COUNT(*) AS "COUNT___"\n FROM "main"."sales_customer" AS "t0_t0"\nWHERE (TRUE) AND ("t0_t0"."state...ustomer" AS "t1" ON (("t0"."customer_id")="t1"."id")\nWHERE ("t1"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL)'
+E            +  where 'SELECT (  ( SELECT COUNT(*) AS "COUNT___"\n FROM "main"."sales_customer" AS "t0_t0"\nWHERE (TRUE) AND ("t0_t0"."state...ustomer" AS "t1" ON (("t0"."customer_id")="t1"."id")\nWHERE ("t1"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL)' = CompiledQuery(sql='SELECT (  ( SELECT COUNT(*) AS "COUNT___"\n FROM "main"."sales_customer" AS "t0_t0"\nWHERE (TRUE) A....invoice.visible_customers', ui={}),), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_phase4_options.py:78: AssertionError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_phase4_options.py::test_generated_markers_and_scalar_partition[sqlite]
+FAILED tests/object_tree/test_phase4_options.py::test_child_defaults_and_overrides_keep_partition_bindings_isolated[sqlite]
+2 failed, 43 passed in 2.18s

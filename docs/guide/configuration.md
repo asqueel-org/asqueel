@@ -5,8 +5,8 @@ Builders recipe. `AsqueelDb()` produces a synchronous `SqlDatabase` with
 stable table, column and relation objects. Construction validates and binds the
 model without connecting, executing SQL, or applying migrations.
 
-The [CLI and named configurations](cli.md) guide covers the singleton
-`connection` declaration with `EnvResolver`, `~/.asqueel` registration,
+The [CLI and named configurations](cli.md) guide covers named
+`connection` declarations with `EnvResolver`, `~/.asqueel` registration,
 migration commands and a Python console with `db` available. The older root
 connection attributes shown below remain supported.
 
@@ -82,8 +82,8 @@ finally:
 
 Configuration reads use the handler's read stack: written values, annotated
 signature defaults, then the caller's explicit default. A missing value without
-a default raises `KeyError`. `None` means missing in this stack; `False`, zero
-and empty strings remain values.
+a default raises `KeyError`. Explicit nullable SQL attributes retain `None`;
+`False`, zero and empty strings also remain values.
 
 ```python
 db = AsqueelDb(Shop)
@@ -176,7 +176,21 @@ use; it does not require a second compiler or an alternative migration system.
 
 ### Connection implementation inheritance
 
-`connection(implementation=...)` explicitly selects the backend. When omitted,
-it inherits `db(implementation=...)`, whose default is PostgreSQL. For example,
-`root.db("demo", implementation="sqlite").connection(name="app.db")` selects
-SQLite. An explicit connection implementation overrides the DB default.
+`connection(implementation=...)` selects the backend; when omitted it inherits
+`db(implementation=...)`, whose default is PostgreSQL. Named connections use the
+same dialect as the DB root:
+
+```python
+root.db("demo", implementation="sqlite").connection("main", database="app.db")
+```
+
+Use `database` for the physical database and `name` for the logical connection.
+Additional connections may target other databases of the same dialect. Select
+one through `db.tempEnv(connectionName="reporting")`; `main` must be declared.
+For PostgreSQL, `dsn` is an alternative to the individual connection fields.
+Driver options belong to `connection.options().driver(...)`.
+
+For compatibility, declarations without `database` or `dsn` still interpret
+`name` as the physical database name and allow an explicit connection backend
+to override the root default. The [CLI guide](cli.md) distinguishes these older
+forms from named connections and documents resolver handling.

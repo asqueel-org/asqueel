@@ -1,0 +1,6346 @@
+{
+  "summary": [
+    {
+      "kind": "aliasColumn",
+      "status": "blocked",
+      "count": 7
+    },
+    {
+      "kind": "aliasColumn",
+      "status": "compiled",
+      "count": 39
+    },
+    {
+      "kind": "bagItemColumn",
+      "status": "blocked",
+      "count": 3
+    },
+    {
+      "kind": "formulaColumn",
+      "status": "blocked",
+      "count": 462
+    },
+    {
+      "kind": "pyColumn",
+      "status": "blocked",
+      "count": 12
+    },
+    {
+      "kind": "subQueryColumn",
+      "status": "blocked",
+      "count": 3
+    }
+  ],
+  "columns": [
+    {
+      "table": "sys.batch_log",
+      "column": "log_caption",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.log_caption: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.batch_log",
+      "column": "logfile_url",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.logfile_url: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.batch_log",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.batch_log",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.batch_log",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.batch_log",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.batch_log",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.batch_log.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.calendar",
+      "column": "year_month",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.calendar.year_month: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.calendar",
+      "column": "holiday",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.calendar.holiday: requires pyColumn compiler capability"
+    },
+    {
+      "table": "sys.calendar",
+      "column": "dow",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.calendar.dow: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.calendar",
+      "column": "weekend",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.calendar.weekend: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.calendar",
+      "column": "day_cal",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.calendar.day_cal: requires pyColumn compiler capability"
+    },
+    {
+      "table": "sys.dataretention",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dataretention.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dataretention",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dataretention.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dataretention",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dataretention.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dataretention",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dataretention.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dataretention",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dataretention.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dbchange",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dbchange.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dbchange",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dbchange.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dbchange",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dbchange.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dbchange",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dbchange.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.dbchange",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.dbchange.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.error",
+      "column": "detail_url",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.error.detail_url: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.error",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.error.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.error",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.error.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.error",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.error.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.error",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.error.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.error",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.error.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.external_token",
+      "column": "external_url",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.external_token.external_url: requires pyColumn compiler capability"
+    },
+    {
+      "table": "sys.externalcall_log",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.externalcall_log.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.externalcall_log",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.externalcall_log.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.externalcall_log",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.externalcall_log.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.externalcall_log",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.externalcall_log.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.externalcall_log",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.externalcall_log.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.service",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.service.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.service",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.service.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.service",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.service.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.service",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.service.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.service",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.service.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shared_object",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shared_object.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shared_object",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shared_object.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shared_object",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shared_object.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shared_object",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shared_object.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shared_object",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shared_object.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shorturl",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shorturl.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shorturl",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shorturl.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shorturl",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shorturl.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shorturl",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shorturl.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.shorturl",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.shorturl.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "active_workers",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.active_workers: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "last_result_ts",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.last_result_ts: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "last_completed",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.last_completed: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "last_error",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.last_error: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_table",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"table_name\" AS \"task_table\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"task_name\" AS \"task_name\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_command",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"command\" AS \"task_command\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_stopped",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"stopped\" AS \"task_stopped\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_parameters",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"parameters\" AS \"task_parameters\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_saved_query",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"saved_query_code\" AS \"task_saved_query\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_worker_code",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"worker_code\" AS \"task_worker_code\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_max_workers",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"max_workers\" AS \"task_max_workers\" FROM \"sys\".\"sys_task_execution\" AS \"t0\" LEFT JOIN \"sys\".\"sys_task\" AS \"t1\" ON \"t0\".\"task_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "task_active_workers",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.task_active_workers: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "status",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.status: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_execution",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_execution.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_result",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_result.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_result",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_result.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_result",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_result.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_result",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_result.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.task_result",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.task_result.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.upgrade",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.upgrade.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.upgrade",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.upgrade.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.upgrade",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.upgrade.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.upgrade",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.upgrade.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.upgrade",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.upgrade.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "child_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.child_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "sys.widget",
+      "column": "hlevel",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "sys.widget.hlevel: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.access_group",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.access_group.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.access_group",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.access_group.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.access_group",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.access_group.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.access_group",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.access_group.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.access_group",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.access_group.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "all_tags",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.all_tags: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "status",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.status: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "tag_code",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token_tag.tag_code: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "tag_description",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"tag_description\" FROM \"adm\".\"adm_api_token_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_htag\" AS \"t1\" ON \"t0\".\"tag_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token_tag.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token_tag.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token_tag.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token_tag.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.api_token_tag",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.api_token_tag.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.audit",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.audit.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.audit",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.audit.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.audit",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.audit.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.audit",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.audit.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.audit",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.audit.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.authorization",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.authorization.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.authorization",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.authorization.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.authorization",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.authorization.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.authorization",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.authorization.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.authorization",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.authorization.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.backup",
+      "column": "completed",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.backup.completed: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.backup",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.backup.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.backup",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.backup.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.backup",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.backup.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.backup",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.backup.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.backup",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.backup.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.ckstyle",
+      "column": "sgroup",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.ckstyle.sgroup: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.ckstyle",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.ckstyle.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.ckstyle",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.ckstyle.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.ckstyle",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.ckstyle.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.ckstyle",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.ckstyle.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.ckstyle",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.ckstyle.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.connection",
+      "column": "user_fullname",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.connection.user_fullname: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.counter",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.counter.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.counter",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.counter.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.counter",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.counter.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.counter",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.counter.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.counter",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.counter.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group",
+      "column": "group_tags",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "select_tg",
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group.group_tags: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group_helpdoc",
+      "column": "url",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"url\" AS \"url\" FROM \"adm\".\"adm_group_helpdoc\" AS \"t0\" LEFT JOIN \"adm\".\"adm_helpdoc\" AS \"t1\" ON \"t0\".\"helpdoc_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.group_helpdoc",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group_helpdoc.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group_helpdoc",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group_helpdoc.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group_helpdoc",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group_helpdoc.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group_helpdoc",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group_helpdoc.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.group_helpdoc",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.group_helpdoc.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.helpdoc",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.helpdoc.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.helpdoc",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.helpdoc.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.helpdoc",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.helpdoc.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.helpdoc",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.helpdoc.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.helpdoc",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.helpdoc.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "authorization_tag",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.authorization_tag: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "child_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.child_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "hlevel",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag.hlevel: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htag",
+      "column": "_h_sortcol",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htag._h_sortcol: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "adapted_url",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.adapted_url: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "fileurl",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.fileurl: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "missing_file",
+      "kind": "pyColumn",
+      "forms": [
+        "method"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.missing_file: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.htmltemplate_atc",
+      "column": "full_external_url",
+      "kind": "pyColumn",
+      "forms": [
+        "method"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.htmltemplate_atc.full_external_url: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.install_checklist",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.install_checklist.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.install_checklist",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.install_checklist.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.install_checklist",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.install_checklist.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.install_checklist",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.install_checklist.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.install_checklist",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.install_checklist.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.language",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.language.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.language",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.language.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.language",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.language.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.language",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.language.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.language",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.language.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.letterhead_type",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.letterhead_type.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.letterhead_type",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.letterhead_type.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.letterhead_type",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.letterhead_type.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.letterhead_type",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.letterhead_type.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.letterhead_type",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.letterhead_type.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "page_label",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"label\" AS \"page_label\" FROM \"adm\".\"adm_menu\" AS \"t0\" LEFT JOIN \"adm\".\"adm_menu_page\" AS \"t1\" ON \"t0\".\"page_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.menu",
+      "column": "page_filepath",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"filepath\" AS \"page_filepath\" FROM \"adm\".\"adm_menu\" AS \"t0\" LEFT JOIN \"adm\".\"adm_menu_page\" AS \"t1\" ON \"t0\".\"page_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.menu",
+      "column": "page_tbl",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"tbl\" AS \"page_tbl\" FROM \"adm\".\"adm_menu\" AS \"t0\" LEFT JOIN \"adm\".\"adm_menu_page\" AS \"t1\" ON \"t0\".\"page_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.menu",
+      "column": "page_metadata",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"metadata\" AS \"page_metadata\" FROM \"adm\".\"adm_menu\" AS \"t0\" LEFT JOIN \"adm\".\"adm_menu_page\" AS \"t1\" ON \"t0\".\"page_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.menu",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "child_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.child_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "hlevel",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu.hlevel: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu",
+      "column": "_h_sortcol",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu._h_sortcol: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu_page",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu_page.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu_page",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu_page.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu_page",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu_page.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu_page",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu_page.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.menu_page",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.menu_page.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "existing_for_current_user",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.existing_for_current_user: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "confirmed_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.confirmed_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "pending_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.pending_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.notification",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.notification.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.pkginfo",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.pkginfo.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.pkginfo",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.pkginfo.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.pkginfo",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.pkginfo.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.pkginfo",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.pkginfo.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.pkginfo",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.pkginfo.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.preference",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.preference.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.preference",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.preference.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.preference",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.preference.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.preference",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.preference.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.preference",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.preference.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.record_tag",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.record_tag.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.record_tag",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.record_tag.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.record_tag",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.record_tag.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.record_tag",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.record_tag.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.record_tag",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.record_tag.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.sent_email",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.sent_email.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.sent_email",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.sent_email.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.sent_email",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.sent_email.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.sent_email",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.sent_email.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.sent_email",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.sent_email.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.shortcut",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.shortcut.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.shortcut",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.shortcut.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.shortcut",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.shortcut.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.shortcut",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.shortcut.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.shortcut",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.shortcut.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo_item",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo_item.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo_item",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo_item.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo_item",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo_item.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo_item",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo_item.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.tblinfo_item",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.tblinfo_item.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "all_tags",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.all_tags: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "cover_logo",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.cover_logo: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "square_logo",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.square_logo: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "custom_groups",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.custom_groups: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "other_groups",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.other_groups: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "all_groups",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.all_groups: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "fullname",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.fullname: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "recover_pwd_email",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.recover_pwd_email: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "watermark_notice",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.watermark_notice: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_access_group",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_access_group.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_access_group",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_access_group.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_access_group",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_access_group.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_access_group",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_access_group.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_access_group",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_access_group.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "calc_pkgid",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.calc_pkgid: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "rank",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.rank: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_config",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_config.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_group",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_group.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_group",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_group.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_group",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_group.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_group",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_group.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_group",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_group.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_notification",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_notification.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_notification",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_notification.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_notification",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_notification.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_notification",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_notification.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_notification",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_notification.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_setting",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_setting.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_setting",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_setting.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_setting",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_setting.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_setting",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_setting.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_setting",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_setting.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "user",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"username\" AS \"user\" FROM \"adm\".\"adm_user_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_user\" AS \"t1\" ON \"t0\".\"user_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "fullname",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.fullname: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "email",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"email\" AS \"email\" FROM \"adm\".\"adm_user_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_user\" AS \"t1\" ON \"t0\".\"user_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "tag_description",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"tag_description\" FROM \"adm\".\"adm_user_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_htag\" AS \"t1\" ON \"t0\".\"tag_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "tag_note",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"note\" AS \"tag_note\" FROM \"adm\".\"adm_user_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_htag\" AS \"t1\" ON \"t0\".\"tag_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "linked_table",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"linked_table\" AS \"linked_table\" FROM \"adm\".\"adm_user_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_htag\" AS \"t1\" ON \"t0\".\"tag_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "require_2fa",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"require_2fa\" AS \"require_2fa\" FROM \"adm\".\"adm_user_tag\" AS \"t0\" LEFT JOIN \"adm\".\"adm_htag\" AS \"t1\" ON \"t0\".\"tag_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "tag_code",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.tag_code: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "user_or_group",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.user_or_group: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.user_tag",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.user_tag.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "system_userobject",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_scode"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.system_userobject: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "resource_status",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.resource_status: requires pyColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "is_mail",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_email"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.is_mail: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "is_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_row"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.is_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "is_print",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_print"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.is_print: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.userobject",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.userobject.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.week",
+      "column": "week",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.week.week: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.week",
+      "column": "end_date",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.week.end_date: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.xgroup",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.xgroup.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.xgroup",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.xgroup.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.xgroup",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.xgroup.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.xgroup",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.xgroup.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "adm.xgroup",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "adm.xgroup.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "n_invoices",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.n_invoices: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "invoiced_total",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.invoiced_total: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "last_invoice_id",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.last_invoice_id: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "full_address",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.full_address: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "has_invoices",
+      "kind": "formulaColumn",
+      "formula_form": "exists",
+      "forms": [
+        "exists",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.has_invoices: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "customer_rank",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.customer_rank: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "display_name",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.display_name: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "postcode_padded",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.postcode_padded: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "state_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"name\" AS \"state_name\" FROM \"invc\".\"invc_customer\" AS \"t0\" LEFT JOIN \"invc\".\"invc_state\" AS \"t1\" ON \"t0\".\"state\" = \"t1\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.customer",
+      "column": "payment_description",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"payment_description\" FROM \"invc\".\"invc_customer\" AS \"t0\" LEFT JOIN \"invc\".\"invc_payment_type\" AS \"t1\" ON \"t0\".\"payment_type_code\" = \"t1\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.customer",
+      "column": "region_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t2\".\"name\" AS \"region_name\" FROM \"invc\".\"invc_customer\" AS \"t0\" LEFT JOIN \"invc\".\"invc_state\" AS \"t1\" ON \"t0\".\"state\" = \"t1\".\"code\" LEFT JOIN \"invc\".\"invc_region\" AS \"t2\" ON \"t1\".\"region_code\" = \"t2\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.customer",
+      "column": "account_code",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.account_code: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "is_active_valuable",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.is_active_valuable: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "contact_info",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.contact_info: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "customer_score",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.customer_score: requires pyColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "invoice_numbers",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "select_inv_nums",
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.invoice_numbers: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "avg_invoice_value",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.avg_invoice_value: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "has_activity",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.has_activity: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "is_confirmed",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.is_confirmed: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "subtable_residential",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.subtable_residential: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "subtable_commercial",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.subtable_commercial: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "subtable_government",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.subtable_government: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer",
+      "column": "subtable_trade",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer.subtable_trade: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer_type",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer_type.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer_type",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer_type.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer_type",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer_type.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer_type",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer_type.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.customer_type",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.customer_type.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.discount_tier",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.discount_tier.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.discount_tier",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.discount_tier.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.discount_tier",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.discount_tier.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.discount_tier",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.discount_tier.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.discount_tier",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.discount_tier.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "row_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.row_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "first_product_id",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.first_product_id: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "customer_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"account_name\" AS \"customer_name\" FROM \"invc\".\"invc_invoice\" AS \"t0\" LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON \"t0\".\"customer_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice",
+      "column": "customer_state",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"state\" AS \"customer_state\" FROM \"invc\".\"invc_invoice\" AS \"t0\" LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON \"t0\".\"customer_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice",
+      "column": "anno",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.anno: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "periodo",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.periodo: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "value_category",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.value_category: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "display_total",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.display_total: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "discount_tier_id",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.discount_tier_id: virtual navigation requires an additional compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "all_notes",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.all_notes: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "priority_note",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "select_top_note",
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.priority_note: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "invoice_status",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.invoice_status: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "status_label",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_high_label",
+        "var_low_label",
+        "var_mid_label"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.status_label: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "days_since_invoice",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.days_since_invoice: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "number_series",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_pat_a",
+        "var_pat_b"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.number_series: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "week_start",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.week_start: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "priced_rows_pct",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.priced_rows_pct: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "invoice_datetime",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.invoice_datetime: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "invoice_month",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.invoice_month: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "smart_row_count",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "select_all_rows",
+        "select_high_rows",
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.smart_row_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "has_expensive_rows",
+      "kind": "formulaColumn",
+      "formula_form": "exists",
+      "forms": [
+        "exists",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.has_expensive_rows: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "duplicate_products",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "select_dup_prods",
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.duplicate_products: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "due_date",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.due_date: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "created_same_day",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.created_same_day: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "is_recent",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.is_recent: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "rows_json",
+      "kind": "subQueryColumn",
+      "forms": [
+        "mode",
+        "query"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.rows_json: requires subQueryColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "notes_xml",
+      "kind": "subQueryColumn",
+      "forms": [
+        "mode",
+        "query"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.notes_xml: requires subQueryColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "max_row_price",
+      "kind": "subQueryColumn",
+      "forms": [
+        "query"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.max_row_price: requires subQueryColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "is_warning",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_warn_pat"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.is_warning: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "note_type_clean",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.note_type_clean: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "created_date",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.created_date: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "note_text_rtrim",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.note_text_rtrim: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_note",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_note.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "customer_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t2\".\"account_name\" AS \"customer_name\" FROM \"invc\".\"invc_invoice_row\" AS \"t0\" LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON \"t0\".\"invoice_id\" = \"t1\".\"id\" LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON \"t1\".\"customer_id\" = \"t2\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "customer_id",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"customer_id\" AS \"customer_id\" FROM \"invc\".\"invc_invoice_row\" AS \"t0\" LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON \"t0\".\"invoice_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "product_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"product_name\" FROM \"invc\".\"invc_invoice_row\" AS \"t0\" LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON \"t0\".\"product_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "customer_state",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t3\".\"name\" AS \"customer_state\" FROM \"invc\".\"invc_invoice_row\" AS \"t0\" LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON \"t0\".\"invoice_id\" = \"t1\".\"id\" LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON \"t1\".\"customer_id\" = \"t2\".\"id\" LEFT JOIN \"invc\".\"invc_state\" AS \"t3\" ON \"t2\".\"state\" = \"t3\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "line_total",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.line_total: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "line_vat",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.line_vat: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "line_gross",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.line_gross: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "size_category",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.size_category: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "product_note",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.product_note: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "effective_price",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.effective_price: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "is_expensive",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.is_expensive: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "needs_review",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.needs_review: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "pricing_analysis",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.pricing_analysis: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "customer_region",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t4\".\"name\" AS \"customer_region\" FROM \"invc\".\"invc_invoice_row\" AS \"t0\" LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON \"t0\".\"invoice_id\" = \"t1\".\"id\" LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON \"t1\".\"customer_id\" = \"t2\".\"id\" LEFT JOIN \"invc\".\"invc_state\" AS \"t3\" ON \"t2\".\"state\" = \"t3\".\"code\" LEFT JOIN \"invc\".\"invc_region\" AS \"t4\" ON \"t3\".\"region_code\" = \"t4\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "product_code_prefix",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.product_code_prefix: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "rounded_total",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.rounded_total: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "abs_discount",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.abs_discount: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "prev_quantity",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.prev_quantity: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "matches_list_price",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.matches_list_price: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "distinct_products_in_invoice",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.distinct_products_in_invoice: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "is_exempt_vat",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static",
+        "var_exempt_codes"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.is_exempt_vat: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "invoice_date_static",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"date\" AS \"invoice_date_static\" FROM \"invc\".\"invc_invoice_row\" AS \"t0\" LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON \"t0\".\"invoice_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "adjusted_total",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.adjusted_total: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.invoice_row",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.invoice_row.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.payment_type",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.payment_type.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.payment_type",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.payment_type.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.payment_type",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.payment_type.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.payment_type",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.payment_type.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.payment_type",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.payment_type.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.postcode",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.postcode.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.postcode",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.postcode.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.postcode",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.postcode.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.postcode",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.postcode.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.postcode",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.postcode.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year",
+      "column": "price_label",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year.price_label: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year",
+      "column": "product_description",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"product_description\" FROM \"invc\".\"invc_price_year\" AS \"t0\" LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON \"t0\".\"product_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.price_year",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "price_year_price",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"unit_price\" AS \"price_year_price\" FROM \"invc\".\"invc_price_year_note\" AS \"t0\" LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON \"t0\".\"product_id\" = \"t1\".\"product_id\" AND \"t0\".\"year\" = \"t1\".\"year\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "price_year_label",
+      "kind": "aliasColumn",
+      "forms": [
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year_note.price_year_label: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "product_description",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t2\".\"description\" AS \"product_description\" FROM \"invc\".\"invc_price_year_note\" AS \"t0\" LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON \"t0\".\"product_id\" = \"t1\".\"product_id\" AND \"t0\".\"year\" = \"t1\".\"year\" LEFT JOIN \"invc\".\"invc_product\" AS \"t2\" ON \"t1\".\"product_id\" = \"t2\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year_note.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year_note.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year_note.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year_note.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.price_year_note",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.price_year_note.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "picture",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.picture: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "total_sold",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.total_sold: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "price_range",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.price_range: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "code_and_desc",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.code_and_desc: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "price_floor",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.price_floor: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "price_label",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.price_label: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "product_type_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"product_type_name\" FROM \"invc\".\"invc_product\" AS \"t0\" LEFT JOIN \"invc\".\"invc_product_type\" AS \"t1\" ON \"t0\".\"product_type_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.product",
+      "column": "detail_weight",
+      "kind": "bagItemColumn",
+      "forms": [],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.detail_weight: requires bagItemColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "detail_color",
+      "kind": "bagItemColumn",
+      "forms": [],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.detail_color: requires bagItemColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "detail_price",
+      "kind": "bagItemColumn",
+      "forms": [],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.detail_price: requires bagItemColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "concat_code_desc",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.concat_code_desc: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "code_normalized",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.code_normalized: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "code_clean",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.code_clean: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "computed_margin",
+      "kind": "pyColumn",
+      "forms": [
+        "method",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.computed_margin: requires pyColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "price_rounded",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.price_rounded: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "description_clean",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.description_clean: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "code_prefix_std",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.code_prefix_std: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "price_as_int_text",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.price_as_int_text: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "child_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.child_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "hlevel",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group.hlevel: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_group",
+      "column": "_h_sortcol",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_group._h_sortcol: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "child_count",
+      "kind": "formulaColumn",
+      "formula_form": "select",
+      "forms": [
+        "select",
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.child_count: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "hlevel",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type.hlevel: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.product_type",
+      "column": "_h_sortcol",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.product_type._h_sortcol: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.region",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.region.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.region",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.region.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.region",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.region.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.region",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.region.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.region",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.region.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff",
+      "column": "full_name",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula",
+        "static"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff.full_name: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff",
+      "column": "state_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"name\" AS \"state_name\" FROM \"invc\".\"invc_staff\" AS \"t0\" LEFT JOIN \"invc\".\"invc_state\" AS \"t1\" ON \"t0\".\"state\" = \"t1\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.staff",
+      "column": "role_description",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"description\" AS \"role_description\" FROM \"invc\".\"invc_staff\" AS \"t0\" LEFT JOIN \"invc\".\"invc_staff_role\" AS \"t1\" ON \"t0\".\"role_code\" = \"t1\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.staff",
+      "column": "region_name",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t2\".\"name\" AS \"region_name\" FROM \"invc\".\"invc_staff\" AS \"t0\" LEFT JOIN \"invc\".\"invc_state\" AS \"t1\" ON \"t0\".\"state\" = \"t1\".\"code\" LEFT JOIN \"invc\".\"invc_region\" AS \"t2\" ON \"t1\".\"region_code\" = \"t2\".\"code\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.staff",
+      "column": "username",
+      "kind": "aliasColumn",
+      "forms": [],
+      "status": "compiled",
+      "sql": "SELECT \"t1\".\"username\" AS \"username\" FROM \"invc\".\"invc_staff\" AS \"t0\" LEFT JOIN \"adm\".\"adm_user\" AS \"t1\" ON \"t0\".\"user_id\" = \"t1\".\"id\"",
+      "parameter_names": []
+    },
+    {
+      "table": "invc.staff",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff_role",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff_role.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff_role",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff_role.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff_role",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff_role.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff_role",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff_role.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.staff_role",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.staff_role.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.state",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.state.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.state",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.state.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.state",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.state.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.state",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.state.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.state",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.state.__is_invalid_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.vat_type",
+      "column": "__record_pointer",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.vat_type.__record_pointer: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.vat_type",
+      "column": "__protecting_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.vat_type.__protecting_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.vat_type",
+      "column": "__is_protected_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.vat_type.__is_protected_row: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.vat_type",
+      "column": "__invalid_reasons",
+      "kind": "formulaColumn",
+      "formula_form": "method",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.vat_type.__invalid_reasons: requires formulaColumn compiler capability"
+    },
+    {
+      "table": "invc.vat_type",
+      "column": "__is_invalid_row",
+      "kind": "formulaColumn",
+      "formula_form": "sql",
+      "forms": [
+        "sql_formula"
+      ],
+      "status": "blocked",
+      "error": "UnsupportedFeatureError",
+      "message": "invc.vat_type.__is_invalid_row: requires formulaColumn compiler capability"
+    }
+  ]
+}

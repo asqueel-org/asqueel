@@ -1,0 +1,18 @@
+...........................s............................................ [ 49%]
+...........................s............................................ [ 98%]
+..                                                                       [100%]
+=============================== warnings summary ===============================
+../../../../tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+tests/sql/test_compiler_coverage.py::TestPhysicalColumns::test_single_column_pg
+  /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/web/gnrwebpage_proxy/utils.py:19: DeprecationWarning: 'getReader' has been moved to gnr.core.flatfiles. Import from gnr.core.gnrlist is deprecated.
+    from gnr.core.gnrlist import getReader
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] gnrpy/tests/sql/test_compiler_coverage.py:336: EXISTS formula not supported on SQLite
+SKIPPED [1] gnrpy/tests/sql/test_compiler_coverage.py:1776: EXISTS formula not supported on SQLite
+144 passed, 2 skipped, 2 warnings in 5.39s

@@ -1,0 +1,38 @@
+........................................................................ [ 22%]
+........................................................................ [ 45%]
+........................................................................ [ 68%]
+..............FF........................................................ [ 90%]
+.............................                                            [100%]
+=================================== FAILURES ===================================
+______________ test_wrong_dialect_plan_still_rejected[postgresql] ______________
+
+db = <asqueel.application.SqlDatabase object at 0x10d4e63c0>
+
+    def test_wrong_dialect_plan_still_rejected(db):
+        plan = db.compiler.plan_select('sales.invoice', columns='$id')
+        other = 'sqlite' if plan.dialect == 'postgresql' else 'postgresql'
+>       with pytest.raises(ValueError, match='dialect'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'dialect'
+E         Actual message: "Cannot render 'sqlite' plan with postgresql"
+
+tests/object_tree/test_legacy_resolution.py:138: AssertionError
+________________ test_wrong_dialect_plan_still_rejected[sqlite] ________________
+
+db = <asqueel.application.SqlDatabase object at 0x10d340440>
+
+    def test_wrong_dialect_plan_still_rejected(db):
+        plan = db.compiler.plan_select('sales.invoice', columns='$id')
+        other = 'sqlite' if plan.dialect == 'postgresql' else 'postgresql'
+>       with pytest.raises(ValueError, match='dialect'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'dialect'
+E         Actual message: "Cannot render 'postgresql' plan with sqlite"
+
+tests/object_tree/test_legacy_resolution.py:138: AssertionError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_legacy_resolution.py::test_wrong_dialect_plan_still_rejected[postgresql]
+FAILED tests/object_tree/test_legacy_resolution.py::test_wrong_dialect_plan_still_rejected[sqlite]
+2 failed, 315 passed in 4.68s

@@ -35,7 +35,7 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
             prepared = driver.prepare(statement)
             assert "'50%%'" in prepared.sql
             rows = (db.execute(prepared)).rows
-            assert rows == [{'name': "L'impresa 50%", 'percent': '50%'}]
+            assert [dict(row) for row in rows] == [{'name': "L'impresa 50%", 'percent': '50%'}]
             assert db.execute(CompiledQuery('SELECT 1 AS ok'))
     scenario()
     imported = PostgresCatalogProvider().inspect(connection, [schema])

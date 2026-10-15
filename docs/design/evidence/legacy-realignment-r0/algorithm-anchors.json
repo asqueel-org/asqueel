@@ -1,0 +1,746 @@
+{
+  "legacy": {
+    "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 709,
+        "end_line": 742,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 273,
+        "end_line": 454,
+        "source_sha256": "cf19ab9b991ce55765efb4ca601223877a71c4460425accf0e0ac20b12ca880b",
+        "ast_sha256": "2cb9857d4348e9c5bf3ad124522a6a27184b315f53761a47e627370b14cd82ae"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 831,
+        "end_line": 1104,
+        "source_sha256": "f09f643df9457afdadd8b033a5b7551b33a9298ab5021ffa93c348c59ceb824d",
+        "ast_sha256": "87e0e79a1a6e4502125e22a8c722d7a048a8ad0bc0a2c6475212db13617e7199"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 802,
+        "end_line": 829,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 464,
+        "end_line": 503,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 659,
+        "end_line": 710,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 361,
+        "end_line": 376,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 46,
+        "end_line": 162,
+        "source_sha256": "9d68d95ff0a1e7fcca5e751fba2f0204537322147fe15d269ac2966e929c4706",
+        "ast_sha256": "11490c135402ae251e78e9a86026c36098d5990c08cde8da4c956953dbf78e72"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 157,
+        "end_line": 166,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 111,
+        "end_line": 117,
+        "source_sha256": "b873b7a97d7c37211549ad1bcef70d48b2700855e897fee9efc88d46f2870a3c",
+        "ast_sha256": "236bb831f990ca3742f14395ee400a68399954c19b518e1ecaa417ee6edb37f4"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 208,
+        "end_line": 219,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "compound": {
+    "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 776,
+        "end_line": 809,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 326,
+        "end_line": 505,
+        "source_sha256": "95839d00da891c7451e7f0226ea6d2eac46c0e0d998f6fa00714ea29f3741268",
+        "ast_sha256": "7b2f93086a9d6cb8d476ffb0e78224d442e6d8032e16310e40854425a5700315"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 898,
+        "end_line": 1163,
+        "source_sha256": "17207e332c062de6a64b1189e341d3b69943aecd8af3e2fc7d69c162ad25456f",
+        "ast_sha256": "e556e91a3afb8e7bb9a27b6ab235072cf1b556389f54616c7ef7fbf561157402"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 869,
+        "end_line": 896,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 463,
+        "end_line": 502,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 658,
+        "end_line": 709,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql.py",
+        "definition": "GnrSqlDb.colToAs",
+        "line": 1067,
+        "end_line": 1073,
+        "source_sha256": "27e90aa47af45bea3f2f04c484e31c5940bae66a81437e09d2689f57fafded09",
+        "ast_sha256": "a0a14e96d9d85be41020e7e2039c082d19d7b54cc9495528fb4ada2d0ed23313"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql.py",
+        "definition": "GnrSqlDb.execute",
+        "line": 573,
+        "end_line": 653,
+        "source_sha256": "886ca72ee10b265b72f53d98b8c2ba4ddc422ca465568a05429171ad27d11f6f",
+        "ast_sha256": "27e2df8718e07a4878622ce589baadb5d2b0e0b6b48688c8fe2b1df738a4229e"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 155,
+        "end_line": 164,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 111,
+        "end_line": 117,
+        "source_sha256": "9fe758b2a8d58aafa9305523517d80e9bcb4a919b2b7b14c2349647e9a309b91",
+        "ast_sha256": "b7b5cc96832add50c3ae46b8006e01b162ad5714f52051cd4b169d29a60617e0"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 184,
+        "end_line": 195,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "v2": {
+    "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 1128,
+        "end_line": 1140,
+        "source_sha256": "0e56f0c00af1192e0019a8279122a58a683f24e4cfdd808b93107775bbfdb203",
+        "ast_sha256": "f3474f0bc08decdbfef42e0e6db7b0d578411096cb82da35f825e9a45ffe5224"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 1093,
+        "end_line": 1105,
+        "source_sha256": "3782ee6dc1b5c31781914e552003b9dfc578fa29c9b78c3640d1ddf7f76340fc",
+        "ast_sha256": "5a5421b05fe2d2f6d65c32340a8cfeee25296ee7c49c8784304184002c66451c"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 1192,
+        "end_line": 1385,
+        "source_sha256": "d7e334d8b2a7661596e51bbefc4e426538fa94eb43eff9c031d061b63f87f580",
+        "ast_sha256": "528d51f65ff5423ce29f190ccfbef6ff40db4b2d83ffa2f87c6c81087461f56d"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 1177,
+        "end_line": 1190,
+        "source_sha256": "1a14fa48853a3d33ca0df14b175e4313761fccda7ace3addc47259c164c28a38",
+        "ast_sha256": "ec5b41c8cf259630723f663f51ac9676c376fae6cd549fb8610738a1907483e9"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 463,
+        "end_line": 502,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 658,
+        "end_line": 709,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 362,
+        "end_line": 377,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 45,
+        "end_line": 160,
+        "source_sha256": "d1f5713223e157123b5f6b2cf74a85f95e66a3153b1a9079def742ecb7fda4f2",
+        "ast_sha256": "d2e6839ea8a0ec48d0467f7296954c19aa6d9d671140e017ed63c5b87b5e1e10"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 155,
+        "end_line": 164,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 115,
+        "end_line": 121,
+        "source_sha256": "9fe758b2a8d58aafa9305523517d80e9bcb4a919b2b7b14c2349647e9a309b91",
+        "ast_sha256": "b7b5cc96832add50c3ae46b8006e01b162ad5714f52051cd4b169d29a60617e0"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 184,
+        "end_line": 195,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "v3": {
+    "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 1138,
+        "end_line": 1171,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 389,
+        "end_line": 489,
+        "source_sha256": "c0b0d620d551994cab10ee0b2ac96fc0a4c85732b116364aa7ec877272821582",
+        "ast_sha256": "5d8f9906f19c5e79e759c445059e6f4301dc81daac362cb67929ff74cadcca8b"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 1260,
+        "end_line": 1531,
+        "source_sha256": "966585458e14df67cee4a4f0907f939613f038392cc0b5ca29728f041cbe6aeb",
+        "ast_sha256": "b38233c889c7943c6dbab186b276779bb3ae0150667ceeada7becf372880ed95"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 1231,
+        "end_line": 1258,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 463,
+        "end_line": 502,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 658,
+        "end_line": 709,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 365,
+        "end_line": 380,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 45,
+        "end_line": 160,
+        "source_sha256": "d1f5713223e157123b5f6b2cf74a85f95e66a3153b1a9079def742ecb7fda4f2",
+        "ast_sha256": "d2e6839ea8a0ec48d0467f7296954c19aa6d9d671140e017ed63c5b87b5e1e10"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 155,
+        "end_line": 164,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 115,
+        "end_line": 121,
+        "source_sha256": "9fe758b2a8d58aafa9305523517d80e9bcb4a919b2b7b14c2349647e9a309b91",
+        "ast_sha256": "b7b5cc96832add50c3ae46b8006e01b162ad5714f52051cd4b169d29a60617e0"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 184,
+        "end_line": 195,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "v3_merged": {
+    "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 1138,
+        "end_line": 1171,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 389,
+        "end_line": 489,
+        "source_sha256": "c0b0d620d551994cab10ee0b2ac96fc0a4c85732b116364aa7ec877272821582",
+        "ast_sha256": "5d8f9906f19c5e79e759c445059e6f4301dc81daac362cb67929ff74cadcca8b"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 1260,
+        "end_line": 1532,
+        "source_sha256": "bf59fff6e43dbfb116aad93e33d4e1a9ca0bff32c28748a3e82b56bf6a36a82e",
+        "ast_sha256": "e128c54162bd9c67cb580be27fcc0c99ab689d6217632f3baf92927df0d44bf1"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 1231,
+        "end_line": 1258,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 463,
+        "end_line": 502,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 658,
+        "end_line": 709,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 365,
+        "end_line": 380,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 45,
+        "end_line": 161,
+        "source_sha256": "9d68d95ff0a1e7fcca5e751fba2f0204537322147fe15d269ac2966e929c4706",
+        "ast_sha256": "11490c135402ae251e78e9a86026c36098d5990c08cde8da4c956953dbf78e72"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 155,
+        "end_line": 164,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 111,
+        "end_line": 117,
+        "source_sha256": "b873b7a97d7c37211549ad1bcef70d48b2700855e897fee9efc88d46f2870a3c",
+        "ast_sha256": "236bb831f990ca3742f14395ee400a68399954c19b518e1ecaa417ee6edb37f4"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 184,
+        "end_line": 195,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "v4": {
+    "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 1137,
+        "end_line": 1170,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 390,
+        "end_line": 490,
+        "source_sha256": "c0b0d620d551994cab10ee0b2ac96fc0a4c85732b116364aa7ec877272821582",
+        "ast_sha256": "5d8f9906f19c5e79e759c445059e6f4301dc81daac362cb67929ff74cadcca8b"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 1259,
+        "end_line": 1531,
+        "source_sha256": "bf59fff6e43dbfb116aad93e33d4e1a9ca0bff32c28748a3e82b56bf6a36a82e",
+        "ast_sha256": "e128c54162bd9c67cb580be27fcc0c99ab689d6217632f3baf92927df0d44bf1"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 1230,
+        "end_line": 1257,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 463,
+        "end_line": 502,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 658,
+        "end_line": 709,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 365,
+        "end_line": 380,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 45,
+        "end_line": 161,
+        "source_sha256": "9d68d95ff0a1e7fcca5e751fba2f0204537322147fe15d269ac2966e929c4706",
+        "ast_sha256": "11490c135402ae251e78e9a86026c36098d5990c08cde8da4c956953dbf78e72"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 155,
+        "end_line": 164,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 111,
+        "end_line": 117,
+        "source_sha256": "b873b7a97d7c37211549ad1bcef70d48b2700855e897fee9efc88d46f2870a3c",
+        "ast_sha256": "236bb831f990ca3742f14395ee400a68399954c19b518e1ecaa417ee6edb37f4"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 184,
+        "end_line": 195,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "simplify": {
+    "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 732,
+        "end_line": 765,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 272,
+        "end_line": 461,
+        "source_sha256": "ea052101e5a4161c33d6fe98098ff4607797987c5ea674953be7ca60407ccd08",
+        "ast_sha256": "9d75d42c8b6957747ff7cb2f6000421170ab01e2c860007684932fb6c3c4ea17"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 854,
+        "end_line": 1118,
+        "source_sha256": "e0c438a27fd2e623a8109a01e3526c3a163c3421d29ac598408751153f253270",
+        "ast_sha256": "33d16905feb567c9ed879793d75652faadf19809fa5cf3053d5ea8aed568ad83"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 825,
+        "end_line": 852,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 463,
+        "end_line": 502,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 658,
+        "end_line": 709,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 360,
+        "end_line": 375,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 45,
+        "end_line": 161,
+        "source_sha256": "9d68d95ff0a1e7fcca5e751fba2f0204537322147fe15d269ac2966e929c4706",
+        "ast_sha256": "11490c135402ae251e78e9a86026c36098d5990c08cde8da4c956953dbf78e72"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 155,
+        "end_line": 164,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 111,
+        "end_line": 117,
+        "source_sha256": "b873b7a97d7c37211549ad1bcef70d48b2700855e897fee9efc88d46f2870a3c",
+        "ast_sha256": "236bb831f990ca3742f14395ee400a68399954c19b518e1ecaa417ee6edb37f4"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 184,
+        "end_line": 195,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  },
+  "next": {
+    "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+    "definitions": {
+      "discover": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.updateFieldDict",
+        "line": 709,
+        "end_line": 742,
+        "source_sha256": "33d5cd0707e561e81ca90c91539fc26268eea0bfa910c9dff526d3b75d854453",
+        "ast_sha256": "2e2ec3ce615f93d67bf25358f52ca83ea95e118590d24be224581b5ceec7f56d"
+      },
+      "resolve": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.getFieldAlias",
+        "line": 273,
+        "end_line": 454,
+        "source_sha256": "cf19ab9b991ce55765efb4ca601223877a71c4460425accf0e0ac20b12ca880b",
+        "ast_sha256": "2cb9857d4348e9c5bf3ad124522a6a27184b315f53761a47e627370b14cd82ae"
+      },
+      "select": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.compiledQuery",
+        "line": 831,
+        "end_line": 1104,
+        "source_sha256": "f09f643df9457afdadd8b033a5b7551b33a9298ab5021ffa93c348c59ceb824d",
+        "ast_sha256": "87e0e79a1a6e4502125e22a8c722d7a048a8ad0bc0a2c6475212db13617e7199"
+      },
+      "embed": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "definition": "SqlQueryCompiler.embedFieldPars",
+        "line": 802,
+        "end_line": 829,
+        "source_sha256": "25936f10b27631c6bb7464f593052f5d1fe90cf234e941183a6814691da51850",
+        "ast_sha256": "ca42b65d621dc736840b083690a2db92a519d5db974e1450d47477ecb7178db1"
+      },
+      "template": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "templateReplace",
+        "line": 528,
+        "end_line": 567,
+        "source_sha256": "8c12d61b786c4fab1250412c7232a97d74a1fe4e9c4f68b3922b927dec97f467",
+        "ast_sha256": "0a5a1be45d7a0a450517932bbfc07cfd26cd45666a1ac739191e3a154216dcd8"
+      },
+      "split": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "definition": "split",
+        "line": 723,
+        "end_line": 774,
+        "source_sha256": "3499f23833a178c1e46564fbec52043fe06b4ba6c20962da0d7f2b7bca1e097f",
+        "ast_sha256": "37aec3de01b080243ad837b10ce57a90920f2a194b6e1618a43a3b8b8600b6cd"
+      },
+      "alias": {
+        "path": "gnrpy/gnr/sql/gnrsql/query.py",
+        "definition": "QueryMixin.colToAs",
+        "line": 361,
+        "end_line": 376,
+        "source_sha256": "97bd5dd64381e9bba5b5f9af999c38dfcbb1758c55a077ca27b6e148ef6cb39f",
+        "ast_sha256": "52fb4d2e5b03271de0f44a4cf68899945fc3bb15c8d5c3dd4824d275ce995ec6"
+      },
+      "execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "definition": "ExecuteMixin.execute",
+        "line": 47,
+        "end_line": 164,
+        "source_sha256": "c6aa5bf090bc0f2f2f96be73a2b9c24c8bf321e6462194033b52cf698401e1f0",
+        "ast_sha256": "3088bbe7c2faf221c4c62f9dbc6c49301c29baf0c5dbfed6cfe5298c24fbfe6e"
+      },
+      "pg": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 157,
+        "end_line": 166,
+        "source_sha256": "133dd17a281b2b5a837e9a16bf625f0cab3437af06b7319817d3f0906f276ebe",
+        "ast_sha256": "d103eec47b1a568a16c55a2070f880d563e6a654960d5f96d8031f13738efa4d"
+      },
+      "sqlite": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "definition": "SqlDbAdapter.prepareSqlText",
+        "line": 111,
+        "end_line": 117,
+        "source_sha256": "b873b7a97d7c37211549ad1bcef70d48b2700855e897fee9efc88d46f2870a3c",
+        "ast_sha256": "236bb831f990ca3742f14395ee400a68399954c19b518e1ecaa417ee6edb37f4"
+      },
+      "collections": {
+        "path": "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "definition": "SqlDbAdapter.adaptTupleListSet",
+        "line": 208,
+        "end_line": 219,
+        "source_sha256": "80c5612a86b6c39c9016857b439e45651926395c443c43995af8508532e3f318",
+        "ast_sha256": "a6c64baaeee0c9552a4fb4c951a4a8d8ed1694beb754585517c62d258403a999"
+      }
+    }
+  }
+}

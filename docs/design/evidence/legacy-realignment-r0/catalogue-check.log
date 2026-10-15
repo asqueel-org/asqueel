@@ -1,0 +1,27 @@
+{
+  "mode": "check",
+  "cases": 71,
+  "observations": 132,
+  "primary_status": {
+    "compatibilita_confermata": 24,
+    "recupero_legacy": 9,
+    "decisione_aperta": 33,
+    "dipendenza_successiva": 4,
+    "limite_comune": 1
+  },
+  "original_definitions_legacy": 19,
+  "original_definitions_available_by_snapshot": {
+    "legacy": 19,
+    "compound": 9,
+    "v2": 9,
+    "v3": 9,
+    "v3_merged": 13,
+    "v4": 13,
+    "simplify": 13,
+    "next": 19
+  },
+  "current_conflicting_definitions": 15,
+  "frozen_files": 248,
+  "approved_improvements": 0
+}
+

@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-14",
+  "production_tests_examples_unchanged": true,
+  "unchanged_python_files": 232,
+  "cases": {
+    "distinct_cases": 71,
+    "total": 132,
+    "categories": {
+      "sqlite": {
+        "same_rows_and_columns": 33,
+        "only_current_executes": 7,
+        "only_legacy_executes": 4,
+        "both_execute_but_different": 13,
+        "both_fail": 5,
+        "compile_only_boundary": 1
+      },
+      "postgresql": {
+        "same_rows_and_columns": 29,
+        "only_current_executes": 17,
+        "only_legacy_executes": 7,
+        "both_execute_but_different": 9,
+        "both_fail": 6,
+        "compile_only_boundary": 1
+      }
+    }
+  },
+  "benchmark_workloads": 14,
+  "benchmark_engines": [
+    "legacy",
+    "current",
+    "tree"
+  ],
+  "benchmark_all_expected_rows_columns_match": true,
+  "existing_tests": {
+    "passed": 294,
+    "seconds": 4.04,
+    "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts='' tests/native_compiler/test_compiler.py tests/native_compiler/test_compile_only.py tests/object_tree/test_minimal_select.py"
+  },
+  "ruff": "passed on four new probe modules",
+  "scope_limits": [
+    "Selected corpus, not the entire legacy suite.",
+    "Corpus uses prior Asqueel model to include existing relations/macros; benchmarks additionally verify the new tree.",
+    "Performance covers fresh query to driver SQL/kwargs, not scanner only or SQL runtime latency.",
+    "No compatibility percentage or automatic approval follows from expected-result counts.",
+    "Numeric result values normalized for equality; raw driver types retained in corpus results; kwargs types retained.",
+    "Eight legacy snapshots compared statically; dynamic corpus run only on primary legacy snapshot."
+  ],
+  "probe_sha256": {
+    "docs/design/probes/compare_scanners.py": "7baf53959df573ea7c2813c69573158ceb68c4a61b394e97da2c804852be4460",
+    "docs/design/probes/scanner_corpus.py": "bdc727bbafe8f07a0e2881e2478c954f2697e1286e3731331f748ec197e5bd53",
+    "docs/design/probes/scanner_profile.py": "aa11a14e65b608ed2410dbef80400e24416e25c4095441bac79d143dbed8b664",
+    "docs/design/probes/scanner_inventory.py": "2dcd872d3937fb128497e14944725612ca2ff923a33e63b4529ad55ba4db8991"
+  }
+}

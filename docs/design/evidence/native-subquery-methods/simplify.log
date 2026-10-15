@@ -1,0 +1,112 @@
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+________ TestLegacySubqueryMethodContract.test_select_and_named_methods ________
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x105b07230>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10b5e0bc0>
+
+    def test_select_and_named_methods(self, db):
+        sql = db.table('app.owner').query(columns='$scalar,$named').sqltext
+>       assert 'MAX(' in sql
+E       assert 'MAX(' in 'SELECT  "t0"."scalar" AS "scalar",\n"t0"."named" AS "named",\n"t0"."id" AS "pkey"\n FROM "main"."app_owner" AS t0'
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:92: AssertionError
+_____________ TestLegacySubqueryMethodContract.test_exists_method ______________
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b5b3a40>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf7e30>
+
+    def test_exists_method(self, db):
+        sql = db.table('app.owner').query(columns='$present').sqltext
+>       assert 'EXISTS' in sql
+E       assert 'EXISTS' in 'SELECT  "t0"."present" AS "present",\n"t0"."id" AS "pkey"\n FROM "main"."app_owner" AS t0'
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:97: AssertionError
+_ TestLegacySubqueryMethodContract.test_related_column_dispatches_on_select_root _
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b5b3d10>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf58e0>
+
+    def test_related_column_dispatches_on_select_root(self, db):
+        db.table('app.line').query(columns='@owner_id.scalar').sqltext
+>       assert db.method_calls and set(db.method_calls) == {'app.line'}
+E       assert ([])
+E        +  where [] = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf58e0>.method_calls
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:101: AssertionError
+____ TestLegacySubqueryMethodContract.test_nested_select_uses_its_own_root _____
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b5e0050>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dc7fb00>
+
+    def test_nested_select_uses_its_own_root(self, db):
+        db.table('app.owner').query(columns='$scalar,$nested').sqltext
+>       assert set(db.method_calls) == {'app.owner', 'app.line'}
+E       AssertionError: assert set() == {'app.line', 'app.owner'}
+E         
+E         Extra items in the right set:
+E         'app.owner'
+E         'app.line'
+E         Use -v to get more diff
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:105: AssertionError
+_ TestLegacySubqueryMethodContract.test_sql_formula_can_supply_method_reference _
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b5e02f0>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dca6510>
+
+    def test_sql_formula_can_supply_method_reference(self, db):
+        sql = db.table('app.owner').query(columns='$from_formula').sqltext
+>       assert 'MAX(' in sql
+E       assert 'MAX(' in 'SELECT  "t0"."from_formula" AS "from_formula",\n"t0"."id" AS "pkey"\n FROM "main"."app_owner" AS t0'
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:109: AssertionError
+______ TestLegacySubqueryMethodContract.test_subquery_column_method[None] ______
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b5e0740>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccd910>, mode = 'None'
+
+    @pytest.mark.parametrize('mode', ['None', 'json'])
+    def test_subquery_column_method(self, db, mode):
+        if getattr(db, 'dialect', None) and db.dialect.name == 'sqlite' and mode != 'None':
+            from asqueel.contracts import UnsupportedFeatureError
+    
+            with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):
+                db.table('app.owner').query(columns='$collection_' + mode).sqltext
+        else:
+            sql = db.table('app.owner').query(columns='$collection_' + mode).sqltext
+            assert 'SELECT' in sql
+>           assert db.method_calls and set(db.method_calls) == {'app.owner'}
+E           assert ([])
+E            +  where [] = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccd910>.method_calls
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:122: AssertionError
+______ TestLegacySubqueryMethodContract.test_subquery_column_method[json] ______
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b5e0aa0>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccf260>, mode = 'json'
+
+    @pytest.mark.parametrize('mode', ['None', 'json'])
+    def test_subquery_column_method(self, db, mode):
+        if getattr(db, 'dialect', None) and db.dialect.name == 'sqlite' and mode != 'None':
+            from asqueel.contracts import UnsupportedFeatureError
+    
+            with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):
+                db.table('app.owner').query(columns='$collection_' + mode).sqltext
+        else:
+            sql = db.table('app.owner').query(columns='$collection_' + mode).sqltext
+            assert 'SELECT' in sql
+>           assert db.method_calls and set(db.method_calls) == {'app.owner'}
+E           assert ([])
+E            +  where [] = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccf260>.method_calls
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:122: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_select_and_named_methods
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_exists_method
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_related_column_dispatches_on_select_root
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_nested_select_uses_its_own_root
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_sql_formula_can_supply_method_reference
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_subquery_column_method[None]
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_subquery_column_method[json]
+7 failed in 0.20s

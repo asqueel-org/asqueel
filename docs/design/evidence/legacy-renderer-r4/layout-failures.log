@@ -1,0 +1,571 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/gporcari/Sviluppo/asqueel/asqueel
+configfile: pyproject.toml
+plugins: cov-7.1.0, anyio-4.15.1
+collected 153 items
+
+tests/adapter_compiler/test_locking.py .................F                [ 11%]
+tests/application_table/test_handles.py ...........F............         [ 27%]
+tests/native_compiler/test_compiler.py F..................F............. [ 49%]
+......                                                                   [ 52%]
+tests/native_compiler/test_query_macros.py .....EEEEEFFFFEEEE....EEEE    [ 69%]
+tests/native_compiler/test_subqueries.py .........................F...   [ 88%]
+tests/native_compiler/test_subquery_columns.py ........FF.......         [100%]
+
+==================================== ERRORS ====================================
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-40-40-expected3] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-50-40-expected4] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-None-None-True] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-0-None-False] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-None-10-False] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-0-10-False] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql--expected3] _
+tests/query_completion_support.py:133: in shop
+    db.execute(CompiledQuery(statement.format(schema=schema)))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+
+During handling of the above exception, another exception occurred:
+tests/query_completion_support.py:140: in shop
+    db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: in connect
+    raise last_ex.with_traceback(None)
+E   psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E   	Is the server running on that host and accepting TCP/IP connections?
+=================================== FAILURES ===================================
+__________________ test_trailing_comment_cannot_swallow_lock ___________________
+tests/adapter_compiler/test_locking.py:84: in test_trailing_comment_cannot_swallow_lock
+    assert '-- user comment\nFOR UPDATE OF "t0"' in query.sql
+E   assert '-- user comment\nFOR UPDATE OF "t0"' in 'SELECT "t0"."id" AS "id",\n"t0"."customer_id" AS "customer_id"\n FROM "app"."invoice" AS "t0"\nWHERE "t0"."id"=%(id)s -- user comment\n\nFOR UPDATE OF "t0"'
+E    +  where 'SELECT "t0"."id" AS "id",\n"t0"."customer_id" AS "customer_id"\n FROM "app"."invoice" AS "t0"\nWHERE "t0"."id"=%(id)s -- user comment\n\nFOR UPDATE OF "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS "id",\n"t0"."customer_id" AS "customer_id"\n FROM "app"."invoice" AS "t0"\nWHER...ap object at 0x10ce59c10>)), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('id',)).sql
+_______ test_update_record_and_delete_pkey_zero_keep_explicit_selectors ________
+tests/application_table/test_handles.py:197: in test_update_record_and_delete_pkey_zero_keep_explicit_selectors
+    assert ' WHERE ' in db.executions[-1].sql
+E   assert ' WHERE ' in 'UPDATE "app"."customer" AS "t0" SET "id" = %(__value_0)s, "name" = %(__value_1)s\nWHERE "t0"."id" = %(__record_key_0)s\nRETURNING "t0"."id" AS "id"'
+E    +  where 'UPDATE "app"."customer" AS "t0" SET "id" = %(__value_0)s, "name" = %(__value_1)s\nWHERE "t0"."id" = %(__record_key_0)s\nRETURNING "t0"."id" AS "id"' = CompiledQuery(sql='UPDATE "app"."customer" AS "t0" SET "id" = %(__value_0)s, "name" = %(__value_1)s\nWHERE "t0"."id" =...0x10cedc380>),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('__record_key_0',)).sql
+___________________ test_projection_join_reuse_and_metadata ____________________
+tests/native_compiler/test_compiler.py:34: in test_projection_join_reuse_and_metadata
+    assert query.sql.endswith('LIMIT 0 OFFSET 0')
+E   assert False
+E    +  where False = <built-in method endswith of str object at 0x10ce058f0>('LIMIT 0 OFFSET 0')
+E    +    where <built-in method endswith of str object at 0x10ce058f0> = 'SELECT "t0"."id" AS "id",\n"t1"."full%%name" AS "customer",\n(("t0"."amount" * 2) * 2) AS "quad"\n FROM "Actual ""Sch..."t0"."customer_id" = "t1"."id"\nWHERE "t1"."full%%name" = %(name)s\nORDER BY "t1"."full%%name" DESC\nLIMIT 0\nOFFSET 0'.endswith
+E    +      where 'SELECT "t0"."id" AS "id",\n"t1"."full%%name" AS "customer",\n(("t0"."amount" * 2) * 2) AS "quad"\n FROM "Actual ""Sch..."t0"."customer_id" = "t1"."id"\nWHERE "t1"."full%%name" = %(name)s\nORDER BY "t1"."full%%name" DESC\nLIMIT 0\nOFFSET 0' = CompiledQuery(sql='SELECT "t0"."id" AS "id",\n"t1"."full%%name" AS "customer",\n(("t0"."amount" * 2) * 2) AS "quad"\n ... object at 0x10ce5a060>)), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('name',)).sql
+_______________ test_update_collision_returning_and_line_comment _______________
+tests/native_compiler/test_compiler.py:114: in test_update_collision_returning_and_line_comment
+    assert '-- trailing\n RETURNING' in query.sql
+E   assert '-- trailing\n RETURNING' in 'UPDATE "Actual ""Schema"."Order" AS "t0" SET "amount" = %(___value_0)s\nWHERE "t0"."id"=%(__value_0)s -- trailing\n\nRETURNING "t0"."id" AS "id",\n("t0"."amount" * 2) AS "double"'
+E    +  where 'UPDATE "Actual ""Schema"."Order" AS "t0" SET "amount" = %(___value_0)s\nWHERE "t0"."id"=%(__value_0)s -- trailing\n\nRETURNING "t0"."id" AS "id",\n("t0"."amount" * 2) AS "double"' = CompiledQuery(sql='UPDATE "Actual ""Schema"."Order" AS "t0" SET "amount" = %(___value_0)s\nWHERE "t0"."id"=%(__value_0...ct at 0x10cede300>)), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('__value_0',)).sql
+__ test_null_value_range_retains_sql_unknown_in_where[sqlite-None-None-True] ___
+tests/native_compiler/test_query_macros.py:34: in test_null_value_range_retains_sql_unknown_in_where
+    predicate = query.sql.split(' WHERE ', 1)[1]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+___ test_null_value_range_retains_sql_unknown_in_where[sqlite-0-None-False] ____
+tests/native_compiler/test_query_macros.py:34: in test_null_value_range_retains_sql_unknown_in_where
+    predicate = query.sql.split(' WHERE ', 1)[1]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+___ test_null_value_range_retains_sql_unknown_in_where[sqlite-None-10-False] ___
+tests/native_compiler/test_query_macros.py:34: in test_null_value_range_retains_sql_unknown_in_where
+    predicate = query.sql.split(' WHERE ', 1)[1]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+____ test_null_value_range_retains_sql_unknown_in_where[sqlite-0-10-False] _____
+tests/native_compiler/test_query_macros.py:34: in test_null_value_range_retains_sql_unknown_in_where
+    predicate = query.sql.split(' WHERE ', 1)[1]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+_________ test_this_relation_path_allocates_outer_join_not_inner_join __________
+tests/native_compiler/test_subqueries.py:240: in test_this_relation_path_allocates_outer_join_not_inner_join
+    assert ') AS "foreign_total" FROM "app"."wrapper" AS "t0" LEFT JOIN ' in query.sql
+E   assert ') AS "foreign_total" FROM "app"."wrapper" AS "t0" LEFT JOIN ' in 'SELECT (SELECT SUM("s1_t0"."amount") AS "__value_0"\n FROM "app"."item" AS "s1_t0"\nWHERE "s1_t0"."owner_id"="t1"."id") AS "foreign_total"\n FROM "app"."wrapper" AS "t0"\n LEFT JOIN "app"."owner" AS "t1" ON "t0"."owner_id" = "t1"."id"'
+E    +  where 'SELECT (SELECT SUM("s1_t0"."amount") AS "__value_0"\n FROM "app"."item" AS "s1_t0"\nWHERE "s1_t0"."owner_id"="t1"."id") AS "foreign_total"\n FROM "app"."wrapper" AS "t0"\n LEFT JOIN "app"."owner" AS "t1" ON "t0"."owner_id" = "t1"."id"' = CompiledQuery(sql='SELECT (SELECT SUM("s1_t0"."amount") AS "__value_0"\n FROM "app"."item" AS "s1_t0"\nWHERE "s1_t0"."...zenMap object at 0x10ce36510>),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+_ test_aggregate_uses_same_child_plan_with_pagination_and_defaults[postgresql-json] _
+tests/native_compiler/test_subquery_columns.py:171: in test_aggregate_uses_same_child_plan_with_pagination_and_defaults
+    assert 'ORDER BY' in query.sql and 'LIMIT 2 OFFSET 1' in query.sql
+E   assert ('ORDER BY' in 'SELECT DISTINCT (SELECT jsonb_agg(row_to_json("app_owner_json_json")) FROM (SELECT "s1_t0"."id" AS "id",\n"s1_t0"."la...ORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_json_json") AS "json"\n FROM "public"."app_owner" AS "t0"' and 'LIMIT 2 OFFSET 1' in 'SELECT DISTINCT (SELECT jsonb_agg(row_to_json("app_owner_json_json")) FROM (SELECT "s1_t0"."id" AS "id",\n"s1_t0"."la...ORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_json_json") AS "json"\n FROM "public"."app_owner" AS "t0"')
+E    +  where 'SELECT DISTINCT (SELECT jsonb_agg(row_to_json("app_owner_json_json")) FROM (SELECT "s1_t0"."id" AS "id",\n"s1_t0"."la...ORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_json_json") AS "json"\n FROM "public"."app_owner" AS "t0"' = CompiledQuery(sql='SELECT DISTINCT (SELECT jsonb_agg(row_to_json("app_owner_json_json")) FROM (SELECT "s1_t0"."id" AS ...zenMap object at 0x10d5e0290>),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+E    +  and   'SELECT DISTINCT (SELECT jsonb_agg(row_to_json("app_owner_json_json")) FROM (SELECT "s1_t0"."id" AS "id",\n"s1_t0"."la...ORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_json_json") AS "json"\n FROM "public"."app_owner" AS "t0"' = CompiledQuery(sql='SELECT DISTINCT (SELECT jsonb_agg(row_to_json("app_owner_json_json")) FROM (SELECT "s1_t0"."id" AS ...zenMap object at 0x10d5e0290>),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+_ test_aggregate_uses_same_child_plan_with_pagination_and_defaults[postgresql-xml] _
+tests/native_compiler/test_subquery_columns.py:171: in test_aggregate_uses_same_child_plan_with_pagination_and_defaults
+    assert 'ORDER BY' in query.sql and 'LIMIT 2 OFFSET 1' in query.sql
+E   assert ('ORDER BY' in 'SELECT DISTINCT (SELECT CAST(xmlagg(xmlelement(name "app_owner_xml_xml", xmlforest("app_owner_xml_xml"."id" AS "id", ..."\nORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_xml_xml") AS "xml"\n FROM "public"."app_owner" AS "t0"' and 'LIMIT 2 OFFSET 1' in 'SELECT DISTINCT (SELECT CAST(xmlagg(xmlelement(name "app_owner_xml_xml", xmlforest("app_owner_xml_xml"."id" AS "id", ..."\nORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_xml_xml") AS "xml"\n FROM "public"."app_owner" AS "t0"')
+E    +  where 'SELECT DISTINCT (SELECT CAST(xmlagg(xmlelement(name "app_owner_xml_xml", xmlforest("app_owner_xml_xml"."id" AS "id", ..."\nORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_xml_xml") AS "xml"\n FROM "public"."app_owner" AS "t0"' = CompiledQuery(sql='SELECT DISTINCT (SELECT CAST(xmlagg(xmlelement(name "app_owner_xml_xml", xmlforest("app_owner_xml_x...zenMap object at 0x10d46ebd0>),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+E    +  and   'SELECT DISTINCT (SELECT CAST(xmlagg(xmlelement(name "app_owner_xml_xml", xmlforest("app_owner_xml_xml"."id" AS "id", ..."\nORDER BY "s1_t0"."id" DESC\nLIMIT 2\nOFFSET 1) AS "app_owner_xml_xml") AS "xml"\n FROM "public"."app_owner" AS "t0"' = CompiledQuery(sql='SELECT DISTINCT (SELECT CAST(xmlagg(xmlelement(name "app_owner_xml_xml", xmlforest("app_owner_xml_x...zenMap object at 0x10d46ebd0>),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.12-final-0 _______________
+
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+src/asqueel/__init__.py                    40     10    75%   81-90
+src/asqueel/__main__.py                     3      3     0%   2-5
+src/asqueel/_compiler_bindings.py          58      0   100%
+src/asqueel/_legacy_sql.py                120    120     0%   8-174
+src/asqueel/application.py                102     27    74%   23, 29, 40, 44, 50, 57, 64-65, 71-74, 80-81, 85-86, 89-92, 96, 103, 107, 134-135, 144-145
+src/asqueel/application_table.py          309     54    83%   47-48, 57, 97, 118, 123-126, 130, 179, 194-196, 238-239, 251-254, 269, 277, 281-282, 286-288, 292, 295-303, 324, 332-335, 337, 343, 351, 391, 404, 426, 432, 439, 443-447, 451-453
+src/asqueel/builder.py                    406    183    55%   102, 114-117, 119-122, 124-127, 130, 133, 137, 146, 163-167, 172-174, 176, 182, 187, 189-198, 210, 220-221, 226-235, 248-250, 253, 258-269, 272, 276, 278, 280-289, 293-299, 301, 306, 310, 318, 320, 322-326, 331-333, 346, 348, 351, 356-359, 361-367, 369-371, 374, 379, 381, 384, 386-389, 391-407, 409-428, 430-444, 458, 463, 467, 472, 475, 479, 481, 484, 486, 490, 494, 501, 504, 515, 521-523, 545
+src/asqueel/catalog.py                    109      9    92%   81-82, 112, 131-132, 134-135, 143-144
+src/asqueel/catalog_provider.py            10      2    80%   28-30
+src/asqueel/cli.py                         92     92     0%   2-127
+src/asqueel/common.py                       9      3    67%   17, 19, 21
+src/asqueel/compiler.py                   742    165    78%   41-48, 75-86, 96-101, 138, 145, 148, 182, 223, 228, 248, 255, 268-273, 280-281, 283, 289, 291, 304-307, 312, 323-332, 350-352, 366, 369, 371, 373-386, 392, 394, 406-414, 429, 431, 433, 435, 437, 439, 446, 451, 477, 481-486, 488, 511, 513, 547, 570, 573, 575, 586, 589, 619-623, 627, 634, 637, 639-654, 682, 688, 691, 695-696, 702, 714, 766, 771, 786, 804, 834, 842, 847, 889, 891, 894, 909-914, 918, 923, 928, 965, 994-1000, 1004-1006, 1011
+src/asqueel/configuration.py              322    142    56%   30, 36-44, 47-48, 81-82, 86-87, 105-106, 118, 122, 125, 127-128, 131, 145, 155-160, 172, 182-227, 233, 235-236, 238-239, 241-242, 253-260, 265-275, 289-294, 299, 306-315, 339, 344, 346, 353-355, 358, 366, 368, 370, 372-379, 382, 387, 389, 391-400, 431
+src/asqueel/contracts.py                  159      6    96%   41, 80-83, 182
+src/asqueel/dialects/__init__.py            0      0   100%
+src/asqueel/dialects/base.py                5      0   100%
+src/asqueel/dialects/postgres.py          227     47    79%   99, 108-115, 132, 138, 140, 145, 150, 154-155, 160, 163, 165, 167, 171-181, 193, 195, 198, 208, 210, 212, 214, 217, 219, 221, 224, 227, 230, 233, 236, 251, 254, 257, 280, 284, 290, 303, 305, 310
+src/asqueel/dialects/sqlite.py             52     13    75%   15, 24, 29, 34, 39-42, 46, 50, 54, 56, 63
+src/asqueel/drivers/__init__.py             0      0   100%
+src/asqueel/drivers/base.py                 8      0   100%
+src/asqueel/drivers/psycopg.py             55     19    65%   26-27, 31, 33, 41, 43, 47, 54, 56, 64, 68-74, 77, 80, 83
+src/asqueel/drivers/result.py              14      3    79%   11, 14, 16
+src/asqueel/drivers/sql.py                 67     35    48%   22, 24, 29-30, 32, 40-43, 53-72, 77-81, 95-96
+src/asqueel/drivers/sqlite.py              90     17    81%   25, 27, 34, 36, 40, 47, 49, 53, 55, 58, 61, 69, 71, 75-77, 82
+src/asqueel/elements.py                    53      0   100%
+src/asqueel/emitter.py                    124    101    19%   68-85, 94-104, 121, 132-153, 158-161, 164-167, 170-173, 176-194, 200-205, 214-219, 223-231, 236-249
+src/asqueel/environment.py                 83      8    90%   20-21, 51, 56, 72, 99-101
+src/asqueel/errors.py                       4      0   100%
+src/asqueel/examples/__init__.py            0      0   100%
+src/asqueel/grammar_doc.py                146    146     0%   14-264
+src/asqueel/hosting.py                     60     41    32%   32-34, 38, 41, 46, 51-54, 62-68, 73-74, 78-79, 83-93, 96-104
+src/asqueel/importers.py                   96     82    15%   19-22, 28-30, 40-207, 212-225
+src/asqueel/legacy_source.py              116    116     0%   7-159
+src/asqueel/migration.py                  189    189     0%   28-364
+src/asqueel/model.py                      397    123    69%   33, 36, 53, 58, 60, 70, 74, 94, 98, 102, 108, 134, 136, 138, 149, 153, 161, 168, 173, 176, 185, 202-230, 239, 243-245, 253, 260, 266, 272, 274, 276, 280, 282-283, 294, 298, 302, 313, 316, 320, 322-323, 327, 332, 337, 341, 345, 361, 381, 385, 393-397, 407, 409-411, 417, 420, 422-424, 427-434, 444, 454-470, 473, 486, 488, 492, 495, 502, 504, 506, 510, 515, 519
+src/asqueel/model_codec.py                 46     35    24%   17-30, 34-47, 51, 56-63
+src/asqueel/model_elements.py              27      0   100%
+src/asqueel/model_expansion.py            295    173    41%   46, 54-65, 80-94, 123, 128, 156-164, 167, 171, 175-176, 180-183, 186-194, 198-201, 209, 215-282, 286-289, 293-321, 325-343, 347-360, 368, 375-381, 391, 395, 399
+src/asqueel/model_sections.py              84      9    89%   33, 39, 56-62
+src/asqueel/model_source.py               199     61    69%   28, 60, 76, 84-88, 94, 111-117, 131-132, 136, 138, 141, 148-149, 153-155, 163, 169, 176, 180, 183, 188-191, 199-226, 242
+src/asqueel/object_renderer.py             17     17     0%   2-29
+src/asqueel/object_tree.py                280    171    39%   33-47, 50, 53, 57, 61, 67-70, 74-77, 81, 85, 89, 93, 96, 99, 102-105, 108, 111, 114, 117, 120, 123, 130-131, 137, 140-143, 147-148, 151-153, 158-162, 166-171, 174-177, 181, 185, 189, 193, 197, 201, 205, 209, 212-213, 218-220, 224-244, 250, 254, 258-265, 270-271, 277-279, 286-291, 295, 299, 303-316, 323-337, 341-344, 348, 352, 357, 360, 363-370, 373-374, 378-381
+src/asqueel/object_tree_compiler.py       114    114     0%   7-173
+src/asqueel/object_tree_projection.py      92     92     0%   6-124
+src/asqueel/object_tree_relations.py      107    107     0%   6-153
+src/asqueel/object_tree_renderer.py        30     30     0%   2-47
+src/asqueel/option_elements.py             42      0   100%
+src/asqueel/option_validation.py           97     54    44%   25, 28-38, 43, 49-63, 68, 70-72, 79, 82, 89, 92, 96-98, 100-105, 107-111, 113-116
+src/asqueel/projection.py                 166    157     5%   16-29, 33-51, 61-223
+src/asqueel/query_plan.py                 108      4    96%   127-128, 155, 159
+src/asqueel/reader.py                     205    205     0%   41-417
+src/asqueel/registry.py                    47     47     0%   2-63
+src/asqueel/renderer.py                     4      0   100%
+src/asqueel/runtime.py                    412    129    69%   57, 61, 65, 67, 99, 103, 108, 127-128, 137-138, 141, 145, 154-158, 162-163, 167, 171-172, 176, 180-182, 185, 190-192, 200, 210-211, 222-223, 227-228, 232-233, 238, 257-264, 270-277, 284-288, 290, 295, 297, 308-318, 321-324, 336-345, 354, 359, 364, 369, 388, 399-402, 430-437, 446, 455-459, 464-472, 480, 491, 498-499, 503-507, 512, 521-525, 532-536
+src/asqueel/semantic_elements.py           14      0   100%
+src/asqueel/triggers.py                    33      5    85%   28, 36-39
+src/asqueel/validation.py                  62     62     0%   2-79
+src/asqueel/validators.py                 202    100    50%   34-35, 73, 80-83, 86, 98, 114-115, 126, 138, 145-152, 160-175, 183-202, 211-222, 224-236, 240-249, 262-263, 266-271, 275-276, 282, 284-289, 292-297, 302-312, 320, 327-335, 337, 343, 353, 357, 370-382
+src/asqueel/writes.py                     126     36    71%   24, 34-47, 53, 60, 64-69, 74, 93, 102, 110-111, 133, 138-144
+---------------------------------------------------------------------
+TOTAL                                    7076   3364    52%
+=========================== short test summary info ============================
+FAILED tests/adapter_compiler/test_locking.py::test_trailing_comment_cannot_swallow_lock
+FAILED tests/application_table/test_handles.py::test_update_record_and_delete_pkey_zero_keep_explicit_selectors
+FAILED tests/native_compiler/test_compiler.py::test_projection_join_reuse_and_metadata
+FAILED tests/native_compiler/test_compiler.py::test_update_collision_returning_and_line_comment
+FAILED tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[sqlite-None-None-True]
+FAILED tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[sqlite-0-None-False]
+FAILED tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[sqlite-None-10-False]
+FAILED tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[sqlite-0-10-False]
+FAILED tests/native_compiler/test_subqueries.py::test_this_relation_path_allocates_outer_join_not_inner_join
+FAILED tests/native_compiler/test_subquery_columns.py::test_aggregate_uses_same_child_plan_with_pagination_and_defaults[postgresql-json]
+FAILED tests/native_compiler/test_subquery_columns.py::test_aggregate_uses_same_child_plan_with_pagination_and_defaults[postgresql-xml]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-40-expected3]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-50-40-expected4]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-None-None-True]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-0-None-False]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-None-10-False]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-0-10-False]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql--expected3]
+================== 11 failed, 129 passed, 13 errors in 3.38s ===================

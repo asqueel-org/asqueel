@@ -13,8 +13,8 @@ from tests.native_support import postgres_dsn
 pytestmark = pytest.mark.postgresql
 
 
-@pytest.fixture
-def formula_database():
+@pytest.fixture(params=['schema', 'package'])
+def formula_database(request):
     schema = 'formula_subqueries_' + uuid4().hex
     dsn = postgres_dsn()
     with psycopg.connect(dsn, autocommit=True) as observer:
@@ -35,8 +35,12 @@ def formula_database():
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    tables = root.db('subqueries', conninfo=dsn).schemas().schema(
-                        'app', x_sql_schema=schema).tables()
+                    database = root.db('subqueries', conninfo=dsn)
+                    if request.param == 'package':
+                        tables = database.packages().package(
+                            'app', sqlschema=schema, sqlprefix=False).tables()
+                    else:
+                        tables = database.schemas().schema('app', x_sql_schema=schema).tables()
                     invoice = tables.table('invoice', pkey='id')
                     columns = invoice.columns()
                     columns.column('id', dtype='I')
@@ -53,6 +57,7 @@ def formula_database():
                     virtual.formulaColumn('filtered_total', dtype='N', select=dict(
                         **total, excludeDraft=True, excludeLogicalDeleted=True))
                     virtual.formulaColumn('all_total', dtype='N', select=dict(**total, ignorePartition=True))
+                    virtual.formulaColumn('scoped_total', dtype='N', select=dict(**total, ignorePartition=False))
                     virtual.formulaColumn('above_threshold', dtype='N', select=dict(
                         table='app.line', columns='SUM($amount)',
                         where='$invoice_id=#THIS.id AND $amount>:threshold', sqlparams={'threshold': 15},
@@ -88,9 +93,9 @@ def test_scalar_aggregate_exists_named_nested_formula_and_metadata(formula_datab
     with db.temp_env(organization=0):
         result = db.table('invoice').query(
             '$id,$total,$has_lines,$total_zero,$double_total', order_by='$id').execute()
-        assert result.rows == [
-            {'id': 1, 'total': Decimal(60), 'has_lines': True, 'total_zero': Decimal(60),
-             'double_total': Decimal(120)},
+        assert [dict(row) for row in result.rows] == [
+            {'id': 1, 'total': Decimal(100), 'has_lines': True, 'total_zero': Decimal(100),
+             'double_total': Decimal(200)},
             {'id': 2, 'total': Decimal(7), 'has_lines': True, 'total_zero': Decimal(7),
              'double_total': Decimal(14)},
             {'id': 3, 'total': None, 'has_lines': False, 'total_zero': Decimal(0), 'double_total': None},
@@ -105,8 +110,8 @@ def test_correlated_owner_through_relation_and_alias(formula_database):
     with formula_database.temp_env(organization=0):
         rows = formula_database.table('receipt').query(
             '$id,@invoice.total AS related_total,$invoice_total', order_by='$id').fetch()
-        assert rows == [
-            {'id': 10, 'related_total': Decimal(60), 'invoice_total': Decimal(60)},
+        assert [dict(row) for row in rows] == [
+            {'id': 10, 'related_total': Decimal(100), 'invoice_total': Decimal(100)},
             {'id': 11, 'related_total': Decimal(7), 'invoice_total': Decimal(7)},
             {'id': 12, 'related_total': None, 'invoice_total': None},
         ]
@@ -115,19 +120,21 @@ def test_correlated_owner_through_relation_and_alias(formula_database):
 def test_nested_policy_defaults_and_explicit_overrides(formula_database):
     db = formula_database
     query = db.table('invoice').query('$total,$filtered_total,$all_total', where='$id=1')
-    with pytest.raises(ValueError):
-        query.fetch()  # Outer unpartitioned table does not disable child partition scope.
-    assert db.outcome == 'not_started'
+    expected = [{'total': Decimal(100), 'filtered_total': Decimal(50), 'all_total': Decimal(100)}]
+    assert [dict(row) for row in query.fetch()] == expected  # Legacy formula defaults bypass partition.
+    db.rollback()
+    scoped = db.table('invoice').query('$scoped_total', where='$id=1')
+    with pytest.raises(ValueError, match='Missing partition context'):
+        scoped.fetch()
     with db.temp_env(organization=0):
-        assert query.fetch() == [{'total': Decimal(60), 'filtered_total': Decimal(10),
-                                  'all_total': Decimal(100)}]
-    assert db.table('invoice').query('$all_total', where='$id=1').fetch() == [{'all_total': Decimal(100)}]
+        assert [dict(row) for row in query.fetch()] == expected
+        assert [dict(row) for row in scoped.fetch()] == [{'scoped_total': Decimal(60)}]
 
 
 def test_scalar_multiple_rows_raise_and_this_inside_literal_comment_survives(formula_database):
     db = formula_database
     with db.temp_env(organization=0):
-        assert db.table('invoice').query('$literal_marker', where='$id=1').fetch() == [
+        assert [dict(row) for row in db.table('invoice').query('$literal_marker', where='$id=1').fetch()] == [
             {'literal_marker': '#THIS.id'}]
         db.rollback()
         with pytest.raises(psycopg.errors.CardinalityViolation):
@@ -140,10 +147,10 @@ def test_default_returning_does_not_evaluate_subquery_virtuals(formula_database)
     db = formula_database
     with completed(db):
         inserted = db.table('invoice').insert({'id': 4, 'name': 'new'})
-        assert inserted.rows == [{'id': 4, 'name': 'new'}]
+        assert [dict(row) for row in inserted.rows] == [{'id': 4, 'name': 'new'}]
         updated = db.table('invoice').update({'name': 'updated'}, where='$id=4')
-        assert updated.rows == [{'id': 4, 'name': 'updated'}]
-        assert db.table('invoice').delete(4).rows == [{'id': 4, 'name': 'updated'}]
+        assert [dict(row) for row in updated.rows] == [{'id': 4, 'name': 'updated'}]
+        assert [dict(row) for row in db.table('invoice').delete(4).rows] == [{'id': 4, 'name': 'updated'}]
 
 
 def test_subquery_local_params_are_isolated_from_outer_binding(formula_database):
@@ -151,4 +158,4 @@ def test_subquery_local_params_are_isolated_from_outer_binding(formula_database)
     with db.temp_env(organization=0):
         query = db.table('invoice').query('$id,$above_threshold', where='$id<:threshold',
                                           sqlparams={'threshold': 2})
-        assert query.fetch() == [{'id': 1, 'above_threshold': Decimal(50)}]
+        assert [dict(row) for row in query.fetch()] == [{'id': 1, 'above_threshold': Decimal(90)}]

@@ -1,0 +1,106 @@
+{
+  "TestPhysicalColumns::test_count_matches_expected_pg": {
+    "port_sha256": "9d7532b5fc5647e248fba7201a0a8e17f791b9ecbae3b66f73a17ab902199308",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "identical",
+      "v4": "identical",
+      "simplify": "identical",
+      "next": "identical"
+    }
+  },
+  "TestPhysicalColumns::test_count_matches_expected_sqlite": {
+    "port_sha256": "0f2e750070b1f98cd92ee7fe6d2f4f388b4c8c4e8ad90fc8fe03fa05efafe861",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "identical",
+      "v4": "identical",
+      "simplify": "identical",
+      "next": "identical"
+    }
+  },
+  "TestDraftField::test_draft_filter_count_pg": {
+    "port_sha256": "dab4113ee18996d4ff648172ecd58d7f566fdc29c1e56dba62d8d4f22c5d0d81",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "identical",
+      "v4": "identical",
+      "simplify": "identical",
+      "next": "identical"
+    }
+  },
+  "TestDraftField::test_draft_filter_count_sqlite": {
+    "port_sha256": "6757b0c6fdb1486c27d389cae7510890a23d10fbb64131aa2a98bd1259b9d19e",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "identical",
+      "v4": "identical",
+      "simplify": "identical",
+      "next": "identical"
+    }
+  },
+  "TestCompiledQueryOptions::test_count_with_group_by_pg": {
+    "port_sha256": "573c00bec9744751992f56c55034b307b482eaed48a05f5adc9be6fb8949cb60",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "absent",
+      "v4": "absent",
+      "simplify": "absent",
+      "next": "identical"
+    }
+  },
+  "TestCompiledQueryOptions::test_count_with_group_by_sqlite": {
+    "port_sha256": "6d90d510c9c940fbd1e2b5c1bac92c451e10741483bff08f94d79d172747ad21",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "absent",
+      "v4": "absent",
+      "simplify": "absent",
+      "next": "identical"
+    }
+  },
+  "TestCompiledQueryOptions::test_count_with_distinct_pg": {
+    "port_sha256": "498eb065c9dcebdac56ee1f23c1b6319707a64437d875865ebad578f94d78194",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "absent",
+      "v4": "absent",
+      "simplify": "absent",
+      "next": "identical"
+    }
+  },
+  "TestCompiledQueryOptions::test_count_with_distinct_sqlite": {
+    "port_sha256": "682fba17934a061043457a06eed85e6191637bf01f787e3f7ef7eaa4ff2c61c9",
+    "references": {
+      "legacy": "identical",
+      "compound": "absent",
+      "v2": "absent",
+      "v3": "absent",
+      "v3_merged": "absent",
+      "v4": "absent",
+      "simplify": "absent",
+      "next": "identical"
+    }
+  }
+}

@@ -1,0 +1,256 @@
+{
+  "date": "2026-10-14",
+  "python": "3.12.12",
+  "sqlite": "3.50.4",
+  "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''",
+  "full_suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "9",
+    "tests": "1601",
+    "time": "55.654",
+    "timestamp": "2026-10-14T14:14:50.285650+02:00",
+    "hostname": "MacBook-Pro-di-Giovanni.local"
+  },
+  "method_tests": [
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_methods_are_lazy_and_repeated_uses_share_only_one_compilation[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_methods_are_lazy_and_repeated_uses_share_only_one_compilation[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_edits_are_local_and_nested_scopes_do_not_mix[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_edits_are_local_and_nested_scopes_do_not_mix[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_gets_mutable_collections_without_changing_the_model[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_gets_mutable_collections_without_changing_the_model[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_is_bound_to_the_related_table_and_row_alias[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_is_bound_to_the_related_table_and_row_alias[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_missing_method_and_standalone_compiler_are_explicit[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_missing_method_and_standalone_compiler_are_explicit[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[postgresql-None]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[postgresql-True]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[postgresql-]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[postgresql-  ]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[postgresql-42]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[postgresql-result5]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[sqlite-None]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[sqlite-True]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[sqlite-]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[sqlite-  ]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[sqlite-42]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_method_must_return_sql_text[sqlite-result5]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_cycles_and_method_errors_keep_their_diagnostics[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_cycles_and_method_errors_keep_their_diagnostics[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_new_effective_declaration_has_no_cached_formula_or_locals[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_new_effective_declaration_has_no_cached_formula_or_locals[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_same_query_compiles_with_thread_local_method_values[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_same_query_compiles_with_thread_local_method_values[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_method_formulas",
+      "name": "test_existing_schema_declaration_can_defer_a_method_until_compile",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_method_formulas.TestSqlFormulaTrueDelegate",
+      "name": "test_protecting_reasons_pg",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_method_formulas.TestSqlFormulaTrueDelegate",
+      "name": "test_protecting_reasons_sqlite",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_sys_fields_with_no_rules_return_null_not_false[db_pg]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_sys_fields_with_no_rules_return_null_not_false[db_sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_reasons_and_method_dependencies_have_legacy_values[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_reasons_and_method_dependencies_have_legacy_values[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_method_alias_filter_order_and_new_environment[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_method_alias_filter_order_and_new_environment[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_method_named_subquery_keeps_all_parameter_owners[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_method_results",
+      "name": "test_method_named_subquery_keeps_all_parameter_owners[sqlite]",
+      "status": "passed"
+    }
+  ],
+  "legacy_assertions_unchanged": true,
+  "previous_legacy_baseline": [
+    {
+      "ref": "legacy",
+      "test": "test_protecting_reasons_pg",
+      "status": "passed"
+    },
+    {
+      "ref": "legacy",
+      "test": "test_protecting_reasons_sqlite",
+      "status": "passed"
+    },
+    {
+      "ref": "next",
+      "test": "test_protecting_reasons_pg",
+      "status": "passed"
+    },
+    {
+      "ref": "next",
+      "test": "test_protecting_reasons_sqlite",
+      "status": "passed"
+    }
+  ],
+  "checks": {
+    "ruff": "passed",
+    "mypy": "passed",
+    "sphinx": "passed",
+    "git_diff_check": "passed"
+  },
+  "source_sha256": {
+    "src/asqueel/compiler.py": "7505fce877612b5d82c8ed529ecd4dfc73c64e58152a6fe109db4500e3534396",
+    "src/asqueel/application.py": "5be8c2ef5d95d87109bd6850927542180113e5862c08d53479f4255f3d6dc746",
+    "src/asqueel/application_table.py": "5d53cea82b3d50345a169b9a28d44556e006dbf3931be00cc08cb6087849c785",
+    "src/asqueel/model.py": "3a6e505ca8117f88ee943ce90a2fd631c733d866cbb6696f0f54d71eb8c9df6c",
+    "src/asqueel/model_sections.py": "c78598549666409773209fbf51121d7d85991280dfd424bb2b9e04cc3f9e3f2c",
+    "src/asqueel/dialects/base.py": "b1431c99e98be6723d932fa7db985a5083b8d9ac2ec965d864b09a075ddb4552",
+    "src/asqueel/dialects/postgres.py": "f49383f7221b67e0cad3b9232f45d502a37d6699e48e21a65b1be2933573359a",
+    "src/asqueel/dialects/sqlite.py": "a78046e6983fdac727d98ad273de185bf7bd328bc8f8b68697fd79a7b9d0fa03",
+    "tests/native_compiler/test_method_formulas.py": "75dd7a933743a7fb0c56bdc41490dd29cc4883d0b7f7ca4d6990fa630a370b41",
+    "tests/native_formulas/test_legacy_method_formulas.py": "c5b11b151dea47afc3888b0de3635fe9993b2e245c16319ca0e88c43ee62c41c",
+    "tests/native_formulas/test_method_results.py": "39eb4f6e5095e15dd803d7af07801add0da7f57260c408d95f0105ba456b4d9f",
+    "tests/native_model/test_subquery_model.py": "9eb57344c6db31acfc7b6f0f542c5a8df6700e80300b7f8579a1076bedb6e79d"
+  }
+}

@@ -32,10 +32,10 @@ def test_lock_is_structural_and_follows_pagination(compiler):
     assert plan.for_update is True
     query = compiler.compile_plan(plan)
     assert ' LEFT JOIN ' in query.sql
-    assert query.sql.endswith(' ORDER BY "t0"."id" LIMIT 5 OFFSET 2 FOR UPDATE OF "t0"')
+    assert query.sql.endswith('\nORDER BY "t0"."id"\nLIMIT 5\nOFFSET 2\nFOR UPDATE OF "t0"')
     assert query.sql.count('FOR UPDATE OF') == 1
     assert dict(query.params) == {'id': 3}
-    assert compiler.select('invoice', for_update=True).sql.endswith(' FOR UPDATE OF "t0"')
+    assert compiler.select('invoice', for_update=True).sql.endswith('\nFOR UPDATE OF "t0"')
 
 
 @pytest.mark.parametrize('value', [None, 0, 1, 'true', [], {}])
@@ -75,10 +75,10 @@ def test_manual_root_alias_is_quoted_for_lock_target(compiler):
     plan = compiler.plan_select('invoice', '1 AS one', for_update=True)
     plan = replace(plan, table=TableRef('app', 'invoice', 'root"%'))
     query = compiler.compile_plan(plan)
-    assert query.sql.endswith(' FOR UPDATE OF "root""%%"')
+    assert query.sql.endswith('\nFOR UPDATE OF "root""%%"')
 
 
 def test_trailing_comment_cannot_swallow_lock(compiler):
     query = compiler.select('invoice', where='$id=:id -- user comment',
                             sqlparams={'id': 1}, for_update=True)
-    assert '-- user comment\n FOR UPDATE OF "t0"' in query.sql
+    assert '-- user comment\n\nFOR UPDATE OF "t0"' in query.sql

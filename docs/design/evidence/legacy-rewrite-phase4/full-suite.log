@@ -1,0 +1,378 @@
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 22%]
+....................s......................s...s.........s.........s.... [ 23%]
+...s...s.....s.......................................................... [ 25%]
+........................................................................ [ 26%]
+..........................................ssss.......................... [ 28%]
+..................................................s..................... [ 29%]
+.s...s.........s.........s.......s...s.....s............................ [ 31%]
+.F.....................F..................FFF........................... [ 32%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 43%]
+.............................F.....................F.................... [ 44%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 52%]
+........................................................................ [ 53%]
+........................................................................ [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 94%]
+........................................................................ [ 95%]
+......................................s................................. [ 97%]
+........................................................................ [ 98%]
+........................................................................ [100%]
+=================================== FAILURES ===================================
+_______________ test_tree_select_matches_legacy_rows[db_pg-star] _______________
+
+databases = (<asqueel.application.SqlDatabase object at 0x10f09cd70>, <asqueel.application.AsqueelDb object at 0x110ed5f70>)
+name = 'star'
+
+    @pytest.mark.parametrize('name', sorted(READY))
+    def test_tree_select_matches_legacy_rows(databases, name):
+        tree, execution = databases
+        case = next(c for c in ORACLE['cases'] if c['request']['name'] == name
+                    and c['dialect'] == tree.dialect.name)
+        request, expected = case['request'], case['expected']
+        actual = tree.table(request['table']).query(
+            request['columns'], sqlparams=request['params'],
+            **dict(request['options'], **({'addPkeyColumn': True} if name == 'default_pkey' else {}))).compiled
+        reference = CompiledQuery(expected['sql'],
+                                  {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'},
+                                  dialect=execution.dialect.name, binding=execution.driver.binding)
+        # The tree only compiles. Execution uses the isolated fixture connection,
+        # never the old compiler, and does not enable fetch on the tree facade.
+        first, second = execution.execute(actual), execution.execute(reference)
+>       assert [list(row) for row in first.rows] == [list(row) for row in second.rows]
+E       AssertionError: assert [['Isla Marti..., 'RES', ...]] == [['00KFn0NyPU...e, None, ...]]
+E         
+E         At index 0 diff: ['Isla Martin', '119 Queen Tce', 'Braybrook', 'VIC', '3019', 'RES', 'CC', None, 'isla.martin@outlook.com.au', '0210210286', None, None, None, '00KFn0NyPUScLEXgxGkcRw', datetime.datetime(2026, 2, 10, 12, 42, 28, 780143, tzinfo=zoneinfo.ZoneInfo(key='Europe/Rome')), None, datetime.datetime(2026, 2, 10, 12, 42, 28, 780146, tzinfo=zoneinfo.ZoneInfo(key='Europe/Rome')), None, None] != ['00KFn0NyPUScLEXgxGkcRw', datetime.datetime(2026, 2, 10, 12, 42, 28, 780143, tzinfo=zoneinfo.ZoneInfo(key='Europe/Rome')), None, datetime.datetime(2026, 2, 10, 12, 42, 28, 780...
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/native_formulas/test_tree_phase2_results.py:60: AssertionError
+_____________ test_tree_select_matches_legacy_rows[db_sqlite-star] _____________
+
+databases = (<asqueel.application.SqlDatabase object at 0x10ef5fdd0>, <asqueel.application.AsqueelDb object at 0x10da3ddf0>)
+name = 'star'
+
+    @pytest.mark.parametrize('name', sorted(READY))
+    def test_tree_select_matches_legacy_rows(databases, name):
+        tree, execution = databases
+        case = next(c for c in ORACLE['cases'] if c['request']['name'] == name
+                    and c['dialect'] == tree.dialect.name)
+        request, expected = case['request'], case['expected']
+        actual = tree.table(request['table']).query(
+            request['columns'], sqlparams=request['params'],
+            **dict(request['options'], **({'addPkeyColumn': True} if name == 'default_pkey' else {}))).compiled
+        reference = CompiledQuery(expected['sql'],
+                                  {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'},
+                                  dialect=execution.dialect.name, binding=execution.driver.binding)
+        # The tree only compiles. Execution uses the isolated fixture connection,
+        # never the old compiler, and does not enable fetch on the tree facade.
+        first, second = execution.execute(actual), execution.execute(reference)
+>       assert [list(row) for row in first.rows] == [list(row) for row in second.rows]
+E       AssertionError: assert [['Isla Marti..., 'RES', ...]] == [['00KFn0NyPU...e, None, ...]]
+E         
+E         At index 0 diff: ['Isla Martin', '119 Queen Tce', 'Braybrook', 'VIC', '3019', 'RES', 'CC', None, 'isla.martin@outlook.com.au', '0210210286', None, None, None, '00KFn0NyPUScLEXgxGkcRw', '2026-02-10 12:42:28.780143', None, '2026-02-10 12:42:28.780146', None, None] != ['00KFn0NyPUScLEXgxGkcRw', '2026-02-10 12:42:28.780143', None, '2026-02-10 12:42:28.780146', None, None, 'Isla Martin', '119 Queen Tce', 'Braybrook', 'VIC', '3019', 'RES', 'CC', None, 'isla.martin@outlook.com.au', '0210210286', None, None, None]
+E         Use -v to get more diff
+
+tests/native_formulas/test_tree_phase2_results.py:60: AssertionError
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x10effa7b0>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_12a9d55cff3b480bbed4e438581a3a32".invoice')
+low = None, high = None, expected = [10, 11, 12, 13, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10eb45910>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_12a9d55cff3b480bbed4e438581a3a32"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': None, 'high': None}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $1
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                     ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x10e5dd940>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_09139b7e70f14b14ac48259bc8793b3e".invoice')
+low = None, high = 40, expected = [11, 12, 13, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10eb47650>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_09139b7e70f14b14ac48259bc8793b3e"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': None, 'high': 40}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $1
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                     ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x110d41b50>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_a838caddc51242f69232fcedd627b7e4".invoice')
+low = 40, high = None, expected = [10, 11, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10dc83590>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_a838caddc51242f69232fcedd627b7e4"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': 40, 'high': None}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $2
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                                    ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_______________ test_legacy_sql_and_kwargs_contract[sqlite-star] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x11019f620>
+name = 'star'
+
+    @pytest.mark.parametrize('name', list(contract_parameters()))
+    def test_legacy_sql_and_kwargs_contract(database, name):
+        case = next(c for c in ORACLE['cases']
+                    if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+        request, expected = case['request'], case['expected']
+        query = database.table(request['table']).query(
+            request['columns'], sqlparams=request['params'], **request['options'])
+        if name == 'default_pkey':
+            # Agreed new default: pkey is opt-in; the explicit switch reproduces legacy.
+            assert [c.name for c in query.compiled.columns] == ['inv_number']
+            query = database.table(request['table']).query(
+                request['columns'], sqlparams=request['params'], addPkeyColumn=True, **request['options'])
+        actual = query._compile(database.compiler.count) if request['count'] else query.compiled
+        sql, params = actual.sql, dict(actual.params)
+        expected_sql = expected['sql']
+        expected_params = {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
+        if name == 'formula_parameters':
+            # Local scope ownership is the contract already agreed; names include
+            # id() in the legacy and are deliberately not a process-stable API.
+            sql, params = local_bindings(sql, params, database.dialect.name)
+            expected_sql, expected_params = local_bindings(
+                expected_sql, expected_params, database.dialect.name)
+>       assert normalized(sql) == normalized(expected_sql)
+E       assert 'SELECT "t0"....."id" LIMIT 1' == 'SELECT "t0"....."id" LIMIT 1'
+E         
+E         Skipping 55 identical trailing characters in diff, use -v to show
+E         - SELECT "t0"."id" AS "id", "t0"."__ins_ts" AS "__ins_ts", "t0"."__del_ts" AS "__del_ts", "t0"."__mod_ts" AS "__mod_ts", "t0"."__ins_user" AS "__ins_user", "t0"."__is_draft" AS "__is_draft", "t0"."account_name" AS "account_name", "t0"."street_address" AS "street_address", "t0"."suburb" AS "suburb", "t0"."state" AS "state", "t0"."postcode" AS "postcode", "t0"."customer_type_code" AS "customer_type_code", "t0"."payment_type_code" AS "payment_type_code", "t0"."notes" AS "notes", "t0"."email" AS "email", "t0"....
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/object_tree/test_legacy_rewrite_contracts.py:102: AssertionError
+_____________ test_legacy_sql_and_kwargs_contract[postgresql-star] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10f943140>
+name = 'star'
+
+    @pytest.mark.parametrize('name', list(contract_parameters()))
+    def test_legacy_sql_and_kwargs_contract(database, name):
+        case = next(c for c in ORACLE['cases']
+                    if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+        request, expected = case['request'], case['expected']
+        query = database.table(request['table']).query(
+            request['columns'], sqlparams=request['params'], **request['options'])
+        if name == 'default_pkey':
+            # Agreed new default: pkey is opt-in; the explicit switch reproduces legacy.
+            assert [c.name for c in query.compiled.columns] == ['inv_number']
+            query = database.table(request['table']).query(
+                request['columns'], sqlparams=request['params'], addPkeyColumn=True, **request['options'])
+        actual = query._compile(database.compiler.count) if request['count'] else query.compiled
+        sql, params = actual.sql, dict(actual.params)
+        expected_sql = expected['sql']
+        expected_params = {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
+        if name == 'formula_parameters':
+            # Local scope ownership is the contract already agreed; names include
+            # id() in the legacy and are deliberately not a process-stable API.
+            sql, params = local_bindings(sql, params, database.dialect.name)
+            expected_sql, expected_params = local_bindings(
+                expected_sql, expected_params, database.dialect.name)
+>       assert normalized(sql) == normalized(expected_sql)
+E       assert 'SELECT "t0"....."id" LIMIT 1' == 'SELECT "t0"....."id" LIMIT 1'
+E         
+E         Skipping 55 identical trailing characters in diff, use -v to show
+E         - SELECT "t0"."id" AS "id", "t0"."__ins_ts" AS "__ins_ts", "t0"."__del_ts" AS "__del_ts", "t0"."__mod_ts" AS "__mod_ts", "t0"."__ins_user" AS "__ins_user", "t0"."__is_draft" AS "__is_draft", "t0"."account_name" AS "account_name", "t0"."street_address" AS "street_address", "t0"."suburb" AS "suburb", "t0"."state" AS "state", "t0"."postcode" AS "postcode", "t0"."customer_type_code" AS "customer_type_code", "t0"."payment_type_code" AS "payment_type_code", "t0"."notes" AS "notes", "t0"."email" AS "email", "t0"....
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/object_tree/test_legacy_rewrite_contracts.py:102: AssertionError
+=========================== short test summary info ============================
+FAILED tests/native_formulas/test_tree_phase2_results.py::test_tree_select_matches_legacy_rows[db_pg-star]
+FAILED tests/native_formulas/test_tree_phase2_results.py::test_tree_select_matches_legacy_rows[db_sqlite-star]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]
+FAILED tests/object_tree/test_legacy_rewrite_contracts.py::test_legacy_sql_and_kwargs_contract[sqlite-star]
+FAILED tests/object_tree/test_legacy_rewrite_contracts.py::test_legacy_sql_and_kwargs_contract[postgresql-star]
+7 failed, 4796 passed, 21 skipped in 155.52s (0:02:35)

@@ -1,0 +1,69 @@
+{
+  "production_files_verified": 87,
+  "production_changed": [],
+  "legacy_symbols_verified": 106,
+  "tests": {
+    "original-tests": {
+      "tests": 146,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 144
+    },
+    "contracts-tests": {
+      "tests": 124,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 58,
+      "passed": 66
+    },
+    "asqueel-tests": {
+      "tests": 1911,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 54,
+      "passed": 1857
+    }
+  },
+  "existing_regression_cases": 1853,
+  "comparison": {
+    "legacy": {
+      "compile": {
+        "ok": 494,
+        "error": 4
+      },
+      "execute": {
+        "ok": 31,
+        "not_run": 467
+      },
+      "unstable": 0
+    },
+    "current": {
+      "compile": {
+        "ok": 470,
+        "error": 28
+      },
+      "execute": {
+        "ok": 28,
+        "not_run": 470
+      },
+      "unstable": 0
+    },
+    "tree": {
+      "compile": {
+        "ok": 152,
+        "error": 346
+      },
+      "execute": {
+        "ok": 2,
+        "not_run": 496
+      },
+      "unstable": 0
+    }
+  },
+  "native_tables": 74,
+  "native_relations": 144,
+  "focused_requests": 31,
+  "compiler_modified": false,
+  "ast_python": "3.12"
+}

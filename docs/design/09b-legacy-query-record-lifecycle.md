@@ -1,5 +1,10 @@
 # 09b — Legacy query, record, and selection lifecycle
 
+**Historical reference notice (15 October 2026):** this document retains its
+original `fa35e5ad` evidence. The [develop audit 95](95-develop-reference-audit.md)
+sets the reference for subsequent ports and records later fixes; this document
+is not a statement that those fixes have already landed in Asqueel.
+
 Internal architecture audit, 2026-09-29. This document describes observed source
 behavior and architectural decisions still needed for the product-level API
 `db.table('cont.cliente').query(...).fetch()`. It does not declare that API

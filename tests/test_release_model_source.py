@@ -154,6 +154,26 @@ def test_direct_declarations_also_work_on_legacy_schema_tables():
     assert resolve_model(builder).table('public.customer').pkey == ('id',)
 
 
+def test_column_groups_do_not_change_shared_grammar_or_other_columns():
+    from asqueel.grammar_doc import generate_grammar_md
+
+    grammar = generate_grammar_md()
+    builder, _, pkg = source()
+    table = pkg.table('customer')
+    first = table.colgroup('address').column('street')
+    second = table.colgroup('contact').column('phone')
+    plain = table.column('name')
+
+    assert generate_grammar_md() == grammar
+    assert first.attr['_meta']['colgroup'] == 'address'
+    assert second.attr['_meta']['colgroup'] == 'contact'
+    assert 'colgroup' not in plain.attr['_meta']
+    for column in (first, second, plain):
+        assert column.attr['_meta']['projects_column'] is True
+        assert column.attr['_meta']['projects_relation'] is True
+    builder.validate_model()
+
+
 def test_group_handles_route_to_the_table_with_order_and_explicit_overrides():
     builder, _, pkg = source()
     table = pkg.table('customer')

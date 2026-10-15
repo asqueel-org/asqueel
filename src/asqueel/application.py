@@ -10,18 +10,23 @@ from .configuration import SqlDatabaseConfig
 from .contracts import ResolvedModel, UnsupportedFeatureError
 from .environment import ApplicationEnvironment, SqlEnvironment
 from .runtime import Database
+from .object_tree import DbModel
 from .writes import WriteMixin
 
 
 class SqlDatabase(WriteMixin, Database):
     """A model and table graph over thread-local named connections."""
 
-    def __init__(self, *, model: ResolvedModel, config, driver=None, dialect=None,
+    def __init__(self, *, model: ResolvedModel | DbModel, config, driver=None, dialect=None,
                  environment: SqlEnvironment | None = None):
+        if isinstance(model, DbModel) and model._operational_db is not None:
+            raise ValueError('Hierarchical model is already bound to a database')
         self.config = config
         self.model = model
         from .configuration import connection_settings
         implementation, conninfo, kwargs = connection_settings(config)
+        if isinstance(model, DbModel) and implementation != model.implementation:
+            raise ValueError('Configured implementation does not match the hierarchical model')
         default_driver: Any
         if implementation == 'postgresql':
             from .dialects.postgres import PostgresDialect
@@ -39,23 +44,41 @@ class SqlDatabase(WriteMixin, Database):
             raise ValueError('Configured implementation does not match the data dialect/driver')
         super().__init__(conninfo, driver=driver, connect_kwargs=kwargs, environment=ApplicationEnvironment(environment))
         self._ready = False
-        self.compiler = QueryCompiler(model, self.dialect, self.driver, environment=self.environment)
+        self._compiler = None
         self._tables: dict[str, SqlTable] = {}
-        for descriptor in model.tables.values():
-            table_class = descriptor.attributes.get('x_table_class', SqlTable)
-            if not isinstance(table_class, type) or not issubclass(table_class, SqlTable):
-                raise TypeError(f'{descriptor.key}: x_table_class must be a SqlTable subclass')
-            self._tables[descriptor.key] = table_class(self, descriptor)
+        if isinstance(model, DbModel):
+            model._bind_db(self)
+        else:
+            self._compiler = QueryCompiler(model, self.dialect, self.driver,
+                                          environment=self.environment, _db=self)
+            for descriptor in model.tables.values():
+                table_class = descriptor.attributes.get('x_table_class', SqlTable)
+                if not isinstance(table_class, type) or not issubclass(table_class, SqlTable):
+                    raise TypeError(f'{descriptor.key}: x_table_class must be a SqlTable subclass')
+                self._tables[descriptor.key] = table_class(self, descriptor)
         self._ready = True
+
+    @property
+    def compiler(self):
+        if self._compiler is None:
+            from .object_tree_compiler import TreeQueryCompiler
+            self._compiler = TreeQueryCompiler(self.model, self.dialect, self.driver,
+                                               environment=self.environment, _db=self)
+        return self._compiler
 
     @property
     def tables(self):
         self._check_open()
+        if isinstance(self.model, DbModel):
+            return MappingProxyType({name: table.dbtable for name, table in self.model.tables.items()})
         return MappingProxyType(self._tables)
 
     def table(self, name: str) -> SqlTable:
         """Return the registered operational table, preserving object identity."""
         self._check_open()
+        if isinstance(self.model, DbModel):
+            table: SqlTable = self.model.table(name).dbtable
+            return table
         return self._tables[self.model.table(name).key]
 
     def package(self, name: str):
@@ -64,7 +87,14 @@ class SqlDatabase(WriteMixin, Database):
 
     def schema(self, name: str):
         self._check_open()
+        if isinstance(self.model, DbModel):
+            raise UnsupportedFeatureError('Hierarchical models derive SQL schemas from packages')
         return self.model.schemas[name]
+
+    def _write_table(self, table):
+        if isinstance(self.model, DbModel):
+            raise UnsupportedFeatureError('Writes on the hierarchical model are not connected yet')
+        return super()._write_table(table)
 
     def _connection_settings(self):
         from .configuration import connection_settings
@@ -73,7 +103,10 @@ class SqlDatabase(WriteMixin, Database):
             raise ValueError('Configured implementation changed after database construction')
         kwargs = dict(kwargs or {})
         if implementation == 'sqlite':
-            kwargs['schemas'] = sorted({table.physical_schema for table in self.model.tables.values()})
+            if isinstance(self.model, DbModel):
+                kwargs['schemas'] = sorted({table.sqlschema for table in self.model.tables.values()})
+            else:
+                kwargs['schemas'] = sorted({table.physical_schema for table in self.model.tables.values()})
         return conninfo, kwargs
 
 

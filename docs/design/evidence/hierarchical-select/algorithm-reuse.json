@@ -1,0 +1,52 @@
+{
+  "_Context.select_plan": {
+    "now": "_Context.select_plan",
+    "unchanged_ast": true,
+    "sha256": "fa1ddd60a5d2a26ab1e7d424bc5b54344bae02992b6e1316f2e024c253394521"
+  },
+  "_Context.expression": {
+    "now": "_Context.expression",
+    "unchanged_ast": true,
+    "sha256": "11ba3d3500e46d2e8743f57ddc6cbc3998ca24b6cccca9dc1d949493764dab98"
+  },
+  "_Context.field": {
+    "now": "_Context.field",
+    "unchanged_ast": true,
+    "sha256": "46e0b99dc930251662aa65e6f24dc55e297ebf57319e457833255d3c52c08230"
+  },
+  "_Context.related": {
+    "now": "_Context.related",
+    "unchanged_ast": true,
+    "sha256": "ddb7b9b376350ff6f06249efb5ff5c9b03504d805dae1f325b86f73a6d025dbc"
+  },
+  "_Context.subquery": {
+    "now": "_Context.subquery",
+    "unchanged_ast": true,
+    "sha256": "69fae897bb11078f912991e93417d7bfc0543e944627c619e60e71ef215d2267"
+  },
+  "_Context.where": {
+    "now": "_Context.where",
+    "unchanged_ast": true,
+    "sha256": "87a488052b82be4dd25f3f26d61ddfe55bb1b111680ef8ec634307bd5b5417c8"
+  },
+  "_Context.select_policies": {
+    "now": "_Context.select_policies",
+    "unchanged_ast": true,
+    "sha256": "ffabee5a3d6aae128c6962b614dfcbc344db58b71c5b07abc2c4ff158a162e2c"
+  },
+  "QueryCompiler.select": {
+    "now": "_SelectCompiler.select",
+    "unchanged_ast": true,
+    "sha256": "c28bcc101408921386dbf080563530cf50f66f3e4e36e5ac42f4b71edce22194"
+  },
+  "QueryCompiler.plan_select": {
+    "now": "_SelectCompiler.plan_select",
+    "unchanged_ast": true,
+    "sha256": "6a8c2866fed45df413bca6e0e5208696a514d5693365e242a282219a28a7aaf1"
+  },
+  "QueryCompiler.compile_plan": {
+    "now": "_SelectCompiler.compile_plan",
+    "unchanged_ast": true,
+    "sha256": "6d8e58342c1a95df2ae0bdf52fb6b28fdbff6fd0b78d97d9ca1b93947efaa676"
+  }
+}

@@ -1,0 +1,13 @@
+..............                                                           [100%]
+=============================== warnings summary ===============================
+../../../../tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+tests/sql/test_compiler_coverage.py::TestPhysicalColumns::test_star_expansion_pg
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/webob/compat.py:5: DeprecationWarning: 'cgi' is deprecated and slated for removal in Python 3.13
+    from cgi import parse_header
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+14 passed, 2 warnings in 2.35s

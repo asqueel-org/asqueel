@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="2.542" timestamp="2026-10-14T15:57:24.878312+02:00" hostname="MacBook-Pro-di-Giovanni.local"><testcase classname="tests.sql.test_compiler_coverage.TestSubQueryColumn" name="test_rows_json_pg" time="1.828"><failure message="psycopg2.errors.UndefinedColumn: column t0.rows_json does not exist&#10;LINE 3: &quot;t0&quot;.&quot;rows_json&quot; AS &quot;rows_json&quot;,&#10;        ^">self = &lt;sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c1066c0&gt;
+db_pg = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50&gt;
+
+    def test_rows_json_pg(self, db_pg):
+        """mode='json': returns a list of dicts."""
+        rows = db_pg.table('invc.invoice').query(
+            columns='$id, $rows_json',
+            where='$row_count &gt; 0', limit=3
+&gt;       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1074: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;cursor object at 0x10cbfb950; closed: 0&gt;
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1071, "function_name": "test_rows_json_pg", "module_name": "s..."id" AS "pkey"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."row_count" &gt; 0) AND ("t0"."__del_ts" IS NULL)\nLIMIT 3'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+&gt;       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.rows_json does not exist
+E       LINE 3: "t0"."rows_json" AS "rows_json",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestSubQueryColumn" name="test_notes_xml_pg" time="0.001"><failure message="psycopg2.errors.UndefinedColumn: column t0.notes_xml does not exist&#10;LINE 3: &quot;t0&quot;.&quot;notes_xml&quot; AS &quot;notes_xml&quot;,&#10;        ^">self = &lt;sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c1069c0&gt;
+db_pg = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50&gt;
+
+    def test_notes_xml_pg(self, db_pg):
+        """mode='xml': returns XML-like string."""
+        rows = db_pg.table('invc.invoice').query(
+            columns='$id, $notes_xml',
+            where='$notes_xml IS NOT NULL', limit=3
+&gt;       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1087: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;cursor object at 0x112828c50; closed: 0&gt;
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1084, "function_name": "test_notes_xml_pg", "module_name": "s..."pkey"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."notes_xml" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 3'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+&gt;       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.notes_xml does not exist
+E       LINE 3: "t0"."notes_xml" AS "notes_xml",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestSubQueryColumn" name="test_max_row_price_pg" time="0.001"><failure message="psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist&#10;LINE 3: &quot;t0&quot;.&quot;max_row_price&quot; AS &quot;max_row_price&quot;,&#10;        ^">self = &lt;sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c106cc0&gt;
+db_pg = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50&gt;
+
+    def test_max_row_price_pg(self, db_pg):
+        """mode=None (plain): MAX(unit_price) is numeric."""
+        rows = db_pg.table('invc.invoice').query(
+            columns='$id, $max_row_price',
+            where='$max_row_price IS NOT NULL', limit=5
+&gt;       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1098: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;cursor object at 0x112829650; closed: 0&gt;
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1095, "function_name": "test_max_row_price_pg", "module_name"...y"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 5'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+&gt;       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist
+E       LINE 3: "t0"."max_row_price" AS "max_row_price",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestSubQueryColumn" name="test_max_row_price_sqlite" time="0.365"><failure message="sqlite3.OperationalError: no such column: t0.max_row_price">self = &lt;sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c106fc0&gt;
+db_sqlite = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10d3f95b0&gt;
+
+    def test_max_row_price_sqlite(self, db_sqlite):
+        rows = db_sqlite.table('invc.invoice').query(
+            columns='$id, $max_row_price',
+            where='$max_row_price IS NOT NULL', limit=5
+&gt;       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:521: in execute
+    raise e
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;gnr.sql.adapters.gnrsqlite.GnrSqliteCursor object at 0x10d5d8f80&gt;
+sql = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1103, "function_name": "test_max_row_price_sqlite", "module_n...y"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 5'
+params = {'jc_kwargs': {}}, args = ({'jc_kwargs': {}},), kwargs = {}
+
+    def execute(self, sql, params=None, *args, **kwargs):
+        if params:
+            if isinstance(params, str):
+                params = str(params)
+            elif isinstance(params, list):
+                params = [str(s) if isinstance(s, str) else s for s in params]
+            elif isinstance(params,dict):
+                for k,v in list(params.items()):
+                    if isinstance(v, str):
+                        params[k] = str(v)
+            args = (params, ) + args
+    
+        if not sql.startswith('ATTACH'):
+            logger.debug(u"gnrsqlite.execute()\n" + sql)
+            if params:
+                logger.debug(u"Parameters:\n" + pprint.pformat(params)+"\n")
+    
+        self._index = None
+        try:
+&gt;           return pysqlite.Cursor.execute(self, sql, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           sqlite3.OperationalError: no such column: t0.max_row_price
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:509: OperationalError</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestSubQueryColumn" name="test_max_row_price_cross_validate_pg" time="0.198"><failure message="psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist&#10;LINE 3: &quot;t0&quot;.&quot;max_row_price&quot; AS &quot;max_row_price&quot;,&#10;        ^">self = &lt;sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c1072c0&gt;
+db_pg = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50&gt;
+
+    def test_max_row_price_cross_validate_pg(self, db_pg):
+        """max_row_price matches direct MAX query."""
+        row = db_pg.table('invc.invoice').query(
+            columns='$id, $max_row_price',
+            where='$max_row_price IS NOT NULL', limit=1
+&gt;       ).fetch()[0]
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1115: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;cursor object at 0x11282b250; closed: 0&gt;
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1112, "function_name": "test_max_row_price_cross_validate_pg"...y"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 1'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+&gt;       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist
+E       LINE 3: "t0"."max_row_price" AS "max_row_price",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn</failure></testcase></testsuite></testsuites>

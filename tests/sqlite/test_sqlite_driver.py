@@ -16,7 +16,7 @@ def test_driver_is_injected_into_the_same_runtime():
         db.commit()
         value = "'); DROP TABLE item; -- 50%"
         result = db.execute('INSERT INTO item VALUES (:id, :value) RETURNING value', {'id': 1, 'value': value})
-        assert result.rows == [{'value': value}]
+        assert [dict(row) for row in result.rows] == [{'value': value}]
         db.rollback()
         assert db.execute('SELECT * FROM item').rows == []
         db.commit()
@@ -36,14 +36,19 @@ def test_binding_protects_sqlite_literals_and_identifiers(sql):
         db.close()
 
 
-def test_invalid_profile_and_missing_parameters_do_not_connect():
+def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
     driver = SqliteDriver()
     db = Database(':memory:', driver=driver)
     with pytest.raises(ValueError, match='profile'):
         db.execute(CompiledQuery('SELECT 1'))
-    with pytest.raises(ValueError, match='Missing'):
-        db.execute('SELECT :missing')
     assert db._connection_state['connection'] is None
+    compiled = driver.prepare_sql('SELECT :missing', {}, {})
+    assert compiled.sql == 'SELECT :missing'
+    assert compiled.params == {'missing': None}
+    assert db._connection_state['connection'] is None
+    rows = db.execute(compiled).rows
+    assert len(rows) == 1
+    assert rows[0][0] is None
     db.close()
 
 

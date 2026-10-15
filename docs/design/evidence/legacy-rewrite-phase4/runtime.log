@@ -1,0 +1,747 @@
+.............................EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE [ 29%]
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE......................................... [ 58%]
+.........................s......................s...s.........s......... [ 87%]
+s.......s...s.....s............                                          [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.batch_log] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.calendar] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.dataretention] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.dbchange] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.error] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.external_token] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.external_token_use] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.externalcall_log] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.service] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.shared_object] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.shorturl] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.task] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.task_execution] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.task_result] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.upgrade] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[sys.widget] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.access_group] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.api_token] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.api_token_tag] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.audit] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.authorization] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.backup] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.ckstyle] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.connection] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.counter] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.day] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.group] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.group_helpdoc] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.helpdoc] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.htag] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.htmltemplate] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.htmltemplate_atc] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.install_checklist] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.language] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.letterhead_type] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.menu] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.menu_page] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.notification] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.pkginfo] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.preference] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.record_tag] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.sent_email] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.served_page] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.shortcut] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.tblinfo] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.tblinfo_item] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user_access_group] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user_config] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user_group] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user_notification] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user_setting] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.user_tag] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.userobject] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.week] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[adm.xgroup] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.customer] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.customer_type] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.discount_tier] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.invoice] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.invoice_note] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.invoice_row] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.payment_type] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.postcode] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.price_year] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.price_year_note] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.product] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.product_group] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.product_type] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.region] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.staff] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.staff_role] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.state] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+_ ERROR at setup of test_native_default_visibility_and_explicit_overrides[invc.vat_type] _
+The requested fixture has no parameter defined for test:
+    tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+
+Requested fixture 'execution_db' defined in:
+tests/native_formulas/test_native_visibility.py:16
+
+Requested here:
+tests/native_formulas/test_tree_phase4_visibility.py:14
+=========================== short test summary info ============================
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.batch_log]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.calendar]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.dataretention]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.dbchange]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.error]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.external_token]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.external_token_use]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.externalcall_log]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.service]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.shared_object]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.shorturl]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.task]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.task_execution]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.task_result]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.upgrade]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[sys.widget]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.access_group]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.api_token]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.api_token_tag]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.audit]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.authorization]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.backup]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.ckstyle]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.connection]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.counter]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.day]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.group]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.group_helpdoc]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.helpdoc]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.htag]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.htmltemplate]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.htmltemplate_atc]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.install_checklist]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.language]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.letterhead_type]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.menu]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.menu_page]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.notification]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.pkginfo]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.preference]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.record_tag]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.sent_email]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.served_page]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.shortcut]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.tblinfo]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.tblinfo_item]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user_access_group]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user_config]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user_group]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user_notification]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user_setting]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.user_tag]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.userobject]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.week]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[adm.xgroup]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.customer]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.customer_type]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.discount_tier]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.invoice]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.invoice_note]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.invoice_row]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.payment_type]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.postcode]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.price_year]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.price_year_note]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.product]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.product_group]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.product_type]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.region]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.staff]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.staff_role]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.state]
+ERROR tests/native_formulas/test_tree_phase4_visibility.py::test_native_default_visibility_and_explicit_overrides[invc.vat_type]
+165 passed, 8 skipped, 74 errors in 11.56s

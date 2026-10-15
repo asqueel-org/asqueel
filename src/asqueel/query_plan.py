@@ -60,8 +60,10 @@ class TableRef:
 @dataclass(frozen=True)
 class Projection:
     expression: Fragment
-    alias: str
-    column: ResultColumn
+    # None preserves a complete authored projection, as the legacy col_dict does.
+    alias: str | None
+    # Unknown result names are read from cursor.description, not guessed here.
+    column: ResultColumn | None
 
 
 @dataclass(frozen=True)
@@ -127,10 +129,10 @@ def _column_reference(fragment: Fragment) -> bool:
             and isinstance(parts[2], Identifier))
 
 
-def parameter_use(uses, name, collection):
+def parameter_use(uses, name, collection, *, label=None):
     """Record how a parameter is used; one name is a collection or a scalar, never both."""
     if uses.setdefault(name, collection) is not collection:
-        raise ValueError(f'Parameter {name} is used both in IN position and as a scalar value')
+        raise ValueError(f'Parameter {label if label is not None else name} is used both in IN position and as a scalar value')
 
 
 def member_name(base, names):

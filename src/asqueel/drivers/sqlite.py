@@ -7,8 +7,9 @@ from pathlib import Path
 import re
 import sqlite3
 
-from ..contracts import CompiledQuery, QueryResult, ResultColumn
+from ..contracts import CompiledQuery
 from ..query_plan import Parameter, SqlStatement
+from .result import query_result
 
 
 class SqliteDriver:
@@ -20,6 +21,7 @@ class SqliteDriver:
         return prepare_text(self, sql, sqlargs, snapshot)
 
     def prepare(self, statement):
+        from .sql import sqlite_ilike
         if not isinstance(statement, SqlStatement):
             raise TypeError('prepare requires a SqlStatement')
         if statement.dialect != self.dialect:
@@ -37,7 +39,7 @@ class SqliteDriver:
                 params[part.name] = statement.params[part.name]
             else:
                 raise TypeError('Unsupported SQL statement part')
-        return CompiledQuery(''.join(parts), params, statement.columns,
+        return CompiledQuery(sqlite_ilike(''.join(parts)), params, statement.columns,
                              dialect=self.dialect, binding=self.binding,
                              environment=statement.environment)
 
@@ -60,6 +62,8 @@ class SqliteDriver:
             raise ValueError(f'Unsupported SQLite options: {sorted(set(kwargs) - allowed)}')
         connection = sqlite3.connect(name, isolation_level=None, **kwargs)
         try:
+            # gnrsqlite registers this function for its ~* -> REGEXP translation.
+            connection.create_function('regexp', 2, self._regexp)
             connection.execute('PRAGMA foreign_keys = ON')
             for schema in schemas:
                 if schema == 'main':
@@ -74,6 +78,10 @@ class SqliteDriver:
             raise
         return connection
 
+    @staticmethod
+    def _regexp(expression, item):
+        return re.compile(expression, re.U).match(item) is not None
+
     def execute(self, connection, query):
         self.validate(query)
         if not connection.in_transaction:
@@ -81,19 +89,8 @@ class SqliteDriver:
         params = {name: self._value(value) for name, value in query.params.items()}
         cursor = connection.execute(query.sql, params)
         try:
-            columns, rows = query.columns, []
-            if cursor.description is not None:
-                names = [column[0] for column in cursor.description]
-                if len(set(names)) != len(names):
-                    raise ValueError('Result columns must have unique names; use explicit aliases')
-                if columns and [column.name for column in columns] != names:
-                    raise ValueError('Compiled result columns do not match cursor column names and order')
-                rows = [dict(zip(names, row, strict=True)) for row in cursor.fetchall()]
-                if not columns:
-                    columns = tuple(ResultColumn(name) for name in names)
-            elif columns:
-                raise ValueError('Compiled result columns supplied for a statement without a result set')
-            return QueryResult(rows, cursor.rowcount, columns)
+            names = [column[0] for column in cursor.description] if cursor.description is not None else None
+            return query_result(query.columns, names, cursor)
         finally:
             cursor.close()
 

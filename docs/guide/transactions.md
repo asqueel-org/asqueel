@@ -34,6 +34,9 @@ with db.tempEnv(connectionName='independent', user='scheduler'):
 `tempEnv` changes context, not transaction boundaries. Leaving it restores the
 previous selection without committing, rolling back or closing a connection.
 Nested `tempEnv` blocks are supported; they do not create savepoints.
+With explicit named connection declarations, the selected name must be declared
+in the [configuration](cli.md#connection-declaration). Older single-target
+recipes allow additional runtime names using the same physical settings.
 `temp_env` is the alternative spelling of the same method.
 
 The default connection name is `_main_connection`. Each thread/name pair owns

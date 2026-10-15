@@ -8,8 +8,9 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from ..contracts import CompiledQuery, QueryResult, ResultColumn
+from ..contracts import CompiledQuery, QueryResult
 from ..query_plan import Parameter, SqlStatement
+from .result import query_result
 
 
 _PARAMETER_NAME = re.compile(r'[A-Za-z_][A-Za-z0-9_]*\Z')
@@ -69,20 +70,8 @@ class PsycopgDriver:
 
         with connection.cursor(row_factory=tuple_row) as cursor:
             cursor.execute(query.sql, dict(query.params))
-            columns = query.columns
-            rows = []
-            if cursor.description is not None:
-                names = [column.name for column in cursor.description]
-                if len(set(names)) != len(names):
-                    raise ValueError('Result columns must have unique names; use explicit aliases')
-                if columns and [column.name for column in columns] != names:
-                    raise ValueError('Compiled result columns do not match cursor column names and order')
-                rows = [dict(zip(names, row, strict=True)) for row in cursor.fetchall()]
-                if not columns:
-                    columns = tuple(ResultColumn(name) for name in names)
-            elif columns:
-                raise ValueError('Compiled result columns supplied for a statement without a result set')
-            return QueryResult(rows=rows, rowcount=cursor.rowcount, columns=columns)
+            names = [column.name for column in cursor.description] if cursor.description is not None else None
+            return query_result(query.columns, names, cursor)
 
     def commit(self, connection: Any) -> None:
         connection.commit()

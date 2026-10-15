@@ -62,6 +62,29 @@ def test_named_subqueries_and_outer_bindings_do_not_collide(model):
     assert query.params['s2_threshold'] == 5
 
 
+def test_formula_locals_and_subquery_locals_keep_their_own_origins(model):
+    model = change_column(model, 'named', Column(
+        'named', formula='COALESCE(#inherited,0)+COALESCE(#local,0)+:threshold',
+        attributes={'var_threshold': 3}, subqueries={
+            'inherited': spec(where='$owner_id=#THIS.id AND $amount>:threshold'),
+            'local': spec(where='$owner_id=#THIS.id AND $amount>:threshold',
+                          sqlparams={'threshold': 7})}))
+    compiled = PostgresCompiler(model).select(
+        'owner', '$named', where='$threshold=:threshold', sqlparams={'threshold': 11})
+    assert sorted(compiled.params.values()) == [3, 3, 7, 11]
+    assert compiled.params['threshold'] == 11
+    assert compiled.input_parameters == ('threshold',)
+    assert compiled.sql.count('SELECT') == 3
+    assert compiled.sql.count('"t0"."id"') == 2
+
+
+def test_direct_subquery_keeps_formula_locals(model):
+    model = change_column(model, 'total', Column('total', attributes={'var_threshold': 3},
+        select=spec(where='$owner_id=#THIS.id AND $amount>:threshold')))
+    compiled = PostgresCompiler(model).select('owner', '$total')
+    assert list(compiled.params.values()) == [3]
+
+
 def test_reached_formula_uses_owner_alias_in_outer_reference(model):
     query = PostgresCompiler(model).select('wrapper', '@owner.total')
     assert '"s1_t0"."owner_id"="t1"."id"' in query.sql
@@ -110,7 +133,7 @@ def test_child_environment_dependencies_are_bound_to_root_snapshot(model):
     assert query.environment.values == {'threshold': 7}
 
 
-def test_child_policy_defaults_are_partition_strict_but_include_draft_deleted(model):
+def test_child_policy_defaults_match_legacy_and_partition_can_be_requested(model):
     item = model.table('item')
     item = replace(item, columns={**item.columns, 'draft': Column('draft', 'B'),
                                    'deleted': Column('deleted', 'DH')},
@@ -118,6 +141,11 @@ def test_child_policy_defaults_are_partition_strict_but_include_draft_deleted(mo
                                         draft_field='draft', logical_deletion_field='deleted'))
     model = replace(model, tables={**model.tables, item.key: item})
     env = SqlEnvironment()
+    compiler = PostgresCompiler(model, environment=env)
+    default = compiler.select('owner', '$total')
+    assert not default.params and default.environment is None
+    assert 'IS NOT TRUE' not in default.sql and 'IS NULL' not in default.sql
+    model = change_column(model, 'total', Column('total', select=spec(ignorePartition=False)))
     compiler = PostgresCompiler(model, environment=env)
     with pytest.raises(ValueError, match='Missing partition context'):
         compiler.select('owner', '$total')
@@ -133,7 +161,7 @@ def test_child_policy_defaults_are_partition_strict_but_include_draft_deleted(mo
     assert '"s1_t0"."deleted" IS NULL' in query.sql
 
 
-@pytest.mark.parametrize('options', [dict(group_by='$id'), dict(subtable='restricted'),
+@pytest.mark.parametrize('options', [dict(group_by='*'), dict(subtable='restricted'),
     dict(addPkeyColumn=True), dict(ignoreTableOrderBy=False), dict(ignore_partition=True, ignorePartition=True),
     dict(cast='numeric); DELETE FROM x;--'), dict(sqlparams=1), dict(params={'x': 1})])
 def test_unsupported_or_ambiguous_child_options_rejected(model, options):
@@ -209,7 +237,7 @@ def test_this_relation_path_allocates_outer_join_not_inner_join(model):
         where='$owner_id=#THIS.@owner.id')), table='wrapper')
     query = PostgresCompiler(model).select('wrapper', '$foreign_total')
     assert '"s1_t0"."owner_id"="t1"."id"' in query.sql
-    assert ') AS "foreign_total" FROM "app"."wrapper" AS "t0" LEFT JOIN ' in query.sql
+    assert ') AS "foreign_total"\n FROM "app"."wrapper" AS "t0"\n LEFT JOIN ' in query.sql
 
 
 def test_driver_formats_only_final_statement(model):

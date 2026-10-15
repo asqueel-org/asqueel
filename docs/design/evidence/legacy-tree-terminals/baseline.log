@@ -1,0 +1,1262 @@
+FFFFFF..FFFFFFFFFFFFFFFFFFFFFFFFFFFF......                               [100%]
+=================================== FAILURES ===================================
+_____________ test_fetch_has_named_positional_mutable_rows[sqlite] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a5823f0>
+
+    def test_fetch_has_named_positional_mutable_rows(shop):
+        query = shop.query(columns='$id AS code,$note AS label', order_by='$id', limit=2)
+>       rows = query.fetch()
+               ^^^^^^^^^^^^^
+
+tests/adapter_integration/test_named_list_rows.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:188: in fetch
+    return self.execute().rows
+           ^^^^^^^^^^^^^^
+src/asqueel/application_table.py:183: in execute
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x109f43b60>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_fetch_has_named_positional_mutable_rows[postgresql] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a748f50>
+
+    def test_fetch_has_named_positional_mutable_rows(shop):
+        query = shop.query(columns='$id AS code,$note AS label', order_by='$id', limit=2)
+>       rows = query.fetch()
+               ^^^^^^^^^^^^^
+
+tests/adapter_integration/test_named_list_rows.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:188: in fetch
+    return self.execute().rows
+           ^^^^^^^^^^^^^^
+src/asqueel/application_table.py:183: in execute
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a6863c0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___ test_dynamic_column_uses_shared_legacy_index_only_within_result[sqlite] ____
+
+shop = <tests.query_completion_support.Shop object at 0x10a85e600>
+
+    def test_dynamic_column_uses_shared_legacy_index_only_within_result(shop):
+        query = shop.query(columns='$id', order_by='$id', limit=2)
+>       rows = query.fetch()
+               ^^^^^^^^^^^^^
+
+tests/adapter_integration/test_named_list_rows.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:188: in fetch
+    return self.execute().rows
+           ^^^^^^^^^^^^^^
+src/asqueel/application_table.py:183: in execute
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a322150>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_ test_dynamic_column_uses_shared_legacy_index_only_within_result[postgresql] __
+
+shop = <tests.query_completion_support.Shop object at 0x10a6840b0>
+
+    def test_dynamic_column_uses_shared_legacy_index_only_within_result(shop):
+        query = shop.query(columns='$id', order_by='$id', limit=2)
+>       rows = query.fetch()
+               ^^^^^^^^^^^^^
+
+tests/adapter_integration/test_named_list_rows.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:188: in fetch
+    return self.execute().rows
+           ^^^^^^^^^^^^^^
+src/asqueel/application_table.py:183: in execute
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a81eed0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_raw_compiled_and_empty_result_metadata[sqlite] ______________
+
+shop = <tests.query_completion_support.Shop object at 0x10a470890>
+
+    def test_raw_compiled_and_empty_result_metadata(shop):
+        query = shop.query(columns='$note AS "Note value",$id AS "ID"', where='$id=11')
+>       for result in [query.execute(), shop.db.execute(query.compiled),
+                       ^^^^^^^^^^^^^^^
+                       shop.db.execute('SELECT NULL AS "Note value", 11 AS "ID"')]:
+
+tests/adapter_integration/test_named_list_rows.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:183: in execute
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a5d6f90>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_raw_compiled_and_empty_result_metadata[postgresql] ____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a9491f0>
+
+    def test_raw_compiled_and_empty_result_metadata(shop):
+        query = shop.query(columns='$note AS "Note value",$id AS "ID"', where='$id=11')
+>       for result in [query.execute(), shop.db.execute(query.compiled),
+                       ^^^^^^^^^^^^^^^
+                       shop.db.execute('SELECT NULL AS "Note value", 11 AS "ID"')]:
+
+tests/adapter_integration/test_named_list_rows.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:183: in execute
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a5d70e0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+________________ test_count_environment_and_transaction[sqlite] ________________
+
+shop = <tests.query_completion_support.Shop object at 0x10a51eb40>
+
+    def test_count_environment_and_transaction(shop):  # noqa: F811
+>       original_environment(shop, None)
+
+tests/adapter_integration/test_tree_terminals.py:20: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_wf_phase3_query_count.py:152: in test_count_uses_the_current_environment
+    assert query.count() == 2
+           ^^^^^^^^^^^^^
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a914110>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+______________ test_count_environment_and_transaction[postgresql] ______________
+
+shop = <tests.query_completion_support.Shop object at 0x10a6b8650>
+
+    def test_count_environment_and_transaction(shop):  # noqa: F811
+>       original_environment(shop, None)
+
+tests/adapter_integration/test_tree_terminals.py:20: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_wf_phase3_query_count.py:152: in test_count_uses_the_current_environment
+    assert query.count() == 2
+           ^^^^^^^^^^^^^
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a9144a0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options0-5] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a54be30>, options = {}
+expected = 5
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a917fe0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options1-0] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a648bc0>
+options = {'where': '$id<0'}, expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a6493d0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options2-4] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a440650>
+options = {'columns': '$total', 'distinct': True}, expected = 4
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a38db20>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options3-0] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10aaa4290>
+options = {'columns': '$total', 'distinct': True, 'where': '$id<0'}
+expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10aaa4560>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options4-4] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10ab23380>
+options = {'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}
+expected = 4
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10ab23350>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options5-3] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10aa5e6c0>
+options = {'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id', 'having': 'SUM($total)>=:minimum', 'minimum': 40}
+expected = 3
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10aa5c590>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options6-0] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a51d2e0>
+options = {'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}
+expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a51d070>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options7-5] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a72b620>
+options = {'columns': 'SUM($total) AS amount'}, expected = 5
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10aa5ff50>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options8-5] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a9c88c0>
+options = {'limit': 2}, expected = 5
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a9c82c0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_____________ test_count_returns_legacy_integer[sqlite-options9-0] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a82f860>
+options = {'limit': 2, 'offset': 1}, expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a82f440>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+____________ test_count_returns_legacy_integer[sqlite-options10-2] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a979760>
+options = {'columns': '$total', 'distinct': True, 'limit': 2}, expected = 2
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a979c40>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+____________ test_count_returns_legacy_integer[sqlite-options11-6] _____________
+
+shop = <tests.query_completion_support.Shop object at 0x10a7bdcd0>
+options = {'excludeLogicalDeleted': 'mark'}, expected = 6
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a7bdd00>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options0-5] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a96d250>, options = {}
+expected = 5
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a470740>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options1-0] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10aae45c0>
+options = {'where': '$id<0'}, expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10aae7650>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options2-4] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a53f560>
+options = {'columns': '$total', 'distinct': True}, expected = 4
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a53ef60>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options3-0] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a917500>
+options = {'columns': '$total', 'distinct': True, 'where': '$id<0'}
+expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a7d3770>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options4-4] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10aa1b050>
+options = {'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}
+expected = 4
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a53e8d0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options5-3] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a6bbb90>
+options = {'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id', 'having': 'SUM($total)>=:minimum', 'minimum': 40}
+expected = 3
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a6bb020>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options6-0] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10aabb260>
+options = {'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}
+expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10aa1ba70>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options7-5] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a6487d0>
+options = {'columns': 'SUM($total) AS amount'}, expected = 5
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a648cb0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options8-5] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a97b740>
+options = {'limit': 2}, expected = 5
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a8033e0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+___________ test_count_returns_legacy_integer[postgresql-options9-0] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a55e240>
+options = {'limit': 2, 'offset': 1}, expected = 0
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a55f5c0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+__________ test_count_returns_legacy_integer[postgresql-options10-2] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a82f770>
+options = {'columns': '$total', 'distinct': True, 'limit': 2}, expected = 2
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a82dee0>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+__________ test_count_returns_legacy_integer[postgresql-options11-6] ___________
+
+shop = <tests.query_completion_support.Shop object at 0x10a51e720>
+options = {'excludeLogicalDeleted': 'mark'}, expected = 6
+
+    @pytest.mark.parametrize('options,expected', [
+        ({}, 5), ({'where': '$id<0'}, 0),
+        ({'columns': '$total', 'distinct': True}, 4),
+        ({'columns': '$total', 'distinct': True, 'where': '$id<0'}, 0),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id'}, 4),
+        ({'columns': '$customer_id,SUM($total) AS amount', 'group_by': '$customer_id',
+          'having': 'SUM($total)>=:minimum', 'minimum': 40}, 3),
+        ({'columns': '$customer_id', 'group_by': '$customer_id', 'where': '$id<0'}, 0),
+        ({'columns': 'SUM($total) AS amount'}, 5),
+        ({'limit': 2}, 5), ({'limit': 2, 'offset': 1}, 0),
+        ({'columns': '$total', 'distinct': True, 'limit': 2}, 2),
+        ({'excludeLogicalDeleted': 'mark'}, 6),
+    ])
+    def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
+>       value = shop.query(**options).count()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:194: in count
+    self._check_execution()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.application_table.SqlQuery object at 0x10a55e750>
+
+    def _check_execution(self):
+        self.db._check_open()
+        if isinstance(self.table.model, DbTableObj):
+>           raise UnsupportedFeatureError(
+                'Query execution on the hierarchical model is not connected yet; use compiled')
+E           asqueel.contracts.UnsupportedFeatureError: Query execution on the hierarchical model is not connected yet; use compiled
+
+src/asqueel/application_table.py:179: UnsupportedFeatureError
+_______ test_reuse_fetch_count_current_environment_and_no_cache[sqlite] ________
+
+shop = <tests.query_completion_support.Shop object at 0x10a95e540>
+
+    def test_reuse_fetch_count_current_environment_and_no_cache(shop):  # noqa: F811
+        query = shop.query(columns='$id,@customer.name AS customer_name,$double_total',
+                          where='$customer_id=:env_customer', order_by='$id DESC')
+        for customer, ids in [(1, [12, 10]), (2, [11]), (1, [12, 10])]:
+            with shop.db.temp_env(customer=customer):
+>               before = query.compiled
+                         ^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:159: in compiled
+    return self._compile(self.db.compiler.select)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/application_table.py:163: in _compile
+    query = terminal(self.table.fullname, sqlparams=_copy(self._params),
+src/asqueel/object_tree_compiler.py:691: in select
+    return self.compile_plan(self.plan_select(table, columns, where, sqlparams, order_by,
+src/asqueel/object_tree_compiler.py:663: in plan_select
+    return self._context(table, sqlparams).select_plan(
+src/asqueel/object_tree_compiler.py:455: in select_plan
+    self.references.resolve(self.get_field_alias)
+src/asqueel/_legacy_sql.py:89: in resolve
+    self.resolved[key] = get_field_alias(path)
+                         ^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/object_tree_compiler.py:77: in get_field_alias
+    basealias, curr = self._find_relation_alias(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.object_tree_compiler._TreeContext object at 0x10a435580>
+pathlist = [], curr = <genro_bag.bag._core.Bag object at 0x10a42df10>
+basealias = 't0', newpath = [], parent = None
+
+    def _find_relation_alias(self, pathlist, curr, basealias, newpath, parent=None):
+        name = pathlist.pop(0)
+        node = curr.get_node(name)
+        if node is None:
+>           raise ValueError(f'Relation {name} not found')
+E           ValueError: Relation @customer not found
+
+src/asqueel/object_tree_compiler.py:215: ValueError
+_____ test_reuse_fetch_count_current_environment_and_no_cache[postgresql] ______
+
+shop = <tests.query_completion_support.Shop object at 0x10a4d5580>
+
+    def test_reuse_fetch_count_current_environment_and_no_cache(shop):  # noqa: F811
+        query = shop.query(columns='$id,@customer.name AS customer_name,$double_total',
+                          where='$customer_id=:env_customer', order_by='$id DESC')
+        for customer, ids in [(1, [12, 10]), (2, [11]), (1, [12, 10])]:
+            with shop.db.temp_env(customer=customer):
+>               before = query.compiled
+                         ^^^^^^^^^^^^^^
+
+tests/adapter_integration/test_tree_terminals.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/application_table.py:159: in compiled
+    return self._compile(self.db.compiler.select)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/application_table.py:163: in _compile
+    query = terminal(self.table.fullname, sqlparams=_copy(self._params),
+src/asqueel/object_tree_compiler.py:691: in select
+    return self.compile_plan(self.plan_select(table, columns, where, sqlparams, order_by,
+src/asqueel/object_tree_compiler.py:663: in plan_select
+    return self._context(table, sqlparams).select_plan(
+src/asqueel/object_tree_compiler.py:455: in select_plan
+    self.references.resolve(self.get_field_alias)
+src/asqueel/_legacy_sql.py:89: in resolve
+    self.resolved[key] = get_field_alias(path)
+                         ^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/object_tree_compiler.py:77: in get_field_alias
+    basealias, curr = self._find_relation_alias(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.object_tree_compiler._TreeContext object at 0x10a4d5730>
+pathlist = [], curr = <genro_bag.bag._core.Bag object at 0x10a4d5a60>
+basealias = 't0', newpath = [], parent = None
+
+    def _find_relation_alias(self, pathlist, curr, basealias, newpath, parent=None):
+        name = pathlist.pop(0)
+        node = curr.get_node(name)
+        if node is None:
+>           raise ValueError(f'Relation {name} not found')
+E           ValueError: Relation @customer not found
+
+src/asqueel/object_tree_compiler.py:215: ValueError
+=========================== short test summary info ============================
+FAILED tests/adapter_integration/test_tree_terminals.py::test_fetch_has_named_positional_mutable_rows[sqlite]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_fetch_has_named_positional_mutable_rows[postgresql]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_dynamic_column_uses_shared_legacy_index_only_within_result[sqlite]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_dynamic_column_uses_shared_legacy_index_only_within_result[postgresql]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_raw_compiled_and_empty_result_metadata[sqlite]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_raw_compiled_and_empty_result_metadata[postgresql]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_environment_and_transaction[sqlite]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_environment_and_transaction[postgresql]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options0-5]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options1-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options2-4]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options3-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options4-4]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options5-3]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options6-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options7-5]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options8-5]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options9-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options10-2]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[sqlite-options11-6]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options0-5]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options1-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options2-4]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options3-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options4-4]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options5-3]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options6-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options7-5]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options8-5]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options9-0]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options10-2]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_count_returns_legacy_integer[postgresql-options11-6]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_reuse_fetch_count_current_environment_and_no_cache[sqlite]
+FAILED tests/adapter_integration/test_tree_terminals.py::test_reuse_fetch_count_current_environment_and_no_cache[postgresql]
+34 failed, 8 passed in 2.55s

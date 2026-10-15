@@ -1,0 +1,10 @@
+[
+  "TestPhysicalColumns::test_count_matches_expected_pg",
+  "TestPhysicalColumns::test_count_matches_expected_sqlite",
+  "TestDraftField::test_draft_filter_count_pg",
+  "TestDraftField::test_draft_filter_count_sqlite",
+  "TestCompiledQueryOptions::test_count_with_group_by_pg",
+  "TestCompiledQueryOptions::test_count_with_group_by_sqlite",
+  "TestCompiledQueryOptions::test_count_with_distinct_pg",
+  "TestCompiledQueryOptions::test_count_with_distinct_sqlite"
+]

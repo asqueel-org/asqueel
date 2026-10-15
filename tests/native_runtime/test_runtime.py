@@ -68,7 +68,7 @@ def test_shared_execute_retains_connection_until_explicit_completion(fake):
     assert not hasattr(db, 'transaction')
     assert not hasattr(db, 'connection')
     result = db.execute(CompiledQuery('select'))
-    assert result.rows == [{'value': 42}]
+    assert [dict(row) for row in result.rows] == [{'value': 42}]
     assert not any(name == 'commit' for name, _ in fake)
     db.commit()
     db.execute(CompiledQuery('second'))
@@ -178,7 +178,7 @@ def test_supplied_metadata_is_preserved(fake):
     with PostgresDatabase() as db:
         result = db.execute(CompiledQuery('select', columns=(column,)))
     assert result.columns[0] is column
-    assert result.rows == [{'value': 42}]
+    assert [dict(row) for row in result.rows] == [{'value': 42}]
 
 
 def test_metadata_without_result_set_fails(fake, monkeypatch):

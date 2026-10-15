@@ -1,0 +1,1774 @@
+{
+  "legacy_1": [
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 210,
+      "function": "_get_sqltext",
+      "calls": 1,
+      "self_us": 1.0000000000000002,
+      "cumulative_us": 881.0830000000001
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 215,
+      "function": "_get_compiled",
+      "calls": 1,
+      "self_us": 0.958,
+      "cumulative_us": 866.041
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 222,
+      "function": "compileQuery",
+      "calls": 1,
+      "self_us": 14.083,
+      "cumulative_us": 865.0830000000001
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 831,
+      "function": "compiledQuery",
+      "calls": 1,
+      "self_us": 48.038000000000004,
+      "cumulative_us": 830.125
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 273,
+      "function": "getFieldAlias",
+      "calls": 3,
+      "self_us": 8.042,
+      "cumulative_us": 660.167
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 464,
+      "function": "templateReplace",
+      "calls": 5,
+      "self_us": 7.460000000000001,
+      "cumulative_us": 27.792
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 207,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 3.499,
+      "cumulative_us": 20.833000000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 253,
+      "function": "init",
+      "calls": 1,
+      "self_us": 0.8750000000000001,
+      "cumulative_us": 14.292000000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 150,
+      "function": "get_sqltext",
+      "calls": 1,
+      "self_us": 4.417,
+      "cumulative_us": 14.042
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 726,
+      "function": "smartsplit",
+      "calls": 38,
+      "self_us": 7.753,
+      "cumulative_us": 11.877
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 143,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 5.625,
+      "cumulative_us": 11.041000000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 709,
+      "function": "updateFieldDict",
+      "calls": 5,
+      "self_us": 5.878,
+      "cumulative_us": 8.834
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 79,
+      "function": "__getitem__",
+      "calls": 3,
+      "self_us": 4.376,
+      "cumulative_us": 8.083
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 659,
+      "function": "split",
+      "calls": 1,
+      "self_us": 3.9150000000000005,
+      "cumulative_us": 5.666
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 118,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 1.5830000000000002,
+      "cumulative_us": 2.458
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 830,
+      "function": "toText",
+      "calls": 3,
+      "self_us": 1.6650000000000003,
+      "cumulative_us": 2.3329999999999997
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 62,
+      "function": "__init__",
+      "calls": 3,
+      "self_us": 1.6250000000000002,
+      "cumulative_us": 1.833
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 802,
+      "function": "embedFieldPars",
+      "calls": 1,
+      "self_us": 1.1660000000000001,
+      "cumulative_us": 1.6250000000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 241,
+      "function": "aliasCode",
+      "calls": 5,
+      "self_us": 1.083,
+      "cumulative_us": 1.083
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 873,
+      "function": "boolean",
+      "calls": 1,
+      "self_us": 0.20800000000000002,
+      "cumulative_us": 0.20800000000000002
+    }
+  ],
+  "current_1": [
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 871,
+      "function": "select",
+      "calls": 1,
+      "self_us": 2.7500000000000004,
+      "cumulative_us": 446.5
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 851,
+      "function": "plan_select",
+      "calls": 1,
+      "self_us": 4.251,
+      "cumulative_us": 320.79200000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 417,
+      "function": "select_plan",
+      "calls": 1,
+      "self_us": 11.957,
+      "cumulative_us": 222.04100000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 844,
+      "function": "compile_plan",
+      "calls": 1,
+      "self_us": 11.333000000000002,
+      "cumulative_us": 122.958
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 790,
+      "function": "projection",
+      "calls": 1,
+      "self_us": 11.916,
+      "cumulative_us": 121.459
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 898,
+      "function": "_context",
+      "calls": 1,
+      "self_us": 2.791,
+      "cumulative_us": 94.5
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 205,
+      "function": "render",
+      "calls": 1,
+      "self_us": 19.586000000000002,
+      "cumulative_us": 92.37500000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 17,
+      "function": "_tokens",
+      "calls": 84,
+      "self_us": 50.454,
+      "cumulative_us": 87.41900000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 711,
+      "function": "expression",
+      "calls": 3,
+      "self_us": 17.336000000000002,
+      "cumulative_us": 81.167
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 250,
+      "function": "where",
+      "calls": 1,
+      "self_us": 1.7910000000000001,
+      "cumulative_us": 59.5
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 113,
+      "function": "_runs",
+      "calls": 10,
+      "self_us": 8.083,
+      "cumulative_us": 47.834
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 127,
+      "function": "_split",
+      "calls": 1,
+      "self_us": 5.954,
+      "cumulative_us": 38.25
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 160,
+      "function": "_projection_alias",
+      "calls": 1,
+      "self_us": 5.332,
+      "cumulative_us": 33.666
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 191,
+      "function": "_fragment",
+      "calls": 3,
+      "self_us": 3.164,
+      "cumulative_us": 31.626000000000005
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 104,
+      "function": "_characters",
+      "calls": 14,
+      "self_us": 9.84,
+      "cumulative_us": 30.004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 63,
+      "function": "_replace_macro",
+      "calls": 2,
+      "self_us": 0.7510000000000001,
+      "cumulative_us": 24.584
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 65,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 1.542,
+      "cumulative_us": 22.751
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 563,
+      "function": "field",
+      "calls": 3,
+      "self_us": 7.375000000000001,
+      "cumulative_us": 20.542
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 162,
+      "function": "<genexpr>",
+      "calls": 14,
+      "self_us": 2.0380000000000003,
+      "cumulative_us": 15.373
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 186,
+      "function": "_has_expression",
+      "calls": 3,
+      "self_us": 3.5850000000000004,
+      "cumulative_us": 15.209000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 252,
+      "function": "<genexpr>",
+      "calls": 2,
+      "self_us": 1.459,
+      "cumulative_us": 15.125000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 135,
+      "function": "quote_identifier",
+      "calls": 16,
+      "self_us": 7.792000000000001,
+      "cumulative_us": 12.250000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 197,
+      "function": "<genexpr>",
+      "calls": 14,
+      "self_us": 3.6270000000000002,
+      "cumulative_us": 9.832
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 389,
+      "function": "select_policies",
+      "calls": 1,
+      "self_us": 4.166,
+      "cumulative_us": 7.625000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 186,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.584,
+      "cumulative_us": 5.959
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 57,
+      "function": "binding",
+      "calls": 1,
+      "self_us": 1.6260000000000001,
+      "cumulative_us": 5.292000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 189,
+      "function": "<genexpr>",
+      "calls": 6,
+      "self_us": 1.249,
+      "cumulative_us": 5.0
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 11,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.749,
+      "cumulative_us": 3.3750000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 52,
+      "function": "_use",
+      "calls": 1,
+      "self_us": 1.7910000000000001,
+      "cumulative_us": 3.2500000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 142,
+      "function": "tokens",
+      "calls": 13,
+      "self_us": 2.5,
+      "cumulative_us": 3.1660000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 783,
+      "function": "result_column",
+      "calls": 1,
+      "self_us": 1.874,
+      "cumulative_us": 3.125
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 335,
+      "function": "native_partition_predicates",
+      "calls": 1,
+      "self_us": 1.083,
+      "cumulative_us": 2.875
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 188,
+      "function": "<genexpr>",
+      "calls": 14,
+      "self_us": 2.121,
+      "cumulative_us": 2.8320000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 205,
+      "function": "table_ref",
+      "calls": 1,
+      "self_us": 1.374,
+      "cumulative_us": 2.083
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 108,
+      "function": "<genexpr>",
+      "calls": 26,
+      "self_us": 1.2480000000000002,
+      "cumulative_us": 1.2480000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 152,
+      "function": "_reference",
+      "calls": 1,
+      "self_us": 0.75,
+      "cumulative_us": 1.167
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 571,
+      "function": "<genexpr>",
+      "calls": 15,
+      "self_us": 1.0410000000000001,
+      "cumulative_us": 1.0410000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 40,
+      "function": "resolve",
+      "calls": 1,
+      "self_us": 0.4580000000000001,
+      "cumulative_us": 0.625
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 310,
+      "function": "partition_predicates",
+      "calls": 1,
+      "self_us": 0.41600000000000004,
+      "cumulative_us": 0.41600000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 156,
+      "function": "_grouping",
+      "calls": 1,
+      "self_us": 0.333,
+      "cumulative_us": 0.333
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 147,
+      "function": "<genexpr>",
+      "calls": 2,
+      "self_us": 0.24900000000000003,
+      "cumulative_us": 0.24900000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 321,
+      "function": "<genexpr>",
+      "calls": 2,
+      "self_us": 0.167,
+      "cumulative_us": 0.167
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 209,
+      "function": "environment_binding",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 182,
+      "function": "_require",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 357,
+      "function": "combine_where",
+      "calls": 1,
+      "self_us": 0.084,
+      "cumulative_us": 0.084
+    }
+  ],
+  "tree_1": [
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 871,
+      "function": "select",
+      "calls": 1,
+      "self_us": 2.334,
+      "cumulative_us": 415.875
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 851,
+      "function": "plan_select",
+      "calls": 1,
+      "self_us": 2.248,
+      "cumulative_us": 292.666
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 48,
+      "function": "select_plan",
+      "calls": 1,
+      "self_us": 2.9170000000000003,
+      "cumulative_us": 199.58400000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 417,
+      "function": "select_plan",
+      "calls": 1,
+      "self_us": 9.540000000000001,
+      "cumulative_us": 196.667
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 790,
+      "function": "projection",
+      "calls": 1,
+      "self_us": 10.997,
+      "cumulative_us": 127.042
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 844,
+      "function": "compile_plan",
+      "calls": 1,
+      "self_us": 10.209,
+      "cumulative_us": 120.87500000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 205,
+      "function": "render",
+      "calls": 1,
+      "self_us": 19.62,
+      "cumulative_us": 91.625
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 87,
+      "function": "_context",
+      "calls": 1,
+      "self_us": 2.293,
+      "cumulative_us": 90.834
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 17,
+      "function": "_tokens",
+      "calls": 68,
+      "self_us": 40.503,
+      "cumulative_us": 70.54500000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 711,
+      "function": "expression",
+      "calls": 3,
+      "self_us": 12.251,
+      "cumulative_us": 67.334
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 127,
+      "function": "_split",
+      "calls": 1,
+      "self_us": 5.250000000000001,
+      "cumulative_us": 36.459
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 160,
+      "function": "_projection_alias",
+      "calls": 1,
+      "self_us": 4.832000000000001,
+      "cumulative_us": 34.333000000000006
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 191,
+      "function": "_fragment",
+      "calls": 3,
+      "self_us": 2.9170000000000003,
+      "cumulative_us": 31.375999999999998
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 44,
+      "function": "where",
+      "calls": 1,
+      "self_us": 0.5000000000000001,
+      "cumulative_us": 29.75
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 104,
+      "function": "_characters",
+      "calls": 14,
+      "self_us": 9.668000000000001,
+      "cumulative_us": 28.835
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 113,
+      "function": "_runs",
+      "calls": 6,
+      "self_us": 4.917000000000001,
+      "cumulative_us": 26.499000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 32,
+      "function": "result_column",
+      "calls": 1,
+      "self_us": 3.7090000000000005,
+      "cumulative_us": 19.375
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 162,
+      "function": "<genexpr>",
+      "calls": 14,
+      "self_us": 2.0420000000000003,
+      "cumulative_us": 15.584000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 186,
+      "function": "_has_expression",
+      "calls": 3,
+      "self_us": 3.125,
+      "cumulative_us": 14.458000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 28,
+      "function": "field",
+      "calls": 3,
+      "self_us": 3.5440000000000005,
+      "cumulative_us": 14.042
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 252,
+      "function": "<genexpr>",
+      "calls": 2,
+      "self_us": 1.292,
+      "cumulative_us": 13.667000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 135,
+      "function": "quote_identifier",
+      "calls": 16,
+      "self_us": 8.084000000000001,
+      "cumulative_us": 13.000000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 197,
+      "function": "<genexpr>",
+      "calls": 14,
+      "self_us": 3.5020000000000002,
+      "cumulative_us": 9.749
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 63,
+      "function": "select_policies",
+      "calls": 1,
+      "self_us": 2.5,
+      "cumulative_us": 8.083
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 18,
+      "function": "physical_column",
+      "calls": 4,
+      "self_us": 1.332,
+      "cumulative_us": 6.041
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 189,
+      "function": "<genexpr>",
+      "calls": 6,
+      "self_us": 1.082,
+      "cumulative_us": 5.21
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 14,
+      "function": "table_ref",
+      "calls": 1,
+      "self_us": 1.418,
+      "cumulative_us": 5.167000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 186,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.5,
+      "cumulative_us": 4.917000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 57,
+      "function": "binding",
+      "calls": 1,
+      "self_us": 1.332,
+      "cumulative_us": 4.291
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 52,
+      "function": "_use",
+      "calls": 1,
+      "self_us": 1.334,
+      "cumulative_us": 2.709
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 142,
+      "function": "tokens",
+      "calls": 11,
+      "self_us": 2.124,
+      "cumulative_us": 2.583
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 11,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 1.917,
+      "cumulative_us": 2.4170000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 188,
+      "function": "<genexpr>",
+      "calls": 14,
+      "self_us": 1.7510000000000001,
+      "cumulative_us": 2.334
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 108,
+      "function": "<genexpr>",
+      "calls": 26,
+      "self_us": 1.4560000000000002,
+      "cumulative_us": 1.4560000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 152,
+      "function": "_reference",
+      "calls": 1,
+      "self_us": 0.667,
+      "cumulative_us": 1.125
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 72,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 0.5830000000000001,
+      "cumulative_us": 0.8750000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 73,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 0.54,
+      "cumulative_us": 0.7070000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 40,
+      "function": "resolve",
+      "calls": 1,
+      "self_us": 0.499,
+      "cumulative_us": 0.5830000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 75,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 0.334,
+      "cumulative_us": 0.334
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 156,
+      "function": "_grouping",
+      "calls": 1,
+      "self_us": 0.29200000000000004,
+      "cumulative_us": 0.29200000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 321,
+      "function": "<genexpr>",
+      "calls": 2,
+      "self_us": 0.24900000000000003,
+      "cumulative_us": 0.24900000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 147,
+      "function": "<genexpr>",
+      "calls": 2,
+      "self_us": 0.20800000000000002,
+      "cumulative_us": 0.20800000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 209,
+      "function": "environment_binding",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 182,
+      "function": "_require",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 76,
+      "function": "<genexpr>",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    }
+  ],
+  "legacy_100": [
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 210,
+      "function": "_get_sqltext",
+      "calls": 1,
+      "self_us": 0.8750000000000001,
+      "cumulative_us": 1864.958
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 215,
+      "function": "_get_compiled",
+      "calls": 1,
+      "self_us": 0.625,
+      "cumulative_us": 1845.375
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 222,
+      "function": "compileQuery",
+      "calls": 1,
+      "self_us": 14.376000000000001,
+      "cumulative_us": 1844.75
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 831,
+      "function": "compiledQuery",
+      "calls": 1,
+      "self_us": 159.79700000000003,
+      "cumulative_us": 1812.958
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 273,
+      "function": "getFieldAlias",
+      "calls": 3,
+      "self_us": 7.417000000000001,
+      "cumulative_us": 644.4590000000001
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 464,
+      "function": "templateReplace",
+      "calls": 5,
+      "self_us": 8.498000000000001,
+      "cumulative_us": 230.41500000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 79,
+      "function": "__getitem__",
+      "calls": 102,
+      "self_us": 71.59000000000002,
+      "cumulative_us": 152.755
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 659,
+      "function": "split",
+      "calls": 1,
+      "self_us": 50.56,
+      "cumulative_us": 95.91700000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 709,
+      "function": "updateFieldDict",
+      "calls": 5,
+      "self_us": 49.07,
+      "cumulative_us": 56.958000000000006
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 830,
+      "function": "toText",
+      "calls": 102,
+      "self_us": 30.993,
+      "cumulative_us": 46.540000000000006
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 726,
+      "function": "smartsplit",
+      "calls": 137,
+      "self_us": 22.14,
+      "cumulative_us": 33.505
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 150,
+      "function": "get_sqltext",
+      "calls": 1,
+      "self_us": 6.71,
+      "cumulative_us": 18.708000000000002
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 207,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.6650000000000005,
+      "cumulative_us": 17.375000000000004
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+      "line": 143,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 5.376,
+      "cumulative_us": 16.833
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 253,
+      "function": "init",
+      "calls": 1,
+      "self_us": 0.5830000000000001,
+      "cumulative_us": 13.666
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 62,
+      "function": "__init__",
+      "calls": 3,
+      "self_us": 2.1670000000000003,
+      "cumulative_us": 2.3329999999999997
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 118,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 1.209,
+      "cumulative_us": 1.9590000000000003
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 802,
+      "function": "embedFieldPars",
+      "calls": 1,
+      "self_us": 0.8750000000000001,
+      "cumulative_us": 1.458
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+      "line": 241,
+      "function": "aliasCode",
+      "calls": 5,
+      "self_us": 1.125,
+      "cumulative_us": 1.125
+    },
+    {
+      "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py",
+      "line": 873,
+      "function": "boolean",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    }
+  ],
+  "current_100": [
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 871,
+      "function": "select",
+      "calls": 1,
+      "self_us": 10.0,
+      "cumulative_us": 9510.167
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 851,
+      "function": "plan_select",
+      "calls": 1,
+      "self_us": 4.332,
+      "cumulative_us": 7356.7080000000005
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 417,
+      "function": "select_plan",
+      "calls": 1,
+      "self_us": 15.167,
+      "cumulative_us": 7261.792
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 790,
+      "function": "projection",
+      "calls": 1,
+      "self_us": 150.496,
+      "cumulative_us": 7156.292
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 17,
+      "function": "_tokens",
+      "calls": 4422,
+      "self_us": 2111.5730000000003,
+      "cumulative_us": 3913.227
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 160,
+      "function": "_projection_alias",
+      "calls": 100,
+      "self_us": 305.61,
+      "cumulative_us": 2719.249
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 127,
+      "function": "_split",
+      "calls": 1,
+      "self_us": 249.04100000000003,
+      "cumulative_us": 2233.5420000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 844,
+      "function": "compile_plan",
+      "calls": 1,
+      "self_us": 15.251,
+      "cumulative_us": 2143.4590000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 711,
+      "function": "expression",
+      "calls": 102,
+      "self_us": 227.428,
+      "cumulative_us": 1900.172
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 205,
+      "function": "render",
+      "calls": 1,
+      "self_us": 191.21900000000002,
+      "cumulative_us": 1894.458
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 104,
+      "function": "_characters",
+      "calls": 1490,
+      "self_us": 401.291,
+      "cumulative_us": 1856.834
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 162,
+      "function": "<genexpr>",
+      "calls": 1490,
+      "self_us": 164.59500000000003,
+      "cumulative_us": 1475.507
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 113,
+      "function": "_runs",
+      "calls": 208,
+      "self_us": 155.07200000000003,
+      "cumulative_us": 956.1680000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 252,
+      "function": "<genexpr>",
+      "calls": 101,
+      "self_us": 46.538000000000004,
+      "cumulative_us": 926.1650000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 191,
+      "function": "_fragment",
+      "calls": 102,
+      "self_us": 67.017,
+      "cumulative_us": 768.748
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 563,
+      "function": "field",
+      "calls": 102,
+      "self_us": 138.459,
+      "cumulative_us": 489.82700000000006
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 186,
+      "function": "_has_expression",
+      "calls": 102,
+      "self_us": 80.701,
+      "cumulative_us": 346.79
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 135,
+      "function": "quote_identifier",
+      "calls": 511,
+      "self_us": 197.82,
+      "cumulative_us": 320.646
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 197,
+      "function": "<genexpr>",
+      "calls": 410,
+      "self_us": 71.208,
+      "cumulative_us": 233.20800000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 189,
+      "function": "<genexpr>",
+      "calls": 204,
+      "self_us": 26.604000000000003,
+      "cumulative_us": 138.17900000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 108,
+      "function": "<genexpr>",
+      "calls": 2978,
+      "self_us": 104.87400000000001,
+      "cumulative_us": 104.87400000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 898,
+      "function": "_context",
+      "calls": 1,
+      "self_us": 2.3760000000000003,
+      "cumulative_us": 90.58400000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 783,
+      "function": "result_column",
+      "calls": 100,
+      "self_us": 39.839000000000006,
+      "cumulative_us": 89.01
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 142,
+      "function": "tokens",
+      "calls": 409,
+      "self_us": 62.932,
+      "cumulative_us": 81.777
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 250,
+      "function": "where",
+      "calls": 1,
+      "self_us": 1.875,
+      "cumulative_us": 56.166000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 188,
+      "function": "<genexpr>",
+      "calls": 410,
+      "self_us": 35.584,
+      "cumulative_us": 52.33500000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 152,
+      "function": "_reference",
+      "calls": 100,
+      "self_us": 26.549000000000003,
+      "cumulative_us": 51.92100000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 571,
+      "function": "<genexpr>",
+      "calls": 510,
+      "self_us": 31.054000000000006,
+      "cumulative_us": 31.054000000000006
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 63,
+      "function": "_replace_macro",
+      "calls": 2,
+      "self_us": 1.25,
+      "cumulative_us": 23.292
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 65,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 2.1670000000000003,
+      "cumulative_us": 20.875000000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 389,
+      "function": "select_policies",
+      "calls": 1,
+      "self_us": 4.167,
+      "cumulative_us": 12.667000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 335,
+      "function": "native_partition_predicates",
+      "calls": 1,
+      "self_us": 1.624,
+      "cumulative_us": 7.833000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 57,
+      "function": "binding",
+      "calls": 1,
+      "self_us": 1.875,
+      "cumulative_us": 6.708000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 186,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.083,
+      "cumulative_us": 4.6659999999999995
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 52,
+      "function": "_use",
+      "calls": 1,
+      "self_us": 1.7500000000000002,
+      "cumulative_us": 4.541
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 147,
+      "function": "<genexpr>",
+      "calls": 101,
+      "self_us": 4.292000000000001,
+      "cumulative_us": 4.292000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 321,
+      "function": "<genexpr>",
+      "calls": 101,
+      "self_us": 3.586,
+      "cumulative_us": 3.586
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 205,
+      "function": "table_ref",
+      "calls": 1,
+      "self_us": 1.667,
+      "cumulative_us": 2.6670000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 11,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 1.9590000000000003,
+      "cumulative_us": 2.583
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 40,
+      "function": "resolve",
+      "calls": 1,
+      "self_us": 0.6240000000000001,
+      "cumulative_us": 0.7080000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 310,
+      "function": "partition_predicates",
+      "calls": 1,
+      "self_us": 0.5000000000000001,
+      "cumulative_us": 0.5000000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 156,
+      "function": "_grouping",
+      "calls": 1,
+      "self_us": 0.375,
+      "cumulative_us": 0.375
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 182,
+      "function": "_require",
+      "calls": 1,
+      "self_us": 0.291,
+      "cumulative_us": 0.291
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 209,
+      "function": "environment_binding",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 357,
+      "function": "combine_where",
+      "calls": 1,
+      "self_us": 0.084,
+      "cumulative_us": 0.084
+    }
+  ],
+  "tree_100": [
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 871,
+      "function": "select",
+      "calls": 1,
+      "self_us": 9.334000000000001,
+      "cumulative_us": 10313.292
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 851,
+      "function": "plan_select",
+      "calls": 1,
+      "self_us": 3.459,
+      "cumulative_us": 8085.0
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 48,
+      "function": "select_plan",
+      "calls": 1,
+      "self_us": 3.541,
+      "cumulative_us": 7938.833000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 417,
+      "function": "select_plan",
+      "calls": 1,
+      "self_us": 16.542,
+      "cumulative_us": 7935.292
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 790,
+      "function": "projection",
+      "calls": 1,
+      "self_us": 143.84,
+      "cumulative_us": 7852.583
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 17,
+      "function": "_tokens",
+      "calls": 4406,
+      "self_us": 2143.8240000000005,
+      "cumulative_us": 3955.1960000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 160,
+      "function": "_projection_alias",
+      "calls": 100,
+      "self_us": 316.58500000000004,
+      "cumulative_us": 2750.129
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 844,
+      "function": "compile_plan",
+      "calls": 1,
+      "self_us": 15.501,
+      "cumulative_us": 2218.958
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 127,
+      "function": "_split",
+      "calls": 1,
+      "self_us": 245.67100000000005,
+      "cumulative_us": 2207.2090000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 205,
+      "function": "render",
+      "calls": 1,
+      "self_us": 195.723,
+      "cumulative_us": 1981.7910000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 104,
+      "function": "_characters",
+      "calls": 1490,
+      "self_us": 399.81,
+      "cumulative_us": 1839.4470000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 711,
+      "function": "expression",
+      "calls": 102,
+      "self_us": 223.476,
+      "cumulative_us": 1831.923
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 162,
+      "function": "<genexpr>",
+      "calls": 1490,
+      "self_us": 159.72500000000002,
+      "cumulative_us": 1509.0310000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 252,
+      "function": "<genexpr>",
+      "calls": 101,
+      "self_us": 45.337,
+      "cumulative_us": 980.4620000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 113,
+      "function": "_runs",
+      "calls": 204,
+      "self_us": 160.886,
+      "cumulative_us": 955.4180000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 32,
+      "function": "result_column",
+      "calls": 100,
+      "self_us": 95.586,
+      "cumulative_us": 851.3800000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 191,
+      "function": "_fragment",
+      "calls": 102,
+      "self_us": 68.51100000000001,
+      "cumulative_us": 819.8700000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 28,
+      "function": "field",
+      "calls": 102,
+      "self_us": 75.58500000000001,
+      "cumulative_us": 404.42600000000004
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 186,
+      "function": "_has_expression",
+      "calls": 102,
+      "self_us": 82.98700000000001,
+      "cumulative_us": 356.16600000000005
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 135,
+      "function": "quote_identifier",
+      "calls": 511,
+      "self_us": 194.996,
+      "cumulative_us": 316.86400000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 197,
+      "function": "<genexpr>",
+      "calls": 410,
+      "self_us": 99.57900000000001,
+      "cumulative_us": 264.37300000000005
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 18,
+      "function": "physical_column",
+      "calls": 202,
+      "self_us": 50.961000000000006,
+      "cumulative_us": 253.453
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 189,
+      "function": "<genexpr>",
+      "calls": 204,
+      "self_us": 29.297,
+      "cumulative_us": 145.882
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 87,
+      "function": "_context",
+      "calls": 1,
+      "self_us": 2.666,
+      "cumulative_us": 142.70800000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 108,
+      "function": "<genexpr>",
+      "calls": 2978,
+      "self_us": 99.57600000000001,
+      "cumulative_us": 99.57600000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 142,
+      "function": "tokens",
+      "calls": 407,
+      "self_us": 63.199000000000005,
+      "cumulative_us": 82.216
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 188,
+      "function": "<genexpr>",
+      "calls": 410,
+      "self_us": 36.488,
+      "cumulative_us": 52.7
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 152,
+      "function": "_reference",
+      "calls": 100,
+      "self_us": 28.131000000000004,
+      "cumulative_us": 51.837
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 44,
+      "function": "where",
+      "calls": 1,
+      "self_us": 0.41700000000000004,
+      "cumulative_us": 31.25
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 63,
+      "function": "select_policies",
+      "calls": 1,
+      "self_us": 2.958,
+      "cumulative_us": 9.292
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 57,
+      "function": "binding",
+      "calls": 1,
+      "self_us": 1.7910000000000001,
+      "cumulative_us": 6.958
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 14,
+      "function": "table_ref",
+      "calls": 1,
+      "self_us": 1.5830000000000002,
+      "cumulative_us": 6.041
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 186,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.958,
+      "cumulative_us": 5.625
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 52,
+      "function": "_use",
+      "calls": 1,
+      "self_us": 2.1690000000000005,
+      "cumulative_us": 4.792
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 321,
+      "function": "<genexpr>",
+      "calls": 101,
+      "self_us": 3.8770000000000002,
+      "cumulative_us": 3.8770000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 147,
+      "function": "<genexpr>",
+      "calls": 101,
+      "self_us": 3.2520000000000002,
+      "cumulative_us": 3.2520000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 11,
+      "function": "__init__",
+      "calls": 1,
+      "self_us": 2.0000000000000004,
+      "cumulative_us": 2.6670000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 72,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 0.8760000000000001,
+      "cumulative_us": 1.3750000000000002
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 73,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 0.792,
+      "cumulative_us": 1.0010000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/_compiler_bindings.py",
+      "line": 40,
+      "function": "resolve",
+      "calls": 1,
+      "self_us": 0.749,
+      "cumulative_us": 0.791
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 182,
+      "function": "_require",
+      "calls": 1,
+      "self_us": 0.542,
+      "cumulative_us": 0.542
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 75,
+      "function": "<genexpr>",
+      "calls": 4,
+      "self_us": 0.459,
+      "cumulative_us": 0.459
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py",
+      "line": 156,
+      "function": "_grouping",
+      "calls": 1,
+      "self_us": 0.4580000000000001,
+      "cumulative_us": 0.4580000000000001
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py",
+      "line": 209,
+      "function": "environment_binding",
+      "calls": 1,
+      "self_us": 0.12500000000000003,
+      "cumulative_us": 0.12500000000000003
+    },
+    {
+      "file": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/object_tree_compiler.py",
+      "line": 76,
+      "function": "<genexpr>",
+      "calls": 1,
+      "self_us": 0.084,
+      "cumulative_us": 0.084
+    }
+  ]
+}

@@ -1,0 +1,1812 @@
+{
+  "reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "source_file": "gnrpy/tests/sql/test_compiler_coverage.py",
+  "fixture": "Original tests/sql/conftest.py, unchanged; original project CSVs",
+  "tests": {
+    "TestPhysicalColumns::test_single_column_pg": {
+      "line": 50,
+      "ast_sha256": "79a1b81b8a5f78f6646bc63dd1442bb9fd4300b4f25ad29d242091c13123658b",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_single_column_sqlite": {
+      "line": 57,
+      "ast_sha256": "fce96ef9ac3b1fea17710b092426fab281b41c98c57901ade62035e65b9cbeef",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_multiple_columns_pg": {
+      "line": 64,
+      "ast_sha256": "2a33af9f77f7b79ec49e5252707bff423a9e4f86f52ca72c70c2262f7852d3cb",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_multiple_columns_sqlite": {
+      "line": 72,
+      "ast_sha256": "14899ae5d1ad0e25aa6c7d4991688ea043a3625a71c3d20cbca59641437b93f7",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_star_expansion_pg": {
+      "line": 80,
+      "ast_sha256": "42df2c5987a75f885952c2ae7563a0378b4a78024b586223357438059ffc3359",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_star_expansion_sqlite": {
+      "line": 89,
+      "ast_sha256": "b6e8434849ce614d499a8df9aef3b401a7186477aab186b9702029eb45e2c1bb",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_count_matches_expected_pg": {
+      "line": 98,
+      "ast_sha256": "9d7532b5fc5647e248fba7201a0a8e17f791b9ecbae3b66f73a17ab902199308",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_count_matches_expected_sqlite": {
+      "line": 104,
+      "ast_sha256": "0f2e750070b1f98cd92ee7fe6d2f4f388b4c8c4e8ad90fc8fe03fa05efafe861",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_table_counts_pg": {
+      "line": 110,
+      "ast_sha256": "d81622da40a50ba7f3aa40ce184048db31f6ad5ce282163f7fe7d727a78550b2",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestPhysicalColumns::test_table_counts_sqlite": {
+      "line": 128,
+      "ast_sha256": "c922fdb77e751d4ed09bba7c4e51df1297876ade95d60540b380faf7029b65de",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_alias_matches_source_pg": {
+      "line": 154,
+      "ast_sha256": "e623abec8faf2cc04c26291f90a1c20a7e91429151e555c01c589761e0156556",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_alias_matches_source_sqlite": {
+      "line": 165,
+      "ast_sha256": "d871a5b7ff1c1daf51e789f8aa7858f18434a2053d90f163309cbe86e89e69ae",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_alias_two_levels_pg": {
+      "line": 175,
+      "ast_sha256": "35a9a7ad5cbcbfcf9e383c58e5c49d234458ce38e3ea47e2cfcc50a4e7b6dd3a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_alias_two_levels_sqlite": {
+      "line": 185,
+      "ast_sha256": "8ffffcda671b9d922fffe5b4063a73369c273f6e5927ab6c6ca3e2932d35752b",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_alias_three_levels_pg": {
+      "line": 194,
+      "ast_sha256": "d803669062f9b6827baf1e7df480e272af30e1cac16d68bfeba602eb99a66a96",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_alias_three_levels_sqlite": {
+      "line": 202,
+      "ast_sha256": "6ed1fc77ff924181d35b34c3e46487473c28f455a499168e030f0d9b6211eed2",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_deep_alias_customer_region_pg": {
+      "line": 209,
+      "ast_sha256": "eefcd144aed3c9d8e1b9708c91ac0eb319e1eec8ca083da54e1ceb8495eeca02",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_deep_alias_customer_region_sqlite": {
+      "line": 217,
+      "ast_sha256": "aeafce0bd51fbff3b283be8f91443a43a8a8b9f5385d60318d493de6dd77083e",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_region_name_cross_validate_pg": {
+      "line": 224,
+      "ast_sha256": "ecba2871ab8b73ca738a236747b94aaeb6773c4c41c929c2422f48b9c4bca619",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestAliasColumn::test_region_name_cross_validate_sqlite": {
+      "line": 240,
+      "ast_sha256": "aac940a47f598d833337758174565ea8972c0792b7cf9ee75a70e8af77a3a51c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_count_n_invoices_pg": {
+      "line": 262,
+      "ast_sha256": "8d5fb6b171bf29686b6ee18b49627dbb4ba06cc0dfc64f5b43ec5be9da078722",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_count_n_invoices_sqlite": {
+      "line": 274,
+      "ast_sha256": "e4c731717ac8bfc0381bf94b340a97f51c1427181a77648f81b9dab6f34b05ef",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_sum_invoiced_total_pg": {
+      "line": 285,
+      "ast_sha256": "c930491a42c1da224e8b6285be0671a68a2a3312419c3b62b773c00fb845aba8",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_sum_invoiced_total_sqlite": {
+      "line": 292,
+      "ast_sha256": "452514b1523dab3e8ace132e48700317c4b78e3b54320fab3fb98d6efea07755",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_last_invoice_id_pg": {
+      "line": 299,
+      "ast_sha256": "625f9411af0f23dacdd86697ae37475c24edc810872d174b1918053d8d87b8fe",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_last_invoice_id_sqlite": {
+      "line": 311,
+      "ast_sha256": "bfca710fc652b6a100d582d41f1d053e0afda8c423ba8d8fc4a8eccac5e9b05c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_exists_has_invoices_pg": {
+      "line": 322,
+      "ast_sha256": "7e064c48c9f32bfa2cd788c445c2278d89b16abec1e12966c60d6f445dbfdb2d",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_exists_has_invoices_sqlite": {
+      "line": 334,
+      "ast_sha256": "08c2a28ab956ffd7b3b8735c6f1417413552a79997fa0292cee64b5b6a1c3538",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_row_count_pg": {
+      "line": 338,
+      "ast_sha256": "79396b2871672d8925e13717337c9dbf2c32a393db7c765292a41cc93ee4e4ff",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_row_count_sqlite": {
+      "line": 350,
+      "ast_sha256": "f9f9fdc08443cb0de3f6640e6f6a22e5c7c54a0d1ae8bb32f514925ec6f49963",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_total_sold_pg": {
+      "line": 361,
+      "ast_sha256": "d85471d447d00857ed9427b35232f90f768068acd216fdac0817e0712a0b8b17",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSelect::test_total_sold_sqlite": {
+      "line": 369,
+      "ast_sha256": "fd4d28cff00db64fb49748a80f2466e9a6d73c8cdcf4195d86c1901492cf86af",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSql::test_line_total_pg": {
+      "line": 383,
+      "ast_sha256": "12eefe5b7d7436ce69e7cba7fc068fcced2d193b6e2d7d7595374558e5336e37",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSql::test_line_total_sqlite": {
+      "line": 393,
+      "ast_sha256": "e4c30034ef434e5dc610aba8feeaf6fd49c91fa08a52c7da0ce97bf19c6128b4",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSql::test_concatenation_full_address_pg": {
+      "line": 402,
+      "ast_sha256": "adcb270f82f04082a9620c280e5a1c6f19d5944fa7327dfdfb3fff9a38d4e040",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSql::test_concatenation_full_address_sqlite": {
+      "line": 413,
+      "ast_sha256": "49015a2fe4c3e73498f6cd2be5ed3adc9374976f50b72637cb4be77665d7cc8f",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSql::test_code_and_desc_pg": {
+      "line": 423,
+      "ast_sha256": "bee2ad0c3d0072f086d99825f412ec7b3459c0c9c7adff3d32f9692065bde9cd",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaSql::test_code_and_desc_sqlite": {
+      "line": 433,
+      "ast_sha256": "5bc2835e05865d82f62cf014405ebb7b9259f00341e442f7d6459c1af2557b94",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_value_category_pg": {
+      "line": 449,
+      "ast_sha256": "f46205f04db77db3e519004b035945c836149658fdc53b6067e1708b7729a9ff",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_value_category_sqlite": {
+      "line": 465,
+      "ast_sha256": "c4e7202417486aeb7569e0d9f496d2d97aa32402bf15da7e887f8d4c62b8ca8f",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_size_category_pg": {
+      "line": 473,
+      "ast_sha256": "19fcd487e671066bba7c67e130ab8cb5f2a38c792e5f8f476dcdf35cd83c3bef",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_size_category_sqlite": {
+      "line": 482,
+      "ast_sha256": "44e9f0dd3eb18a66ee54b662bffb9d40294cc8ebd52edde7763cac46a4941b8b",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_price_range_pg": {
+      "line": 490,
+      "ast_sha256": "9bc6fb3c7785b2c73c2c9ef1ae190839aab9a54da1cb72c32def260a50b1db86",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_price_range_sqlite": {
+      "line": 499,
+      "ast_sha256": "11770329a667f23bdef7f8f1b5b7b08e8cc7e026bfec6da0872813b7ab68b9bb",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_customer_rank_pg": {
+      "line": 507,
+      "ast_sha256": "5354d9a23437dbaad07b551b9ebbaddfd4de76c5bafec3701e1b746fdc03f45f",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_customer_rank_sqlite": {
+      "line": 516,
+      "ast_sha256": "b06e564383c0408c899240a9eec5168cd852a2371c080a6da3b2c7264f7d4555",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_nested_case_invoice_status_pg": {
+      "line": 524,
+      "ast_sha256": "4c261588c0aacb2995f44e85506bc36279744e2dae3f1806d047847054af74ad",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_nested_case_invoice_status_sqlite": {
+      "line": 533,
+      "ast_sha256": "a631f5ef072e60d51035512d9be6a99ee698924a2ac3831469c51e2738020055",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_product_note_with_relation_pg": {
+      "line": 541,
+      "ast_sha256": "5d5ef88de63daccfd1305ec99503356e2dfbdbb190170fa2a1794c15073c6899",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_product_note_with_relation_sqlite": {
+      "line": 550,
+      "ast_sha256": "d8c31bd9e2b8de3c71b2698f10cecc2bc2310410d0a37f9ebd439b13cb6e21ae",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_pricing_analysis_pg": {
+      "line": 558,
+      "ast_sha256": "903397f31c84e8028a374ff854553ee6dfb1ad91dedf8162b4ae39ae85bfbadc",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCaseWhen::test_pricing_analysis_sqlite": {
+      "line": 569,
+      "ast_sha256": "8ffc9b4bb5323ab33e900ee61cc9528626c359426cf75421727730437d869e16",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCoalesce::test_display_total_pg": {
+      "line": 586,
+      "ast_sha256": "d6ee391365b88fb40e937bf7aae70a3825b2208ee66092c3f465d900af837ba7",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCoalesce::test_display_total_sqlite": {
+      "line": 594,
+      "ast_sha256": "1faf8c55c4c467fd6b6213b174c8bd5a518cc13d27a2749ca5edd80f3c49cf35",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCoalesce::test_effective_price_pg": {
+      "line": 601,
+      "ast_sha256": "a33dfcabaf019c42ff0c3a76411e421bea83b0d07a0131f789aa688b09f39396",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCoalesce::test_effective_price_sqlite": {
+      "line": 611,
+      "ast_sha256": "39c44dc70d4e62e0eccdf43041a50d38f40d700385f123c66ce78139b28fedb2",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCoalesce::test_display_name_pg": {
+      "line": 620,
+      "ast_sha256": "f7428b49159be7558fa13bdfe884bfd938dbbe6f2aa28b02dc1a11d550531dc7",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestCoalesce::test_display_name_sqlite": {
+      "line": 627,
+      "ast_sha256": "4cc2de96bc02fbb321026e922a1bf9c8f6c327b3b13c4c4be7abbc5452977779",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaChain::test_line_vat_pg": {
+      "line": 1020,
+      "ast_sha256": "be9c3775b80b8d8c6d7d80b29c6d30970aa51f9d1a8027212556dd1e666dc6c3",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaChain::test_line_vat_sqlite": {
+      "line": 1031,
+      "ast_sha256": "6b80ba1095ba7897c7f1fd07dd6887a3e587d30f4fdd50249ecf95abbbfba1f0",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaChain::test_line_gross_pg": {
+      "line": 1041,
+      "ast_sha256": "e46a6889f2831904309451252c54ad69377ebe3890f286d08c01afec135f8321",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestFormulaChain::test_line_gross_sqlite": {
+      "line": 1053,
+      "ast_sha256": "39f40cf28e17042f2619301d4287d6fb4952524f969fa154526dc96f42577c3e",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_rows_json_pg": {
+      "line": 1071,
+      "ast_sha256": "6ea597eabdcd0d18c8e01e5c021f1b441bc571a6430da3f034aee2baaf52236d",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_notes_xml_pg": {
+      "line": 1084,
+      "ast_sha256": "663e51de7f7c9f75bb53707b4375d47647d8647790e760e430d3e0b9cfc30bb1",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_max_row_price_pg": {
+      "line": 1095,
+      "ast_sha256": "2ec057867aa69eaac8d2855a88564a33385a4db0686de8171ca71524b61fa816",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_max_row_price_sqlite": {
+      "line": 1104,
+      "ast_sha256": "1bfecd13b38b8c297d72931770f9dc3a0229e3b2a57fa988102b43fffec7bcaa",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_notes_xml_distinct_pg": {
+      "line": 1112,
+      "ast_sha256": "7f2cbcddaa19f39da675e4a08abc34604408ed00b54cfe7457dca0e5b84f1cdb",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_rows_json_distinct_pg": {
+      "line": 1122,
+      "ast_sha256": "50b232d9d0c104d463e2affb7189c0da0058ba627f1544019a1711649520b7b2",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_subquery_columns_auto_distinct_pg": {
+      "line": 1135,
+      "ast_sha256": "df67498be08bb0b9417207ca3bac0635b15383320df36799dffe505b62514c95",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestSubQueryColumn::test_max_row_price_cross_validate_pg": {
+      "line": 1146,
+      "ast_sha256": "334323f4c1889e047edeb5c72293c2f9cca9454199c4a81508c70ffcc5966e0b",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestBagItemColumn::test_detail_weight_no_crash_pg": {
+      "line": 1276,
+      "ast_sha256": "bde5b26ee3e23605805c5372086ca4dc3c43265e8ff6cd60db989d10a6e566ee",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestBagItemColumn::test_detail_color_no_crash_pg": {
+      "line": 1283,
+      "ast_sha256": "366445341d22fb6a8b0333a6075a2336ae143ef8afc279bd6b3799bdf762ffff",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestBagItemColumn::test_bagitem_with_physical_pg": {
+      "line": 1289,
+      "ast_sha256": "1cac0d3d4abe70e1b5b4d3f4b5352b56b65a35103004f1d30828ff893b8af097",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestBagItemColumn::test_bagitem_custom_dtype_pg": {
+      "line": 1299,
+      "ast_sha256": "e1e5252725640a2078fc0d17593e360050d68f7d08b8db004be7da1e17900856",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestJoinColumn::test_discount_tier_id_pg": {
+      "line": 1313,
+      "ast_sha256": "89b612b1ab7bdb62f21ef075a7a87b0c3911fca35ead2c62e6911d8ffc71372c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestJoinColumn::test_discount_tier_id_sqlite": {
+      "line": 1319,
+      "ast_sha256": "b8ed50181f292a459578cef271f7fb79512d81ebdbeaccc7fabe551d220d06b1",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestJoinColumn::test_discount_tier_navigation_pg": {
+      "line": 1325,
+      "ast_sha256": "e7652b50c38f493c665cea9fe50c3a75fcbc501d1946672bc59c71f35a86e00c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestJoinColumn::test_discount_tier_navigation_sqlite": {
+      "line": 1334,
+      "ast_sha256": "8eea9d4205d9a24bc8356dc02c85bb6581c4724c76e9ea62cc2fa58af16cffd7",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestVarParameters::test_status_label_pg": {
+      "line": 1349,
+      "ast_sha256": "0a91a721b272562a963abb23ef96b6666de1ac390357422fc56563c466725062",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestVarParameters::test_status_label_sqlite": {
+      "line": 1360,
+      "ast_sha256": "755db4f463fba9889b6d5d636c9a0ffdeb04d731811c42a441644f9f0aef1883",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestNamedSubQuery::test_priority_note_pg": {
+      "line": 1377,
+      "ast_sha256": "d2bd44f714c225f01d7e9882c1eed21a33194feddd5ac2be37928b87a7c9a44c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestNamedSubQuery::test_priority_note_sqlite": {
+      "line": 1385,
+      "ast_sha256": "f34e416bea79d3a5b77a8410db11fdfa419d7c7bedac813c5692abe51078cd86",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestNamedSubQuery::test_smart_row_count_pg": {
+      "line": 1392,
+      "ast_sha256": "da782966543b08923d43a6fb9218b2b03e6f6732dec8e51195a5335d5d2ba0dc",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestNamedSubQuery::test_smart_row_count_sqlite": {
+      "line": 1401,
+      "ast_sha256": "ff1aa5f251fb9bd9f8a4142162ddb449bace5da7824894ee7e7bc8f82f336084",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_one_level_pg": {
+      "line": 1439,
+      "ast_sha256": "dfb33e7f8265293e8ddab5ed790da2b0e70743958b4bc2091ee05f55f5b91846",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_one_level_sqlite": {
+      "line": 1447,
+      "ast_sha256": "00f1fae4eedd4274fb3128060642200efbcfe6d9eee5cd43b71ae41ab0603ee3",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_two_levels_pg": {
+      "line": 1455,
+      "ast_sha256": "73407cc3170b3e2d4dc8ebd90670d99a30e588ad3a6df90992bfc26cb7c99f2b",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_two_levels_sqlite": {
+      "line": 1462,
+      "ast_sha256": "a570d6fe1152892686594f06bb466e1b73a0d7865ae9716758e502c877a6dfc5",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_formula_with_relation_navigation_pg": {
+      "line": 1469,
+      "ast_sha256": "d2aa45108eb51d4c640a0afa3a69c1a15ecdfadf83328198c2e4559445987865",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_formula_with_relation_navigation_sqlite": {
+      "line": 1478,
+      "ast_sha256": "21c937e3fea9b295cbfae50c6fde838c6f4e725eb421a988e5eca708d7db271a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_one_to_many_pg": {
+      "line": 1486,
+      "ast_sha256": "1cb5159bfe963a861078f09fcffb6cf4ac0d6a95c6b505a603c2bf600428f82c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestRelationNavigation::test_one_to_many_sqlite": {
+      "line": 1494,
+      "ast_sha256": "b1ca1d546839938aeab61a951670f3013f1bb19353c575499cdedd033e2d1b6b",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestGroupBy::test_group_by_with_formula_pg": {
+      "line": 1701,
+      "ast_sha256": "49227645f5dfa81cbbf1dd4a90b43dcd1d909dfa3d72171556a424e1e34c9cd1",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestGroupBy::test_group_by_with_formula_sqlite": {
+      "line": 1709,
+      "ast_sha256": "7ea3e7d22ff6061b368150dfaaee32c08d4dcfb533769451057969d6fad01e49",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestWhereOrderBy::test_where_alias_pg": {
+      "line": 1724,
+      "ast_sha256": "8273b169d98661d8f77fd206bc125f00ee33c2e65d240d80a253cfc6c4f841dd",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestWhereOrderBy::test_where_alias_sqlite": {
+      "line": 1734,
+      "ast_sha256": "9632bc595d763714795d092e711f9e00f491886eea8e4506ac46e53ed391062a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestWhereOrderBy::test_order_by_formula_pg": {
+      "line": 1744,
+      "ast_sha256": "c56a1b3cee836ff6afe3d68c78658b36461a17acf7aee1f2d91fc19d55268b6d",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestWhereOrderBy::test_order_by_formula_sqlite": {
+      "line": 1753,
+      "ast_sha256": "fcd08f5beb33ac100e137ab6f447895d310c56ca72cf95442e633ab6f1286aaf",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestWhereOrderBy::test_where_exists_pg": {
+      "line": 1762,
+      "ast_sha256": "72b398b9da780f251b390e02135442e1036a3feb450590e2855e39ef3b57f755",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestWhereOrderBy::test_where_exists_sqlite": {
+      "line": 1774,
+      "ast_sha256": "beaf3383b13c74d255a6bb76ac9b41aea0a069d859f1a86c9ba6f8b5fc9459ef",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestGroupByHaving::test_duplicate_products_pg": {
+      "line": 1963,
+      "ast_sha256": "510778fe86a5006202d1e2985fdee0f5dbfdd747a39440f8b45a0ba64a2ebeae",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestGroupByHaving::test_duplicate_products_sqlite": {
+      "line": 1973,
+      "ast_sha256": "355afd91053fbbf028b778c90a1746a615fdbcb1724a078a5a363d99a35561d1",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "identical",
+        "v4": "identical",
+        "simplify": "identical",
+        "next": "identical"
+      }
+    },
+    "TestEmbedFieldPars::test_relation_param_pg": {
+      "line": 2516,
+      "ast_sha256": "9331b172bcfa8ea4b2f19a6db3c5b4e575061affc0f488296e3afd4c57c75129",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestEmbedFieldPars::test_relation_param_sqlite": {
+      "line": 2529,
+      "ast_sha256": "49b21541266ebed9bc1a3ba197df3aa2907ce2490c26004d432ffae803752d3f",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestEmbedFieldPars::test_column_param_pg": {
+      "line": 2541,
+      "ast_sha256": "048be09e500b108d77bcae303443ea87c1e472f467c0efd416c881c2cc25b17a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestEmbedFieldPars::test_column_param_sqlite": {
+      "line": 2554,
+      "ast_sha256": "be36f6c7f2e0dca726e787469db519f4c70901313adb2268d5a67123bbe58491",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestExplodingFastPath::test_exploding_fast_path_pg": {
+      "line": 2803,
+      "ast_sha256": "d184252f11b92309e6852470968bd6b36d63757dea2ab0b2c43e7c52c367ea4c",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestExplodingFastPath::test_exploding_fast_path_sqlite": {
+      "line": 2815,
+      "ast_sha256": "3ceb4885cd40ee577df2955793ee2d07cb60e840a7ebe0c16500941ab5546577",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestExpandInRange::test_in_range_in_where_pg": {
+      "line": 2836,
+      "ast_sha256": "2bd323e72c7cfd1f6f23b1414878bc3bc14b93977f2b3f93ddc524eaaccf6f47",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestExpandInRange::test_in_range_in_where_sqlite": {
+      "line": 2848,
+      "ast_sha256": "02d78e8b30b4ed4e58104b54922885256057073f0f5f95571c284ea8a1b9f381",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestExpandPeriod::test_period_branches_pg": {
+      "line": 2886,
+      "ast_sha256": "2e86646040f37064e0f6d084c4551c31ae590c41b7994d18fda99083307cad3a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestExpandPeriod::test_period_branches_sqlite": {
+      "line": 2897,
+      "ast_sha256": "59f00d95ed5053c052bba8538772083375f785a99a3af27f12d8a064a32f26e6",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_group_by_star_pg": {
+      "line": 2916,
+      "ast_sha256": "d10c88db2ec2c266268e2bd385c475fe09aebc2a9dc3192d14e9dc57ec3ed762",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_group_by_star_sqlite": {
+      "line": 2925,
+      "ast_sha256": "cac1b175ef2929667dcdf1e5a149dcd4223d949737216a90e415aa537fcd7074",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_distinct_explicit_pg": {
+      "line": 2935,
+      "ast_sha256": "acb63a528a92c979a590fcd5816f20a4c123161d6e79ef7676bfd362c53644d3",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_distinct_explicit_sqlite": {
+      "line": 2945,
+      "ast_sha256": "db111f6edd83ba9b88f3dcabde085413d193bf1c24afb34c3d236e893284b34a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_count_with_group_by_pg": {
+      "line": 2957,
+      "ast_sha256": "573c00bec9744751992f56c55034b307b482eaed48a05f5adc9be6fb8949cb60",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_count_with_group_by_sqlite": {
+      "line": 2965,
+      "ast_sha256": "6d90d510c9c940fbd1e2b5c1bac92c451e10741483bff08f94d79d172747ad21",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_count_with_distinct_pg": {
+      "line": 2975,
+      "ast_sha256": "498eb065c9dcebdac56ee1f23c1b6319707a64437d875865ebad578f94d78194",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestCompiledQueryOptions::test_count_with_distinct_sqlite": {
+      "line": 2983,
+      "ast_sha256": "682fba17934a061043457a06eed85e6191637bf01f787e3f7ef7eaa4ff2c61c9",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestDistinctExploding::test_distinct_exploding_order_by_pg": {
+      "line": 3017,
+      "ast_sha256": "c93802bad1bb2142f9068391ce77eec1ec42e63ef289187e6cb901b7e6ba354a",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestDistinctExploding::test_distinct_exploding_order_by_sqlite": {
+      "line": 3026,
+      "ast_sha256": "7ba4b7f151daf27b7d7f851cc7c2888cbf5dfe8b0d430372abc18d844f837693",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestDistinctExploding::test_distinct_exploding_count_pg": {
+      "line": 3034,
+      "ast_sha256": "b0b7b22ca5316518279ea90c07d0d2dd68fea042bb67271c74b393ed3885cb1d",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    },
+    "TestDistinctExploding::test_distinct_exploding_count_sqlite": {
+      "line": 3043,
+      "ast_sha256": "5526095181672b8bdb04978dceb374284a3b23e4cd2da2d136f411f27d7d410d",
+      "references": {
+        "legacy": "identical",
+        "compound": "absent",
+        "v2": "absent",
+        "v3": "absent",
+        "v3_merged": "absent",
+        "v4": "absent",
+        "simplify": "absent",
+        "next": "identical"
+      }
+    }
+  },
+  "snapshots": {
+    "legacy": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "compound": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "v2": "68f35b99c440df3658d275f3403f10962a953be6",
+    "v3": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "v3_merged": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "v4": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "simplify": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "next": "12cfdcce86337119591b6c8247e7166d831c08b9"
+  },
+  "composite_file": "gnrpy/tests/sql/test_composite_column.py",
+  "composite_tests": {
+    "TestCompositeColumnPg::test_composite_value_format": {
+      "line": 26,
+      "ast_sha256": "e484abc8e3795c120b4762ca4dc8d7fd2118bee569bf9072d02af778db68e9a1"
+    },
+    "TestCompositeColumnPg::test_composite_join_returns_data": {
+      "line": 37,
+      "ast_sha256": "3eb0b5a731d8b2522080b936a83ea5440beb5a82d47a5884f068910df8264282"
+    },
+    "TestCompositeColumnPg::test_composite_join_matches_source": {
+      "line": 48,
+      "ast_sha256": "833695825be061d2bafda9c5de2010b405d36334414e46265864bd4050e854c1"
+    },
+    "TestCompositeColumnPg::test_composite_deep_navigation": {
+      "line": 61,
+      "ast_sha256": "6ce644f71c004517e5f4d7062470884ef99cc32c2b42226a5059b23c2f1539a5"
+    },
+    "TestCompositeColumnPg::test_composite_formula_navigation": {
+      "line": 76,
+      "ast_sha256": "afa6e909104cac36bca322f327823d9f7ff287f1f5c7be39f3ea27d71de9d666"
+    },
+    "TestCompositeColumnPg::test_composite_where_filters": {
+      "line": 86,
+      "ast_sha256": "16607ea4b528b01f6d671132d9421ac7de48d8482467d2e74581315a6a57941b"
+    },
+    "TestCompositeColumnPg::test_composite_order_by": {
+      "line": 97,
+      "ast_sha256": "aae99679f15895c055e0a2db1b0b7709df91878e0c95cddd72a4e60eac6da7ed"
+    },
+    "TestCompositeColumnPg::test_composite_count_matches": {
+      "line": 107,
+      "ast_sha256": "8ebebcca01b43906b9097a05a65c5f02ad7f5e9364931a28c064649bd4424732"
+    },
+    "TestCompositeColumnSqlite::test_composite_value_format": {
+      "line": 121,
+      "ast_sha256": "2f9d6bd823fafc27a38ed8fda4ff861b08a479094eee143fc6638369062a3470"
+    },
+    "TestCompositeColumnSqlite::test_composite_join_returns_data": {
+      "line": 132,
+      "ast_sha256": "9efe8a47d7faf055ee418b25870180ae92fc55d788c47dd85ed9240295c17fb8"
+    },
+    "TestCompositeColumnSqlite::test_composite_join_matches_source": {
+      "line": 142,
+      "ast_sha256": "b12134125e2b981cb1a492c2e3b8a86ac512ffd7cef77ff1bf87226b85645fc5"
+    },
+    "TestCompositeColumnSqlite::test_composite_deep_navigation": {
+      "line": 155,
+      "ast_sha256": "17b764f67eeb154b5bf8848ffa12bd6f817b56f2ea061617c200a0350fe727dc"
+    },
+    "TestCompositeColumnSqlite::test_composite_where_filters": {
+      "line": 165,
+      "ast_sha256": "cc2af68029ea247c9aea9ac36377ab8c6346c50963e7d2e77bbffcb17eab2614"
+    },
+    "TestCompositeColumnSqlite::test_composite_order_by": {
+      "line": 176,
+      "ast_sha256": "830d5bbf65d7faa2b191b6fb545d4793c4e26859335e0b03c38e9557203fca4a"
+    }
+  }
+}

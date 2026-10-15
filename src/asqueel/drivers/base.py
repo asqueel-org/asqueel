@@ -11,11 +11,11 @@ class BindingFormatter(Protocol):
 
     def prepare(self, statement: SqlStatement) -> CompiledQuery: ...
 
-
-class SyncDriver(BindingFormatter, Protocol):
     def prepare_sql(self, sql: str, sqlargs: Mapping[str, Any] | None,
                     snapshot: Mapping[str, Any]) -> CompiledQuery: ...
 
+
+class SyncDriver(BindingFormatter, Protocol):
     def validate(self, query: CompiledQuery) -> None: ...
 
     def connect(self, conninfo: str, **kwargs: Any) -> Any: ...

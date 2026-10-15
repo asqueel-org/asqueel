@@ -1,0 +1,578 @@
+{
+  "date": "2026-10-14",
+  "python": "3.12.12",
+  "sqlite": "3.50.4",
+  "postgresql": "17.7 (Homebrew)",
+  "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''",
+  "full_suite": {
+    "tests": "1562",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "9",
+    "time": "44.389"
+  },
+  "subquery_tests": [
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_scalar_aggregate_exists_named_nested_formula_and_metadata[schema]",
+      "time": "0.032",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_scalar_aggregate_exists_named_nested_formula_and_metadata[package]",
+      "time": "0.031",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_correlated_owner_through_relation_and_alias[schema]",
+      "time": "0.031",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_correlated_owner_through_relation_and_alias[package]",
+      "time": "0.060",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_nested_policy_defaults_and_explicit_overrides[schema]",
+      "time": "0.033",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_nested_policy_defaults_and_explicit_overrides[package]",
+      "time": "0.037",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_scalar_multiple_rows_raise_and_this_inside_literal_comment_survives[schema]",
+      "time": "0.039",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_scalar_multiple_rows_raise_and_this_inside_literal_comment_survives[package]",
+      "time": "0.041",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_default_returning_does_not_evaluate_subquery_virtuals[schema]",
+      "time": "0.041",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_default_returning_does_not_evaluate_subquery_virtuals[package]",
+      "time": "0.044",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_subquery_local_params_are_isolated_from_outer_binding[schema]",
+      "time": "0.043",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.application_integration.test_formula_subqueries",
+      "name": "test_subquery_local_params_are_isolated_from_outer_binding[package]",
+      "time": "0.040",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_native_scalar_exists_and_alias_keep_shape_and_metadata[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_native_scalar_exists_and_alias_keep_shape_and_metadata[sqlite]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_child_and_formula_and_caller_parameters_do_not_capture_one_another[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_child_and_formula_and_caller_parameters_do_not_capture_one_another[sqlite]",
+      "time": "0.018",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_relation_alias_and_inner_join_have_distinct_owners[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_relation_alias_and_inner_join_have_distinct_owners[sqlite]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_this_relation_adds_join_to_outer_scope[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_this_relation_adds_join_to_outer_scope[sqlite]",
+      "time": "0.048",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_nested_subqueries_keep_nearest_this_and_input_origin[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_nested_subqueries_keep_nearest_this_and_input_origin[sqlite]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_repeated_subqueries_in_clauses_allocate_fresh_sql_scopes[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_repeated_subqueries_in_clauses_allocate_fresh_sql_scopes[sqlite]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_grouping_having_distinct_order_and_limits_use_child_fields[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_grouping_having_distinct_order_and_limits_use_child_fields[sqlite]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_local_collection_and_scalar_uses_are_isolated_from_query[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_local_collection_and_scalar_uses_are_isolated_from_query[sqlite]",
+      "time": "0.047",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_environment_is_refreshed_and_literals_are_not_rewritten[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_environment_is_refreshed_and_literals_are_not_rewritten[sqlite]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options0-having requires group_by]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options1-LIMIT must be]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options2-OFFSET must be]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options3-distinct must be]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options4-group_by='\\\\*' is unsupported]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options5-sqlparams must be a mapping]",
+      "time": "0.054",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options6-exactly one result column]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[postgresql-options7-Unsupported subquery options]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options0-having requires group_by]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options1-LIMIT must be]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options2-OFFSET must be]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options3-distinct must be]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options4-group_by='\\\\*' is unsupported]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options5-sqlparams must be a mapping]",
+      "time": "0.049",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options6-exactly one result column]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_invalid_or_unagreed_child_options_are_rejected[sqlite-options7-Unsupported subquery options]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_native_subquery_cycles_and_method_references_fail_explicitly[postgresql]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_subqueries",
+      "name": "test_native_subquery_cycles_and_method_references_fail_explicitly[sqlite]",
+      "time": "0.015",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_count_n_invoices_pg",
+      "time": "1.569",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_count_n_invoices_sqlite",
+      "time": "1.340",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_sum_invoiced_total_pg",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_sum_invoiced_total_sqlite",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_last_invoice_id_pg",
+      "time": "0.007",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_last_invoice_id_sqlite",
+      "time": "0.003",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_exists_has_invoices_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_exists_has_invoices_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_row_count_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_row_count_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_total_sold_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFormulaSelect",
+      "name": "test_total_sold_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestCaseWhen",
+      "name": "test_customer_rank_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestCaseWhen",
+      "name": "test_customer_rank_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFilterAggregation",
+      "name": "test_priced_rows_pct_pg",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestFilterAggregation",
+      "name": "test_priced_rows_pct_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestBooleanFormulas",
+      "name": "test_is_active_valuable_pg",
+      "time": "0.003",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestBooleanFormulas",
+      "name": "test_is_active_valuable_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestNamedSubQuery",
+      "name": "test_priority_note_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestNamedSubQuery",
+      "name": "test_priority_note_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestNamedSubQuery",
+      "name": "test_smart_row_count_pg",
+      "time": "0.006",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestNamedSubQuery",
+      "name": "test_smart_row_count_sqlite",
+      "time": "0.003",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestNullif",
+      "name": "test_avg_invoice_value_pg",
+      "time": "0.025",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestNullif",
+      "name": "test_avg_invoice_value_sqlite",
+      "time": "0.021",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestExistsOr",
+      "name": "test_has_activity_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestExistsOr",
+      "name": "test_has_activity_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestPostgresOnly",
+      "name": "test_invoice_numbers_pg",
+      "time": "0.020",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestPostgresOnly",
+      "name": "test_all_notes_string_agg_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestWhereOrderBy",
+      "name": "test_where_exists_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestWhereOrderBy",
+      "name": "test_where_exists_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestCombinedQueries",
+      "name": "test_customer_full_pg",
+      "time": "0.035",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestCombinedQueries",
+      "name": "test_customer_full_sqlite",
+      "time": "0.084",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestCombinedQueries",
+      "name": "test_invoice_full_pg",
+      "time": "0.023",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestCombinedQueries",
+      "name": "test_invoice_full_sqlite",
+      "time": "0.033",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestExistsDict",
+      "name": "test_has_expensive_rows_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestExistsDict",
+      "name": "test_has_expensive_rows_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "EXISTS not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestExistsDict",
+      "name": "test_has_expensive_rows_where_pg",
+      "time": "0.003",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestGroupByHaving",
+      "name": "test_duplicate_products_pg",
+      "time": "0.003",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_subqueries.TestGroupByHaving",
+      "name": "test_duplicate_products_sqlite",
+      "time": "0.027",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_subquery_results",
+      "name": "test_exists_matches_physical_rows_on_both_backends[db_pg]",
+      "time": "1.666",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_subquery_results",
+      "name": "test_exists_matches_physical_rows_on_both_backends[db_sqlite]",
+      "time": "1.337",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_subquery_results",
+      "name": "test_count_sum_and_empty_results_match_physical_invoice_rows[db_pg]",
+      "time": "0.083",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_subquery_results",
+      "name": "test_count_sum_and_empty_results_match_physical_invoice_rows[db_sqlite]",
+      "time": "0.263",
+      "status": "passed"
+    }
+  ],
+  "ruff": "passed: src tests scripts",
+  "mypy": "passed: src/asqueel (51 source files)",
+  "source_sha256": {
+    "src/asqueel/compiler.py": "fbf1a950fbce18bbca673b78ac7973cf85c3fb9bfa346cc9d95b772f5a6c3c3a",
+    "src/asqueel/_compiler_bindings.py": "118f50946678e89623c171e378c4e05cd430ed3552fffdc1d1c226f5b97a01cc",
+    "src/asqueel/model.py": "30dab48bfe4616448fbdf48ef51ffeb50d89063ca28053026d3aa7603313fc69",
+    "tests/native_formulas/test_legacy_subqueries.py": "fbb248c04e652f9d21c63fdf91538251018f836accbff8c01d6325ae9c8c31a2",
+    "tests/native_compiler/test_native_subqueries.py": "c5636b1211645a24511772694e5e7e4e388a48d44d2382977e33f8f8b1230215",
+    "tests/native_formulas/conftest.py": "d158af80251818e5362a1be87b47a30bb7e0684f0ca4c7848651ea86a82ca1eb"
+  },
+  "sphinx": "passed: -E -W --keep-going -b html"
+}

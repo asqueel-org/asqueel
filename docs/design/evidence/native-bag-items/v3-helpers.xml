@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="7" time="0.172" timestamp="2026-10-14T17:06:26.096694+02:00" hostname="MacBook-Pro-di-Giovanni.local"><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_text" time="0.000" /><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_numeric" time="0.000" /><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_positional_index" time="0.000" /><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_xml_attribute" time="0.000" /><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_integer" time="0.000"><failure message="KeyError: 'I'">self = &lt;test_bag_items.TestHelpers object at 0x1089ea1e0&gt;
+
+    def test_bagItemFormula_integer(self):
+        kw = {}
+&gt;       result = bagItemFormula(bagcolumn='$details', itempath='x.y', dtype='I', kwargs=kw)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+bagcolumn = '$details', itempath = 'x/y', dtype = 'I'
+kwargs = {'var_calculated_path': '/GenRoBag/x/y/text()'}
+
+    def bagItemFormula(
+        bagcolumn: str | None = None,
+        itempath: str | None = None,
+        dtype: str | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -&gt; str:
+        """Build a SQL formula to extract a value from a Bag XML column.
+    
+        Constructs a ``CAST(xpath(...))`` expression that extracts a specific
+        item from a Bag column stored as XML, optionally casting it to the
+        requested data type.
+    
+        Args:
+            bagcolumn: The SQL column name containing the Bag XML data.
+            itempath: Dot-separated path to the item inside the Bag.
+                Segments starting with ``#`` are treated as positional
+                indexes (zero-based).  A trailing ``?attr`` syntax extracts
+                an XML attribute instead of the text content.
+            dtype: Target GenroPy data type code (``'T'``, ``'N'``,
+                ``'D'``, etc.).  Defaults to ``'T'`` (text).
+            kwargs: Mutable dict that receives the ``var_calculated_path``
+                SQL parameter binding.
+    
+        Returns:
+            A SQL expression string ready for use in a ``formulaColumn``.
+        """
+        itemlist = itempath.split('.')
+        last_chunk = itemlist[-1]
+        suffix = 'text()'
+        if '?' in last_chunk:
+            last_chunk, searchattr = last_chunk.split('?')
+            suffix = f'@{searchattr}'
+            itemlist[-1] = last_chunk
+        itempath = '/'.join([
+            c if not c.startswith('#') else f'*[{int(c[1:]) + 1}]'
+            for c in itemlist
+        ])
+        sql_formula = (
+            f" CAST( (xpath(:calculated_path, CAST({bagcolumn} as XML) ) )[1]  AS text)"
+        )
+        kwargs['var_calculated_path'] = f'/GenRoBag/{itempath}/{suffix}'
+        dtype = dtype or 'T'
+        # REVIEW: hardcoded PostgreSQL type map — will break on other
+        # backends.  Consider using adapter-level type mapping.
+        typeconverter = {
+            'T': 'text', 'A': 'text', 'C': 'text', 'P': 'text',
+            'N': 'numeric', 'B': 'boolean', 'D': 'date',
+            'H': 'time without time zone', 'L': 'bigint', 'R': 'real',
+            'X': 'text',
+        }
+&gt;       desttype = typeconverter[dtype]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'I'
+
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqlmodel/helpers.py:84: KeyError</failure></testcase><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_timestamp" time="0.000"><failure message="KeyError: 'DH'">self = &lt;test_bag_items.TestHelpers object at 0x1089ea450&gt;
+
+    def test_bagItemFormula_timestamp(self):
+        kw = {}
+&gt;       result = bagItemFormula(bagcolumn='$details', itempath='x.y', dtype='DH', kwargs=kw)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+bagcolumn = '$details', itempath = 'x/y', dtype = 'DH'
+kwargs = {'var_calculated_path': '/GenRoBag/x/y/text()'}
+
+    def bagItemFormula(
+        bagcolumn: str | None = None,
+        itempath: str | None = None,
+        dtype: str | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -&gt; str:
+        """Build a SQL formula to extract a value from a Bag XML column.
+    
+        Constructs a ``CAST(xpath(...))`` expression that extracts a specific
+        item from a Bag column stored as XML, optionally casting it to the
+        requested data type.
+    
+        Args:
+            bagcolumn: The SQL column name containing the Bag XML data.
+            itempath: Dot-separated path to the item inside the Bag.
+                Segments starting with ``#`` are treated as positional
+                indexes (zero-based).  A trailing ``?attr`` syntax extracts
+                an XML attribute instead of the text content.
+            dtype: Target GenroPy data type code (``'T'``, ``'N'``,
+                ``'D'``, etc.).  Defaults to ``'T'`` (text).
+            kwargs: Mutable dict that receives the ``var_calculated_path``
+                SQL parameter binding.
+    
+        Returns:
+            A SQL expression string ready for use in a ``formulaColumn``.
+        """
+        itemlist = itempath.split('.')
+        last_chunk = itemlist[-1]
+        suffix = 'text()'
+        if '?' in last_chunk:
+            last_chunk, searchattr = last_chunk.split('?')
+            suffix = f'@{searchattr}'
+            itemlist[-1] = last_chunk
+        itempath = '/'.join([
+            c if not c.startswith('#') else f'*[{int(c[1:]) + 1}]'
+            for c in itemlist
+        ])
+        sql_formula = (
+            f" CAST( (xpath(:calculated_path, CAST({bagcolumn} as XML) ) )[1]  AS text)"
+        )
+        kwargs['var_calculated_path'] = f'/GenRoBag/{itempath}/{suffix}'
+        dtype = dtype or 'T'
+        # REVIEW: hardcoded PostgreSQL type map — will break on other
+        # backends.  Consider using adapter-level type mapping.
+        typeconverter = {
+            'T': 'text', 'A': 'text', 'C': 'text', 'P': 'text',
+            'N': 'numeric', 'B': 'boolean', 'D': 'date',
+            'H': 'time without time zone', 'L': 'bigint', 'R': 'real',
+            'X': 'text',
+        }
+&gt;       desttype = typeconverter[dtype]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'DH'
+
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqlmodel/helpers.py:84: KeyError</failure></testcase><testcase classname="test_bag_items.TestHelpers" name="test_bagItemFormula_unknown_dtype_falls_back_to_text" time="0.000"><failure message="KeyError: 'money'">self = &lt;test_bag_items.TestHelpers object at 0x1089ea6c0&gt;
+
+    def test_bagItemFormula_unknown_dtype_falls_back_to_text(self):
+        # issue #22: unresolved dtypes must not raise KeyError
+        kw = {}
+&gt;       result = bagItemFormula(bagcolumn='$details', itempath='x.y', dtype='money', kwargs=kw)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+bagcolumn = '$details', itempath = 'x/y', dtype = 'money'
+kwargs = {'var_calculated_path': '/GenRoBag/x/y/text()'}
+
+    def bagItemFormula(
+        bagcolumn: str | None = None,
+        itempath: str | None = None,
+        dtype: str | None = None,
+        kwargs: dict[str, Any] | None = None,
+    ) -&gt; str:
+        """Build a SQL formula to extract a value from a Bag XML column.
+    
+        Constructs a ``CAST(xpath(...))`` expression that extracts a specific
+        item from a Bag column stored as XML, optionally casting it to the
+        requested data type.
+    
+        Args:
+            bagcolumn: The SQL column name containing the Bag XML data.
+            itempath: Dot-separated path to the item inside the Bag.
+                Segments starting with ``#`` are treated as positional
+                indexes (zero-based).  A trailing ``?attr`` syntax extracts
+                an XML attribute instead of the text content.
+            dtype: Target GenroPy data type code (``'T'``, ``'N'``,
+                ``'D'``, etc.).  Defaults to ``'T'`` (text).
+            kwargs: Mutable dict that receives the ``var_calculated_path``
+                SQL parameter binding.
+    
+        Returns:
+            A SQL expression string ready for use in a ``formulaColumn``.
+        """
+        itemlist = itempath.split('.')
+        last_chunk = itemlist[-1]
+        suffix = 'text()'
+        if '?' in last_chunk:
+            last_chunk, searchattr = last_chunk.split('?')
+            suffix = f'@{searchattr}'
+            itemlist[-1] = last_chunk
+        itempath = '/'.join([
+            c if not c.startswith('#') else f'*[{int(c[1:]) + 1}]'
+            for c in itemlist
+        ])
+        sql_formula = (
+            f" CAST( (xpath(:calculated_path, CAST({bagcolumn} as XML) ) )[1]  AS text)"
+        )
+        kwargs['var_calculated_path'] = f'/GenRoBag/{itempath}/{suffix}'
+        dtype = dtype or 'T'
+        # REVIEW: hardcoded PostgreSQL type map — will break on other
+        # backends.  Consider using adapter-level type mapping.
+        typeconverter = {
+            'T': 'text', 'A': 'text', 'C': 'text', 'P': 'text',
+            'N': 'numeric', 'B': 'boolean', 'D': 'date',
+            'H': 'time without time zone', 'L': 'bigint', 'R': 'real',
+            'X': 'text',
+        }
+&gt;       desttype = typeconverter[dtype]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'money'
+
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqlmodel/helpers.py:84: KeyError</failure></testcase></testsuite></testsuites>

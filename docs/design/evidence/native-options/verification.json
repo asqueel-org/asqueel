@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-14",
+  "suite": {
+    "passed": 1840,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 9
+  },
+  "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=",
+  "legacy_ported": 16,
+  "new_compilation_tests": 43,
+  "native_visibility_results": 148,
+  "ruff": "passed",
+  "mypy": "passed",
+  "sphinx": "passed (-W --keep-going)",
+  "census": "native-census.json",
+  "legacy": "legacy-comparison.json"
+}

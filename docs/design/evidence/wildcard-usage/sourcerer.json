@@ -1,0 +1,512 @@
+{
+  "date": "2026-10-15",
+  "source": "Sourcerer code.search_code",
+  "related_search": {
+    "data": [
+      {
+        "repo_name": "genro-treestore",
+        "module_path": "builders/__init__.py",
+        "lineno": 16,
+        "match_line": "- **@element**: Define an element handler with validation rules",
+        "context": "       15  Decorators:\n>>>    16      - **@element**: Define an element handler with validation rules\n       17  ",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "giojo",
+        "module_path": "_editor/RichText.js",
+        "lineno": 128,
+        "match_line": "_SEPARATOR: \"@@**%%__RICHTEXTBOUNDRY__%%**@@\",",
+        "context": "      127  \t//\t\tused to concat contents from multiple textareas into a single string\n>>>   128  \t_SEPARATOR: \"@@**%%__RICHTEXTBOUNDRY__%%**@@\",\n      129  ",
+        "container_kind": "class",
+        "container_qualified_name": "dijit._editor.RichText"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr_d11/css/gnrbase_css/02_gnr_icons_base.css",
+        "lineno": 575,
+        "match_line": "/*@group template*/",
+        "context": "      574  \n>>>   575  /*@group template*/\n      576  ",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr_d11/css/gnrbase_css/02_gnr_icons_base.css",
+        "lineno": 567,
+        "match_line": "/*@group template*/",
+        "context": "      566  \n>>>   567  /*@group template*/\n      568  ",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 751,
+        "match_line": "- ``*@rel1.@rel2`` -- all columns of the table reached through",
+        "context": "      750            *prefix_*.\n>>>   751          - ``*@rel1.@rel2`` -- all columns of the table reached through\n      752            *rel1.rel2*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 753,
+        "match_line": "- ``*@rel1.@rel2.prefix_`` -- columns of that related table",
+        "context": "      752            *rel1.rel2*.\n>>>   753          - ``*@rel1.@rel2.prefix_`` -- columns of that related table\n      754            starting with *prefix_*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 755,
+        "match_line": "- ``*@rel.(col1,col2,...)`` -- explicit list of related columns",
+        "context": "      754            starting with *prefix_*.\n>>>   755          - ``*@rel.(col1,col2,...)`` -- explicit list of related columns\n      756            (also populates ``aggregateDict`` for grouped output).",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 752,
+        "match_line": "- ``*@rel1.@rel2`` -- all columns of the table reached through",
+        "context": "      751            *prefix_*.\n>>>   752          - ``*@rel1.@rel2`` -- all columns of the table reached through\n      753            *rel1.rel2*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 754,
+        "match_line": "- ``*@rel1.@rel2.prefix_`` -- columns of that related table",
+        "context": "      753            *rel1.rel2*.\n>>>   754          - ``*@rel1.@rel2.prefix_`` -- columns of that related table\n      755            starting with *prefix_*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 756,
+        "match_line": "- ``*@rel.(col1,col2,...)`` -- explicit list of related columns",
+        "context": "      755            starting with *prefix_*.\n>>>   756          - ``*@rel.(col1,col2,...)`` -- explicit list of related columns\n      757            (also populates ``aggregateDict`` for grouped output).",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 752,
+        "match_line": "- ``*@rel1.@rel2`` -- all columns of the table reached through",
+        "context": "      751            *prefix_*.\n>>>   752          - ``*@rel1.@rel2`` -- all columns of the table reached through\n      753            *rel1.rel2*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 754,
+        "match_line": "- ``*@rel1.@rel2.prefix_`` -- columns of that related table",
+        "context": "      753            *rel1.rel2*.\n>>>   754          - ``*@rel1.@rel2.prefix_`` -- columns of that related table\n      755            starting with *prefix_*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 756,
+        "match_line": "- ``*@rel.(col1,col2,...)`` -- explicit list of related columns",
+        "context": "      755            starting with *prefix_*.\n>>>   756          - ``*@rel.(col1,col2,...)`` -- explicit list of related columns\n      757            (also populates ``aggregateDict`` for grouped output).",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 752,
+        "match_line": "- ``*@rel1.@rel2`` -- all columns of the table reached through",
+        "context": "      751            *prefix_*.\n>>>   752          - ``*@rel1.@rel2`` -- all columns of the table reached through\n      753            *rel1.rel2*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 754,
+        "match_line": "- ``*@rel1.@rel2.prefix_`` -- columns of that related table",
+        "context": "      753            *rel1.rel2*.\n>>>   754          - ``*@rel1.@rel2.prefix_`` -- columns of that related table\n      755            starting with *prefix_*.",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/compiler.py",
+        "lineno": 756,
+        "match_line": "- ``*@rel.(col1,col2,...)`` -- explicit list of related columns",
+        "context": "      755            starting with *prefix_*.\n>>>   756          - ``*@rel.(col1,col2,...)`` -- explicit list of related columns\n      757            (also populates ``aggregateDict`` for grouped output).",
+        "container_kind": "method",
+        "container_qualified_name": "SqlQueryCompiler.expandMultipleColumns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/query.py",
+        "lineno": 132,
+        "match_line": "contains ``*@relname.filter``",
+        "context": "      131      :param bagFields: boolean. If ``True`` include fields of type Bag (``X``) when columns is ``*`` or\n>>>   132                        contains ``*@relname.filter``\n      133      :param joinConditions: special conditions for joining related tables. See the",
+        "container_kind": "class",
+        "container_qualified_name": "SqlQuery"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "gnr/sql/gnrsqldata/query.py",
+        "lineno": 132,
+        "match_line": "contains ``*@relname.filter``",
+        "context": "      131      :param bagFields: boolean. If ``True`` include fields of type Bag (``X``) when columns is ``*`` or\n>>>   132                        contains ``*@relname.filter``\n      133      :param joinConditions: special conditions for joining related tables. See the",
+        "container_kind": "class",
+        "container_qualified_name": "SqlQuery"
+      },
+      {
+        "repo_name": "gnrdeploy",
+        "module_path": "lib/k8s_image_info.py",
+        "lineno": 49,
+        "match_line": "match = re.search(r\"(.*@sha256:[a-f0-9]+)\", image_id)",
+        "context": "       48                  # docker-pullable://ghcr.io/org/app@sha256:...\n>>>    49                  match = re.search(r\"(.*@sha256:[a-f0-9]+)\", image_id)\n       50                  if match:",
+        "container_kind": "method",
+        "container_qualified_name": "ImageMetadataFetcher.get_image_digests"
+      },
+      {
+        "repo_name": "erpy",
+        "module_path": "model/distinta_base_vlz.py",
+        "lineno": 64,
+        "match_line": "tbl.formulaColumn('valore','$totale *@distinta_id.quantita',dtype='money',name_long='Valore distinta')",
+        "context": "       63          tbl.aliasColumn('articolo_descrizione','@distinta_id.articolo_descrizione')\n>>>    64          tbl.formulaColumn('valore','$totale *@distinta_id.quantita',dtype='money',name_long='Valore distinta')\n       65          tbl.formulaColumn('anno',\"to_char($data_valorizzazione,'YYYY')\")",
+        "container_kind": "method",
+        "container_qualified_name": "Table.config_db"
+      },
+      {
+        "repo_name": "icond",
+        "module_path": "model/_packages/erpy_fatt/fattura_riga.py",
+        "lineno": 14,
+        "match_line": "tbl.formulaColumn('importo_segnato','$importo_netto*@fattura_id.@scrittura_id.segno')",
+        "context": "       13          tbl.aliasColumn('scrittura_id','@fattura_id.scrittura_id')\n>>>    14          tbl.formulaColumn('importo_segnato','$importo_netto*@fattura_id.@scrittura_id.segno')\n       15  ",
+        "container_kind": "method",
+        "container_qualified_name": "Table.config_db"
+      },
+      {
+        "repo_name": "erpy_tapeless",
+        "module_path": "model/_packages/erpy_ftel/fattura_fornitore_rgrp.py",
+        "lineno": 27,
+        "match_line": "tbl.formulaColumn('quota_pagata',\"$imponibile*@fattura_fornitore_id.coeff_pagamento\",",
+        "context": "       26          tbl.aliasColumn('fornitore_ragione_sociale', '@fattura_fornitore_id.fornitore_ragione_sociale', dtype='D', name_long='Data fattura')\n>>>    27          tbl.formulaColumn('quota_pagata',\"$imponibile*@fattura_fornitore_id.coeff_pagamento\",\n       28                            dtype='money')",
+        "container_kind": "method",
+        "container_qualified_name": "Table.config_db"
+      },
+      {
+        "repo_name": "erpy_tapeless",
+        "module_path": "model/_packages/erpy_ftel/fattura_fornitore_riga.py",
+        "lineno": 27,
+        "match_line": "tbl.formulaColumn('quota_pagata',\"$prezzo_totale*@fattura_fornitore_id.coeff_pagamento\",",
+        "context": "       26          tbl.formulaColumn('totale_lordo', 'ROUND($prezzo_totale*($aliquota_iva+100)/100, 2)')\n>>>    27          tbl.formulaColumn('quota_pagata',\"$prezzo_totale*@fattura_fornitore_id.coeff_pagamento\",\n       28                            dtype='money')",
+        "container_kind": "method",
+        "container_qualified_name": "Table.config_db"
+      },
+      {
+        "repo_name": "teamset",
+        "module_path": "packages/ts_fatt/model/fattura_riga.py",
+        "lineno": 51,
+        "match_line": "tbl.formulaColumn('quota_pagata',\"$importo_netto*@fattura_id.coeff_pagamento * $segno\", dtype='money')",
+        "context": "       50          tbl.formulaColumn('totale_lordo', '$importo_netto + $totale_iva_calc')\n>>>    51          tbl.formulaColumn('quota_pagata',\"$importo_netto*@fattura_id.coeff_pagamento * $segno\", dtype='money')\n       52          tbl.formulaColumn('quota_pagata_con_iva',\"$totale_lordo*@fattura_id.coeff_pagamento * $segno\", dtype='money')",
+        "container_kind": "method",
+        "container_qualified_name": "Table.config_db"
+      },
+      {
+        "repo_name": "teamset",
+        "module_path": "packages/ts_fatt/model/fattura_riga.py",
+        "lineno": 52,
+        "match_line": "tbl.formulaColumn('quota_pagata_con_iva',\"$totale_lordo*@fattura_id.coeff_pagamento * $segno\", dtype='money')",
+        "context": "       51          tbl.formulaColumn('quota_pagata',\"$importo_netto*@fattura_id.coeff_pagamento * $segno\", dtype='money')\n>>>    52          tbl.formulaColumn('quota_pagata_con_iva',\"$totale_lordo*@fattura_id.coeff_pagamento * $segno\", dtype='money')\n       53          tbl.formulaColumn('totale_iva_calc', 'COALESCE(COALESCE($aliquota_iva,0)*COALESCE($importo_netto,0)/100,0)', name_long='Tot.IVA')",
+        "container_kind": "method",
+        "container_qualified_name": "Table.config_db"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/h_query_surface_test.py",
+        "lineno": 275,
+        "match_line": "q = self.db.query('video.cast', columns='$id,*@movie_id')",
+        "context": "      274      def test_star_relation_columns(self):\n>>>   275          q = self.db.query('video.cast', columns='$id,*@movie_id')\n      276          sel = q.selection()",
+        "container_kind": "method",
+        "container_qualified_name": "BaseQuerySurface.test_star_relation_columns"
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 146,
+        "match_line": "columns='$account_name,*@invoices.(inv_number,date)'),",
+        "context": "      145      'star_relation_explicit': _q('invc.customer',\n>>>   146                                   columns='$account_name,*@invoices.(inv_number,date)'),\n      147      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 147,
+        "match_line": "'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+        "context": "      146                                   columns='$account_name,*@invoices.(inv_number,date)'),\n>>>   147      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),\n      148      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 159,
+        "match_line": "columns='$account_name,*@invoices.(inv_number,date)'),",
+        "context": "      158      'star_relation_explicit': _q('invc.customer',\n>>>   159                                   columns='$account_name,*@invoices.(inv_number,date)'),\n      160      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 160,
+        "match_line": "'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+        "context": "      159                                   columns='$account_name,*@invoices.(inv_number,date)'),\n>>>   160      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),\n      161      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 158,
+        "match_line": "columns='$account_name,*@invoices.(inv_number,date)'),",
+        "context": "      157      'star_relation_explicit': _q('invc.customer',\n>>>   158                                   columns='$account_name,*@invoices.(inv_number,date)'),\n      159      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 159,
+        "match_line": "'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+        "context": "      158                                   columns='$account_name,*@invoices.(inv_number,date)'),\n>>>   159      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),\n      160      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      }
+    ],
+    "meta": {
+      "tool": "code.search_code",
+      "count": 32,
+      "query": "*@",
+      "modules_scanned": 20
+    },
+    "_metadata": {
+      "elapsed_ms": 1577
+    }
+  },
+  "related_next_page": {
+    "data": [],
+    "meta": {
+      "tool": "code.search_code",
+      "count": 0,
+      "query": "*@",
+      "modules_scanned": 0
+    },
+    "_metadata": {
+      "elapsed_ms": 1616
+    }
+  },
+  "relation_tests": [
+    {
+      "repo_name": "genropy",
+      "module_path": "tests/sql/h_query_surface_test.py",
+      "lineno": 275,
+      "match_line": "q = self.db.query('video.cast', columns='$id,*@movie_id')",
+      "context": "      274      def test_star_relation_columns(self):\n>>>   275          q = self.db.query('video.cast', columns='$id,*@movie_id')\n      276          sel = q.selection()",
+      "container_kind": "method",
+      "container_qualified_name": "BaseQuerySurface.test_star_relation_columns"
+    },
+    {
+      "repo_name": "genropy",
+      "module_path": "tests/sql/test_compiler_factory.py",
+      "lineno": 158,
+      "match_line": "columns='$account_name,*@invoices.(inv_number,date)'),",
+      "context": "      157      'star_relation_explicit': _q('invc.customer',\n>>>   158                                   columns='$account_name,*@invoices.(inv_number,date)'),\n      159      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+      "container_kind": null,
+      "container_qualified_name": null
+    },
+    {
+      "repo_name": "genropy",
+      "module_path": "tests/sql/test_compiler_factory.py",
+      "lineno": 159,
+      "match_line": "'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),",
+      "context": "      158                                   columns='$account_name,*@invoices.(inv_number,date)'),\n>>>   159      'star_relation_all': _q('invc.invoice', columns='$inv_number,*@customer_id'),\n      160      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+      "container_kind": null,
+      "container_qualified_name": null
+    }
+  ],
+  "application_matches_are_multiplications": [
+    {
+      "repo_name": "erpy",
+      "module_path": "model/distinta_base_vlz.py",
+      "lineno": 64,
+      "match_line": "tbl.formulaColumn('valore','$totale *@distinta_id.quantita',dtype='money',name_long='Valore distinta')",
+      "context": "       63          tbl.aliasColumn('articolo_descrizione','@distinta_id.articolo_descrizione')\n>>>    64          tbl.formulaColumn('valore','$totale *@distinta_id.quantita',dtype='money',name_long='Valore distinta')\n       65          tbl.formulaColumn('anno',\"to_char($data_valorizzazione,'YYYY')\")",
+      "container_kind": "method",
+      "container_qualified_name": "Table.config_db"
+    },
+    {
+      "repo_name": "icond",
+      "module_path": "model/_packages/erpy_fatt/fattura_riga.py",
+      "lineno": 14,
+      "match_line": "tbl.formulaColumn('importo_segnato','$importo_netto*@fattura_id.@scrittura_id.segno')",
+      "context": "       13          tbl.aliasColumn('scrittura_id','@fattura_id.scrittura_id')\n>>>    14          tbl.formulaColumn('importo_segnato','$importo_netto*@fattura_id.@scrittura_id.segno')\n       15  ",
+      "container_kind": "method",
+      "container_qualified_name": "Table.config_db"
+    },
+    {
+      "repo_name": "erpy_tapeless",
+      "module_path": "model/_packages/erpy_ftel/fattura_fornitore_rgrp.py",
+      "lineno": 27,
+      "match_line": "tbl.formulaColumn('quota_pagata',\"$imponibile*@fattura_fornitore_id.coeff_pagamento\",",
+      "context": "       26          tbl.aliasColumn('fornitore_ragione_sociale', '@fattura_fornitore_id.fornitore_ragione_sociale', dtype='D', name_long='Data fattura')\n>>>    27          tbl.formulaColumn('quota_pagata',\"$imponibile*@fattura_fornitore_id.coeff_pagamento\",\n       28                            dtype='money')",
+      "container_kind": "method",
+      "container_qualified_name": "Table.config_db"
+    },
+    {
+      "repo_name": "erpy_tapeless",
+      "module_path": "model/_packages/erpy_ftel/fattura_fornitore_riga.py",
+      "lineno": 27,
+      "match_line": "tbl.formulaColumn('quota_pagata',\"$prezzo_totale*@fattura_fornitore_id.coeff_pagamento\",",
+      "context": "       26          tbl.formulaColumn('totale_lordo', 'ROUND($prezzo_totale*($aliquota_iva+100)/100, 2)')\n>>>    27          tbl.formulaColumn('quota_pagata',\"$prezzo_totale*@fattura_fornitore_id.coeff_pagamento\",\n       28                            dtype='money')",
+      "container_kind": "method",
+      "container_qualified_name": "Table.config_db"
+    },
+    {
+      "repo_name": "teamset",
+      "module_path": "packages/ts_fatt/model/fattura_riga.py",
+      "lineno": 51,
+      "match_line": "tbl.formulaColumn('quota_pagata',\"$importo_netto*@fattura_id.coeff_pagamento * $segno\", dtype='money')",
+      "context": "       50          tbl.formulaColumn('totale_lordo', '$importo_netto + $totale_iva_calc')\n>>>    51          tbl.formulaColumn('quota_pagata',\"$importo_netto*@fattura_id.coeff_pagamento * $segno\", dtype='money')\n       52          tbl.formulaColumn('quota_pagata_con_iva',\"$totale_lordo*@fattura_id.coeff_pagamento * $segno\", dtype='money')",
+      "container_kind": "method",
+      "container_qualified_name": "Table.config_db"
+    },
+    {
+      "repo_name": "teamset",
+      "module_path": "packages/ts_fatt/model/fattura_riga.py",
+      "lineno": 52,
+      "match_line": "tbl.formulaColumn('quota_pagata_con_iva',\"$totale_lordo*@fattura_id.coeff_pagamento * $segno\", dtype='money')",
+      "context": "       51          tbl.formulaColumn('quota_pagata',\"$importo_netto*@fattura_id.coeff_pagamento * $segno\", dtype='money')\n>>>    52          tbl.formulaColumn('quota_pagata_con_iva',\"$totale_lordo*@fattura_id.coeff_pagamento * $segno\", dtype='money')\n       53          tbl.formulaColumn('totale_iva_calc', 'COALESCE(COALESCE($aliquota_iva,0)*COALESCE($importo_netto,0)/100,0)', name_long='Tot.IVA')",
+      "container_kind": "method",
+      "container_qualified_name": "Table.config_db"
+    }
+  ],
+  "prefix_example": {
+    "data": [
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 148,
+        "match_line": "'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "context": ">>>   148      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 160,
+        "match_line": "'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "context": ">>>   160      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      },
+      {
+        "repo_name": "genropy",
+        "module_path": "tests/sql/test_compiler_factory.py",
+        "lineno": 161,
+        "match_line": "'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "context": ">>>   161      'star_prefix': _q('invc.invoice', columns='*inv_'),",
+        "container_kind": null,
+        "container_qualified_name": null
+      }
+    ],
+    "meta": {
+      "tool": "code.search_code",
+      "count": 3,
+      "query": "*inv_",
+      "modules_scanned": 26
+    },
+    "_metadata": {
+      "elapsed_ms": 1665
+    }
+  },
+  "prefix_search_pages": [
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 80,
+        "query": "columns='*",
+        "modules_scanned": 50
+      },
+      "candidates": []
+    },
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 56,
+        "query": "columns=\"*",
+        "modules_scanned": 40
+      },
+      "candidates": []
+    },
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 31,
+        "query": "columns = '*",
+        "modules_scanned": 26
+      },
+      "candidates": []
+    },
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 0,
+        "query": "columns = \"*",
+        "modules_scanned": 0
+      },
+      "candidates": []
+    },
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 101,
+        "query": "columns='*",
+        "modules_scanned": 50
+      },
+      "candidates": []
+    },
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 71,
+        "query": "columns='*",
+        "modules_scanned": 50
+      },
+      "candidates": []
+    },
+    {
+      "meta": {
+        "tool": "code.search_code",
+        "count": 90,
+        "query": "columns='*",
+        "modules_scanned": 50
+      },
+      "candidates": []
+    }
+  ],
+  "limits": [
+    "Indexed source only; dynamically assembled expressions are not excluded",
+    "Single-quoted columns prefix search sampled first 200 matching modules; not exhaustive"
+  ],
+  "decision": "No syntax added or removed; advanced wildcards remain under discussion"
+}

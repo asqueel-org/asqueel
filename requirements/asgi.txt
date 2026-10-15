@@ -4,6 +4,8 @@ annotated-types==0.8.0
     # via pydantic
 anyio==4.15.1
     # via httpx
+asqueel-migration==0.2.2
+    # via -r requirements/core.in
 ast-serialize==0.11.2
     # via mypy
 attrs==26.1.0
@@ -53,11 +55,9 @@ genro-routes==0.30.1
     # via
     #   -r requirements/routes.in
     #   genro-asgi
-asqueel-migration==0.2.0
-    # via -r requirements/core.in
 genro-storage==0.8.1
     # via genro-asgi
-genro-toolbox==0.14.0
+genro-toolbox==0.18.0
     # via
     #   -r requirements/core.in
     #   genro-asgi

@@ -31,7 +31,7 @@ def test_projection_join_reuse_and_metadata(compiler):
     assert '"Actual ""Schema"."app_customer"' in query.sql
     assert '"t1"."full%%name" AS "customer"' in query.sql
     assert '(("t0"."amount" * 2) * 2)' in query.sql
-    assert query.sql.endswith('LIMIT 0 OFFSET 0')
+    assert query.sql.endswith('LIMIT 0\nOFFSET 0')
     assert dict(query.params) == {'name': "O'Reilly"}
     assert query.columns[1].source == 'app.customer.name'
     assert query.columns[1].ui == {'label': 'Name'}
@@ -94,7 +94,7 @@ def test_formula_cycles_fail():
     table = Table('t', columns={'a': Column('a', formula='$b'),
                                'b': Column('b', formula='$a')})
     with pytest.raises(ValueError, match='Cyclic formula'):
-        PostgresCompiler(ResolvedModel({table.key: table})).select('t')
+        PostgresCompiler(ResolvedModel({table.key: table})).select('t', '$a')
 
 
 def test_insert_values_mapping_and_default_values(compiler):
@@ -111,7 +111,7 @@ def test_update_collision_returning_and_line_comment(compiler):
                             sqlparams={'__value_0': 1}, returning='$id, $double')
     assert query.params['__value_0'] == 1
     assert query.params['___value_0'] == 4
-    assert '-- trailing\n RETURNING' in query.sql
+    assert '-- trailing\n\nRETURNING' in query.sql
     assert 'AS "double"' in query.sql
 
 

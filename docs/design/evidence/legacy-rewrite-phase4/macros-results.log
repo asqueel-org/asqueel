@@ -1,0 +1,517 @@
+.....FFF..........FFFFFFFF                                               [100%]
+=================================== FAILURES ===================================
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108c8a0c0>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_413e89b60f054455966f480b69e72eef".invoice')
+low = None, high = None, expected = [10, 11, 12, 13, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x108692a50>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_413e89b60f054455966f480b69e72eef"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': None, 'high': None}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $1
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                     ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108dd6330>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_42db200114de47888c7b5b1b84ae2177".invoice')
+low = None, high = 40, expected = [11, 12, 13, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x1086937d0>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_42db200114de47888c7b5b1b84ae2177"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': None, 'high': 40}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $1
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                     ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108910950>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_af6cb2f84cc54e9d81cbebe13a81b3f5".invoice')
+low = 40, high = None, expected = [10, 11, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x108692e10>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_af6cb2f84cc54e9d81cbebe13a81b3f5"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': 40, 'high': None}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $2
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                                    ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+___ test_period_bound_dates_execute_on_a_date_column[sqlite-2026-expected0] ____
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108b1a420>>, db=namesp...t at 0x1088de5d0>>, currentEnv={'workdate': datetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='sales.invoice')
+period = '2026', expected = [14]
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+___ test_period_bound_dates_execute_on_a_date_column[sqlite-2025-expected1] ____
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x1089bf140>>, db=namesp...t at 0x1088162d0>>, currentEnv={'workdate': datetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='sales.invoice')
+period = '2025', expected = []
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+_ test_period_bound_dates_execute_on_a_date_column[sqlite-2026-01-01-expected2] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x10893a7e0>>, db=namesp...t at 0x1089bd3a0>>, currentEnv={'workdate': datetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='sales.invoice')
+period = '2026-01-01', expected = [14]
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+_____ test_period_bound_dates_execute_on_a_date_column[sqlite--expected3] ______
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108e9c320>>, db=namesp...t at 0x108a47e60>>, currentEnv={'workdate': datetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='sales.invoice')
+period = '', expected = [10, 11, 12, 13, 14, 15]
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+_ test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0] __
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108d8bce0>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_c700f93504d44343ad22bc2b8db6b053".invoice')
+period = '2026', expected = [14]
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+_ test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1] __
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108969a00>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_10262eb1a9a040119f63010fd8e5eeb5".invoice')
+period = '2025', expected = []
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+_ test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108afc650>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_c3d2bea6797448529712fbfeefe0068e".invoice')
+period = '2026-01-01', expected = [14]
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+___ test_period_bound_dates_execute_on_a_date_column[postgresql--expected3] ____
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x108bcddf0>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_fe823004b4624a76925aa1228740c214".invoice')
+period = '', expected = [10, 11, 12, 13, 14, 15]
+
+    @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
+                                                ('2026-01-01', [14]),
+                                                ('', [10, 11, 12, 13, 14, 15])])
+    def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
+        # A physical bare identifier is part of the legacy PERIOD grammar. Extend
+        # only this disposable table, keeping the shared fixture model untouched.
+        shop.db.execute(f'ALTER TABLE {shop.invoice_sql} ADD COLUMN issued DATE')
+        shop.db.execute(f'UPDATE {shop.invoice_sql} SET issued=:day WHERE id=14',
+                        {'day': date(2026, 1, 1)})
+        shop.db.currentEnv['locale'] = 'en'
+        query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
+                           period=period, excludeLogicalDeleted=False, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:380: in _execute_on_connection
+    query.environment.validate(self.environment.snapshot())
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = EnvironmentBinding(keys=('locale', 'workdate'))
+current = mappingproxy({'workdate': datetime.date(2026, 10, 15), 'locale': 'C'})
+
+    def validate(self, current: Mapping[str, Any]) -> None:
+        actual = {key: current[key] for key in self.keys if key in current}
+        if actual != dict(self._values):
+>           raise EnvironmentMismatchError(
+                'Query environment changed; compile again in the current scope')
+E           asqueel.contracts.EnvironmentMismatchError: Query environment changed; compile again in the current scope
+
+src/asqueel/contracts.py:41: EnvironmentMismatchError
+=========================== short test summary info ============================
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[sqlite-2026-expected0]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[sqlite-2025-expected1]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[sqlite-2026-01-01-expected2]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[sqlite--expected3]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql--expected3]
+11 failed, 15 passed in 1.61s

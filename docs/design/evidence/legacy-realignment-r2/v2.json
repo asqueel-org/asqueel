@@ -1,0 +1,993 @@
+{
+  "snapshot": "/tmp/asqueel-formula-baseline/v2",
+  "checks": 78,
+  "mismatches": [],
+  "records": [
+    {
+      "kind": "embed",
+      "name": "local",
+      "where": "$total>:threshold",
+      "params": {
+        "threshold": "$id"
+      },
+      "legacy": {
+        "value": "$total>$id"
+      },
+      "current": {
+        "value": "$total>$id"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "local_bytes",
+      "where": "$total>:threshold",
+      "params": {
+        "threshold": {
+          "bytes_hex": "246964"
+        }
+      },
+      "legacy": {
+        "value": "$total>$id"
+      },
+      "current": {
+        "value": "$total>$id"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "relation",
+      "where": "$total=:price",
+      "params": {
+        "price": "@customer_id.name"
+      },
+      "legacy": {
+        "value": "$total=@customer_id.name"
+      },
+      "current": {
+        "value": "$total=@customer_id.name"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "virtual",
+      "where": "$total=:price",
+      "params": {
+        "price": "$double_total"
+      },
+      "legacy": {
+        "value": "$total=$double_total"
+      },
+      "current": {
+        "value": "$total=$double_total"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "unknown_column",
+      "where": "$total=:price",
+      "params": {
+        "price": "$absent"
+      },
+      "legacy": {
+        "value": "$total=:price"
+      },
+      "current": {
+        "value": "$total=:price"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "unknown_relation",
+      "where": "$total=:price",
+      "params": {
+        "price": "@absent.name"
+      },
+      "legacy": {
+        "value": "$total=:price"
+      },
+      "current": {
+        "value": "$total=:price"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "relation_tail",
+      "where": "$total=:price",
+      "params": {
+        "price": "@customer_id.absent"
+      },
+      "legacy": {
+        "value": "$total=@customer_id.absent"
+      },
+      "current": {
+        "value": "$total=@customer_id.absent"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "prefix",
+      "where": ":p,:p2,:p_suffix,:p,:p\u00e9",
+      "params": {
+        "p": "$id"
+      },
+      "legacy": {
+        "value": "$id,:p2,:p_suffix,$id,:p\u00e9"
+      },
+      "current": {
+        "value": "$id,:p2,:p_suffix,$id,:p\u00e9"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "unicode",
+      "where": ":soglia_\u00e8,:soglia_\u00e82",
+      "params": {
+        "soglia_\u00e8": "$total"
+      },
+      "legacy": {
+        "value": "$total,:soglia_\u00e82"
+      },
+      "current": {
+        "value": "$total,:soglia_\u00e82"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "repeated",
+      "where": ":p+:p+:p",
+      "params": {
+        "p": "$id"
+      },
+      "legacy": {
+        "value": "$id+$id+$id"
+      },
+      "current": {
+        "value": "$id+$id+$id"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "quotes",
+      "where": "':p' = ':p'",
+      "params": {
+        "p": "$id"
+      },
+      "legacy": {
+        "value": "'$id' = '$id'"
+      },
+      "current": {
+        "value": "'$id' = '$id'"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "cast",
+      "where": ":p::numeric",
+      "params": {
+        "p": "$total"
+      },
+      "legacy": {
+        "value": "$total::numeric"
+      },
+      "current": {
+        "value": "$total::numeric"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "sql_escape",
+      "where": "\\:p=:p",
+      "params": {
+        "p": "$id"
+      },
+      "legacy": {
+        "value": "\\$id=$id"
+      },
+      "current": {
+        "value": "\\$id=$id"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "escaped_column",
+      "where": ":p",
+      "params": {
+        "p": "\\$id"
+      },
+      "legacy": {
+        "value": ":p"
+      },
+      "current": {
+        "value": ":p"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "escaped_relation",
+      "where": ":p",
+      "params": {
+        "p": "\\@customer_id.name"
+      },
+      "legacy": {
+        "value": ":p"
+      },
+      "current": {
+        "value": ":p"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "ordinary",
+      "where": ":p",
+      "params": {
+        "p": 3
+      },
+      "legacy": {
+        "value": ":p"
+      },
+      "current": {
+        "value": ":p"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "none",
+      "where": ":p",
+      "params": {
+        "p": null
+      },
+      "legacy": {
+        "value": ":p"
+      },
+      "current": {
+        "value": ":p"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "collection",
+      "where": ":p",
+      "params": {
+        "p": [
+          "$id"
+        ]
+      },
+      "legacy": {
+        "value": ":p"
+      },
+      "current": {
+        "value": ":p"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "unused",
+      "where": ":q",
+      "params": {
+        "p": "$id"
+      },
+      "legacy": {
+        "value": ":q"
+      },
+      "current": {
+        "value": ":q"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "empty_where",
+      "where": "",
+      "params": {
+        "p": "$id"
+      },
+      "legacy": {
+        "value": ""
+      },
+      "current": {
+        "value": ""
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "non_field_text",
+      "where": ":p",
+      "params": {
+        "p": "$id + 1"
+      },
+      "legacy": {
+        "value": ":p"
+      },
+      "current": {
+        "value": ":p"
+      }
+    },
+    {
+      "kind": "embed",
+      "name": "invalid_bytes",
+      "where": ":p",
+      "params": {
+        "p": {
+          "bytes_hex": "ff"
+        }
+      },
+      "legacy": {
+        "error": "UnicodeDecodeError"
+      },
+      "current": {
+        "error": "UnicodeDecodeError"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "0",
+      "dialect": "postgresql",
+      "columns": "$id",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "1",
+      "dialect": "postgresql",
+      "columns": "$id,$total,$label",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\",\n\"t0\".\"label_sql\" AS \"label\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\",\n\"t0\".\"label_sql\" AS \"label\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "2",
+      "dialect": "postgresql",
+      "columns": "$id AS code,$total AS amount",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "3",
+      "dialect": "postgresql",
+      "columns": "$id as code, $total as amount",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "4",
+      "dialect": "postgresql",
+      "columns": "$total * 2",
+      "legacy": {
+        "value": "\"t0\".\"total\" * 2 AS \"_total___2\""
+      },
+      "current": {
+        "value": "\"t0\".\"total\" * 2 AS \"_total___2\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "5",
+      "dialect": "postgresql",
+      "columns": "COALESCE($total,0)",
+      "legacy": {
+        "value": "COALESCE(\"t0\".\"total\",0) AS \"COALESCE__total_0_\""
+      },
+      "current": {
+        "value": "COALESCE(\"t0\".\"total\",0) AS \"COALESCE__total_0_\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "6",
+      "dialect": "postgresql",
+      "columns": "CASE WHEN $total>0 THEN $id ELSE 0 END",
+      "legacy": {
+        "value": "CASE WHEN \"t0\".\"total\">0 THEN \"t0\".\"id\" ELSE 0 END AS \"CASE_WHEN__total_0_THEN__id_ELSE_0_END\""
+      },
+      "current": {
+        "value": "CASE WHEN \"t0\".\"total\">0 THEN \"t0\".\"id\" ELSE 0 END AS \"CASE_WHEN__total_0_THEN__id_ELSE_0_END\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "7",
+      "dialect": "postgresql",
+      "columns": "$id AS value,$total AS value",
+      "legacy": {
+        "value": "\"t0\".\"total\" AS value"
+      },
+      "current": {
+        "value": "\"t0\".\"total\" AS value"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "8",
+      "dialect": "postgresql",
+      "columns": "$id,$total,$id",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "9",
+      "dialect": "postgresql",
+      "columns": " $id , $id ",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "10",
+      "dialect": "postgresql",
+      "columns": "$id AS \"code\",$total AS code",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"code\",\n\"t0\".\"total\" AS code"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"code\",\n\"t0\".\"total\" AS code"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "11",
+      "dialect": "postgresql",
+      "columns": "$id AS CamelCase",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS CamelCase"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS CamelCase"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "12",
+      "dialect": "postgresql",
+      "columns": "$id AS \"CamelCase\"",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"CamelCase\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"CamelCase\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "13",
+      "dialect": "postgresql",
+      "columns": "$id AS \"display name\"",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"display name\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"display name\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "14",
+      "dialect": "postgresql",
+      "columns": "$id AS \"a\"\"b\"",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"a\"\"b\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"a\"\"b\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "15",
+      "dialect": "postgresql",
+      "columns": "CAST($total AS NUMERIC)",
+      "legacy": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      },
+      "current": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "16",
+      "dialect": "postgresql",
+      "columns": "CAST($total AS NUMERIC) AS amount",
+      "legacy": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC) AS amount"
+      },
+      "current": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC) AS amount"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "17",
+      "dialect": "postgresql",
+      "columns": "CAST($id AS NUMERIC),CAST($total AS NUMERIC)",
+      "legacy": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      },
+      "current": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "18",
+      "dialect": "postgresql",
+      "columns": "'$id AS text'",
+      "legacy": {
+        "value": "'\"t0\".\"id\" AS text'"
+      },
+      "current": {
+        "value": "'\"t0\".\"id\" AS text'"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "19",
+      "dialect": "postgresql",
+      "columns": "' AS ' AS label",
+      "legacy": {
+        "value": "' AS ' AS label"
+      },
+      "current": {
+        "value": "' AS ' AS label"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "20",
+      "dialect": "postgresql",
+      "columns": "'a,b' AS label,$id",
+      "legacy": {
+        "value": "'a,b' AS label,\n\"t0\".\"id\" AS \"id\""
+      },
+      "current": {
+        "value": "'a,b' AS label,\n\"t0\".\"id\" AS \"id\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "21",
+      "dialect": "postgresql",
+      "columns": "$id As code",
+      "legacy": {
+        "value": "\"t0\".\"id\" As code AS \"_id_As_code\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" As code AS \"_id_As_code\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "22",
+      "dialect": "postgresql",
+      "columns": "$id AS code AS other",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS code AS other"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS code AS other"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "23",
+      "dialect": "postgresql",
+      "columns": "$id,\n$total",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "24",
+      "dialect": "postgresql",
+      "columns": "$id,, $total,",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "25",
+      "dialect": "postgresql",
+      "columns": "$id AS \"one\",$total AS \"one\"",
+      "legacy": {
+        "value": "\"t0\".\"total\" AS \"one\""
+      },
+      "current": {
+        "value": "\"t0\".\"total\" AS \"one\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "26",
+      "dialect": "postgresql",
+      "columns": "$id AS a, $total AS b, $total AS a",
+      "legacy": {
+        "value": "\"t0\".\"total\" AS a,\n\"t0\".\"total\" AS b"
+      },
+      "current": {
+        "value": "\"t0\".\"total\" AS a,\n\"t0\".\"total\" AS b"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "27",
+      "dialect": "postgresql",
+      "columns": "42",
+      "legacy": {
+        "value": "42 AS \"_42\""
+      },
+      "current": {
+        "value": "42 AS \"_42\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "0",
+      "dialect": "sqlite",
+      "columns": "$id",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "1",
+      "dialect": "sqlite",
+      "columns": "$id,$total,$label",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\",\n\"t0\".\"label_sql\" AS \"label\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\",\n\"t0\".\"label_sql\" AS \"label\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "2",
+      "dialect": "sqlite",
+      "columns": "$id AS code,$total AS amount",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "3",
+      "dialect": "sqlite",
+      "columns": "$id as code, $total as amount",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "4",
+      "dialect": "sqlite",
+      "columns": "$total * 2",
+      "legacy": {
+        "value": "\"t0\".\"total\" * 2 AS \"_total___2\""
+      },
+      "current": {
+        "value": "\"t0\".\"total\" * 2 AS \"_total___2\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "5",
+      "dialect": "sqlite",
+      "columns": "COALESCE($total,0)",
+      "legacy": {
+        "value": "COALESCE(\"t0\".\"total\",0) AS \"COALESCE__total_0_\""
+      },
+      "current": {
+        "value": "COALESCE(\"t0\".\"total\",0) AS \"COALESCE__total_0_\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "6",
+      "dialect": "sqlite",
+      "columns": "CASE WHEN $total>0 THEN $id ELSE 0 END",
+      "legacy": {
+        "value": "CASE WHEN \"t0\".\"total\">0 THEN \"t0\".\"id\" ELSE 0 END AS \"CASE_WHEN__total_0_THEN__id_ELSE_0_END\""
+      },
+      "current": {
+        "value": "CASE WHEN \"t0\".\"total\">0 THEN \"t0\".\"id\" ELSE 0 END AS \"CASE_WHEN__total_0_THEN__id_ELSE_0_END\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "7",
+      "dialect": "sqlite",
+      "columns": "$id AS value,$total AS value",
+      "legacy": {
+        "value": "\"t0\".\"total\" AS value"
+      },
+      "current": {
+        "value": "\"t0\".\"total\" AS value"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "8",
+      "dialect": "sqlite",
+      "columns": "$id,$total,$id",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "9",
+      "dialect": "sqlite",
+      "columns": " $id , $id ",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "10",
+      "dialect": "sqlite",
+      "columns": "$id AS \"code\",$total AS code",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"code\",\n\"t0\".\"total\" AS code"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"code\",\n\"t0\".\"total\" AS code"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "11",
+      "dialect": "sqlite",
+      "columns": "$id AS CamelCase",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS CamelCase"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS CamelCase"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "12",
+      "dialect": "sqlite",
+      "columns": "$id AS \"CamelCase\"",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"CamelCase\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"CamelCase\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "13",
+      "dialect": "sqlite",
+      "columns": "$id AS \"display name\"",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"display name\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"display name\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "14",
+      "dialect": "sqlite",
+      "columns": "$id AS \"a\"\"b\"",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"a\"\"b\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"a\"\"b\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "15",
+      "dialect": "sqlite",
+      "columns": "CAST($total AS NUMERIC)",
+      "legacy": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      },
+      "current": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "16",
+      "dialect": "sqlite",
+      "columns": "CAST($total AS NUMERIC) AS amount",
+      "legacy": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC) AS amount"
+      },
+      "current": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC) AS amount"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "17",
+      "dialect": "sqlite",
+      "columns": "CAST($id AS NUMERIC),CAST($total AS NUMERIC)",
+      "legacy": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      },
+      "current": {
+        "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "18",
+      "dialect": "sqlite",
+      "columns": "'$id AS text'",
+      "legacy": {
+        "value": "'\"t0\".\"id\" AS text'"
+      },
+      "current": {
+        "value": "'\"t0\".\"id\" AS text'"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "19",
+      "dialect": "sqlite",
+      "columns": "' AS ' AS label",
+      "legacy": {
+        "value": "' AS ' AS label"
+      },
+      "current": {
+        "value": "' AS ' AS label"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "20",
+      "dialect": "sqlite",
+      "columns": "'a,b' AS label,$id",
+      "legacy": {
+        "value": "'a,b' AS label,\n\"t0\".\"id\" AS \"id\""
+      },
+      "current": {
+        "value": "'a,b' AS label,\n\"t0\".\"id\" AS \"id\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "21",
+      "dialect": "sqlite",
+      "columns": "$id As code",
+      "legacy": {
+        "value": "\"t0\".\"id\" As code AS \"_id_As_code\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" As code AS \"_id_As_code\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "22",
+      "dialect": "sqlite",
+      "columns": "$id AS code AS other",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS code AS other"
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS code AS other"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "23",
+      "dialect": "sqlite",
+      "columns": "$id,\n$total",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "24",
+      "dialect": "sqlite",
+      "columns": "$id,, $total,",
+      "legacy": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      },
+      "current": {
+        "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "25",
+      "dialect": "sqlite",
+      "columns": "$id AS \"one\",$total AS \"one\"",
+      "legacy": {
+        "value": "\"t0\".\"total\" AS \"one\""
+      },
+      "current": {
+        "value": "\"t0\".\"total\" AS \"one\""
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "26",
+      "dialect": "sqlite",
+      "columns": "$id AS a, $total AS b, $total AS a",
+      "legacy": {
+        "value": "\"t0\".\"total\" AS a,\n\"t0\".\"total\" AS b"
+      },
+      "current": {
+        "value": "\"t0\".\"total\" AS a,\n\"t0\".\"total\" AS b"
+      }
+    },
+    {
+      "kind": "projection",
+      "name": "27",
+      "dialect": "sqlite",
+      "columns": "42",
+      "legacy": {
+        "value": "42 AS \"_42\""
+      },
+      "current": {
+        "value": "42 AS \"_42\""
+      }
+    }
+  ]
+}

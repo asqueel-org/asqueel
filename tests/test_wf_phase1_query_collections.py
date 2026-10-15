@@ -1,5 +1,8 @@
 """Phase 1 contract — IN / NOT IN collection parameters (document 31, R01–R14, D2/D3/D6/D7)."""
 import re
+import sqlite3
+
+import psycopg
 
 import pytest
 
@@ -142,7 +145,8 @@ def test_query_reuse_does_not_mutate_parameters(shop):
                        order_by='$id')
     first, second = query.compiled, query.compiled
     assert first.sql == second.sql and dict(first.params) == dict(second.params)
-    assert query.fetch() == query.fetch() == [{'id': 10}, {'id': 11}]
+    assert query.fetch() == query.fetch()
+    assert [dict(row) for row in query.fetch()] == [{'id': 10}, {'id': 11}]
 
 
 def test_collection_inside_named_subquery(shop):
@@ -179,20 +183,22 @@ def test_raw_update_and_delete_share_the_expression_path(shop):
 
 def test_direct_sql_expands_collections(shop):
     # R14, D2
-    sql = 'SELECT id FROM {invoice} WHERE id IN :ids ORDER BY id'
+    # Legacy empty-list expansion recognizes the compiler's qualified field form.
+    sql = 'SELECT "t0"."id" FROM {invoice} AS "t0" WHERE "t0"."id" IN :ids ORDER BY "t0"."id"'
     assert shop.direct_ids(sql, {'ids': [10, 11]}) == [10, 11]
     assert shop.direct_ids(sql, {'ids': (10, 10, 11)}) == [10, 11]
     assert shop.direct_ids(sql, {'ids': []}) == []
-    not_in = 'SELECT id FROM {invoice} WHERE customer_id NOT IN :ids'
+    not_in = 'SELECT "t0"."id" FROM {invoice} AS "t0" WHERE "t0"."customer_id" NOT IN :ids'
     assert shop.direct_ids(not_in, {'ids': []}) == ALL_IDS
     assert shop.direct_ids(not_in, {'ids': [1]}) == [11, 14, 15]
 
 
-def test_direct_sql_keeps_literals_and_rejects_scalars(shop):
+def test_direct_sql_uses_legacy_preparation_and_leaves_scalar_errors_to_driver(shop):
     literal = "SELECT id FROM {invoice} WHERE coalesce(note, '') <> 'IN :ids' AND id IN :ids"
     assert shop.direct_ids(literal, {'ids': [10, 12]}) == [10, 12]
-    with pytest.raises(ValueError, match='ids'):
+    with pytest.raises((sqlite3.OperationalError, psycopg.errors.SyntaxError)):
         shop.direct_ids('SELECT id FROM {invoice} WHERE id IN :ids', {'ids': 'abc'})
-    with pytest.raises(ValueError, match='ids'):
-        shop.direct_ids('SELECT id FROM {invoice} WHERE id IN :ids OR id = ANY(:ids)',
-                        {'ids': [10]})
+    # Shared collection/scalar preparation is covered against original methods
+    # in test_legacy_preparation's collection_shared_scalar oracle.
+    prepared = shop.db.driver.prepare_sql('SELECT 1 IN :ids OR 1 = ANY(:ids)', {'ids': [10]}, {})
+    assert 'ANY(' in prepared.sql

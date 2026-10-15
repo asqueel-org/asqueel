@@ -1,0 +1,120 @@
+Running Sphinx v9.1.0
+loading translations [en]... done
+making output directory... done
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv ...
+myst v5.1.0: MdParserConfig(commonmark_only=False, gfm_only=False, enable_extensions={'colon_fence'}, disable_syntax=[], all_links_external=False, links_external_new_tab=False, url_schemes=('http', 'https', 'mailto', 'ftp'), ref_domains=None, fence_as_directive={'mermaid'}, number_code_blocks=[], title_to_header=False, heading_anchors=3, heading_slug_func=None, html_meta={}, footnote_sort=True, footnote_transition=True, words_per_minute=200, substitutions={}, linkify_fuzzy_links=True, dmath_allow_labels=True, dmath_allow_space=True, dmath_allow_digits=True, dmath_double_inline=False, update_mathjax=True, mathjax_classes='tex2jax_process|mathjax_process|math|output_area', enable_checkboxes=False, strikethrough_single_tilde=False, colon_fence_exact_match=False, suppress_warnings=[], highlight_code_blocks=True)
+building [mo]: targets for 0 po files that are out of date
+writing output... 
+building [html]: targets for 35 source files that are out of date
+updating environment: [new config] 35 added, 0 changed, 0 removed
+reading sources... [  3%] adattamenti-legacy
+reading sources... [  6%] api
+reading sources... [  9%] grammar
+reading sources... [ 11%] guide/adapters
+reading sources... [ 14%] guide/cheatsheet
+reading sources... [ 17%] guide/cli
+reading sources... [ 20%] guide/compiler
+reading sources... [ 23%] guide/concepts
+reading sources... [ 26%] guide/configuration
+reading sources... [ 29%] guide/configuration-grammars
+reading sources... [ 31%] guide/environment
+reading sources... [ 34%] guide/for-django
+reading sources... [ 37%] guide/for-peewee
+reading sources... [ 40%] guide/for-sqlalchemy
+reading sources... [ 43%] guide/formulas
+reading sources... [ 46%] guide/hooks
+reading sources... [ 49%] guide/importing
+reading sources... [ 51%] guide/installation
+reading sources... [ 54%] guide/legacy
+reading sources... [ 57%] guide/limitations
+reading sources... [ 60%] guide/low-level-runtime
+reading sources... [ 63%] guide/migrations
+reading sources... [ 66%] guide/models
+reading sources... [ 69%] guide/overview
+reading sources... [ 71%] guide/queries
+reading sources... [ 74%] guide/quickstart
+reading sources... [ 77%] guide/release-notes
+reading sources... [ 80%] guide/row-policies
+reading sources... [ 83%] guide/sqlite
+reading sources... [ 86%] guide/transactions
+reading sources... [ 89%] guide/troubleshooting
+reading sources... [ 91%] guide/tutorial
+reading sources... [ 94%] guide/two-schemas
+reading sources... [ 97%] guide/writes
+reading sources... [100%] index
+
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+copying assets... 
+copying downloadable files... [ 33%] design/92-hierarchical-fetch-count.md
+copying downloadable files... [ 67%] design/83-legacy-realignment-r3.md
+copying downloadable files... [100%] guide/_examples/shop_tutorial.py
+
+copying static files... 
+Writing evaluated template result to /private/tmp/asqueel-shared-options-docs/_static/basic.css
+Writing evaluated template result to /private/tmp/asqueel-shared-options-docs/_static/language_data.js
+Writing evaluated template result to /private/tmp/asqueel-shared-options-docs/_static/documentation_options.js
+Writing evaluated template result to /private/tmp/asqueel-shared-options-docs/_static/js/versions.js
+copying static files: done
+copying extra files... 
+copying extra files: done
+copying assets: done
+writing output... [  3%] adattamenti-legacy
+writing output... [  6%] api
+writing output... [  9%] grammar
+writing output... [ 11%] guide/adapters
+writing output... [ 14%] guide/cheatsheet
+writing output... [ 17%] guide/cli
+writing output... [ 20%] guide/compiler
+writing output... [ 23%] guide/concepts
+writing output... [ 26%] guide/configuration
+writing output... [ 29%] guide/configuration-grammars
+writing output... [ 31%] guide/environment
+writing output... [ 34%] guide/for-django
+writing output... [ 37%] guide/for-peewee
+writing output... [ 40%] guide/for-sqlalchemy
+writing output... [ 43%] guide/formulas
+writing output... [ 46%] guide/hooks
+writing output... [ 49%] guide/importing
+writing output... [ 51%] guide/installation
+writing output... [ 54%] guide/legacy
+writing output... [ 57%] guide/limitations
+writing output... [ 60%] guide/low-level-runtime
+writing output... [ 63%] guide/migrations
+writing output... [ 66%] guide/models
+writing output... [ 69%] guide/overview
+writing output... [ 71%] guide/queries
+writing output... [ 74%] guide/quickstart
+writing output... [ 77%] guide/release-notes
+writing output... [ 80%] guide/row-policies
+writing output... [ 83%] guide/sqlite
+writing output... [ 86%] guide/transactions
+writing output... [ 89%] guide/troubleshooting
+writing output... [ 91%] guide/tutorial
+writing output... [ 94%] guide/two-schemas
+writing output... [ 97%] guide/writes
+writing output... [100%] index
+
+generating indices... genindex py-modindex done
+highlighting module code... [  9%] asqueel.application
+highlighting module code... [ 18%] asqueel.application_table
+highlighting module code... [ 27%] asqueel.compiler
+highlighting module code... [ 36%] asqueel.configuration
+highlighting module code... [ 45%] asqueel.contracts
+highlighting module code... [ 55%] asqueel.environment
+highlighting module code... [ 64%] asqueel.errors
+highlighting module code... [ 73%] asqueel.importers
+highlighting module code... [ 82%] asqueel.model
+highlighting module code... [ 91%] asqueel.projection
+highlighting module code... [100%] asqueel.runtime
+
+writing additional pages... search done
+copying images... [100%] ../assets/asqueel/svg/asqueel-wordmark-primary.svg
+
+dumping search index in English (code: en)... done
+dumping object inventory... done
+build succeeded.
+
+The HTML pages are in ../../../../../private/tmp/asqueel-shared-options-docs.

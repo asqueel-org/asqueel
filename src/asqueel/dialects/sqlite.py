@@ -11,6 +11,17 @@ class SqliteDialect(PostgresDialect):
 
     name = 'sqlite'
 
+    def bag_item_formula(self, bagcolumn, dtype):
+        raise UnsupportedFeatureError('SQLite does not support legacy bagItemColumn XPath extraction')
+
+    def aggregate_subquery(self, plan, mode, alias):
+        # The legacy JSON/XML wrappers use PostgreSQL functions. Do not invent
+        # different SQL, empty-result semantics or Python codecs for SQLite.
+        raise UnsupportedFeatureError(f'SQLite does not support legacy subQueryColumn mode={mode!r}')
+
+    def aggregate_sql_subquery(self, sql, mode, alias, columns):
+        raise UnsupportedFeatureError(f'SQLite does not support legacy subQueryColumn mode={mode!r}')
+
     def tokens(self, expression):
         if not isinstance(expression, str):
             raise TypeError('SQL expressions must be strings')
@@ -24,6 +35,14 @@ class SqliteDialect(PostgresDialect):
     def empty_collection(self, negated):
         # SQLite has no array literal; an empty row source is the portable form.
         return 'NOT IN (SELECT 1 WHERE 0)' if negated else 'IN (SELECT 1 WHERE 0)'
+
+    def concat_non_null(self, expressions, separator):
+        # Prefix each non-NULL term, then remove exactly the first separator.
+        # Unlike trim(), this preserves separator characters in the values.
+        literal = "'" + separator.replace("'", "''") + "'"
+        terms = [f"COALESCE({literal} || ({expression}), '')" for expression in expressions]
+        joined = ' || '.join(terms) or "''"
+        return f'substr({joined}, {len(separator) + 1})'
 
     def render(self, plan):
         if plan.operation == 'count':
@@ -46,6 +65,16 @@ class SqliteDialect(PostgresDialect):
         if plan.offset is not None and limit is None:
             limit = 9223372036854775807
         return super().render(replace(plan, projections=projections, for_update=False, limit=limit))
+
+    def compile_sql(self, maintable, columns, distinct='', joins=None, where=None,
+                    group_by=None, having=None, order_by=None, limit=None, offset=None,
+                    for_update=False, maintable_as='t0'):
+        if for_update:
+            self._require('for_update')
+        if offset is not None and limit is None:
+            limit = 9223372036854775807
+        return super().compile_sql(maintable, columns, distinct, joins, where, group_by,
+                                   having, order_by, limit, offset, False, maintable_as)
 
     def _returning(self, fragment, alias):
         # Remove only structured references to the DML target alias, never text

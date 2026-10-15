@@ -21,8 +21,10 @@ def _legacy(**attributes):
 
 
 class _TableExpansion:
-    def __init__(self, builder, key, table):
+    def __init__(self, builder, key, table, *, options_first=False):
         self.builder, self.key, self.table = builder, '.'.join(key), table
+        self.options_first = options_first
+        self.emitted = {}
 
     def spec(self, name):
         option = options(self.table).get(name)
@@ -66,7 +68,22 @@ class _TableExpansion:
         data = {**attributes, **previous, **structure}
         if kind == 'formulaColumn':
             data['x_requires_compilation'] = 'formulaColumn'
-        return getattr(self.table, kind)(name, **data)
+        # The tree renderer consumes options before ordinary declarations.
+        # Keep the complete source available for validation/cross-table reads,
+        # but insert each generated field at the next option position.
+        collection = 'columns' if kind == 'column' else 'virtual_columns'
+        emitted = self.emitted.setdefault(collection, set())
+        first = self.options_first and name not in emitted
+        position = len(emitted) if first else None
+        result = getattr(self.table, kind)(name, node_position=position, **data)
+        if first:
+            if existing is not None:
+                # Composition updates a predeclared node in place. Preserve its
+                # children and attributes while consuming it in this first pass.
+                siblings = result.parent_bag
+                siblings.move(siblings.keys().index(result.label), position)
+            emitted.add(name)
+        return result
 
     def formula(self, name, formula=None, **attributes):
         return self.add(name, attributes.pop('dtype', 'A'), kind='formulaColumn',
@@ -202,7 +219,8 @@ class _TableExpansion:
                                                     ELSE NOT (',' || :env_userTags || ',' LIKE '%%,'|| $__protection_tag || ',%%')
                                                     END ) """, dtype='B', **_legacy(_sysfield=True))
         # Column-level dynamic_fields is declaration data, not a new physical field.
-        for column in self.table.value.get_item('columns') or ():
+        columns = self.table.value.get_item('columns') if self.table.value is not None else None
+        for column in columns or ():
             child = column.value.get_node('dynamic_fields') if column.value else None
             if child is not None and child.get_attr('enabled', True):
                 column.attr.update(_legacy(subfields=child.get_attr('source')))
@@ -360,12 +378,12 @@ def _relative_index(owner, spec, expansions):
             name_long=f"{owner.table.get_attr('name_long')} relidx count")
 
 
-def expand_options(builder):
+def expand_options(builder, *, options_first=False):
     catalog = SqlModelCatalog(builder)
     for path, node in catalog.nodes:
         if node.node_tag in ('system_records', 'release') and node.get_attr('enabled', True):
             raise UnsupportedFeatureError(f'{path}: {node.node_tag} is deferred; no expansion in this release')
-    expansions = {'.'.join(key): _TableExpansion(builder, key, entry['node'])
+    expansions = {'.'.join(key): _TableExpansion(builder, key, entry['node'], options_first=options_first)
                   for key, entry in catalog.tables.items()}
     with builder.contribution('@options'):
         # Compose the existing base options for AttachmentTable, on the owned source only.

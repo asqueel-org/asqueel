@@ -114,7 +114,7 @@ def read_invoices(db):
     assert "SELECT" in query.sqltext  # Compilation performs no I/O.
     rows = query.fetch()
     db.rollback()  # Complete this read-only transaction.
-    assert rows == [
+    assert [dict(row) for row in rows] == [
         {"id": 10, "customer_name": "Ada", "total": Decimal("125.00"),
          "line_total": Decimal("125.00"), "has_lines": True},
         {"id": 11, "customer_name": "Grace", "total": Decimal("40.00"),
@@ -128,7 +128,7 @@ def read_invoices(db):
 def change_customer(db):
     customer = db.table("sales.customer")
     result = customer.update({"id": 1, "name": "Ada Lovelace"}, returning="$id, $name")
-    assert result.rows == [{"id": 1, "name": "Ada Lovelace"}]
+    assert [dict(row) for row in result.rows] == [{"id": 1, "name": "Ada Lovelace"}]
     assert customer.record(1, mode="dict")["name"] == "Ada Lovelace"
     db.commit()
 

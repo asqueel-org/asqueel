@@ -139,7 +139,8 @@ def test_count_does_not_mutate_the_query(shop, statements):
                            order_by='$id DESC')
     rows = unlimited.fetch()
     assert unlimited.count() == 3
-    assert unlimited.fetch() == rows == [{'id': 12}, {'id': 11}, {'id': 10}]
+    assert unlimited.fetch() == rows
+    assert [dict(row) for row in rows] == [{'id': 12}, {'id': 11}, {'id': 10}]
     after = query.compiled
     assert (after.sql, dict(after.params)) == (before.sql, dict(before.params))
     assert [row['id'] for row in query.fetch()] == [12, 11]

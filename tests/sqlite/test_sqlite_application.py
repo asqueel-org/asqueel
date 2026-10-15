@@ -50,7 +50,7 @@ def observed(path):
 def test_normal_and_raw_commands_share_execute_and_explicit_commit(database):
     db, path = database
     table = db.table('item')
-    assert table.insert({'id': 1, 'name': '  Ada  '}).rows == [{'id': 1, 'name': 'Ada'}]
+    assert [dict(row) for row in table.insert({'id': 1, 'name': '  Ada  '}).rows] == [{'id': 1, 'name': 'Ada'}]
     assert observed(path) == []
     db.commit()
     assert observed(path) == [(1, 'Ada')]
@@ -83,7 +83,7 @@ def test_parameters_environment_percent_literals_and_sql_error(database):
     db, path = database
     with db.tempEnv(user="O'Reilly"):
         result = db.execute("SELECT :env_user AS name, '50% :literal' AS label")
-        assert result.rows == [{'name': "O'Reilly", 'label': '50% :literal'}]
+        assert [dict(row) for row in result.rows] == [{'name': "O'Reilly", 'label': '50% :literal'}]
     db.rollback()
     db.execute('INSERT INTO app.item VALUES (:id, :name)', {'id': 1, 'name': 'ok'})
     with pytest.raises(sqlite3.IntegrityError):
@@ -139,7 +139,7 @@ def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypat
         rows = db.table('sales.invoice').query(
             columns='$id, @customer_id.name AS customer, $description', offset=0,
         ).fetch()
-        assert rows == [{'id': 10, 'customer': 'Ada', 'description': 'Example'}]
+        assert [dict(row) for row in rows] == [{'id': 10, 'customer': 'Ada', 'description': 'Example'}]
         db.commit()
         assert (tmp_path / 'example_contacts.db').exists()
         assert (tmp_path / 'example_sales.db').exists()
@@ -182,14 +182,14 @@ def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
         with db.tempEnv(organization=10):
             db.table('item').raw_insert({'id': 1, 'quantity': 3})
             db.commit()
-            assert db.table('item').query(columns='$id, $doubled').fetch() == [{'id': 1, 'doubled': 6}]
+            assert [dict(row) for row in db.table('item').query(columns='$id, $doubled').fetch()] == [{'id': 1, 'doubled': 6}]
             db.commit()
         with db.tempEnv(organization=20):
             assert db.table('item').raw_update({'id': 1, 'quantity': 9}).rowcount == 0
             assert db.table('item').raw_delete(1).rowcount == 0
             db.commit()
         with db.tempEnv(organization=10):
-            assert db.table('item').query(columns='$quantity').fetch() == [{'quantity': 3}]
+            assert [dict(row) for row in db.table('item').query(columns='$quantity').fetch()] == [{'quantity': 3}]
             db.commit()
     finally:
         db.close()

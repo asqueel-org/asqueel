@@ -80,6 +80,10 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
             select = exists = None
             subqueries = {}
             relation_path = None
+            deferred_formula = node.node_tag == 'formulaColumn' and (
+                metadata.get('sql_formula') is True or any(
+                    isinstance(value, str) for key, value in metadata.items()
+                    if key in ('select', 'exists') or key.startswith('select_')))
             if node.node_tag == 'aliasColumn':
                 # An omitted alias attribute inherits the target; a signature
                 # default must not override an explicit static target value.
@@ -88,8 +92,10 @@ def resolve_model(builder, *, ui=None) -> ResolvedModel:
                 relation_path = metadata.get('relation_path')
                 if not isinstance(relation_path, str) or not relation_path.strip():
                     raise ValueError(f'{schema}.{name}.{colname}: alias requires a relation_path')
-            elif package and node.node_tag != 'column':
+            elif (package or deferred_formula) and node.node_tag != 'column':
                 # Formulas and method references remain declarations, never executed here.
+                if not package and metadata.get('sql_formula') is not True:
+                    _formula_definition(metadata, f'{schema}.{name}.{colname}')
                 metadata['x_requires_compilation'] = node.node_tag
             elif node.node_tag != 'column':
                 if node.node_tag != 'formulaColumn':
@@ -243,7 +249,9 @@ def _resolve_inverse_relations(tables):
 
 def _subquery_definition(value, label):
     if isinstance(value, str):
-        raise UnsupportedFeatureError(f'{label}: subquery method callbacks are unsupported')
+        if not value.strip():
+            raise ValueError(f'{label}: subquery method reference must be nonempty')
+        return value  # Resolve on the current SELECT's table, only at compilation.
     if not isinstance(value, Mapping):
         raise ValueError(f'{label}: subquery must be a mapping')
     for required in ('table', 'where'):
@@ -256,7 +264,9 @@ def _subquery_definition(value, label):
 def _formula_definition(metadata, label):
     if metadata.get('sql_formula') is not None and metadata.get('expression') is not None:
         raise ValueError(f'{label}: sql_formula and expression are aliases; specify only one')
-    formula = metadata.get('sql_formula', metadata.get('expression'))
+    formula = metadata.get('sql_formula')
+    if formula is None:
+        formula = metadata.get('expression')
     select, exists = metadata.get('select'), metadata.get('exists')
     if formula is True:
         raise UnsupportedFeatureError(f'{label}: SQL formula method callbacks are unsupported')
@@ -275,6 +285,22 @@ def _formula_definition(metadata, label):
             _subquery_definition(select, f'{label}.select') if select is not None else None,
             _subquery_definition(exists, f'{label}.exists') if exists is not None else None,
             subqueries)
+
+
+@extract_kwargs(var=True)
+def _formula_parameters(label, *, var_kwargs=None, parameters=None, **attributes):
+    """Existing var_* declarations and their parameters spelling, scoped locally."""
+    if parameters is not None and not isinstance(parameters, Mapping):
+        raise ValueError(f'{label}: formula parameters must be a mapping')
+    local = dict(parameters or {})
+    repeated = local.keys() & (var_kwargs or {}).keys()
+    if repeated:
+        raise ValueError(f'{label}: repeated formula parameters: {sorted(repeated)}')
+    local.update(var_kwargs or {})
+    if any(not isinstance(name, str) or not re.fullmatch(r'[A-Za-z_]\w*', name)
+           for name in local):
+        raise ValueError(f'{label}: formula parameters require valid names')
+    return local
 
 
 def _resolve_aliases(tables: dict[str, Table], *, ui=None) -> dict[str, Table]:
@@ -321,9 +347,11 @@ def _resolve_aliases(tables: dict[str, Table], *, ui=None) -> dict[str, Table]:
         attributes = dict(target.attributes)
         # Preserve target descriptive metadata while keeping operational identity
         # and source ownership local to the alias declaration.
-        for inherited in ('x_identity', 'x_sql_name', 'sql_name', 'sql_formula', 'relation_path', 'provenance', 'select', 'exists'):
+        for inherited in ('x_identity', 'x_sql_name', 'sql_name', 'sql_formula', 'relation_path',
+                          'provenance', 'select', 'exists', 'expression', 'parameters',
+                          'subqueries', 'handler', 'x_requires_compilation'):
             attributes.pop(inherited, None)
-        attributes = {k: v for k, v in attributes.items() if not k.startswith('select_')}
+        attributes = {k: v for k, v in attributes.items() if not k.startswith(('select_', 'var_'))}
         attributes.update({k: v for k, v in column.attributes.items() if v is not None})
         attributes.setdefault('provenance', {'kind': 'manual', 'path': f'{table_key}.{name}'})
         attributes['name'] = column.name
@@ -408,10 +436,14 @@ def _parse_row_policies(attributes: Mapping[str, Any]) -> RowPolicies:
             definition.get('allowed'), definition.get('include_null', True),
         ))
     markers = {}
-    for key, target in [('x_draft_field', 'draft_field'),
-                        ('x_logical_deletion_field', 'logical_deletion_field')]:
-        if key in attributes:
-            markers[target] = _policy_field(attributes[key], key)
+    for key, native, target in [
+            ('x_draft_field', 'x_legacy_draftField', 'draft_field'),
+            ('x_logical_deletion_field', 'x_legacy_logicalDeletionField', 'logical_deletion_field')]:
+        declared = [_policy_field(attributes[k], k) for k in (key, native) if k in attributes]
+        if len(set(declared)) > 1:
+            raise ValueError(f'Conflicting row policy markers: {key}, {native}')
+        if declared:
+            markers[target] = declared[0]
     return RowPolicies(tuple(partitions), **markers)
 
 

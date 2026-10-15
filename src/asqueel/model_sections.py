@@ -51,6 +51,17 @@ def freeze(value):
     return deepcopy(value)
 
 
+def thaw(value):
+    """Give legacy formula methods an owned, mutable copy of model attributes."""
+    if isinstance(value, Mapping):
+        return {key: thaw(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [thaw(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(thaw(item) for item in value)
+    return deepcopy(value)
+
+
 @dataclass(frozen=True)
 class Option:
     name: str

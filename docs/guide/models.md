@@ -133,6 +133,31 @@ Python columns express application-side computations. Collection subqueries
 represent related results with an explicit shape; they are distinct from scalar
 formulas that return one value.
 
+### Redefine a virtual column
+
+Declaring the same virtual column with a different kind replaces its definition,
+as in the legacy model. Attributes not redefined by the new declaration remain:
+
+```python
+virtuals.aliasColumn('customer_name', '@customer.name',
+                     dtype='T', name_long='Customer')
+virtuals.formulaColumn('customer_name', "'from_formula'")
+```
+
+`customer_name` is now a formula; `relation_path` is removed, while `dtype='T'`
+and `name_long='Customer'` remain. Reversing the declarations produces an alias
+and removes `sql_formula`. The column keeps its position and group, with no
+duplicate node. The same rule applies through `colgroup` and when composing
+ordered configuration contributions. Composing recipes does not mutate the
+input recipes.
+
+Only the defining attributes of the former kind are removed. Accessory
+attributes, including `static`, `required_columns`, `var_*` and named `select_*`
+declarations, remain unless explicitly overridden, as in the legacy cleanup.
+Retained attributes do not activate the former kind. Existing conflict rules
+for repeated declarations of the same kind remain unchanged. Physical↔virtual
+replacement is still rejected.
+
 `aliasColumn` names an existing column reached through a relation, following the
 legacy model's target-and-override behavior:
 

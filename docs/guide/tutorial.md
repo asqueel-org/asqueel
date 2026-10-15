@@ -2,7 +2,7 @@
 
 Build a small application using configuration, live tables, relations
 and correlated formulas. Then insert data, read it back, commit a change and
-verify a rollback. The example uses ordinary dictionary results throughout.
+verify a rollback. Fetched rows support access by name and position; `dict(row)` gives a dictionary.
 
 You need Python, `asqueel[postgresql]` from this checkout, and a reachable
 PostgreSQL **test database** whose role can create schemas. Nothing installs or
@@ -151,7 +151,7 @@ path deserves a name in the model. For this direct relation, the query can use
 `@customer.name` as it is.
 
 `query.sqltext` compiles without executing. `.fetch()` executes within the
-transaction and returns dictionaries. For binding, filtering and pagination,
+transaction and returns mutable `NamedList` rows. For binding, filtering and pagination,
 continue with [queries](queries.md).
 
 ## 6. Save a change, then cancel another

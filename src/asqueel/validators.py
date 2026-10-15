@@ -109,12 +109,15 @@ class SqlModelValidator:
                      else node._resolve_builder())
             info = owner._get_schema_info(node.node_tag)
             declared = info.get("declared_names") or set()
+            inherited = (node.attr.get(_META_KEY) or {}).get('inherited_attributes', ())
             for key in node.attr:
-                if key == 'sql_type' or (key.startswith('select_') and node.node_tag != 'formulaColumn'):
+                if key == 'sql_type' or (key.startswith('select_') and node.node_tag != 'formulaColumn'
+                                         and key not in inherited):
                     self._error(path, f'unsupported attribute {key!r} on <{node.node_tag}>')
                     continue
                 if (key == _META_KEY or key in declared
                         or key in (node.attr.get(_META_KEY) or {}).get('type_defaults', ())
+                        or key in inherited
                         or (info.get('accepts_var_keyword') and '_' in key and not key.startswith('_'))
                         or node.node_tag == 'validation'
                         or (node.node_tag == 'virtualRelation'

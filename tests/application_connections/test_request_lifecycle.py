@@ -95,7 +95,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
             assert second.db.currentEnv == {'user': 'bob', 'locale': 'it_IT'}
             assert second.db is db
             assert db.outcome == 'not_started'
-            assert db.table('item').query(columns='$id', order_by='$id').fetch() == (
+            assert [dict(row) for row in db.table('item').query(columns='$id', order_by='$id').fetch()] == (
                 [{'id': 1}] if failure == 'after' else [])
             db.rollback()
             db.table('item').insert({'id': 2})

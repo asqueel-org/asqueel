@@ -28,7 +28,7 @@ def test_plan_renders_identifiers_parameters_and_zero_pagination_without_driver_
     dialect = PostgresDialect()
     plan = select(where=concat(Identifier('id'), ' = ', Parameter('key')), params={'key': 2}, limit=0, offset=0)
     statement = dialect.render(plan)
-    assert text(statement) == 'SELECT "t0"."id" AS "id" FROM "public"."rows" AS "t0" WHERE "id" = <bind:key> LIMIT 0 OFFSET 0'
+    assert text(statement) == 'SELECT "t0"."id" AS "id"\n FROM "public"."rows" AS "t0"\nWHERE "id" = <bind:key>\nLIMIT 0\nOFFSET 0'
     assert statement.params['key'] == 2
     assert statement.columns == (projection().column,)
     assert any(isinstance(part, Parameter) for part in statement.parts)
@@ -52,7 +52,7 @@ def test_dml_rendering(operation, expected):
                      assignments=() if operation == 'delete' else (Assignment('amount', concat(Parameter('value'))),),
                      where=None if operation == 'insert' else concat('TRUE'),
                      params={'value': 3}, projections=(projection(),))
-    assert text(PostgresDialect().render(plan)) == expected + ' RETURNING "t0"."id" AS "id"'
+    assert text(PostgresDialect().render(plan)) == expected.replace(' WHERE ', '\nWHERE ') + '\nRETURNING "t0"."id" AS "id"'
 
 
 def test_default_values_and_returning_are_independent_capabilities():
@@ -69,7 +69,7 @@ def test_default_values_and_returning_are_independent_capabilities():
 @pytest.mark.parametrize('plan', [
     QueryPlan('update', TableRef('s', 't')),
     QueryPlan('delete', TableRef('s', 't'), where=Fragment()),
-    QueryPlan('delete', TableRef('s', 't'), where=concat(' /* comment */ -- more')),
+    QueryPlan('delete', TableRef('s', 't'), where=concat('   ')),
     QueryPlan('insert', TableRef('s', 't'), where=concat('TRUE')),
     select(limit=-1), select(limit=True), select(dialect='sqlite'),
     select(where=concat(Parameter('missing'))),
@@ -110,32 +110,32 @@ def test_identifier_boundaries_are_explicit(name):
         PostgresDialect().quote_identifier(name)
 
 
-def test_manual_projection_comment_cannot_hide_alias_or_from():
+def test_manual_projection_text_is_not_rewritten_before_alias():
     expression = concat('1 -- comment')
     plan = QueryPlan('select', TableRef('missing_schema', 'missing_table'), projections=(
         Projection(expression, 'value', ResultColumn('value')),))
     statement = PostgresDialect().render(plan)
-    assert text(statement) == ('SELECT 1 -- comment\n AS "value" FROM '
+    assert text(statement) == ('SELECT 1 -- comment AS "value"\n FROM '
                                '"missing_schema"."missing_table" AS "t0"')
     assert plan.projections[0].expression == expression  # Input plan remains unchanged.
 
 
-def test_manual_comments_cannot_hide_other_clauses_or_assignment_separators():
+def test_clauses_have_fixed_separators_without_repairing_expression_text():
     dialect = PostgresDialect()
     statement = dialect.render(select(
         where=concat('TRUE -- predicate'), order_by=concat('1 -- order'), limit=0,
         joins=(Join(TableRef('s', 't', 't1'), concat('TRUE -- join')),)))
-    assert 'TRUE -- join\n WHERE TRUE -- predicate\n ORDER BY 1 -- order\n LIMIT 0' in text(statement)
+    assert 'TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0' in text(statement)
     assignments = (Assignment('first', concat('1 -- value')), Assignment('second', concat(Parameter('p'))))
     update = QueryPlan('update', TableRef('s', 't'), assignments=assignments,
                        where=concat('FALSE -- guard'), projections=(projection(),), params={'p': 2})
     rendered = text(dialect.render(update))
-    assert 'SET "first" = 1 -- value\n, "second" = <bind:p> WHERE FALSE -- guard\n RETURNING' in rendered
+    assert 'SET "first" = 1 -- value, "second" = <bind:p>\nWHERE FALSE -- guard\nRETURNING' in rendered
     insert = QueryPlan('insert', TableRef('s', 't'), assignments=assignments, params={'p': 2})
-    assert 'VALUES (1 -- value\n, <bind:p>)' in text(dialect.render(insert))
+    assert 'VALUES (1 -- value, <bind:p>)' in text(dialect.render(insert))
 
 
-def test_fragment_comment_detection_handles_parts_and_protected_percent_strings():
+def test_fragment_parts_are_preserved_without_comment_detection():
     plan = select(where=Fragment(('TRUE ', '-- ', 'tail')), order_by=concat("'%--literal'"))
     rendered = text(PostgresDialect().render(plan))
-    assert "WHERE TRUE -- tail\n ORDER BY '%--literal'" in rendered
+    assert "WHERE TRUE -- tail\nORDER BY '%--literal'" in rendered

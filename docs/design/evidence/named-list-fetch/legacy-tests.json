@@ -1,0 +1,55 @@
+{
+  "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "path": "gnrpy/tests/core/gnrlist_test.py",
+  "adaptation": "Only gl.GnrNamedList constructor references changed to imported Toolbox NamedList; assertions unchanged.",
+  "tests": [
+    {
+      "name": "test_GnrNamedList",
+      "line": 39,
+      "source_ast_sha256": "876f0bfdb201ea37b0cc4a3ffa5297c75563713a97399fb40610954591a16711",
+      "port_ast_sha256": "6254b4af31c6bc2c7f62ea7e90dcaa4500a3b00cc3d48b397d27286d013ff347"
+    },
+    {
+      "name": "test_GnrNamedList_extractMethods",
+      "line": 204,
+      "source_ast_sha256": "3ede5090df07a9efcc10296a1ee966a0936f09b6913366eab333145d9dc2d425",
+      "port_ast_sha256": "793db70da4c1efa9a419f5381498aacc88a2feb5a289b3919a7c00437314ab48"
+    },
+    {
+      "name": "test_GnrNamedList_dynamic_columns",
+      "line": 228,
+      "source_ast_sha256": "1b7f0a05c7279edc277cb5ee5d8ddff904503b1c5ba41be25503c6816957335f",
+      "port_ast_sha256": "16133820e1cfb6e8b5eb8ba5ce403ceafa236f5b40235f40b1b3b36e97b9c5a0"
+    },
+    {
+      "name": "test_GnrNamedList_iteritems",
+      "line": 250,
+      "source_ast_sha256": "a029e5dcbd66d493d52d1e4a6e008a3382dbbe2646ea6c2898a914cbd44d59b0",
+      "port_ast_sha256": "49a0ddd2c5a4c9f2bc97030532c561c9e788c5b9b8eeaae8a296f9fc73576681"
+    },
+    {
+      "name": "test_GnrNamedList_values",
+      "line": 262,
+      "source_ast_sha256": "a1113b760f7c7fbfa67021553b77dd7c49fba120ed97894c097a8d6db6f35c0d",
+      "port_ast_sha256": "e6bc786317477b552c1b33a1080caa36ec90c965b60cefc9b47f9bb31744b0ab"
+    },
+    {
+      "name": "test_GnrNamedList_sql_adapter_compatibility",
+      "line": 289,
+      "source_ast_sha256": "cca2ca4b50d75ecc4685654a73b7098638724b3f7cf0b75618503a6dbac8397a",
+      "port_ast_sha256": "de26387aff519c6bd06f5038806158e0ccf7cf7079ebe65d5afacab56ca1b77e"
+    },
+    {
+      "name": "test_GnrNamedList_sql_adapter_with_duplicates",
+      "line": 324,
+      "source_ast_sha256": "880209d028a82d7c682dbdd634a129260e48880139021a5156684485d5ea96a4",
+      "port_ast_sha256": "ddf82278c542bd0d5ddbb643b388fcec7e5c406268392adef91fec49202e5dd1"
+    },
+    {
+      "name": "test_GnrNamedList_mixed_access_patterns",
+      "line": 349,
+      "source_ast_sha256": "763f44116603885b26436bf2eb407afcd4db56888eb4f2f8c1c7cd51beb81f4f",
+      "port_ast_sha256": "78b14ed31942b8bdf03a60ee0cf6bc72e867dadc323584021673cef049cbcbbd"
+    }
+  ]
+}

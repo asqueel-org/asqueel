@@ -1,0 +1,85 @@
+{
+  "this_sqlite": {
+    "error": "UnsupportedFeatureError",
+    "message": "Hierarchical macro expansion is not connected yet"
+  },
+  "missing_sqlite_0": {
+    "sql": "SELECT :root_fkey IS NULL AS missing",
+    "params": {},
+    "execution_error": "ProgrammingError: You did not supply a value for binding parameter :root_fkey."
+  },
+  "missing_sqlite_1": {
+    "sql": "SELECT :root_fkey IS NULL AS missing",
+    "params": {},
+    "execution_error": "ProgrammingError: You did not supply a value for binding parameter :root_fkey."
+  },
+  "missing_sqlite_2": {
+    "sql": "SELECT :root_fkey IS NULL AS missing",
+    "params": {
+      "root_fkey": null
+    },
+    "rows": [
+      [
+        1
+      ]
+    ]
+  },
+  "this_postgresql": {
+    "error": "UnsupportedFeatureError",
+    "message": "Hierarchical macro expansion is not connected yet"
+  },
+  "missing_postgresql_0": {
+    "sql": "SELECT %(root_fkey)s IS NULL AS missing",
+    "params": {}
+  },
+  "missing_postgresql_1": {
+    "sql": "SELECT %(root_fkey)s IS NULL AS missing",
+    "params": {}
+  },
+  "missing_postgresql_2": {
+    "sql": "SELECT %(root_fkey)s IS NULL AS missing",
+    "params": {
+      "root_fkey": null
+    }
+  },
+  "new_virtuals_in_colgroup": {
+    "groups": {
+      "label": "details.001",
+      "twice": "details.002"
+    },
+    "sql": "SELECT \"t1\".\"id\" AS \"label\",\n( \"t0\".\"id\"*2 ) AS \"twice\"\n FROM \"main\".\"app_item\" AS \"t0\"\n       LEFT JOIN \"main\".\"app_item\" AS \"t1\" ON ((\"t0\".\"parent_id\")=\"t1\".\"id\")",
+    "params": {}
+  },
+  "override_group_False_reverse_False": {
+    "error": "ValueError",
+    "message": "conflicting element kind for 'label'"
+  },
+  "override_group_False_reverse_True": {
+    "error": "ValueError",
+    "message": "conflicting element kind for 'label'"
+  },
+  "override_group_True_reverse_False": {
+    "error": "ValueError",
+    "message": "conflicting element kind for 'label'"
+  },
+  "override_group_True_reverse_True": {
+    "error": "ValueError",
+    "message": "conflicting element kind for 'label'"
+  },
+  "tree_reasons_sqlite": {
+    "sql": "SELECT \"t0\".\"id\" AS \"id\",\n( substr(COALESCE(',' || (CASE WHEN ( \"t0\".\"id\">1 ) IS TRUE THEN 'rule' ELSE NULL END), ''), 2) ) AS reasons,\n( NULL ) AS invalid\n FROM \"main\".\"app_item\" AS \"t0\"",
+    "params": {},
+    "rows": [
+      [
+        1,
+        "",
+        null
+      ],
+      [
+        2,
+        "rule",
+        null
+      ]
+    ]
+  }
+}

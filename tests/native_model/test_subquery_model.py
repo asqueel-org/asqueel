@@ -3,7 +3,6 @@ from dataclasses import replace
 import pytest
 
 from asqueel import SqlBuilder, resolve_model
-from asqueel.contracts import UnsupportedFeatureError
 from asqueel.validators import SqlModelValidationError
 
 
@@ -55,20 +54,38 @@ def test_named_subqueries_and_alias_lineage_do_not_copy_operational_definition()
 
 
 @pytest.mark.parametrize('attributes, error, message', [
-    ({'select': 'callback_name'}, UnsupportedFeatureError, 'callbacks'),
-    ({'sql_formula': True}, UnsupportedFeatureError, 'callbacks'),
+    ({'select': ''}, ValueError, 'nonempty'),
     ({'select': {}}, ValueError, 'nonempty table'),
     ({'select': {'table': 'sales.invoice'}}, ValueError, 'nonempty where'),
     ({'select': spec(), 'exists': spec()}, ValueError, 'exactly one'),
     ({'sql_formula': '1', 'select': spec()}, ValueError, 'exactly one'),
     ({'select': spec(), 'select_extra': spec()}, ValueError, 'require sql_formula'),
     ({'sql_formula': '1', 'select_extra': spec()}, ValueError, 'unused named subquery'),
-    ({'sql_formula': '#extra', 'select_extra': 'callback'}, UnsupportedFeatureError, 'callbacks'),
 ])
 def test_invalid_formula_contract_fails_early(attributes, error, message):
     builder, _ = declaration(**attributes)
     with pytest.raises(error, match=message):
         resolve_model(builder)
+
+
+def test_method_formula_is_preserved_until_database_bound_compilation():
+    builder, _ = declaration(sql_formula=True, var_threshold=5)
+    column = resolve_model(builder).table('customer').columns['value']
+    assert column.is_virtual and column.formula is None
+    assert column.attributes['sql_formula'] is True
+    assert column.attributes['var_threshold'] == 5
+    assert column.attributes['x_requires_compilation'] == 'formulaColumn'
+
+
+@pytest.mark.parametrize('attributes', [
+    {'select': 'total'}, {'exists': 'present'},
+    {'sql_formula': '#extra', 'select_extra': 'total'},
+])
+def test_subquery_methods_are_preserved_without_execution(attributes):
+    builder, _ = declaration(**attributes)
+    column = resolve_model(builder).table('customer').columns['value']
+    assert column.attributes['x_requires_compilation'] == 'formulaColumn'
+    assert all(column.attributes[k] == v for k, v in attributes.items())
 
 
 def test_select_prefix_exception_is_only_for_formula_columns_and_valid_names():

@@ -1,0 +1,111 @@
+[
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value"
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\""
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value",
+      "where": "(id=:id)"
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\"\nWHERE (id=:id)"
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value",
+      "where": "(id=:id)",
+      "order_by": "id",
+      "limit": 3,
+      "offset": 1
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\"\nWHERE (id=:id)\nORDER BY id\nLIMIT 3\nOFFSET 1"
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value",
+      "group_by": "id",
+      "having": "count(*)>1",
+      "order_by": "id"
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\"\nGROUP BY id\nHAVING count(*)>1\nORDER BY id"
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "1 AS first,\n2 AS second"
+    },
+    "sql": "SELECT  1 AS first,\n2 AS second\n FROM \"s\".\"t\" AS \"t0\""
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "'a,b' AS value"
+    },
+    "sql": "SELECT  'a,b' AS value\n FROM \"s\".\"t\" AS \"t0\""
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "' AS ' AS value"
+    },
+    "sql": "SELECT  ' AS ' AS value\n FROM \"s\".\"t\" AS \"t0\""
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "1 -- existing corpus case"
+    },
+    "sql": "SELECT  1 -- existing corpus case\n FROM \"s\".\"t\" AS \"t0\""
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value",
+      "where": "(id=:id -- existing corpus case)",
+      "order_by": "id"
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\"\nWHERE (id=:id -- existing corpus case)\nORDER BY id"
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value",
+      "where": "(id=1 /* open)",
+      "order_by": "id"
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\"\nWHERE (id=1 /* open)\nORDER BY id"
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "'unclosed AS value"
+    },
+    "sql": "SELECT  'unclosed AS value\n FROM \"s\".\"t\" AS \"t0\""
+  },
+  {
+    "arguments": {
+      "maintable": "\"s\".\"t\"",
+      "maintable_as": "\"t0\"",
+      "columns": "id AS value",
+      "where": "/* existing corpus case */"
+    },
+    "sql": "SELECT  id AS value\n FROM \"s\".\"t\" AS \"t0\"\nWHERE /* existing corpus case */"
+  }
+]

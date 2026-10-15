@@ -1,0 +1,13 @@
+...............                                                          [100%]
+=============================== warnings summary ===============================
+../../../../tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+tests/sql/test_compiler_coverage.py::TestBagItemColumn::test_detail_weight_no_crash_pg
+  /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/web/gnrwebpage_proxy/utils.py:19: DeprecationWarning: 'getReader' has been moved to gnr.core.flatfiles. Import from gnr.core.gnrlist is deprecated.
+    from gnr.core.gnrlist import getReader
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+15 passed, 457 deselected, 2 warnings in 3.54s

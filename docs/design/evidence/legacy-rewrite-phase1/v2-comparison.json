@@ -1,0 +1,3851 @@
+{
+  "label": "v2",
+  "observations": [
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "physical",
+        "table": "invc.invoice",
+        "columns": "$id,$total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "total": "total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "36031.14"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "57443.83"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "33219.84"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "25876.22"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "14389.05"
+            ]
+          ],
+          "columns": [
+            "id",
+            "total"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "case_coalesce",
+        "table": "invc.invoice",
+        "columns": "$id,COALESCE($total,0) AS value, CASE WHEN $total>:threshold THEN 1 ELSE 0 END AS large",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCaseWhen / TestCoalesce",
+        "params": {
+          "threshold": 100
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$id IS NOT NULL",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOALESCE(\"t0\".\"total\",0) AS value,\nCASE WHEN \"t0\".\"total\">:threshold THEN 1 ELSE 0 END AS large\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"id\" IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "threshold": 100,
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOALESCE(\"t0\".\"total\",0) AS value,\nCASE WHEN \"t0\".\"total\">:threshold THEN 1 ELSE 0 END AS large\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"id\" IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\nCOALESCE(\"t0\".\"total\",0) AS value,\nCASE WHEN \"t0\".\"total\">:threshold THEN 1 ELSE 0 END AS large",
+            "joins": [],
+            "where": "(\"t0\".\"id\" IS NOT NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "total": "total"
+            },
+            "aliasDict": {
+              "\"value\"": "COALESCE($total,0)",
+              "\"large\"": "CASE WHEN $total>:threshold THEN 1 ELSE 0 END"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "threshold": 100,
+            "jc_kwargs": {}
+          },
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "36031.14",
+              1
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "57443.83",
+              1
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "33219.84",
+              1
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "25876.22",
+              1
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "14389.05",
+              1
+            ]
+          ],
+          "columns": [
+            "id",
+            "value",
+            "large"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "direct",
+        "table": "invc.invoice",
+        "columns": "$inv_number,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_one_level_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"inv_number\" AS \"inv_number\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "inv_number": "inv_number",
+              "_customer_id_account_name": "@customer_id.account_name",
+              "id": "id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "A25/000059",
+              "Thomas Baker"
+            ],
+            [
+              "A24/000058",
+              "National Electrical Specialists"
+            ],
+            [
+              "A25/000053",
+              "Max Green"
+            ],
+            [
+              "A22/000061",
+              "Metro Tiling Solutions"
+            ],
+            [
+              "A25/000048",
+              "Northern Building Contractors"
+            ]
+          ],
+          "columns": [
+            "inv_number",
+            "_customer_id_account_name"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "two_hops",
+        "table": "invc.invoice_row",
+        "columns": "$id,@invoice_id.@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_two_levels_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON ((\"t1\".\"customer_id\")=\"t2\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON ((\"t1\".\"customer_id\")=\"t2\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON ((\"t1\".\"customer_id\")=\"t2\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoice_id__customer_id_account_name": "@invoice_id.@customer_id.account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "00fZ8cJJNlqOajTvHddjLQ",
+              "Premier Landscaping Specialists"
+            ],
+            [
+              "0B0ssn8pP1qg9_XrEO2pmQ",
+              "Premier Landscaping Specialists"
+            ],
+            [
+              "0CHh_S0VOBGtwWKIzwQXVw",
+              "Thomas Baker"
+            ],
+            [
+              "0FLeuZiEO0S_230zyK5VRQ",
+              "Jessica Murray"
+            ],
+            [
+              "0TsK5FhFOWOjJNOcWUnJkA",
+              "National Engineering Group"
+            ]
+          ],
+          "columns": [
+            "id",
+            "_invoice_id__customer_id_account_name"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "three_hops",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.@state.@region_code.name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestAliasColumn",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t3\".\"name\" AS \"_customer_id__state__region_code_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_state\" AS \"t2\" ON ((\"t1\".\"state\")=\"t2\".\"code\")\n       LEFT JOIN \"invc\".\"invc_region\" AS \"t3\" ON ((\"t2\".\"region_code\")=\"t3\".\"code\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t3\".\"name\" AS \"_customer_id__state__region_code_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_state\" AS \"t2\" ON ((\"t1\".\"state\")=\"t2\".\"code\")\n       LEFT JOIN \"invc\".\"invc_region\" AS \"t3\" ON ((\"t2\".\"region_code\")=\"t3\".\"code\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t3\".\"name\" AS \"_customer_id__state__region_code_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_state\" AS \"t2\" ON ((\"t1\".\"state\")=\"t2\".\"code\")",
+              "LEFT JOIN \"invc\".\"invc_region\" AS \"t3\" ON ((\"t2\".\"region_code\")=\"t3\".\"code\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_customer_id__state__region_code_name": "@customer_id.@state.@region_code.name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "Western Australia"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "Western Australia"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "Queensland"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "South Australia"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "Queensland"
+            ]
+          ],
+          "columns": [
+            "id",
+            "_customer_id__state__region_code_name"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "reuse_across_clauses",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation / TestWhereOrderBy",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "@customer_id.account_name IS NOT NULL",
+          "order_by": "@customer_id.account_name,$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)\nORDER BY \"t1\".\"account_name\",\"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)\nORDER BY \"t1\".\"account_name\",\"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "(\"t1\".\"account_name\" IS NOT NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t1\".\"account_name\",\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_customer_id_account_name": "@customer_id.account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "8rSwzS6hP4mT5kyJGNNJxQ",
+              "Central Tiling Solutions"
+            ],
+            [
+              "DMDK8Hm7NHOwdsCEcbUODw",
+              "Central Tiling Solutions"
+            ],
+            [
+              "FpGsakyjOrCR8FlXTcSc4Q",
+              "Central Tiling Solutions"
+            ],
+            [
+              "JeW_bT4hMT6iSzs8eom0Lw",
+              "Central Tiling Solutions"
+            ],
+            [
+              "Q_leyDkiPZa_v5edrf_jmw",
+              "Central Tiling Solutions"
+            ]
+          ],
+          "columns": [
+            "id",
+            "_customer_id_account_name"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "inverse",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.inv_number",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_one_to_many_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id,@invoices.id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"inv_number\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__inv_number__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq0_jc_kwargs": {},
+            "sq1_jc_kwargs": {},
+            "sq2_jc_kwargs": {},
+            "sq3_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"inv_number\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__inv_number__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"inv_number\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__inv_number__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_inv_number\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_inv_number": "@invoices.inv_number",
+              "_invoices_id": "@invoices.id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "inverse_reuse",
+        "table": "invc.invoice",
+        "columns": "$id,@rows.quantity,@rows.unit_price",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestExplodingFastPath.test_exploding_fast_path_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id,@rows.id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"quantity\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__quantity__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_quantity\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"unit_price\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__unit_price__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_unit_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq4_jc_kwargs": {},
+            "sq5_jc_kwargs": {},
+            "sq6_jc_kwargs": {},
+            "sq7_jc_kwargs": {},
+            "sq8_jc_kwargs": {},
+            "sq9_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"quantity\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__quantity__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_quantity\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"unit_price\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__unit_price__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_unit_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"quantity\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__quantity__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_quantity\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"unit_price\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__unit_price__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_unit_price\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") ) ",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_rows_quantity": "@rows.quantity",
+              "_rows_unit_price": "@rows.unit_price",
+              "_rows_id": "@rows.id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "inverse_forward",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.@rows.@product_id.description",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation / TestExplodingFastPath",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id,@invoices.id,@invoices.@rows.id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "error",
+          "error_type": "AttributeError",
+          "error": "'NoneType' object has no attribute 'get'"
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "different_paths_same_table",
+        "table": "invc.invoice_row",
+        "columns": "$id,@product_id.description,@invoice_id.@first_product_id.description",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestAliasColumn / TestRelationNavigation.test_formula_with_relation_navigation_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_invoice_id__first_product_id_description\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t2\" ON ((\"t0\".\"invoice_id\")=\"t2\".\"id\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON (((  ( SELECT  \"t2_t0\".\"product_id\" AS \"product_id\"\n FROM \"invc\".\"invc_invoice_row\" AS t2_t0\nWHERE (\"t2_t0\".\"invoice_id\"=\"t3\".\"id\")\nORDER BY \"t2_t0\".\"_row_count\"\nLIMIT 1 )  ))=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq11_jc_kwargs": {},
+            "sq12_jc_kwargs": {},
+            "sq13_jc_kwargs": {},
+            "sq14_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_invoice_id__first_product_id_description\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t2\" ON ((\"t0\".\"invoice_id\")=\"t2\".\"id\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON (((  ( SELECT  \"t2_t0\".\"product_id\" AS \"product_id\"\n FROM \"invc\".\"invc_invoice_row\" AS t2_t0\nWHERE (\"t2_t0\".\"invoice_id\"=\"t3\".\"id\")\nORDER BY \"t2_t0\".\"_row_count\"\nLIMIT 1 )  ))=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_invoice_id__first_product_id_description\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t2\" ON ((\"t0\".\"invoice_id\")=\"t2\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON (((  ( SELECT  \"t2_t0\".\"product_id\" AS \"product_id\"\n FROM \"invc\".\"invc_invoice_row\" AS t2_t0\nWHERE (\"t2_t0\".\"invoice_id\"=\"t3\".\"id\")\nORDER BY \"t2_t0\".\"_row_count\"\nLIMIT 1 )  ))=\"t3\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_product_id_description": "@product_id.description",
+              "_invoice_id__first_product_id_description": "@invoice_id.@first_product_id.description",
+              "_invoice_id_first_product_id": "@invoice_id.first_product_id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: interrupted"
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "alias_and_direct_reuse",
+        "table": "invc.invoice",
+        "columns": "$id,$customer_name,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestAliasColumn",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"customer_name\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"customer_name\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"customer_name\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "customer_name": "customer_name",
+              "_customer_id_account_name": "@customer_id.account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "Thomas Baker",
+              "Thomas Baker"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "National Electrical Specialists",
+              "National Electrical Specialists"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "Max Green",
+              "Max Green"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "Metro Tiling Solutions",
+              "Metro Tiling Solutions"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "Northern Building Contractors",
+              "Northern Building Contractors"
+            ]
+          ],
+          "columns": [
+            "id",
+            "customer_name",
+            "_customer_id_account_name"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "formula_relation",
+        "table": "invc.customer",
+        "columns": "$id,@last_invoice_id.inv_number",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_formula_with_relation_navigation_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$last_invoice_id IS NOT NULL",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"inv_number\" AS \"_last_invoice_id_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON (((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ))=\"t1\".\"id\")\nWHERE ((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ) IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq15_jc_kwargs": {},
+            "sq16_jc_kwargs": {},
+            "sq17_jc_kwargs": {},
+            "sq18_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"inv_number\" AS \"_last_invoice_id_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON (((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ))=\"t1\".\"id\")\nWHERE ((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ) IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"inv_number\" AS \"_last_invoice_id_inv_number\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON (((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ))=\"t1\".\"id\")"
+            ],
+            "where": "((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ) IS NOT NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_last_invoice_id_inv_number": "@last_invoice_id.inv_number",
+              "last_invoice_id": "last_invoice_id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: interrupted"
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "formula_dependencies",
+        "table": "invc.invoice_row",
+        "columns": "$id,$line_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaSql",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "line_total": "line_total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "00fZ8cJJNlqOajTvHddjLQ",
+              25441.78
+            ],
+            [
+              "0B0ssn8pP1qg9_XrEO2pmQ",
+              32603.56
+            ],
+            [
+              "0CHh_S0VOBGtwWKIzwQXVw",
+              6241.28
+            ],
+            [
+              "0FLeuZiEO0S_230zyK5VRQ",
+              35814.48
+            ],
+            [
+              "0TsK5FhFOWOjJNOcWUnJkA",
+              14344.64
+            ]
+          ],
+          "columns": [
+            "id",
+            "line_total"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "correlated_subqueries",
+        "table": "invc.customer",
+        "columns": "$id,$n_invoices,$invoiced_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaSelect",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"n_invoices\",\n(  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"invoiced_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq19_jc_kwargs": {},
+            "sq20_jc_kwargs": {},
+            "sq21_jc_kwargs": {},
+            "sq22_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"n_invoices\",\n(  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"invoiced_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"n_invoices\",\n(  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"invoiced_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "n_invoices": "n_invoices",
+              "invoiced_total": "invoiced_total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "00KFn0NyPUScLEXgxGkcRw",
+              0,
+              null
+            ],
+            [
+              "017JfuV3Mg6mhzhzlHeekA",
+              0,
+              null
+            ],
+            [
+              "01WQ1nveMlaF_DcgC1vKvA",
+              0,
+              null
+            ],
+            [
+              "0428xT2xNEmUD9pljdvw6A",
+              0,
+              null
+            ],
+            [
+              "04nQV5WlOMqZbfnDrhz8RQ",
+              0,
+              null
+            ]
+          ],
+          "columns": [
+            "id",
+            "n_invoices",
+            "invoiced_total"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "formula_chain",
+        "table": "invc.customer",
+        "columns": "$id,$avg_invoice_value",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaChain / TestNullif",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$n_invoices>0",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( (  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) / NULLIF((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ), 0) ) AS \"avg_invoice_value\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  )>0)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq23_jc_kwargs": {},
+            "sq24_jc_kwargs": {},
+            "sq25_jc_kwargs": {},
+            "sq26_jc_kwargs": {},
+            "sq27_jc_kwargs": {},
+            "sq28_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( (  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) / NULLIF((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ), 0) ) AS \"avg_invoice_value\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  )>0)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( (  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) / NULLIF((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ), 0) ) AS \"avg_invoice_value\"",
+            "joins": [],
+            "where": "((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  )>0)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "avg_invoice_value": "avg_invoice_value",
+              "n_invoices": "n_invoices"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "0XjC8_gDMk60s_MiuCg8Nw",
+              28444.371999999996
+            ],
+            [
+              "2EkKJCFFPCCfWJdxVsTiRQ",
+              42756.257999999994
+            ],
+            [
+              "3Cd3ZaRaNXOUcQCrPo8cZg",
+              32924.96555555556
+            ],
+            [
+              "4za3ZC7ZOV2dk3KQEL4UzQ",
+              49578.07833333333
+            ],
+            [
+              "5UZpE_ZiM9G3WmVzVdEW_w",
+              55124.01900000001
+            ]
+          ],
+          "columns": [
+            "id",
+            "avg_invoice_value"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "formula_parameters",
+        "table": "invc.invoice",
+        "columns": "$id,$status_label",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestVarParameters.test_status_label_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN :4482214192_status_label_high_label\n                                              WHEN \"t0\".\"total\" > 100 THEN :4482214192_status_label_mid_label\n                                              ELSE :4482214192_status_label_low_label END ) AS \"status_label\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "4482214192_status_label_high_label": "Premium Invoice",
+            "4482214192_status_label_mid_label": "Standard Invoice",
+            "4482214192_status_label_low_label": "Basic Invoice"
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN :4482214192_status_label_high_label\n                                              WHEN \"t0\".\"total\" > 100 THEN :4482214192_status_label_mid_label\n                                              ELSE :4482214192_status_label_low_label END ) AS \"status_label\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN :4482214192_status_label_high_label\n                                              WHEN \"t0\".\"total\" > 100 THEN :4482214192_status_label_mid_label\n                                              ELSE :4482214192_status_label_low_label END ) AS \"status_label\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "status_label": "status_label"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "Premium Invoice"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "Premium Invoice"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "Premium Invoice"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "Premium Invoice"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "Premium Invoice"
+            ]
+          ],
+          "columns": [
+            "id",
+            "status_label"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "named_subqueries",
+        "table": "invc.invoice",
+        "columns": "$id,$smart_row_count,$priority_note",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestNamedSubQuery",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\" AND \"t0_t0\".\"unit_price\" > 100) )  ELSE  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  END ) AS \"smart_row_count\",\n( COALESCE( ( SELECT  \"t0_t0\".\"note_text\" AS \"note_text\"\n FROM \"invc\".\"invc_invoice_note\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\")\nORDER BY \"t0_t0\".\"priority\"\nLIMIT 1 ) , 'No notes') ) AS \"priority_note\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq29_jc_kwargs": {},
+            "sq30_jc_kwargs": {},
+            "sq31_jc_kwargs": {},
+            "sq32_jc_kwargs": {},
+            "sq33_jc_kwargs": {},
+            "sq34_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\" AND \"t0_t0\".\"unit_price\" > 100) )  ELSE  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  END ) AS \"smart_row_count\",\n( COALESCE( ( SELECT  \"t0_t0\".\"note_text\" AS \"note_text\"\n FROM \"invc\".\"invc_invoice_note\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\")\nORDER BY \"t0_t0\".\"priority\"\nLIMIT 1 ) , 'No notes') ) AS \"priority_note\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\" AND \"t0_t0\".\"unit_price\" > 100) )  ELSE  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  END ) AS \"smart_row_count\",\n( COALESCE( ( SELECT  \"t0_t0\".\"note_text\" AS \"note_text\"\n FROM \"invc\".\"invc_invoice_note\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\")\nORDER BY \"t0_t0\".\"priority\"\nLIMIT 1 ) , 'No notes') ) AS \"priority_note\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "smart_row_count": "smart_row_count",
+              "priority_note": "priority_note"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              3,
+              "Note 3 for invoice"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              3,
+              "Note 3 for invoice"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              3,
+              "Note 2 for invoice"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              3,
+              "Note 1 for invoice"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              2,
+              "Note 1 for invoice"
+            ]
+          ],
+          "columns": [
+            "id",
+            "smart_row_count",
+            "priority_note"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "subquery_column",
+        "table": "invc.invoice",
+        "columns": "$id,$max_row_price",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn.test_max_row_price_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  MAX(\"t0_t0\".\"unit_price\") AS \"MAX__unit_price_\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  ) AS \"max_row_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq35_jc_kwargs": {},
+            "sq36_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  MAX(\"t0_t0\".\"unit_price\") AS \"MAX__unit_price_\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  ) AS \"max_row_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n(  ( SELECT  MAX(\"t0_t0\".\"unit_price\") AS \"MAX__unit_price_\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  ) AS \"max_row_price\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "max_row_price": "max_row_price"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "604.60"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "708.62"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "804.56"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "519.71"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "755.42"
+            ]
+          ],
+          "columns": [
+            "id",
+            "max_row_price"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "composite_join",
+        "table": "invc.price_year_note",
+        "columns": "$id,@product_year_ref.unit_price",
+        "origin": "gnrpy/tests/sql/test_composite_column.py::TestCompositeColumnPg.test_composite_join_returns_data",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"unit_price\" AS \"_product_year_ref_unit_price\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"product_id\" AND (\"t0\".\"year\")=\"t1\".\"year\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"unit_price\" AS \"_product_year_ref_unit_price\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"product_id\" AND (\"t0\".\"year\")=\"t1\".\"year\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"unit_price\" AS \"_product_year_ref_unit_price\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"product_id\" AND (\"t0\".\"year\")=\"t1\".\"year\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_product_year_ref_unit_price": "@product_year_ref.unit_price"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "01kpv0_XM66Of8AfbTk53A",
+              "276.09"
+            ],
+            [
+              "036JuI_SO3ix7Z9WukyWRQ",
+              "907.79"
+            ],
+            [
+              "044ANCpTN0iXNtJjowqusA",
+              "762.96"
+            ],
+            [
+              "04AcBh3oOm6vx42RK_vZcg",
+              "810.21"
+            ],
+            [
+              "04YglG2sPq6VLY9sTRZUpA",
+              "65.75"
+            ]
+          ],
+          "columns": [
+            "id",
+            "_product_year_ref_unit_price"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "composite_two_paths",
+        "table": "invc.price_year_note",
+        "columns": "$id,@product_id.description,@product_year_ref.@product_id.description",
+        "origin": "gnrpy/tests/sql/test_composite_column.py::TestCompositeColumnPg.test_composite_deep_navigation",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_product_year_ref__product_id_description\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t2\" ON ((\"t0\".\"product_id\")=\"t2\".\"product_id\" AND (\"t0\".\"year\")=\"t2\".\"year\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON ((\"t2\".\"product_id\")=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_product_year_ref__product_id_description\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t2\" ON ((\"t0\".\"product_id\")=\"t2\".\"product_id\" AND (\"t0\".\"year\")=\"t2\".\"year\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON ((\"t2\".\"product_id\")=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_product_year_ref__product_id_description\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_price_year\" AS \"t2\" ON ((\"t0\".\"product_id\")=\"t2\".\"product_id\" AND (\"t0\".\"year\")=\"t2\".\"year\")",
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON ((\"t2\".\"product_id\")=\"t3\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_product_id_description": "@product_id.description",
+              "_product_year_ref__product_id_description": "@product_year_ref.@product_id.description"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "01kpv0_XM66Of8AfbTk53A",
+              "Bosch 125mm 1400W Angle Grinder",
+              "Bosch 125mm 1400W Angle Grinder"
+            ],
+            [
+              "036JuI_SO3ix7Z9WukyWRQ",
+              "Sutton 850W Rotary Hammer Hammer Drill",
+              "Sutton 850W Rotary Hammer Hammer Drill"
+            ],
+            [
+              "044ANCpTN0iXNtJjowqusA",
+              "Pacific 90x35mm Treated 2.4m Timber",
+              "Pacific 90x35mm Treated 2.4m Timber"
+            ],
+            [
+              "04AcBh3oOm6vx42RK_vZcg",
+              "AEG 15mm Pressure Reducing Valve",
+              "AEG 15mm Pressure Reducing Valve"
+            ],
+            [
+              "04YglG2sPq6VLY9sTRZUpA",
+              "Dulux 1200mm Welded Mesh Panel Wire Fence",
+              "Dulux 1200mm Welded Mesh Panel Wire Fence"
+            ]
+          ],
+          "columns": [
+            "id",
+            "_product_id_description",
+            "_product_year_ref__product_id_description"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "symbolic_relation_parameter",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.id AS customer",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestEmbedFieldPars.test_relation_param_pg",
+        "params": {
+          "other": "@customer_id.id"
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$customer_id=:other",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"id\" AS customer\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "other": "@customer_id.id",
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"id\" AS customer\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"id\" AS customer",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "(\"t0\".\"customer_id\"=\"t1\".\"id\")",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_customer_id_id": "@customer_id.id",
+              "customer_id": "customer_id"
+            },
+            "aliasDict": {
+              "\"customer\"": "$_customer_id_id"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "other": "@customer_id.id",
+            "jc_kwargs": {}
+          },
+          "execute": "ok",
+          "rows": [
+            [
+              "07bGQ44ENPua7IKfGxIp7Q",
+              "KW4FGhdWOhy_A7W7E__I2g"
+            ],
+            [
+              "0_9BQalLPIeaiBMgZMwaFg",
+              "x4UcoctvNCiK7lDV01Ghgw"
+            ],
+            [
+              "0bnmEdwAOIagPCi4NEuumQ",
+              "zd_jYaLoP7GsA_tnjTSpVg"
+            ],
+            [
+              "1I47OxlTMy2cPbP9agwWgA",
+              "WlGE_NkVPZq_vj7F4JHXWA"
+            ],
+            [
+              "1O8akXydMpmesuqvKuJEXQ",
+              "Y_w5_4GqPuSVWkGs5DN4OQ"
+            ]
+          ],
+          "columns": [
+            "id",
+            "customer"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "group_inverse",
+        "table": "invc.customer",
+        "columns": "$id,COUNT(@invoices.id) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestGroupByHaving / TestRelationNavigation",
+        "params": {
+          "minimum": 0
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$id",
+          "having": "COUNT(@invoices.id)>:minimum",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ) AS n\n FROM \"invc\".\"invc_customer\" AS t0\nGROUP BY \"t0\".\"id\"\nHAVING COUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) )>:minimum\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq37_jc_kwargs": {},
+            "sq38_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ) AS n\n FROM \"invc\".\"invc_customer\" AS t0\nGROUP BY \"t0\".\"id\"\nHAVING COUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) )>:minimum\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\nCOUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ) AS n",
+            "joins": [],
+            "where": "",
+            "group_by": "\"t0\".\"id\"",
+            "having": "COUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) )>:minimum",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_id": "@invoices.id"
+            },
+            "aliasDict": {
+              "\"n\"": "COUNT($_invoices_id)"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq37_jc_kwargs": {},
+            "sq38_jc_kwargs": {}
+          },
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "distinct_inverse",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true,
+          "order_by": "$id,@invoices.total",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq39_jc_kwargs": {},
+            "sq40_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ",
+            "distinct": "DISTINCT ",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "implicit_distinct_hidden_order",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding.test_distinct_exploding_order_by_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": null,
+          "order_by": "$account_name,$id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq41_jc_kwargs": {},
+            "sq42_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"account_name\",\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total",
+              "account_name": "account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "count_inverse_explicit",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding.test_distinct_exploding_count_pg",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0",
+          "params": {
+            "jc_kwargs": {},
+            "sq43_jc_kwargs": {},
+            "sq44_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "",
+            "distinct": "DISTINCT ",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "count_inverse_filter",
+        "table": "invc.customer",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding / SqlQueryCompiler.compiledQuery",
+        "params": {
+          "minimum": 0
+        },
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "@invoices.total>:minimum",
+          "distinct": null
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) >:minimum)",
+          "params": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq45_jc_kwargs": {},
+            "sq46_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) >:minimum)",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "count(*) AS \"gnr_row_count\"",
+            "joins": [],
+            "where": "( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) >:minimum)",
+            "group_by": "",
+            "having": "",
+            "order_by": "",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "_invoices_total": "@invoices.total"
+            },
+            "aliasDict": {
+              "\"\"gnr_row_count\"\"": "count(*)"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq45_jc_kwargs": {},
+            "sq46_jc_kwargs": {}
+          },
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "group_star",
+        "table": "invc.invoice",
+        "columns": "SUM($total) AS total,COUNT(*) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions.test_group_by_star_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "*"
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  SUM(\"t0\".\"total\") AS total,\nCOUNT(*) AS n\n FROM \"invc\".\"invc_invoice\" AS t0",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  SUM(\"t0\".\"total\") AS total,\nCOUNT(*) AS n\n FROM \"invc\".\"invc_invoice\" AS t0",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "SUM(\"t0\".\"total\") AS total,\nCOUNT(*) AS n",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "total": "total"
+            },
+            "aliasDict": {
+              "\"total\"": "SUM($total)",
+              "\"n\"": "COUNT(*)"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              9544422.37,
+              256
+            ]
+          ],
+          "columns": [
+            "total",
+            "n"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "star",
+        "table": "invc.customer",
+        "columns": "*",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns.test_star_expansion_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 1
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"__ins_ts\" AS \"__ins_ts\",\n\"t0\".\"__del_ts\" AS \"__del_ts\",\n\"t0\".\"__mod_ts\" AS \"__mod_ts\",\n\"t0\".\"__ins_user\" AS \"__ins_user\",\n\"t0\".\"__is_draft\" AS \"__is_draft\",\n\"t0\".\"account_name\" AS \"account_name\",\n\"t0\".\"street_address\" AS \"street_address\",\n\"t0\".\"suburb\" AS \"suburb\",\n\"t0\".\"state\" AS \"state\",\n\"t0\".\"postcode\" AS \"postcode\",\n\"t0\".\"customer_type_code\" AS \"customer_type_code\",\n\"t0\".\"payment_type_code\" AS \"payment_type_code\",\n\"t0\".\"notes\" AS \"notes\",\n\"t0\".\"email\" AS \"email\",\n\"t0\".\"phone\" AS \"phone\",\n\"t0\".\"access_token\" AS \"access_token\",\n\"t0\".\"bank_account\" AS \"bank_account\",\n\"t0\".\"registration_id\" AS \"registration_id\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 1",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"__ins_ts\" AS \"__ins_ts\",\n\"t0\".\"__del_ts\" AS \"__del_ts\",\n\"t0\".\"__mod_ts\" AS \"__mod_ts\",\n\"t0\".\"__ins_user\" AS \"__ins_user\",\n\"t0\".\"__is_draft\" AS \"__is_draft\",\n\"t0\".\"account_name\" AS \"account_name\",\n\"t0\".\"street_address\" AS \"street_address\",\n\"t0\".\"suburb\" AS \"suburb\",\n\"t0\".\"state\" AS \"state\",\n\"t0\".\"postcode\" AS \"postcode\",\n\"t0\".\"customer_type_code\" AS \"customer_type_code\",\n\"t0\".\"payment_type_code\" AS \"payment_type_code\",\n\"t0\".\"notes\" AS \"notes\",\n\"t0\".\"email\" AS \"email\",\n\"t0\".\"phone\" AS \"phone\",\n\"t0\".\"access_token\" AS \"access_token\",\n\"t0\".\"bank_account\" AS \"bank_account\",\n\"t0\".\"registration_id\" AS \"registration_id\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 1",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"__ins_ts\" AS \"__ins_ts\",\n\"t0\".\"__del_ts\" AS \"__del_ts\",\n\"t0\".\"__mod_ts\" AS \"__mod_ts\",\n\"t0\".\"__ins_user\" AS \"__ins_user\",\n\"t0\".\"__is_draft\" AS \"__is_draft\",\n\"t0\".\"account_name\" AS \"account_name\",\n\"t0\".\"street_address\" AS \"street_address\",\n\"t0\".\"suburb\" AS \"suburb\",\n\"t0\".\"state\" AS \"state\",\n\"t0\".\"postcode\" AS \"postcode\",\n\"t0\".\"customer_type_code\" AS \"customer_type_code\",\n\"t0\".\"payment_type_code\" AS \"payment_type_code\",\n\"t0\".\"notes\" AS \"notes\",\n\"t0\".\"email\" AS \"email\",\n\"t0\".\"phone\" AS \"phone\",\n\"t0\".\"access_token\" AS \"access_token\",\n\"t0\".\"bank_account\" AS \"bank_account\",\n\"t0\".\"registration_id\" AS \"registration_id\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "__ins_ts": "__ins_ts",
+              "__del_ts": "__del_ts",
+              "__mod_ts": "__mod_ts",
+              "__ins_user": "__ins_user",
+              "__is_draft": "__is_draft",
+              "account_name": "account_name",
+              "street_address": "street_address",
+              "suburb": "suburb",
+              "state": "state",
+              "postcode": "postcode",
+              "customer_type_code": "customer_type_code",
+              "payment_type_code": "payment_type_code",
+              "notes": "notes",
+              "email": "email",
+              "phone": "phone",
+              "access_token": "access_token",
+              "bank_account": "bank_account",
+              "registration_id": "registration_id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "00KFn0NyPUScLEXgxGkcRw",
+              "2026-02-10 12:42:28.780143",
+              null,
+              "2026-02-10 12:42:28.780146",
+              null,
+              null,
+              "Isla Martin",
+              "119 Queen Tce",
+              "Braybrook",
+              "VIC",
+              "3019",
+              "RES",
+              "CC",
+              null,
+              "isla.martin@outlook.com.au",
+              "0210210286",
+              null,
+              null,
+              null
+            ]
+          ],
+          "columns": [
+            "id",
+            "__ins_ts",
+            "__del_ts",
+            "__mod_ts",
+            "__ins_user",
+            "__is_draft",
+            "account_name",
+            "street_address",
+            "suburb",
+            "state",
+            "postcode",
+            "customer_type_code",
+            "payment_type_code",
+            "notes",
+            "email",
+            "phone",
+            "access_token",
+            "bank_account",
+            "registration_id"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "macro_range",
+        "table": "invc.invoice",
+        "columns": "$id,$total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestExpandInRange",
+        "params": {
+          "low": 0,
+          "high": 100
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "#IN_RANGE($total,:low,:high)",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (#IN_RANGE(\"t0\".\"total\",:low,:high))\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "low": 0,
+            "high": 100,
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (#IN_RANGE(\"t0\".\"total\",:low,:high))\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"",
+            "joins": [],
+            "where": "(#IN_RANGE(\"t0\".\"total\",:low,:high))",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "total": "total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "low": 0,
+            "high": 100,
+            "jc_kwargs": {}
+          },
+          "execute": "error",
+          "execution_error": "ProgrammingError: You did not supply a value for binding parameter :IN_RANGE(\"t0\".\"total\",:low,:high)."
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "default_pkey",
+        "table": "invc.invoice",
+        "columns": "$inv_number",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": false,
+        "defaults": true,
+        "options": {
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"inv_number\" AS \"inv_number\",\n\"t0\".\"id\" AS \"pkey\"",
+            "joins": [],
+            "where": "(\"t0\".\"__del_ts\" IS NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "inv_number": "inv_number",
+              "id": "id",
+              "__del_ts": "__del_ts"
+            },
+            "aliasDict": {
+              "\"\"pkey\"\"": "$id"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "ok",
+          "rows": [
+            [
+              "A25/000059",
+              "07bGQ44ENPua7IKfGxIp7Q"
+            ],
+            [
+              "A24/000058",
+              "0_9BQalLPIeaiBMgZMwaFg"
+            ],
+            [
+              "A25/000053",
+              "0bnmEdwAOIagPCi4NEuumQ"
+            ],
+            [
+              "A22/000061",
+              "1I47OxlTMy2cPbP9agwWgA"
+            ],
+            [
+              "A25/000048",
+              "1O8akXydMpmesuqvKuJEXQ"
+            ]
+          ],
+          "columns": [
+            "inv_number",
+            "pkey"
+          ]
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "case": {
+        "name": "default_inverse",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding",
+        "params": {},
+        "count": false,
+        "defaults": true,
+        "options": {
+          "order_by": "$account_name,$id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" !=1 )\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq47_jc_kwargs": {},
+            "sq48_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\",\n\"t0\".\"id\" AS \"pkey\"",
+            "joins": [],
+            "where": "(\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"account_name\",\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total",
+              "__del_ts": "__del_ts",
+              "__is_draft": "__is_draft",
+              "account_name": "account_name"
+            },
+            "aliasDict": {
+              "\"\"pkey\"\"": "$id"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {},
+          "execute": "error",
+          "execution_error": "OperationalError: unrecognized token: \":\""
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "physical",
+        "table": "invc.invoice",
+        "columns": "$id,$total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "total": "total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "case_coalesce",
+        "table": "invc.invoice",
+        "columns": "$id,COALESCE($total,0) AS value, CASE WHEN $total>:threshold THEN 1 ELSE 0 END AS large",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCaseWhen / TestCoalesce",
+        "params": {
+          "threshold": 100
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$id IS NOT NULL",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOALESCE(\"t0\".\"total\",0) AS value,\nCASE WHEN \"t0\".\"total\">%(threshold)s THEN 1 ELSE 0 END AS large\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"id\" IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "threshold": 100,
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOALESCE(\"t0\".\"total\",0) AS value,\nCASE WHEN \"t0\".\"total\">:threshold THEN 1 ELSE 0 END AS large\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"id\" IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\nCOALESCE(\"t0\".\"total\",0) AS value,\nCASE WHEN \"t0\".\"total\">:threshold THEN 1 ELSE 0 END AS large",
+            "joins": [],
+            "where": "(\"t0\".\"id\" IS NOT NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "total": "total"
+            },
+            "aliasDict": {
+              "\"value\"": "COALESCE($total,0)",
+              "\"large\"": "CASE WHEN $total>:threshold THEN 1 ELSE 0 END"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "threshold": 100,
+            "jc_kwargs": {}
+          }
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "direct",
+        "table": "invc.invoice",
+        "columns": "$inv_number,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_one_level_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"inv_number\" AS \"inv_number\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "inv_number": "inv_number",
+              "_customer_id_account_name": "@customer_id.account_name",
+              "id": "id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "two_hops",
+        "table": "invc.invoice_row",
+        "columns": "$id,@invoice_id.@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_two_levels_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON ((\"t1\".\"customer_id\")=\"t2\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON ((\"t1\".\"customer_id\")=\"t2\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON ((\"t1\".\"customer_id\")=\"t2\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoice_id__customer_id_account_name": "@invoice_id.@customer_id.account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "three_hops",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.@state.@region_code.name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestAliasColumn",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t3\".\"name\" AS \"_customer_id__state__region_code_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_state\" AS \"t2\" ON ((\"t1\".\"state\")=\"t2\".\"code\")\n       LEFT JOIN \"invc\".\"invc_region\" AS \"t3\" ON ((\"t2\".\"region_code\")=\"t3\".\"code\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t3\".\"name\" AS \"_customer_id__state__region_code_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_state\" AS \"t2\" ON ((\"t1\".\"state\")=\"t2\".\"code\")\n       LEFT JOIN \"invc\".\"invc_region\" AS \"t3\" ON ((\"t2\".\"region_code\")=\"t3\".\"code\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t3\".\"name\" AS \"_customer_id__state__region_code_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_state\" AS \"t2\" ON ((\"t1\".\"state\")=\"t2\".\"code\")",
+              "LEFT JOIN \"invc\".\"invc_region\" AS \"t3\" ON ((\"t2\".\"region_code\")=\"t3\".\"code\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_customer_id__state__region_code_name": "@customer_id.@state.@region_code.name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "reuse_across_clauses",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation / TestWhereOrderBy",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "@customer_id.account_name IS NOT NULL",
+          "order_by": "@customer_id.account_name,$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)\nORDER BY \"t1\".\"account_name\",\"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)\nORDER BY \"t1\".\"account_name\",\"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "(\"t1\".\"account_name\" IS NOT NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t1\".\"account_name\",\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_customer_id_account_name": "@customer_id.account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "inverse",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.inv_number",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_one_to_many_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id,@invoices.id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"inv_number\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__inv_number__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq0_jc_kwargs": {},
+            "sq1_jc_kwargs": {},
+            "sq2_jc_kwargs": {},
+            "sq3_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"inv_number\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__inv_number__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"inv_number\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__inv_number__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_inv_number\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_inv_number": "@invoices.inv_number",
+              "_invoices_id": "@invoices.id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "inverse_reuse",
+        "table": "invc.invoice",
+        "columns": "$id,@rows.quantity,@rows.unit_price",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestExplodingFastPath.test_exploding_fast_path_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id,@rows.id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"quantity\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__quantity__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_quantity\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"unit_price\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__unit_price__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_unit_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq4_jc_kwargs": {},
+            "sq5_jc_kwargs": {},
+            "sq6_jc_kwargs": {},
+            "sq7_jc_kwargs": {},
+            "sq8_jc_kwargs": {},
+            "sq9_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"quantity\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__quantity__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_quantity\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"unit_price\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__unit_price__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_unit_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"quantity\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__quantity__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_quantity\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"unit_price\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__unit_price__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  AS \"_rows_unit_price\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") ) ",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_rows_quantity": "@rows.quantity",
+              "_rows_unit_price": "@rows.unit_price",
+              "_rows_id": "@rows.id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "inverse_forward",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.@rows.@product_id.description",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation / TestExplodingFastPath",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id,@invoices.id,@invoices.@rows.id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "error",
+          "error_type": "AttributeError",
+          "error": "'NoneType' object has no attribute 'get'"
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "different_paths_same_table",
+        "table": "invc.invoice_row",
+        "columns": "$id,@product_id.description,@invoice_id.@first_product_id.description",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestAliasColumn / TestRelationNavigation.test_formula_with_relation_navigation_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_invoice_id__first_product_id_description\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t2\" ON ((\"t0\".\"invoice_id\")=\"t2\".\"id\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON (((  ( SELECT  \"t2_t0\".\"product_id\" AS \"product_id\"\n FROM \"invc\".\"invc_invoice_row\" AS t2_t0\nWHERE (\"t2_t0\".\"invoice_id\"=\"t3\".\"id\")\nORDER BY \"t2_t0\".\"_row_count\"\nLIMIT 1 )  ))=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq11_jc_kwargs": {},
+            "sq12_jc_kwargs": {},
+            "sq13_jc_kwargs": {},
+            "sq14_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_invoice_id__first_product_id_description\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t2\" ON ((\"t0\".\"invoice_id\")=\"t2\".\"id\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON (((  ( SELECT  \"t2_t0\".\"product_id\" AS \"product_id\"\n FROM \"invc\".\"invc_invoice_row\" AS t2_t0\nWHERE (\"t2_t0\".\"invoice_id\"=\"t3\".\"id\")\nORDER BY \"t2_t0\".\"_row_count\"\nLIMIT 1 )  ))=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_invoice_id__first_product_id_description\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t2\" ON ((\"t0\".\"invoice_id\")=\"t2\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON (((  ( SELECT  \"t2_t0\".\"product_id\" AS \"product_id\"\n FROM \"invc\".\"invc_invoice_row\" AS t2_t0\nWHERE (\"t2_t0\".\"invoice_id\"=\"t3\".\"id\")\nORDER BY \"t2_t0\".\"_row_count\"\nLIMIT 1 )  ))=\"t3\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_product_id_description": "@product_id.description",
+              "_invoice_id__first_product_id_description": "@invoice_id.@first_product_id.description",
+              "_invoice_id_first_product_id": "@invoice_id.first_product_id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "alias_and_direct_reuse",
+        "table": "invc.invoice",
+        "columns": "$id,$customer_name,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestAliasColumn",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"customer_name\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"customer_name\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"customer_name\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "customer_name": "customer_name",
+              "_customer_id_account_name": "@customer_id.account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "formula_relation",
+        "table": "invc.customer",
+        "columns": "$id,@last_invoice_id.inv_number",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation.test_formula_with_relation_navigation_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$last_invoice_id IS NOT NULL",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"inv_number\" AS \"_last_invoice_id_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON (((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ))=\"t1\".\"id\")\nWHERE ((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ) IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq15_jc_kwargs": {},
+            "sq16_jc_kwargs": {},
+            "sq17_jc_kwargs": {},
+            "sq18_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"inv_number\" AS \"_last_invoice_id_inv_number\"\n FROM \"invc\".\"invc_customer\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON (((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ))=\"t1\".\"id\")\nWHERE ((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ) IS NOT NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"inv_number\" AS \"_last_invoice_id_inv_number\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON (((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ))=\"t1\".\"id\")"
+            ],
+            "where": "((  ( SELECT  \"t0_t0\".\"id\" AS \"id\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0_t0\".\"date\" DESC\nLIMIT 1 )  ) IS NOT NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_last_invoice_id_inv_number": "@last_invoice_id.inv_number",
+              "last_invoice_id": "last_invoice_id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "formula_dependencies",
+        "table": "invc.invoice_row",
+        "columns": "$id,$line_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaSql",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "line_total": "line_total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "correlated_subqueries",
+        "table": "invc.customer",
+        "columns": "$id,$n_invoices,$invoiced_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaSelect",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"n_invoices\",\n(  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"invoiced_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq19_jc_kwargs": {},
+            "sq20_jc_kwargs": {},
+            "sq21_jc_kwargs": {},
+            "sq22_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"n_invoices\",\n(  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"invoiced_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n(  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"n_invoices\",\n(  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) AS \"invoiced_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "n_invoices": "n_invoices",
+              "invoiced_total": "invoiced_total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "formula_chain",
+        "table": "invc.customer",
+        "columns": "$id,$avg_invoice_value",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaChain / TestNullif",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$n_invoices>0",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( (  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) / NULLIF((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ), 0) ) AS \"avg_invoice_value\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  )>0)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq23_jc_kwargs": {},
+            "sq24_jc_kwargs": {},
+            "sq25_jc_kwargs": {},
+            "sq26_jc_kwargs": {},
+            "sq27_jc_kwargs": {},
+            "sq28_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( (  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) / NULLIF((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ), 0) ) AS \"avg_invoice_value\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  )>0)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( (  ( SELECT  SUM(\"t0_t0\".\"total\") AS \"SUM__total_\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ) / NULLIF((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  ), 0) ) AS \"avg_invoice_value\"",
+            "joins": [],
+            "where": "((  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  )>0)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "avg_invoice_value": "avg_invoice_value",
+              "n_invoices": "n_invoices"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "formula_parameters",
+        "table": "invc.invoice",
+        "columns": "$id,$status_label",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestVarParameters.test_status_label_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN %(4487794752_status_label_high_label)s\n                                              WHEN \"t0\".\"total\" > 100 THEN %(4487794752_status_label_mid_label)s\n                                              ELSE %(4487794752_status_label_low_label)s END ) AS \"status_label\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "4487794752_status_label_high_label": "Premium Invoice",
+            "4487794752_status_label_mid_label": "Standard Invoice",
+            "4487794752_status_label_low_label": "Basic Invoice"
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN :4487794752_status_label_high_label\n                                              WHEN \"t0\".\"total\" > 100 THEN :4487794752_status_label_mid_label\n                                              ELSE :4487794752_status_label_low_label END ) AS \"status_label\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN :4487794752_status_label_high_label\n                                              WHEN \"t0\".\"total\" > 100 THEN :4487794752_status_label_mid_label\n                                              ELSE :4487794752_status_label_low_label END ) AS \"status_label\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "status_label": "status_label"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "named_subqueries",
+        "table": "invc.invoice",
+        "columns": "$id,$smart_row_count,$priority_note",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestNamedSubQuery",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\" AND \"t0_t0\".\"unit_price\" > 100) )  ELSE  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  END ) AS \"smart_row_count\",\n( COALESCE( ( SELECT  \"t0_t0\".\"note_text\" AS \"note_text\"\n FROM \"invc\".\"invc_invoice_note\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\")\nORDER BY \"t0_t0\".\"priority\"\nLIMIT 1 ) , 'No notes') ) AS \"priority_note\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq29_jc_kwargs": {},
+            "sq30_jc_kwargs": {},
+            "sq31_jc_kwargs": {},
+            "sq32_jc_kwargs": {},
+            "sq33_jc_kwargs": {},
+            "sq34_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\" AND \"t0_t0\".\"unit_price\" > 100) )  ELSE  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  END ) AS \"smart_row_count\",\n( COALESCE( ( SELECT  \"t0_t0\".\"note_text\" AS \"note_text\"\n FROM \"invc\".\"invc_invoice_note\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\")\nORDER BY \"t0_t0\".\"priority\"\nLIMIT 1 ) , 'No notes') ) AS \"priority_note\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n( CASE WHEN \"t0\".\"total\" > 1000 THEN  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\" AND \"t0_t0\".\"unit_price\" > 100) )  ELSE  ( SELECT  COUNT(*) AS \"COUNT___\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  END ) AS \"smart_row_count\",\n( COALESCE( ( SELECT  \"t0_t0\".\"note_text\" AS \"note_text\"\n FROM \"invc\".\"invc_invoice_note\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\")\nORDER BY \"t0_t0\".\"priority\"\nLIMIT 1 ) , 'No notes') ) AS \"priority_note\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "smart_row_count": "smart_row_count",
+              "priority_note": "priority_note"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "subquery_column",
+        "table": "invc.invoice",
+        "columns": "$id,$max_row_price",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn.test_max_row_price_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  MAX(\"t0_t0\".\"unit_price\") AS \"MAX__unit_price_\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  ) AS \"max_row_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {},
+            "sq35_jc_kwargs": {},
+            "sq36_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n(  ( SELECT  MAX(\"t0_t0\".\"unit_price\") AS \"MAX__unit_price_\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  ) AS \"max_row_price\"\n FROM \"invc\".\"invc_invoice\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n(  ( SELECT  MAX(\"t0_t0\".\"unit_price\") AS \"MAX__unit_price_\"\n FROM \"invc\".\"invc_invoice_row\" AS t0_t0\nWHERE (\"t0_t0\".\"invoice_id\"=\"t0\".\"id\") )  ) AS \"max_row_price\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "max_row_price": "max_row_price"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "composite_join",
+        "table": "invc.price_year_note",
+        "columns": "$id,@product_year_ref.unit_price",
+        "origin": "gnrpy/tests/sql/test_composite_column.py::TestCompositeColumnPg.test_composite_join_returns_data",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"unit_price\" AS \"_product_year_ref_unit_price\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"product_id\" AND (\"t0\".\"year\")=\"t1\".\"year\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"unit_price\" AS \"_product_year_ref_unit_price\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"product_id\" AND (\"t0\".\"year\")=\"t1\".\"year\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"unit_price\" AS \"_product_year_ref_unit_price\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_price_year\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"product_id\" AND (\"t0\".\"year\")=\"t1\".\"year\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_product_year_ref_unit_price": "@product_year_ref.unit_price"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "composite_two_paths",
+        "table": "invc.price_year_note",
+        "columns": "$id,@product_id.description,@product_year_ref.@product_id.description",
+        "origin": "gnrpy/tests/sql/test_composite_column.py::TestCompositeColumnPg.test_composite_deep_navigation",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_product_year_ref__product_id_description\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t2\" ON ((\"t0\".\"product_id\")=\"t2\".\"product_id\" AND (\"t0\".\"year\")=\"t2\".\"year\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON ((\"t2\".\"product_id\")=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_product_year_ref__product_id_description\"\n FROM \"invc\".\"invc_price_year_note\" AS t0\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_price_year\" AS \"t2\" ON ((\"t0\".\"product_id\")=\"t2\".\"product_id\" AND (\"t0\".\"year\")=\"t2\".\"year\")\n       LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON ((\"t2\".\"product_id\")=\"t3\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"description\" AS \"_product_id_description\",\n\"t3\".\"description\" AS \"_product_year_ref__product_id_description\"",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t1\" ON ((\"t0\".\"product_id\")=\"t1\".\"id\")",
+              "LEFT JOIN \"invc\".\"invc_price_year\" AS \"t2\" ON ((\"t0\".\"product_id\")=\"t2\".\"product_id\" AND (\"t0\".\"year\")=\"t2\".\"year\")",
+              "LEFT JOIN \"invc\".\"invc_product\" AS \"t3\" ON ((\"t2\".\"product_id\")=\"t3\".\"id\")"
+            ],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_product_id_description": "@product_id.description",
+              "_product_year_ref__product_id_description": "@product_year_ref.@product_id.description"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "symbolic_relation_parameter",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.id AS customer",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestEmbedFieldPars.test_relation_param_pg",
+        "params": {
+          "other": "@customer_id.id"
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$customer_id=:other",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"id\" AS customer\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "other": "@customer_id.id",
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"id\" AS customer\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t0\".\"customer_id\"=\"t1\".\"id\")\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"id\" AS customer",
+            "joins": [
+              "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+            ],
+            "where": "(\"t0\".\"customer_id\"=\"t1\".\"id\")",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_customer_id_id": "@customer_id.id",
+              "customer_id": "customer_id"
+            },
+            "aliasDict": {
+              "\"customer\"": "$_customer_id_id"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "other": "@customer_id.id",
+            "jc_kwargs": {}
+          }
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "group_inverse",
+        "table": "invc.customer",
+        "columns": "$id,COUNT(@invoices.id) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestGroupByHaving / TestRelationNavigation",
+        "params": {
+          "minimum": 0
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$id",
+          "having": "COUNT(@invoices.id)>:minimum",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ) AS n\n FROM \"invc\".\"invc_customer\" AS t0\nGROUP BY \"t0\".\"id\"\nHAVING COUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) )>%(minimum)s\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq37_jc_kwargs": {},
+            "sq38_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\nCOUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ) AS n\n FROM \"invc\".\"invc_customer\" AS t0\nGROUP BY \"t0\".\"id\"\nHAVING COUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) )>:minimum\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\nCOUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ) AS n",
+            "joins": [],
+            "where": "",
+            "group_by": "\"t0\".\"id\"",
+            "having": "COUNT( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"id\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__id__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) )>:minimum",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_id": "@invoices.id"
+            },
+            "aliasDict": {
+              "\"n\"": "COUNT($_invoices_id)"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq37_jc_kwargs": {},
+            "sq38_jc_kwargs": {}
+          }
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "distinct_inverse",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true,
+          "order_by": "$id,@invoices.total",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq39_jc_kwargs": {},
+            "sq40_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) \nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\", ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) ",
+            "distinct": "DISTINCT ",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "implicit_distinct_hidden_order",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding.test_distinct_exploding_order_by_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": null,
+          "order_by": "$account_name,$id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq41_jc_kwargs": {},
+            "sq42_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"account_name\",\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total",
+              "account_name": "account_name"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "count_inverse_explicit",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding.test_distinct_exploding_count_pg",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0",
+          "params": {
+            "jc_kwargs": {},
+            "sq43_jc_kwargs": {},
+            "sq44_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  DISTINCT \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"\n FROM \"invc\".\"invc_customer\" AS t0",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "",
+            "distinct": "DISTINCT ",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "count_inverse_filter",
+        "table": "invc.customer",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding / SqlQueryCompiler.compiledQuery",
+        "params": {
+          "minimum": 0
+        },
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "@invoices.total>:minimum",
+          "distinct": null
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) >%(minimum)s)",
+          "params": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq45_jc_kwargs": {},
+            "sq46_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) >:minimum)",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "count(*) AS \"gnr_row_count\"",
+            "joins": [],
+            "where": "( ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") ) >:minimum)",
+            "group_by": "",
+            "having": "",
+            "order_by": "",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "_invoices_total": "@invoices.total"
+            },
+            "aliasDict": {
+              "\"\"gnr_row_count\"\"": "count(*)"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "minimum": 0,
+            "jc_kwargs": {},
+            "sq45_jc_kwargs": {},
+            "sq46_jc_kwargs": {}
+          }
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "group_star",
+        "table": "invc.invoice",
+        "columns": "SUM($total) AS total,COUNT(*) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions.test_group_by_star_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "*"
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  SUM(\"t0\".\"total\") AS total,\nCOUNT(*) AS n\n FROM \"invc\".\"invc_invoice\" AS t0",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  SUM(\"t0\".\"total\") AS total,\nCOUNT(*) AS n\n FROM \"invc\".\"invc_invoice\" AS t0",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "SUM(\"t0\".\"total\") AS total,\nCOUNT(*) AS n",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "total": "total"
+            },
+            "aliasDict": {
+              "\"total\"": "SUM($total)",
+              "\"n\"": "COUNT(*)"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "star",
+        "table": "invc.customer",
+        "columns": "*",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns.test_star_expansion_pg",
+        "params": {},
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 1
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"__ins_ts\" AS \"__ins_ts\",\n\"t0\".\"__del_ts\" AS \"__del_ts\",\n\"t0\".\"__mod_ts\" AS \"__mod_ts\",\n\"t0\".\"__ins_user\" AS \"__ins_user\",\n\"t0\".\"__is_draft\" AS \"__is_draft\",\n\"t0\".\"account_name\" AS \"account_name\",\n\"t0\".\"street_address\" AS \"street_address\",\n\"t0\".\"suburb\" AS \"suburb\",\n\"t0\".\"state\" AS \"state\",\n\"t0\".\"postcode\" AS \"postcode\",\n\"t0\".\"customer_type_code\" AS \"customer_type_code\",\n\"t0\".\"payment_type_code\" AS \"payment_type_code\",\n\"t0\".\"notes\" AS \"notes\",\n\"t0\".\"email\" AS \"email\",\n\"t0\".\"phone\" AS \"phone\",\n\"t0\".\"access_token\" AS \"access_token\",\n\"t0\".\"bank_account\" AS \"bank_account\",\n\"t0\".\"registration_id\" AS \"registration_id\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 1",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"__ins_ts\" AS \"__ins_ts\",\n\"t0\".\"__del_ts\" AS \"__del_ts\",\n\"t0\".\"__mod_ts\" AS \"__mod_ts\",\n\"t0\".\"__ins_user\" AS \"__ins_user\",\n\"t0\".\"__is_draft\" AS \"__is_draft\",\n\"t0\".\"account_name\" AS \"account_name\",\n\"t0\".\"street_address\" AS \"street_address\",\n\"t0\".\"suburb\" AS \"suburb\",\n\"t0\".\"state\" AS \"state\",\n\"t0\".\"postcode\" AS \"postcode\",\n\"t0\".\"customer_type_code\" AS \"customer_type_code\",\n\"t0\".\"payment_type_code\" AS \"payment_type_code\",\n\"t0\".\"notes\" AS \"notes\",\n\"t0\".\"email\" AS \"email\",\n\"t0\".\"phone\" AS \"phone\",\n\"t0\".\"access_token\" AS \"access_token\",\n\"t0\".\"bank_account\" AS \"bank_account\",\n\"t0\".\"registration_id\" AS \"registration_id\"\n FROM \"invc\".\"invc_customer\" AS t0\nORDER BY \"t0\".\"id\"\nLIMIT 1",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"__ins_ts\" AS \"__ins_ts\",\n\"t0\".\"__del_ts\" AS \"__del_ts\",\n\"t0\".\"__mod_ts\" AS \"__mod_ts\",\n\"t0\".\"__ins_user\" AS \"__ins_user\",\n\"t0\".\"__is_draft\" AS \"__is_draft\",\n\"t0\".\"account_name\" AS \"account_name\",\n\"t0\".\"street_address\" AS \"street_address\",\n\"t0\".\"suburb\" AS \"suburb\",\n\"t0\".\"state\" AS \"state\",\n\"t0\".\"postcode\" AS \"postcode\",\n\"t0\".\"customer_type_code\" AS \"customer_type_code\",\n\"t0\".\"payment_type_code\" AS \"payment_type_code\",\n\"t0\".\"notes\" AS \"notes\",\n\"t0\".\"email\" AS \"email\",\n\"t0\".\"phone\" AS \"phone\",\n\"t0\".\"access_token\" AS \"access_token\",\n\"t0\".\"bank_account\" AS \"bank_account\",\n\"t0\".\"registration_id\" AS \"registration_id\"",
+            "joins": [],
+            "where": "",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "__ins_ts": "__ins_ts",
+              "__del_ts": "__del_ts",
+              "__mod_ts": "__mod_ts",
+              "__ins_user": "__ins_user",
+              "__is_draft": "__is_draft",
+              "account_name": "account_name",
+              "street_address": "street_address",
+              "suburb": "suburb",
+              "state": "state",
+              "postcode": "postcode",
+              "customer_type_code": "customer_type_code",
+              "payment_type_code": "payment_type_code",
+              "notes": "notes",
+              "email": "email",
+              "phone": "phone",
+              "access_token": "access_token",
+              "bank_account": "bank_account",
+              "registration_id": "registration_id"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "macro_range",
+        "table": "invc.invoice",
+        "columns": "$id,$total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestExpandInRange",
+        "params": {
+          "low": 0,
+          "high": 100
+        },
+        "count": false,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "#IN_RANGE($total,:low,:high)",
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (#IN_RANGE(\"t0\".\"total\",%(low)s,%(high)s))\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "low": 0,
+            "high": 100,
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (#IN_RANGE(\"t0\".\"total\",:low,:high))\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\"",
+            "joins": [],
+            "where": "(#IN_RANGE(\"t0\".\"total\",:low,:high))",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "total": "total"
+            },
+            "aliasDict": {},
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {
+            "low": 0,
+            "high": 100,
+            "jc_kwargs": {}
+          }
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "default_pkey",
+        "table": "invc.invoice",
+        "columns": "$inv_number",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": false,
+        "defaults": true,
+        "options": {
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "params": {
+            "jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"inv_number\" AS \"inv_number\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"inv_number\" AS \"inv_number\",\n\"t0\".\"id\" AS \"pkey\"",
+            "joins": [],
+            "where": "(\"t0\".\"__del_ts\" IS NULL)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "inv_number": "inv_number",
+              "id": "id",
+              "__del_ts": "__del_ts"
+            },
+            "aliasDict": {
+              "\"\"pkey\"\"": "$id"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgresql",
+      "case": {
+        "name": "default_inverse",
+        "table": "invc.customer",
+        "columns": "$id,@invoices.total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDistinctExploding",
+        "params": {},
+        "count": false,
+        "defaults": true,
+        "options": {
+          "order_by": "$account_name,$id",
+          "limit": 10
+        }
+      },
+      "engines": {
+        "legacy": {
+          "compile": "ok",
+          "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"%(:TEXT)s, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "params": {
+            "jc_kwargs": {},
+            "sq47_jc_kwargs": {},
+            "sq48_jc_kwargs": {}
+          },
+          "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\",\n\"t0\".\"id\" AS \"pkey\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)\nORDER BY \"t0\".\"account_name\",\"t0\".\"id\"\nLIMIT 10",
+          "execution_audit_omitted": true,
+          "clauses": {
+            "columns": "\"t0\".\"id\" AS \"id\",\n ( SELECT  STRING_AGG(DISTINCT \"t0_t0\".\"total\"::TEXT, ',') AS \"STRING_AGG_DISTINCT__total__TEXT______\"\n FROM \"invc\".\"invc_invoice\" AS t0_t0\nWHERE (\"t0_t0\".\"customer_id\"=\"t0\".\"id\") )  AS \"_invoices_total\",\n\"t0\".\"id\" AS \"pkey\"",
+            "joins": [],
+            "where": "(\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+            "group_by": "",
+            "having": "",
+            "order_by": "\"t0\".\"account_name\",\"t0\".\"id\"",
+            "distinct": "",
+            "relationDict": {
+              "pkey": "id",
+              "id": "id",
+              "_invoices_total": "@invoices.total",
+              "__del_ts": "__del_ts",
+              "__is_draft": "__is_draft",
+              "account_name": "account_name"
+            },
+            "aliasDict": {
+              "\"\"pkey\"\"": "$id"
+            },
+            "explodingColumns": []
+          },
+          "stable": true,
+          "input_after": {}
+        }
+      }
+    }
+  ],
+  "summary": {
+    "legacy": {
+      "compile": {
+        "ok": 60,
+        "error": 2
+      },
+      "execute": {
+        "ok": 19,
+        "error": 11,
+        "not_run": 32
+      },
+      "unstable": 0
+    }
+  },
+  "source_sha256": "0c34f332e6e9682d1abcbc3726a5b4f206f007e6d80eb732365a59127e57f82c"
+}

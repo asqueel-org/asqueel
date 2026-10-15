@@ -73,7 +73,7 @@ def main():
         destination = Path(directory)
         for name in ('tests', 'docs', 'examples'):
             shutil.copytree(repository / name, destination / name)
-        for name in ('migration.json', 'native/migration.json'):
+        for name in ('migration.json', 'native/migration.json', 'objects_tree/migration.json'):
             artifact = Path('artifacts/test_invoice_pg') / name
             (destination / artifact).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(repository / artifact, destination / artifact)

@@ -1,0 +1,657 @@
+[
+  {
+    "table": "sys.batch_log",
+    "physical_columns": 12,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.calendar",
+    "physical_columns": 1,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "sys.dataretention",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.dbchange",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "sys.error",
+    "physical_columns": 20,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.external_token",
+    "physical_columns": 13,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "sys.external_token_use",
+    "physical_columns": 4,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "sys.externalcall_log",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.service",
+    "physical_columns": 11,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.shared_object",
+    "physical_columns": 9,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.shorturl",
+    "physical_columns": 12,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.task",
+    "physical_columns": 28,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.task_execution",
+    "physical_columns": 15,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.task_result",
+    "physical_columns": 11,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.upgrade",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "sys.widget",
+    "physical_columns": 18,
+    "default_order": "$hierarchical_name",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.access_group",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.api_token",
+    "physical_columns": 15,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.api_token_tag",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.audit",
+    "physical_columns": 12,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.authorization",
+    "physical_columns": 12,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.backup",
+    "physical_columns": 9,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.ckstyle",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.connection",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "adm.counter",
+    "physical_columns": 14,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.day",
+    "physical_columns": 3,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "adm.group",
+    "physical_columns": 11,
+    "default_order": "$_row_count",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.group_helpdoc",
+    "physical_columns": 8,
+    "default_order": "$_row_count",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.helpdoc",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.htag",
+    "physical_columns": 22,
+    "default_order": "$_h_sortcol",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.htmltemplate",
+    "physical_columns": 14,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.htmltemplate_atc",
+    "physical_columns": 16,
+    "default_order": "$_row_count",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.install_checklist",
+    "physical_columns": 11,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.language",
+    "physical_columns": 8,
+    "default_order": "$_row_count",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.letterhead_type",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.menu",
+    "physical_columns": 18,
+    "default_order": "$_h_sortcol",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.menu_page",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.notification",
+    "physical_columns": 16,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.pkginfo",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.preference",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.record_tag",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.sent_email",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.served_page",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "adm.shortcut",
+    "physical_columns": 8,
+    "default_order": "$_row_count",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.tblinfo",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.tblinfo_item",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user",
+    "physical_columns": 29,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user_access_group",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user_config",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user_group",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user_notification",
+    "physical_columns": 9,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user_setting",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.user_tag",
+    "physical_columns": 8,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.userobject",
+    "physical_columns": 20,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "adm.week",
+    "physical_columns": 1,
+    "default_order": null,
+    "implicit_markers": {},
+    "partitions": []
+  },
+  {
+    "table": "adm.xgroup",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.customer",
+    "physical_columns": 19,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts",
+      "x_legacy_draftField": "__is_draft"
+    },
+    "partitions": [
+      "partition_state"
+    ]
+  },
+  {
+    "table": "invc.customer_type",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.discount_tier",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.invoice",
+    "physical_columns": 12,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": [
+      "partition_customer_state"
+    ]
+  },
+  {
+    "table": "invc.invoice_note",
+    "physical_columns": 9,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.invoice_row",
+    "physical_columns": 13,
+    "default_order": "$_row_count",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.payment_type",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.postcode",
+    "physical_columns": 10,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.price_year",
+    "physical_columns": 9,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.price_year_note",
+    "physical_columns": 9,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.product",
+    "physical_columns": 13,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.product_group",
+    "physical_columns": 17,
+    "default_order": "$_h_sortcol",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.product_type",
+    "physical_columns": 18,
+    "default_order": "$_h_sortcol",
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.region",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.staff",
+    "physical_columns": 12,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.staff_role",
+    "physical_columns": 6,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.state",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  },
+  {
+    "table": "invc.vat_type",
+    "physical_columns": 7,
+    "default_order": null,
+    "implicit_markers": {
+      "x_legacy_logicalDeletionField": "__del_ts"
+    },
+    "partitions": []
+  }
+]

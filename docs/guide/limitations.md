@@ -14,9 +14,9 @@ runtime. This page describes behavior you can rely on when choosing APIs.
 | Data backend | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and BEGIN IMMEDIATE; PostgreSQL-specific SQL is not translated. |
 | Runtime | Synchronous execution, implicit transaction start and explicit completion. | No async API, worker pool, general-purpose connection pool or automatic retries; named connections are retained until closed. |
 | Ownership | Independent named connections per thread, one active transaction per name. | Share the DB graph; each worker closes its own connections. No nested transactions or savepoints; no async task isolation. |
-| Results | Materialized dictionary rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
+| Results | Materialized mutable Toolbox `NamedList` rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
 | Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | No DISTINCT ON, tuple-of-columns IN, `*` grouping or Python-side deduplication; not a universal SQL parser. |
-| Formulas | SQL expressions, scalar select/exists dictionaries and named correlated subqueries. | Python providers, method callbacks, formula variants, subquery collections and advanced macros are outside the native profile. Partition filtering remains explicit inside subqueries. |
+| Formulas | SQL expressions, table formula methods, select/exists dictionaries, named correlated subqueries, subQueryColumn and string subquery method references. | Formula variants and Python columns remain unsupported. JSON/XML subQueryColumn requires PostgreSQL; XML requires a dictionary declaration. Partition filtering remains explicit inside subqueries. |
 | Alias columns | Declared aliases inherit target metadata, allow local overrides, and resolve through supported to-one paths, including alias/formula targets. | Read-only; no to-many/virtualRelation. Default RETURNING excludes aliases; explicit relational aliases cannot be returned by DML. |
 | Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after table hooks, database write hooks, and raw commands that retain change tracking. | Ordinary updates/deletes require exactly one row and a declared primary key. Raw predicates may match multiple rows; raw insertion also accepts a list. No record-cluster writes, automatic retry or implicit save of related records. |
 | Environment | Nested scopes, detached snapshots and guarded contextual queries. | Not a permissions system; direct SQL does not acquire model policy predicates automatically. |
@@ -31,6 +31,14 @@ unexpected results, see [troubleshooting](troubleshooting.md).
 
 ## Query and result boundaries
 
+The alternative hierarchical model now executes supported SELECTs through
+`query.execute()`, `fetch()` and `count()`, using the owning database connection
+and Toolbox NamedList rows. Its count terminal follows the legacy rules
+(including retained LIMIT/OFFSET), rather than the default compiler's wrapper
+and pagination rejection described below. Record reads, Selection and model
+writes remain disconnected on this alternative path. To-many operations have
+no handlers. See {download}`the hierarchical terminal report <../design/92-hierarchical-fetch-count.md>`.
+
 Version 0.6.0 completes native package source → live objects → migration JSON,
 including structural option expansion and relation resolution. This path is
 verified on all 74 included `test_invoice_pg` models and by applying the schema
@@ -41,9 +49,14 @@ above refer to the existing supported compiler/runtime profile. System records,
 locked records and optional diagnostics remain deferred.
 
 The compiler resolves supported Asqueel field references and preserves authored
-SQL expressions. SQL fragments are trusted application code; bind external
-values through parameters. Successful rendering does not validate every SQL
-expression against the server.
+SQL expressions. SQL fragments are trusted application code. External data
+belongs in parameters, but the hierarchical `TreeQueryCompiler` preserves legacy
+symbolic WHERE values: recognized `$column` and `@relation.column` strings can
+become model references rather than literal bindings. Validate external input
+and use the legacy escape when such strings must remain literal; see
+[symbolic parameters and the two compiler profiles](queries.md#symbolic-parameters-and-external-values).
+The existing `QueryCompiler` binds these strings literally. Successful rendering
+does not validate every SQL expression against the server.
 
 Relation paths in the native profile require a uniquely identified target.
 To-many navigation and automatic collection shaping are not implemented.
@@ -145,8 +158,7 @@ The Genropy guide records agreed differences: removal of aggregateRows and expli
 partition semantics. Output naming, default ordering, wildcard selection and
 other unapproved divergences in the current implementation are compatibility
 work, not accepted product differences. The implicit `pkey` column of GenroPy
-queries is left to a future GenroPy adapter, not to the core. Native query results still
-use dictionary rows; path lookup on live columns is not complete. Collection
+queries is left to a future GenroPy adapter, not to the core. Native query results use Toolbox `NamedList` rows with name and position access; path lookup on live columns is not complete. Collection
 bindings, count, grouping and distinct are implemented; Selection is not.
 
 Standalone execution and application tables share the same execution service.
@@ -185,9 +197,10 @@ or equivalence for every Python hook failure.
 
 ### Queries, formulas and result names
 
-`*` currently expands all resolved columns, including aliases and formulas,
-rather than the target physical/static-column convention. Automatic relation
-aliases omit the target leading underscore (`customer_name` instead of
+`*` follows the legacy physical/static-column convention, including `bagFields`.
+On the native 74-table fixture, `adm.htmltemplate_atc` still requires unsupported
+static Python columns; the other 73 tables compile on both dialects. Automatic
+relation aliases omit the target leading underscore (`customer_name` instead of
 `_customer_name`). Use explicit projections and aliases for stable result contracts.
 Relation path segments currently require ASCII identifiers.
 
@@ -204,8 +217,15 @@ Scalar subquery definitions accept `table`, `columns`, `where`, `params`/`sqlpar
 `order_by`, `limit`, `offset`, policy options and `cast`. Cast syntax does not
 support quoted custom type names. Compatibility options are restricted to
 `subtable='*'`, `addPkeyColumn=False` and `ignoreTableOrderBy=True`.
-Method-based subqueries, formula callbacks/variants, Python columns and separate
-subquery collection columns are not implemented. Structured subquery formulas
+Formula variants and Python columns are not implemented. String references call
+`subquery_<name>()` on the current SELECT's root table, as in the legacy compiler;
+the method returns the existing query mapping. XML subQueryColumn still requires
+a dictionary declaration. RuntimeModel integration remains pending.
+Native subQueryColumn dictionaries compile plain scalar SELECTs on both dialects,
+and JSON/XML collections on PostgreSQL. SQLite rejects those collection modes;
+there is no implicit DISTINCT or LIMIT, nor a synthetic aggregate for other modes.
+Table SQL formula methods use the existing application table, as documented in
+[formulas](formulas.md). Structured subquery formulas
 are read-only. DML cannot traverse relations or return expressions requiring joins.
 
 ### Hooks, environment and application integration

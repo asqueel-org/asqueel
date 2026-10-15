@@ -340,6 +340,13 @@ anche schemi vuoti ed estensioni, senza perderli nella proiezione dalle tabelle.
 
 ## Ricette delle operazioni — Deciso il 12 ottobre
 
+**Scelta operativa successiva, 13 ottobre:** per iniziare dalle letture si
+mantiene query(...) con clausole e kwargs in linea. La grammatica Builder delle
+clausole viene rinviata; per trasferire la richiesta si considerano JSON/TYTX
+degli argomenti. Il compilatore deve produrre SELECT e kwargs manglizzati,
+senza eseguire la query. Non è una rinuncia alla trasferibilità della richiesta;
+non si introduce ora una nuova recipe Builder. [Indagine 55](55-select-sql-and-kwargs-investigation.md).
+
 - Ogni operazione sul DB è prima una struttura dichiarativa. Il requisito
   riguarda l'architettura delle operazioni, incluse SELECT/INSERT/UPDATE/DELETE;
   il catalogo completo degli elementi verrà definito nel terzo passo.
@@ -357,14 +364,19 @@ anche schemi vuoti ed estensioni, senza perderli nella proiezione dalle tabelle.
 
 ### Ricette ricevute dal client — Deciso
 
-La grammatica remota è chiusa e validata: riferimenti risolti sul modello,
-operatori e funzioni ammessi, valori separati dal codice e passati come
-parametri. Non ammette SQL arbitrario, inclusi frammenti in filtri, proiezioni
-o ordinamenti. JSON/XML da soli non proteggono dalla SQL injection.
+**Aggiornamento del 13 ottobre:** il browser deve poter dichiarare anche
+espressioni al volo, come CASE e COALESCE, con sintassi vicina al legacy.
+È superata la precedente esclusione totale delle espressioni SQL testuali
+dal client. Si mantiene come direzione il controllo AST con SQLGlot sul SQL
+finale, prima dell'esecuzione; requisito primario: vietare comandi di modifica,
+anche annidati o aggiunti alla SELECT. Una funzione di check abilitabile a
+richiesta per fonti non fidate è un'ipotesi dell'utente, senza firma o default
+ancora definiti. Prova e punti aperti nel [documento 54](54-query-recipe-and-sql-check.md).
 
-Il client può riferirsi a una formula dichiarata dal modello server; questo
-non lo autorizza a dichiarare SQL libero. Il pass-through SQL proposto per
-espressioni applicative fidate non è ammesso nell'ingresso remoto.
+Non è un'autorizzazione al SQL arbitrario senza controlli. I riferimenti sono
+risolti sul modello, i valori restano separati dal codice e passati come
+parametri; JSON/XML e il solo successo del parsing non proteggono dalla SQL
+injection. Nessuna dipendenza o integrazione SQLGlot viene introdotta ora.
 Validità strutturale e autorizzazione sono distinte: il server controlla
 permessi e policy e usa il proprio contesto autenticato. Una ricetta non può
 autoattribuirsi identità, tenant, privilegi o facoltà di bypass.

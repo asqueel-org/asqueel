@@ -55,7 +55,7 @@ try:
             minimum_id=1, order_by="$id",
         )
         rows = query.fetch()
-        assert rows == [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Grace"}]
+        assert [dict(row) for row in rows] == [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Grace"}]
         assert customer.record(1).output("dict")["name"] == "Ada"
         assert customer.column("name").model.ui["label"] == "Customer name"
         print(rows)
@@ -78,7 +78,7 @@ Run it with `python quickstart.py`.
   on the first executed operation, not during construction or SQL compilation.
 - `db.table()` returns a stable operational table. Its `.model` is the resolved
   descriptor; `.config` reads the completed model, independently of the source recipe.
-- `query.fetch()` executes and returns ordinary dictionaries. `query.execute()`
+- `query.fetch()` executes and returns mutable Toolbox `NamedList` rows; use `dict(row)` for a dictionary. `query.execute()`
   returns a `QueryResult` with rows and column metadata. Every call executes again.
 - `record(key).output('dict')` loads exactly one visible record. Missing and
   multiple matches raise explicit errors. The record caches its loaded snapshot

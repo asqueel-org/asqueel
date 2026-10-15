@@ -1,0 +1,5 @@
+Pre-edit selected baseline: tests/native_compiler + tests/object_tree/test_operational_tables.py
+487 passed, 13 PostgreSQL fixture setup errors in 8.81s
+All 13: loopback 127.0.0.1:5432 denied by sandbox (Operation not permitted).
+Complete local diagnostic log: /tmp/asqueel-tree-select-before.log
+Historical complete baseline: 2300 passed, 13 skipped (report 75).

@@ -1,0 +1,368 @@
+{
+  "v2": [
+    {
+      "table": "invc.region",
+      "omitted": "!!Error code GNR-001 : Table 'region' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.state",
+      "rows": 8,
+      "omitted_columns": [
+        "region_code"
+      ]
+    },
+    {
+      "table": "invc.customer_type",
+      "rows": 4,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.vat_type",
+      "rows": 3,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.payment_type",
+      "rows": 6,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.postcode",
+      "rows": 800,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product_type",
+      "rows": 125,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product",
+      "rows": 1695,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.customer",
+      "rows": 3200,
+      "omitted_columns": [
+        "__is_draft"
+      ]
+    },
+    {
+      "table": "invc.staff_role",
+      "omitted": "!!Error code GNR-001 : Table 'staff_role' undefined in package: 'invc'."
+    },
+    {
+      "table": "adm.user",
+      "rows": 32,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.staff",
+      "omitted": "!!Error code GNR-001 : Table 'staff' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.discount_tier",
+      "omitted": "!!Error code GNR-001 : Table 'discount_tier' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.price_year",
+      "omitted": "!!Error code GNR-001 : Table 'price_year' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.price_year_note",
+      "omitted": "!!Error code GNR-001 : Table 'price_year_note' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.invoice",
+      "rows": 256,
+      "omitted_columns": [
+        "invoice_time"
+      ]
+    },
+    {
+      "table": "invc.invoice_row",
+      "rows": 803,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice_note",
+      "omitted": "!!Error code GNR-001 : Table 'invoice_note' undefined in package: 'invc'."
+    }
+  ],
+  "v3": [
+    {
+      "table": "invc.region",
+      "omitted": "!!Error code GNR-001 : Table 'region' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.state",
+      "rows": 8,
+      "omitted_columns": [
+        "region_code"
+      ]
+    },
+    {
+      "table": "invc.customer_type",
+      "rows": 4,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.vat_type",
+      "rows": 3,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.payment_type",
+      "rows": 6,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.postcode",
+      "rows": 800,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product_type",
+      "rows": 125,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product",
+      "rows": 1695,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.customer",
+      "rows": 3200,
+      "omitted_columns": [
+        "__is_draft"
+      ]
+    },
+    {
+      "table": "invc.staff_role",
+      "omitted": "!!Error code GNR-001 : Table 'staff_role' undefined in package: 'invc'."
+    },
+    {
+      "table": "adm.user",
+      "rows": 32,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.staff",
+      "omitted": "!!Error code GNR-001 : Table 'staff' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.discount_tier",
+      "omitted": "!!Error code GNR-001 : Table 'discount_tier' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.price_year",
+      "omitted": "!!Error code GNR-001 : Table 'price_year' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.price_year_note",
+      "omitted": "!!Error code GNR-001 : Table 'price_year_note' undefined in package: 'invc'."
+    },
+    {
+      "table": "invc.invoice",
+      "rows": 256,
+      "omitted_columns": [
+        "invoice_time"
+      ]
+    },
+    {
+      "table": "invc.invoice_row",
+      "rows": 803,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice_note",
+      "omitted": "!!Error code GNR-001 : Table 'invoice_note' undefined in package: 'invc'."
+    }
+  ],
+  "v3_merged": [
+    {
+      "table": "invc.region",
+      "rows": 5,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.state",
+      "rows": 8,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.customer_type",
+      "rows": 4,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.vat_type",
+      "rows": 3,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.payment_type",
+      "rows": 6,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.postcode",
+      "rows": 800,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product_type",
+      "rows": 125,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product",
+      "rows": 1695,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.customer",
+      "rows": 3200,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.staff_role",
+      "rows": 5,
+      "omitted_columns": []
+    },
+    {
+      "table": "adm.user",
+      "rows": 32,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.staff",
+      "rows": 32,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.discount_tier",
+      "rows": 16,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.price_year",
+      "rows": 6780,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.price_year_note",
+      "rows": 3381,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice",
+      "rows": 256,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "rows": 803,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice_note",
+      "rows": 387,
+      "omitted_columns": []
+    }
+  ],
+  "v4": [
+    {
+      "table": "invc.region",
+      "rows": 5,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.state",
+      "rows": 8,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.customer_type",
+      "rows": 4,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.vat_type",
+      "rows": 3,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.payment_type",
+      "rows": 6,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.postcode",
+      "rows": 800,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product_type",
+      "rows": 125,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.product",
+      "rows": 1695,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.customer",
+      "rows": 3200,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.staff_role",
+      "rows": 5,
+      "omitted_columns": []
+    },
+    {
+      "table": "adm.user",
+      "rows": 32,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.staff",
+      "rows": 32,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.discount_tier",
+      "rows": 16,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.price_year",
+      "rows": 6780,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.price_year_note",
+      "rows": 3381,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice",
+      "rows": 256,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice_row",
+      "rows": 803,
+      "omitted_columns": []
+    },
+    {
+      "table": "invc.invoice_note",
+      "rows": 387,
+      "omitted_columns": []
+    }
+  ]
+}

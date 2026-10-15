@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-14",
+  "toolbox": "0.18.0",
+  "port_source_sha256": "96f7575f9004ef9b50d4c826606500e774921e325db0c7c2091cf399c3b52c6e",
+  "legacy_tests": {
+    "passed": 8,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "full_suite": {
+    "passed": 1940,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 13
+  },
+  "new_tests": {
+    "ported_legacy": 8,
+    "dialect_integration": 10
+  },
+  "commands": {
+    "pytest": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts= --junitxml=docs/design/evidence/named-list-fetch/asqueel-full.xml",
+    "ruff": "venv/bin/python -m ruff check src tests scripts",
+    "mypy": "venv/bin/python -m mypy src/asqueel",
+    "sphinx": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m sphinx -W --keep-going -b html docs /tmp/asqueel-namedlist-docs"
+  },
+  "ruff": "passed",
+  "mypy": "passed (52 source files)",
+  "sphinx": "passed (strict build)",
+  "documentation_examples": "9 passed",
+  "compatibility": [
+    "Exact Toolbox NamedList type, no wrapper",
+    "List iteration/equality/JSON; explicit dict(row) for named mappings",
+    "Shared index per cursor result, isolated across fetches",
+    "record.output('dict') remains a dict",
+    "Existing SQL value codecs unchanged"
+  ]
+}

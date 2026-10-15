@@ -1,0 +1,39 @@
+{
+  "full_suite": {
+    "passed": 4801,
+    "skipped": 21,
+    "xfailed": 2,
+    "failed": 0,
+    "seconds": 149.66,
+    "log": "full-suite-final.log"
+  },
+  "targeted_macros": {
+    "passed": 59,
+    "log": "macros-final.log"
+  },
+  "legacy_contracts": {
+    "passed": 60,
+    "xfailed": 2,
+    "log": "contracts-final.log"
+  },
+  "ruff": "passed",
+  "sphinx": "passed",
+  "mypy": {
+    "new_errors": 0,
+    "existing_errors": [
+      "dialects/postgres.py:127",
+      "dialects/postgres.py:367"
+    ]
+  },
+  "approved_changes": [
+    "addPkeyColumn opt-in on hierarchical path",
+    "reuse existing IN_RANGE typed-comparison ordering"
+  ],
+  "remaining_difference": "Native sys_fields order in star differs from frozen legacy XML",
+  "not_connected": [
+    "count terminal",
+    "wildcard prefixes/paths"
+  ],
+  "many_handlers": 0,
+  "migration_tables_unchanged": 74
+}

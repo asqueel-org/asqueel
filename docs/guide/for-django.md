@@ -37,8 +37,9 @@ rows = db.table('sales.invoice').query(
 
 Both ask the database for selected values across a relationship. The change is
 the expression language: Django lookup keywords become SQL expressions with
-model references and bound parameters. Asqueel returns dictionaries using the
-projection names, here `id` and `customer_name`. Each `fetch()` executes again;
+model references and bound parameters. Asqueel returns mutable `NamedList` rows
+using the projection names, here `id` and `customer_name`, or numeric positions.
+Use `dict(row)` for a dictionary. Each `fetch()` executes again;
 reusing the query does not reuse a QuerySet-style result cache.
 
 If many screens and exports need `customer_name`, declare an alias column for

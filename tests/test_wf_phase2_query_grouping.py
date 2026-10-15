@@ -39,16 +39,16 @@ def test_plan_renders_distinct_group_by_and_having_in_clause_order(dialect_class
                   having=concat('COUNT(*) >= ', Parameter('minimum')),
                   order_by=column('customer_id'), limit=2, params={'minimum': 1})
     assert text(dialect.render(plan)) == (
-        'SELECT DISTINCT "t0"."customer_id" AS "customer_id" FROM "sales"."invoice" AS "t0" '
-        'GROUP BY "t0"."customer_id" HAVING COUNT(*) >= <bind:minimum> '
-        'ORDER BY "t0"."customer_id" LIMIT 2')
+        'SELECT DISTINCT "t0"."customer_id" AS "customer_id"\n FROM "sales"."invoice" AS "t0"\n'
+        'GROUP BY "t0"."customer_id"\nHAVING COUNT(*) >= <bind:minimum>\n'
+        'ORDER BY "t0"."customer_id"\nLIMIT 2')
 
 
 @pytest.mark.parametrize('dialect_class', DIALECTS)
 def test_plan_defaults_render_no_new_clause(dialect_class):
     dialect = dialect_class()
     rendered = text(dialect.render(select(dialect)))
-    assert rendered == 'SELECT "t0"."customer_id" AS "customer_id" FROM "sales"."invoice" AS "t0"'
+    assert rendered == 'SELECT "t0"."customer_id" AS "customer_id"\n FROM "sales"."invoice" AS "t0"'
 
 
 @pytest.mark.parametrize('dialect_class', DIALECTS)
@@ -78,7 +78,7 @@ def test_distinct_true_projects_only_the_requested_columns(shop):
     query = shop.query(columns='$total', distinct=True, order_by='$total')
     assert flat(query.compiled.sql).startswith('SELECT DISTINCT ')
     rows = query.fetch()
-    assert [set(row) for row in rows] == [{'total'}] * 4
+    assert [set(row.keys()) for row in rows] == [{'total'}] * 4
     assert [amount(row['total']) for row in rows] == [
         amount('7.00'), amount('15.50'), amount('40.00'), amount('125.00')]
 
@@ -101,7 +101,7 @@ def test_distinct_other_values_are_rejected(shop, value):
 
 def test_distinct_through_a_to_one_path(shop):
     rows = shop.query(columns='@customer.name AS name', distinct=True).fetch()
-    assert sorted(rows, key=lambda row: (row['name'] is None, row['name'])) == [
+    assert [dict(row) for row in sorted(rows, key=lambda row: (row['name'] is None, row['name']))] == [
         {'name': 'Ada'}, {'name': 'Grace'}, {'name': 'Linus'}, {'name': None}]
 
 

@@ -69,9 +69,10 @@ def test_multi_hop_tokens_in_literals_are_not_resolved(model):
     assert "'$fake @customer.@country.name'" in query.sql
 
 
-def test_wildcard_select_expands_aliases_but_dml_defaults_do_not(model):
+def test_wildcard_excludes_dynamic_aliases_and_dml_defaults_stay_physical(model):
     compiler = PostgresCompiler(model)
-    assert 'country_name' in [c.name for c in compiler.select('invoice').columns]
+    assert 'country_name' not in [c.name for c in compiler.select('invoice').columns]
+    assert 'country_name' in [c.name for c in compiler.select('invoice', '$country_name').columns]
     results = [compiler.insert('invoice', {'id': 1}),
                compiler.update('invoice', {'customer_id': 2}, '$id=:id', {'id': 1}),
                compiler.delete('invoice', '$id=:id', {'id': 1})]

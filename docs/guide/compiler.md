@@ -10,6 +10,11 @@ These examples expose the components used internally by `SqlDatabase`.
 call `commit()` or `rollback()` explicitly, as with the application database. Compilation does not
 connect to a database, create tables, or apply migrations.
 
+This page describes the existing `QueryCompiler` profile through
+`PostgresCompiler`. The hierarchical `TreeQueryCompiler` differs for symbolic
+WHERE parameters and missing bindings; see
+[symbolic parameters](queries.md#symbolic-parameters-and-external-values).
+
 This page uses a small resolved model. You can obtain the same kind of model
 from [builder declarations](models.md) or [database inspection](importing.md).
 
@@ -68,6 +73,7 @@ The main arguments are:
 |---|---|
 | `table` | Logical `schema.table` name; a short table name is accepted only when unambiguous. |
 | `columns` | A comma-separated string or sequence of projection expressions. Defaults to `'*'`. |
+| `bagFields` | `False`; include physical X columns in wildcard SELECTs when true. |
 | `where` | A trusted SQL expression with Asqueel column references and named data parameters. |
 | `params` | A mapping of parameter names to Python values. |
 | `order_by` | A trusted ordering expression, such as `'$total DESC, $id'`. |
@@ -76,8 +82,8 @@ The main arguments are:
 | `exclude_logical_deleted` | `True`, `False`, or `'mark'`; defaults to `True`. |
 | `ignore_partition` | Defaults to `False`; `True` explicitly bypasses declared partition filters. |
 
-See [row policies](row-policies.md) for the last three options. If a table has a
-partition policy, its required [environment](environment.md) must be available
+See [row policies](row-policies.md) for the last three options. If a table has the older
+`x_partition` policy, its required [environment](environment.md) must be available
 even when the query's explicit `where` already restricts that column.
 
 ### Column references and names
@@ -110,8 +116,11 @@ query = compiler.select(
 ```
 
 Aliases must be unique. An alias containing spaces must be quoted, for example
-`'$total AS "Invoice amount"'`. `*` expands all declared columns, including
-formula columns; it is not forwarded as a database wildcard.
+`'$total AS "Invoice amount"'`. `*` expands physical columns followed by virtual
+columns marked `static=True`. Physical X columns require `bagFields=True`; static
+virtual X columns are included in either mode. Explicit projections are unaffected.
+The wildcard is resolved by the model, not forwarded to the database. DML
+`RETURNING *` continues to include all physical columns and no virtual columns.
 
 ### Relations
 
@@ -195,7 +204,10 @@ finally:
     db.close()
 ```
 
-`QueryResult.rows` is an eagerly materialized list of dictionaries.
+`QueryResult.rows` is an eagerly materialized list of Toolbox `NamedList` rows,
+with mutable values accessible by name and position on PostgreSQL and SQLite.
+This also applies to DML RETURNING. Use `dict(row)` for a dictionary; iteration
+and JSON serialization of the row itself follow list semantics.
 `QueryResult.rowcount` is the driver's affected/returned-row count, and
 `QueryResult.columns` describes the result columns. For direct columns,
 metadata includes the model dtype, UI metadata, and the stable column identity
@@ -260,6 +272,14 @@ are separate operations. Declared partition guards apply to writes; draft and
 logical-deletion read filters do not automatically restrict them.
 
 ## Compiler responsibilities
+
+The [compile-only query example](queries.md#compile-without-executing) uses this
+same pipeline. The [legacy filter macros](queries.md#legacy-filter-macros)
+IN_RANGE and PERIOD are expanded before field and parameter resolution in WHERE.
+When using the compiler directly with PERIOD, supply `workdate` and `locale`
+through its existing `SqlEnvironment`; the application database already provides
+their defaults. A bare low-level environment has no such defaults and reports
+the missing inputs rather than inventing them.
 
 The compiler resolves model references, relation paths, formulas, aliases and
 named parameters. Uppercase `#NAME` constructs introduce operations owned by Asqueel

@@ -139,7 +139,7 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
                 raise RuntimeError('abort transaction')
         assert not db.execute(compiler.select('crm.customer')).rows
         db.execute(compiler.insert('crm.customer', {'id': 10, 'name': 'Committed'}))
-        assert db.execute(compiler.select('crm.customer', columns='$id')).rows == [{'id': 10}]
+        assert [dict(row) for row in db.execute(compiler.select('crm.customer', columns='$id')).rows] == [{'id': 10}]
         db.commit()
     assert connection.execute(sql.SQL('SELECT id FROM {}.crm_customer').format(
         sql.Identifier(schema))).fetchall() == [(10,)]
@@ -155,4 +155,4 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
                 second.execute(compiler.insert('crm.customer', {'id': 32, 'name': 'Commit'}))
                 second.commit()
                 raise RuntimeError('abort first')
-        assert first.execute(compiler.select('crm.customer', columns='$id')).rows == [{'id': 32}]
+        assert [dict(row) for row in first.execute(compiler.select('crm.customer', columns='$id')).rows] == [{'id': 32}]

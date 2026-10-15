@@ -1,0 +1,990 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF                 [100%]
+=================================== FAILURES ===================================
+___________________ test_count_legacy_contract[sqlite-plain] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a833860>
+case = {'dialect': 'sqlite', 'request': {'name': 'plain', 'table': 'invc.invoice', 'columns': '$id,$total', 'origin': 'gnrpy/..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________________ test_count_legacy_contract[sqlite-where] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a889790>
+case = {'dialect': 'sqlite', 'request': {'name': 'where', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/s...r_row_count"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."total">:minimum)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________________ test_count_legacy_contract[sqlite-empty] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a43ff80>
+case = {'dialect': 'sqlite', 'request': {'name': 'empty', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/s...T  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0\nWHERE (1=0)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+__________________ test_count_legacy_contract[sqlite-to_one] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a889c10>
+case = {'dialect': 'sqlite', 'request': {'name': 'to_one', 'table': 'invc.invoice', 'columns': '$id,@customer_id.account_name..." ON (("t0"."customer_id")="t1"."id")\nWHERE ("t1"."account_name" IS NOT NULL)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[sqlite-projection_only] ______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a8ee9f0>
+case = {'dialect': 'sqlite', 'request': {'name': 'projection_only', 'table': 'invc.invoice', 'columns': '@customer_id.account..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________________ test_count_legacy_contract[sqlite-group] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x1099cf3e0>
+case = {'dialect': 'sqlite', 'request': {'name': 'group', 'table': 'invc.invoice', 'columns': '$customer_id,SUM($total) AS su... "customer_id"\n FROM "invc"."invc_invoice" AS t0\nGROUP BY "t0"."customer_id"', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+__________________ test_count_legacy_contract[sqlite-having] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b65d580>
+case = {'dialect': 'sqlite', 'request': {'name': 'having', 'table': 'invc.invoice', 'columns': '$customer_id,SUM($total) AS s...invoice" AS t0\nGROUP BY "t0"."customer_id"\nHAVING SUM("t0"."total")>:minimum', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[sqlite-empty_group] ________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b2e45f0>
+case = {'dialect': 'sqlite', 'request': {'name': 'empty_group', 'table': 'invc.invoice', 'columns': '$customer_id,SUM($total)..."\n FROM "invc"."invc_invoice" AS t0\nWHERE (1=0)\nGROUP BY "t0"."customer_id"', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[sqlite-group_relation] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a89e510>
+case = {'dialect': 'sqlite', 'request': {'name': 'group_relation', 'table': 'invc.invoice', 'columns': '@customer_id.account_...omer_id")="t1"."id")\nGROUP BY "t1"."account_name"\nHAVING SUM("t0"."total")>0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[sqlite-distinct] __________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b35fc50>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct', 'table': 'invc.invoice', 'columns': '$customer_id', 'origin': 'g...ISTINCT "t0"."customer_id" AS "customer_id"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_____________ test_count_legacy_contract[sqlite-distinct_relation] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10aed6810>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_relation', 'table': 'invc.invoice', 'columns': '@customer_id.accou...  LEFT JOIN "invc"."invc_customer" AS "t1" ON (("t0"."customer_id")="t1"."id")', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_____________ test_count_legacy_contract[sqlite-distinct_formula] ______________
+
+database = <asqueel.application.SqlDatabase object at 0x10b26d880>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_formula', 'table': 'invc.invoice_row', 'columns': '$line_total', '..." * "t0"."unit_price" ) AS "line_total"\n FROM "invc"."invc_invoice_row" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[sqlite-empty_distinct] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10af7af30>
+case = {'dialect': 'sqlite', 'request': {'name': 'empty_distinct', 'table': 'invc.invoice', 'columns': '$customer_id', 'origi..."customer_id" AS "customer_id"\n FROM "invc"."invc_invoice" AS t0\nWHERE (1=0)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[sqlite-group_star] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a56aff0>
+case = {'dialect': 'sqlite', 'request': {'name': 'group_star', 'table': 'invc.invoice', 'columns': 'SUM($total) AS n', 'origi..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________ test_count_legacy_contract[sqlite-aggregate_projection] ____________
+
+database = <asqueel.application.SqlDatabase object at 0x10a6b0380>
+case = {'dialect': 'sqlite', 'request': {'name': 'aggregate_projection', 'table': 'invc.invoice', 'columns': 'SUM($total) AS ..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[sqlite-defaults] __________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b37e120>
+case = {'dialect': 'sqlite', 'request': {'name': 'defaults', 'table': 'invc.customer', 'columns': '*', 'origin': 'gnrpy/tests...er" AS t0\nWHERE ("t0"."__del_ts" IS NULL) AND ("t0"."__is_draft" IS NOT TRUE)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________________ test_count_legacy_contract[sqlite-mark] ____________________
+
+database = <asqueel.application.SqlDatabase object at 0x10ad19820>
+case = {'dialect': 'sqlite', 'request': {'name': 'mark', 'table': 'invc.customer', 'columns': '$id', 'origin': 'gnrpy/tests/s...nt"\n FROM "invc"."invc_customer" AS t0\nWHERE ("t0"."__is_draft" IS NOT TRUE)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[sqlite-group_mark] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10aed6c60>
+case = {'dialect': 'sqlite', 'request': {'name': 'group_mark', 'table': 'invc.customer', 'columns': '$state,COUNT(*) AS n', '..._customer" AS t0\nWHERE ("t0"."__is_draft" IS NOT TRUE)\nGROUP BY "t0"."state"', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_______________ test_count_legacy_contract[sqlite-distinct_mark] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a728800>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_mark', 'table': 'invc.customer', 'columns': '$state', 'origin': 'g...te"\n FROM "invc"."invc_customer" AS t0\nWHERE ("t0"."__is_draft" IS NOT TRUE)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[sqlite-drop_order] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10aab83e0>
+case = {'dialect': 'sqlite', 'request': {'name': 'drop_order', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/te..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________________ test_count_legacy_contract[sqlite-limit] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a9c5820>
+case = {'dialect': 'sqlite', 'request': {'name': 'limit', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/s...ELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0\nLIMIT 2', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+__________________ test_count_legacy_contract[sqlite-offset] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b616fc0>
+case = {'dialect': 'sqlite', 'request': {'name': 'offset', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/...nt(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0\nLIMIT 2\nOFFSET 1', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[sqlite-distinct_limit] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10b4ead50>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_limit', 'table': 'invc.invoice', 'columns': '$customer_id', 'origi...t0"."customer_id" AS "customer_id"\n FROM "invc"."invc_invoice" AS t0\nLIMIT 2', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[postgresql-plain] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b82b0b0>
+case = {'dialect': 'sqlite', 'request': {'name': 'plain', 'table': 'invc.invoice', 'columns': '$id,$total', 'origin': 'gnrpy/..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[postgresql-where] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10aa2bf50>
+case = {'dialect': 'sqlite', 'request': {'name': 'where', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/s...r_row_count"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."total">:minimum)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[postgresql-empty] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b6ce870>
+case = {'dialect': 'sqlite', 'request': {'name': 'empty', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/s...T  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0\nWHERE (1=0)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[postgresql-to_one] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a89e120>
+case = {'dialect': 'sqlite', 'request': {'name': 'to_one', 'table': 'invc.invoice', 'columns': '$id,@customer_id.account_name..." ON (("t0"."customer_id")="t1"."id")\nWHERE ("t1"."account_name" IS NOT NULL)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+____________ test_count_legacy_contract[postgresql-projection_only] ____________
+
+database = <asqueel.application.SqlDatabase object at 0x10b35f890>
+case = {'dialect': 'sqlite', 'request': {'name': 'projection_only', 'table': 'invc.invoice', 'columns': '@customer_id.account..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[postgresql-group] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a7371d0>
+case = {'dialect': 'sqlite', 'request': {'name': 'group', 'table': 'invc.invoice', 'columns': '$customer_id,SUM($total) AS su... "customer_id"\n FROM "invc"."invc_invoice" AS t0\nGROUP BY "t0"."customer_id"', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[postgresql-having] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b730fb0>
+case = {'dialect': 'sqlite', 'request': {'name': 'having', 'table': 'invc.invoice', 'columns': '$customer_id,SUM($total) AS s...invoice" AS t0\nGROUP BY "t0"."customer_id"\nHAVING SUM("t0"."total")>:minimum', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[postgresql-empty_group] ______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a8a11f0>
+case = {'dialect': 'sqlite', 'request': {'name': 'empty_group', 'table': 'invc.invoice', 'columns': '$customer_id,SUM($total)..."\n FROM "invc"."invc_invoice" AS t0\nWHERE (1=0)\nGROUP BY "t0"."customer_id"', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+____________ test_count_legacy_contract[postgresql-group_relation] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10adc7da0>
+case = {'dialect': 'sqlite', 'request': {'name': 'group_relation', 'table': 'invc.invoice', 'columns': '@customer_id.account_...omer_id")="t1"."id")\nGROUP BY "t1"."account_name"\nHAVING SUM("t0"."total")>0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_______________ test_count_legacy_contract[postgresql-distinct] ________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a5bfbf0>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct', 'table': 'invc.invoice', 'columns': '$customer_id', 'origin': 'g...ISTINCT "t0"."customer_id" AS "customer_id"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________ test_count_legacy_contract[postgresql-distinct_relation] ___________
+
+database = <asqueel.application.SqlDatabase object at 0x10a7365d0>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_relation', 'table': 'invc.invoice', 'columns': '@customer_id.accou...  LEFT JOIN "invc"."invc_customer" AS "t1" ON (("t0"."customer_id")="t1"."id")', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+___________ test_count_legacy_contract[postgresql-distinct_formula] ____________
+
+database = <asqueel.application.SqlDatabase object at 0x10b5bd8e0>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_formula', 'table': 'invc.invoice_row', 'columns': '$line_total', '..." * "t0"."unit_price" ) AS "line_total"\n FROM "invc"."invc_invoice_row" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+____________ test_count_legacy_contract[postgresql-empty_distinct] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10b4e82f0>
+case = {'dialect': 'sqlite', 'request': {'name': 'empty_distinct', 'table': 'invc.invoice', 'columns': '$customer_id', 'origi..."customer_id" AS "customer_id"\n FROM "invc"."invc_invoice" AS t0\nWHERE (1=0)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[postgresql-group_star] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a6b0c20>
+case = {'dialect': 'sqlite', 'request': {'name': 'group_star', 'table': 'invc.invoice', 'columns': 'SUM($total) AS n', 'origi..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________ test_count_legacy_contract[postgresql-aggregate_projection] __________
+
+database = <asqueel.application.SqlDatabase object at 0x10ad80c20>
+case = {'dialect': 'sqlite', 'request': {'name': 'aggregate_projection', 'table': 'invc.invoice', 'columns': 'SUM($total) AS ..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_______________ test_count_legacy_contract[postgresql-defaults] ________________
+
+database = <asqueel.application.SqlDatabase object at 0x10aaba930>
+case = {'dialect': 'sqlite', 'request': {'name': 'defaults', 'table': 'invc.customer', 'columns': '*', 'origin': 'gnrpy/tests...er" AS t0\nWHERE ("t0"."__del_ts" IS NULL) AND ("t0"."__is_draft" IS NOT TRUE)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[postgresql-mark] __________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b5bc680>
+case = {'dialect': 'sqlite', 'request': {'name': 'mark', 'table': 'invc.customer', 'columns': '$id', 'origin': 'gnrpy/tests/s...nt"\n FROM "invc"."invc_customer" AS t0\nWHERE ("t0"."__is_draft" IS NOT TRUE)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[postgresql-group_mark] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10b055850>
+case = {'dialect': 'sqlite', 'request': {'name': 'group_mark', 'table': 'invc.customer', 'columns': '$state,COUNT(*) AS n', '..._customer" AS t0\nWHERE ("t0"."__is_draft" IS NOT TRUE)\nGROUP BY "t0"."state"', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_____________ test_count_legacy_contract[postgresql-distinct_mark] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10ad80cb0>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_mark', 'table': 'invc.customer', 'columns': '$state', 'origin': 'g...te"\n FROM "invc"."invc_customer" AS t0\nWHERE ("t0"."__is_draft" IS NOT TRUE)', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+______________ test_count_legacy_contract[postgresql-drop_order] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a722f00>
+case = {'dialect': 'sqlite', 'request': {'name': 'drop_order', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/te..._sql': 'SELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_count_legacy_contract[postgresql-limit] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10aea9970>
+case = {'dialect': 'sqlite', 'request': {'name': 'limit', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/s...ELECT  count(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0\nLIMIT 2', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+________________ test_count_legacy_contract[postgresql-offset] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10a89ea80>
+case = {'dialect': 'sqlite', 'request': {'name': 'offset', 'table': 'invc.invoice', 'columns': '$id', 'origin': 'gnrpy/tests/...nt(*) AS "gnr_row_count"\n FROM "invc"."invc_invoice" AS t0\nLIMIT 2\nOFFSET 1', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+____________ test_count_legacy_contract[postgresql-distinct_limit] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10af7b920>
+case = {'dialect': 'sqlite', 'request': {'name': 'distinct_limit', 'table': 'invc.invoice', 'columns': '$customer_id', 'origi...t0"."customer_id" AS "customer_id"\n FROM "invc"."invc_invoice" AS t0\nLIMIT 2', 'execution_audit_omitted': True, ...}}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['request']['name'])
+    def test_count_legacy_contract(database, case):  # noqa: F811
+        request = case['request']
+        expected = next(c['expected'] for c in ORACLE['cases']
+                        if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+        query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
+        before = query.compiled
+>       actual = query._compile(database.compiler.count)
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:21: AttributeError
+_________________ test_many_still_unsupported[sqlite-options0] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b0c7290>
+options = {'columns': '@invoices.sum($total)'}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_________________ test_many_still_unsupported[sqlite-options1] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b37e8d0>
+options = {'columns': '$id', 'where': '@invoices.sum($total)>0'}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_________________ test_many_still_unsupported[sqlite-options2] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10b65ecf0>
+options = {'columns': '@invoices.total', 'distinct': True}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_________________ test_many_still_unsupported[sqlite-options3] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10aed6a50>
+options = {'columns': '$id', 'where': '@invoices.total>0'}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_______________ test_many_still_unsupported[postgresql-options0] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a728800>
+options = {'columns': '@invoices.sum($total)'}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_______________ test_many_still_unsupported[postgresql-options1] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10b6c0d70>
+options = {'columns': '$id', 'where': '@invoices.sum($total)>0'}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_______________ test_many_still_unsupported[postgresql-options2] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10aabb860>
+options = {'columns': '@invoices.total', 'distinct': True}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+_______________ test_many_still_unsupported[postgresql-options3] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10b030890>
+options = {'columns': '$id', 'where': '@invoices.total>0'}
+
+    @pytest.mark.parametrize('options', [dict(columns='@invoices.sum($total)'),
+        dict(columns='$id',where='@invoices.sum($total)>0'),
+        dict(columns='@invoices.total',distinct=True),
+        dict(columns='$id',where='@invoices.total>0')])
+    def test_many_still_unsupported(database, options):  # noqa: F811
+        with pytest.raises(UnsupportedFeatureError):
+>           database.compiler.count('invc.customer', **options)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:37: AttributeError
+__________________ test_count_ignores_automatic_pkey[sqlite] ___________________
+
+database = <asqueel.application.SqlDatabase object at 0x10af20b60>
+
+    def test_count_ignores_automatic_pkey(database):  # noqa: F811
+>       result = database.compiler.count('invc.invoice', '$id', addPkeyColumn=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:41: AttributeError
+________________ test_count_ignores_automatic_pkey[postgresql] _________________
+
+database = <asqueel.application.SqlDatabase object at 0x10ae05fd0>
+
+    def test_count_ignores_automatic_pkey(database):  # noqa: F811
+>       result = database.compiler.count('invc.invoice', '$id', addPkeyColumn=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'TreeQueryCompiler' object has no attribute 'count'
+
+tests/object_tree/test_count.py:41: AttributeError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-plain]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-where]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-empty]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-to_one]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-projection_only]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-group]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-having]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-empty_group]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-group_relation]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-distinct]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-distinct_relation]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-distinct_formula]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-empty_distinct]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-group_star]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-aggregate_projection]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-defaults]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-mark]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-group_mark]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-distinct_mark]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-drop_order]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-limit]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-offset]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[sqlite-distinct_limit]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-plain]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-where]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-empty]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-to_one]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-projection_only]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-group]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-having]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-empty_group]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-group_relation]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-distinct]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-distinct_relation]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-distinct_formula]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-empty_distinct]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-group_star]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-aggregate_projection]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-defaults]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-mark]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-group_mark]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-distinct_mark]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-drop_order]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-limit]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-offset]
+FAILED tests/object_tree/test_count.py::test_count_legacy_contract[postgresql-distinct_limit]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[sqlite-options0]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[sqlite-options1]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[sqlite-options2]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[sqlite-options3]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[postgresql-options0]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[postgresql-options1]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[postgresql-options2]
+FAILED tests/object_tree/test_count.py::test_many_still_unsupported[postgresql-options3]
+FAILED tests/object_tree/test_count.py::test_count_ignores_automatic_pkey[sqlite]
+FAILED tests/object_tree/test_count.py::test_count_ignores_automatic_pkey[postgresql]
+56 failed in 32.49s

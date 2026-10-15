@@ -85,6 +85,14 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         'pyColumn': 'virtual_columns', 'compositeColumn': 'composites',
         'index': 'indexes', 'bagItemColumn': 'virtual_columns',
     }
+    # DbModelSrc.virtual_column's kind cleanup, using the native declarations.
+    _virtual_definitions = {
+        'aliasColumn': {'relation_path'},
+        'formulaColumn': {'sql_formula', 'expression', 'handler', 'select', 'exists'},
+        'subQueryColumn': {'query'},
+        'pyColumn': {'py_method', 'method'},
+        'bagItemColumn': {'bagcolumn', 'itempath'},
+    }
 
     def __init__(self, name: str | None = None) -> None:
         super().__init__(name)
@@ -151,12 +159,41 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         finally:
             self._contribution = previous
 
-    def _compose_attributes(self, node, attributes):
+    def _compose_attributes(self, node, attributes, *, node_tag=None):
+        replace_kind = node_tag is not None and node_tag != node.node_tag
+        if replace_kind and not (node.node_tag in self._virtual_definitions
+                                 and node_tag in self._virtual_definitions):
+            raise ValueError(f'{node.fullpath}: conflicting element kinds '
+                             f'{node.node_tag!r} and {node_tag!r}')
         validation_overrides = self._validation_overrides(node, attributes)
         result = deepcopy(dict(node.attr))
         origins = dict(self._attribute_origins)
         path = self._node_path(node)
+        if replace_kind:
+            obsolete = self._virtual_definitions[node.node_tag] - self._virtual_definitions[node_tag]
+            for key in obsolete - attributes.keys():
+                result.pop(key, None)
+                origins = {entry: owner for entry, owner in origins.items()
+                           if entry[0] != path or not (entry[1] == key or entry[1].startswith(key + '.'))}
         meta = result.setdefault('_meta', {})
+        incoming_inherited = (attributes.get('_meta') or {}).get('inherited_attributes', ())
+        if incoming_inherited:
+            meta['inherited_attributes'] = sorted(set(meta.get('inherited_attributes', ()))
+                                                  | set(incoming_inherited))
+        if replace_kind:
+            # An attribute accepted by the original declaration stays valid
+            # when retained (e.g. static on an alias changed to a bag item).
+            declared = self._get_schema_info(node.node_tag).get('declared_names') or set()
+            if node.node_tag == 'formulaColumn':
+                declared = declared | {key for key in result
+                                       if re.fullmatch(r'select_[A-Za-z_][A-Za-z0-9_]*', key)}
+            inherited = set(meta.get('inherited_attributes', ())) | (declared & result.keys())
+            current = self._get_schema_info(node_tag).get('declared_names') or set()
+            inherited = (inherited & result.keys()) - current
+            if inherited:
+                meta['inherited_attributes'] = sorted(inherited)
+            else:
+                meta.pop('inherited_attributes', None)
         disabled = meta.setdefault('disabled_fields', {}) if node.node_tag == 'sys_fields' else {}
 
         def origin(parts):
@@ -172,7 +209,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 for subkey, item in value.items():
                     assign(previous, subkey, item, (*parts, subkey), depth - 1)
                 return
-            if key in target and previous != value and origin(parts) == self._contribution:
+            if not replace_kind and key in target and previous != value and origin(parts) == self._contribution:
                 raise ValueError(f'{path}: conflicting {".".join(parts)!r} '
                                  f'in contribution {self._contribution!r}')
             target[key] = deepcopy(value)
@@ -205,6 +242,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             result.pop('_meta', None)
         node.attr.clear()
         node.attr.update(result)
+        if replace_kind:
+            node.node_tag = node_tag
         self._attribute_origins = origins
         for other, key in validation_overrides:
             other.attr.pop(key, None)
@@ -404,7 +443,12 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                         if key.startswith('col_') and key[4:] in declared
                         and (existing is None or key[4:] not in existing.attr)}
             values = () if node_value is None else (node_value,)
-            return getattr(table, node_tag)(*values, **{**defaults, **attr, 'group': group})
+            child = getattr(table, node_tag)(*values, **{**defaults, **attr, 'group': group})
+            # A layer-local ordinal must not renumber an existing column when
+            # this independently built contribution is composed with its base.
+            child.attr['_meta'] = {**child.attr.get('_meta', {}),
+                                   'colgroup': parent.get_attr('name')}
+            return child
         if node_tag == 'colgroup':
             name = attr.get('name')
             if not isinstance(name, str) or not name or '.' in name:
@@ -497,9 +541,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             if (node_tag in ('schema', 'package') or self._package_ancestor(parent) is not None) and name:
                 existing = build_where.node(name)
                 if existing is not None:
-                    if existing.node_tag != node_tag:
-                        raise ValueError(f'conflicting element kind for {name!r}')
-                    return self._compose_attributes(existing, attr)
+                    return self._compose_attributes(existing, attr, node_tag=node_tag)
         if node_label is not None and build_where.node(node_label) is not None:
             raise ValueError(
                 f"duplicate {node_tag} name {name!r} in the same SQL namespace",

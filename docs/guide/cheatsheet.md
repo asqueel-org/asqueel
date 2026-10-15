@@ -15,7 +15,7 @@ exist. Calls below are alternatives, not one script to execute in sequence.
 | Read configuration | `table.config('pkey')` | Effective value from the shared handler. |
 | Build a query | `table.query(columns='$id, $name')` | Lazy `SqlQuery`. |
 | Inspect SQL | `query.sqltext` / `query.compiled` | Compiles; no I/O. |
-| Read rows | `query.fetch()` | Executes; `list[dict]`. |
+| Read rows | `query.fetch()` | Executes; `list[NamedList]`, mutable rows with name/position access. |
 | Read rows and metadata | `query.execute()` | Executes; `QueryResult`. |
 | Read one row now | `table.record(1, mode='dict')` | Executes; exactly one dictionary or an error. |
 | Cache one row | `reader = table.record(1)` then `reader.output('dict')` | Loads once; subsequent outputs are copies. |

@@ -94,7 +94,7 @@ def test_mounted_database_writes_and_reads_on_sqlite(tmp_path):
     try:
         db.table('chat.message').insert({'text': 'ciao'})
         db.commit()
-        assert db.table('chat.message').query(columns='$id, $text').fetch() == [{'id': 1, 'text': 'ciao'}]
+        assert [dict(row) for row in db.table('chat.message').query(columns='$id, $text').fetch()] == [{'id': 1, 'text': 'ciao'}]
     finally:
         db.close()
 

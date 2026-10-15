@@ -1,0 +1,32 @@
+{
+  "object_tree": {
+    "passed": 2427,
+    "seconds": 88.62
+  },
+  "other_tests": {
+    "passed": 2801,
+    "skipped": 21,
+    "seconds": 106.65
+  },
+  "total": {
+    "passed": 5228,
+    "skipped": 21,
+    "xfailed": 0,
+    "failed": 0
+  },
+  "order_contracts": 79,
+  "baseline_star": {
+    "passed": 2,
+    "xfailed": 2
+  },
+  "native_tables": 74,
+  "legacy_order_identical": 62,
+  "legacy_order_different": 12,
+  "source_unchanged": true,
+  "compiler_unchanged": true,
+  "migration_content_unchanged": true,
+  "ruff": "passed (changed files)",
+  "mypy": "passed (three changed source files)",
+  "sphinx": "passed",
+  "diff_check": "passed"
+}

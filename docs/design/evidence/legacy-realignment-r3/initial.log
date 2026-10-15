@@ -1,0 +1,350 @@
+..F.............F...............F....................................... [ 18%]
+........................................................................ [ 37%]
+...............................................................FF....... [ 56%]
+........................................................................ [ 75%]
+........................FFFF..FF..........FF........FF......F........... [ 94%]
+...................                                                      [100%]
+=================================== FAILURES ===================================
+__________ test_reuse_keeps_manglers_and_inputs_separate[postgresql] ___________
+
+db = <asqueel.application.SqlDatabase object at 0x108da54c0>
+
+    def test_reuse_keeps_manglers_and_inputs_separate(db):
+        values = [1, 2]
+        query = db.table('sales.invoice').query(
+            columns='$id', where='$id IN :ids AND $id <> :ids_0 AND $issued=:env_workdate',
+            ids=values, ids_0=3)
+        values.append(99)
+        first = query.compiled
+        with db.tempEnv(workdate=date(2026, 10, 15)):
+            second = query.compiled
+        third = query.compiled
+        assert first.sql == second.sql == third.sql
+        assert first.params == third.params
+        assert second.params['env_workdate'] == date(2026, 10, 15)
+>       assert first.params['ids_0'] == 3
+E       assert 1 == 3
+
+tests/object_tree/test_minimal_select.py:101: AssertionError
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs1-ValueError-Missing] _
+
+db = <asqueel.application.SqlDatabase object at 0x108e835f0>
+kwargs = {'columns': '$id', 'where': '$id=:missing'}
+error = <class 'ValueError'>, message = 'Missing'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'where': '$id=:missing'}, ValueError, 'Missing'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$double_total'}, UnsupportedFeatureError, 'virtual/composite'),
+        ({'columns': '$copied_id'}, UnsupportedFeatureError, 'virtual/composite'),
+        ({'columns': '@customer_id.name'}, UnsupportedFeatureError, 'Relations'),
+        ({'columns': '$id', 'where': '@customer_id.id=:id', 'id': 1}, UnsupportedFeatureError, 'Relations'),
+        ({'columns': '$id', 'order_by': '@customer_id.name'}, UnsupportedFeatureError, 'Relations'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/object_tree/test_minimal_select.py:162: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs1-ValueError-Missing] _
+
+db = <asqueel.application.SqlDatabase object at 0x108dfd370>
+kwargs = {'columns': '$id', 'where': '$id=:missing'}
+error = <class 'ValueError'>, message = 'Missing'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'where': '$id=:missing'}, ValueError, 'Missing'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$double_total'}, UnsupportedFeatureError, 'virtual/composite'),
+        ({'columns': '$copied_id'}, UnsupportedFeatureError, 'virtual/composite'),
+        ({'columns': '@customer_id.name'}, UnsupportedFeatureError, 'Relations'),
+        ({'columns': '$id', 'where': '@customer_id.id=:id', 'id': 1}, UnsupportedFeatureError, 'Relations'),
+        ({'columns': '$id', 'order_by': '@customer_id.name'}, UnsupportedFeatureError, 'Relations'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/object_tree/test_minimal_select.py:162: Failed
+_____________ test_empty_collection_and_pruned_params[postgresql] ______________
+
+db = <asqueel.application.SqlDatabase object at 0x109f23ef0>
+
+    def test_empty_collection_and_pruned_params(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$id IN :ids', sqlparams={'ids': [], 'unused': 3}).compiled
+>       assert compiled.params == {}
+E       AssertionError: assert mappingproxy(... 'unused': 3}) == {}
+E         
+E         Left contains 2 more items:
+E         {'ids': [], 'unused': 3}
+E         Use -v to get more diff
+
+tests/object_tree/test_minimal_select.py:261: AssertionError
+_______________ test_empty_collection_and_pruned_params[sqlite] ________________
+
+db = <asqueel.application.SqlDatabase object at 0x109cfb770>
+
+    def test_empty_collection_and_pruned_params(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$id IN :ids', sqlparams={'ids': [], 'unused': 3}).compiled
+>       assert compiled.params == {}
+E       AssertionError: assert mappingproxy({'unused': 3}) == {}
+E         
+E         Left contains 1 more item:
+E         {'unused': 3}
+E         Use -v to get more diff
+
+tests/object_tree/test_minimal_select.py:261: AssertionError
+______________ test_original_local_field_parameter[postgresql->] _______________
+
+db = <asqueel.application.SqlDatabase object at 0x10910c710>, operator = '>'
+
+    @pytest.mark.parametrize('operator', ['>', '<='])
+    def test_original_local_field_parameter(db, operator):
+        # TestEmbedFieldPars.test_column_param_{pg,sqlite}: same local-field comparison.
+        query = db.table('sales.invoice').query(columns='$id', where=f'$total {operator} :threshold',
+                                              threshold='$id')
+        first = query.compiled
+        assert f'"t0"."total" {operator} "t0"."id"' in first.sql
+        assert ':threshold' not in first.sql and '%(threshold)' not in first.sql
+>       assert first.params == {}
+E       AssertionError: assert mappingproxy(...hold': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'threshold': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:73: AssertionError
+______________ test_original_local_field_parameter[postgresql-<=] ______________
+
+db = <asqueel.application.SqlDatabase object at 0x108c56b10>, operator = '<='
+
+    @pytest.mark.parametrize('operator', ['>', '<='])
+    def test_original_local_field_parameter(db, operator):
+        # TestEmbedFieldPars.test_column_param_{pg,sqlite}: same local-field comparison.
+        query = db.table('sales.invoice').query(columns='$id', where=f'$total {operator} :threshold',
+                                              threshold='$id')
+        first = query.compiled
+        assert f'"t0"."total" {operator} "t0"."id"' in first.sql
+        assert ':threshold' not in first.sql and '%(threshold)' not in first.sql
+>       assert first.params == {}
+E       AssertionError: assert mappingproxy(...hold': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'threshold': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:73: AssertionError
+________________ test_original_local_field_parameter[sqlite->] _________________
+
+db = <asqueel.application.SqlDatabase object at 0x108b09250>, operator = '>'
+
+    @pytest.mark.parametrize('operator', ['>', '<='])
+    def test_original_local_field_parameter(db, operator):
+        # TestEmbedFieldPars.test_column_param_{pg,sqlite}: same local-field comparison.
+        query = db.table('sales.invoice').query(columns='$id', where=f'$total {operator} :threshold',
+                                              threshold='$id')
+        first = query.compiled
+        assert f'"t0"."total" {operator} "t0"."id"' in first.sql
+        assert ':threshold' not in first.sql and '%(threshold)' not in first.sql
+>       assert first.params == {}
+E       AssertionError: assert mappingproxy(...hold': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'threshold': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:73: AssertionError
+________________ test_original_local_field_parameter[sqlite-<=] ________________
+
+db = <asqueel.application.SqlDatabase object at 0x108dfc560>, operator = '<='
+
+    @pytest.mark.parametrize('operator', ['>', '<='])
+    def test_original_local_field_parameter(db, operator):
+        # TestEmbedFieldPars.test_column_param_{pg,sqlite}: same local-field comparison.
+        query = db.table('sales.invoice').query(columns='$id', where=f'$total {operator} :threshold',
+                                              threshold='$id')
+        first = query.compiled
+        assert f'"t0"."total" {operator} "t0"."id"' in first.sql
+        assert ':threshold' not in first.sql and '%(threshold)' not in first.sql
+>       assert first.params == {}
+E       AssertionError: assert mappingproxy(...hold': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'threshold': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:73: AssertionError
+____________ test_symbolic_bytes_and_prefix_boundaries[postgresql] _____________
+
+db = <asqueel.application.SqlDatabase object at 0x108cd8d70>
+
+    def test_symbolic_bytes_and_prefix_boundaries(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$total>:p AND $total<:p2', p=b'$id', p2=Decimal('20')).compiled
+        assert '"t0"."total">"t0"."id"' in compiled.sql
+>       assert compiled.params == {'p2': Decimal('20')}
+E       AssertionError: assert mappingproxy(...ecimal('20')}) == {'p2': Decimal('20')}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Left contains 1 more item:
+E         {'p': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:95: AssertionError
+______________ test_symbolic_bytes_and_prefix_boundaries[sqlite] _______________
+
+db = <asqueel.application.SqlDatabase object at 0x109012990>
+
+    def test_symbolic_bytes_and_prefix_boundaries(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$total>:p AND $total<:p2', p=b'$id', p2=Decimal('20')).compiled
+        assert '"t0"."total">"t0"."id"' in compiled.sql
+>       assert compiled.params == {'p2': Decimal('20')}
+E       AssertionError: assert mappingproxy(...ecimal('20')}) == {'p2': Decimal('20')}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Left contains 1 more item:
+E         {'p': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:95: AssertionError
+_____ test_unicode_symbolic_parameter_follows_legacy_boundary[postgresql] ______
+
+db = <asqueel.application.SqlDatabase object at 0x109002360>
+
+    def test_unicode_symbolic_parameter_follows_legacy_boundary(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$total>:soglia_è', sqlparams={'soglia_è': '$id'}).compiled
+        assert '"t0"."total">"t0"."id"' in compiled.sql
+>       assert compiled.params == {}
+E       AssertionError: assert mappingproxy(...ia_è': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'soglia_è': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:111: AssertionError
+_______ test_unicode_symbolic_parameter_follows_legacy_boundary[sqlite] ________
+
+db = <asqueel.application.SqlDatabase object at 0x108bc1dc0>
+
+    def test_unicode_symbolic_parameter_follows_legacy_boundary(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$total>:soglia_è', sqlparams={'soglia_è': '$id'}).compiled
+        assert '"t0"."total">"t0"."id"' in compiled.sql
+>       assert compiled.params == {}
+E       AssertionError: assert mappingproxy(...ia_è': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'soglia_è': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:111: AssertionError
+____ test_explicit_environment_parameter_remains_a_caller_input[postgresql] ____
+
+db = <asqueel.application.SqlDatabase object at 0x109002720>
+
+    def test_explicit_environment_parameter_remains_a_caller_input(db):
+        compiled = db.table('sales.invoice').query(columns='$id', where='$total>:env_value',
+                                                  env_value='$id').compiled
+        assert compiled.input_parameters == ('env_value',)
+        assert compiled.environment is None
+>       assert compiled.params == {}
+E       AssertionError: assert mappingproxy(...alue': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'env_value': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:143: AssertionError
+______ test_explicit_environment_parameter_remains_a_caller_input[sqlite] ______
+
+db = <asqueel.application.SqlDatabase object at 0x108f01040>
+
+    def test_explicit_environment_parameter_remains_a_caller_input(db):
+        compiled = db.table('sales.invoice').query(columns='$id', where='$total>:env_value',
+                                                  env_value='$id').compiled
+        assert compiled.input_parameters == ('env_value',)
+        assert compiled.environment is None
+>       assert compiled.params == {}
+E       AssertionError: assert mappingproxy(...alue': '$id'}) == {}
+E         
+E         Left contains 1 more item:
+E         {'env_value': '$id'}
+E         Use -v to get more diff
+
+tests/object_tree/test_legacy_projections_parameters.py:143: AssertionError
+__________ test_invalid_profile_and_missing_parameters_do_not_connect __________
+
+    def test_invalid_profile_and_missing_parameters_do_not_connect():
+        driver = SqliteDriver()
+        db = Database(':memory:', driver=driver)
+        with pytest.raises(ValueError, match='profile'):
+            db.execute(CompiledQuery('SELECT 1'))
+        with pytest.raises(ValueError, match='Missing'):
+>           db.execute('SELECT :missing')
+
+tests/sqlite/test_sqlite_driver.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:198: in execute
+    return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.drivers.sqlite.SqliteDriver object at 0x108bc1fd0>
+connection = <sqlite3.Connection object at 0x108a55c60>
+query = CompiledQuery(sql='SELECT :missing', params=mappingproxy({}), columns=(), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=('missing',))
+
+    def execute(self, connection, query):
+        self.validate(query)
+        if not connection.in_transaction:
+            connection.execute('BEGIN IMMEDIATE')
+        params = {name: self._value(value) for name, value in query.params.items()}
+>       cursor = connection.execute(query.sql, params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       sqlite3.ProgrammingError: You did not supply a value for binding parameter :missing.
+
+src/asqueel/drivers/sqlite.py:83: ProgrammingError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_minimal_select.py::test_reuse_keeps_manglers_and_inputs_separate[postgresql]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs1-ValueError-Missing]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs1-ValueError-Missing]
+FAILED tests/object_tree/test_minimal_select.py::test_empty_collection_and_pruned_params[postgresql]
+FAILED tests/object_tree/test_minimal_select.py::test_empty_collection_and_pruned_params[sqlite]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_original_local_field_parameter[postgresql->]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_original_local_field_parameter[postgresql-<=]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_original_local_field_parameter[sqlite->]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_original_local_field_parameter[sqlite-<=]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_symbolic_bytes_and_prefix_boundaries[postgresql]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_symbolic_bytes_and_prefix_boundaries[sqlite]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_unicode_symbolic_parameter_follows_legacy_boundary[postgresql]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_unicode_symbolic_parameter_follows_legacy_boundary[sqlite]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_explicit_environment_parameter_remains_a_caller_input[postgresql]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_explicit_environment_parameter_remains_a_caller_input[sqlite]
+FAILED tests/sqlite/test_sqlite_driver.py::test_invalid_profile_and_missing_parameters_do_not_connect
+16 failed, 363 passed in 6.03s

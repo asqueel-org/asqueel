@@ -1,0 +1,269 @@
+....FF.........................................FF....................... [ 27%]
+........................................................................ [ 54%]
+.......................................................................F [ 82%]
+FFFFF..FF.....................................F                          [100%]
+=================================== FAILURES ===================================
+_______ test_legacy_references_in_literals_comments_and_cast[postgresql] _______
+
+db = <asqueel.application.SqlDatabase object at 0x108aff890>
+
+    def test_legacy_references_in_literals_comments_and_cast(db):
+        compiled = db.table('sales.invoice').query(
+            columns="CAST($total AS NUMERIC) AS amount, '$id' AS literal",
+            where='$id=:id /* $total */', id=3).compiled
+>       assert "'\"t0\".\"id\"' AS \"literal\"" in compiled.sql
+E       assert '\'"t0"."id"\' AS "literal"' in 'SELECT CAST("t0"."total" AS NUMERIC) AS amount, \'"t0"."id"\' AS literal FROM "main"."sales_invoice" AS "t0" WHERE "t0"."id"=%(id)s /* "t0"."total" */'
+E        +  where 'SELECT CAST("t0"."total" AS NUMERIC) AS amount, \'"t0"."id"\' AS literal FROM "main"."sales_invoice" AS "t0" WHERE "t0"."id"=%(id)s /* "t0"."total" */' = CompiledQuery(sql='SELECT CAST("t0"."total" AS NUMERIC) AS amount, \'"t0"."id"\' AS literal FROM "main"."sales_invoice...=None, source=None, ui={})), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('id',)).sql
+
+tests/object_tree/test_minimal_select.py:111: AssertionError
+_________ test_legacy_references_in_literals_comments_and_cast[sqlite] _________
+
+db = <asqueel.application.SqlDatabase object at 0x108877e30>
+
+    def test_legacy_references_in_literals_comments_and_cast(db):
+        compiled = db.table('sales.invoice').query(
+            columns="CAST($total AS NUMERIC) AS amount, '$id' AS literal",
+            where='$id=:id /* $total */', id=3).compiled
+>       assert "'\"t0\".\"id\"' AS \"literal\"" in compiled.sql
+E       assert '\'"t0"."id"\' AS "literal"' in 'SELECT CAST("t0"."total" AS NUMERIC) AS amount, \'"t0"."id"\' AS literal FROM "main"."sales_invoice" AS "t0" WHERE "t0"."id"=:id /* "t0"."total" */'
+E        +  where 'SELECT CAST("t0"."total" AS NUMERIC) AS amount, \'"t0"."id"\' AS literal FROM "main"."sales_invoice" AS "t0" WHERE "t0"."id"=:id /* "t0"."total" */' = CompiledQuery(sql='SELECT CAST("t0"."total" AS NUMERIC) AS amount, \'"t0"."id"\' AS literal FROM "main"."sales_invoice...dtype=None, source=None, ui={})), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=('id',)).sql
+
+tests/object_tree/test_minimal_select.py:111: AssertionError
+_______ test_no_model_conversion_and_no_sql_state_on_objects[postgresql] _______
+
+db = <asqueel.application.SqlDatabase object at 0x108034b00>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x108944bf0>
+
+    def test_no_model_conversion_and_no_sql_state_on_objects(db, monkeypatch):
+        def denied(*args, **kwargs):
+            pytest.fail('Compilation tried to build/use the old descriptor model')
+        monkeypatch.setattr('asqueel.model.resolve_model', denied)
+        monkeypatch.setattr('asqueel.compiler.QueryCompiler', denied)
+        table = db.table('sales.invoice').model
+        attrs = deepcopy(table.attributes)
+        columns = {name: deepcopy(col.attributes) for name, col in table.columns.items()}
+        relations = db.model.relations.to_xml()
+        db.model.src = None  # compilation must only use the objects
+        for _ in range(2):
+            assert table.dbtable.query(columns='$id,$label', where='$id=:id', id=2).compiled.sql
+        assert db.compiler.model is db.model
+        assert table.attributes == attrs
+        assert {name: col.attributes for name, col in table.columns.items()} == columns
+        assert db.model.relations.to_xml() == relations
+>       assert table._relation_tree is None
+E       assert <genro_bag.bag._core.Bag object at 0x10897a840> is None
+E        +  where <genro_bag.bag._core.Bag object at 0x10897a840> = <asqueel.object_tree.DbTableObj object at 0x1089f42f0>._relation_tree
+
+tests/object_tree/test_minimal_select.py:183: AssertionError
+_________ test_no_model_conversion_and_no_sql_state_on_objects[sqlite] _________
+
+db = <asqueel.application.SqlDatabase object at 0x1089b9880>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10897adb0>
+
+    def test_no_model_conversion_and_no_sql_state_on_objects(db, monkeypatch):
+        def denied(*args, **kwargs):
+            pytest.fail('Compilation tried to build/use the old descriptor model')
+        monkeypatch.setattr('asqueel.model.resolve_model', denied)
+        monkeypatch.setattr('asqueel.compiler.QueryCompiler', denied)
+        table = db.table('sales.invoice').model
+        attrs = deepcopy(table.attributes)
+        columns = {name: deepcopy(col.attributes) for name, col in table.columns.items()}
+        relations = db.model.relations.to_xml()
+        db.model.src = None  # compilation must only use the objects
+        for _ in range(2):
+            assert table.dbtable.query(columns='$id,$label', where='$id=:id', id=2).compiled.sql
+        assert db.compiler.model is db.model
+        assert table.attributes == attrs
+        assert {name: col.attributes for name, col in table.columns.items()} == columns
+        assert db.model.relations.to_xml() == relations
+>       assert table._relation_tree is None
+E       assert <genro_bag.bag._core.Bag object at 0x108c7b1a0> is None
+E        +  where <genro_bag.bag._core.Bag object at 0x108c7b1a0> = <asqueel.object_tree.DbTableObj object at 0x1089b89e0>._relation_tree
+
+tests/object_tree/test_minimal_select.py:183: AssertionError
+________ test_legacy_alias_rules_needed_by_projection_split[postgresql] ________
+
+db = <asqueel.application.SqlDatabase object at 0x1088bf8f0>
+
+    def test_legacy_alias_rules_needed_by_projection_split(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$total * 2, $id AS value, $total AS value, $label as label').compiled
+        assert [c.name for c in compiled.columns] == ['_total___2', 'value', 'label']
+        assert '"t0"."id" AS "value"' not in compiled.sql
+>       assert '"t0"."total" AS "value"' in compiled.sql
+E       assert '"t0"."total" AS "value"' in 'SELECT "t0"."total" * 2 AS "_total___2", "t0"."total" AS value, "t0"."label_sql" AS label FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT "t0"."total" * 2 AS "_total___2", "t0"."total" AS value, "t0"."label_sql" AS label FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT "t0"."total" * 2 AS "_total___2", "t0"."total" AS value, "t0"."label_sql" AS label FROM "mai...e='sales.invoice.label', ui={})), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:56: AssertionError
+__________ test_legacy_alias_rules_needed_by_projection_split[sqlite] __________
+
+db = <asqueel.application.SqlDatabase object at 0x108a368a0>
+
+    def test_legacy_alias_rules_needed_by_projection_split(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$total * 2, $id AS value, $total AS value, $label as label').compiled
+        assert [c.name for c in compiled.columns] == ['_total___2', 'value', 'label']
+        assert '"t0"."id" AS "value"' not in compiled.sql
+>       assert '"t0"."total" AS "value"' in compiled.sql
+E       assert '"t0"."total" AS "value"' in 'SELECT "t0"."total" * 2 AS "_total___2", "t0"."total" AS value, "t0"."label_sql" AS label FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT "t0"."total" * 2 AS "_total___2", "t0"."total" AS value, "t0"."label_sql" AS label FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT "t0"."total" * 2 AS "_total___2", "t0"."total" AS value, "t0"."label_sql" AS label FROM "mai...source='sales.invoice.label', ui={})), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:56: AssertionError
+_________ test_quoted_logical_reference_is_not_translated[postgresql] __________
+
+db = <asqueel.application.SqlDatabase object at 0x108afdf70>
+
+    def test_quoted_logical_reference_is_not_translated(db):
+        # Same lack of interpretation as legacy; SQL execution is deliberately
+        # outside this test. Quoting physical SQL names remains the adapter's job.
+        compiled = db.table('sales.invoice').query(columns='$"id" AS value').compiled
+>       assert '$"id" AS "value"' in compiled.sql
+E       assert '$"id" AS "value"' in 'SELECT $"id" AS value FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT $"id" AS value FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT $"id" AS value FROM "main"."sales_invoice" AS "t0"', params=mappingproxy({}), columns=(Resul...type=None, source=None, ui={}),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:63: AssertionError
+___________ test_quoted_logical_reference_is_not_translated[sqlite] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x1087d7c80>
+
+    def test_quoted_logical_reference_is_not_translated(db):
+        # Same lack of interpretation as legacy; SQL execution is deliberately
+        # outside this test. Quoting physical SQL names remains the adapter's job.
+        compiled = db.table('sales.invoice').query(columns='$"id" AS value').compiled
+>       assert '$"id" AS "value"' in compiled.sql
+E       assert '$"id" AS "value"' in 'SELECT $"id" AS value FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT $"id" AS value FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT $"id" AS value FROM "main"."sales_invoice" AS "t0"', params=mappingproxy({}), columns=(Resul...e', dtype=None, source=None, ui={}),), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:63: AssertionError
+______ test_projection_metadata_does_not_repair_authored_sql[postgresql] _______
+
+db = <asqueel.application.SqlDatabase object at 0x1097cd100>
+
+    def test_projection_metadata_does_not_repair_authored_sql(db):
+        # The legacy leaves these invalid expressions to the database; compile only.
+        mixed = db.table('sales.invoice').query(columns='$id As code').compiled
+        repeated = db.table('sales.invoice').query(columns='$id AS code AS other').compiled
+        assert '"t0"."id" As code AS "_id_As_code"' in mixed.sql
+>       assert '"t0"."id" AS code AS "other"' in repeated.sql
+E       assert '"t0"."id" AS code AS "other"' in 'SELECT "t0"."id" AS code AS other FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT "t0"."id" AS code AS other FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS code AS other FROM "main"."sales_invoice" AS "t0"', params=mappingproxy({}), columns=(), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:72: AssertionError
+________ test_projection_metadata_does_not_repair_authored_sql[sqlite] _________
+
+db = <asqueel.application.SqlDatabase object at 0x1097c2570>
+
+    def test_projection_metadata_does_not_repair_authored_sql(db):
+        # The legacy leaves these invalid expressions to the database; compile only.
+        mixed = db.table('sales.invoice').query(columns='$id As code').compiled
+        repeated = db.table('sales.invoice').query(columns='$id AS code AS other').compiled
+        assert '"t0"."id" As code AS "_id_As_code"' in mixed.sql
+>       assert '"t0"."id" AS code AS "other"' in repeated.sql
+E       assert '"t0"."id" AS code AS "other"' in 'SELECT "t0"."id" AS code AS other FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT "t0"."id" AS code AS other FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS code AS other FROM "main"."sales_invoice" AS "t0"', params=mappingproxy({}), columns=(), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:72: AssertionError
+______ test_template_column_safe_mode_and_clause_strict_mode[postgresql] _______
+
+db = <asqueel.application.SqlDatabase object at 0x1097ea960>
+
+    def test_template_column_safe_mode_and_clause_strict_mode(db):
+        safe = db.table('sales.invoice').query(columns='$id, 1+$ AS extra').compiled
+>       assert '1+$ AS "extra"' in safe.sql
+E       assert '1+$ AS "extra"' in 'SELECT "t0"."id" AS "id", 1+$ AS extra FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT "t0"."id" AS "id", 1+$ AS extra FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS "id", 1+$ AS extra FROM "main"."sales_invoice" AS "t0"', params=mappingproxy({}...dtype=None, source=None, ui={})), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:83: AssertionError
+________ test_template_column_safe_mode_and_clause_strict_mode[sqlite] _________
+
+db = <asqueel.application.SqlDatabase object at 0x1096cf2f0>
+
+    def test_template_column_safe_mode_and_clause_strict_mode(db):
+        safe = db.table('sales.invoice').query(columns='$id, 1+$ AS extra').compiled
+>       assert '1+$ AS "extra"' in safe.sql
+E       assert '1+$ AS "extra"' in 'SELECT "t0"."id" AS "id", 1+$ AS extra FROM "main"."sales_invoice" AS "t0"'
+E        +  where 'SELECT "t0"."id" AS "id", 1+$ AS extra FROM "main"."sales_invoice" AS "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS "id", 1+$ AS extra FROM "main"."sales_invoice" AS "t0"', params=mappingproxy({}...ra', dtype=None, source=None, ui={})), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_legacy_resolution.py:83: AssertionError
+________ test_manual_assignment_line_comment_cannot_remove_update_guard ________
+
+    def test_manual_assignment_line_comment_cannot_remove_update_guard():
+        import psycopg
+        from psycopg import sql
+        name = 'adapter_comment_' + uuid.uuid4().hex[:12]
+>       with psycopg.connect(postgres_dsn()) as connection:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/adapter_dialect/test_postgres_execution.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_minimal_select.py::test_legacy_references_in_literals_comments_and_cast[postgresql]
+FAILED tests/object_tree/test_minimal_select.py::test_legacy_references_in_literals_comments_and_cast[sqlite]
+FAILED tests/object_tree/test_minimal_select.py::test_no_model_conversion_and_no_sql_state_on_objects[postgresql]
+FAILED tests/object_tree/test_minimal_select.py::test_no_model_conversion_and_no_sql_state_on_objects[sqlite]
+FAILED tests/object_tree/test_legacy_resolution.py::test_legacy_alias_rules_needed_by_projection_split[postgresql]
+FAILED tests/object_tree/test_legacy_resolution.py::test_legacy_alias_rules_needed_by_projection_split[sqlite]
+FAILED tests/object_tree/test_legacy_resolution.py::test_quoted_logical_reference_is_not_translated[postgresql]
+FAILED tests/object_tree/test_legacy_resolution.py::test_quoted_logical_reference_is_not_translated[sqlite]
+FAILED tests/object_tree/test_legacy_resolution.py::test_projection_metadata_does_not_repair_authored_sql[postgresql]
+FAILED tests/object_tree/test_legacy_resolution.py::test_projection_metadata_does_not_repair_authored_sql[sqlite]
+FAILED tests/object_tree/test_legacy_resolution.py::test_template_column_safe_mode_and_clause_strict_mode[postgresql]
+FAILED tests/object_tree/test_legacy_resolution.py::test_template_column_safe_mode_and_clause_strict_mode[sqlite]
+FAILED tests/adapter_dialect/test_postgres_execution.py::test_manual_assignment_line_comment_cannot_remove_update_guard
+13 failed, 250 passed in 3.98s

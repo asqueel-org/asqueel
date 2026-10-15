@@ -1,0 +1,85 @@
+........................................................................ [ 12%]
+........................................................................ [ 25%]
+..............................................................F......... [ 37%]
+............F........................................................... [ 50%]
+........................................................................ [ 63%]
+........................................................................ [ 75%]
+........................................................................ [ 88%]
+...................................................................      [100%]
+=================================== FAILURES ===================================
+_______________ test_legacy_sql_and_kwargs_contract[sqlite-star] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10cbfcdd0>
+name = 'star'
+
+    @pytest.mark.parametrize('name', list(contract_parameters()))
+    def test_legacy_sql_and_kwargs_contract(database, name):
+        case = next(c for c in ORACLE['cases']
+                    if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+        request, expected = case['request'], case['expected']
+        query = database.table(request['table']).query(
+            request['columns'], sqlparams=request['params'], **request['options'])
+        if name == 'default_pkey':
+            # Agreed new default: pkey is opt-in; the explicit switch reproduces legacy.
+            assert [c.name for c in query.compiled.columns] == ['inv_number']
+            query = database.table(request['table']).query(
+                request['columns'], sqlparams=request['params'], addPkeyColumn=True, **request['options'])
+        actual = query._compile(database.compiler.count) if request['count'] else query.compiled
+        sql, params = actual.sql, dict(actual.params)
+        expected_sql = expected['sql']
+        expected_params = {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
+        if name == 'formula_parameters':
+            # Local scope ownership is the contract already agreed; names include
+            # id() in the legacy and are deliberately not a process-stable API.
+            sql, params = local_bindings(sql, params, database.dialect.name)
+            expected_sql, expected_params = local_bindings(
+                expected_sql, expected_params, database.dialect.name)
+>       assert normalized(sql) == normalized(expected_sql)
+E       assert 'SELECT "t0"....."id" LIMIT 1' == 'SELECT "t0"....."id" LIMIT 1'
+E         
+E         Skipping 55 identical trailing characters in diff, use -v to show
+E         - SELECT "t0"."id" AS "id", "t0"."__ins_ts" AS "__ins_ts", "t0"."__del_ts" AS "__del_ts", "t0"."__mod_ts" AS "__mod_ts", "t0"."__ins_user" AS "__ins_user", "t0"."__is_draft" AS "__is_draft", "t0"."account_name" AS "account_name", "t0"."street_address" AS "street_address", "t0"."suburb" AS "suburb", "t0"."state" AS "state", "t0"."postcode" AS "postcode", "t0"."customer_type_code" AS "customer_type_code", "t0"."payment_type_code" AS "payment_type_code", "t0"."notes" AS "notes", "t0"."email" AS "email", "t0"....
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/object_tree/test_legacy_rewrite_contracts.py:102: AssertionError
+_____________ test_legacy_sql_and_kwargs_contract[postgresql-star] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10c3f3440>
+name = 'star'
+
+    @pytest.mark.parametrize('name', list(contract_parameters()))
+    def test_legacy_sql_and_kwargs_contract(database, name):
+        case = next(c for c in ORACLE['cases']
+                    if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+        request, expected = case['request'], case['expected']
+        query = database.table(request['table']).query(
+            request['columns'], sqlparams=request['params'], **request['options'])
+        if name == 'default_pkey':
+            # Agreed new default: pkey is opt-in; the explicit switch reproduces legacy.
+            assert [c.name for c in query.compiled.columns] == ['inv_number']
+            query = database.table(request['table']).query(
+                request['columns'], sqlparams=request['params'], addPkeyColumn=True, **request['options'])
+        actual = query._compile(database.compiler.count) if request['count'] else query.compiled
+        sql, params = actual.sql, dict(actual.params)
+        expected_sql = expected['sql']
+        expected_params = {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
+        if name == 'formula_parameters':
+            # Local scope ownership is the contract already agreed; names include
+            # id() in the legacy and are deliberately not a process-stable API.
+            sql, params = local_bindings(sql, params, database.dialect.name)
+            expected_sql, expected_params = local_bindings(
+                expected_sql, expected_params, database.dialect.name)
+>       assert normalized(sql) == normalized(expected_sql)
+E       assert 'SELECT "t0"....."id" LIMIT 1' == 'SELECT "t0"....."id" LIMIT 1'
+E         
+E         Skipping 55 identical trailing characters in diff, use -v to show
+E         - SELECT "t0"."id" AS "id", "t0"."__ins_ts" AS "__ins_ts", "t0"."__del_ts" AS "__del_ts", "t0"."__mod_ts" AS "__mod_ts", "t0"."__ins_user" AS "__ins_user", "t0"."__is_draft" AS "__is_draft", "t0"."account_name" AS "account_name", "t0"."street_address" AS "street_address", "t0"."suburb" AS "suburb", "t0"."state" AS "state", "t0"."postcode" AS "postcode", "t0"."customer_type_code" AS "customer_type_code", "t0"."payment_type_code" AS "payment_type_code", "t0"."notes" AS "notes", "t0"."email" AS "email", "t0"....
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/object_tree/test_legacy_rewrite_contracts.py:102: AssertionError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_legacy_rewrite_contracts.py::test_legacy_sql_and_kwargs_contract[sqlite-star]
+FAILED tests/object_tree/test_legacy_rewrite_contracts.py::test_legacy_sql_and_kwargs_contract[postgresql-star]
+2 failed, 569 passed in 42.40s

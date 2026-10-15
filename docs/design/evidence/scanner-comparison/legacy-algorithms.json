@@ -1,0 +1,282 @@
+{
+  "legacy": {
+    "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 709,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 802,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 464,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 157,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 111,
+        "ast_sha256_without_docstring": "cad2d99903869bcc2a600f7eb1b14633a4db6aef79b018b86235552fd3a62986"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 46,
+        "ast_sha256_without_docstring": "f3abd473a3512842c5ef10d8b706145a7eeab4c4ef3c6cd22a51e4cbcbe71854"
+      }
+    }
+  },
+  "compound": {
+    "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 776,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 869,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 463,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 155,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 111,
+        "ast_sha256_without_docstring": "9f3e7bd1114107aa26ff2878acf307fa737483cbc8c30cad56f2002ef590196a"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql.py",
+        "line": 573,
+        "ast_sha256_without_docstring": "5d0460e0ac970b08e1acaca72e8ef22ea95ed496115453b6df3d80fd9564ee8d"
+      }
+    }
+  },
+  "v2": {
+    "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1128,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1177,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 463,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 155,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 115,
+        "ast_sha256_without_docstring": "9f3e7bd1114107aa26ff2878acf307fa737483cbc8c30cad56f2002ef590196a"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 45,
+        "ast_sha256_without_docstring": "6ee976704b12d7036ff6a42332d35b50298b7219bac2dc1d687d5b8fe8d707b6"
+      }
+    }
+  },
+  "v3": {
+    "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1138,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1231,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 463,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 155,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 115,
+        "ast_sha256_without_docstring": "9f3e7bd1114107aa26ff2878acf307fa737483cbc8c30cad56f2002ef590196a"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 45,
+        "ast_sha256_without_docstring": "6ee976704b12d7036ff6a42332d35b50298b7219bac2dc1d687d5b8fe8d707b6"
+      }
+    }
+  },
+  "v3_merged": {
+    "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1138,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1231,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 463,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 155,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 111,
+        "ast_sha256_without_docstring": "cad2d99903869bcc2a600f7eb1b14633a4db6aef79b018b86235552fd3a62986"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 45,
+        "ast_sha256_without_docstring": "f3abd473a3512842c5ef10d8b706145a7eeab4c4ef3c6cd22a51e4cbcbe71854"
+      }
+    }
+  },
+  "v4": {
+    "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1137,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 1230,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 463,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 155,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 111,
+        "ast_sha256_without_docstring": "cad2d99903869bcc2a600f7eb1b14633a4db6aef79b018b86235552fd3a62986"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 45,
+        "ast_sha256_without_docstring": "f3abd473a3512842c5ef10d8b706145a7eeab4c4ef3c6cd22a51e4cbcbe71854"
+      }
+    }
+  },
+  "simplify": {
+    "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 732,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 825,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 463,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 155,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 111,
+        "ast_sha256_without_docstring": "cad2d99903869bcc2a600f7eb1b14633a4db6aef79b018b86235552fd3a62986"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 45,
+        "ast_sha256_without_docstring": "f3abd473a3512842c5ef10d8b706145a7eeab4c4ef3c6cd22a51e4cbcbe71854"
+      }
+    }
+  },
+  "next": {
+    "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+    "methods": {
+      "compiler.updateFieldDict": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 709,
+        "ast_sha256_without_docstring": "0d09fd245a79752c432e548301b59a993183aa630df211239e1bf2f4e2a237ee"
+      },
+      "compiler.embedFieldPars": {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "line": 802,
+        "ast_sha256_without_docstring": "8420ce8522a7043e1394d890fc7e7dc7f81159cc5b1b6398641859a01199e96e"
+      },
+      "strings.templateReplace": {
+        "path": "gnrpy/gnr/core/gnrstring.py",
+        "line": 528,
+        "ast_sha256_without_docstring": "8a0e58512d21f9aafaf8680ce626a260b16523760101fc9834aabb7b3d705f42"
+      },
+      "postgres.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrpostgres.py",
+        "line": 157,
+        "ast_sha256_without_docstring": "6214c437902af61b1079fd1d71f4581fac56aa49372a287ec73c67076cf8a20a"
+      },
+      "sqlite.prepareSqlText": {
+        "path": "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "line": 111,
+        "ast_sha256_without_docstring": "cad2d99903869bcc2a600f7eb1b14633a4db6aef79b018b86235552fd3a62986"
+      },
+      "execute.execute": {
+        "path": "gnrpy/gnr/sql/gnrsql/execute.py",
+        "line": 47,
+        "ast_sha256_without_docstring": "35736949a568c0c91946b73fea1c82c772e56f12f4c9278446494329c05a693e"
+      }
+    }
+  }
+}

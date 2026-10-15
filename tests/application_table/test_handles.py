@@ -194,7 +194,7 @@ def test_update_record_and_delete_pkey_zero_keep_explicit_selectors(db):
     table = db.table('customer')
     db.results = [[{'id': 0, 'name': 'Before'}], [{'id': 0}]]
     table.update({'id': 0, 'name': 'Zero'}, returning='$id')
-    assert ' WHERE ' in db.executions[-1].sql
+    assert '\nWHERE ' in db.executions[-1].sql
     db.results = [[{'id': 0, 'name': 'Zero'}], [{'id': 0}]]
     table.delete(0, returning=None)
     assert list(db.executions[-1].params.values()) == [0]

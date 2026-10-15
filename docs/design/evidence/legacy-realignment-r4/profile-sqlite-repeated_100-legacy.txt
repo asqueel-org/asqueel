@@ -1,0 +1,43 @@
+         796002 function calls (794302 primitive calls) in 0.161 seconds
+
+   Ordered by: cumulative time
+   List reduced from 213 to 35 due to restriction <35>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.161    0.161 /Users/gporcari/Sviluppo/asqueel/asqueel/docs/design/probes/verify_legacy_r4.py:94(<lambda>)
+      100    0.000    0.000    0.161    0.002 /Users/gporcari/Sviluppo/asqueel/asqueel/docs/design/probes/compare_scanners.py:89(compile_case)
+      100    0.000    0.000    0.137    0.001 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py:210(_get_sqltext)
+      100    0.000    0.000    0.136    0.001 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py:215(_get_compiled)
+      100    0.000    0.000    0.136    0.001 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py:222(compileQuery)
+      100    0.013    0.000    0.134    0.001 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py:831(compiledQuery)
+      800    0.016    0.000    0.034    0.000 {method 'sub' of 're.Pattern' objects}
+    12500    0.006    0.000    0.034    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstructures.py:368(getItem)
+      300    0.001    0.000    0.026    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py:273(getFieldAlias)
+    10000    0.001    0.000    0.026    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqlmodel/table.py:265(_get_columns)
+      500    0.001    0.000    0.022    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py:464(templateReplace)
+      100    0.000    0.000    0.020    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/string.py:123(safe_substitute)
+      300    0.000    0.000    0.019    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrbag.py:2760(keys)
+      300    0.000    0.000    0.019    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrbag.py:2714(__call__)
+      100    0.000    0.000    0.018    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqlmodel/resolvers.py:84(load)
+    10000    0.003    0.000    0.018    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/string.py:129(convert)
+      100    0.000    0.000    0.017    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsql/helpers.py:102(wrapper)
+      100    0.001    0.000    0.017    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqlmodel/resolvers.py:102(_fields)
+      100    0.001    0.000    0.016    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsql/execute.py:45(execute)
+    23500    0.007    0.000    0.016    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstructures.py:388(get)
+    10200    0.007    0.000    0.015    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py:79(__getitem__)
+      100    0.000    0.000    0.015    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrsqlite.py:111(prepareSqlText)
+      100    0.000    0.000    0.014    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/re/__init__.py:179(sub)
+13500/12500    0.006    0.000    0.013    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstructures.py:413(_htraverse)
+    10000    0.002    0.000    0.010    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/re/__init__.py:174(search)
+     1000    0.001    0.000    0.009    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrbag.py:1544(setItem)
+      100    0.005    0.000    0.009    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrstring.py:659(split)
+     1000    0.001    0.000    0.007    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrbag.py:1650(_set)
+    11700    0.003    0.000    0.007    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsql/db.py:265(adapter)
+    14400    0.003    0.000    0.007    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/core/gnrdict.py:104(__getitem__)
+      500    0.001    0.000    0.006    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqlmodel/model.py:532(table)
+      500    0.005    0.000    0.006    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py:709(updateFieldDict)
+      400    0.000    0.000    0.005    0.000 /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsql/query.py:232(table)
+    10500    0.003    0.000    0.005    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/re/__init__.py:280(_compile)
+    91100    0.005    0.000    0.005    0.000 {built-in method builtins.isinstance}
+
+

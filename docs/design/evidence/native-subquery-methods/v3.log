@@ -1,0 +1,48 @@
+.F.....                                                                  [100%]
+=================================== FAILURES ===================================
+_____________ TestLegacySubqueryMethodContract.test_exists_method ______________
+
+self = <test_contract.TestLegacySubqueryMethodContract object at 0x10b767b00>
+db = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10d138140>
+
+    def test_exists_method(self, db):
+>       sql = db.table('app.owner').query(columns='$present').sqltext
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/query.py:218: in _get_sqltext
+    return self.compiled.get_sqltext(self.db)
+           ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/query.py:224: in _get_compiled
+    self._compiled = self.compileQuery()
+                     ^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/query.py:234: in compileQuery
+    return SqlQueryCompiler(self.dbtable.model,
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/compiler.py:1458: in compiledQuery
+    colPars[key] = self.getFieldAlias(value)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/compiler.py:476: in getFieldAlias
+    return self._handleFormulaColumn(fldalias, fld, alias, curr, curr_tblobj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/compiler.py:507: in _handleFormulaColumn
+    multi_select, sql_formula = self._preprocess_subqueryes(attr, as_join, alias,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <gnr.sql.gnrsqldata.compiler.SqlQueryCompiler object at 0x10ddd5370>
+attr = {'virtual_column': True, 'dtype': 'B', 'tag': 'virtual_column'}
+as_join = False, alias = 't0', formula_column_name = 'present'
+sql_formula = None
+
+    def _preprocess_subqueryes(self, attr, as_join=False, alias=None,
+                               formula_column_name=None, sql_formula=None):
+        if 'exists' in attr:
+            exists_sq = attr.pop('exists')
+>           exists_sq['exists'] = True
+            ^^^^^^^^^^^^^^^^^^^
+E           TypeError: 'str' object does not support item assignment
+
+/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/compiler.py:699: TypeError
+=========================== short test summary info ============================
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py::TestLegacySubqueryMethodContract::test_exists_method
+1 failed, 6 passed in 0.23s

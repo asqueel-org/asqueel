@@ -1,0 +1,36 @@
+{
+  "changed_since_phase2_start": [
+    "src/asqueel/object_tree_compiler.py",
+    "src/asqueel/dialects/sqlite.py",
+    "src/asqueel/dialects/postgres.py",
+    "src/asqueel/dialects/base.py",
+    "tests/object_tree/test_minimal_select.py",
+    "tests/object_tree/test_legacy_projections_parameters.py",
+    "tests/object_tree/test_legacy_resolution.py",
+    "tests/object_tree/test_legacy_rewrite_contracts.py"
+  ],
+  "legacy_symbols_verified": 106,
+  "native_tables": 74,
+  "migration_json_equal": true,
+  "supported_comparisons": 314,
+  "supported_sql_kwargs_equal": true,
+  "sqlite_results_equal": 10,
+  "fixtures": {
+    "price_year": {
+      "path": "tests/native_formulas/data/price_year.csv",
+      "legacy": "/tmp/asqueel-formula-baseline/legacy/projects/test_invoice/data/export/price_year.csv",
+      "sha256": "5512d36893bd7c818447b9926674921acb43592ecefa11d3238e904972b63ab0"
+    },
+    "price_year_note": {
+      "path": "tests/native_formulas/data/price_year_note.csv",
+      "legacy": "/tmp/asqueel-formula-baseline/legacy/projects/test_invoice/data/export/price_year_note.csv",
+      "sha256": "b0ac4446c8b77fcb937a8476e3a7d89950beef29227b5023659a996def0ef89c"
+    }
+  },
+  "type_check": {
+    "new_errors": 0,
+    "preexisting_errors": 2,
+    "verified_by": "Exact pre-phase2 adapter files reconstructed without compile_sql; SHA256 matches before.json; mypy --shadow-file on all three adapters"
+  },
+  "previous_compiler_and_drivers_unchanged": true
+}

@@ -33,11 +33,11 @@ flowchart LR
    checks the model and constructs a `SqlDatabase`. Tables, columns and relations
    are stable objects attached to it. No connection is opened and no DDL is run.
 3. **Execute operations.** `table.query(...)` records intent. `.fetch()` compiles
-   it in the current environment, executes PostgreSQL SQL and returns dictionaries.
+   it in the current environment, executes PostgreSQL SQL and returns mutable `NamedList` rows.
    Table writes execute immediately and participate in the shared transaction.
 
 The resolved model is a description, not a row cache. A live `SqlTable` is an
-operation handle, not one database record. Editing a returned dictionary does
+operation handle, not one database record. Editing a returned row does
 not save it: call `insert()` or `update()` explicitly.
 
 ## Follow a single expression
@@ -50,7 +50,7 @@ For `db.table('sales.customer').query(columns='$name').fetch()`:
 | `.query(columns='$name')` | A lazy `SqlQuery`. | No |
 | `query.sqltext` | SQL compiled for the current environment. | No |
 | `query.compiled` | A `CompiledQuery` containing SQL, parameters and metadata. | No |
-| `query.fetch()` | A new list of dictionary rows. | Yes |
+| `query.fetch()` | A new list of mutable `NamedList` rows. | Yes |
 | `query.execute()` | A new `QueryResult`, including rows and metadata. | Yes |
 | `table.record(1)` | A lazy exactly-one record reader. | No |
 | `record.output('dict')` | The record's cached snapshot, loading it on first use. | On first use |

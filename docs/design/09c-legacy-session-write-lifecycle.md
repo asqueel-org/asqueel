@@ -1,5 +1,10 @@
 # 09c — Legacy database sessions, writes and record lifecycle
 
+**Historical reference notice (15 October 2026):** this document retains its
+original `fa35e5ad` evidence. The [develop audit 95](95-develop-reference-audit.md)
+sets the reference for subsequent ports and records later fixes; this document
+is not a statement that those fixes have already landed in Asqueel.
+
 ## Architectural conclusion
 
 The legacy product's reusable logic lives above SQL rendering: table methods,

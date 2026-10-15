@@ -1,0 +1,259 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/gporcari/Sviluppo/asqueel/asqueel
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0, anyio-4.15.1
+collected 3931 items
+
+tests/adapter_compiler/test_locking.py ..................                [  0%]
+tests/adapter_compiler/test_plans.py .....                               [  0%]
+tests/adapter_dialect/test_postgres.py ............................      [  1%]
+tests/adapter_dialect/test_postgres_execution.py .                       [  1%]
+tests/adapter_driver/test_driver.py ............                         [  1%]
+tests/adapter_driver/test_legacy_named_list.py ........                  [  1%]
+tests/adapter_driver/test_legacy_preparation.py ........................ [  2%]
+........................................................................ [  4%]
+...........                                                              [  4%]
+tests/adapter_integration/test_boundaries.py ...........                 [  4%]
+tests/adapter_integration/test_legacy_preparation.py ..................  [  5%]
+tests/adapter_integration/test_named_list_rows.py ..........             [  5%]
+tests/adapter_integration/test_postgres_pipeline.py .                    [  5%]
+tests/application_config/test_application.py .....                       [  5%]
+tests/application_config/test_cli.py ...............                     [  6%]
+tests/application_config/test_configuration.py ..........                [  6%]
+tests/application_config/test_formula_bindings.py ...                    [  6%]
+tests/application_config/test_hosting.py ........                        [  6%]
+tests/application_config/test_mounted_grammar.py .....                   [  6%]
+tests/application_config/test_render_structure.py ......                 [  6%]
+tests/application_config/test_table_model_fallback.py .......            [  7%]
+tests/application_connections/test_callback_recovery.py ........         [  7%]
+tests/application_connections/test_connections.py .................      [  7%]
+tests/application_connections/test_deferred.py .....................     [  8%]
+tests/application_connections/test_locale_workdate.py ...........        [  8%]
+tests/application_connections/test_named_connections.py ..........       [  8%]
+tests/application_connections/test_python_errors.py ......               [  8%]
+tests/application_connections/test_request_lifecycle.py ..........       [  9%]
+tests/application_connections/test_thread_connections.py .....           [  9%]
+tests/application_integration/test_alias_columns.py ...                  [  9%]
+tests/application_integration/test_cli_postgres.py .                     [  9%]
+tests/application_integration/test_formula_subqueries.py ............    [  9%]
+tests/application_integration/test_legacy_alias_oracle.py .              [  9%]
+tests/application_integration/test_postgres_application.py ..........    [  9%]
+tests/application_integration/test_postgres_policies.py .                [ 10%]
+tests/application_integration/test_python_errors_postgres.py ........    [ 10%]
+tests/application_integration/test_raw_writes.py ....................... [ 10%]
+.                                                                        [ 10%]
+tests/application_integration/test_write_hooks.py ...........            [ 11%]
+tests/application_integration/test_write_lifecycle.py ........           [ 11%]
+tests/application_table/test_handles.py ........................         [ 11%]
+tests/documentation/test_examples.py .........                           [ 12%]
+tests/documentation/test_two_schemas_example.py .                        [ 12%]
+tests/environment/test_environment.py ........                           [ 12%]
+tests/environment/test_runtime_environment.py .......                    [ 12%]
+tests/model_policies/test_declarations.py .............................. [ 13%]
+..                                                                       [ 13%]
+tests/native_compiler/test_aliases.py ..................                 [ 13%]
+tests/native_compiler/test_bag_items.py ..........                       [ 14%]
+tests/native_compiler/test_compile_only.py ............................. [ 14%]
+.................                                                        [ 15%]
+tests/native_compiler/test_compiler.py ................................. [ 16%]
+......                                                                   [ 16%]
+tests/native_compiler/test_inverse_relations.py .................        [ 16%]
+tests/native_compiler/test_legacy_bag_items.py ...........               [ 16%]
+tests/native_compiler/test_method_formulas.py .......................... [ 17%]
+...                                                                      [ 17%]
+tests/native_compiler/test_native_formulas.py .......................... [ 18%]
+..                                                                       [ 18%]
+tests/native_compiler/test_native_options.py ........................... [ 19%]
+...                                                                      [ 19%]
+tests/native_compiler/test_native_star.py .............                  [ 19%]
+tests/native_compiler/test_native_subqueries.py ........................ [ 20%]
+............                                                             [ 20%]
+tests/native_compiler/test_policies.py ......................            [ 20%]
+tests/native_compiler/test_query_macros.py ..........................    [ 21%]
+tests/native_compiler/test_subqueries.py .............................   [ 22%]
+tests/native_compiler/test_subquery_columns.py .................         [ 22%]
+tests/native_compiler/test_subquery_methods.py ......................... [ 23%]
+...................                                                      [ 23%]
+tests/native_compiler/test_subquery_review.py .....                      [ 24%]
+tests/native_composition/test_composition.py .......                     [ 24%]
+tests/native_formulas/test_bag_item_results.py .........                 [ 24%]
+tests/native_formulas/test_inverse_results.py ....................       [ 24%]
+tests/native_formulas/test_legacy_bag_items.py ....                      [ 25%]
+tests/native_formulas/test_legacy_inverse_relations.py ....              [ 25%]
+tests/native_formulas/test_legacy_method_formulas.py ..                  [ 25%]
+tests/native_formulas/test_legacy_options.py ................            [ 25%]
+tests/native_formulas/test_legacy_sql_formulas.py ...................... [ 26%]
+............................................s......................s...s [ 28%]
+..                                                                       [ 28%]
+tests/native_formulas/test_legacy_subqueries.py .......s.........s...... [ 28%]
+.s...s.....s...                                                          [ 29%]
+tests/native_formulas/test_legacy_subquery_columns.py .......            [ 29%]
+tests/native_formulas/test_method_results.py ........                    [ 29%]
+tests/native_formulas/test_native_visibility.py ........................ [ 30%]
+........................................................................ [ 31%]
+....................................................                     [ 33%]
+tests/native_formulas/test_subquery_column_results.py ......ssss         [ 33%]
+tests/native_formulas/test_subquery_method_results.py ......             [ 33%]
+tests/native_formulas/test_subquery_results.py ....                      [ 33%]
+tests/native_integration/test_postgres_vertical.py ...                   [ 33%]
+tests/native_integration/test_relational_policies.py ..                  [ 33%]
+tests/native_integration/test_row_policies.py ..                         [ 33%]
+tests/native_model/test_alias_model.py ............                      [ 34%]
+tests/native_model/test_legacy_formula_declarations.py .                 [ 34%]
+tests/native_model/test_model.py ...........                             [ 34%]
+tests/native_model/test_postgres.py ........                             [ 34%]
+tests/native_model/test_subquery_model.py ...............                [ 35%]
+tests/native_runtime/test_postgres.py ..                                 [ 35%]
+tests/native_runtime/test_runtime.py ..............                      [ 35%]
+tests/object_tree/test_invoice.py ...................................... [ 36%]
+........................................................................ [ 38%]
+........................................                                 [ 39%]
+tests/object_tree/test_legacy_projections_parameters.py ................ [ 39%]
+........................................................................ [ 41%]
+......................                                                   [ 42%]
+tests/object_tree/test_legacy_resolution.py ...........................  [ 42%]
+tests/object_tree/test_legacy_sql_text.py .............................. [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 47%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 52%]
+........................................................................ [ 54%]
+........................................................................ [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 69%]
+........................................................................ [ 71%]
+.....................................                                    [ 71%]
+tests/object_tree/test_migration.py .................................... [ 72%]
+..........................................                               [ 73%]
+tests/object_tree/test_minimal_select.py ............................... [ 74%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+..................................                                       [ 79%]
+tests/object_tree/test_operational_tables.py ........................... [ 79%]
+.....................................................                    [ 81%]
+tests/object_tree/test_structure.py ...........                          [ 81%]
+tests/sqlite/test_migration_api.py ..........                            [ 81%]
+tests/sqlite/test_sqlite_application.py ........                         [ 82%]
+tests/sqlite/test_sqlite_driver.py ...............                       [ 82%]
+tests/test_behavior_option_grammar.py .................................. [ 83%]
+.......................                                                  [ 83%]
+tests/test_ecosystem_contract.py ...                                     [ 83%]
+tests/test_grammar.py .......................                            [ 84%]
+tests/test_invoice_model.py ..                                           [ 84%]
+tests/test_native_invoice_migration.py ................................. [ 85%]
+........................................................................ [ 87%]
+.................................................                        [ 88%]
+tests/test_native_option_expansion.py .................................. [ 89%]
+......                                                                   [ 89%]
+tests/test_release_composition.py ..................                     [ 90%]
+tests/test_release_connections.py .................                      [ 90%]
+tests/test_release_invoice_migration.py ..                               [ 90%]
+tests/test_release_model_oracle.py .....                                 [ 90%]
+tests/test_release_model_semantics.py ..................                 [ 91%]
+tests/test_release_model_source.py ......................                [ 91%]
+tests/test_release_resolved_model.py ............                        [ 91%]
+tests/test_serial4_migration.py ...                                      [ 92%]
+tests/test_skeleton.py ..                                                [ 92%]
+tests/test_subquery_column_grammar.py ....                               [ 92%]
+tests/test_syscode.py ...........                                        [ 92%]
+tests/test_validation_lookup_grammar.py ............................     [ 93%]
+tests/test_virtual_relation_grammar.py .............                     [ 93%]
+tests/test_wf_phase11_public_grammar.py ..                               [ 93%]
+tests/test_wf_phase12_model_boundaries.py ........                       [ 93%]
+tests/test_wf_phase13_reverse_semantics.py .....                         [ 93%]
+tests/test_wf_phase14_public_surface.py ......                           [ 94%]
+tests/test_wf_phase16_genropy_oracles.py ...                             [ 94%]
+tests/test_wf_phase17_catalog.py .                                       [ 94%]
+tests/test_wf_phase18_explicit_collections.py ..                         [ 94%]
+tests/test_wf_phase19_invoice_model.py ...                               [ 94%]
+tests/test_wf_phase1_query_collections.py .............................. [ 95%]
+..................s.......                                               [ 95%]
+tests/test_wf_phase20_strict_edges.py .....                              [ 95%]
+tests/test_wf_phase21_delivery.py ...                                    [ 95%]
+tests/test_wf_phase2_grammar.py ..........                               [ 96%]
+tests/test_wf_phase2_query_grouping.py ................................. [ 96%]
+.......................                                                  [ 97%]
+tests/test_wf_phase3_query_count.py ..................................   [ 98%]
+tests/test_wf_phase3_validators.py ...........                           [ 98%]
+tests/test_wf_phase4_query_acceptance.py ................                [ 99%]
+tests/test_wf_phase4_renderer.py ...........                             [ 99%]
+tests/test_wf_phase5_integration.py ....                                 [ 99%]
+tests/test_wf_phase6_reader.py ...........                               [ 99%]
+tests/test_wf_phase7_emitter.py .....                                    [ 99%]
+tests/test_wf_phase8_doc.py ....                                         [100%]
+
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.12-final-0 _______________
+
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+src/asqueel/__init__.py                    40      3    92%   87-89
+src/asqueel/__main__.py                     3      3     0%   2-5
+src/asqueel/_compiler_bindings.py          58      0   100%
+src/asqueel/_legacy_sql.py                120      0   100%
+src/asqueel/application.py                102      6    94%   29, 89-92, 103
+src/asqueel/application_table.py          309     15    95%   47-48, 57, 124, 277, 281-282, 324, 332-335, 337, 343, 404, 445
+src/asqueel/builder.py                    406     30    93%   115, 120, 125, 130, 133, 146, 182, 195, 232, 276, 278, 310, 326, 374, 381, 388, 398, 401, 411, 413, 428, 458, 463, 467, 479, 481, 490, 494, 501, 504
+src/asqueel/catalog.py                    109      1    99%   112
+src/asqueel/catalog_provider.py            10      0   100%
+src/asqueel/cli.py                         92      5    95%   82, 115, 117-118, 125
+src/asqueel/common.py                       9      0   100%
+src/asqueel/compiler.py                   742     33    96%   138, 145, 148, 182, 228, 255, 272, 283, 291, 312, 366, 369, 392, 394, 446, 488, 511, 513, 547, 575, 589, 634, 637, 714, 766, 786, 804, 834, 842, 923, 928, 965, 999
+src/asqueel/configuration.py              322     22    93%   30, 122, 158, 191, 198, 206, 222-223, 227, 235-236, 268, 272, 354, 358, 368, 374, 376, 378, 387, 389, 399
+src/asqueel/contracts.py                  159      1    99%   182
+src/asqueel/dialects/__init__.py            0      0   100%
+src/asqueel/dialects/base.py                5      0   100%
+src/asqueel/dialects/postgres.py          234     19    92%   98, 131, 144, 159, 212, 226, 231, 235, 238, 241, 244, 247, 250, 266, 269, 292, 296, 315, 322
+src/asqueel/dialects/sqlite.py             52      4    92%   24, 29, 50, 56
+src/asqueel/drivers/__init__.py             0      0   100%
+src/asqueel/drivers/base.py                 8      0   100%
+src/asqueel/drivers/psycopg.py             55      2    96%   54, 64
+src/asqueel/drivers/result.py              14      0   100%
+src/asqueel/drivers/sql.py                 67      1    99%   24
+src/asqueel/drivers/sqlite.py              90     10    89%   47, 53, 55, 58, 61, 69, 71, 75-77
+src/asqueel/elements.py                    53      0   100%
+src/asqueel/emitter.py                    124      3    98%   80, 83-84
+src/asqueel/environment.py                 83      1    99%   100
+src/asqueel/errors.py                       4      0   100%
+src/asqueel/examples/__init__.py            0      0   100%
+src/asqueel/grammar_doc.py                146      5    97%   58, 72, 74, 145, 264
+src/asqueel/hosting.py                     60      0   100%
+src/asqueel/importers.py                   96      8    92%   100, 106, 110, 112, 141, 153-154, 224
+src/asqueel/legacy_source.py              116      8    93%   19, 57, 73, 101, 138, 154-155, 157
+src/asqueel/migration.py                  189      3    98%   160, 323, 346
+src/asqueel/model.py                      397     37    91%   53, 60, 108, 138, 153, 161, 176, 207, 209, 215-216, 219, 221, 223, 229-230, 239, 244, 266, 272, 274, 294, 302, 327, 341, 345, 361, 385, 393-397, 410, 444, 486, 488, 492
+src/asqueel/model_codec.py                 46      6    87%   22, 30, 37, 47, 59, 62
+src/asqueel/model_elements.py              27      0   100%
+src/asqueel/model_expansion.py            295     18    94%   65, 82-93, 217, 241, 296, 329, 351
+src/asqueel/model_sections.py              84      1    99%   61
+src/asqueel/model_source.py               199      9    95%   76, 113, 136, 154, 163, 183, 205, 210, 220
+src/asqueel/object_renderer.py             17      2    88%   26, 28
+src/asqueel/object_tree.py                280     15    95%   45, 93, 117, 142, 229, 235, 240, 277-279, 295, 304, 342, 366, 369
+src/asqueel/object_tree_compiler.py       114      6    95%   52, 104, 127, 137, 140, 167
+src/asqueel/object_tree_projection.py      92     15    84%   39, 49-57, 77-79, 110, 116
+src/asqueel/object_tree_relations.py      107      8    93%   52, 64, 66, 68, 74, 78, 90, 100
+src/asqueel/object_tree_renderer.py        30      1    97%   42
+src/asqueel/option_elements.py             42      0   100%
+src/asqueel/option_validation.py           97      7    93%   29, 51, 62, 68, 71, 89, 105
+src/asqueel/projection.py                 166     19    89%   26, 28, 35, 39, 42, 88, 110, 112, 114, 118, 120, 129, 156, 168, 177, 197, 200-203, 214
+src/asqueel/query_plan.py                 108      0   100%
+src/asqueel/reader.py                     205      1    99%   290
+src/asqueel/registry.py                    47      5    89%   30, 49, 52, 62-63
+src/asqueel/renderer.py                     4      0   100%
+src/asqueel/runtime.py                    412     11    97%   99, 103, 200, 238, 295, 323, 359, 388, 446, 491, 507
+src/asqueel/semantic_elements.py           14      0   100%
+src/asqueel/triggers.py                    33      4    88%   36-39
+src/asqueel/validation.py                  62     17    73%   12, 18, 20, 22, 27, 29, 37, 40, 43, 48, 50, 53, 67, 70, 72, 74, 76
+src/asqueel/validators.py                 202     12    94%   149, 229, 262-263, 266-271, 284-289, 328-333, 335, 372
+src/asqueel/writes.py                     126      2    98%   24, 93
+---------------------------------------------------------------------
+TOTAL                                    7083    379    95%
+================= 3918 passed, 13 skipped in 144.60s (0:02:24) =================

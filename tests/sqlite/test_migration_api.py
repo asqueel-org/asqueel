@@ -40,7 +40,7 @@ def test_plan_changes_nothing_and_migrate_creates_the_tables(tmp_path):
         assert db.migration_plan().empty
         db.table('app.item').insert({'id': 1, 'name': 'first'})
         db.commit()
-        assert db.table('app.item').query(columns='$id, $name').fetch() == [{'id': 1, 'name': 'first'}]
+        assert [dict(row) for row in db.table('app.item').query(columns='$id, $name').fetch()] == [{'id': 1, 'name': 'first'}]
     finally:
         db.close()
 
@@ -61,7 +61,7 @@ def test_a_database_declared_in_a_host_configuration_migrates(tmp_path):
         db.migrate()
         db.table('chat.message').insert({'id': 1, 'text': 'ciao'})
         db.commit()
-        assert db.table('chat.message').query(columns='$text').fetch() == [{'text': 'ciao'}]
+        assert [dict(row) for row in db.table('chat.message').query(columns='$text').fetch()] == [{'text': 'ciao'}]
     finally:
         db.close()
 

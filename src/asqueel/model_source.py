@@ -37,7 +37,7 @@ def options(node):
     return {child.label: Option(child.node_tag, attributes(child)) for child in container.value or ()}
 
 
-def prepare_source(builder):
+def prepare_source(builder, *, options_first=False):
     builder = _copy_recipe(builder)
     _validate_source_shape(builder)
     for _, node in builder.source.query('#p,#n', deep=True):
@@ -62,7 +62,7 @@ def prepare_source(builder):
                 node.attr.setdefault('_meta', {}).setdefault('signature_defaults', []).append(key)
     resolve_source_types(builder)
     from .model_expansion import expand_options
-    expand_options(builder)
+    expand_options(builder, options_first=options_first)
     resolve_source_references(builder)
     return builder
 

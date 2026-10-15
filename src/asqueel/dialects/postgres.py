@@ -1,12 +1,14 @@
-"""PostgreSQL expression scanning and rendering of already-resolved plans.
+"""PostgreSQL rendering of already-resolved plans, without rescanning SQL.
 
 No model lookup, connection or driver binding belongs at this boundary.
+The tokens service remains for the previous compiler's expression handling.
 """
 from __future__ import annotations
 
 import re
 
 from dataclasses import replace
+from typing import cast
 
 from ..contracts import ResultColumn, UnsupportedFeatureError
 from ..query_plan import (Fragment, Identifier, Parameter, Projection, QueryPlan, SqlStatement,
@@ -98,6 +100,63 @@ class PostgresDialect:
                 raise ValueError(f'Unknown PostgreSQL capabilities: {sorted(unknown)}')
             self.capabilities = frozenset(capabilities)
 
+    def bag_item_formula(self, bagcolumn: str, dtype: str) -> str:
+        """Legacy XPath extraction and casts, with the existing text fallback.
+
+        The compiler binds calculated_path in the owning formula's scope and
+        resolves bagcolumn using the ordinary field/relation expression path.
+        """
+        expression = f'CAST((xpath(:calculated_path, CAST({bagcolumn} AS XML)))[1] AS text)'
+        destination = {
+            'N': 'numeric', 'B': 'boolean', 'D': 'date',
+            'H': 'time without time zone', 'HZ': 'time with time zone',
+            'DH': 'timestamp without time zone', 'DHZ': 'timestamp with time zone',
+            'I': 'integer', 'L': 'bigint', 'R': 'real', 'F': 'real',
+        }.get(dtype, 'text')
+        return expression if destination == 'text' else f'CAST(({expression}) AS {destination})'
+
+    def aggregate_subquery(self, plan: QueryPlan, mode: str, alias: str) -> Fragment:
+        """Legacy subQueryColumn wrapper over an already resolved child SELECT.
+
+        jsonb and XML-as-text preserve DISTINCT support from the corrected
+        legacy model. Bindings stay structured until the root driver pass.
+        """
+        row = Identifier(alias)
+        if mode == 'json':
+            aggregate = concat('jsonb_agg(row_to_json(', row, '))')
+        elif mode == 'xml':
+            fields = separated(concat(row, '.', Identifier(cast(str, p.alias)),
+                                      ' AS ', Identifier(cast(str, p.alias)))
+                               for p in plan.projections)
+            aggregate = concat('CAST(xmlagg(xmlelement(name ', row,
+                               ', xmlforest(', fields, '))) AS text)')
+        else:
+            raise UnsupportedFeatureError(f'Unsupported subquery aggregate mode: {mode!r}')
+        statement = self.render(plan)
+        return concat('(SELECT ', aggregate, ' FROM (', *statement.parts, ') AS ', row, ')')
+
+    def aggregate_sql_subquery(self, sql, mode, alias, columns):
+        """Existing subQueryColumn wrappers over a resolved string SELECT."""
+        row = self.quote_identifier(alias)
+        if mode == 'json':
+            aggregate = f'jsonb_agg(row_to_json({row}))'
+        elif mode == 'xml':
+            fields = ', '.join(f'{row}.{self.quote_identifier(c)} AS {self.quote_identifier(c)}'
+                               for c in columns)
+            aggregate = f'CAST(xmlagg(xmlelement(name {row}, xmlforest({fields}))) AS text)'
+        else:
+            raise UnsupportedFeatureError(f'Unsupported subquery aggregate mode: {mode!r}')
+        return f'(SELECT {aggregate} FROM ({sql}) AS {row})'
+
+    def as_translator(self, name: str) -> str:
+        """Legacy asTranslator: quote result aliases; let the DB handle length.
+
+        A generated expression alias can exceed PostgreSQL's identifier length,
+        as in the existing priced_rows_pct scalar subquery. Physical identifiers
+        keep their separate quote_identifier validation.
+        """
+        return '"' + name.replace('"', '""') + '"'
+
     def quote_identifier(self, name: str) -> str:
         if not isinstance(name, str) or not name or '\x00' in name:
             raise ValueError('SQL identifiers must be nonempty strings without NUL')
@@ -113,6 +172,11 @@ class PostgresDialect:
     def empty_collection(self, negated: bool) -> str:
         """Operand-free replacement of ``IN`` / ``NOT IN`` for an empty collection."""
         return "<> ALL('{}')" if negated else "= ANY('{}')"
+
+    def concat_non_null(self, expressions: list[str], separator: str) -> str:
+        """Legacy reason formulas: skip NULL terms, keep empty strings."""
+        literal = "'" + separator.replace("'", "''") + "'"
+        return f"array_to_string(ARRAY[{', '.join(expressions)}]::text[], {literal})"
 
     def _grouping(self, plan: QueryPlan) -> None:
         """Reject the DISTINCT/GROUP BY/HAVING combinations no backend here supports."""
@@ -144,24 +208,41 @@ class PostgresDialect:
         if capability not in self.capabilities:
             raise UnsupportedFeatureError(f'{self.name}: unsupported capability {capability}')
 
+    def compile_sql(self, maintable, columns, distinct='', joins=None, where=None,
+                    group_by=None, having=None, order_by=None, limit=None, offset=None,
+                    for_update=False, maintable_as='t0'):
+        """Legacy compileSql over strings; separate from the previous plan renderer."""
+        self._require('select')
+        if not columns.strip():
+            raise ValueError('SELECT needs result columns')
+        for name, value in (('limit', limit), ('offset', offset)):
+            if value is not None and (type(value) is not int or value < 0):
+                raise ValueError(f'{name} must be a nonnegative integer')
+            if value is not None:
+                self._require(name)
+        if for_update:
+            self._require('for_update')
+        result = [f'SELECT {distinct}{columns}',
+                  f' FROM {maintable} AS {self.quote_identifier(maintable_as)}']
+        for join in joins or ():
+            self._require('left_join')
+            result.append(f'       {join}')
+        for name, value in (('WHERE', where), ('GROUP BY', group_by), ('HAVING', having),
+                            ('ORDER BY', order_by)):
+            if value:
+                result.append(f'{name} {value}')
+        # Retain the already agreed zero/offset contract of the native adapters.
+        if limit is not None:
+            result.append(f'LIMIT {limit}')
+        if offset is not None:
+            result.append(f'OFFSET {offset}')
+        if for_update:
+            result.append(f'FOR UPDATE OF {maintable_as}')
+        return '\n'.join(result)
+
     def _has_expression(self, fragment: Fragment) -> bool:
-        # Mask structural nodes rather than interpreting model references here.
-        text = ''.join(part if isinstance(part, str) else 'x' for part in fragment.parts)
-        return any(kind not in {'comment', 'line_comment'} and value.strip() for kind, value in self.tokens(text))
-
-    def _fragment(self, fragment: Fragment) -> Fragment:
-        """Terminate trailing line comments before adding structural SQL.
-
-        Scan the entire fragment, not individual string parts: lexical tokens
-        can span parts, while identifiers/parameters stay structured in output.
-        """
-        text = ''.join(part if isinstance(part, str)
-                       else self.quote_identifier(part.name) if isinstance(part, Identifier)
-                       else '0' for part in fragment.parts)
-        tokens = list(self.tokens(text))
-        if tokens and tokens[-1][0] == 'line_comment' and not tokens[-1][1].endswith('\n'):
-            return concat(fragment, '\n')
-        return fragment
+        # Check the plan's presence of a value, never interpret SQL at rendering.
+        return any(not isinstance(part, str) or part.strip() for part in fragment.parts)
 
     def render(self, plan: QueryPlan) -> SqlStatement:
         if plan.dialect != self.name:
@@ -180,7 +261,7 @@ class PostgresDialect:
                 raise UnsupportedFeatureError('FOR UPDATE is only supported for SELECT')
             self._require('for_update')
         if plan.where is not None and not self._has_expression(plan.where):
-            raise ValueError('WHERE needs an expression, not whitespace or comments')
+            raise ValueError('WHERE needs a nonempty expression')
         if operation in {'update', 'delete'} and plan.where is None:
             raise ValueError('UPDATE/DELETE require an explicit predicate')
         if operation in {'select', 'delete'} and plan.assignments:
@@ -197,24 +278,29 @@ class PostgresDialect:
         names = [item.column for item in plan.assignments]
         if len(names) != len(set(names)):
             raise ValueError('Duplicate assignment column')
-        aliases = [item.alias for item in plan.projections]
+        aliases = [item.alias for item in plan.projections if item.alias is not None]
         if len(aliases) != len(set(aliases)):
             raise ValueError('Duplicate projection alias')
         for projection in plan.projections:
             if not self._has_expression(projection.expression):
                 raise ValueError('Empty projection expression')
-            if projection.column.name != projection.alias:
+            if projection.alias is not None and (
+                    projection.column is None or projection.column.name != projection.alias):
                 raise ValueError('Projection alias must match result metadata')
         for assignment in plan.assignments:
             if not self._has_expression(assignment.value):
                 raise ValueError('Empty assignment expression')
         table = concat(Identifier(plan.table.schema), '.', Identifier(plan.table.name),
                        ' AS ', Identifier(plan.table.alias))
-        projections = separated(concat(self._fragment(p.expression), ' AS ', Identifier(p.alias))
-                                for p in plan.projections)
+        projections = separated((
+            p.expression if p.alias is None
+            else concat(p.expression, ' AS ', Identifier(p.alias))
+            for p in plan.projections), separator=',\n')
         if operation == 'select':
+            # Legacy compileSql joins clauses with newlines unconditionally.
+            # Fragment text is preserved; this boundary does not parse SQL.
             statement = concat('SELECT ' + ('DISTINCT ' if plan.distinct else ''),
-                               projections, ' FROM ', table)
+                               projections, '\n FROM ', table)
             joined_aliases = {plan.table.alias}
             for join in plan.joins:
                 if join.kind != 'left':
@@ -225,45 +311,45 @@ class PostgresDialect:
                 joined_aliases.add(join.table.alias)
                 if not self._has_expression(join.condition):
                     raise ValueError('JOIN requires a condition')
-                statement = concat(statement, ' LEFT JOIN ', Identifier(join.table.schema), '.',
+                statement = concat(statement, '\n LEFT JOIN ', Identifier(join.table.schema), '.',
                                    Identifier(join.table.name), ' AS ', Identifier(join.table.alias),
-                                   ' ON ', self._fragment(join.condition))
+                                   ' ON ', join.condition)
         elif operation == 'insert':
             statement = concat('INSERT INTO ', table)
             if plan.assignments:
                 statement = concat(statement, ' (',
                                    separated(Identifier(a.column) for a in plan.assignments),
-                                   ') VALUES (', separated(self._fragment(a.value) for a in plan.assignments), ')')
+                                   ') VALUES (', separated(a.value for a in plan.assignments), ')')
             else:
                 self._require('default_values')
                 statement = concat(statement, ' DEFAULT VALUES')
         elif operation == 'update':
             statement = concat('UPDATE ', table, ' SET ', separated(
-                concat(Identifier(a.column), ' = ', self._fragment(a.value)) for a in plan.assignments))
+                concat(Identifier(a.column), ' = ', a.value) for a in plan.assignments))
         else:
             statement = concat('DELETE FROM ', table)
         if plan.where is not None:
-            statement = concat(statement, ' WHERE ', self._fragment(plan.where))
+            statement = concat(statement, '\nWHERE ', plan.where)
         for clause, fragment in [('GROUP BY', plan.group_by), ('HAVING', plan.having)]:
             if fragment is not None:
                 if not self._has_expression(fragment):
                     raise ValueError(f'{clause} requires an expression')
-                statement = concat(statement, f' {clause} ', self._fragment(fragment))
+                statement = concat(statement, f'\n{clause} ', fragment)
         if plan.order_by is not None:
             if not self._has_expression(plan.order_by):
                 raise ValueError('ORDER BY requires an expression')
-            statement = concat(statement, ' ORDER BY ', self._fragment(plan.order_by))
+            statement = concat(statement, '\nORDER BY ', plan.order_by)
         for clause, value in [('limit', plan.limit), ('offset', plan.offset)]:
             if value is not None:
                 self._require(clause)
                 if isinstance(value, bool) or not isinstance(value, int) or value < 0:
                     raise ValueError(f'{clause.upper()} must be a nonnegative integer')
-                statement = concat(statement, f' {clause.upper()} {value}')
+                statement = concat(statement, f'\n{clause.upper()} {value}')
         if plan.for_update:
-            statement = concat(statement, ' FOR UPDATE OF ', Identifier(plan.table.alias))
+            statement = concat(statement, '\nFOR UPDATE OF ', Identifier(plan.table.alias))
         if operation != 'select' and plan.projections:
             self._require('returning_' + operation)
-            statement = concat(statement, ' RETURNING ', projections)
+            statement = concat(statement, '\nRETURNING ', projections)
         parts: list[str | Parameter] = []
         for part in statement.parts:
             if isinstance(part, Identifier):
@@ -278,6 +364,7 @@ class PostgresDialect:
                 parts.append(part)
             else:
                 raise TypeError(f'Invalid SQL fragment part: {type(part).__name__}')
-        return SqlStatement(tuple(parts), plan.params,
-                            tuple(p.column for p in plan.projections), self.name,
+        columns = (cast(tuple[ResultColumn, ...], tuple(p.column for p in plan.projections))
+                   if all(p.column is not None for p in plan.projections) else ())
+        return SqlStatement(tuple(parts), plan.params, columns, self.name,
                             environment=plan.environment)

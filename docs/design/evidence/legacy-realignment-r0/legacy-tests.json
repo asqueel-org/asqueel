@@ -1,0 +1,1378 @@
+{
+  "legacy": {
+    "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": true,
+        "line": 50,
+        "end_line": 55,
+        "source_sha256": "d9c031fcecb36d8333e02d850e6d5a24a5fa041066ba65d178873662398b4fd9",
+        "ast_sha256": "79a1b81b8a5f78f6646bc63dd1442bb9fd4300b4f25ad29d242091c13123658b"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": true,
+        "line": 57,
+        "end_line": 62,
+        "source_sha256": "d003be6beb6f069a6c3b2eb7941b9e8c56b6c0eeb95f7ae8b8c48a10fc1c6495",
+        "ast_sha256": "fce96ef9ac3b1fea17710b092426fab281b41c98c57901ade62035e65b9cbeef"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": true,
+        "line": 64,
+        "end_line": 70,
+        "source_sha256": "2ebff5515a055cab4d87cd0cc9b27fe7340ba9a6e1d3f2ad38ee726d30c02e27",
+        "ast_sha256": "2a33af9f77f7b79ec49e5252707bff423a9e4f86f52ca72c70c2262f7852d3cb"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": true,
+        "line": 72,
+        "end_line": 78,
+        "source_sha256": "a055d9073c987cc6329aae3ace50ddc727fb99e99b68ef07800b5b27dff9170b",
+        "ast_sha256": "14899ae5d1ad0e25aa6c7d4991688ea043a3625a71c3d20cbca59641437b93f7"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": true,
+        "line": 2541,
+        "end_line": 2552,
+        "source_sha256": "ea8daa1bfeb96fabeee5bbc4e105cbb13b9534d8f4cad9c2cdd8ae3ba0071995",
+        "ast_sha256": "048be09e500b108d77bcae303443ea87c1e472f467c0efd416c881c2cc25b17a"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": true,
+        "line": 2554,
+        "end_line": 2564,
+        "source_sha256": "1944fbc1b0841f3c738e8711335684ae2ae66dae39699c58b1724bad0f43fb6d",
+        "ast_sha256": "be36f6c7f2e0dca726e787469db519f4c70901313adb2268d5a67123bbe58491"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": true,
+        "line": 2516,
+        "end_line": 2527,
+        "source_sha256": "9a67b85fa48cef0f13960d0082518f80a799d96cc38a4c3232c4a2124014cd1b",
+        "ast_sha256": "9331b172bcfa8ea4b2f19a6db3c5b4e575061affc0f488296e3afd4c57c75129"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": true,
+        "line": 2529,
+        "end_line": 2539,
+        "source_sha256": "3b1af0b85b4e95d097e4d7b4b65530a9ae5ad2e218f3087bc29baa5bc1f648b9",
+        "ast_sha256": "49b21541266ebed9bc1a3ba197df3aa2907ce2490c26004d432ffae803752d3f"
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": true,
+        "line": 2836,
+        "end_line": 2846,
+        "source_sha256": "56a0b78b80203d53ab03db3db946834d47ab403c5397c669cb219b0ff532e8d3",
+        "ast_sha256": "2bd323e72c7cfd1f6f23b1414878bc3bc14b93977f2b3f93ddc524eaaccf6f47"
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": true,
+        "line": 2848,
+        "end_line": 2858,
+        "source_sha256": "e4c97a95ee9aa561d69d30965b788882a311208d7161e3730fbe859eda70d5a0",
+        "ast_sha256": "02d78e8b30b4ed4e58104b54922885256057073f0f5f95571c284ea8a1b9f381"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 350,
+        "end_line": 356,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "compound": {
+    "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": false
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 349,
+        "end_line": 355,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "v2": {
+    "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": false
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 349,
+        "end_line": 355,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "v3": {
+    "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": false
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": false
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 349,
+        "end_line": 355,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "v3_merged": {
+    "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": true,
+        "line": 48,
+        "end_line": 53,
+        "source_sha256": "d9c031fcecb36d8333e02d850e6d5a24a5fa041066ba65d178873662398b4fd9",
+        "ast_sha256": "79a1b81b8a5f78f6646bc63dd1442bb9fd4300b4f25ad29d242091c13123658b"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": true,
+        "line": 55,
+        "end_line": 60,
+        "source_sha256": "d003be6beb6f069a6c3b2eb7941b9e8c56b6c0eeb95f7ae8b8c48a10fc1c6495",
+        "ast_sha256": "fce96ef9ac3b1fea17710b092426fab281b41c98c57901ade62035e65b9cbeef"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": true,
+        "line": 62,
+        "end_line": 68,
+        "source_sha256": "2ebff5515a055cab4d87cd0cc9b27fe7340ba9a6e1d3f2ad38ee726d30c02e27",
+        "ast_sha256": "2a33af9f77f7b79ec49e5252707bff423a9e4f86f52ca72c70c2262f7852d3cb"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": true,
+        "line": 70,
+        "end_line": 76,
+        "source_sha256": "a055d9073c987cc6329aae3ace50ddc727fb99e99b68ef07800b5b27dff9170b",
+        "ast_sha256": "14899ae5d1ad0e25aa6c7d4991688ea043a3625a71c3d20cbca59641437b93f7"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": false
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 349,
+        "end_line": 355,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "v4": {
+    "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": true,
+        "line": 48,
+        "end_line": 53,
+        "source_sha256": "d9c031fcecb36d8333e02d850e6d5a24a5fa041066ba65d178873662398b4fd9",
+        "ast_sha256": "79a1b81b8a5f78f6646bc63dd1442bb9fd4300b4f25ad29d242091c13123658b"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": true,
+        "line": 55,
+        "end_line": 60,
+        "source_sha256": "d003be6beb6f069a6c3b2eb7941b9e8c56b6c0eeb95f7ae8b8c48a10fc1c6495",
+        "ast_sha256": "fce96ef9ac3b1fea17710b092426fab281b41c98c57901ade62035e65b9cbeef"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": true,
+        "line": 62,
+        "end_line": 68,
+        "source_sha256": "2ebff5515a055cab4d87cd0cc9b27fe7340ba9a6e1d3f2ad38ee726d30c02e27",
+        "ast_sha256": "2a33af9f77f7b79ec49e5252707bff423a9e4f86f52ca72c70c2262f7852d3cb"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": true,
+        "line": 70,
+        "end_line": 76,
+        "source_sha256": "a055d9073c987cc6329aae3ace50ddc727fb99e99b68ef07800b5b27dff9170b",
+        "ast_sha256": "14899ae5d1ad0e25aa6c7d4991688ea043a3625a71c3d20cbca59641437b93f7"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": false
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 349,
+        "end_line": 355,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "simplify": {
+    "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": true,
+        "line": 48,
+        "end_line": 53,
+        "source_sha256": "d9c031fcecb36d8333e02d850e6d5a24a5fa041066ba65d178873662398b4fd9",
+        "ast_sha256": "79a1b81b8a5f78f6646bc63dd1442bb9fd4300b4f25ad29d242091c13123658b"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": true,
+        "line": 55,
+        "end_line": 60,
+        "source_sha256": "d003be6beb6f069a6c3b2eb7941b9e8c56b6c0eeb95f7ae8b8c48a10fc1c6495",
+        "ast_sha256": "fce96ef9ac3b1fea17710b092426fab281b41c98c57901ade62035e65b9cbeef"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": true,
+        "line": 62,
+        "end_line": 68,
+        "source_sha256": "2ebff5515a055cab4d87cd0cc9b27fe7340ba9a6e1d3f2ad38ee726d30c02e27",
+        "ast_sha256": "2a33af9f77f7b79ec49e5252707bff423a9e4f86f52ca72c70c2262f7852d3cb"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": true,
+        "line": 70,
+        "end_line": 76,
+        "source_sha256": "a055d9073c987cc6329aae3ace50ddc727fb99e99b68ef07800b5b27dff9170b",
+        "ast_sha256": "14899ae5d1ad0e25aa6c7d4991688ea043a3625a71c3d20cbca59641437b93f7"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": false
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": false
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": false
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 349,
+        "end_line": 355,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  },
+  "next": {
+    "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+    "definitions": [
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_pg",
+        "available": true,
+        "line": 50,
+        "end_line": 55,
+        "source_sha256": "d9c031fcecb36d8333e02d850e6d5a24a5fa041066ba65d178873662398b4fd9",
+        "ast_sha256": "79a1b81b8a5f78f6646bc63dd1442bb9fd4300b4f25ad29d242091c13123658b"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_single_column_sqlite",
+        "available": true,
+        "line": 57,
+        "end_line": 62,
+        "source_sha256": "d003be6beb6f069a6c3b2eb7941b9e8c56b6c0eeb95f7ae8b8c48a10fc1c6495",
+        "ast_sha256": "fce96ef9ac3b1fea17710b092426fab281b41c98c57901ade62035e65b9cbeef"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_pg",
+        "available": true,
+        "line": 64,
+        "end_line": 70,
+        "source_sha256": "2ebff5515a055cab4d87cd0cc9b27fe7340ba9a6e1d3f2ad38ee726d30c02e27",
+        "ast_sha256": "2a33af9f77f7b79ec49e5252707bff423a9e4f86f52ca72c70c2262f7852d3cb"
+      },
+      {
+        "group": "physical",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestPhysicalColumns.test_multiple_columns_sqlite",
+        "available": true,
+        "line": 72,
+        "end_line": 78,
+        "source_sha256": "a055d9073c987cc6329aae3ace50ddc727fb99e99b68ef07800b5b27dff9170b",
+        "ast_sha256": "14899ae5d1ad0e25aa6c7d4991688ea043a3625a71c3d20cbca59641437b93f7"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_pg",
+        "available": true,
+        "line": 2578,
+        "end_line": 2589,
+        "source_sha256": "ea8daa1bfeb96fabeee5bbc4e105cbb13b9534d8f4cad9c2cdd8ae3ba0071995",
+        "ast_sha256": "048be09e500b108d77bcae303443ea87c1e472f467c0efd416c881c2cc25b17a"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_column_param_sqlite",
+        "available": true,
+        "line": 2591,
+        "end_line": 2601,
+        "source_sha256": "1944fbc1b0841f3c738e8711335684ae2ae66dae39699c58b1724bad0f43fb6d",
+        "ast_sha256": "be36f6c7f2e0dca726e787469db519f4c70901313adb2268d5a67123bbe58491"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_pg",
+        "available": true,
+        "line": 2553,
+        "end_line": 2564,
+        "source_sha256": "9a67b85fa48cef0f13960d0082518f80a799d96cc38a4c3232c4a2124014cd1b",
+        "ast_sha256": "9331b172bcfa8ea4b2f19a6db3c5b4e575061affc0f488296e3afd4c57c75129"
+      },
+      {
+        "group": "embed",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestEmbedFieldPars.test_relation_param_sqlite",
+        "available": true,
+        "line": 2566,
+        "end_line": 2576,
+        "source_sha256": "3b1af0b85b4e95d097e4d7b4b65530a9ae5ad2e218f3087bc29baa5bc1f648b9",
+        "ast_sha256": "49b21541266ebed9bc1a3ba197df3aa2907ce2490c26004d432ffae803752d3f"
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_pg",
+        "available": true,
+        "line": 2873,
+        "end_line": 2883,
+        "source_sha256": "56a0b78b80203d53ab03db3db946834d47ab403c5397c669cb219b0ff532e8d3",
+        "ast_sha256": "2bd323e72c7cfd1f6f23b1414878bc3bc14b93977f2b3f93ddc524eaaccf6f47"
+      },
+      {
+        "group": "macro",
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "definition": "TestExpandInRange.test_in_range_in_where_sqlite",
+        "available": true,
+        "line": 2885,
+        "end_line": 2895,
+        "source_sha256": "e4c97a95ee9aa561d69d30965b788882a311208d7161e3730fbe859eda70d5a0",
+        "ast_sha256": "02d78e8b30b4ed4e58104b54922885256057073f0f5f95571c284ea8a1b9f381"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_sqltext_property",
+        "available": true,
+        "line": 37,
+        "end_line": 41,
+        "source_sha256": "22a4cae051a747f4946e6b41d904acf2942f3e3e33bf528295884709aefb59c8",
+        "ast_sha256": "0fc1552a766b422d3ef365b5baac215bf63648e5cef07d6d1547b851b66d6c1c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_test_method",
+        "available": true,
+        "line": 45,
+        "end_line": 50,
+        "source_sha256": "ed21b5f5f1ae9db12f8e34f6087e122507bbb8bd230286d5466916ee3d1c4ed2",
+        "ast_sha256": "c690ff3ab15635303ecac97871c7705cb283c11acbf8344bbdd6baca814c3f31"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_compiled_property",
+        "available": true,
+        "line": 136,
+        "end_line": 141,
+        "source_sha256": "656c9fcea93e70fc0077aabba636fd363571c929b76a7d5e5655d6f5e272fe05",
+        "ast_sha256": "d38610ca95e6fa2aa2c7028742450dfa4a3b7fb856bb3878af5fc6ae556eec83"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_order_by_desc",
+        "available": true,
+        "line": 199,
+        "end_line": 205,
+        "source_sha256": "0ac9996344bf7de787d8f6536c0aa02d5c9ced73a2db1fead5bee88ce3bd1e6a",
+        "ast_sha256": "173c376d4d9c390b2fe3e8c631f9f20927d1f7f275d5a6b8f0b4dc98e738893c"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_where_multiple_conditions",
+        "available": true,
+        "line": 209,
+        "end_line": 214,
+        "source_sha256": "f2a16de86088698f5866c2af811ecb6ccb9b5de5898eb57e539710cc68f26b92",
+        "ast_sha256": "acd438f3215ee540cf3b0d6cfaa5ebbedb5323d8a0b436e336cc72c6d63c4ce3"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_limit",
+        "available": true,
+        "line": 227,
+        "end_line": 231,
+        "source_sha256": "e2cd1260391971d47dfcd907de2a956c37df477d0f4058c7d4637bde743478b6",
+        "ast_sha256": "7ead2c05e71972643ade00b88df16acd9027c21ee548d80962ba11eaf89f4a48"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_query_offset",
+        "available": true,
+        "line": 233,
+        "end_line": 237,
+        "source_sha256": "15606bddc37d9b1197e1f560507a300cd5d19646ec23308e87115724a8217a50",
+        "ast_sha256": "e9438a6404b679c0bd18c1847c4704f7b5919ac9875ca37a60725e2d5d54cd36"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_columns_with_as_alias",
+        "available": true,
+        "line": 350,
+        "end_line": 356,
+        "source_sha256": "c546ad1758e4bfe437dbdef05a1097a2c65229099846e6d06b01735646c8b36c",
+        "ast_sha256": "06b8b001e562b9f210d8641b73149d5bacb28b83568d4c2c199ada596f712ba7"
+      },
+      {
+        "group": "surface",
+        "path": "gnrpy/tests/sql/h_query_surface_test.py",
+        "definition": "BaseQuerySurface.test_relation_columns",
+        "available": true,
+        "line": 169,
+        "end_line": 176,
+        "source_sha256": "2027fa5a20e30a15397eae903963cfe780f5797139b7c27b17d9eb84e1094df2",
+        "ast_sha256": "99773bae0d4726883be479e2ec1da9535895831de051f50b23e558ddf438dfa1"
+      }
+    ],
+    "execution": "not_run_in_R0"
+  }
+}

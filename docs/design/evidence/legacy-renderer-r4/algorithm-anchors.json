@@ -1,0 +1,42 @@
+{
+  "legacy": {
+    "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 695,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "compound": {
+    "file": "/tmp/asqueel-formula-baseline/compound/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 643,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "v2": {
+    "file": "/tmp/asqueel-formula-baseline/v2/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 643,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "v3": {
+    "file": "/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 643,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "v3_merged": {
+    "file": "/tmp/asqueel-formula-baseline/v3_merged/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 643,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "v4": {
+    "file": "/tmp/asqueel-formula-baseline/v4/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 643,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "simplify": {
+    "file": "/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 643,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  },
+  "next": {
+    "file": "/tmp/asqueel-formula-baseline/next/gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+    "line": 695,
+    "ast_sha256": "9252fce241c5a280c79a107d52b7513ce1dd9c5c3085f8fc20fd16a368697f4f"
+  }
+}

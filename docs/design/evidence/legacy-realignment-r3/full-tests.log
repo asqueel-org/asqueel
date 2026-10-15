@@ -1,0 +1,269 @@
+........................................................................ [  1%]
+........................................................................ [  3%]
+........................................................F............... [  5%]
+........................................................................ [  7%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+............F........................................................... [ 12%]
+........................................................................ [ 14%]
+........................................................................ [ 16%]
+........................................................................ [ 18%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 23%]
+........................................................................ [ 25%]
+..................................................................s..... [ 27%]
+.................s...s.........s.........s.......s...s.....s............ [ 29%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+................ssss.................................................... [ 34%]
+........................................................................ [ 36%]
+........................................................................ [ 38%]
+........................................................................ [ 40%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 47%]
+........................................................................ [ 49%]
+........................................................................ [ 51%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+........................................................................ [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 60%]
+........................................................................ [ 62%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 69%]
+........................................................................ [ 71%]
+........................................................................ [ 73%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+........................................................................ [ 80%]
+........................................................................ [ 82%]
+........................................................................ [ 84%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+........................................................................ [ 93%]
+........................................................................ [ 95%]
+.........s....FFF....................................................... [ 97%]
+........................................................................ [ 98%]
+...........................................                              [100%]
+=================================== FAILURES ===================================
+________________ test_unicode_values_escapes_and_types[sqlite] _________________
+
+database = (<asqueel.drivers.sqlite.SqliteDriver object at 0x10d9d5070>, <sqlite3.Connection object at 0x10eafa3e0>)
+
+    def test_unicode_values_escapes_and_types(database):
+        result = run(database, "SELECT :soglia_è AS amount, :value AS value, :day AS day, :nothing AS nullable", {
+            'soglia_è': Decimal('12.50'), 'value': b'\\$id', 'day': date(2026, 10, 14), 'nothing': None})
+        row = result.rows[0]
+>       assert row['amount'] == Decimal('12.50')
+E       AssertionError: assert '12.50' == Decimal('12.50')
+E        +  where Decimal('12.50') = Decimal('12.50')
+
+tests/adapter_integration/test_legacy_preparation.py:51: AssertionError
+_____ test_direct_sql_uses_driver_binding_and_same_environment[postgresql] _____
+
+database = <test_write_lifecycle.IntegrationDb object at 0x10f11fc20>
+
+    def test_direct_sql_uses_driver_binding_and_same_environment(database):
+        db = database
+        with db.tempEnv(user="O'Reilly 50%"):
+>           result = db.execute("SELECT :env_user AS username, ':fake 50%' AS literal")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/application_integration/test_write_lifecycle.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/application_integration/test_write_lifecycle.py:42: in execute
+    return super().execute(query, sqlargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:198: in execute
+    return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10d426450>
+query = "SELECT %(env_user)s AS username, '%(fake)s 50%' AS literal"
+params = {'env_user': "O'Reilly 50%"}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.ProgrammingError: only '%s', '%b', '%t' are allowed as placeholders, got '%''
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: ProgrammingError
+_______________ test_direct_sql_expands_collections[postgresql] ________________
+
+shop = <tests.query_completion_support.Shop object at 0x110ecc170>
+
+    def test_direct_sql_expands_collections(shop):
+        # R14, D2
+        sql = 'SELECT id FROM {invoice} WHERE id IN :ids ORDER BY id'
+        assert shop.direct_ids(sql, {'ids': [10, 11]}) == [10, 11]
+        assert shop.direct_ids(sql, {'ids': (10, 10, 11)}) == [10, 11]
+>       assert shop.direct_ids(sql, {'ids': []}) == []
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_wf_phase1_query_collections.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/query_completion_support.py:85: in direct_ids
+    rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).rows
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:198: in execute
+    return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10f0c7590>
+query = 'SELECT id FROM "query_completion_c82a1baed22a43da84e833e76a9012e9".invoice WHERE id IN %(ids)s ORDER BY id'
+params = {'ids': []}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.SyntaxError: syntax error at or near "$1"
+E           LINE 1: ...1baed22a43da84e833e76a9012e9".invoice WHERE id IN $1 ORDER B...
+E                                                                        ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: SyntaxError
+__________ test_direct_sql_keeps_literals_and_rejects_scalars[sqlite] __________
+
+shop = <tests.query_completion_support.Shop object at 0x1104817c0>
+
+    def test_direct_sql_keeps_literals_and_rejects_scalars(shop):
+        literal = "SELECT id FROM {invoice} WHERE coalesce(note, '') <> 'IN :ids' AND id IN :ids"
+        assert shop.direct_ids(literal, {'ids': [10, 12]}) == [10, 12]
+        with pytest.raises(ValueError, match='ids'):
+>           shop.direct_ids('SELECT id FROM {invoice} WHERE id IN :ids', {'ids': 'abc'})
+
+tests/test_wf_phase1_query_collections.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/query_completion_support.py:85: in direct_ids
+    rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).rows
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:198: in execute
+    return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.drivers.sqlite.SqliteDriver object at 0x10f8e25d0>
+connection = <sqlite3.Connection object at 0x10dddf3d0>
+query = CompiledQuery(sql='SELECT id FROM sales.invoice WHERE id IN :ids', params=mappingproxy({'ids': 'abc'}), columns=(), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=('ids',))
+
+    def execute(self, connection, query):
+        self.validate(query)
+        if not connection.in_transaction:
+            connection.execute('BEGIN IMMEDIATE')
+        params = {name: self._value(value) for name, value in query.params.items()}
+>       cursor = connection.execute(query.sql, params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       sqlite3.OperationalError: near ":ids": syntax error
+
+src/asqueel/drivers/sqlite.py:89: OperationalError
+________ test_direct_sql_keeps_literals_and_rejects_scalars[postgresql] ________
+
+shop = <tests.query_completion_support.Shop object at 0x1100d5dc0>
+
+    def test_direct_sql_keeps_literals_and_rejects_scalars(shop):
+        literal = "SELECT id FROM {invoice} WHERE coalesce(note, '') <> 'IN :ids' AND id IN :ids"
+        assert shop.direct_ids(literal, {'ids': [10, 12]}) == [10, 12]
+        with pytest.raises(ValueError, match='ids'):
+>           shop.direct_ids('SELECT id FROM {invoice} WHERE id IN :ids', {'ids': 'abc'})
+
+tests/test_wf_phase1_query_collections.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/query_completion_support.py:85: in direct_ids
+    rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).rows
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:198: in execute
+    return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10f0c6c90>
+query = 'SELECT id FROM "query_completion_300e3b9950bd470bade99bbe6572a4b1".invoice WHERE id IN %(ids)s'
+params = {'ids': 'abc'}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.SyntaxError: syntax error at or near "$1"
+E           LINE 1: ...ion_300e3b9950bd470bade99bbe6572a4b1".invoice WHERE id IN $1
+E                                                                                ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: SyntaxError
+=========================== short test summary info ============================
+FAILED tests/adapter_integration/test_legacy_preparation.py::test_unicode_values_escapes_and_types[sqlite]
+FAILED tests/application_integration/test_write_lifecycle.py::test_direct_sql_uses_driver_binding_and_same_environment[postgresql]
+FAILED tests/test_wf_phase1_query_collections.py::test_direct_sql_expands_collections[postgresql]
+FAILED tests/test_wf_phase1_query_collections.py::test_direct_sql_keeps_literals_and_rejects_scalars[sqlite]
+FAILED tests/test_wf_phase1_query_collections.py::test_direct_sql_keeps_literals_and_rejects_scalars[postgresql]
+5 failed, 3913 passed, 13 skipped in 83.61s (0:01:23)

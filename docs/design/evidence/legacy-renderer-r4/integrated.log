@@ -1,0 +1,13 @@
+2026-10-15 08:13:51: ERROR: gnr.sql/gnrsqlite - You did not supply a value for binding parameter :missing.
+Traceback (most recent call last):
+  File "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrsqlite.py", line 509, in execute
+    return pysqlite.Cursor.execute(self, sql, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.ProgrammingError: You did not supply a value for binding parameter :missing.
+2026-10-15 08:13:51: ERROR: gnr.sql/gnrsqlite - You did not supply a value for binding parameter :città.
+Traceback (most recent call last):
+  File "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrsqlite.py", line 509, in execute
+    return pysqlite.Cursor.execute(self, sql, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.ProgrammingError: You did not supply a value for binding parameter :città.
+132 cases written to docs/design/evidence/legacy-renderer-r4/integrated.json

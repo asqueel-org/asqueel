@@ -37,7 +37,7 @@ to replace an existing name. `asqueel unregister gestionale` removes only the
 card, leaving project files and the physical database untouched.
 
 The symbolic name identifies a configuration folder. The physical database name
-is independently declared by `connection.name` in that configuration.
+is independently declared by `connection.database` (or `connection.dsn`) in that configuration.
 
 ## Connection declaration
 
@@ -50,7 +50,8 @@ class Configuration(SqlDatabaseConfig):
     def main(self, root):
         db = root.db()
         db.connection(
-            name=EnvResolver("PGDATABASE", default="gestionale"),
+            "main",
+            database=EnvResolver("PGDATABASE", default="gestionale"),
             implementation="postgresql",
             host=EnvResolver("PGHOST", default="localhost"),
             port=EnvResolver("PGPORT", default=5432, dtype="L"),
@@ -60,22 +61,40 @@ class Configuration(SqlDatabaseConfig):
         # Declare schemas/tables here, or call explicitly imported contributors.
 ```
 
-`connection` is a singleton grammar node, not a named connection registry.
-`name` is the physical database name; there is no additional `dbname` field.
-The current builder syntax creates the DB node with `root.db()` and then calls
-`db.connection(...)`. Each connection attribute is read by `ConfigHandler`,
-which resolves `EnvResolver` using its existing standard behavior. A missing
-password is omitted, allowing the PostgreSQL driver's normal authentication.
-Driver-specific literal options such as `connect_timeout` can use `options`;
-reserved connection fields belong directly on the node, and nested resolvers
-inside that dictionary are not supported.
+`connection` declares a named connection. `name` is its logical name (default
+`main`); `database` is the physical database name, or the file path for SQLite.
+For PostgreSQL, `dsn` may replace the individual connection fields; do not combine
+it with `database`, `host`, `port`, `user` or `password`.
 
-Existing root-level `conninfo` / `connect_kwargs` recipes remain supported.
-Do not mix these with a `connection` node. The root's old `implementation`
-setting belongs to the old form; with a `connection` node, use
-`connection.implementation`. The CLI and application share the same connection
-settings reader. Named runtime connections, if used, connect to this same physical
-DB with these settings; they are not additional configuration entries.
+Each connection attribute is read by `ConfigHandler`, which resolves
+`EnvResolver` using its existing behavior. A missing password is omitted, allowing
+the PostgreSQL driver's normal authentication. Driver options use the existing
+options grammar, with resolvers directly on the attributes. Inside the recipe’s
+`main` method, for example:
+
+```python
+main = db.connection("main", database="gestionale")
+main.options().driver(connect_timeout=5)
+db.connection("reporting", database="gestionale_replica", host="replica")
+```
+
+The application selects a declared connection with
+`db.tempEnv(connectionName="reporting")`. When declaring connections by logical
+name, include `main`, which is also used by CLI migration commands. All named
+connections use the database's dialect; they can target different physical
+databases. See [transactions](transactions.md) for connection lifecycle and
+explicit commit/rollback.
+
+`connection.implementation` inherits `db.implementation` when omitted; the root
+default is PostgreSQL. Existing declarations without `database` or `dsn` retain
+the older interpretation of `name` as the physical database name. In that form,
+undeclared runtime connection names reuse the same settings. The old `options`
+dictionary is normalized to `connection.options().driver()` on an owned source;
+do not supply both forms. Nested resolvers in a dictionary are not supported.
+
+Root-level `conninfo` / `connect_kwargs` recipes also remain supported, but must
+not be mixed with `connection` nodes. The CLI and application share the same
+connection settings reader.
 
 ## Inspect and apply migrations
 

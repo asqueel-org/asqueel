@@ -37,8 +37,11 @@ def declare(schema_node):
     columns = customer.columns()
     columns.column('id', dtype='L')
     columns.column('name', dtype='T', x_sql_name='display')
+    # This fixture requires partitioned counts; formula defaults follow legacy
+    # and bypass partition unless explicitly requested here.
     customer.virtual_columns().formulaColumn('invoice_count', dtype='L', select=dict(
-        table='billing.invoice', columns='COUNT(*)', where='$customer_id = #THIS.id'))
+        table='billing.invoice', columns='COUNT(*)', where='$customer_id = #THIS.id',
+        ignorePartition=False))
     invoice = tables.table('invoice', pkey='id', x_sql_name='bills',
                            x_partition={'field': 'organization_id', 'current': 'organization'},
                            x_draft_field='draft', x_logical_deletion_field='deleted_at')

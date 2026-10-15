@@ -1,0 +1,25 @@
+{
+  "reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "date": "2026-10-14",
+  "command": "PYTHONPATH=/tmp/asqueel-formula-baseline/legacy/gnrpy /tmp/asqueel-formula-baseline/env/bin/python -m pytest -q -c /dev/null -p no:cacheprovider docs/design/probes/test_legacy_proxyclasses.py /tmp/asqueel-formula-baseline/legacy/gnrpy/tests/core/gnrlang_test.py::TestClassMixinProxy",
+  "original_tests_passed": 4,
+  "additional_probes_passed": 12,
+  "failed": 0,
+  "warnings": [
+    "Legacy getReader deprecation when importing GnrWebPage"
+  ],
+  "sources": {
+    "gnrpy/gnr/core/gnrlang.py": "50de6128d3ab5a09c23b76956a17ba4bb6a3c9f04d75cc752a7d5632cb5de145",
+    "gnrpy/gnr/web/gnrwebpage_proxy/gnrbaseproxy.py": "53e3e1c12c3711d25fcc1a84821d2c0f71d409e3dfa0c0df471f2d0b405a55c8",
+    "gnrpy/gnr/web/gnrbaseclasses.py": "a8d781fdbe11757af235895daaf0fac874bcfff9c676d704f7e14943a3bac9f7",
+    "gnrpy/gnr/web/gnrwsgisite_proxy/gnrresourceloader.py": "7caf0615ebb07e58eb5b367cfbb803771c71990596137d386c6a4fc84e84a4c0",
+    "gnrpy/gnr/web/gnrwebpage.py": "8a3fed3626c6b94d80b80199c85323061345fc3880063bdac1021abdd5984a40",
+    "gnrpy/gnr/app/gnrapp.py": "3b6f5d8d72cd6ff43ad4b2ecc77b572e71c9f4e3a0ce191781d644427cec29a7",
+    "gnrpy/gnr/sql/gnrsqlmodel/obj.py": "d3ec475bda7e284b448ad9054dff4e4e8ea42e0b91dbbc1db2f29a4881b71327",
+    "projects/gnrcore/packages/test15/resources/test_proxy.py": "c04092e6d34e7d96f3b70200d2ffea009d858f757e805648388e630ba2c42ac8",
+    "projects/gnrcore/packages/test15/webpages/tools/dynamic_proxy.py": "45af0e2835bace641b802429b7c613d8dcffe9d08edd4802cbd85672949f2b18",
+    "gnrpy/tests/core/gnrlang_test.py": "99eb57d72b0ae8e13a16d6a8ab68e9795da704f2559637c363bbc743ec77edf6"
+  },
+  "scope": "Local composition and binding; no query, network or HTTP/RPC execution. Static algorithm comparison across eight snapshots; no claim of branch-suite execution.",
+  "asqueel_core_changes": false
+}

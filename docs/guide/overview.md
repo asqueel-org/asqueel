@@ -73,7 +73,7 @@ produces the live `db` object graph.
 
 A live table is an object that knows how to query and change records. It is not
 one record from that table. Query results and records carry data; changing a
-returned dictionary does not silently schedule a database update.
+returned row does not silently schedule a database update.
 
 The logical identity `sales.customer` is separate from its physical SQL name.
 A deployment can use a schema, a table prefix or an explicit mapping without
@@ -163,9 +163,9 @@ comparisons with typical usage; the alternatives also support other styles.
 
 | Coming from | What changes in daily use | When that change is useful |
 |---|---|---|
-| Django | Query a configured table using SQL expressions and model paths; fetch dictionaries and finish transactions explicitly. You supply the web and UI integration. | You want the same model in scripts, services and custom interfaces, with shared field metadata independent of Django's application stack. |
+| Django | Query a configured table using SQL expressions and model paths; fetch rows with name and position access and finish transactions explicitly. You supply the web and UI integration. | You want the same model in scripts, services and custom interfaces, with shared field metadata independent of Django's application stack. |
 | SQLAlchemy ORM | Select the values you need through a table object and issue writes explicitly. Returned rows do not enter an identity map or a unit of work. | Your operations revolve around projections and reusable model formulas, and you want each write to be visible at its call site. |
-| Peewee | Declare a shared configuration model and reuse relation paths, aliases and formulas across queries. Results are dictionaries. | Repeated joins, calculations and field descriptions have become a maintenance concern across application components. |
+| Peewee | Declare a shared configuration model and reuse relation paths, aliases and formulas across queries. Results are mutable `NamedList` rows. | Repeated joins, calculations and field descriptions have become a maintenance concern across application components. |
 
 A form generator or admin application is not included: UI metadata is input to
 your own consumer. Asqueel also has a smaller implemented query and backend

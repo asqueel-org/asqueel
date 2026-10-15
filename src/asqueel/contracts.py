@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from types import MappingProxyType
 from typing import Any, Mapping
+from genro_toolbox import NamedList
 from .model_sections import FrozenMap, Schema, Package, Option, Declaration
 
 
@@ -207,6 +208,6 @@ class CompiledQuery:
 
 @dataclass(frozen=True)
 class QueryResult:
-    rows: list[dict[str, Any]]
+    rows: list[NamedList]
     rowcount: int
     columns: tuple[ResultColumn, ...] = ()

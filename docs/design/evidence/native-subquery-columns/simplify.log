@@ -1,0 +1,351 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_____________________ TestSubQueryColumn.test_rows_json_pg _____________________
+
+self = <sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c1066c0>
+db_pg = <gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50>
+
+    def test_rows_json_pg(self, db_pg):
+        """mode='json': returns a list of dicts."""
+        rows = db_pg.table('invc.invoice').query(
+            columns='$id, $rows_json',
+            where='$row_count > 0', limit=3
+>       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1074: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <cursor object at 0x10cbfb950; closed: 0>
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1071, "function_name": "test_rows_json_pg", "module_name": "s..."id" AS "pkey"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."row_count" > 0) AND ("t0"."__del_ts" IS NULL)\nLIMIT 3'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+>       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.rows_json does not exist
+E       LINE 3: "t0"."rows_json" AS "rows_json",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn
+---------------------------- Captured stdout setup -----------------------------
+2026-10-14 15:57:25: ERROR: gnr.app/gnrapp - ERROR: missing dependencies: pdf2image, watchdog, pyotp, qrcode
+------------------------------ Captured log setup ------------------------------
+ERROR    gnr.app:gnrapp.py:1026 ERROR: missing dependencies: pdf2image, watchdog, pyotp, qrcode
+----------------------------- Captured stdout call -----------------------------
+2026-10-14 15:57:26: WARNING: gnr.sql/execute - error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1071, "function_name": "test_rows_json_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."rows_json" AS "rows_json",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."row_count" > 0) AND ("t0"."__del_ts" IS NULL)
+LIMIT 3 - with kwargs:{'jc_kwargs': {}} 
+
+
+------------------------------ Captured log call -------------------------------
+WARNING  gnr.sql:execute.py:152 error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1071, "function_name": "test_rows_json_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."rows_json" AS "rows_json",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."row_count" > 0) AND ("t0"."__del_ts" IS NULL)
+LIMIT 3 - with kwargs:{'jc_kwargs': {}}
+_____________________ TestSubQueryColumn.test_notes_xml_pg _____________________
+
+self = <sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c1069c0>
+db_pg = <gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50>
+
+    def test_notes_xml_pg(self, db_pg):
+        """mode='xml': returns XML-like string."""
+        rows = db_pg.table('invc.invoice').query(
+            columns='$id, $notes_xml',
+            where='$notes_xml IS NOT NULL', limit=3
+>       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1087: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <cursor object at 0x112828c50; closed: 0>
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1084, "function_name": "test_notes_xml_pg", "module_name": "s..."pkey"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."notes_xml" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 3'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+>       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.notes_xml does not exist
+E       LINE 3: "t0"."notes_xml" AS "notes_xml",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn
+----------------------------- Captured stdout call -----------------------------
+2026-10-14 15:57:26: WARNING: gnr.sql/execute - error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1084, "function_name": "test_notes_xml_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."notes_xml" AS "notes_xml",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."notes_xml" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 3 - with kwargs:{'jc_kwargs': {}} 
+
+
+------------------------------ Captured log call -------------------------------
+WARNING  gnr.sql:execute.py:152 error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1084, "function_name": "test_notes_xml_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."notes_xml" AS "notes_xml",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."notes_xml" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 3 - with kwargs:{'jc_kwargs': {}}
+___________________ TestSubQueryColumn.test_max_row_price_pg ___________________
+
+self = <sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c106cc0>
+db_pg = <gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50>
+
+    def test_max_row_price_pg(self, db_pg):
+        """mode=None (plain): MAX(unit_price) is numeric."""
+        rows = db_pg.table('invc.invoice').query(
+            columns='$id, $max_row_price',
+            where='$max_row_price IS NOT NULL', limit=5
+>       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1098: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <cursor object at 0x112829650; closed: 0>
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1095, "function_name": "test_max_row_price_pg", "module_name"...y"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 5'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+>       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist
+E       LINE 3: "t0"."max_row_price" AS "max_row_price",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn
+----------------------------- Captured stdout call -----------------------------
+2026-10-14 15:57:26: WARNING: gnr.sql/execute - error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1095, "function_name": "test_max_row_price_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."max_row_price" AS "max_row_price",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 5 - with kwargs:{'jc_kwargs': {}} 
+
+
+------------------------------ Captured log call -------------------------------
+WARNING  gnr.sql:execute.py:152 error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1095, "function_name": "test_max_row_price_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."max_row_price" AS "max_row_price",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 5 - with kwargs:{'jc_kwargs': {}}
+_________________ TestSubQueryColumn.test_max_row_price_sqlite _________________
+
+self = <sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c106fc0>
+db_sqlite = <gnr.app.gnrapp.GnrSqlAppDb object at 0x10d3f95b0>
+
+    def test_max_row_price_sqlite(self, db_sqlite):
+        rows = db_sqlite.table('invc.invoice').query(
+            columns='$id, $max_row_price',
+            where='$max_row_price IS NOT NULL', limit=5
+>       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:521: in execute
+    raise e
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <gnr.sql.adapters.gnrsqlite.GnrSqliteCursor object at 0x10d5d8f80>
+sql = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1103, "function_name": "test_max_row_price_sqlite", "module_n...y"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 5'
+params = {'jc_kwargs': {}}, args = ({'jc_kwargs': {}},), kwargs = {}
+
+    def execute(self, sql, params=None, *args, **kwargs):
+        if params:
+            if isinstance(params, str):
+                params = str(params)
+            elif isinstance(params, list):
+                params = [str(s) if isinstance(s, str) else s for s in params]
+            elif isinstance(params,dict):
+                for k,v in list(params.items()):
+                    if isinstance(v, str):
+                        params[k] = str(v)
+            args = (params, ) + args
+    
+        if not sql.startswith('ATTACH'):
+            logger.debug(u"gnrsqlite.execute()\n" + sql)
+            if params:
+                logger.debug(u"Parameters:\n" + pprint.pformat(params)+"\n")
+    
+        self._index = None
+        try:
+>           return pysqlite.Cursor.execute(self, sql, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           sqlite3.OperationalError: no such column: t0.max_row_price
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:509: OperationalError
+---------------------------- Captured stdout setup -----------------------------
+2026-10-14 15:57:26: ERROR: gnr.app/gnrapp - ERROR: missing dependencies: pdf2image, watchdog, pyotp, qrcode
+------------------------------ Captured log setup ------------------------------
+ERROR    gnr.app:gnrapp.py:1026 ERROR: missing dependencies: pdf2image, watchdog, pyotp, qrcode
+----------------------------- Captured stdout call -----------------------------
+2026-10-14 15:57:27: WARNING: gnr.sql/execute - error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1103, "function_name": "test_max_row_price_sqlite", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."max_row_price" AS "max_row_price",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 5 - with kwargs:{'jc_kwargs': {}} 
+
+
+------------------------------ Captured log call -------------------------------
+WARNING  gnr.sql:execute.py:152 error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1103, "function_name": "test_max_row_price_sqlite", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."max_row_price" AS "max_row_price",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 5 - with kwargs:{'jc_kwargs': {}}
+___________ TestSubQueryColumn.test_max_row_price_cross_validate_pg ____________
+
+self = <sql.test_compiler_coverage.TestSubQueryColumn object at 0x10c1072c0>
+db_pg = <gnr.app.gnrapp.GnrSqlAppDb object at 0x10c213c50>
+
+    def test_max_row_price_cross_validate_pg(self, db_pg):
+        """max_row_price matches direct MAX query."""
+        row = db_pg.table('invc.invoice').query(
+            columns='$id, $max_row_price',
+            where='$max_row_price IS NOT NULL', limit=1
+>       ).fetch()[0]
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:1115: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <cursor object at 0x11282b250; closed: 0>
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1112, "function_name": "test_max_row_price_cross_validate_pg"...y"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)\nLIMIT 1'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+>       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist
+E       LINE 3: "t0"."max_row_price" AS "max_row_price",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn
+----------------------------- Captured stdout call -----------------------------
+2026-10-14 15:57:27: WARNING: gnr.sql/execute - error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1112, "function_name": "test_max_row_price_cross_validate_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."max_row_price" AS "max_row_price",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 1 - with kwargs:{'jc_kwargs': {}} 
+
+
+------------------------------ Captured log call -------------------------------
+WARNING  gnr.sql:execute.py:152 error executing:-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 1112, "function_name": "test_max_row_price_cross_validate_pg", "module_name": "sql.test_compiler_coverage", "sqlcommand": "query"}
+SELECT  "t0"."id" AS "id",
+"t0"."max_row_price" AS "max_row_price",
+"t0"."id" AS "pkey"
+ FROM "invc"."invc_invoice" AS t0
+WHERE ("t0"."max_row_price" IS NOT NULL) AND ("t0"."__del_ts" IS NULL)
+LIMIT 1 - with kwargs:{'jc_kwargs': {}}
+=============================== warnings summary ===============================
+../../../../tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+tests/sql/test_compiler_coverage.py::TestSubQueryColumn::test_rows_json_pg
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/webob/compat.py:5: DeprecationWarning: 'cgi' is deprecated and slated for removal in Python 3.13
+    from cgi import parse_header
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn::test_rows_json_pg
+FAILED gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn::test_notes_xml_pg
+FAILED gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn::test_max_row_price_pg
+FAILED gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn::test_max_row_price_sqlite
+FAILED gnrpy/tests/sql/test_compiler_coverage.py::TestSubQueryColumn::test_max_row_price_cross_validate_pg
+5 failed, 2 warnings in 2.54s

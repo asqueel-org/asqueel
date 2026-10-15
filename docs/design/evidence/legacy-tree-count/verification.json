@@ -1,0 +1,24 @@
+{
+  "full_suite": {
+    "passed": 4915,
+    "skipped": 21,
+    "xfailed": 2,
+    "failed": 0,
+    "seconds": 200.2
+  },
+  "original_legacy_passed": 8,
+  "compile_tests_passed": 60,
+  "runtime_tests_passed": 74,
+  "reference_contracts": 46,
+  "branch_count_algorithms": 1,
+  "snapshots": 8,
+  "ruff": "passed",
+  "sphinx": "passed",
+  "mypy_existing_errors": [
+    "dialects/postgres.py:127",
+    "dialects/postgres.py:367"
+  ],
+  "mypy_new_errors": 0,
+  "migration_tables_unchanged": 74,
+  "many_handlers": 0
+}

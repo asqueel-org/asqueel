@@ -1,0 +1,767 @@
+{
+  "date": "2026-10-14",
+  "python": "3.12.12",
+  "sqlite": "3.50.4",
+  "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''",
+  "full_suite": {
+    "tests": "1477",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "4",
+    "time": "33.099"
+  },
+  "formula_tests": [
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_local_values_are_isolated_from_dependencies_and_query[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_local_values_are_isolated_from_dependencies_and_query[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_dependencies_do_not_inherit_calling_formula_locals[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_dependencies_do_not_inherit_calling_formula_locals[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_collection_and_scalar_names_are_separate_by_origin[postgresql]",
+      "time": "0.038",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_collection_and_scalar_names_are_separate_by_origin[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_alias_uses_target_formula_without_inheriting_executable_attributes[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_alias_uses_target_formula_without_inheriting_executable_attributes[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_formula_binding_scope_does_not_create_or_duplicate_sql_joins[postgresql]",
+      "time": "0.018",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_formula_binding_scope_does_not_create_or_duplicate_sql_joins[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_existing_parameters_spelling_and_query_reuse[postgresql]",
+      "time": "0.018",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_existing_parameters_spelling_and_query_reuse[sqlite]",
+      "time": "0.038",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_cycles_remain_explicit[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_cycles_remain_explicit[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_existing_expression_alias_and_duplicate_local_declarations[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_existing_expression_alias_and_duplicate_local_declarations[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_a_local_does_not_consume_or_accept_an_external_override[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_a_local_does_not_consume_or_accept_an_external_override[sqlite]",
+      "time": "0.018",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_same_parameter_origin_cannot_be_scalar_and_collection[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_same_parameter_origin_cannot_be_scalar_and_collection[sqlite]",
+      "time": "0.039",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_formula_text_and_local_strings_are_not_sql_substitutions[postgresql]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_formula_text_and_local_strings_are_not_sql_substitutions[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_two_relations_have_distinct_aliases_and_local_parameters[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_two_relations_have_distinct_aliases_and_local_parameters[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_compilation_cannot_mutate_local_collections_or_environment[postgresql]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_compilation_cannot_mutate_local_collections_or_environment[sqlite]",
+      "time": "0.017",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_a_replacement_model_does_not_reuse_compilation_state[postgresql]",
+      "time": "0.039",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_native_formulas",
+      "name": "test_a_replacement_model_does_not_reuse_compilation_state[sqlite]",
+      "time": "0.016",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_alias_matches_source_pg",
+      "time": "1.337",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_alias_matches_source_sqlite",
+      "time": "1.235",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_alias_two_levels_pg",
+      "time": "0.003",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_alias_two_levels_sqlite",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_alias_three_levels_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_alias_three_levels_sqlite",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_deep_alias_customer_region_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_deep_alias_customer_region_sqlite",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_region_name_cross_validate_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestAliasColumn",
+      "name": "test_region_name_cross_validate_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaSql",
+      "name": "test_line_total_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaSql",
+      "name": "test_line_total_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaSql",
+      "name": "test_concatenation_full_address_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaSql",
+      "name": "test_concatenation_full_address_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaSql",
+      "name": "test_code_and_desc_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaSql",
+      "name": "test_code_and_desc_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_value_category_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_value_category_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_size_category_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_size_category_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_price_range_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_price_range_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_nested_case_invoice_status_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_nested_case_invoice_status_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_product_note_with_relation_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_product_note_with_relation_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_pricing_analysis_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCaseWhen",
+      "name": "test_pricing_analysis_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCoalesce",
+      "name": "test_display_total_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCoalesce",
+      "name": "test_display_total_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCoalesce",
+      "name": "test_effective_price_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCoalesce",
+      "name": "test_effective_price_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCoalesce",
+      "name": "test_display_name_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCoalesce",
+      "name": "test_display_name_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestReplace",
+      "name": "test_description_clean_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestReplace",
+      "name": "test_description_clean_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestUpperTrim",
+      "name": "test_note_type_clean_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestUpperTrim",
+      "name": "test_note_type_clean_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestLikeFormula",
+      "name": "test_is_warning_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestLikeFormula",
+      "name": "test_is_warning_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestLikeFormula",
+      "name": "test_number_series_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestLikeFormula",
+      "name": "test_number_series_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestMathFunctions",
+      "name": "test_price_rounded_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestMathFunctions",
+      "name": "test_price_rounded_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestMathFunctions",
+      "name": "test_rounded_total_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestMathFunctions",
+      "name": "test_rounded_total_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestMathFunctions",
+      "name": "test_abs_discount_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestMathFunctions",
+      "name": "test_abs_discount_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaChain",
+      "name": "test_line_vat_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaChain",
+      "name": "test_line_vat_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaChain",
+      "name": "test_line_gross_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestFormulaChain",
+      "name": "test_line_gross_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestVarParameters",
+      "name": "test_status_label_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestVarParameters",
+      "name": "test_status_label_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestVarInList",
+      "name": "test_is_exempt_vat_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestVarInList",
+      "name": "test_is_exempt_vat_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestVarInList",
+      "name": "test_is_exempt_vat_cross_validate_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestConcatFunction",
+      "name": "test_concat_code_desc_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestConcatFunction",
+      "name": "test_concat_code_desc_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestConcatFunction",
+      "name": "test_contact_info_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestConcatFunction",
+      "name": "test_contact_info_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCast",
+      "name": "test_price_as_int_text_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCast",
+      "name": "test_price_as_int_text_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCast",
+      "name": "test_matches_list_price_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCast",
+      "name": "test_matches_list_price_sqlite",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestGreatest",
+      "name": "test_price_floor_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestGreatest",
+      "name": "test_price_floor_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "GREATEST function not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestWindowFunctions",
+      "name": "test_prev_quantity_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestWindowFunctions",
+      "name": "test_prev_quantity_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestBooleanFormulas",
+      "name": "test_is_expensive_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestBooleanFormulas",
+      "name": "test_is_expensive_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestBooleanFormulas",
+      "name": "test_needs_review_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestBooleanFormulas",
+      "name": "test_needs_review_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_code_normalized_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_code_clean_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_code_prefix_std_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_anno_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_periodo_pg",
+      "time": "0.006",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_days_since_invoice_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_invoice_month_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_created_date_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_week_start_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_postcode_padded_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestPostgresOnly",
+      "name": "test_account_code_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestWhereOrderBy",
+      "name": "test_where_alias_pg",
+      "time": "0.002",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestWhereOrderBy",
+      "name": "test_where_alias_sqlite",
+      "time": "0.004",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestWhereOrderBy",
+      "name": "test_order_by_formula_pg",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestWhereOrderBy",
+      "name": "test_order_by_formula_sqlite",
+      "time": "0.001",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestIntervalArithmetic",
+      "name": "test_due_date_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestIntervalArithmetic",
+      "name": "test_due_date_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "INTERVAL not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCastDate",
+      "name": "test_created_same_day_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestCastDate",
+      "name": "test_created_same_day_sqlite",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestEnvWorkdate",
+      "name": "test_is_recent_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestEnvWorkdate",
+      "name": "test_is_recent_sqlite",
+      "time": "0.000",
+      "status": "skipped",
+      "reason": "INTERVAL not supported on SQLite"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestRtrim",
+      "name": "test_rtrim_pg",
+      "time": "0.000",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_sql_formulas.TestRtrim",
+      "name": "test_rtrim_sqlite",
+      "time": "0.006",
+      "status": "passed"
+    }
+  ],
+  "ruff": "passed: src tests scripts",
+  "mypy": "passed: src/asqueel (51 source files)",
+  "postgresql": "17.7 (Homebrew)",
+  "sphinx": "passed: -E -W --keep-going -b html",
+  "legacy_assertions": "96 selected test bodies: original Assert nodes verified equal via AST"
+}

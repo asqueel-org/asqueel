@@ -5,6 +5,7 @@ from collections.abc import Mapping
 
 from .builder import SqlBuilder
 from .contracts import ResolvedModel, UnsupportedFeatureError
+from .object_tree import DbModel
 
 
 _ACTIONS = {'a': None, 'r': 'RESTRICT', 'c': 'CASCADE', 'n': 'SET NULL', 'd': 'SET DEFAULT'}
@@ -28,13 +29,38 @@ def _package_storage(dtype, attributes):
     return dtype
 
 
-def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) -> SqlBuilder:
+def _column_storage(column, *, path, packaged):
+    metadata = column.attributes
+    if metadata.get('identity_kind') or metadata.get('generated'):
+        raise UnsupportedFeatureError(f'{path}: identity/generated DDL')
+    if metadata.get('default_collation') is False:
+        raise UnsupportedFeatureError(f'{path}: custom column collation')
+    if metadata.get('owned_sequence') or metadata.get('sequence_default'):
+        raise UnsupportedFeatureError(f'{path}: sequence ownership/default not modeled')
+    raw = metadata.get('raw_type', '')
+    if raw in {'smallint', 'real'} or (raw.startswith(('time', 'timestamp')) and '(' in raw):
+        raise UnsupportedFeatureError(f'{path}: lossy type projection {raw}')
+    kwargs = {k: metadata[k] for k in (
+        'size', 'notnull', 'unique', 'indexed', 'sqldefault',
+        'extra_sql', 'generated_expression', 'comment',
+    ) if metadata.get(k) is not None}
+    if metadata.get('default') is not None and metadata.get('raw_type'):
+        kwargs['sqldefault'] = metadata['default']
+    dtype = (_package_storage(column.dtype, kwargs)
+             if packaged else column.dtype)
+    return dtype, kwargs
+
+
+def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rename=False) -> SqlBuilder:
     """Project supported physical semantics, rejecting anything lossy.
 
     Arbitrary imported PK/FK/UNIQUE names are not representable by the current
     emitter. Opt in only when the migration comparison ignores constraint names.
     Views/formulas/UI are semantic and deliberately excluded from physical DDL.
     """
+    if isinstance(model, DbModel):
+        from .object_tree_projection import project_tree
+        return project_tree(model)
     if model.warnings:
         raise UnsupportedFeatureError('Incomplete model with import warnings cannot be projected: ' + '; '.join(model.warnings))
 
@@ -67,24 +93,8 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                 for column in table.columns.values():
                     if column.is_virtual:
                         continue
-                    metadata = column.attributes
-                    if metadata.get('identity_kind') or metadata.get('generated'):
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: identity/generated DDL')
-                    if metadata.get('default_collation') is False:
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: custom column collation')
-                    if metadata.get('owned_sequence') or metadata.get('sequence_default'):
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: sequence ownership/default not modeled')
-                    raw = metadata.get('raw_type', '')
-                    if raw in {'smallint', 'real'} or (raw.startswith(('time', 'timestamp')) and '(' in raw):
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: lossy type projection {raw}')
-                    kwargs = {k: metadata[k] for k in (
-                        'size', 'notnull', 'unique', 'indexed', 'sqldefault',
-                        'extra_sql', 'generated_expression', 'comment',
-                    ) if metadata.get(k) is not None}
-                    if metadata.get('default') is not None and metadata.get('raw_type'):
-                        kwargs['sqldefault'] = metadata['default']
-                    dtype = (_package_storage(column.dtype, kwargs)
-                             if table.package_name else column.dtype)
+                    dtype, kwargs = _column_storage(
+                        column, path=f'{table.key}.{column.name}', packaged=bool(table.package_name))
                     column_nodes[(table.key, column.name)] = cols.column(
                         column.physical_name, dtype=dtype, **kwargs)
                 constraints_node = None
