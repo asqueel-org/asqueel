@@ -79,7 +79,7 @@ def formula_database(request):
                     columns.column('id', dtype='I')
                     columns.column('invoice_id', dtype='I').relation('app.invoice.id', foreign_key=True,
                                                                     x_name='invoice')
-                    receipt.virtual_columns().aliasColumn('invoice_total', relation_path='@invoice.total')
+                    receipt.virtual_columns().aliasColumn('invoice_total', relation_path='@invoice_id.total')
 
             with build_database(Recipe) as db:
                 yield db

@@ -307,7 +307,7 @@ class SqlTable(CrudMixin, TriggersMixin):
         return getattr(self.db, 'currentTrigger', None)
 
     def sql_insert(self, record):
-        """raw_insert without triggers; a list runs one executemany per column set."""
+        """Insert without triggers (legacy raw_insert); a list runs one executemany per column set."""
         writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
         if isinstance(record, list):
             for compiled, params in writer.insert_many(self.model, record, snapshot):
@@ -319,10 +319,10 @@ class SqlTable(CrudMixin, TriggersMixin):
         return record
 
     def sql_update(self, record, old_record=None, pkey=None):
-        """raw_update without triggers; the key comes from old_record, pkey or record."""
+        """Update without triggers (legacy raw_update); the key comes from old_record, pkey or record."""
         self.db.execute(self.db.write_compiler.update(
             self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record))
 
     def sql_delete(self, record):
-        """raw_delete without triggers or related actions."""
+        """Delete without triggers or related actions (legacy raw_delete)."""
         self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot()))

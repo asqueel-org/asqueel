@@ -10,7 +10,7 @@ reached through a relation or an alias.
 | Need | Declaration | Read it as |
 |---|---|---|
 | Calculate from fields in this row | `formulaColumn(sql_formula='$total * 2', ...)` | `$double_total` |
-| Expose a related column with inherited metadata | `aliasColumn(relation_path='@customer.name', ...)` | `$customer_name` |
+| Expose a related column with inherited metadata | `aliasColumn(relation_path='@customer_id.name', ...)` | `$customer_name` |
 | Calculate one value from another table | `formulaColumn(select={...}, ...)` | `$line_total` |
 | Test whether matching rows exist | `formulaColumn(exists={...}, dtype='B', ...)` | `$has_lines` |
 | Combine several scalar subqueries | `sql_formula` plus `select_<name>` definitions | A single formula column |
@@ -61,7 +61,7 @@ finally:
 ```
 
 `$amount` and `$invoice_id` belong to the subquery's table. `#THIS.id` belongs to
-the invoice. Reading `@invoice.total` from a line still correlates the formula
+the invoice. Reading `@invoice_id.total` from a line still correlates the formula
 with its invoice, not with the line's id. Relation paths after `#THIS` are also
 supported through ordinary relations. An inverse path can multiply rows in
 the SELECT scope owning that path; no aggregation is added implicitly.

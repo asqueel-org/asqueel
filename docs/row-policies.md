@@ -23,7 +23,7 @@ columns.column('deleted_at', dtype='DHZ')
 
 `x_partitions=[...]` permette più dimensioni, combinate in AND; non si può
 specificare insieme a `x_partition`. Il campo può essere una colonna fisica
-locale oppure un percorso forward to-one come `@customer.organization_id`.
+locale oppure un percorso forward to-one come `@customer_id.organization_id`.
 Le chiavi `current` e `allowed` nominano valori nell'ambiente. `current` è
 obbligatoria nella dichiarazione, `allowed` è opzionale. La loro presenza nel
 contesto è distinta dal valore. Le policy non ereditano dallo schema.

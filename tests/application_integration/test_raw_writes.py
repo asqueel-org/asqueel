@@ -148,7 +148,7 @@ def test_raw_list_late_sql_failure_rolls_back_entire_pending_work(make_db):
     assert table.query().fetch() == []
 
 
-def test_raw_insert_input_contract_and_hook_mutation(make_db):
+def test_sql_insert_returns_input_and_runs_no_db_hooks(make_db):
     db = make_db(db_hooks=True)
     table = db.table(db.item)
     record = {'id': 1}

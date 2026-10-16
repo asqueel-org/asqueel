@@ -9,7 +9,7 @@ shop = support.shop
 
 
 @pytest.mark.parametrize('option', [{'group_by': '$customer_id'}, {'having': 'COUNT(*) > 1'}])
-def test_plan_rejects_grouping_outside_select(shop, option):
+def test_query_write_terminals_reject_grouping(shop, option):
     with pytest.raises(UnsupportedFeatureError, match='only in a SELECT'):
         shop.query(**option).sql_delete()
     with pytest.raises(UnsupportedFeatureError, match='only in a SELECT'):
