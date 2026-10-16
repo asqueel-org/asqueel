@@ -67,9 +67,9 @@ def test_recognition_and_getattr_without_handlers(db, monkeypatch, expression, o
     seen = []
     original = _TreeContext._dispatch_many_operation
 
-    def record(self, relation, name, args):
+    def record(self, relation, name, args, **context):
         seen.append((relation.label, name, args, list(self.cpl.joins)))
-        return original(self, relation, name, args)
+        return original(self, relation, name, args, **context)
 
     monkeypatch.setattr(_TreeContext, '_dispatch_many_operation', record)
     lookups = []
@@ -79,7 +79,7 @@ def test_recognition_and_getattr_without_handlers(db, monkeypatch, expression, o
         raise AttributeError(name)
 
     monkeypatch.setattr(_TreeContext, '__getattr__', missing, raising=False)
-    assert not any(name.startswith('many_') for name in vars(_TreeContext))
+    assert {name for name in vars(_TreeContext) if name.startswith('many_')} == {'many_aggr'}
     with pytest.raises(UnsupportedFeatureError, match=f'many_{operation} not yet supported'):
         db.compiler.plan_select('invc.customer', columns=expression,
                                 exclude_draft=False, exclude_logical_deleted=False,

@@ -1,6 +1,6 @@
 # 41 — Funzionalità rinviate
 
-Aggiornato il **15 ottobre 2026**. Registro dei rinvii esplicitamente decisi
+Aggiornato il **16 ottobre 2026**. Registro dei rinvii esplicitamente decisi
 durante la definizione del core. Il rinvio non è una rimozione definitiva.
 Le funzionalità ancora da discutere o da implementare non entrano in questo
 elenco automaticamente: restano nei rispettivi contratti e piani.
@@ -189,21 +189,36 @@ Questi due fronti non bloccano il completamento della query singola.
 
 ## R-10 — Compilazione delle relazioni verso molti sul nuovo albero
 
-**Decisione del 15 ottobre 2026:** non portare per ora le JOIN verso molti,
-le righe esplose e il DISTINCT implicito del legacy. Il compilatore precedente
-rimane invariato; sul nuovo albero la navigazione verso molti è esplicitamente
-non supportata.
+**Aggiornamento del 16 ottobre 2026:** non portare le JOIN verso molti,
+le righe esplose e il DISTINCT implicito del legacy. Il percorso di lettura
+è ormai unico; count e aggregati numerici sono implementati nel
+[passo 103](103-numeric-many-aggregates.md), join e ordine nel
+[passo 104](104-join-ordered-many-aggregates.md), JSON nel
+[passo 105](105-json-many-aggregates.md), XML Bag PostgreSQL nel
+[passo 106](106-xml-many-aggregates.md).
 
 Si riconosce `@relazione.operazione(argomenti)` e si cerca l'handler `many_*`
-tramite getattr. Non è implementato nessun handler. Aggregazione, scelta della
-prima/ultima riga ordinata, risultato su più colonne, JSON/XML e possibile uso
-di LATERAL restano da definire. È una proposta nuova di Asqueel che potrà
-sostituire sintassi legacy da individuare; non una regola assoluta già approvata
-per ogni uso futuro delle relazioni verso molti.
+tramite getattr. L’handler `many_aggr` compila count/sum/avg/min/max, join, to_json e to_xml, con ordine base
+o override `.order_by(...)`; XML è disponibile solo su PostgreSQL. La sintassi concordata
+usa **soltanto `.aggr(...)`** come aggregazione, con `count`, `sum`, `avg`,
+`min`, `max`, `join`, `to_json` e `to_xml` al suo interno, espressioni e risultati
+su più colonne con alias. `to_xml` produce XML compatibile con Bag; `join`
+prevede un placeholder per valore vuoto, di default `''`. L’ordine base della
+tabella si applica automaticamente e `.order_by(...)` lo sostituisce. Vale per
+relazioni ordinarie e virtualRelation verso molti: niente proiezioni nude.
 
-**Alla ripresa:** definire il primo handler concreto e le sue firme con l'utente.
+Decisioni e punti ancora aperti sono nel
+[documento 101](101-many-aggregation-decisions.md). I precedenti esempi di metodi
+diretti sum/calc/first/last non definiscono la grammatica attuale. Prima/ultima
+riga ordinata restano rinviate; XML Bag è implementato su PostgreSQL.
+LATERAL è un'eventuale tecnica SQL,
+non una firma pubblica approvata.
+
+**Alla ripresa:** i contratti approvati delle aggregazioni passano, senza xfail
+([rapporto 106](106-xml-many-aggregates.md)). `to_xml` è disponibile su PostgreSQL; SQLite non ha la capability,
+senza fallback. `to_json` è implementato su entrambi.
 Non introdurre aggregazioni automatiche né importare il meccanismo exploding.
-Riferimento: [fase 2](88-legacy-rewrite-phase2.md).
+Il [rapporto della fase 2](88-legacy-rewrite-phase2.md) conserva l'evidenza storica.
 
 
 ## R-11 — Wildcard avanzati
@@ -231,3 +246,12 @@ assoluta di usi nel legacy.
 **Effetto:** nessuna modifica al codice; sul nuovo albero rimane il rifiuto
 esplicito delle forme avanzate. Un eventuale recupero richiederà un'esigenza
 concreta e una nuova decisione, senza reintroduzione automatica durante il port.
+
+
+## R-12 — ask nelle virtualRelation
+
+**Decisione del 16 ottobre 2026:** per ora non serve. Escluso dalla TODO attiva
+delle letture e delle aggregazioni. Dichiarazione, contesto e punti da riprendere
+sono conservati nel [documento separato 108](108-deferred-virtual-relation-ask.md).
+Nessuna modifica al codice: la grammatica conserva la dichiarazione, mentre
+il compilatore continua a rifiutarne l'uso nelle aggregazioni.

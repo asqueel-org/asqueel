@@ -1,5 +1,14 @@
 # 88 — Fase 2: contenitore SQL e relazioni verso uno
 
+**Decisione successiva, 16 ottobre 2026:** sulle relazioni verso molti si mantiene
+solo `.aggr(...)` come aggregazione, con ordine base automatico e override
+`.order_by(...)`. Include `join` con placeholder, `to_json` e `to_xml`
+compatibile con Bag. Funzioni interne, espressioni, alias e punti aperti sono nel
+[documento 101](101-many-aggregation-decisions.md). Gli esempi di altri metodi
+qui sotto documentano il dispatcher storico, non la grammatica definitiva.
+L’implementazione successiva di count e aggregati numerici è nel
+[rapporto 103](103-numeric-many-aggregates.md); il testo sotto conserva la fase storica.
+
 15 ottobre 2026. **Fase 2 completata nel perimetro concordato.**
 Riferimento: [piano 86](86-legacy-compiler-logical-phases.md),
 [baseline indipendente 87](87-legacy-rewrite-phase1-baseline.md).

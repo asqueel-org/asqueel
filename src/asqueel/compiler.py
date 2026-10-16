@@ -2,7 +2,7 @@
 
 Reference: fa35e5ad compiledQuery/getFieldAlias/_findRelationAlias/
 _getRelationAlias. The agreed exception is many-side traversal: no exploding
-rows or implicit DISTINCT. Many operations are recognized, but have no handlers.
+rows or implicit DISTINCT. Many aggregates use correlated scalar SELECTs.
 """
 from collections.abc import Collection, Mapping
 from copy import deepcopy
@@ -15,6 +15,7 @@ from .environment import SqlEnvironment
 from .object_tree import DbModel
 from .model import column_ui, _formula_definition, _formula_parameters, _subquery_definition, _parse_row_policies
 from ._sql_bindings import SqlBindings
+from ._many_aggregates import aggregate_columns
 from .sql_compiled_query import SqlCompiledQuery
 
 
@@ -46,6 +47,7 @@ class _TreeContext:
         self.period_parameters = {}
         self.policy_parameter_index = 0
         self.references = FieldReferences()
+        self._many_columns = {}
         self.aliases = {self.sql_fullname(table): self.basealias}
         self.cpl: SqlCompiledQuery = SqlCompiledQuery(self.sql_fullname(table), maintable_as=self.basealias, dialect=dialect.name)
         self.cpl.relationDict = self.references.paths
@@ -71,6 +73,8 @@ class _TreeContext:
 
     def get_field_alias(self, path, curr=None, basealias=None, parent=None):
         """getFieldAlias: traverse relations, then physical field or alias recursion."""
+        if curr is None and path in self._many_columns:
+            return self._compile_many_column(*self._many_columns[path])
         curr = self.table.relations if curr is None else curr
         basealias = basealias or self.basealias
         *pathlist, name = path.removeprefix('$').split('.')
@@ -200,6 +204,12 @@ class _TreeContext:
         options.setdefault('ignore_partition', True)
         plan = child.select_plan(columns, where=where, **options)
         sql = plan.get_sqltext(self.dialect)
+        if aggregate == 'join':
+            return self.dialect.join_sql_subquery(sql, child.basealias + '_rows')
+        if aggregate == 'to_json':
+            return self.dialect.json_sql_subquery(sql, child.basealias + '_rows', plan.columns)
+        if aggregate == 'to_xml':
+            return self.dialect.xml_sql_subquery(sql, child.basealias + '_rows', plan.columns)
         if aggregate in ('json', 'xml'):
             if cast:
                 raise UnsupportedFeatureError('Cast of a row source is not supported for JSON/XML subQueryColumn')
@@ -301,20 +311,21 @@ class _TreeContext:
             f'LEFT JOIN {self.sql_fullname(target_table)} AS {adapted_alias} ON ({condition})')
         return alias, newpath
 
-    def _dispatch_many_operation(self, relation, operation, arguments):
-        """Dispatch only; no many_* handler is implemented in this phase."""
+    def _dispatch_many_operation(self, relation, operation, arguments, **context):
+        """The agreed getattr boundary; unsupported operations remain explicit."""
         handler = getattr(self, f'many_{operation}', None)
         if handler is None:
+            label = getattr(relation, 'label', None) or relation.name
             raise UnsupportedFeatureError(
-                f'{relation.label}.{operation}(...): many_{operation} not yet supported')
-        return handler(relation, arguments)
+                f'{label}.{operation}(...): many_{operation} not yet supported')
+        return handler(relation, arguments, **context)
 
-    def expand_many_operations(self, expression, *, curr=None):
+    def expand_many_operations(self, expression, *, curr=None, projection=False):
         """Recognize relation.operation(arguments) before legacy field discovery.
 
-        Argument text is kept intact: no evaluation, SQL interpretation, or
-        first/last/aggregate semantics. Boundaries accept nested parentheses;
-        the existing legacy split handles commas inside argument expressions.
+        Boundaries accept nested parentheses; the legacy split handles commas.
+        Aggregated SQL is resolved later with formula references, so its fields
+        and parameter manglers never pass through the outer discovery again.
         """
         if not expression:
             return expression
@@ -326,28 +337,181 @@ class _TreeContext:
             for index, name in enumerate(segments):
                 node = curr.get_node(name)
                 if node is None:
-                    break
-                many = self._is_many(node.attr['joiner'])
+                    node = self._virtual_relation(curr, name)
+                    if node is None:
+                        break
+                    many = True
+                else:
+                    many = self._is_many(node.attr['joiner'])
                 if many and index != len(segments) - 1:
                     raise UnsupportedFeatureError(f'{name}: many relation not yet supported')
-                curr = curr[name]
+                if index != len(segments) - 1:
+                    curr = curr[name]
             else:
                 if many:
-                    depth = 1
-                    start = match.end()
-                    for boundary in _CALL_BOUNDARIES.finditer(expression, start):
-                        if boundary[0] == '(':
-                            depth += 1
-                        elif boundary[0] == ')':
-                            depth -= 1
-                        if depth == 0:
-                            text = expression[start:boundary.start()]
-                            arguments = tuple(split_sql(text)) if text.strip() else ()
-                            expanded = self._dispatch_many_operation(node, match[2], arguments)
-                            return (expression[:match.start()] + expanded
-                                    + self.expand_many_operations(expression[boundary.end():], curr=origin))
-                    raise ValueError(f'{match[1]}.{match[2]}: missing closing parenthesis')
+                    operation = match[2]
+                    arguments, end = self._many_arguments(expression, match.end(), match[1])
+                    order_by = None
+                    if operation == 'order_by':
+                        if len(arguments) != 1:
+                            raise ValueError('order_by requires one quoted query ordering')
+                        value = arguments[0].strip()
+                        if len(value) < 2 or value[0] not in ("'", '"') or value[-1] != value[0]:
+                            raise ValueError('order_by requires one quoted query ordering')
+                        order_by = value[1:-1].replace(value[0] * 2, value[0])
+                        following = re.match(r'\s*\.aggr\s*\(', expression[end:])
+                        if following is None:
+                            raise UnsupportedFeatureError('order_by must be followed by aggr')
+                        arguments, end = self._many_arguments(expression, end + following.end(), match[1])
+                        operation = 'aggr'
+                    if (projection and operation == 'aggr'
+                            and (expression[:match.start()].strip() or expression[end:].strip())):
+                        raise UnsupportedFeatureError('aggr must be a standalone projection')
+                    context = dict(curr=origin, path=match[1], projection=projection)
+                    if order_by is not None:
+                        context['order_by'] = order_by
+                    expanded = self._dispatch_many_operation(node, operation, arguments, **context)
+                    return (expression[:match.start()] + expanded
+                            + self.expand_many_operations(expression[end:],
+                                                          curr=origin, projection=projection))
         return expression
+
+    @staticmethod
+    def _many_arguments(expression, start, path):
+        """Use the existing call boundaries and legacy argument splitter."""
+        depth = 1
+        for boundary in _CALL_BOUNDARIES.finditer(expression, start):
+            if boundary[0] == '(':
+                depth += 1
+            elif boundary[0] == ')':
+                depth -= 1
+            if depth == 0:
+                text = expression[start:boundary.start()]
+                return tuple(split_sql(text)) if text.strip() else (), boundary.end()
+        raise ValueError(f'{path}: missing closing parenthesis')
+
+    def many_aggr(self, relation, arguments, *, curr, path, projection=False, order_by=None):
+        """Expand approved projections; reuse scalar subquery compilation."""
+        if not projection:
+            raise UnsupportedFeatureError('aggr is currently supported only in projections')
+        columns = []
+        for expression, name, aggregate in aggregate_columns(arguments, path):
+            token = f'_many_{len(self._many_columns)}'
+            while token in self.table.columns or token in self.table.virtual_columns or token in self._many_columns:
+                token = '_' + token
+            self._many_columns[token] = (relation, expression, curr, path, aggregate, order_by)
+            columns.append(f'${token} AS {self.dialect.as_translator(name)}')
+        return ','.join(columns)
+
+    def _virtual_relation(self, curr, name):
+        table = self.model.table(curr.tbl_name, pkg=curr.pkg_name)
+        return next((child for child in table.children.values()
+                     if child.tag == 'virtualRelation'
+                     and child.attributes.get('name') == name.removeprefix('@')), None)
+
+    def _virtual_many_condition(self, attrs, curr, alias):
+        """Bind one declaration before combining it with any other level.
+
+        Virtual var_* values are source-row SQL expressions, not DB-API values.
+        Allocate their names with the existing mangler, then consume those local
+        bindings by expanding the expressions; only actual values remain in params.
+        """
+        condition = attrs.get('condition')
+        if not condition:
+            return None
+        values = {key: value for key, value in attrs.items()
+                  if key.startswith('var_') and re.search(':' + key + r'\b', condition)}
+        bindings = self.bindings.child(values, 'v') if values else self.bindings
+        condition = bindings.substitute(condition)
+        for key, value in values.items():
+            refs = FieldReferences()
+            value = refs.discover(value)
+            refs.resolve(lambda field: self.get_field_alias(field, curr, alias))
+            value = self.bindings.substitute(refs.substitute(value))
+            name = bindings.names[key]
+            condition = re.sub(':' + name + r'\b', lambda m: f'({value})', condition)
+            bindings.params.pop(name, None)
+        return condition
+
+    def _many_base_relation(self, relation, curr, alias):
+        """Walk derivations to an ordinary many edge or a direct table declaration."""
+        conditions = []
+        visited = set()
+        while getattr(relation, 'tag', None) == 'virtualRelation':
+            attrs = relation.attributes
+            key = (curr.pkg_name, curr.tbl_name, attrs['name'])
+            if key in visited:
+                raise ValueError(f'Cyclic virtual relation: {".".join(key)}')
+            visited.add(key)
+            if attrs.get('ask'):
+                raise UnsupportedFeatureError('Virtual aggregates with ask are not supported')
+            if attrs.get('table'):
+                condition = attrs.get('condition')
+                if not isinstance(condition, str) or not condition.strip():
+                    raise ValueError('virtualRelation: table requires a nonempty condition')
+            elif not attrs.get('relation'):
+                raise UnsupportedFeatureError('Virtual aggregates require a base relation or table')
+            condition = self._virtual_many_condition(attrs, curr, alias)
+            if condition:
+                conditions.append(condition)
+            if attrs.get('table'):
+                break
+            parts = attrs['relation'].split('.')
+            if len(parts) > 1:
+                alias, curr = self._find_relation_alias(parts[:-1], curr, alias, [])
+            relation = curr.get_node(parts[-1])
+            if relation is None:
+                relation = self._virtual_relation(curr, parts[-1])
+            if relation is None:
+                raise ValueError(f'Unknown relation {curr.pkg_name}.{curr.tbl_name}.{parts[-1]}')
+        return relation, curr, alias, list(reversed(conditions))
+
+    def _many_joiner_condition(self, relation):
+        """Reuse ordinary key correlation; direct tables supply their own condition."""
+        joiner = relation.attr['joiner']
+        if not self._is_many(joiner):
+            raise UnsupportedFeatureError('aggr requires a relation towards many')
+        if joiner.get('join_on') or joiner.get('cnd') or joiner.get('between'):
+            raise UnsupportedFeatureError('Many aggregates with custom join conditions are not connected yet')
+        target = self.model.table(joiner['many_relation'])
+        owner = self.model.table(joiner['one_relation'])
+        remote = joiner['many_relation'].split('.')[-1]
+        local = joiner['one_relation'].split('.')[-1]
+        remote_fields = (target.composites[remote].attributes['columns'].split(',')
+                         if remote in target.composites else [remote])
+        local_fields = (owner.composites[local].attributes['columns'].split(',')
+                        if local in owner.composites else [local])
+        if len(remote_fields) != len(local_fields):
+            raise ValueError('Relation key length mismatch')
+        comparisons = []
+        for left, right in zip(remote_fields, local_fields):
+            left, right = '$' + left, '#THIS.' + right
+            if joiner.get('case_insensitive') == 'Y':
+                left, right = f'lower({left})', f'lower({right})'
+            comparisons.append(f'{left}={right}')
+        where = ' AND '.join(comparisons)
+        return target, where
+
+    def _compile_many_column(self, relation, expression, curr, path, aggregate, order_by):
+        """Correlate a many edge with its owner, then use the select_* algorithm."""
+        prefix = path.split('.')[:-1]
+        alias = self.basealias
+        if prefix:
+            alias, curr = self._find_relation_alias(prefix, curr, alias, [])
+        relation, curr, alias, conditions = self._many_base_relation(relation, curr, alias)
+        if getattr(relation, 'tag', None) == 'virtualRelation':
+            target = self.model.table(relation.attributes['table'])
+            where = ' AND '.join(f'({item})' for item in conditions)
+        else:
+            target, where = self._many_joiner_condition(relation)
+            if conditions:
+                where = ' AND '.join(f'({item})' for item in [where, *conditions])
+        options = dict(table=target.fullname, columns=expression, where=where)
+        if aggregate in ('join', 'to_json', 'to_xml'):
+            # Row order belongs to the correlated SELECT, not the outer query.
+            options['order_by'] = (order_by if order_by is not None else
+                                   target.attributes.get('order_by') or target.attributes.get('x_legacy_order_by'))
+        return self.subquery(options, curr, alias, self.bindings, aggregate=aggregate)
 
     @staticmethod
     def _check_macros(expression):
@@ -355,6 +519,8 @@ class _TreeContext:
             raise UnsupportedFeatureError('Hierarchical macro expansion is not connected yet')
 
     def result_column(self, field, name):
+        if field in self._many_columns:
+            return ResultColumn(name)
         path = self.references.paths[field]
         column = self.table.column(path)
         identity = column.attributes.get('x_identity') or column.fullname
@@ -406,7 +572,14 @@ class _TreeContext:
         columns = columns if isinstance(columns, str) else ','.join(columns)
         columns = columns.replace('  ', ' ').replace('\n', '').replace(' as ', ' AS ').replace(' ,', ',')
         # Recognize the agreed many-call boundary before split handles columns.
-        columns = self.expand_many_operations(columns)
+        try:
+            selected = split_sql(columns)
+        except ValueError:
+            # Preserve the existing many-call diagnostic before legacy split.
+            self.expand_many_operations(columns)
+            raise
+        columns = ','.join(self.expand_many_operations(column, projection=True)
+                           for column in selected)
         # Legacy SqlQuery includes X fields whenever the read requests a lock.
         columns = self.expand_columns(columns, bagFields=bagFields or for_update)
         if count:
@@ -446,8 +619,9 @@ class _TreeContext:
         group_by = self.references.discover(group_by) if group_by else None
         having = self.references.discover(having) if having else None
         for column in split_sql(columns):
-            if ' AS ' in column:
-                value, alias = column.split(' AS ', 1)
+            parts = split_sql(column, ' AS ')
+            if len(parts) > 1:
+                value, alias = parts[0], ' AS '.join(parts[1:])
                 self.cpl.aliasDict[self.dialect.as_translator(alias.strip())] = value.strip()
         columns = self.bindings.substitute(columns)
         where = self.bindings.substitute(where) if where else where

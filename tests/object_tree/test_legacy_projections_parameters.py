@@ -54,7 +54,20 @@ def test_embed_original_function_oracle(record):
 def test_projection_from_original_compiled_query(db, record):
     plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
     actual = plan.columns
-    assert actual.strip() == record['legacy']['value'].strip()
+    # Approved correction: AS inside CAST no longer prevents an output alias
+    # or makes two casts overwrite each other. Keep the legacy oracle intact.
+    corrected = {
+        'CAST($total AS NUMERIC)': 'CAST("t0"."total" AS NUMERIC) AS "CAST__total_AS_NUMERIC_"',
+        'CAST($id AS NUMERIC),CAST($total AS NUMERIC)':
+            'CAST("t0"."id" AS NUMERIC) AS "CAST__id_AS_NUMERIC_",\n'
+            'CAST("t0"."total" AS NUMERIC) AS "CAST__total_AS_NUMERIC_"',
+    }
+    # The same splitter also ignores AS inside a quoted literal (oracle 18).
+    if record['columns'] == "'$id AS text'":
+        expected = record['legacy']['value'] + ' AS "__id_AS_text_"'
+    else:
+        expected = corrected.get(record['columns'], record['legacy']['value'])
+    assert actual.strip() == expected.strip()
     sql = plan.get_sqltext(db.compiler.dialect)
     assert sql.startswith('SELECT ')
     # The adapter must render authored projections without appending another AS.
@@ -169,7 +182,7 @@ def test_authored_projection_names_are_obtained_from_sqlite_cursor():
         conn.execute('INSERT INTO sales_invoice VALUES (1, 4)')
         for columns, expected_values in [
             ('CAST($total AS NUMERIC)', [4]),
-            ('CAST($id AS NUMERIC),CAST($total AS NUMERIC)', [4]),
+            ('CAST($id AS NUMERIC),CAST($total AS NUMERIC)', [1, 4]),
             ('$id AS CamelCase,$total', [1, 4]),
             ('$id AS "code",$total AS code', [1, 4]),
         ]:

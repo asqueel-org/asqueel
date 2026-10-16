@@ -1,0 +1,12 @@
+{
+  "bag_version": "0.27.0",
+  "serializer": "Bag.to_xml(legacy_mode=True, catalog=GnrClassCatalog())",
+  "sources": {
+    "_legacy_codec.py": "2c49aaa2bcb196b0060530c7ef58ac4f9b4aebfa222a5dbd75c7772462be3412",
+    "gnrclasses.py": "8265fa752ac285ddcd92bb4cc774d2c03b2799d4aa299c4e3bafec37924ff207"
+  },
+  "fixtures": {
+    "empty.xml": "9bbfd96393e8bba9c729f744575768d709a73ef1918cbd4a491cb6c4c4051991",
+    "rows.xml": "5fc71b22aec1a98ea51d3279b10e57d40060770948108801af9db75517cd6624"
+  }
+}

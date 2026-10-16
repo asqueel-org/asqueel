@@ -48,7 +48,8 @@ class SemanticElements:
                         comment: str | None = None, **bindings):
         """GEP virtual relation; var_* binds source expressions as declaration data.
 
-        condition refers to the target. var_* expressions refer to the source
+        table names a direct target and requires a nonempty condition in the
+        completed source. condition refers to the target. var_* expressions refer to the source
         and are used as :var_* in condition. An ask field named <name> is
         referenced as :ask_<name>. This namespace is provisional until compiler
         design. ask and bindings are preserved as data, without SQL rewriting.

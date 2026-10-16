@@ -7,6 +7,7 @@ from __future__ import annotations
 
 
 from ..contracts import UnsupportedFeatureError
+from ._bag_xml import bag_xml_subquery
 
 
 
@@ -42,6 +43,21 @@ class PostgresDialect:
         }.get(dtype, 'text')
         return expression if destination == 'text' else f'CAST(({expression}) AS {destination})'
 
+
+    def join_sql_subquery(self, sql, alias):
+        """Concatenate an ordered row source, preserving empty-value positions."""
+        row = self.quote_identifier(alias)
+        return (f"(SELECT COALESCE(string_agg({row}.value, {row}.separator), '') "
+                f'FROM ({sql}) AS {row})')
+
+    def json_sql_subquery(self, sql, alias, columns):
+        """Reuse the legacy row wrapper, with the agreed empty-array result."""
+        aggregate = self.aggregate_sql_subquery(sql, 'json', alias, ())
+        return f"COALESCE({aggregate}, '[]'::jsonb)"
+
+    def xml_sql_subquery(self, sql, alias, columns):
+        """Render the agreed typed Bag wire from an ordered child SELECT."""
+        return bag_xml_subquery(sql, alias, columns, self.as_translator)
 
     def aggregate_sql_subquery(self, sql, mode, alias, columns):
         """Existing subQueryColumn wrappers over a resolved string SELECT."""

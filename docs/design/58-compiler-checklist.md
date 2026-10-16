@@ -1,5 +1,19 @@
 # 58 — Checklist del compilatore e stato corrente
 
+**Aggiornamento aggregazioni:** count/sum/avg/min/max, join, to_json e to_xml via `.aggr()`,
+con ordine base e override `.order_by(...)`, sono implementati nel
+[rapporto 106](106-xml-many-aggregates.md). XML Bag è disponibile su PostgreSQL,
+non su SQLite. Il [passo 107](107-outer-as-projections.md) corregge il riconoscimento
+di AS con lo splitter esistente: due CAST restano distinti e to_xml non richiede
+alias espliciti. Il [passo 109](109-derived-virtual-relations.md) raccorda le
+derivazioni delle virtualRelation con condizioni in AND e var_* isolati per livello.
+Il [passo 110](110-direct-virtual-relations.md) raccorda anche table= con
+condition obbligatoria. Letture: 4533 passati e 42 skip negli esiti finali
+combinati, 16 deselected, nessun xfail. La suite completa aveva 4531 passati
+e due errori documentali, risolti rigenerando la reference e rieseguendo
+i sei controlli documentali. Scritture escluse come da manifesto. I risultati delle sezioni storiche sotto restano riferiti ai loro passi.
+
+
 Aggiornato il **16 ottobre 2026**, sul branch `codex/core-single-read-path`.
 Base operativa della consegna: **`e96f0c14c27ab3366b7240de67c713b5712c4a50`**.
 Questa fotografia sostituisce le precedenti liste cumulative: i rapporti delle
@@ -87,6 +101,10 @@ Fonti: [86](86-legacy-compiler-logical-phases.md),
   Le inverse ordinarie dichiarate one_one sono distinte dalle relazioni verso molti.
 - [x] Condizioni ON già nei joiner: confronto legacy e test su root e percorso
   padre. Questo non certifica tutta la grammatica nativa di virtualRelation.
+- [x] VirtualRelation su relazione base e forma diretta `table=` con `condition`
+  obbligatoria; derivazioni con condizioni in AND e `var_*` isolati per livello.
+  Aggregazioni sui due dialetti, XML su PostgreSQL; `ask` resta rinviato.
+  Verifiche nel [passo 110](110-direct-virtual-relations.md).
 - [x] Formula SQL, dipendenze, aliasColumn su percorsi supportati, cicli e `var_*`.
 - [x] `select`, `exists`, `select_*`, correlazioni `#THIS`, sottoquery nominate e
   relativi binding. `#THIS` è espanso prima della raccolta dei riferimenti.
@@ -136,7 +154,6 @@ Non confondere «non implementato» con «rinviato dall'utente».
 
 | Stato | Funzionalità | Cosa manca esattamente |
 | --- | --- | --- |
-| 🔴 | virtualRelation nativa | Le dichiarazioni sono conservate, ma il compilatore attraversa i joiner delle relation/weak_relation sulle colonne. Manca il raccordo SQL delle relazioni verso molti filtrate/parametrizzate (condition, var_*, ask e derivazioni concordate), da coordinare con gli handler many ancora rinviati. L’abbreviazione verso uno `customer` di invoice_row non è un requisito da implementare: per quella navigazione vale l’aliasColumn con relazione ereditata, secondo il chiarimento successivo dell’utente. |
 | 🟡 | Copertura dei join dichiarativi | Esistono joiner e condizioni ON legacy testate; manca una certificazione completa delle forme native e delle condizioni ulteriori. Il vecchio punto generico «joinColumn da portare» non autorizza una nuova firma: la grammatica 42 distingue relation/weak_relation e virtualRelation. |
 | 🔴 | Macro non portate | `#ENV`, TSQUERY, TSRANK, TSHEADLINE, VECQUERY, VECRANK, BAG e BAGCOLS. Serve ancora il confronto conclusivo del contratto; `:env_nome`, SQL esplicito e bagItemColumn non ne sono sostituti equivalenti. |
 | 🔴 | Selection e risultati legacy estesi | `query.selection()` è esplicitamente non supportata. Mancano il contenitore Selection e i suoi output; record supporta solo dict/record, senza resolver lazy/eager per navigare le relazioni e senza gli altri output legacy. |
@@ -178,12 +195,18 @@ parametri. `addPkeyColumn` non appartiene più a questo elenco: è supportato.
   richiede le colonne nel mapping alla dichiarazione. Nessuna scelta automatica
   di colonne, prima riga o aggregati è stata aggiunta.
 
-### Rinvii espliciti, non blocchi della fusione
+### Aggregazioni completate e rinvii espliciti, non blocchi della fusione
 
-- 🔴 Relazioni verso molti: nessuna JOIN che esploda righe, DISTINCT implicito
-  o ricomposizione runtime. Il pattern `@relazione.operazione(...)` è riconosciuto
-  e cerca `many_*` via getattr; nessun handler esiste. Sum/calculate/first/last,
-  aggregazione JSON/XML e LATERAL restano da definire ([R-10](41-deferred-features.md#r-10--compilazione-delle-relazioni-verso-molti-sul-nuovo-albero)).
+- 🟢 Aggregazioni concordate verso molti: count/sum/avg/min/max via `.aggr()` sono implementati
+  con sottoquery scalari correlate; nessuna esplosione delle righe. Passano
+  alias, tuple di risultati, formule, relazioni interne, insiemi vuoti e
+  virtualRelation con condition/var_*, incluse le derivazioni con scope separati
+  e la forma diretta table= con condition obbligatoria.
+  Join con placeholder e ordine base/override `.order_by(...)` passa sui due dialetti.
+  To_json passa sui due dialetti, incluse star/statiche e raccolta vuota [].
+  To_xml Bag passa su PostgreSQL; capability assente su SQLite. First/last restano rinviati. Il [rapporto 110](110-direct-virtual-relations.md)
+  registra 274 passed, 22 skipped, nessun xfail nella suite dedicata; il
+  [rapporto 102](102-many-aggregation-contracts.md) conserva la baseline iniziale.
 - 🔴 pyColumn: dichiarazione conservata, calcolo Python dei risultati non portato.
   Di conseguenza `*` non è utilizzabile su adm.htmltemplate_atc con la pyColumn
   statica presente; non la si salta silenziosamente.

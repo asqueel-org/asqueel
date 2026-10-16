@@ -21,18 +21,18 @@ def col_to_as(column):
 
 
 def projection_columns(columns, quote_alias):
-    """compiledQuery's ordered col_dict, preserving explicitly authored AS."""
+    """Legacy ordered col_dict, recognizing outer AS with the existing splitter."""
     result = {}
     for column in dict.fromkeys(col for col in split_sql(columns) if col):
         column = column.strip()
-        if ' AS ' not in column:
+        parts = split_sql(column, ' AS ')
+        if len(parts) == 1:
             name = (column[1:] if column.startswith('$')
                     and column[1:].replace('_', '').isalnum() else col_to_as(column))
             alias = quote_alias(name)
             column = '%s AS %s' % (column, alias)
         else:
-            _, alias = column.split(' AS ', 1)
-            alias = quote_alias(alias.strip())
+            alias = quote_alias(' AS '.join(parts[1:]).strip())
         result[alias] = column
     return tuple(result.values())
 

@@ -123,7 +123,7 @@ def test_no_method_fallback_and_no_many_handler(db, monkeypatch):
     monkeypatch.setattr(db.table('app.line'), 'subquery_total', None)
     with pytest.raises(UnsupportedFeatureError, match='app.line: missing table method subquery_total'):
         db.table('app.line').query('@owner_id.scalar').compiled
-    assert not any(name.startswith('many_') for name in vars(_TreeContext))
+    assert {name for name in vars(_TreeContext) if name.startswith('many_')} == {'many_aggr'}
 
 
 def test_cycles_and_method_errors_remain_explicit(db):
