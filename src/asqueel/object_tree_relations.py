@@ -16,8 +16,11 @@ logger = logging.getLogger(__name__)
 def _action(value):
     if value is None:
         return None
-    return {'set_null': 'setnull', 'no_action': None}.get(
-        value.lower().replace(' ', '_'), value.lower().replace(' ', '_'))
+    name, separator, message = value.partition(':')
+    name = name.lower().replace(' ', '_')
+    name = {'set_null': 'setnull', 'no_action': None}.get(name, name)
+    # The optional ':message' of an application action is kept as written.
+    return name + separator + message if name and separator else name
 
 
 def _joiner(table, column, target, attrs):

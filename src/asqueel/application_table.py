@@ -317,7 +317,7 @@ class SqlTable:
 
     @property
     def currentTrigger(self):
-        """Current write operation with ``parent`` and zero-based ``level``."""
+        """Current write operation; ``parent`` is the operation that caused it."""
         return getattr(self.db, 'currentTrigger', None)
 
     @contextmanager

@@ -134,6 +134,7 @@ A table.
 | sqlschema | `str \| None` | `None` | physical |  |
 | pkey_columns | `str \| None` | `None` | semantic | legacy comma-separated source fields for a single textual primary key; not SQL primary-key members. |
 | pkey_columns_joiner | `str \| None` | `None` | semantic | legacy separator for that textual key. Absent or empty, the legacy uses underscore. Declaration only. |
+| deletable | `bool` | `True` | physical | False refuses every delete of the table's records, as in GenroPy. |
 
 ### `columns`
 
@@ -218,13 +219,19 @@ A physical column — the only element that projects as a column.
 | comment | `str \| None` | `None` | physical | the column comment. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | human label, short form. |
-| group | `str \| None` | `None` | semantic | field-group key. |
+| group | `str \| None` | `None` | semantic | field-group key. onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted: field triggers, as in GenroPy: a method name, called as `trigger_<name>(record, fldname=, tblname=)` on the table or on `trigger_table`, or a callable `f(record, fldname)`. They run at every write, in column declaration order. |
 | sqlname | `str \| None` | `None` | physical |  |
 | default | `object` | `None` | physical |  |
 | default_from | `str \| None` | `None` | physical |  |
 | sql_value | `str \| None` | `None` | physical |  |
 | read_only | `bool` | `False` | physical |  |
 | unmodifiable | `bool` | `False` | physical |  |
+| onInserting | `object` | `None` | physical |  |
+| onUpdating | `object` | `None` | physical |  |
+| onDeleting | `object` | `None` | physical |  |
+| onInserted | `object` | `None` | physical |  |
+| onUpdated | `object` | `None` | physical |  |
+| onDeleted | `object` | `None` | physical |  |
 
 ### `aliasColumn`
 

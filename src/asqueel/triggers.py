@@ -15,7 +15,6 @@ class TriggerStackItem:
     record: dict[str, Any] | None = None
     old_record: dict[str, Any] | None = None
     parent: TriggerStackItem | None = None
-    level: int = 0
 
 
 class TriggerStack:
@@ -48,7 +47,6 @@ class TriggerStack:
             record=record,
             old_record=old_record,
             parent=parent,
-            level=len(self.stack),
         )
         self.stack.append(item)
         try:

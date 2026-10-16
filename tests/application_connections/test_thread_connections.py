@@ -33,7 +33,6 @@ def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
                         with db._write_operation():
                             barrier.wait(timeout=10)
                             assert db.currentTrigger is trigger
-                            assert trigger.level == 0
                             assert db._write_depth == 1
                             assert db.currentEnv['options'] == [name]
                             barrier.wait(timeout=10)

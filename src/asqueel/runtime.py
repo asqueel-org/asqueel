@@ -211,7 +211,7 @@ class Database:
 
     @property
     def currentTrigger(self):
-        """Current write operation, including its causal parent and level."""
+        """Current write operation; ``parent`` is the operation that caused it."""
         self._check_open()
         return self._trigger_stack.parentItem
 

@@ -171,7 +171,7 @@ class TableElements:
               lookup: bool = False, tabletype: str | None = None,
               sqlname: str | None = None, sqlschema: str | None = None,
               pkey_columns: str | None = None,
-              pkey_columns_joiner: str | None = None, **extra):
+              pkey_columns_joiner: str | None = None, deletable: bool = True, **extra):
         """A table.
 
         Args:
@@ -187,6 +187,7 @@ class TableElements:
                 single textual primary key; not SQL primary-key members.
             pkey_columns_joiner: semantic; legacy separator for that textual key.
                 Absent or empty, the legacy uses underscore. Declaration only.
+            deletable: False refuses every delete of the table's records, as in GenroPy.
         """
         ...
 
@@ -254,7 +255,10 @@ class TableElements:
                group: str | None = None, sqlname: str | None = None,
                default: object = None,
                default_from: str | None = None, sql_value: str | None = None,
-               read_only: bool = False, unmodifiable: bool = False, **extra):
+               read_only: bool = False, unmodifiable: bool = False,
+               onInserting: object = None, onUpdating: object = None, onDeleting: object = None,
+               onInserted: object = None, onUpdated: object = None, onDeleted: object = None,
+               **extra):
         """A physical column — the only element that projects as a column.
 
         Args:
@@ -276,6 +280,11 @@ class TableElements:
             name_long: semantic; human label.
             name_short: semantic; human label, short form.
             group: semantic; field-group key.
+            onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted:
+                field triggers, as in GenroPy: a method name, called as
+                ``trigger_<name>(record, fldname=, tblname=)`` on the table or
+                on ``trigger_table``, or a callable ``f(record, fldname)``.
+                They run at every write, in column declaration order.
         """
         ...
 
