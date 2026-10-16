@@ -117,6 +117,9 @@ class SqlQuery:
     def _key_plan(self, table):
         """The query's SELECT with the same filters, order and limit, reduced to the key."""
         options = _copy(self._options)
+        grouping = [name for name in ('group_by', 'having') if options.get(name)]
+        if grouping:
+            raise UnsupportedFeatureError(f'{", ".join(grouping)} is valid only in a SELECT, not in sql_update or sql_delete')
         options['columns'] = ','.join(_reference(name) for name in self.db.write_compiler.pkeys(table))
         options.pop('addPkeyColumn', None)
         options.pop('bagFields', None)

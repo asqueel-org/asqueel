@@ -1,77 +1,76 @@
-"""Dialect rendering uses plans directly, independently of asqueel resolution."""
-from dataclasses import replace
-
+"""PostgreSQL write and SELECT rendering on the hierarchical model, without a connection."""
 import pytest
 
-from asqueel.contracts import ResultColumn, UnsupportedFeatureError
+from asqueel import SqlDatabase, SqlDatabaseConfig
+from asqueel.configuration import _owned_handler
+from asqueel.contracts import UnsupportedFeatureError
 from asqueel.dialects.postgres import PostgresDialect
-from asqueel.query_plan import (
-    Assignment, Fragment, Identifier, Join, Parameter, Projection, QueryPlan,
-    TableRef, concat,
-)
+from asqueel.write_compiler import WriteCompiler
 
 
-def text(statement):
-    return ''.join(part if isinstance(part, str) else f'<bind:{part.name}>'
-                   for part in statement.parts)
+@pytest.fixture
+def db():
+    source = SqlDatabaseConfig()
+    pkg = source.source.db('render', implementation='postgresql').packages().package('s', sqlschema='s', sqlprefix=False)
+    table = pkg.table('t', pkey='id')
+    table.column('id', dtype='I')
+    table.column('amount', dtype='N')
+    table.column('first', dtype='I', sql_value='1 -- value')
+    table.column('second', dtype='I')
+    ticket = pkg.table('ticket', pkey='id')
+    ticket.column('id', dtype='serial')
+    pkg.table('nokey').column('amount', dtype='N')
+    with SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source)) as database:
+        yield database
 
 
-def projection():
-    return Projection(concat(Identifier('t0'), '.', Identifier('id')), 'id', ResultColumn('id', 'I'))
+def model(db, name):
+    return db.table(f's.{name}').model
 
 
-def select(**options):
-    return QueryPlan('select', TableRef('public', 'rows'), projections=(projection(),), **options)
-
-
-@pytest.mark.parametrize(('operation', 'expected'), [
-    ('insert', 'INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)'),
-    ('update', 'UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE'),
-    ('delete', 'DELETE FROM "s"."t" AS "t0" WHERE TRUE'),
+@pytest.mark.parametrize(('operation', 'record', 'expected'), [
+    ('insert', {'amount': 3}, 'INSERT INTO "s"."t"("amount","first") VALUES (%(amount)s,1 -- value\n) RETURNING "first" AS "first"'),
+    ('delete', {'id': 4}, 'DELETE FROM "s"."t" WHERE "id"=%(__pkey__0)s'),
 ])
-def test_dml_rendering(operation, expected):
-    plan = QueryPlan(operation, TableRef('s', 't'),
-                     assignments=() if operation == 'delete' else (Assignment('amount', concat(Parameter('value'))),),
-                     where=None if operation == 'insert' else concat('TRUE'),
-                     params={'value': 3}, projections=(projection(),))
-    assert text(PostgresDialect().render(plan)) == expected.replace(' WHERE ', '\nWHERE ') + '\nRETURNING "t0"."id" AS "id"'
+def test_dml_rendering(db, operation, record, expected):
+    compiled = getattr(db.write_compiler, operation)(model(db, 't'), record, {})
+    assert compiled.sql == expected
 
 
-def test_default_values_and_returning_are_independent_capabilities():
-    plan = QueryPlan('insert', TableRef('s', 't'))
-    assert text(PostgresDialect().render(plan)).endswith(' DEFAULT VALUES')
+def test_default_values_and_returning_are_independent_capabilities(db):
+    ticket = model(db, 'ticket')
+    assert db.write_compiler.insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES RETURNING "id" AS "id"'
     dialect = PostgresDialect(capabilities=PostgresDialect.capabilities - {'returning_insert'})
-    assert dialect.render(plan)
+    assert WriteCompiler(dialect, db.driver).insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES'
+
+
+@pytest.mark.xfail(strict=True, reason='issue draft 5: WriteCompiler does not enforce the dialect capabilities')
+def test_missing_write_capabilities_are_rejected(db):
+    ticket = model(db, 'ticket')
+    dialect = PostgresDialect(capabilities=PostgresDialect.capabilities - {'returning_insert'})
     with pytest.raises(UnsupportedFeatureError, match='returning_insert'):
-        dialect.render(replace(plan, projections=(projection(),)))
+        WriteCompiler(dialect, db.driver).insert(ticket, {}, {})
     with pytest.raises(UnsupportedFeatureError, match='default_values'):
-        PostgresDialect(capabilities=frozenset({'insert'})).render(plan)
+        WriteCompiler(PostgresDialect(capabilities=frozenset({'insert'})), db.driver).insert(ticket, {}, {})
 
 
-@pytest.mark.parametrize('plan', [
-    QueryPlan('update', TableRef('s', 't')),
-    QueryPlan('delete', TableRef('s', 't'), where=Fragment()),
-    QueryPlan('delete', TableRef('s', 't'), where=concat('   ')),
-    QueryPlan('insert', TableRef('s', 't'), where=concat('TRUE')),
-    select(limit=-1), select(limit=True), select(dialect='sqlite'),
-    select(where=concat(Parameter('missing'))),
-    QueryPlan('select', TableRef('s', 't')),
-])
-def test_malformed_plans_are_rejected(plan):
-    with pytest.raises(ValueError):
-        PostgresDialect().render(plan)
+def test_malformed_statements_are_rejected(db):
+    with pytest.raises(ValueError, match='at least one column'):
+        db.write_compiler.update(model(db, 'ticket'), {'unknown': 1}, {}, pkey=1)
+    with pytest.raises(ValueError, match='no primary key'):
+        db.write_compiler.delete(model(db, 'nokey'), {'amount': 1}, {})
+    for options in ({'limit': -1}, {'limit': True}, {'columns': ' '}):
+        with pytest.raises(ValueError):
+            PostgresDialect().compile_sql(**{'maintable': '"s"."t"', 'columns': '1', **options})
 
 
-def test_clauses_have_fixed_separators_without_repairing_expression_text():
-    dialect = PostgresDialect()
-    statement = dialect.render(select(
-        where=concat('TRUE -- predicate'), order_by=concat('1 -- order'), limit=0,
-        joins=(Join(TableRef('s', 't', 't1'), concat('TRUE -- join')),)))
-    assert 'TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0' in text(statement)
-    assignments = (Assignment('first', concat('1 -- value')), Assignment('second', concat(Parameter('p'))))
-    update = QueryPlan('update', TableRef('s', 't'), assignments=assignments,
-                       where=concat('FALSE -- guard'), projections=(projection(),), params={'p': 2})
-    rendered = text(dialect.render(update))
-    assert 'SET "first" = 1 -- value, "second" = <bind:p>\nWHERE FALSE -- guard\nRETURNING' in rendered
-    insert = QueryPlan('insert', TableRef('s', 't'), assignments=assignments, params={'p': 2})
-    assert 'VALUES (1 -- value, <bind:p>)' in text(dialect.render(insert))
+def test_clauses_have_fixed_separators_without_repairing_expression_text(db):
+    select = PostgresDialect().compile_sql('"s"."t"', '1', joins=['LEFT JOIN "s"."t" AS "t1" ON TRUE -- join'],
+                                           where='TRUE -- predicate', order_by='1 -- order', limit=0)
+    assert 'TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0' in select
+    table = model(db, 't')
+    # A sql_value is always emitted, so a record key set to None places it before 'second'.
+    update = db.write_compiler.update(table, {'id': 1, 'first': None, 'second': 2}, {}).sql
+    assert '"first"=1 -- value\n,"second"=%(second)s WHERE "id"=%(__pkey__0)s' in update
+    insert = db.write_compiler.insert(table, {'id': 1, 'first': None, 'second': 2}, {}).sql
+    assert 'VALUES (%(id)s,1 -- value\n,%(second)s)' in insert

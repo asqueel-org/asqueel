@@ -102,7 +102,8 @@ class WriteCompiler:
             sql_value = column.attributes.get('sql_value')
             if value is not None or sql_value is not None:
                 names.append(quote(column.sqlname))
-                values.append(sql_value or f':{key}')
+                # A newline ends a line comment inside sql_value before the next token.
+                values.append(f'{sql_value}\n' if sql_value else f':{key}')
         target = self.sql_fullname(table)
         if names:
             return f'INSERT INTO {target}({",".join(names)}) VALUES ({",".join(values)})'
@@ -122,7 +123,7 @@ class WriteCompiler:
             if column is None:
                 continue
             sql_value = column.attributes.get('sql_value')
-            assignments.append(f'{quote(column.sqlname)}={sql_value or ":" + key}')
+            assignments.append(f'{quote(column.sqlname)}=' + (f'{sql_value}\n' if sql_value else f':{key}'))
         if not assignments:
             raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
         keys = self.pkeys(table)
@@ -159,7 +160,7 @@ class WriteCompiler:
             if column is None:
                 continue
             sql_value = column.attributes.get('sql_value')
-            assignments.append(f'{quote(column.sqlname)}={sql_value or ":" + key}')
+            assignments.append(f'{quote(column.sqlname)}=' + (f'{sql_value}\n' if sql_value else f':{key}'))
         if not assignments:
             raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
         where = self._selection_where(table, plan, data)
