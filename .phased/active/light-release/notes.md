@@ -1,0 +1,3 @@
+## Phase 1
+
+- Foreman, clarify 1 (2026-10-16): option (a). `exists=` formulas compile to `EXISTS(( SELECT ... ))` because `compiler.py:138` writes `EXISTS(#default)` around a subquery that is already parenthesised; SQLite rejects it. This is a defect, not a feature: the light version promises formulas on both dialects. Fix it inside Phase 1 (src/asqueel/compiler.py added to the phase's files) with a SQLite regression test for an `exists=` formula; PostgreSQL output must stay valid. The code change needs the user's ok in the phase chat. Options (b) and (c) rejected: (b) would publish a known one-line defect as a limit, (c) hides it and breaks queries.md.
