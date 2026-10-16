@@ -1,15 +1,24 @@
 # Tutorial: customers, invoices and computed columns
 
-Build a small application using configuration, live tables, relations
-and correlated formulas. Then insert data, read it back, commit a change and
-verify a rollback. Fetched rows support access by name and position; `dict(row)` gives a dictionary.
+Build a small application using configuration, live tables, relations,
+correlated formulas and aggregations. Then create the tables, insert data, read
+it back, commit a change, verify a rollback and delete a row. Fetched rows
+support access by name and position; `dict(row)` gives a dictionary.
 
-You need Python, `asqueel[postgresql]` from this checkout, and a reachable
-PostgreSQL **test database** whose role can create schemas. Nothing installs or
-starts PostgreSQL automatically. The script creates a uniquely named schema and
-removes it in its cleanup block; an interrupted process may leave that schema.
+The same script runs on SQLite and on PostgreSQL. You need Python and
+`asqueel[migration]`; for PostgreSQL also `asqueel[postgresql]` and a reachable
+**test database** whose role can create schemas. Nothing installs or starts
+PostgreSQL automatically.
 
-Download {download}`shop_tutorial.py <_examples/shop_tutorial.py>` and run:
+Download {download}`shop_tutorial.py <_examples/shop_tutorial.py>`. Without
+`ASQUEEL_DSN` it runs on a SQLite file in a temporary directory:
+
+```sh
+python shop_tutorial.py
+```
+
+With `ASQUEEL_DSN` it runs on PostgreSQL, in a uniquely named schema that its
+cleanup block removes; an interrupted process may leave that schema:
 
 ```sh
 export ASQUEEL_DSN="host=localhost dbname=example user=example"
@@ -22,10 +31,10 @@ both returned values and transaction behavior.
 
 ## 1. Describe the application model
 
-A customer has invoices; an invoice has lines. The queryable relations in this
-model point from an invoice to its customer and from a line to its invoice.
-The invoice's line summary is an explicit correlated formula, not an automatic
-reverse collection.
+A customer has invoices; an invoice has lines. The relations are declared on
+the invoice (to its customer) and on the line (to its invoice). Each relation
+also names its inverse, `invoices` and `lines`, which a query uses to aggregate
+the related rows from the other side.
 
 ```mermaid
 erDiagram
@@ -68,7 +77,7 @@ reusing its `columns()` and `virtual_columns()` handles:
 
 Notice the three kinds of invoice column definitions:
 
-| Column | Definition | Stored in PostgreSQL? |
+| Column | Definition | Stored in the database? |
 |---|---|---|
 | `total` | Ordinary numeric column. | Yes |
 | `double_total` | SQL expression over a local column. | No |
@@ -80,13 +89,15 @@ no lines has `line_total=None` and `has_lines=False`: SUM over an empty set is
 NULL. Use a named subquery and `COALESCE` when the desired result is zero; see
 [formulas](formulas.md).
 
-This example supplies its own integer keys. A `dtype` or `pkey` declaration does
-not, by itself, allocate identifiers or keep the stored total synchronized with
-the lines. The total and the calculated sum are separate values by design.
+This example supplies its own integer keys. An insert with an empty integer
+key would get `max(id)+1` (see [writes](writes.md)). Nothing keeps the stored
+total synchronized with the lines: the total and the calculated sum are
+separate values by design.
 
 ## 2. Add deployment configuration and render
 
-Keep the schema and connection choice outside the reusable application recipe:
+Keep the schema and connection choice outside the reusable application recipe.
+`open_shop()` targets PostgreSQL; `open_sqlite_shop()` targets a SQLite file:
 
 :::{literalinclude} _examples/shop_tutorial.py
 :language: python
@@ -100,13 +111,15 @@ Application code still uses `sales.invoice`; the actual PostgreSQL schema has a
 unique generated name. This is the same mechanism you can use to target a test
 or production schema. [Configuration](configuration.md) explains the read stack.
 
-`open_shop()` returns a live database without connecting. It has already resolved
+Both functions return a live database without connecting. It has already resolved
 the model, so invalid declarations can fail here.
 
-## 3. Create the disposable physical tables
+## 3. Create the tables
 
-The model does not create database objects. This tutorial uses explicit DDL to
-make the setup visible and avoid requiring the optional migration package:
+Rendering the model does not create database objects. `db.migrate()` compares
+the model with the live database and applies the DDL that is missing: here the
+schema and the three tables, with their keys and foreign keys. It needs the
+`asqueel[migration]` extra:
 
 :::{literalinclude} _examples/shop_tutorial.py
 :language: python
@@ -114,10 +127,10 @@ make the setup visible and avoid requiring the optional migration package:
 :end-before: "# setup-end"
 :::
 
-Only the generated schema identifier is interpolated here. General identifiers
-need proper SQL identifier quoting; bound data parameters do not quote identifiers.
 All application values in the following steps go through value mappings or
 query parameters. For maintained application schemas, read [migrations](migrations.md).
+The [quickstart](quickstart.md) shows a setup with hand-written DDL, without the
+migration extra.
 
 ## 4. Insert related rows in one transaction
 
@@ -140,8 +153,8 @@ amounts without introducing binary floating-point rounding.
 :end-before: "# reads-end"
 :::
 
-The result has two rows, one per invoice. The two lines of invoice 10 do not
-multiply its outer result: their SUM is a scalar subquery. `@customer_id.name`
+`read_invoices()` returns two rows, one per invoice. The two lines of invoice
+10 do not multiply its outer result: their SUM is a scalar subquery. `@customer_id.name`
 follows the declared relation and generates a join to the customer, without
 requiring an `aliasColumn` in the model. `AS customer_name` names the result
 field. No Python row aggregation is involved.
@@ -150,11 +163,17 @@ An `aliasColumn` is useful when a deeper relation path or a frequently reused
 path deserves a name in the model. For this direct relation, the query can use
 `@customer_id.name` as it is.
 
+`read_customers()` reads from the other side of the relation:
+`@invoices.aggr(count() AS invoices, sum($total) AS amount)` counts and sums
+the invoices of each customer, one row per customer. The aggregation is a
+correlated subquery too; [queries](queries.md#aggregate-related-rows-with-aggr)
+lists the functions.
+
 `query.sqltext` compiles without executing. `.fetch()` executes within the
 transaction and returns mutable `NamedList` rows. For binding, filtering and pagination,
 continue with [queries](queries.md).
 
-## 6. Save a change, then cancel another
+## 6. Save a change, cancel another, delete a row
 
 :::{literalinclude} _examples/shop_tutorial.py
 :language: python
@@ -166,7 +185,11 @@ continue with [queries](queries.md).
 the record itself, and returns the record it received.
 `record(..., mode='dict')` immediately loads exactly one visible row. The second
 update is rolled back by `db.rollback()` in the exception handler. The
-final read confirms that the previously committed name remains.
+read after it confirms that the previously committed name remains.
+
+`remove_line()` deletes line 101. `delete()` accepts a key or a record; this
+record holds only the key, so the table reads the full row with a lock before
+running the delete cycle. The invoice's `line_total` then drops to 100.00.
 
 SQL execution errors automatically roll back the selected connection. A Python
 exception requires explicit rollback, as above. Named connections and deferred
@@ -181,8 +204,10 @@ callbacks are described in the transaction guide.
 :::
 
 The outer database context owns closing; the example explicitly commits or
-rolls back each unit of work. Cleanup first clears any pending transaction and then removes only
-the generated schema. After the printed rows, the script reports:
+rolls back each unit of work. On PostgreSQL, cleanup first clears any pending
+transaction and then removes only the generated schema. On SQLite, the temporary
+directory and its database file are removed. After the printed rows, the script
+reports:
 
 ```text
 Tutorial completed; committed writes and rollback verified.
@@ -192,6 +217,6 @@ Tutorial completed; committed writes and rollback verified.
 
 - Add UI metadata, physical naming and shared model helpers: [models](models.md).
 - Implement business rules using table subclasses: [hooks](hooks.md).
-- Introduce a current organization, drafts and soft deletion: [row policies](row-policies.md).
+- Introduce a current organization, drafts and logical deletion: [row policies](row-policies.md).
 - Work from an existing PostgreSQL schema: [database inspection](importing.md).
 - Check differences before porting existing code: [legacy compatibility](legacy.md).

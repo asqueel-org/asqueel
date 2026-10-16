@@ -159,7 +159,7 @@ accepted as a native convenience. Cycles and missing targets raise errors.
 With a rendered application, `db.table('sales.invoice').column('customer_name')`
 is a stable live handle. Its `originalColumn` links to the target column and its
 `relation_path` preserves the declaration. Configuration reads fall back to the
-target when no local value is declared. `model.ui` exposes the merged UI metadata.
+target when no local value is declared.
 Inherited `notnull` metadata describes the target column; a LEFT JOIN can still
 produce NULL when the source record has no related row.
 
@@ -185,9 +185,9 @@ Alias chains follow the effective relation, including explicit overrides.
 This does not enable virtualRelation declarations or to-many query operations.
 
 Aliases are read-only and never become physical columns in migration output.
-Writes with an alias in their value mapping fail explicitly. `RETURNING '*'`
-includes only physical columns; explicitly returning an alias is supported only when its
-expression is valid in the database's RETURNING clause. The model distinguishes
+An alias key in a write mapping is skipped without error: it never becomes an
+SQL column. The write cycle reads back with RETURNING only the physical columns
+whose value the database decides; aliases are never returned. The model distinguishes
 physical/static columns from dynamic virtuals when expanding SELECT `*`.
 Virtual relations describe model relationships derived from queries or conditions;
 their cardinality remains part of their contract.
