@@ -173,13 +173,13 @@ Action: per row.
 
 | nodeid | class | evidence | area | action |
 |---|---|---|---|---|
-| `tests/adapter_compiler/test_plans.py` | R | tests/adapter_compiler/test_plans.py:4 | adapter_compiler | proposed: delete — asserts QueryPlan/Fragment structure, API removed |
-| `tests/adapter_dialect/test_postgres.py` | R | tests/adapter_dialect/test_postgres.py:8 | adapter_dialect | proposed: delete — asserts dialect rendering of QueryPlan, API removed |
+| `tests/adapter_compiler/test_plans.py` | R | tests/adapter_compiler/test_plans.py:4 | adapter_compiler | realign — keep the `%` escaping of physical names and the identifier quoting on `prepare_sql` / `WriteCompiler`; drop the assertions on QueryPlan/Fragment structure |
+| `tests/adapter_dialect/test_postgres.py` | R | tests/adapter_dialect/test_postgres.py:8 | adapter_dialect | realign — keep DEFAULT VALUES, RETURNING as a separate capability, and line comments that cannot swallow the following clause, on `WriteCompiler` |
 | `tests/adapter_dialect/test_postgres_execution.py` | R | tests/adapter_dialect/test_postgres_execution.py:8 | adapter_dialect | realign — guard property (a line comment cannot remove the UPDATE predicate) restated on `WriteCompiler` |
 | `tests/adapter_integration/test_postgres_pipeline.py` | R | tests/adapter_integration/test_postgres_pipeline.py:11 | adapter_integration | realign — explicit pipeline restated on `prepare_sql` / `CompiledQuery` / `db.execute` |
 | `tests/application_table/test_handles.py` | R | tests/application_table/test_handles.py:1 | application_table | realign — 10 write-hook tests restated on the table write cycle (`table_crud.py`, `db_write.py`) |
 | `tests/native_compiler/test_policies.py` | R | tests/native_compiler/test_policies.py:12 | native_compiler | realign — DML partition/draft guards on the write cycle; soft delete/restore have no write-side code, Phase 2 decides whether that part becomes O |
-| `tests/test_wf_phase2_query_grouping.py` | R | tests/test_wf_phase2_query_grouping.py:7 | tests (root) | proposed: delete — asserts QueryPlan clause validation, API removed |
+| `tests/test_wf_phase2_query_grouping.py` | R | tests/test_wf_phase2_query_grouping.py:7 | tests (root) | realign — keep the refusal of GROUP BY/HAVING outside SELECT on the current compilers |
 
 ## G5 — R — 2 rows
 
@@ -235,7 +235,7 @@ Action: realign: drop `ui=` and use the hierarchical model.
 
 Cause: Tutorial declares `x_name="customer"` and queries `@customer.name`; the relation path is the column name `@customer_id`, as in the legacy.
 
-Evidence: `docs/guide/_examples/shop_tutorial.py:34,111`; `src/asqueel/compiler.py:226` `Relation @customer not found`.
+Evidence: `docs/guide/_examples/shop_tutorial.py:34,111`; `src/asqueel/compiler.py:226` `Relation @customer not found`; legacy `gnrsqlmodel/columns.py:180` looks up `'@%s' % self.name`, and `relation_name` (`model.py:251-287`) names only the inverse relation.
 
 Action: realign: the tutorial (docs file) uses `@customer_id`.
 

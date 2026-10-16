@@ -7,4 +7,5 @@
 - Result: 134 R, 0 B, 0 O. No row reaches the merged write code, so B rows can only appear after Phase 2 realigns the tests.
 - G10 (composite pkey) is R: legacy `gnrsqlmodel/table.py:194-209` requires `pkey` to name a column, composite through `composed_of`.
 - G9 (tutorial `@customer`) is R: the relation path is the column name; `x_name` is not a relation name.
-- Proposed deletions, pending the user's Verify: test_plans.py, adapter_dialect/test_postgres.py, test_wf_phase2_query_grouping.py (QueryPlan API removed).
+- No test is deleted. test_plans.py, adapter_dialect/test_postgres.py and test_wf_phase2_query_grouping.py assert properties no write test covers (`%` escaping of physical names, RETURNING capability, line comments that cannot swallow the following clause, GROUP BY outside SELECT refused); tests/write_compiler covers only DEFAULT VALUES (test_write_compiler.py:91). They are realigned in Phase 2; only the QueryPlan/Fragment structure assertions go.
+- G9 confirmed R on the legacy: `gnrsqlmodel/columns.py:180` resolves `'@%s' % self.name`; `relation_name` names only the inverse relation.
