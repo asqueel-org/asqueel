@@ -141,14 +141,14 @@ amounts without introducing binary floating-point rounding.
 :::
 
 The result has two rows, one per invoice. The two lines of invoice 10 do not
-multiply its outer result: their SUM is a scalar subquery. `@customer.name`
+multiply its outer result: their SUM is a scalar subquery. `@customer_id.name`
 follows the declared relation and generates a join to the customer, without
 requiring an `aliasColumn` in the model. `AS customer_name` names the result
 field. No Python row aggregation is involved.
 
 An `aliasColumn` is useful when a deeper relation path or a frequently reused
 path deserves a name in the model. For this direct relation, the query can use
-`@customer.name` as it is.
+`@customer_id.name` as it is.
 
 `query.sqltext` compiles without executing. `.fetch()` executes within the
 transaction and returns mutable `NamedList` rows. For binding, filtering and pagination,
@@ -162,7 +162,8 @@ continue with [queries](queries.md).
 :end-before: "# changes-end"
 :::
 
-`update()` uses the declared key in the mapping when no predicate is supplied.
+`update()` takes the key of the changed row from `old_record`, then `pkey`, then
+the record itself, and returns the record it received.
 `record(..., mode='dict')` immediately loads exactly one visible row. The second
 update is rolled back by `db.rollback()` in the exception handler. The
 final read confirms that the previously committed name remains.

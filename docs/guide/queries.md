@@ -67,7 +67,7 @@ avoid collisions. This does not yet add chained `.query(...)` or set operators.
 try:
     invoice = db.table("sales.invoice")
     rows = invoice.query(
-        columns="$id, @customer.name AS customer_name, $total",
+        columns="$id, @customer_id.name AS customer_name, $total",
         where="$total >= :minimum",
         minimum=100,
         order_by="$total DESC, $id",
@@ -139,7 +139,7 @@ accepted; do not supply both spellings of the same option.
 | Syntax | Meaning | Example |
 |---|---|---|
 | `$name` | Local logical column, including a declared virtual column. | `$total >= :minimum` |
-| `@relation.column` | Column reached through a declared forward or inverse relation. | `@customer.name` |
+| `@relation.column` | Column reached through a declared forward or inverse relation. | `@customer_id.name` |
 | `AS name` | Result column name for named access. | `$id AS invoice_id` |
 | `:name` | Bound data value. | `minimum=100` |
 | `:env_name` | Explicit parameter, or environment fallback for `name`. | `:env_customer_id` |
@@ -322,7 +322,7 @@ query's arguments, and does not treat every parameter as arbitrary SQL.
 
 For an external value that must remain literal despite matching a field or
 relation, use the existing legacy escape, such as `wanted=r'\$owner'` or
-`wanted=r'\@customer.name'`. The WHERE compiler leaves it bound; preparation
+`wanted=r'\@customer_id.name'`. The WHERE compiler leaves it bound; preparation
 removes the initial backslash. Using `sqlparams` instead of keyword arguments
 does not disable symbolic interpretation.
 
@@ -336,8 +336,8 @@ ordering still need application control; no SQLGlot check is integrated.
 ```python
 try:
     rows = db.table("sales.invoice").query(
-        columns="$id, @customer.name AS customer_name",
-        where="@customer.name = :name", name="Ada",
+        columns="$id, @customer_id.name AS customer_name",
+        where="@customer_id.name = :name", name="Ada",
         order_by="$id",
     ).fetch()
     db.commit()
@@ -352,8 +352,8 @@ primary or unique key. The compiler creates a LEFT JOIN and reuses it for the
 same path across projections, filters and ordering. A missing target produces
 NULL values. A WHERE condition on the target can still exclude that row.
 
-Relations can be chained, using `@customer.@country.name` or
-`@customer.country.name` when those relations exist. Ordinary inverse paths
+Relations can be chained, using `@customer_id.@country_id.name` or
+`@customer_id.country_id.name` when those relations exist. Ordinary inverse paths
 declared with `inverse` or `back_reference` also use LEFT JOIN: the unique key
 is on their source side, and the target can contain several matching rows.
 The same path reuses its join across projections, filters and ordering.
@@ -371,7 +371,7 @@ added to a plain join; the root table's policies govern the query.
 ```python
 try:
     rows = db.table("sales.invoice").query(
-        columns="$id, @customer.name AS customer_name, $double_total, $line_total, $has_lines",
+        columns="$id, @customer_id.name AS customer_name, $double_total, $line_total, $has_lines",
         order_by="$id",
     ).fetch()
     db.commit()
@@ -381,7 +381,7 @@ except Exception:
 
 ```
 
-`customer_name` is the result name for the related column `@customer.name`;
+`customer_name` is the result name for the related column `@customer_id.name`;
 `double_total` is a SQL expression; `line_total` and `has_lines` are correlated
 formulas. Their declaration and scope rules are in [models](models.md) and
 [formulas](formulas.md). They are read-only.

@@ -108,7 +108,7 @@ def seed(db):
 def read_invoices(db):
     invoice = db.table("sales.invoice")
     query = invoice.query(
-        columns="$id, @customer.name AS customer_name, $total, $line_total, $has_lines",
+        columns="$id, @customer_id.name AS customer_name, $total, $line_total, $has_lines",
         order_by="$id",
     )
     assert "SELECT" in query.sqltext  # Compilation performs no I/O.
@@ -127,8 +127,8 @@ def read_invoices(db):
 # changes-start
 def change_customer(db):
     customer = db.table("sales.customer")
-    result = customer.update({"id": 1, "name": "Ada Lovelace"}, returning="$id, $name")
-    assert [dict(row) for row in result.rows] == [{"id": 1, "name": "Ada Lovelace"}]
+    result = customer.update({"id": 1, "name": "Ada Lovelace"})
+    assert result == {"id": 1, "name": "Ada Lovelace"}
     assert customer.record(1, mode="dict")["name"] == "Ada Lovelace"
     db.commit()
 

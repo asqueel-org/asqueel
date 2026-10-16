@@ -95,8 +95,8 @@ not part of the live model. Namespaced flat attributes remain available in
 
 ## Declare relations and formulas
 
-The relation above is navigable as `@customer.name`. Without `x_name`, its name
-would be the owning column, giving `@customer_id.name`.
+The relation above is navigable as `@customer_id.name`: a forward relation is
+named by its owning column. `x_name` does not rename the forward path.
 
 Relations in the native query profile navigate toward a declared primary or
 unique key. `foreign_key=True` also makes the relation part of the physical
@@ -118,7 +118,7 @@ Declaring the same virtual column with a different kind replaces its definition,
 as in the legacy model. Attributes not redefined by the new declaration remain:
 
 ```python
-virtuals.aliasColumn('customer_name', '@customer.name',
+virtuals.aliasColumn('customer_name', '@customer_id.name',
                      dtype='T', name_long='Customer')
 virtuals.formulaColumn('customer_name', "'from_formula'")
 ```
@@ -143,7 +143,7 @@ legacy model's target-and-override behavior:
 ```python
 # Add inside invoice_table(), before returning; reuse its virtuals handle.
 virtuals.aliasColumn(
-    'customer_name', relation_path='@customer.name', name_long='Customer',
+    'customer_name', relation_path='@customer_id.name', name_long='Customer',
     x_ui_label='Customer name',
 )
 ```
@@ -152,8 +152,8 @@ Read the alias as `$customer_name` in projections, filters, ordering or another
 formula. Its dtype and descriptive metadata are inherited from the destination;
 non-None local attributes and UI overrides take precedence. Its own identity is
 preserved in result metadata. The target may itself be an alias or a formula.
-For multiple relations, both legacy `@customer.@country.name` and
-`@customer.country.name` are accepted. Local `name`/`$name` alias targets are also
+For multiple relations, both legacy `@customer_id.@country_id.name` and
+`@customer_id.country_id.name` are accepted. Local `name`/`$name` alias targets are also
 accepted as a native convenience. Cycles and missing targets raise errors.
 
 With a rendered application, `db.table('sales.invoice').column('customer_name')`

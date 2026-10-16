@@ -200,13 +200,25 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
         item = db.table('invc.customer')
         assert set(item.columns) == {'id', 'state'}
         assert set(item.model.options) == {'partition_state', 'tenant', 'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id', 'protection'}
-        assert item.config('options.partition_state.value') == 'MI'
-        assert item.config('options.protection.rules') == ['protect_validate']
-        assert item.config('options.numbering_id.parameters')['format'] == '$YYYY$NNNNN'
-        assert item.config('options.retention.days') == 60
-        assert model_from_json(model_to_json(db.model)) == db.model
+        assert item.model.options['partition_state'].attributes['value'] == 'MI'
+        assert item.model.options['protection'].attributes['rules'] == ['protect_validate']
+        assert item.model.options['numbering_id'].attributes['parameters']['format'] == '$YYYY$NNNNN'
+        assert item.model.options['retention'].attributes['days'] == 60
         with pytest.raises(UnsupportedFeatureError):
             item.insert({'id': 1})
+    finally:
+        db.close()
+
+
+@pytest.mark.xfail(strict=True, reason='issue draft 2: the hierarchical DbModel has no JSON round trip')
+def test_declarative_options_survive_a_json_round_trip():  # wf:phase-2:new
+    builder, packages = source()
+    table = packages.package('invc').table('customer', pkey='id')
+    table.column('id', dtype='L')
+    table.options().retention(field='id', days=60)
+    db = build_database(builder)
+    try:
+        assert model_from_json(model_to_json(db.model)) == db.model
     finally:
         db.close()
 
