@@ -88,8 +88,9 @@ rimosse. Il dettaglio per il writer è in
 - Ritirate le prove del prodotto cartesiano attraverso relazioni a molti e delle
   vecchie policy allowed/current: restano i contratti concordati many_* senza
   handler e partition con valore corrente scalare.
-- SQLite EXISTS mantiene il limite legacy concordato: le prove lo verificano
-  esplicitamente, mentre le altre sottoquery continuano a essere eseguite.
+- SQLite EXISTS: il limite legacy delle doppie parentesi, prima conservato, è
+  stato rimosso il 2026-10-16 su decisione dell'utente; le prove eseguono le
+  formule `exists=` anche su SQLite.
 - Il renderer tollera anche un db senza figli: la configurazione della sola
   connessione è verificata dai test di contesto sui database reali.
 

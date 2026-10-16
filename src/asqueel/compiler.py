@@ -136,7 +136,7 @@ class _TreeContext:
             self.formula_bindings[key] = self.bindings.child(values, 'f') if values else self.bindings
         bindings = self.formula_bindings[key]
         if select is not None or exists is not None:
-            formula = '#default' if select is not None else 'EXISTS(#default)'
+            formula = '#default' if select is not None else 'EXISTS #default'
             subqueries = {'default': select if select is not None else exists}
         # Bind the authored expression before inserting children: their local
         # names already belong to their own scope and must never be remangled.

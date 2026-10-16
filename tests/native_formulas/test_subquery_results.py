@@ -17,13 +17,7 @@ def db(request):
 def test_exists_matches_physical_rows_on_both_backends(db):
     expected = {row['invoice_id'] for row in db.table('invc.invoice_row').query(
         '$invoice_id', where='$unit_price>100').fetch()}
-    query = db.table('invc.invoice').query('$id,$has_expensive_rows')
-    if db.dialect.name == 'sqlite':
-        import sqlite3
-        with pytest.raises(sqlite3.OperationalError, match='syntax error'):
-            query.fetch()
-        return
-    rows = query.fetch()
+    rows = db.table('invc.invoice').query('$id,$has_expensive_rows').fetch()
     assert expected
     assert any(not row['has_expensive_rows'] for row in rows)
     assert {row['id'] for row in rows if row['has_expensive_rows']} == expected

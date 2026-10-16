@@ -193,9 +193,10 @@ parametri. `addPkeyColumn` non appartiene più a questo elenco: è supportato.
 
 - 🔴 SQLite non implementa bagItemColumn XPath né gli aggregati JSON/XML delle
   subQueryColumn. Il rifiuto è esplicito; non si aggiunge un fallback Python.
-- 🟡 EXISTS SQLite: è conservato il limite legacy delle doppie parentesi nei
-  casi documentati. Il test che attende l'errore SQL non certifica l'esecuzione
-  positiva di quella forma. Non riaprire automaticamente la decisione.
+- 🟢 EXISTS SQLite: la decisione di conservare il limite legacy delle doppie
+  parentesi è stata riaperta dall'utente il 2026-10-16. Le formule `exists=`
+  compilano `EXISTS ( SELECT ... )` e le prove ne verificano l'esecuzione su
+  PostgreSQL e SQLite.
 - 🟡 XML da metodo subquery referenziato per stringa non è supportato: il legacy
   richiede le colonne nel mapping alla dichiarazione. Nessuna scelta automatica
   di colonne, prima riga o aggregati è stata aggiunta.

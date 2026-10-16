@@ -96,14 +96,7 @@ def test_related_owner_and_no_rows(db):
     )
     assert dict(row) == dict(result=220, supplied=225)
     query = db.table('app.owner').query('$scalar,$present', where='$id=2')
-    if db.dialect.name == 'sqlite':
-        import sqlite3
-        # The agreed legacy double parentheses around EXISTS remain unchanged.
-        with pytest.raises(sqlite3.OperationalError, match='syntax error'):
-            query.fetch()
-        assert db.table('app.owner').query('$scalar', where='$id=2').fetch()[0]['scalar'] is None
-    else:
-        assert [dict(row) for row in query.fetch()] == [dict(scalar=None, present=False)]
+    assert [dict(row) for row in query.fetch()] == [dict(scalar=None, present=False)]
 
 
 def test_json_method_return_value_and_distinct(db):

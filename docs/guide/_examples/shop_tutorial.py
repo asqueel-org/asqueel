@@ -1,11 +1,14 @@
-"""Runnable documentation example; uses and removes its own PostgreSQL schema.
+"""Runnable documentation example on PostgreSQL or SQLite.
 
-Run with ASQUEEL_DSN set to a disposable PostgreSQL database connection string.
-Only the randomly named genro_tutorial_* schema is created and removed.
+With ASQUEEL_DSN set to a disposable PostgreSQL database connection string, it
+creates and removes a randomly named genro_tutorial_* schema. Without it, it
+uses a SQLite file in a temporary directory and removes the directory.
 """
 # imports-start
 import os
 from decimal import Decimal
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from uuid import uuid4
 
 from asqueel import CompiledQuery, SqlDatabaseConfig, AsqueelDb
@@ -32,7 +35,7 @@ class Shop(SqlDatabaseConfig):
         columns = invoice.columns()
         columns.column("id", dtype="L")
         columns.column("customer_id", dtype="L").relation(
-            "sales.customer.id", foreign_key=True, x_name="customer",
+            "sales.customer.id", foreign_key=True, x_name="customer", inverse="invoices",
         )
         columns.column("total", dtype="N", size="12,2", notnull=True)
         columns.column("note", dtype="T")
@@ -50,7 +53,7 @@ class Shop(SqlDatabaseConfig):
         columns = tables.table("line", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("invoice_id", dtype="L").relation(
-            "sales.invoice.id", foreign_key=True, x_name="invoice",
+            "sales.invoice.id", foreign_key=True, x_name="invoice", inverse="lines",
         )
         columns.column("amount", dtype="N", size="12,2")
 # model-end
@@ -65,25 +68,21 @@ def open_shop(dsn, physical_schema):
             )
 
     return AsqueelDb(Deployment, parents=[Shop])
+
+
+def open_sqlite_shop(path):
+    class Deployment(SqlDatabaseConfig):
+        def main(self, root):
+            root.db("shop").connection(name=str(path), implementation="sqlite")
+
+    return AsqueelDb(Deployment, parents=[Shop])
 # deployment-end
 
 
 # setup-start
-def create_tables(db, schema):
-    # schema is generated below from uuid4().hex, never supplied by a user.
-    for statement in (
-        f'CREATE SCHEMA "{schema}"',
-        f'CREATE TABLE "{schema}".customer '
-        '(id bigint PRIMARY KEY, name text NOT NULL)',
-        f'CREATE TABLE "{schema}".invoice '
-        f'(id bigint PRIMARY KEY, customer_id bigint REFERENCES "{schema}".customer(id), '
-        'total numeric(12,2) NOT NULL, note text)',
-        f'CREATE TABLE "{schema}".line '
-        f'(id bigint PRIMARY KEY, invoice_id bigint REFERENCES "{schema}".invoice(id), '
-        'amount numeric(12,2))',
-    ):
-        db.execute(CompiledQuery(statement))
-    db.commit()
+def create_tables(db):
+    # The migration creates the schemas and tables the model declares.
+    db.migrate()
 # setup-end
 
 
@@ -108,7 +107,8 @@ def seed(db):
 def read_invoices(db):
     invoice = db.table("sales.invoice")
     query = invoice.query(
-        columns="$id, @customer_id.name AS customer_name, $total, $line_total, $has_lines",
+        columns="$id, @customer_id.name AS customer_name, $total, $double_total, "
+                "$line_total, $has_lines",
         order_by="$id",
     )
     assert "SELECT" in query.sqltext  # Compilation performs no I/O.
@@ -116,9 +116,24 @@ def read_invoices(db):
     db.rollback()  # Complete this read-only transaction.
     assert [dict(row) for row in rows] == [
         {"id": 10, "customer_name": "Ada", "total": Decimal("125.00"),
-         "line_total": Decimal("125.00"), "has_lines": True},
+         "double_total": Decimal("250.00"), "line_total": Decimal("125.00"),
+         "has_lines": True},
         {"id": 11, "customer_name": "Grace", "total": Decimal("40.00"),
-         "line_total": None, "has_lines": False},
+         "double_total": Decimal("80.00"), "line_total": None, "has_lines": False},
+    ]
+    return rows
+
+
+def read_customers(db):
+    customer = db.table("sales.customer")
+    rows = customer.query(
+        columns="$id, $name, @invoices.aggr(count() AS invoices, sum($total) AS amount)",
+        order_by="$id",
+    ).fetch()
+    db.rollback()
+    assert [dict(row) for row in rows] == [
+        {"id": 1, "name": "Ada", "invoices": 1, "amount": Decimal("125.00")},
+        {"id": 2, "name": "Grace", "invoices": 1, "amount": Decimal("40.00")},
     ]
     return rows
 # reads-end
@@ -139,28 +154,49 @@ def change_customer(db):
         db.rollback()
 
     assert customer.record(1, mode="dict")["name"] == "Ada Lovelace"
+    db.rollback()  # Complete this read-only transaction.
+
+
+def remove_line(db):
+    db.table("sales.line").delete({"id": 101})
+    db.commit()
+    rows = db.table("sales.invoice").query(
+        columns="$id, $line_total", where="$id = :id", id=10,
+    ).fetch()
     db.rollback()  # Complete the final read-only transaction.
+    assert [dict(row) for row in rows] == [{"id": 10, "line_total": Decimal("100.00")}]
 # changes-end
 
 
 # run-start
-def run(dsn):
+def run_flow(db):
+    create_tables(db)
+    seed(db)
+    rows = read_invoices(db)
+    read_customers(db)
+    change_customer(db)
+    remove_line(db)
+    print(rows)
+    print("Tutorial completed; committed writes and rollback verified.")
+    return rows
+
+
+def run(dsn=None):
+    if dsn is None:
+        with TemporaryDirectory() as folder:
+            with open_sqlite_shop(Path(folder) / "shop.db") as db:
+                return run_flow(db)
     schema = "genro_tutorial_" + uuid4().hex
     with open_shop(dsn, schema) as db:
-        create_tables(db, schema)
         try:
-            seed(db)
-            rows = read_invoices(db)
-            change_customer(db)
-            print(rows)
-            print("Tutorial completed; committed writes and rollback verified.")
-            return rows
+            return run_flow(db)
         finally:
             db.rollback()
-            db.execute(CompiledQuery(f'DROP SCHEMA "{schema}" CASCADE'))
+            # schema is generated above from uuid4().hex, never supplied by a user.
+            db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
             db.commit()
 
 
 if __name__ == "__main__":
-    run(os.environ["ASQUEEL_DSN"])
+    run(os.environ.get("ASQUEEL_DSN"))
 # run-end
