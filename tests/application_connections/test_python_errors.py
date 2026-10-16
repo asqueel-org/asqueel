@@ -19,7 +19,7 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
         with db.tempEnv(connectionName='C'):
             db.execute(CompiledQuery('independent C'))
         with pytest.raises(LookupError, match='statement failed'):
-            db.table('item').insert({'id': 1})
+            db.table('app.item').insert({'id': 1})
         assert db.currentTrigger is None
         with pytest.raises(TransactionStateError, match='rollback-only'):
             db.commit()
@@ -54,7 +54,7 @@ def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
         assert caught.value is original
         db.driver.callback = None
         with pytest.raises(LookupError) as caught:
-            db.table('item').insert({'id': 1})
+            db.table('app.item').insert({'id': 1})
         assert caught.value is original
         with pytest.raises(TransactionStateError, match='rollback-only'):
             db.commit()
@@ -77,7 +77,7 @@ def test_db_context_preserves_hook_exception_when_cleanup_also_fails(cleanup):
     setattr(db.driver, cleanup + '_error', cleanup_error)
     with pytest.raises(ValueError) as caught:
         with db:
-            db.table('item').insert({'id': 1})
+            db.table('app.item').insert({'id': 1})
     assert caught.value is original
     assert caught.value.__cause__ is cleanup_error
     assert any('cleanup' in note.lower() for note in caught.value.__notes__)

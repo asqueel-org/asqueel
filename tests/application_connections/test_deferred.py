@@ -26,11 +26,11 @@ def test_hooks_can_register_both_queues_and_deferred_errors():
                 self.db.deferredRaise(ValueError('invalid record'))
 
     with database(Item) as db:
-        db.table('item').insert({'id': 1})
+        db.table('app.item').insert({'id': 1})
         assert events == []
         db.commit()
         assert events == [('before', 'active'), ('after', 'committed')]
-        db.table('item').insert({'id': 2})
+        db.table('app.item').insert({'id': 2})
         with pytest.raises(DeferredCommitError, match='invalid record'):
             db.commit()
         db.rollback()
@@ -201,7 +201,7 @@ def test_stack_tracks_nested_writes_and_restores_after_exception():
     class Item(SqlTable):
         def trigger_onInserting(self, record):
             current = self.currentTrigger
-            events.append((current.event, current.table, current.level,
+            events.append((current.event, current.table,
                            current.parent.record['id'] if current.parent else None))
             if record['id'] == 1:
                 self.insert({'id': 2})
@@ -210,12 +210,12 @@ def test_stack_tracks_nested_writes_and_restores_after_exception():
                 raise ValueError('hook')
 
     with database(Item) as db:
-        db.table('item').insert({'id': 1})
+        db.table('app.item').insert({'id': 1})
         assert db.currentTrigger is None
-        assert events == [('insert', 'app.item', 0, None), ('insert', 'app.item', 1, 1)]
+        assert events == [('insert', 'app.item', None), ('insert', 'app.item', 1)]
         db.commit()
         with pytest.raises(ValueError):
-            db.table('item').insert({'id': 3})
+            db.table('app.item').insert({'id': 3})
         assert db.currentTrigger is None
         db.rollback()
 

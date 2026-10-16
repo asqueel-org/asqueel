@@ -76,9 +76,9 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 db.rollback()
                 db.deferAfterCommit(fail)
                 db.deferAfterCommit(lambda: trace.append('unreached'))
-            db.table('item').insert({'id': 1})
+            db.table(f'{schema}.item').insert({'id': 1})
             if failure == 'sql':
-                db.table('item').insert({'id': 1})
+                db.table(f'{schema}.item').insert({'id': 1})
             elif failure == 'application':
                 raise ValueError('request failure')
             elif failure == 'before':
@@ -95,10 +95,10 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
             assert second.db.currentEnv == {'user': 'bob', 'locale': 'it_IT'}
             assert second.db is db
             assert db.outcome == 'not_started'
-            assert [dict(row) for row in db.table('item').query(columns='$id', order_by='$id').fetch()] == (
+            assert [dict(row) for row in db.table(f'{schema}.item').query(columns='$id', order_by='$id').fetch()] == (
                 [{'id': 1}] if failure == 'after' else [])
             db.rollback()
-            db.table('item').insert({'id': 2})
+            db.table(f'{schema}.item').insert({'id': 2})
             db.deferAfterCommit(lambda: trace.append('new main'))
             db.commit()
             with db.tempEnv(connectionName='auxiliary'):

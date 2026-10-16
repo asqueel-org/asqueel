@@ -62,15 +62,16 @@ def application():
 
 def test_manual_unit_of_work_is_shared_and_invisible_until_explicit_commit(application):
     db, rows = application
-    item = db.table('item')
+    item = db.table('app.item')
     assert item is db.table('app.item')
-    assert db.table('audit').relation('item_id').target is item
+    joiner = db.table('app.audit').relations.get_node('@item_id').attr['joiner']
+    assert joiner['one_relation'] == 'app.item.id'
     result = item.insert({'id': 1, 'name': ' first '})
-    assert [dict(row) for row in result.rows] == [{'id': 1, 'name': 'first'}]
+    assert result == {'id': 1, 'name': 'first'}
     item.insert({'id': 2, 'name': 'second'})
     assert [dict(row) for row in item.query(order_by='$id').fetch()] == [
         {'id': 1, 'name': 'first'}, {'id': 2, 'name': 'second'}]
-    assert [dict(row) for row in db.table('audit').query(order_by='$id').fetch()] == [
+    assert [dict(row) for row in db.table('app.audit').query(order_by='$id').fetch()] == [
         {'id': 1, 'item_id': 1}, {'id': 2, 'item_id': 2}]
     assert rows('item') == rows('audit') == []
     db.commit()
@@ -81,10 +82,10 @@ def test_manual_unit_of_work_is_shared_and_invisible_until_explicit_commit(appli
 
 def test_manual_rollback_and_close_discard_cross_table_writes(application):
     db, rows = application
-    db.table('item').insert({'id': 1, 'name': 'rollback'})
+    db.table('app.item').insert({'id': 1, 'name': 'rollback'})
     db.rollback()
     assert rows('item') == rows('audit') == []
-    db.table('item').insert({'id': 2, 'name': 'close'})
+    db.table('app.item').insert({'id': 2, 'name': 'close'})
     db.close()
     assert db.outcome == 'rolled_back'
     assert rows('item') == rows('audit') == []
@@ -94,13 +95,13 @@ def test_transaction_context_commits_hooks_together_and_rolls_back_hook_failure(
     db, rows = application
     with completed(db) as connection:
         assert connection is db
-        db.table('item').insert({'id': 1, 'name': 'success'})
+        db.table('app.item').insert({'id': 1, 'name': 'success'})
         assert rows('item') == rows('audit') == []
     assert rows('item') == [(1, 'success')]
     assert rows('audit') == [(1, 1)]
     with pytest.raises(ValueError, match='post-insert hook'):
         with completed(db):
-            db.table('item').insert({'id': 2, 'name': 'fail'})
+            db.table('app.item').insert({'id': 2, 'name': 'fail'})
     assert rows('item') == [(1, 'success')]
     assert rows('audit') == [(1, 1)]
 
@@ -108,12 +109,12 @@ def test_transaction_context_commits_hooks_together_and_rolls_back_hook_failure(
 def test_caught_hook_error_remains_rollback_only_and_cannot_commit(application):
     db, rows = application
     with pytest.raises(ValueError, match='post-insert hook'):
-        db.table('item').insert({'id': 1, 'name': 'fail'})
+        db.table('app.item').insert({'id': 1, 'name': 'fail'})
     with pytest.raises(TransactionStateError, match='rollback-only'):
         db.commit()
     assert rows('item') == rows('audit') == []
     db.rollback()
-    db.table('item').insert({'id': 2, 'name': 'recovered'})
+    db.table('app.item').insert({'id': 2, 'name': 'recovered'})
     db.commit()
     assert rows('item') == [(2, 'recovered')]
     assert rows('audit') == [(2, 2)]
@@ -122,9 +123,9 @@ def test_caught_hook_error_remains_rollback_only_and_cannot_commit(application):
 def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(application):
     db, rows = application
     with completed(db):
-        db.table('item').insert({'id': 1, 'name': 'same'})
-        db.table('item').insert({'id': 2, 'name': 'same'})
-    query = db.table('item').query(where='$id=:env_item')
+        db.table('app.item').insert({'id': 1, 'name': 'same'})
+        db.table('app.item').insert({'id': 2, 'name': 'same'})
+    query = db.table('app.item').query(where='$id=:env_item')
     with db.temp_env(item=1):
         compiled = query.compiled
         assert [dict(row) for row in query.fetch()] == [{'id': 1, 'name': 'same'}]
@@ -132,27 +133,27 @@ def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(
         assert [dict(row) for row in query.fetch()] == [{'id': 2, 'name': 'same'}]
         with pytest.raises(EnvironmentMismatchError):
             db.execute(compiled)
-    record = db.table('item').record(1)
+    record = db.table('app.item').record(1)
     assert record.output('dict') == {'id': 1, 'name': 'same'}
-    db.table('item').update({'name': 'changed'}, where='$id=:id', sqlparams={'id': 1})
+    db.table('app.item').update({'id': 1, 'name': 'changed'})
     assert record.output('dict')['name'] == 'same'
     record.refresh()
     assert record.output('dict')['name'] == 'changed'
     db.rollback()
     assert rows('item') == [(1, 'same'), (2, 'same')]
     with pytest.raises(RecordNotFoundError):
-        db.table('item').record(99).output('dict')
+        db.table('app.item').record(99).output('dict')
     with pytest.raises(RecordMultipleRowsError):
-        db.table('item').record(where='$name=:name', name='same').output('dict')
+        db.table('app.item').record(where='$name=:name', name='same').output('dict')
 
 
 def test_caught_hook_error_cannot_turn_context_exit_into_success(application):
     db, rows = application
     with pytest.raises(TransactionStateError, match='rollback-only'):
         with completed(db):
-            db.table('item').insert({'id': 1, 'name': 'first'})
+            db.table('app.item').insert({'id': 1, 'name': 'first'})
             with pytest.raises(ValueError, match='post-insert hook'):
-                db.table('item').insert({'id': 2, 'name': 'fail'})
+                db.table('app.item').insert({'id': 2, 'name': 'fail'})
     assert rows('item') == rows('audit') == []
     assert db.outcome == 'rolled_back'
 
@@ -161,8 +162,8 @@ def test_database_constraint_failure_rolls_back_previous_operations(application)
     db, rows = application
     with pytest.raises(psycopg.errors.UniqueViolation):
         with completed(db):
-            db.table('item').insert({'id': 1, 'name': 'first'})
-            db.table('item').insert({'id': 1, 'name': 'duplicate'})
+            db.table('app.item').insert({'id': 1, 'name': 'first'})
+            db.table('app.item').insert({'id': 1, 'name': 'duplicate'})
     assert rows('item') == rows('audit') == []
     assert db.outcome == 'rolled_back'
 
@@ -173,12 +174,12 @@ def test_named_connections_have_independent_visibility_and_physical_identity(app
     def pid():
         return db.execute(CompiledQuery('SELECT pg_backend_pid() AS pid')).rows[0]['pid']
     main_pid = pid()
-    db.table('item').insert({'id': 10, 'name': 'main pending'})
+    db.table('app.item').insert({'id': 10, 'name': 'main pending'})
     with db.tempEnv(connectionName='independent'):
         other_pid = pid()
         assert other_pid != main_pid
-        assert db.table('item').query().fetch() == []
-        db.table('item').insert({'id': 20, 'name': 'other committed'})
+        assert db.table('app.item').query().fetch() == []
+        db.table('app.item').insert({'id': 20, 'name': 'other committed'})
         db.commit()
         assert pid() == other_pid
         assert rows('item') == [(20, 'other committed')]
@@ -192,14 +193,14 @@ def test_named_connections_have_independent_visibility_and_physical_identity(app
 
 def test_sql_error_in_named_connection_rolls_back_hooks_and_allows_reuse(application):
     db, rows = application
-    db.table('item').insert({'id': 10, 'name': 'main pending'})
+    db.table('app.item').insert({'id': 10, 'name': 'main pending'})
     with db.tempEnv(connectionName='independent'):
-        db.table('item').insert({'id': 20, 'name': 'must disappear'})
+        db.table('app.item').insert({'id': 20, 'name': 'must disappear'})
         with pytest.raises(psycopg.errors.UniqueViolation):
-            db.table('item').insert({'id': 20, 'name': 'duplicate'})
+            db.table('app.item').insert({'id': 20, 'name': 'duplicate'})
         assert db.outcome == 'rolled_back'
-        assert db.table('item').query().fetch() == []
-        db.table('item').insert({'id': 30, 'name': 'recovered'})
+        assert db.table('app.item').query().fetch() == []
+        db.table('app.item').insert({'id': 30, 'name': 'recovered'})
         db.commit()
     assert rows('item') == [(30, 'recovered')]
     db.commit()
@@ -218,7 +219,7 @@ def test_shared_database_threads_have_independent_postgres_connections(applicati
         try:
             db.updateEnv(worker=key)
             with db.tempEnv(connectionName='worker'):
-                db.table('item').insert({'id': key, 'name': f'worker {key}'})
+                db.table('app.item').insert({'id': key, 'name': f'worker {key}'})
                 barrier.wait(timeout=10)
                 assert db.currentEnv['worker'] == key
                 if commit:
@@ -237,5 +238,5 @@ def test_shared_database_threads_have_independent_postgres_connections(applicati
     assert rows('audit') == [(301, 301)]
     assert db.currentEnv == {}
     with completed(db):
-        db.table('item').insert({'id': 303, 'name': 'main'})
+        db.table('app.item').insert({'id': 303, 'name': 'main'})
     assert rows('audit') == [(301, 301), (303, 303)]

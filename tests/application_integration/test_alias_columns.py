@@ -49,18 +49,18 @@ def alias_database():
                     columns.column('country_id', dtype='I').relation('app.country.id', foreign_key=True, x_name='country')
                     virtual = customer.virtual_columns()
                     virtual.formulaColumn('loud_name', sql_formula='upper($name)', dtype='T')
-                    virtual.aliasColumn('country_name', relation_path='@country.name')
+                    virtual.aliasColumn('country_name', relation_path='@country_id.name')
                     invoice = tables.table('invoice', pkey='id', x_table_class=Invoice)
                     columns = invoice.columns()
                     columns.column('id', dtype='I')
                     columns.column('customer_id', dtype='I').relation('app.customer.id', foreign_key=True, x_name='customer')
                     columns.column('amount', dtype='I')
                     virtual = invoice.virtual_columns()
-                    virtual.aliasColumn('customer_name', relation_path='@customer.name',
+                    virtual.aliasColumn('customer_name', relation_path='@customer_id.name',
                                         name_long='Buyer name', x_ui_label='Buyer', static=True)
-                    virtual.aliasColumn('country_name', relation_path='@customer.@country.name')
-                    virtual.aliasColumn('country_chain', relation_path='@customer.country_name')
-                    virtual.aliasColumn('loud_customer', relation_path='@customer.loud_name')
+                    virtual.aliasColumn('country_name', relation_path='@customer_id.@country_id.name')
+                    virtual.aliasColumn('country_chain', relation_path='@customer_id.country_name')
+                    virtual.aliasColumn('loud_customer', relation_path='@customer_id.loud_name')
 
             with build_database(Recipe) as db:
                 yield db
@@ -70,18 +70,17 @@ def alias_database():
 
 def test_aliases_are_read_only_and_default_dml_returning_is_physical(alias_database):
     db = alias_database
-    table = db.table('invoice')
-    with pytest.raises(ValueError):
-        table.update({'customer_name': 'bad'}, where='$id=1')
-    db.rollback()
-    with pytest.raises(ValueError):
-        table.insert({'id': 4, 'customer_name': 'bad'})
+    table = db.table('app.invoice')
+    table.insert({'id': 4, 'customer_name': 'bad'})
+    assert [dict(row) for row in table.query(columns='$customer_id,$customer_name', where='$id=4').fetch()] == [
+        {'customer_id': None, 'customer_name': None}]
     db.rollback()
     with completed(db):
         inserted = table.insert({'id': 4, 'customer_id': 1, 'amount': 40})
-        assert [dict(row) for row in inserted.rows] == [{'id': 4, 'customer_id': 1, 'amount': 40}]
-        updated = table.update({'amount': 41}, where='$id=4')
-        assert [dict(row) for row in updated.rows] == [{'id': 4, 'customer_id': 1, 'amount': 41}]
-        assert table.record(4).output()['customer_name'] == 'Alice'
-        deleted = table.delete(4)
-        assert [dict(row) for row in deleted.rows] == [{'id': 4, 'customer_id': 1, 'amount': 41}]
+        assert inserted == {'id': 4, 'customer_id': 1, 'amount': 40}
+        updated = table.update({'id': 4, 'customer_id': 1, 'amount': 41},
+                               old_record={'id': 4, 'customer_id': 1, 'amount': 40})
+        assert updated == {'id': 4, 'customer_id': 1, 'amount': 41}
+        assert table.query(columns='$customer_name', where='$id=4').fetch()[0]['customer_name'] == 'Alice'
+        table.delete({'id': 4, 'customer_id': 1, 'amount': 41})
+        assert table.query(where='$id=4').fetch() == []

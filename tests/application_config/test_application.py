@@ -102,13 +102,13 @@ def test_rollback_only_session_rejects_write_before_calling_hooks():
     driver = Driver()
     db = build_database(recipe, driver=driver)
     with pytest.raises(ValueError, match='domain validation'):
-        db.table('item').insert({'id': 1})
+        db.table('app.item').insert({'id': 1})
     with pytest.raises(TransactionStateError, match='rollback-only'):
-        db.table('item').insert({'id': 2})
+        db.table('app.item').insert({'id': 2})
     assert calls == [1]
     assert driver.calls == []
     db.rollback()
     with pytest.raises(ValueError, match='domain validation'):
-        db.table('item').insert({'id': 3})
+        db.table('app.item').insert({'id': 3})
     assert calls == [1, 3]
     db.close()

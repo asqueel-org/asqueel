@@ -90,8 +90,8 @@ def formula_database(request):
 def test_default_returning_does_not_evaluate_subquery_virtuals(formula_database):
     db = formula_database
     with completed(db):
-        inserted = db.table('invoice').insert({'id': 4, 'name': 'new'})
-        assert [dict(row) for row in inserted.rows] == [{'id': 4, 'name': 'new'}]
-        updated = db.table('invoice').update({'name': 'updated'}, where='$id=4')
-        assert [dict(row) for row in updated.rows] == [{'id': 4, 'name': 'updated'}]
-        assert [dict(row) for row in db.table('invoice').delete(4).rows] == [{'id': 4, 'name': 'updated'}]
+        invoice = db.table('app.invoice')
+        assert invoice.insert({'id': 4, 'name': 'new'}) == {'id': 4, 'name': 'new'}
+        assert invoice.update({'id': 4, 'name': 'updated'}) == {'id': 4, 'name': 'updated'}
+        invoice.delete({'id': 4, 'name': 'updated'})
+        assert invoice.query(where='$id=4').fetch() == []
