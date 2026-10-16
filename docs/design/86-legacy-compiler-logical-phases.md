@@ -1,5 +1,14 @@
 # 86 — Compilatore: fasi legacy e traduzione nel nuovo percorso
 
+**Decisione successiva, 16 ottobre 2026:** sulle relazioni verso molti si mantiene
+solo `.aggr(...)` come aggregazione, con ordine base automatico e override
+`.order_by(...)`. Include `join` con placeholder, `to_json` e `to_xml`
+compatibile con Bag. Funzioni interne, espressioni, alias e punti aperti sono nel
+[documento 101](101-many-aggregation-decisions.md). Gli esempi di altri metodi
+qui sotto documentano il dispatcher storico, non la grammatica definitiva.
+L’implementazione successiva di count e aggregati numerici è nel
+[rapporto 103](103-numeric-many-aggregates.md); il testo sotto conserva la fase storica.
+
 **Aggiornamento dopo la replica alla review:** riferimento corrente GenroPy
 develop `95da66ee64b0c789dbb6b35254011d83ce1911c5`. Il [censimento 95](95-develop-reference-audit.md)
 classifica i 24 commit SQL successivi e fissa i prossimi interventi: prima

@@ -64,3 +64,32 @@ def test_retired_or_unknown_virtual_relation_arguments_are_rejected(key, value):
         b.validate_source()
     with pytest.raises(ValueError, match='unsupported attributes'):
         resolve_model(b)
+
+
+@pytest.mark.parametrize('condition', [None, '', '   '])
+def test_direct_table_requires_condition_in_complete_source(condition):
+    b, customer, _ = source()
+    customer.virtualRelation('direct', table='app.invoice', condition=condition)
+    with pytest.raises(ValueError, match='table.*requires.*condition'):
+        b.validate_source()
+    with pytest.raises(ValueError, match='table.*requires.*condition'):
+        resolve_model(b)
+
+
+def test_direct_condition_can_be_supplied_by_a_contribution():
+    b, customer, _ = source()
+    customer.virtualRelation('direct', table='app.invoice')
+    with b.contribution('application'):
+        customer.virtualRelation('direct', condition='$customer_id=:var_customer', var_customer='$id')
+    assert b.validate_source() == []
+    attrs = resolve_model(b).table('app.customer')['virtualrelation_direct'].attributes
+    assert attrs['table'] == 'app.invoice'
+    assert attrs['condition'] == '$customer_id=:var_customer'
+
+
+def test_imported_direct_condition_cannot_be_removed():
+    b, customer, _ = source()
+    node = customer.virtualRelation('direct', table='app.invoice', condition='$total>0')
+    node.attr.pop('condition')
+    with pytest.raises(ValueError, match='table.*requires.*condition'):
+        resolve_model(b)

@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<GenRoBag><r_0><code>xx&lt;&amp;&gt;"'</code>
+<empty></empty>
+<missing _T="NN"></missing>
+<integer _T="L">2</integer>
+<amount _T="N">12.50</amount>
+<real _T="R">1.25</real>
+<active _T="B">True</active>
+<inactive _T="B">False</inactive>
+<day _T="D">2026-10-16</day>
+<clock _T="H">12:30:00</clock>
+<utc _T="DHZ">2026-10-16T12:30:00+00:00</utc></r_0>
+<r_1><code>second</code></r_1></GenRoBag>

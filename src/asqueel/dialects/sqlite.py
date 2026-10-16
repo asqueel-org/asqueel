@@ -2,6 +2,7 @@
 
 from .postgres import PostgresDialect
 from ..contracts import UnsupportedFeatureError
+from .._legacy_sql import split_sql
 
 
 class SqliteDialect(PostgresDialect):
@@ -12,6 +13,30 @@ class SqliteDialect(PostgresDialect):
     def bag_item_formula(self, bagcolumn, dtype):
         raise UnsupportedFeatureError('SQLite does not support legacy bagItemColumn XPath extraction')
 
+
+    def join_sql_subquery(self, sql, alias):
+        """Concatenate an ordered row source, preserving empty-value positions."""
+        row = self.quote_identifier(alias)
+        return (f"(SELECT COALESCE(group_concat({row}.value, {row}.separator), '') "
+                f'FROM ({sql}) AS {row})')
+
+    def json_sql_subquery(self, sql, alias, columns):
+        """Build JSON objects from the query's selected names and native values."""
+        row = self.quote_identifier(alias)
+        fields = []
+        for column in split_sql(columns):
+            # The legacy may omit result metadata for authored aliases. Read
+            # the actual projection instead: SQLite keeps an unquoted alias's
+            # case and names an unaliased expression after its SQL text.
+            parts = split_sql(column, ' AS ')
+            name = parts[-1].strip()
+            if len(parts) == 2 and name.startswith('"') and name.endswith('"'):
+                name = name[1:-1].replace('""', '"')
+            fields.extend(["'" + name.replace("'", "''") + "'", row + '.' + self.quote_identifier(name)])
+        return f'(SELECT json_group_array(json_object({", ".join(fields)})) FROM ({sql}) AS {row})'
+
+    def xml_sql_subquery(self, sql, alias, columns):
+        raise UnsupportedFeatureError('SQLite does not support to_xml (Bag XML)')
 
     def aggregate_sql_subquery(self, sql, mode, alias, columns):
         raise UnsupportedFeatureError(f'SQLite does not support legacy subQueryColumn mode={mode!r}')

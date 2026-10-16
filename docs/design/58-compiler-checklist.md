@@ -1,405 +1,265 @@
 # 58 — Checklist del compilatore e stato corrente
 
-**16 ottobre 2026 — percorso unico delle letture nel worktree dedicato:**
-[Rapporto 98](98-single-read-path.md). Gli ingressi operativi usano DbModel e
-QueryCompiler gerarchico; eliminati il vecchio compilatore, QueryPlan/Fragment e
-le copie SqlColumn/SqlRelation. Record e lock verificati su SQLite/PostgreSQL.
-**3.200 test passati, 8 skip nel perimetro letture**. Le scritture restano al
-lavoro separato; questo risultato non dichiara verde la suite generale.
+**Priorità attuale:** riunificare letture e scritture e definire il perimetro
+verificato della prima versione operativa per un progetto nuovo.
+Consegna, basi Git e criteri di verifica nel [report 111](111-read-write-integration-handoff.md).
+Il backlog legacy sotto non è automaticamente un requisito della prima release.
 
-**Aggiornamento 15 ottobre 2026 — campi condivisi dalle options verificati:**
-[Rapporto 94](94-shared-option-fields.md). Le 12 differenze d'ordine sono accettate;
-non richiedono riallineamento. Verificati tipo, attributi, relazioni e unicità dei
-campi condivisi, incluso `invc.product_group._row_count`. **366 test passati**
-nel gruppo mirato, inclusi 19 nuovi contratti e le verifiche sui 74 modelli.
-Nessuna modifica alla produzione; aggiunti test e documentazione.
+**Aggiornamento aggregazioni:** count/sum/avg/min/max, join, to_json e to_xml via `.aggr()`,
+con ordine base e override `.order_by(...)`, sono implementati nel
+[rapporto 106](106-xml-many-aggregates.md). XML Bag è disponibile su PostgreSQL,
+non su SQLite. Il [passo 107](107-outer-as-projections.md) corregge il riconoscimento
+di AS con lo splitter esistente: due CAST restano distinti e to_xml non richiede
+alias espliciti. Il [passo 109](109-derived-virtual-relations.md) raccorda le
+derivazioni delle virtualRelation con condizioni in AND e var_* isolati per livello.
+Il [passo 110](110-direct-virtual-relations.md) raccorda anche table= con
+condition obbligatoria. Letture: 4533 passati e 42 skip negli esiti finali
+combinati, 16 deselected, nessun xfail. La suite completa aveva 4531 passati
+e due errori documentali, risolti rigenerando la reference e rieseguendo
+i sei controlli documentali. Scritture escluse come da manifesto. I risultati delle sezioni storiche sotto restano riferiti ai loro passi.
 
-**Aggiornamento 15 ottobre 2026 — options prima delle dichiarazioni:**
-[Rapporto 93](93-options-first-object-renderer.md). Il renderer gerarchico
-consuma prima le options sulla copia privata della source, conservandole sugli
-oggetti senza ripeterne gli effetti. Compilatore invariato. I due contratti `star`
-ora passano senza xfail; 62/74 ordini fisici identici al legacy, 12 differenze
-residue interne alle espansioni documentate separatamente. JSON migration
-invariato sui 74 modelli. Le note successive conservano lo storico.
 
-**Decisione 15 ottobre 2026 — wildcard:** restano soltanto `*` e le colonne
-esplicite (incluse espressioni e percorsi di relazione già supportati).
-I wildcard avanzati escono dalla TODO: [cose non portate, R-11](41-deferred-features.md#r-11--wildcard-avanzati).
-Nessuna modifica al compilatore. Il confronto dell'ordine delle colonne di `*`
-e l'intervento nel renderer sono ora documentati nel [rapporto 93](93-options-first-object-renderer.md).
+Aggiornato il **16 ottobre 2026**, sul branch `codex/core-single-read-path`.
+Base operativa della consegna: **`e96f0c14c27ab3366b7240de67c713b5712c4a50`**.
+Questa fotografia sostituisce le precedenti liste cumulative: i rapporti delle
+singole fasi conservano lo storico, non sono TODO concorrenti.
 
-**Aggiornamento 15 ottobre 2026 — fetch e count eseguibili sul nuovo albero:**
-[Rapporto 92](92-hierarchical-fetch-count.md). Terminali reali sul database
-proprietario, righe Toolbox NamedList, ambiente corrente e transazione condivisa.
-Count interpreta il risultato secondo il legacy; nessun handler verso molti.
-Record, Selection e scritture gerarchiche restano fuori perimetro.
-**5.147 test passati, 21 skip, 2 xfail preesistenti**. Ruff e Sphinx passano;
-JSON migration invariato sui 74 modelli. Le note successive conservano lo storico.
+Il passaggio definitivo al percorso unico delle letture è completato e verificato
+nel perimetro concordato. Non equivale al porting integrale di GenroPy.
+Nessuna scrittura viene implementata o certificata da questa checklist.
 
-**Aggiornamento 15 ottobre 2026 — count compilato sul nuovo albero:**
-[Rapporto 91](91-legacy-tree-count.md). Stesso ramo legacy negli otto snapshot:
-COUNT(*) per query semplici, chiavi di GROUP BY, proiezione conservata per
-DISTINCT; ordinamento eliminato. SQL e kwargs senza esecuzione sul nuovo albero.
-Nessun handler verso molti. **4.915 test passati, 21 skip, 2 xfail preesistenti**;
-Ruff e Sphinx passano, JSON migration invariato sui 74 modelli. Le note successive
-sono storiche.
+- 🟢 Implementato e verificato nel perimetro indicato.
+- 🟡 Verifica, integrazione o contratto ancora da completare.
+- 🔴 Funzionalità non disponibile; non significa automaticamente blocco della fusione.
+- I rinvii espliciti sono separati dalle lacune ancora da valutare. Questo
+  censimento non autorizza nuove sintassi, implementazioni o cambi di comportamento.
 
-**Decisione corrente, 15 ottobre 2026 — piano per fasi legacy:**
-[diagramma e piano 86](86-legacy-compiler-logical-phases.md).
-La sostituzione di QueryPlan/Fragment comprende da subito la risoluzione delle
-relazioni sul nuovo albero: la SELECT fisica da sola non valida l’architettura.
-Contenitore equivalente a SqlCompiledQuery, clausole SQL e kwargs separati,
-assemblaggio e preparazione agli adapter. Binding PostgreSQL invariato:
-ClientCursor ritirato; il parametro tra apici è un errore d’uso e non un requisito.
-Piano operativo in cinque fasi, con riferimenti legacy e prove di chiusura.
-Obiettivo vincolante: reimplementazione chiara e leggibile dello stesso algoritmo,
-senza variazioni non concordate; ricorsione e ordine delle operazioni preservati.
-Fase 1 verificata nel [rapporto 87](87-legacy-rewrite-phase1-baseline.md):
-144 test legacy passati e 2 skip, 148 SELECT fisiche equivalenti; censite
-144 relazioni native. Sul nuovo albero il raccordo relazionale manca ancora.
-Contratti e differenze fissati; compilatore invariato, fase 2 non iniziata.
-Le note successive conservano lo storico dei passi precedenti.
+**Aggiornamento successivo alla consegna:** eredità weak delle relazioni sugli
+alias nel renderer, con precedenza alla relazione esplicita; vedere il
+[rapporto 100](100-alias-relation-inheritance.md). Le virtualRelation non sono
+abbreviazioni di percorsi verso uno: il chiarimento successivo dell'utente
+supera quella parte del piano, senza modificare qui il compilatore.
+Regressione dopo il raccordo: **4.262 passati, 12 skip, 16 deselected**;
+JSON migration invariato sui 74 modelli. I numeri della consegna originaria
+restano nel rapporto 98.
 
-**Stato corrente, 15 ottobre 2026 — renderer riallineato dopo R4:**
-[rapporto 85](85-legacy-renderer-and-postgres-binding.md), [piano 79](79-legacy-compiler-realignment-plan.md).
-Eliminate le scansioni dal renderer condiviso; assemblaggio e WHERE seguono il
-legacy. **3.944 test passati, 13 saltati**, 148 SELECT fisiche e JSON migration
-invariato. Scomparse le quattro differenze del renderer nel corpus R4.
-Binding PostgreSQL invariato: proposta ClientCursor provata su otto SELECT,
-da discutere prima dell’adozione. Collisione IN separata e invariata.
-R5/relazioni non avviata. Misure aggiornate e limiti nel rapporto.
-Le note successive conservano lo storico dei passi precedenti.
+## 1. 🟢 Percorso unico e modello
 
-**Stato corrente, 15 ottobre 2026 — verifica R4 eseguita, accettazione aperta:**
-[rapporto 84](84-legacy-realignment-r4.md), [piano 79](79-legacy-compiler-realignment-plan.md).
-**3.918 test superati, 13 saltati**; 15 prove legacy, 148 SELECT fisiche e JSON
-migration dei 74 modelli verificati. Confronto integrato sui tre compilatori:
-82/84 casi eseguiti da entrambi con stessi risultati sul nuovo albero.
-Restano la differenza di binding PostgreSQL, la collisione postgres3 già nota
-e residui dello scanner nel renderer condiviso. SELECT ordinaria più rapida del
-legacy; 100 proiezioni ripetute ancora 2,3–2,6 volte più lente. Nessuna modifica
-agli algoritmi; R5/relazioni non avviata. Dettagli e misure nel rapporto.
-Le note successive conservano lo storico dei passi precedenti.
+- [x] AsqueelDb, build_database, CLI e hosting usano il DbModel gerarchico.
+- [x] Il renderer usa walk generica e finalize; espande prima le options su una
+  copia privata della source e non ripete gli effetti durante il resto della visita.
+- [x] `objects_tree` restituisce il modello; `objects` collega lo stesso modello
+  al database operativo. Non ci sono due costruzioni parallele.
+- [x] `SqlTable.model` è il DbTableObj dell'albero; colonne fisiche in `columns`,
+  virtuali in `virtual_columns`, compositi separati, attributi sui nodi.
+- [x] Il ramo `relations` è l'autorità per la navigazione; le inverse restano
+  registrate anche quando la loro compilazione verso molti non è supportata.
+- [x] Eliminati vecchio compilatore/scanner, QueryPlan/Fragment, SqlStatement
+  e wrapper duplicati SqlColumn/SqlRelation. Nessun fallback o shim provvisorio.
+- [x] I DTO di catalogo rimasti servono a introspezione/codec/proiezione;
+  non sono un secondo modello operativo accettato dal compilatore.
+- [x] Options condivise compongono tipo, attributi e relazioni senza duplicati,
+  incluso `invc.product_group._row_count`.
+- [x] Le 12 differenze residue nell'ordine delle colonne rispetto al legacy sono
+  accettate. Non sono correzioni pendenti e non richiedono ordinamenti nel compilatore.
 
-**Stato corrente, 14 ottobre 2026 — R3 completata:**
-[rapporto 83](83-legacy-realignment-r3.md), [piano 79](79-legacy-compiler-realignment-plan.md).
-Preparazione SQL/kwargs negli adapter secondo il legacy, senza I/O implicito.
-Psycopg 3 usa l’espansione IN dell’adapter legacy postgres3, con protocollo nominato.
-**3.918 test superati, 13 saltati**; 100 confronti sul riferimento, 24 verifiche
-d’integrazione e 148 SELECT native senza differenze. Otto snapshot confrontati.
-Il prossimo passo è R4, prima delle relazioni. Nomi generati, collisioni ed errori
-affidati al driver mantengono i contratti legacy documentati nel rapporto.
-Le note successive conservano lo storico dei passi precedenti.
+Fonti: [93](93-options-first-object-renderer.md),
+[94](94-shared-option-fields.md), [98](98-single-read-path.md).
 
-**Stato corrente, 14 ottobre 2026 — R2 completata nel perimetro locale:**
-[rapporto 82](82-legacy-realignment-r2.md), [piano 79](79-legacy-compiler-realignment-plan.md).
-Proiezioni conservate come nel legacy ed embedFieldPars sul WHERE, senza nuove
-sintassi. **3.791 test superati, 13 saltati**; quattro test legacy originali
-superati, 624 confronti sugli otto snapshot e 148 SELECT native senza differenze.
-Prossimo passo R3: preparazione negli adapter, poi R4 prima delle relazioni.
-Le note successive conservano lo storico dei passi precedenti.
+## 2. 🟢 Compilazione, parametri e SELECT
 
-**R1 completata sul nuovo albero:** [rapporto 81](81-legacy-realignment-r1.md).
-Raccolta, risoluzione e sostituzione dei campi ora seguono il legacy. Restano
-R2 (proiezioni/parametri), R3 (adapter) e R4 (verifica integrata), prima del
-raccordo relations. **3.681 test superati, 13 saltati**; nessuna nuova sintassi.
-Le disponibilità del vecchio percorso elencate sotto non equivalgono al port
-sul nuovo albero né alla parità con il legacy.
+- [x] Unico QueryCompiler; contenitore di clausole SqlCompiledQuery sul modello
+  legacy, assemblaggio/preparazione delegati agli adapter.
+- [x] CompiledQuery contiene SQL e kwargs separati. `query.compiled` non esegue
+  SQL né apre connessioni. `driver.prepare_sql(sql, kwargs, snapshot)` prepara
+  il contenitore eseguibile; `db.execute(compiled)` è il punto di esecuzione.
+- [x] Riferimenti `$campo` e `@relazione.campo`, espressioni SQL fidate, AS e
+  alias automatici secondo gli algoritmi legacy. Non esiste la sintassi aggiunta
+  `$"nome quotato"`; non si promettono protezioni da scanner su commenti/literal.
+- [x] Parametri espliciti, ambiente e locali delle formule; scope delle sottoquery
+  isolati. Alias di tabella e mangler dei parametri sono distinti.
+- [x] Binding mancanti portati a NULL come deciso; preparazione degli adapter
+  verificata, inclusa la regressione `:ids` / `:ids2` con confine di parola.
+- [x] `embedFieldPars` nel WHERE secondo il legacy: un valore simbolico `$campo`
+  o `@relazione.campo` riconosciuto può diventare un riferimento SQL.
+  Non è un canale per accettare indiscriminatamente valori esterni non fidati.
+- [x] WHERE, ORDER BY, LIMIT/OFFSET, DISTINCT, GROUP BY/HAVING; ordine di tabella
+  quando applicabile e trattamento legacy di `group_by='*'`.
+- [x] Pkey automatica controllata da `addPkeyColumn`, False per default:
+  la decisione è già acquisita, non è più una firma aperta.
+- [x] `*` e colonne esplicite; fisiche e virtuali statiche secondo il modello.
+  bagFields regola le X, salvo la regola legacy `bagFields or for_update`.
+- [x] Count: COUNT(*) nelle query ordinarie, chiavi del raggruppamento per GROUP BY,
+  proiezione conservata per DISTINCT; rimozione dell'ordinamento.
+- [x] FOR UPDATE nel profilo concordato; nessun lock durante la sola compilazione.
+- [x] ILIKE adattato su SQLite con sostituzione limitata all'operatore.
 
-**R0 completata:** [contratti, test e decisioni aperte](80-legacy-realignment-r0-contracts.md).
-Nessuna implementazione riallineata in questo passo; le disponibilità sotto
-rimangono quelle del percorso precedente e non equivalgono ad approvazione.
+Fonti: [86](86-legacy-compiler-logical-phases.md),
+[88](88-legacy-rewrite-phase2.md), [90](90-legacy-rewrite-phase4.md),
+[91](91-legacy-tree-count.md), [98](98-single-read-path.md).
 
-**Priorità corrente:** il [piano 79](79-legacy-compiler-realignment-plan.md)
-precede il raccordo relations. Le voci disponibili qui descrivono l'attuale
-implementazione: non certificano la compatibilità legacy, messa in discussione
-dal [confronto 78](78-scanner-legacy-comparison.md), né approvano le divergenze.
+## 3. 🟢 Relazioni, formule, options e macro nel perimetro supportato
 
-**Distinzione dei percorsi, 14 ottobre 2026:** le disponibilità indicate sotto
-riguardano il compilatore sul modello precedente. Sul nuovo DbModel è ora
-raccordata la sola SELECT fisica minima (fasi 0–1 del
-[piano 76](76-hierarchical-compiler-plan.md), [rapporto 77](77-hierarchical-minimal-select.md)).
-Relazioni, formule, options e macro restano da raccordare. Nessuna esecuzione,
-nessun nuovo comportamento per mixin o RuntimeModel.
+- [x] Relazioni verso uno anche concatenate, riuso delle JOIN per percorso e
+  relazioni distinte verso la stessa tabella; chiavi fisiche composte.
+- [x] Chiavi sorgente da formula, compresi `last_invoice_id` e `first_product_id`.
+  Le inverse ordinarie dichiarate one_one sono distinte dalle relazioni verso molti.
+- [x] Condizioni ON già nei joiner: confronto legacy e test su root e percorso
+  padre. Questo non certifica tutta la grammatica nativa di virtualRelation.
+- [x] VirtualRelation su relazione base e forma diretta `table=` con `condition`
+  obbligatoria; derivazioni con condizioni in AND e `var_*` isolati per livello.
+  Aggregazioni sui due dialetti, XML su PostgreSQL; `ask` resta rinviato.
+  Verifiche nel [passo 110](110-direct-virtual-relations.md).
+- [x] Formula SQL, dipendenze, aliasColumn su percorsi supportati, cicli e `var_*`.
+- [x] `select`, `exists`, `select_*`, correlazioni `#THIS`, sottoquery nominate e
+  relativi binding. `#THIS` è espanso prima della raccolta dei riferimenti.
+- [x] Metodi `sql_formula_<nome>(attr)` e riferimenti stringa `subquery_*` sulla
+  tabella corrente; non equivalgono a un RuntimeModel completo.
+- [x] subQueryColumn da mapping; modi scalare/JSON/XML nel profilo del dialetto.
+  Riferimenti stringa per scalare/JSON, con il limite XML legacy indicato sotto.
+- [x] bagItemColumn su PostgreSQL: XPath, attributi/posizioni, cast e binding.
+- [x] Draft, cancellazione logica e partition nativa con solo valore corrente
+  scalare; required e bypass come concordato. Verificati i filtri sui 74 modelli.
+- [x] Default delle sottoquery e mancata propagazione dei filtri root nelle JOIN
+  secondo il legacy. Altre options conservate senza inventare effetti SQL.
+- [x] Macro IN_RANGE, PERIOD, THIS e riferimenti `#nome` a `select_nome`.
+  IN_RANGE usa la correzione approvata per gli estremi NULL su PostgreSQL.
 
-Aggiornamento: 14 ottobre 2026, dopo il passo 1 del [piano 56](56-read-compiler-plan.md).
-Priorità successivamente acquisita: copertura delle formule attraverso tutti
-i test legacy del compilatore. Censimento e baseline eseguiti nel
-[rapporto 59](59-formula-legacy-baseline.md); primo raccordo SQL/alias/var_*
-verificato nel [rapporto 60](60-native-sql-formulas.md) e raccordo select/exists/select_*
-nel [rapporto 61](61-native-subqueries.md), seguiti dai metodi nel
-[rapporto 62](62-native-method-formulas.md); porting completo ancora aperto. Sintassi
-più amichevoli solo come futuro affiancamento da discutere; nessuna nuova firma.
-Questa lista censisce il lavoro; non autorizza nuove firme o il port automatico
-di tutte le funzionalità legacy. Il riferimento resta il legacy, con le
-divergenze già concordate. Nessuna implementazione cambia con questo documento.
+Fonti: [89](89-legacy-rewrite-phase3.md), [90](90-legacy-rewrite-phase4.md),
+[capitolo macro](64-compiler-macros.md). I conteggi del vecchio compilatore
+(460/462 formule, inverse child_count incluse) non certificano il percorso attuale:
+le compilazioni che attraversano molti sono ora escluse per decisione esplicita.
 
-Obiettivo delle letture: **query + modello completo + ambiente → SQL e kwargs
-pronti per il driver, senza esecuzione**. Il modello è quello già renderizzato:
-il compilatore non ricostruisce la source e non riespande le options strutturali.
+## 4. 🟢 Terminali delle letture e lock
 
-`[x]` significa disponibile nel perimetro specificato. `[ ]` indica lavoro
-aperto: le etichette **parziale**, **da fare**, **da decidere** e **rinviato**
-distinguono implementazioni incomplete da decisioni non ancora prese.
-Il supporto sul modello risolto di basso livello non certifica quello di tutte
-le dichiarazioni della grammatica nativa.
-Le inverse ordinarie e le cinque child_count native sono raccordate nel
-[rapporto 63](63-native-inverse-relations.md).
+- [x] `fetch()` restituisce NamedList di Toolbox: nome/posizione, righe modificabili,
+  stessa API sui due dialetti; ogni fetch riesegue la query.
+- [x] `count()` esegue e interpreta il risultato secondo il legacy.
+- [x] `record()` è lazy, conserva il risultato fino a refresh, gestisce
+  ignoreMissing e segnala più righe; output `dict` e `record` disponibili.
+- [x] Il record legge le colonne fisiche, X incluse per default, senza aggiungere
+  virtuali statiche o filtri impliciti query. Output record è una Bag senza
+  resolver di relazione; le colonne X sono convertite in Bag.
+- [x] Query con lock include X nell'espansione di `*`, anche con bagFields=False;
+  una proiezione esplicita resta esplicita. `*` include anche virtuali statiche:
+  per sole fisiche costruire la proiezione da `table.model.columns`.
+- [x] PostgreSQL FOR UPDATE OF t0. SQLite BEGIN IMMEDIATE senza transazione aperta;
+  se già aperta, acquisizione con UPDATE senza righe sulla tabella fisica.
+  È un raccordo runtime concordato, non un algoritmo attribuito al legacy SQLite.
+- [x] Verificate contesa su seconda connessione, rilascio al rollback, stessa
+  connessione/transazione e assenza di commit impliciti o modifiche alle righe.
 
-## 1. Contratto di compilazione e parametri
+Fonti: [92](92-hierarchical-fetch-count.md),
+[97](97-read-write-contracts.md), [98](98-single-read-path.md).
 
-- [x] Ottenere insieme `compiled.sql` e `dict(compiled.params)` da un solo
-  accesso a `query.compiled`, senza connessioni o esecuzione.
-- [x] Riutilizzare il percorso risoluzione → piano → dialetto → driver,
-  mantenendo separati identificatori SQL e valori.
-- [x] Conservare i tipi Python dei valori, inclusi date, Decimal e NULL;
-  segnalare parametri mancanti e non inoltrare quelli inutilizzati.
-- [x] Gestire `:nome`, `:env_nome`, snapshot dell'ambiente e precedenza dei
-  parametri espliciti; ricompilare la query con l'ambiente corrente.
-- [x] Gestire IN/NOT IN con collection, raccolte vuote, NULL e collisioni
-  dei nomi; supportare il percorso PostgreSQL `ANY` già verificato.
-- [x] Isolare i parametri delle sottoquery già supportate e preservare gli
-  argomenti originali quando una query viene riutilizzata.
-- [x] Proteggere stringhe, commenti, identificatori quotati, cast `::` e
-  dollar quote; preparare placeholder e percentuali per il driver scelto.
-- [x] Estese le garanzie ai binding delle formule native SQL e var_*.
-- [ ] **Rinviato:** estendere queste garanzie a catene e
-  composizioni, compresi parametri omonimi e riuso della stessa query nei rami.
-- [ ] **Da decidere:** comportamento legacy `embedFieldPars`, in cui un
-  parametro può rappresentare `$campo` o `@relazione.campo`. Oggi è un valore
-  stringa: non trasformarlo implicitamente in SQL.
+## 5. Mancanze funzionali e contratti non ancora coperti
 
-## 2. Colonne e clausole della SELECT
+Queste voci descrivono il porting incompleto, non requisiti aggiunti alla fusione.
+Non confondere «non implementato» con «rinviato dall'utente».
 
-- [x] Risolvere tabella/package/schema e nomi fisici dal modello.
-- [x] Risolvere `$campo`, nomi quotati, `AS` e proiezioni esplicite;
-  conservare origine e informazioni delle colonne quando note.
-- [x] Accettare espressioni SQL fidate, per esempio CASE, COALESCE, CAST,
-  COUNT e SUM, con parametri separati. Non è una validazione SQL universale.
-- [x] Compilare WHERE, ORDER BY, LIMIT e OFFSET espliciti.
-- [x] Compilare DISTINCT, GROUP BY e HAVING espliciti, con i controlli
-  sulle combinazioni già supportate.
-- [x] Produrre il piano/SQL di conteggio per query semplici, distinte e
-  raggruppate. Il compilatore ha `plan_count`/`count`; il terminale applicativo
-  `q.count()` esegue e non va confuso con l'estrazione senza I/O.
-- [x] Compilare FOR UPDATE nel profilo supportato, senza acquisire lock
-  durante la compilazione.
-- [x] `*`: fisiche seguite dalle virtuali statiche, `bagFields=False` esclude
-  le fisiche X. Verificato sui due dialetti: 73/74 tabelle compilabili;
-  `adm.htmltemplate_atc` resta bloccata da pyColumn statiche (rapporto 65).
-- [ ] **Da decidere dopo confronto legacy:** pkey implicita, ordine di
-  tabella, alias automatici di espressioni e relazioni, `group_by='*'`.
-- [ ] **Da valutare, non acquisito:** DISTINCT ON, IN su tuple di colonne, convenzioni REGEXP e ulteriori
-  opzioni di lock. L'assenza di un'opzione dedicata non impedisce sempre SQL
-  esplicito, ma non ne certifica il supporto strutturato.
-
-## 3. Options del modello e filtri impliciti
-
-- [x] Compilare le policy del precedente modello risolto: draft,
-  cancellazione logica e partition, con le esclusioni esplicite supportate.
-- [x] Raccordati i marcatori nativi di sys_fields e partition scalare.
-  Valore assente opzionale: nessun filtro; required: errore; ignorePartition: bypass.
-  Insiemi ammessi non ancora acquisiti per la option nativa.
-- [x] Filtri effettivi verificati sulle 74 tabelle native, PostgreSQL e SQLite:
-  66 con cancellazione logica, una con draft, due con partition (rapporto 65).
-- [x] Verificati i default delle sottoquery: ignorePartition True,
-  excludeDraft/excludeLogicalDeleted False, con override espliciti.
-- [x] JOIN ordinari: i filtri root non si propagano alle tabelle collegate,
-  come nel percorso legacy verificato. I FROM derivati appartengono al passo 3.
-
-## 4. Relazioni e JOIN
-
-- [x] Percorrere relazioni ordinarie to-one, anche su più passaggi,
-  riutilizzando lo stesso JOIN quando il percorso ricorre nelle clausole.
-- [x] Collegare chiavi fisiche anche composte, verificando nel modello
-  l'unicità del target; distinguere relazioni diverse verso la stessa tabella.
-- [x] Raccordate le inverse ordinarie su chiavi fisiche, con LEFT JOIN e riuso
-  per percorso. Verificati cardinalità, chiavi composte e cinque child_count native.
-- [ ] **Separato:** DISTINCT implicito e aggregazione runtime del legacy;
-  nessuna deduplicazione o aggregazione automatica introdotta con le inverse.
-- [ ] **Parziale, passo 6:** censire e tradurre le dichiarazioni di join
-  già ammesse, incluse joinColumn e condizioni previste dalla grammatica;
-  oggi la navigazione implementata usa uguaglianze fra chiavi fisiche.
-- [ ] **Da fare, passo 6:** tradurre virtualRelation secondo la grammatica
-  acquisita: relazione di base, condizione, `var_*`, `ask` e derivazioni ammesse.
-  Rispettare i namespace provvisori `:var_*`, `:ask_*`, `:env_*`, senza
-  trasformare `ask` in un'interazione UI del compilatore.
-- [ ] **Da decidere nel caso concreto:** chiavi virtuali nei join e ulteriori
-  condizioni legacy non ancora tradotte. Nessuna nuova firma implicita.
-
-## 5. Formule e sottoquery dichiarate nel modello
-
-La verifica va fatta **per tipo di colonna e per forma della formula**, non
-con una sola voce generica. Tutte le dichiarazioni sotto sono conservate
-nel modello; questo non significa che tutte arrivino già al SQL.
-
-| Tipo / forma | Stato della compilazione | Lavoro aperto |
+| Stato | Funzionalità | Cosa manca esattamente |
 | --- | --- | --- |
-| `formulaColumn(sql_formula='...')` / `expression` | Raccordo nativo SQL completato, incluse dipendenze SQL, da metodi e percorsi to-one | Restano relazioni non supportate e macro non implementate |
-| `formulaColumn(select=...)` | Raccordata anche la dichiarazione nativa; clausole/default comuni e inverse ordinarie | Restano casi dipendenti da virtualRelation; nessuna scelta automatica della prima riga |
-| `formulaColumn(exists=...)` | Raccordo nativo, correlazione e binding verificati su PostgreSQL/SQLite | Restano eventuali dipendenze non supportate |
-| Formula con `select_<nome>` / sottoquery nominate | Dichiarazioni native e riferimenti stringa a subquery_* raccordati; più sottoquery con scope distinti | RuntimeModel ancora aperto; costrutti sperimentali non abilitati |
-| Formula con `var_*` / parametri locali | Binding locali compilati, isolati per formula e alias della riga | Estendere la verifica ai futuri operatori e al RuntimeModel |
-| `formulaColumn(sql_formula=True)` / formula fornita da metodo | Raccordata a sql_formula_<nome>(attr) sulla tabella applicativa; attributi locali e due metodi sys_fields verificati | Integrare il modello effettivo quando sarà disponibile RuntimeModel; nessun registro nuovo |
-| `aliasColumn(relation_path=...)` | Compilabile sui percorsi forward/inversi ordinari, anche con target formula SQL nativa o da metodo | Anche target sottoquery supportato; resta virtualRelation |
-| `subQueryColumn(query=..., mode=...)` | Query dict raccordata; riferimenti stringa per semplice/JSON. 3/3 native compilano su PostgreSQL | XML richiede il dict come nel legacy; JSON/XML non tradotti per SQLite. `mode=None` resta il default; altri mode non generano aggregati impliciti |
-| `bagItemColumn(bagcolumn=..., itempath=...)` | Raccordata su PostgreSQL: XPath parametrizzato, cast legacy e tipi custom risolti. 3/3 native compilano (rapporto 69) | SQLite rifiuta esplicitamente l’estrazione; nessun codec XML/Python o macro BAG/BAGCOLS aggiunto |
-| `pyColumn(py_method=... / method=...)` | Dichiarazione e dipendenze conservate; calcolo non implementato | Non convertirla in SQL: l'eventuale preparazione degli input va distinta dal calcolo Python, che appartiene alla fase dei risultati |
-| `compositeColumn(columns=...)` | Componenti e vincoli multicolonna già modellati; join su chiavi fisiche composte supportati | Non è una formula scalare né una nuova colonna fisica; un'eventuale proiezione come valore unico richiede un contratto, non una concatenazione inventata |
+| 🟡 | Copertura dei join dichiarativi | Esistono joiner e condizioni ON legacy testate; manca una certificazione completa delle forme native e delle condizioni ulteriori. Il vecchio punto generico «joinColumn da portare» non autorizza una nuova firma: la grammatica 42 distingue relation/weak_relation e virtualRelation. |
+| 🔴 | Macro non portate | `#ENV`, TSQUERY, TSRANK, TSHEADLINE, VECQUERY, VECRANK, BAG e BAGCOLS. Serve ancora il confronto conclusivo del contratto; `:env_nome`, SQL esplicito e bagItemColumn non ne sono sostituti equivalenti. |
+| 🔴 | Selection e risultati legacy estesi | `query.selection()` è esplicitamente non supportata. Mancano il contenitore Selection e i suoi output; record supporta solo dict/record, senza resolver lazy/eager per navigare le relazioni e senza gli altri output legacy. |
+| 🟡 | RuntimeModel e composizione dei mixin | Il collegamento a SqlTable, x_table_class e metodi formula esiste. Non è ancora definita/certificata l'integrazione completa del RuntimeModel o una nuova composizione di classi/mixin. Resta lavoro separato. |
+| 🟡 | Composite come valore di proiezione | Chiavi e vincoli composti esistono; manca un contratto per proiettare compositeColumn come singolo valore. Non introdurre concatenazioni o conversioni implicite. |
+| 🟡 | Altre opzioni SQL legacy | DISTINCT ON, tuple IN, convenzioni REGEXP e opzioni ulteriori di lock non hanno una copertura strutturata certificata. SQL esplicito eventualmente accettato non equivale a un contratto completo. |
+| 🟡 | Partition oltre il valore corrente | Gli insiemi di valori ammessi non sono acquisiti per l'option nativa. Il contratto approvato resta solo scalare; nessuna chiave di ambiente aggiunta per deduzione. |
+| 🟡 | Opzioni avanzate delle sottoquery | Il profilo accetta le clausole portate; rifiuta opzioni estranee e valori diversi da subtable='*', addPkeyColumn=False, ignoreTableOrderBy=True. Il supporto più ampio del legacy non è certificato. |
 
-Per tutte le forme SQL restano da verificare anche dtype, `static` e inclusione
-in `*`, alias di risultato, scope di `$`/`@`/`#THIS`, macro consentite, cicli,
-collisioni e due usi della stessa dichiarazione. La presenza di SQL libero
-nella query non sostituisce il supporto alla corrispondente colonna del modello.
+### Opzioni dell'API query non portate
 
-- [x] Espandere formule SQL e alias nel modello risolto già supportato,
-  seguire i riferimenti e rifiutare cicli.
-- [x] Compilare sottoquery scalari/EXISTS, correlazioni `#THIS`, sottoquery
-  nominate e cast nel percorso di basso livello già supportato.
-- [x] Collegare formule SQL e alias della grammatica nativa al percorso
-  esistente, senza riesaminare la source.
-- [x] Tradurre `var_*` e isolare i binding locali,
-  anche per due usi della stessa formula e per formule su tabelle correlate.
-- [x] Collegare select/exists/select_* nativi, GROUP BY/HAVING/DISTINCT,
-  correlazioni e default legacy; cardinalità verificata sul database.
-- [x] Raccordate subQueryColumn con query dict: semplice, JSON/XML, dipendenze,
-  alias, var_* e clausole comuni; sette test legacy verdi (rapporto 66).
-- [x] Raccordate bagItemColumn native: estrazione XPath, attributi/posizioni, cast,
-  alias, dipendenze e sottoquery con binding separati; test legacy e valori
-  controllati PostgreSQL verificati ([rapporto 69](69-native-bag-items.md)).
-- [ ] **Parziale, passo 6:** risolvere le dipendenze da virtualRelation senza
-  importare le sintassi sperimentali. Inverse ordinarie raccordate.
-- [x] Verificate dipendenze SQL, cicli, errori espliciti e scope dei parametri.
-- [x] Verificate le dipendenze native da sottoquery nel perimetro del rapporto 61.
-- [x] Raccordati i metodi sql_formula_<nome>(attr), comprese dipendenze, alias,
-  var_* e select_* modificati nella copia locale degli attributi.
-- [x] Formule e alias statici verificati tramite `*`; nessuna esclusione silenziosa
-  delle statiche non compilabili. pyColumn rimane aperta (rapporto 65).
-- [x] Riferimenti stringa a subquery_* sulla tabella della SELECT corrente,
-  inclusi scope annidati e metodi forniti dalle formule SQL (rapporto 67).
-- [ ] **Aperto:** integrazione del RuntimeModel. Non aggiungere provider o nuovi resolver. pyColumn e
-  trasformazioni Python dei risultati non sono automaticamente traducibili in SQL.
+Il rifiuto esplicito in `application_table.py` riguarda anche:
 
-## 6. Macro legacy
+- `relationDict`, `joinConditions`, `sqlContextName`: nessun override per-query
+  del ramo relazioni/contesto SQL legacy. Le condizioni nei joiner del modello
+  già testate sono un contratto diverso.
+- `ignoreTableOrderBy` e `subtable` nella query applicativa: nessuna API generale
+  per quei comportamenti; i valori ammessi nelle sottoquery sono indicati sopra.
+- `_storename`/`storename`, `locale`, `checkPermissions`: nessuna selezione per-query
+  dello store, del locale o verifica dei permessi tramite queste opzioni legacy.
+  L'ambiente del database esistente resta distinto.
+- `aliasPrefix`, `mode`, `lazy`, `eager`, `virtual_columns`: nessuna configurazione
+  pubblica di quel tipo per alias, output, risoluzione o proiezioni aggiuntive.
+- `ignoreMissing` e `ignoreDuplicate` sulla query: non disponibili. `ignoreMissing`
+  è invece acquisito su record; record continua a segnalare più righe.
+- `aggregateRows`/`_aggregateRows`: esclusi con il meccanismo delle righe esplose.
 
-Sintassi, stato, limiti e TODO sono nel capitolo separato
-[64 — Macro del compilatore](64-compiler-macros.md).
-`#PREF` resta escluso dal lavoro corrente secondo il registro dei rinvii.
+Questi sono limiti dell'API attuale, non una proposta di ripristinare tutti i
+parametri. `addPkeyColumn` non appartiene più a questo elenco: è supportato.
 
-## 7. Query concatenate: SELECT FROM SELECT — rinviate
+### Limiti concreti dei dialetti e del riferimento
 
-**Decisione del 14 ottobre 2026:** i passi 3 e 4 aspettano. Le firme e il
-confronto legacy restano documentati, ma non sono nel lavoro corrente
-([registro 41, R-09](41-deferred-features.md#r-09--query-concatenate-e-operatori-fra-query)).
+- 🔴 SQLite non implementa bagItemColumn XPath né gli aggregati JSON/XML delle
+  subQueryColumn. Il rifiuto è esplicito; non si aggiunge un fallback Python.
+- 🟡 EXISTS SQLite: è conservato il limite legacy delle doppie parentesi nei
+  casi documentati. Il test che attende l'errore SQL non certifica l'esecuzione
+  positiva di quella forma. Non riaprire automaticamente la decisione.
+- 🟡 XML da metodo subquery referenziato per stringa non è supportato: il legacy
+  richiede le colonne nel mapping alla dichiarazione. Nessuna scelta automatica
+  di colonne, prima riga o aggregati è stata aggiunta.
 
-- [ ] **Rinviato, passo 3:** `q.query(...).query(...)`, usando la query
-  precedente come FROM e vedendo solo le colonne che essa espone.
-- [ ] **Alla ripresa:** preservare l'origine delle colonne e consentire un JOIN
-  esterno come `@customer_id.name` quando `customer_id` è stato proiettato.
-- [ ] **Alla ripresa:** mantenere al proprio livello filtri, aggregazioni,
-  ordinamenti e limiti, con alias/binding distinti e riuso senza mutazioni.
-- [ ] **Da decidere alla ripresa:** chiavi rinominate, origini ambigue, colonne non esposte
-  necessarie al join e innesto su risultati composti. Non aggiungere colonne
-  nascoste né indovinare relazioni dal nome.
+### Aggregazioni completate e rinvii espliciti, non blocchi della fusione
 
-## 8. Operatori fra query della stessa tabella — rinviati
+- 🟢 Aggregazioni concordate verso molti: count/sum/avg/min/max via `.aggr()` sono implementati
+  con sottoquery scalari correlate; nessuna esplosione delle righe. Passano
+  alias, tuple di risultati, formule, relazioni interne, insiemi vuoti e
+  virtualRelation con condition/var_*, incluse le derivazioni con scope separati
+  e la forma diretta table= con condition obbligatoria.
+  Join con placeholder e ordine base/override `.order_by(...)` passa sui due dialetti.
+  To_json passa sui due dialetti, incluse star/statiche e raccolta vuota [].
+  To_xml Bag passa su PostgreSQL; capability assente su SQLite. First/last restano rinviati. Il [rapporto 110](110-direct-virtual-relations.md)
+  registra 274 passed, 22 skipped, nessun xfail nella suite dedicata; il
+  [rapporto 102](102-many-aggregation-contracts.md) conserva la baseline iniziale.
+- 🔴 pyColumn: dichiarazione conservata, calcolo Python dei risultati non portato.
+  Di conseguenza `*` non è utilizzabile su adm.htmltemplate_atc con la pyColumn
+  statica presente; non la si salta silenziosamente.
+- 🔴 Query concatenate SELECT FROM SELECT e operatori UNION/UNION ALL/INTERSECT/EXCEPT,
+  con relativi alias, relazioni esterne e binding ([R-09](41-deferred-features.md#r-09--query-concatenate-e-operatori-fra-query)).
+- 🔴 `#PREF`: nessun recupero automatico del default o sistema sostitutivo di preferenze
+  ([R-08](41-deferred-features.md#r-08--macro-pref)).
+- 🔴 Wildcard avanzati per prefisso/percorso: restano solo `*` e colonne esplicite
+  ([R-11](41-deferred-features.md#r-11--wildcard-avanzati)).
+- 🔴 Nuova grammatica query/wherebag, nuove sintassi variant, serializzazione dedicata
+  e controllo SQLGlot opzionale per fonti insicure: non integrati nel core.
+  Le query attuali accettano SQL fidato, non costituiscono una sandbox per il browser.
+- 🔴 Sulle virtualRelation restano esclusi inverse automatiche, limit, order_by e
+  one_one; aliasTable resta esclusa. Non sono prerequisiti impliciti del raccordo.
 
-- [ ] **Rinviato, passo 4:** `+` UNION, `|` UNION ALL, `&` INTERSECT,
-  `-` EXCEPT secondo la firma legacy acquisita.
-- [ ] **Alla ripresa:** preservare parentesi e ordine degli operandi, oltre
-  all'ambito di ORDER BY/LIMIT/OFFSET delle singole foglie.
-- [ ] **Alla ripresa:** controllare compatibilità delle proiezioni e del contesto,
-  senza cast o riallineamenti inventati; produrre una sola coppia SQL/kwargs.
-- [ ] **Alla ripresa:** coprire riuso, rami ripetuti, NULL, duplicati, insiemi vuoti
-  e collisioni; correggere i difetti legacy riprodotti nel piano 56.
-- [ ] **Da verificare alla ripresa:** limiti del dialetto SQLite e clausole incompatibili.
-  PostgreSQL resta il riferimento richiesto.
+I rinvii strutturali toolColumn, system_records, release e diagnostics restano
+nel [registro 41](41-deferred-features.md); non sono lavoro del compilatore letture.
+`sys_fields(syscode=True)` è invece già disponibile. Nessuna voce DML è inclusa.
 
-## 9. Controllo opzionale per fonti non fidate
+## 6. Verifiche e lavoro prima/durante la fusione
 
-- [x] Prova isolata SQLGlot documentata: distinguere CASE/COALESCE lecite
-  da scritture, anche DELETE dentro una CTE.
-- [ ] **Rinviato:** definire e integrare il check finale attivabile a richiesta,
-  tenendo conto di tutti i rami, CTE, funzioni consentite e placeholder.
-  La direzione è acquisita, la firma e la policy completa no.
-- [ ] **Da verificare in quel lavoro:** SELECT e operatori leciti, query che
-  invocano funzioni con effetti e limiti del controllo statico. Il compilatore
-  corrente accetta SQL fidato: non è già una sandbox per SQL dal browser.
+- [x] **4.253 test passati, 12 skip, 16 deselected**, in 210,70 secondi:
+  `PYTHONPATH=src python -m pytest @tests/read_path/pytest.args --no-cov -q --tb=short`.
+  I deselected sono casi del writer in file misti; 27 file dipendenti dalle scritture
+  sono esclusi esplicitamente dal manifest, non saltati globalmente.
+- [x] PostgreSQL e SQLite reali, test record/lock e NamedList, CLI e hosting.
+- [x] 74 modelli: struttura, attributi, relazioni e JSON migration confrontati
+  con artefatti indipendenti; applicazione/introspezione/rediff su PostgreSQL.
+- [x] Ruff, mypy (57 file), Sphinx con warning come errori; wheel installata
+  separatamente dal checkout e migration 0.2.2 da PyPI.
+- [x] Checklist riallineata al percorso unico; consegna al writer preparata nel
+  [documento 99](99-writer-handoff-single-read-path.md).
+- [ ] 🟡 Consolidare una matrice completa dei risultati sui dati delle formule
+  native supportate, distinguendo errori, ambiente mancante e rinvii. I test
+  mirati e il confronto dei 74 modelli non sono una verifica di ogni formula
+  su dati reali; i vecchi conteggi di sola compilazione non la sostituiscono.
+- [ ] 🟡 Sul branch fuso verificare i contratti condivisi di modello, proiezione,
+  contenitore eseguibile, record e connessione/transazione/lock del documento 97.
+- [ ] 🟡 Eseguire la suite intera senza le esclusioni riservate al writer, poi CI.
+  Nessuna CI integrata, fusione, pubblicazione o push è certificata da questa consegna.
 
-## 10. Fronte scritture, successivo alle letture
+**Non ci sono blocchi funzionali noti nei contratti delle letture consegnati al
+writer.** Le lacune sopra elencate restano visibili: non sono chiuse dal numero
+complessivo dei test e non diventano automaticamente lavoro da fare prima della fusione.
 
-- [x] Esistono primitive di compilazione INSERT/UPDATE/DELETE con valori
-  separati, RETURNING e nomi fisici; esistono anche soft-delete/restore nel
-  profilo supportato. Non partiamo da zero su questo fronte.
-- [ ] **Rinviato:** fare il raccordo e la verifica sistematica rispetto al
-  modello nativo e alle convenzioni legacy, prima di dichiarare il fronte
-  scritture completo. DML con attraversamento di relazioni resta non supportato.
-
-Trigger Python, generazione dei valori di sistema durante una scrittura,
-validazioni operative, transazioni ed esecuzione appartengono al runtime;
-non sono lavoro SQL del compilatore, anche se il flusso di scrittura li usa.
-La generazione del JSON migrations è un altro percorso, già consegnato.
-
-## 11. Verifica e criteri di completamento
-
-- [x] Risultati fetch/execute/RETURNING raccordati a NamedList di Toolbox 0.18.0:
-  accesso per nome/posizione e righe modificabili, senza un contenitore nuovo.
-  record.output('dict') conserva il dict (rapporto 68).
-- [x] Ultima suite completa: **1940 passati, 13 saltati**, inclusi PostgreSQL
-  e SQLite; verifiche nel [rapporto 68](68-named-list-fetch.md).
-  Questi numeri non
-  significano che tutte le funzionalità legacy siano coperte.
-- [x] Test dedicati impediscono connessioni ed esecuzione nella compilazione.
-- [ ] **Da fare, passo 7:** matrice aggiornata delle dichiarazioni native,
-  con SQL, kwargs e risultati attesi verificati sulle fixture PostgreSQL.
-- [ ] **Da fare:** coprire formule, options, sottoquery e relazioni di tutti
-  i package dei 74 modelli, distinguendo esplicitamente le esclusioni.
-- [ ] **Rinviato con i passi 3–4:** verificare catene e composizioni insieme a formule,
-  collection e ambiente, non soltanto le funzionalità isolate.
-- [ ] **Da fare:** aggiornare esempi e limiti dopo ogni incremento; ogni
-  divergenza dal legacy deve avere una decisione o una motivazione verificata.
-
-La sonda del documento 55 compilava le proiezioni fisiche di **74/74** tabelle,
-ma `*` solo su **3/74**. È una baseline precedente al passo 1, non una nuova
-misura né una certificazione delle letture native. Il passo 1 non ha corretto
-il collegamento delle options, delle formule native o di `*`.
-
-La sonda aggiornata del rapporto 66 compila **460/462 formulaColumn**,
-**45/46 aliasColumn** e **3/3 subQueryColumn** su PostgreSQL.
-Le 134 formule da metodo e le 134 dipendenti ora compilano.
-Compilano anche le cinque child_count con inverse. Le due formule ancora bloccate
-richiedono un valore di ambiente assente nella sonda (1) e `#PREF` (1).
-Il caso `#PREF` è ora un'esclusione concordata dal perimetro corrente (R-08),
-non un'attività da implementare per chiuderlo; il conteggio storico resta invariato.
-È un censimento di compilazione, non una verifica dei risultati di tutte
-le formule sui dati.
-
-## Posizione nel piano e confini
-
-| Passo del piano 56 | Stato |
-| --- | --- |
-| 1. Contratto SQL/kwargs, riuso e macro di filtro | Completato |
-| 2. Options native, filtri e `*` | Completato nel perimetro del rapporto 65; pyColumn escluse |
-| 3. SELECT FROM SELECT con relazioni esterne | Rinviato per decisione dell’utente (R-09) |
-| 4. UNION / UNION ALL / INTERSECT / EXCEPT | Rinviato per decisione dell’utente (R-09) |
-| 5. Formule native e var_* | SQL, metodi, alias e parametri locali raccordati; corpus completo ancora aperto |
-| 6. Sottoquery e relazioni concordate | select/exists/select_* e inverse ordinarie raccordati; restano altre colonne e relazioni |
-| 7. Verifica integrata e documentazione | Da completare sul perimetro attivo; catene/composizioni rinviate |
-
-**Il numero di passi chiusi non misura la percentuale del compilatore:** il motore
-di base esisteva già e i passi hanno dimensioni diverse. Il risultato attuale
-è una compilazione di query singole utilizzabile nel profilo supportato;
-la copertura dell'intero modello nativo resta incompleta.
-
-Restano fuori dal lavoro corrente: nuova grammatica Builder/wherebag,
-nuovi codec JSON/TYTX, variant, tableAlias, aggregateRows, system_records,
-locked records e diagnostics rinviati. Sulle virtualRelation non si
-reintroducono inverse, generazione automatica delle inverse, limit, order_by
-o one_one. Le proposte GEP di aggregazione automatica e gli esperimenti di
-ottimizzazione/LATERAL non diventano requisiti approvati con questa lista.
-
-Fonti operative: [indagine 55](55-select-sql-and-kwargs-investigation.md),
-[piano 56](56-read-compiler-plan.md), [riesame 57](57-legacy-compiler-refactoring-review.md),
-[grammatica 42](42-configuration-grammar.md), [check SQL 54](54-query-recipe-and-sql-check.md),
-`src/asqueel/compiler.py` e test del compilatore. L'[audit 10b](10b-compiler-feature-audit.md)
-è una fonte storica delle lacune, non la fotografia aggiornata del codice.
+Evidenze: [rapporto 98](98-single-read-path.md),
+[verifica riproducibile](evidence/single-read-path/verification.json),
+[contratti 97](97-read-write-contracts.md).
+Storico algoritmi/decisioni: [piano 86](86-legacy-compiler-logical-phases.md),
+[grammatica 42](42-configuration-grammar.md), [indagine 55](55-select-sql-and-kwargs-investigation.md),
+[piano 56](56-read-compiler-plan.md), [confronto branch 57](57-legacy-compiler-refactoring-review.md).

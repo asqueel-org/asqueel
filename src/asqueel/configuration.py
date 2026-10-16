@@ -127,6 +127,10 @@ def _validate_source_shape(builder):
             owner = node._resolve_builder()
             owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
                                      dict(node.attr), node.node_tag)
+            condition = node.attr.get('condition')
+            if node.attr.get('table') and (condition is None or
+                    isinstance(condition, str) and not condition.strip()):
+                raise ValueError('virtualRelation: table requires a nonempty condition')
         if node.node_tag in (*TABLE_OPTIONS, 'encryption') and 'provider' in node.attr:
             raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
         if node.node_tag in OPTION_LEVELS:

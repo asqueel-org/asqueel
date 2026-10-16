@@ -100,14 +100,15 @@ def test_column_rejects_non_column_child():
         col.column(name="nested", dtype="L")
 
 
-def test_virtual_column_rejects_relation():
-    """A virtual column reads through an existing relation, never its own."""
+def test_virtual_column_relation_defaults_to_weak():
+    """Virtual columns may declare logical relations without physical FKs."""
     model = _mount()
     schema = model.source.db(name="d").schemas().schema(name="p")
     t = schema.tables().table(name="t")
     fc = t.virtual_columns().formulaColumn(name="f", sql_formula="1")
-    with pytest.raises(ValueError):
-        fc.relation(to="p.other.id")
+    relation = fc.relation(to="p.other.id")
+    assert relation.attr['foreign_key'] is False
+    assert relation.attr['x_weak'] is True
 
 
 def test_relation_is_at_most_one_per_column():

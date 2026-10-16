@@ -69,10 +69,10 @@ def test_foreign_key_forbidden_on_virtual_columns():
         t.columns().column(name="id", dtype="serial")
         t.virtual_columns().formulaColumn(name="calc", sql_formula="1+1")
 
-    # grammar itself must forbid relation under formulaColumn (sub_tags="")
+    # Virtual columns accept weak relations, but never a physical FK.
     model = _build(main)
     node = model.source["db.schemas.s.tables.t.virtual_columns.calc"]
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match='foreign_key'):
         node.relation(to="s.t.id", foreign_key=True)
 
 

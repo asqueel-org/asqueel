@@ -1,14 +1,15 @@
 # 64 — Macro del compilatore
 
-Il raccordo di IN_RANGE, PERIOD, THIS e riferimenti select_* al nuovo albero
-è descritto nel [rapporto 90](90-legacy-rewrite-phase4.md). IN_RANGE riusa,
-con approvazione esplicita, la correzione esistente che antepone i confronti
-tipizzati ai controlli NULL per il binding PostgreSQL. Le garanzie scanner delle note storiche seguenti
-riguardano soltanto il compilatore precedente, non il nuovo percorso regex legacy.
-
-Stato al **14 ottobre 2026**. Capitolo separato dalla
-[TODO generale](58-compiler-checklist.md): distingue supporto verificato,
+Stato al **16 ottobre 2026**, sul percorso unico consegnato nel
+[rapporto 98](98-single-read-path.md). Capitolo separato dalla
+[checklist generale](58-compiler-checklist.md): distingue supporto verificato,
 contratti ancora da valutare e rinvii espliciti. Non introduce nuove sintassi.
+
+Il raccordo di IN_RANGE, PERIOD, THIS e riferimenti select_* segue il
+[rapporto 90](90-legacy-rewrite-phase4.md). IN_RANGE riusa la correzione
+approvata che antepone i confronti tipizzati ai controlli NULL per PostgreSQL.
+Il compilatore precedente e lo scanner sono eliminati: valgono gli algoritmi
+regex legacy, senza promettere le protezioni del vecchio scanner.
 
 ## Stato
 
@@ -57,8 +58,9 @@ un giorno genera un'uguaglianza; un intervallo chiuso un BETWEEN inclusivo;
 un intervallo aperto un confronto su un solo estremo. Un periodo vuoto non
 restringe il filtro. Il colon davanti al nome del parametro è facoltativo.
 
-Il testo del periodo viene consumato durante la compilazione: nei kwargs
-arrivano le date risultanti, con nomi che non sovrascrivono quelli del chiamante.
+Il testo del periodo viene consumato per espandere il WHERE; il parametro
+originale resta nei kwargs del chiamante secondo il contratto legacy. Le date
+risultanti hanno binding separati, senza sovrascrivere quelli del chiamante.
 Il supporto attuale è nel WHERE, non in una proiezione SQL arbitraria.
 La verifica dei casi documentati non certifica tutti i locali del legacy.
 
@@ -66,9 +68,9 @@ La verifica dei casi documentati non certifica tutti i locali del legacy.
 
 `#THIS.id` indica il campo della tabella proprietaria della formula, mentre
 `$id` dentro una sottoquery indica il campo della tabella della sottoquery.
-I percorsi dopo `#THIS` usano le relazioni ordinarie già supportate. Un percorso
-inverso può moltiplicare le righe nel SELECT a cui appartiene: non viene
-aggiunta automaticamente un'aggregazione.
+I percorsi dopo `#THIS` usano le relazioni verso uno già supportate.
+I percorsi verso molti sono esplicitamente non supportati: non vengono
+generate righe esplose né aggregazioni automatiche.
 
 Con `select_total=dict(...)`, il riferimento `#total` inserisce quella
 sottoquery nell'espressione della formula. È un riferimento locale alla
@@ -91,18 +93,21 @@ i parametri delle sottoquery mantengono scope distinti.
 
 ## Garanzie comuni e verifiche
 
-🟢 Stringhe SQL, commenti e identificatori quotati sono protetti durante
-l'espansione. Le macro sconosciute nei contesti SQL vengono rifiutate
-esplicitamente. I valori restano nei binding; l'espansione non esegue query.
+L'espansione usa le regex legacy. Non si certifica protezione da riscrittura
+per commenti, literal o identificatori quotati. I token macro non espansi
+vengono rifiutati; il codice non costituisce una validazione di SQL non fidato.
+I valori parametrizzati restano nei binding e la compilazione non esegue query.
+`#THIS` nelle formule è espanso prima della raccolta dei riferimenti.
 
-Riferimenti di implementazione: `src/asqueel/compiler.py`, metodi
-`_Context.where`, `_period`, `field` ed `expression`, e l'allocatore esistente
-in `_compiler_bindings.py`.
+Riferimenti attuali: `src/asqueel/compiler.py` (`_TreeContext.formula`,
+`subquery`, `select_plan`, `expand_period`, `_check_macros`), gli algoritmi
+in `_legacy_sql.py` e gli scope dei parametri in `_sql_bindings.py`.
 
-Test: `tests/native_compiler/test_query_macros.py`, `test_compile_only.py`,
-test di formule/sottoquery e test delle inverse. I
-[rapporti 60](60-native-sql-formulas.md), [61](61-native-subqueries.md) e
-[63](63-native-inverse-relations.md) documentano i rispettivi incrementi.
+Test sul percorso unico: `tests/object_tree/test_phase4_macros.py`,
+`test_phase3_formulas.py`, `tests/native_formulas/test_tree_phase4_macros.py`
+e i contratti delle formule native. Il [rapporto 98](98-single-read-path.md)
+riporta il risultato della selezione letture completa; i rapporti precedenti
+restano fonti storiche, non attestazioni del vecchio percorso ancora disponibile.
 
 ## Esclusione concordata
 
