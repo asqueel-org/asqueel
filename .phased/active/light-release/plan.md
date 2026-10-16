@@ -20,10 +20,7 @@ Declare a light first version of asqueel for a new project: read, insert, update
   > Files: docs/guide/_examples/shop_tutorial.py, tests/documentation/test_examples.py, src/asqueel/compiler.py, tests/sqlite/test_sqlite_exists_formula.py, tests/native_formulas/test_subquery_results.py, tests/native_formulas/test_subquery_method_results.py, docs/design/58-compiler-checklist.md, docs/design/98-single-read-path.md, .phased/active/light-release/notes.md
   > Review: 5 skips "EXISTS formula not supported on SQLite" remain in the unchanged legacy corpus (tests/native_formulas/legacy_subqueries.py:86,183,266,307; test_tree_legacy_formulas.py:86); after the fix they could run on SQLite.
 
-- [>] **Phase 2**: documentation matches the code, and the wheel installs clean
-  > In execution since 2026-10-16T21:28:21+02:00
-  > Testing: awaiting the human's `Verify: now` checks | commit: 48b88f2
-  > Verify: now — read docs/guide/limitations.md: it says what a new project can and cannot do today, with the right issue for each limit.
+- [x] **Phase 2**: documentation matches the code, and the wheel installs clean
   - Run: opus / medium
   > Batches: 1 limitations.md as the light-version perimeter | 2 models.md (#27), queries.md `.aggr()`, tutorial.md, quickstart.md, writes.md | 3 wheel build and clean install
   - Pattern: `docs/guide/limitations.md` (existing status table shape); `tests/many_aggregations/` for the `.aggr()` behaviour the guide states
@@ -32,6 +29,10 @@ Declare a light first version of asqueel for a new project: read, insert, update
   - Details: rewrite limitations.md (remove stale claims: soft-delete/restore, RETURNING results, "record reads and model writes remain disconnected"); fix models.md:160-162 and 188-189 (#27); add the `.aggr()` section to queries.md and remove the statement that aggregates need explicit SQL; align tutorial.md, quickstart.md and writes.md with the Phase 1 tutorial and the write cycle. Build the wheel, install it in a fresh venv outside the repo with its published dependencies, and run the tutorial from that install on PostgreSQL and SQLite.
   - Done: `venv/bin/python -m sphinx -W -b html docs docs/_build/html` passes; `venv/bin/python -m pytest tests/documentation --no-cov -q` passes; `grep -n "model.ui" docs/guide/models.md` is empty; the wheel from `venv/bin/python -m build --wheel` installs in a fresh venv and `run()` of the installed tutorial completes on PostgreSQL and SQLite (commands and output recorded in notes.md § Phase 2).
   - Verify: now — read limitations.md: it says what a new project can and cannot do today, with the right issue for each limit.
+  > Done: limitations.md is the light-version perimeter (what works; every refusal of require_write_capabilities with its issue or "no issue yet"; #15 #17 #26 #28 #32 and open defects #16 #18-#25); writes.md rewritten on insert/update/delete with the legacy cycle and the sql_* variants; models.md fixed for #27 (model.ui removed, alias keys skipped in writes, RETURNING of database-decided columns); queries.md gains the aggr() section; tutorial.md covers SQLite, db.migrate(), aggr() and delete; quickstart.md unchanged. sphinx -W clean; tests/documentation 11 passed; wheel (uv build) installed in clean venvs: tutorial run() completes on SQLite and PostgreSQL with [postgresql,migration], quickstart with [postgresql] only; full suite 4741 passed, 42 skipped, 32 xfailed. Comment posted on #27 correcting the originalColumn claim.
+  > Files: docs/guide/limitations.md, docs/guide/models.md, docs/guide/queries.md, docs/guide/tutorial.md, docs/guide/writes.md, .phased/active/light-release/notes.md, .phased/active/light-release/plan.md
+  > Review: docs/guide/hooks.md, row-policies.md, cheatsheet.md and release-notes.md, outside Files, still name raw_insert/raw_update/raw_delete, soft_delete or returning=, which the code no longer has; transactions.md and troubleshooting.md were not checked against the write cycle.
+  > Verify: now — read limitations.md: done, user ok 2026-10-16.
 
 ## Notes
 - Adopted branch plan/write-cycle, worktree worktrees/write-cycle; the merge-read-write plan is archived in .phased/done/.
