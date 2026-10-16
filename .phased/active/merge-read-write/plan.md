@@ -9,10 +9,10 @@ Must not break: the open merge in worktrees/write-cycle stays untouched (no rese
 Merge the read path (`codex/core-single-read-path`, commit `7cee8e8`, which contains `d1c6149` and `531d87b`) into the write cycle, integrate everything that works together, and turn every remaining problem into a drafted GitHub issue. No new features in this workflow: deferred items (newrecord, sys_fields, default/default_from, hierarchical, auto_counter, recordToUpdate, batchUpdate) become issues, not code. The issues are analysed afterwards, outside this plan.
 
 ## Work Plan
-- [>] **Phase 1**: merge the read path and attribute every failure of the full suite
-  > In execution since 2026-10-16T16:40:00Z
-  > Verify: now — read attribution.md: each class is right; every test proposed for deletion is approved or refused by you, one by one.
-  > Testing: awaiting the human's `Verify: now` checks | commit: 5f4bed2
+- [x] **Phase 1**: merge the read path and attribute every failure of the full suite
+  > Done: merge 8e6222f without conflict; attribution.md lists the 134 failures (98 failed + 36 errors), all R in 10 root causes, none new versus the pre-merge tip 1995fe4; no deletion; ruff and mypy pass
+  > Files: .phased/active/merge-read-write/attribution.md, .phased/active/merge-read-write/notes.md, .phased/active/merge-read-write/plan.md (merge commit 8e6222f brings in the read path)
+  > Verify: now — done by the user: classes stand on the contracts and the legacy; no test deleted, every proposed deletion became a realign row
   - Run: opus / medium
   - Pattern: `library-standard` (git merge, pytest)
   - Files: no source or test edit; output in `.phased/active/merge-read-write/notes.md` (## Phase 1) and `.phased/active/merge-read-write/attribution.md`
