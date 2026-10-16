@@ -7,7 +7,7 @@ import pytest
 
 from asqueel import CompiledQuery, DeferredCommitError, TransactionStateError
 from tests.application_integration.test_write_hooks import (
-    audit_events, hooked_database as hooked_database, persisted,
+    audit_events, hooked_database as hooked_database, persisted, stored,
 )
 from tests.native_support import postgres_dsn
 
@@ -52,20 +52,20 @@ def test_other_connection_sql_failure_aborts_outer_hook_but_not_independent_work
         hooked_database, hook):
     db, observer, schema = hooked_database
     events = []
-    db.table('audit').insert({'event': 'earlier A'})
+    db.table('app.audit').insert({'event': 'earlier A'})
     db.deferAfterCommit(lambda: events.append('A committed'))
     with db.tempEnv(connectionName='independent'):
-        db.table('audit').insert({'event': 'independent'})
+        db.table('app.audit').insert({'event': 'independent'})
 
     def fail(record, old_record=None):
-        db.table('audit').insert({'event': 'hook A'})
+        db.table('app.audit').insert({'event': 'hook A'})
         with db.tempEnv(connectionName='failed'):
-            db.table('audit').insert({'event': 'failed B'})
+            db.table('app.audit').insert({'event': 'failed B'})
             db.execute(CompiledQuery('SELECT 1 / 0'))
 
-    setattr(db.table('item'), hook, fail)
+    setattr(db.table('app.item'), hook, fail)
     with pytest.raises(psycopg.errors.DivisionByZero):
-        db.table('item').update({'org': 0, 'id': 0, 'name': 'must not persist'})
+        db.table('app.item').update({'org': 0, 'id': 0, 'name': 'must not persist'}, old_record=stored())
     with pytest.raises(TransactionStateError, match='rollback-only'):
         db.commit()
     assert persisted(observer, schema)[0] == (0, 0, 'original')
@@ -75,7 +75,7 @@ def test_other_connection_sql_failure_aborts_outer_hook_but_not_independent_work
         db.commit()
     assert audit_events(observer, schema) == [('independent',)]
     with db.tempEnv(connectionName='failed'):
-        db.table('audit').insert({'event': 'recovered B'})
+        db.table('app.audit').insert({'event': 'recovered B'})
         db.commit()
     db.rollback()
     assert audit_events(observer, schema) == [('independent',), ('recovered B',)]
@@ -86,13 +86,13 @@ def test_other_connection_sql_failure_aborts_outer_hook_but_not_independent_work
 @pytest.mark.parametrize('failure', ['python', 'sql', 'deferred'])
 def test_failed_batch_item_can_be_rolled_back_logged_and_skipped(hooked_database, failure):
     db, observer, schema = hooked_database
-    table = db.table('item')
+    table = db.table('app.item')
     callbacks = []
 
     def after_update(record, old_record=None):
         if record['id'] != 0:
             return
-        db.table('audit').insert({'event': 'failed hook'})
+        db.table('app.audit').insert({'event': 'failed hook'})
         db.deferAfterCommit(lambda: callbacks.append('failed item'))
         if failure == 'sql':
             db.execute(CompiledQuery('SELECT 1 / 0'))
@@ -105,12 +105,12 @@ def test_failed_batch_item_can_be_rolled_back_logged_and_skipped(hooked_database
     error = {'sql': psycopg.errors.DivisionByZero,
              'deferred': DeferredCommitError, 'python': ValueError}[failure]
     with pytest.raises(error):
-        table.update({'org': 0, 'id': 0, 'name': 'must not persist'})
+        table.update({'org': 0, 'id': 0, 'name': 'must not persist'}, old_record=stored())
         db.commit()
     db.rollback()
-    db.table('audit').insert({'event': 'item skipped'})
+    db.table('app.audit').insert({'event': 'item skipped'})
     db.commit()
-    table.update({'org': 0, 'id': 1, 'name': 'next item'})
+    table.update({'org': 0, 'id': 1, 'name': 'next item'}, old_record=stored(1, 'second', draft=False))
     db.commit()
     assert persisted(observer, schema) == [
         (0, 0, 'original'), (0, 1, 'next item'), (1, 0, 'other partition')]
@@ -120,14 +120,14 @@ def test_failed_batch_item_can_be_rolled_back_logged_and_skipped(hooked_database
 
 def test_failed_batch_can_commit_error_log_on_system_connection(hooked_database):
     db, observer, schema = hooked_database
-    table = db.table('item')
+    table = db.table('app.item')
     table.fail = True
     with pytest.raises(ValueError, match='hook failure'):
         try:
-            table.update({'org': 0, 'id': 0, 'name': 'must not persist'})
+            table.update({'org': 0, 'id': 0, 'name': 'must not persist'}, old_record=stored())
         finally:
             with db.tempEnv(connectionName='system'):
-                db.table('audit').insert({'event': 'batch failed'})
+                db.table('app.audit').insert({'event': 'batch failed'})
                 db.commit()
     assert audit_events(observer, schema) == [('batch failed',)]
     db.rollback()
@@ -144,8 +144,8 @@ def test_handled_external_failure_can_be_saved_as_status(hooked_database):
         except OSError as error:
             record['name'] = str(error)
 
-    db.table('item').trigger_onUpdating = prepare_status
-    db.table('item').update({'org': 0, 'id': 0, 'name': 'sending'})
+    db.table('app.item').trigger_onUpdating = prepare_status
+    db.table('app.item').update({'org': 0, 'id': 0, 'name': 'sending'}, old_record=stored())
     db.commit()
     assert persisted(observer, schema)[0] == (0, 0, 'SMTP unavailable')
     assert audit_events(observer, schema) == [('updated',)]

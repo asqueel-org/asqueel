@@ -130,7 +130,7 @@ def native_factory(dsn):
                     columns.column('id', dtype='I')
                     columns.column('name', dtype='T')
             self.db = build_database(Recipe)
-            self.item = self.db.table('item')
+            self.item = self.db.table('app.item')
 
         def __getattr__(self, name):
             return getattr(self.db, name)

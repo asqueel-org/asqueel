@@ -13,6 +13,9 @@ class Logic(SqlTable):
         record['name'] = record['name'].strip()
     def trigger_onInserted(self, record):
         self.db.currentEnv['events'].append('table-after')
+        if self.db.currentEnv.get('fail_after'):
+            self.db.table('app.audit').insert({'id': record['id'], 'name': 'I'})
+            raise ValueError('table trigger failed')
     def trigger_onUpdating(self, record, old_record=None):
         self.db.currentEnv['events'].append(('table-before', old_record['name']))
     def trigger_onUpdated(self, record, old_record=None):
@@ -24,18 +27,6 @@ class Logic(SqlTable):
 
 
 class IntegrationDb(AsqueelDb):
-    def onWriting(self, table, event, record, old_record=None, *, raw=False):
-        self.currentEnv['events'].append(('before', event, raw))
-    def onExecutingWrite(self, table, event, record, old_record=None, *, raw=False):
-        self.currentEnv['events'].append(('before-sql', event, raw))
-    def _onDbChange(self, table, event, record, old_record=None, *, _raw=False):
-        self.currentEnv['events'].append(('change', event, _raw))
-        if table.model.name != 'audit':
-            self.table('audit').raw_insert({'id': record['id'], 'name': event})
-    def onWritten(self, table, event, record, old_record=None, *, raw=False):
-        self.currentEnv['events'].append(('after', event, raw))
-        if self.currentEnv.get('fail_after') and table.model.name == 'item':
-            raise ValueError('integration hook failed')
     def execute(self, query, sqlargs=None):
         if 'events' in self.currentEnv:
             self.currentEnv['events'].append('execute')
@@ -77,62 +68,51 @@ def database(request, tmp_path):
 def test_normal_and_raw_insertion_share_tracking_and_nested_execution(database):
     db = database
     record = {'id': 1, 'name': '  Ada  '}
-    result = db.table('item').insert(record)
-    assert [dict(row) for row in result.rows] == [{'id': 1, 'name': 'Ada'}]
-    assert record['name'] == '  Ada  '
+    assert db.table('app.item').insert(record) is record
+    assert record['name'] == 'Ada'
     events = db.currentEnv['events']
-    assert events[:4] == [('before', 'I', False), 'table-before', ('before-sql', 'I', False), 'execute']
-    assert events[-2:] == ['table-after', ('after', 'I', False)]
-    assert ('change', 'I', False) in events and ('change', 'I', True) in events
+    assert events == ['table-before', 'execute', 'table-after']
     db.commit()
     events.clear()
-    db.raw_insert('item', {'id': 2, 'name': '  raw  '})
-    assert 'table-before' not in events and 'table-after' not in events
-    assert ('change', 'I', True) in events
+    db.table('app.item').sql_insert({'id': 2, 'name': '  raw  '})
+    assert events == ['execute']
     db.commit()
-    assert [row['name'] for row in db.table('item').query(order_by='$id').fetch()] == ['Ada', '  raw  ']
-    assert len(db.table('audit').query().fetch()) == 2
+    assert [row['name'] for row in db.table('app.item').query(order_by='$id').fetch()] == ['Ada', '  raw  ']
 
 
 def test_update_and_delete_track_raw_without_table_hooks(database):
     db = database
-    db.table('item').insert({'id': 1, 'name': 'before'})
+    table = db.table('app.item')
+    table.insert({'id': 1, 'name': 'before'})
     db.commit()
-    # Keep the fixture audit pkey available for each successive change.
-    db.execute(f'DELETE FROM "{db.model.table("audit").physical_schema}"."audit"')
-    db.commit()
+    old = table.record(1, for_update=True).output('dict')
     db.currentEnv['events'].clear()
-    db.table('item').update({'id': 1, 'name': 'after'})
+    table.update({'id': 1, 'name': 'after'}, old_record=old)
     assert ('table-before', 'before') in db.currentEnv['events']
     assert ('table-after', 'before') in db.currentEnv['events']
     db.rollback()
     db.currentEnv['events'].clear()
-    db.table('item').raw_update({'id': 1, 'name': 'raw'})
-    assert ('change', 'U', True) in db.currentEnv['events']
-    assert not any(isinstance(x, tuple) and x[0].startswith('table-') for x in db.currentEnv['events'])
+    assert table.sql_update({'id': 1, 'name': 'raw'}) is None
+    assert db.currentEnv['events'] == ['execute']
     db.rollback()
     db.currentEnv['events'].clear()
-    db.table('item').raw_delete(1)
-    assert ('change', 'D', True) in db.currentEnv['events']
-    assert 'table-before' not in db.currentEnv['events']
+    assert table.sql_delete({'id': 1}) is None
+    assert db.currentEnv['events'] == ['execute']
     db.rollback()
-    assert db.table('item').query().fetch()[0]['name'] == 'before'
+    assert table.query().fetch()[0]['name'] == 'before'
 
 
 def test_integration_hook_error_blocks_commit_for_normal_and_raw(database):
     db = database
-    for raw in (False, True):
-        db.currentEnv['fail_after'] = True
-        with pytest.raises(ValueError, match='integration hook'):
-            method = db.table('item').raw_insert if raw else db.table('item').insert
-            method({'id': 1, 'name': 'discard'})
-        with pytest.raises(TransactionStateError, match='rollback-only'):
-            db.commit()
-        db.rollback()
-        db.currentEnv['fail_after'] = False
-        assert db.table('item').query().fetch() == []
-        assert db.table('audit').query().fetch() == []
-        db.rollback()
+    db.currentEnv['fail_after'] = True
+    with pytest.raises(ValueError, match='table trigger'):
+        db.table('app.item').insert({'id': 1, 'name': 'discard'})
+    with pytest.raises(TransactionStateError, match='rollback-only'):
+        db.commit()
+    db.rollback()
+    db.currentEnv['fail_after'] = False
+    assert db.table('app.item').query().fetch() == []
+    assert db.table('app.audit').query().fetch() == []
 
 
 def test_direct_sql_uses_driver_binding_and_same_environment(database):
