@@ -12,12 +12,14 @@ legacy ones. Differences decided in the write-cycle plan:
 from __future__ import annotations
 
 from .application_table import RecordNotFoundError
+from .model_source import require_write_capabilities
 
 
 class WriteMixin:
     """Database-level write cycle; the table commands delegate to it."""
 
     def insert(self, tblobj, record, **kwargs):
+        require_write_capabilities(tblobj.model)
         with self._write_operation(), self._trigger_operation('insert', tblobj, record=record):
             tblobj.checkPkey(record)
             tblobj.protect_validate(record)
@@ -31,6 +33,7 @@ class WriteMixin:
             tblobj.trigger_onInserted(record)
 
     def update(self, tblobj, record, old_record=None, pkey=None, **kwargs):
+        require_write_capabilities(tblobj.model)
         with self._write_operation(), self._trigger_operation(
                 'update', tblobj, record=record, old_record=old_record):
             tblobj.protect_update(record, old_record=old_record)
@@ -47,6 +50,7 @@ class WriteMixin:
             tblobj.trigger_onUpdated(record, old_record=old_record)
 
     def delete(self, tblobj, record, **kwargs):
+        require_write_capabilities(tblobj.model)
         with self._write_operation(), self._trigger_operation('delete', tblobj, record=record):
             deletable = tblobj.model.attributes.get('deletable', True)
             if isinstance(deletable, str):

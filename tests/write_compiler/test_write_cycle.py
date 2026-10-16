@@ -6,15 +6,12 @@ import pytest
 from asqueel import SqlDatabase, SqlDatabaseConfig, SqlTable
 from asqueel.application_table import RecordNotFoundError
 from asqueel.configuration import _owned_handler
-from asqueel.db_write import WriteMixin
 from asqueel.errors import DeleteException, ProtectUpdateException, SaveException
-from asqueel.table_crud import CrudMixin
-from asqueel.table_triggers import TriggersMixin
 from tests.native_support import postgres_dsn
 
 
-class Table(CrudMixin, TriggersMixin, SqlTable):
-    """The table class the switch will install; here mixed explicitly."""
+class Table(SqlTable):
+    """Application table that records the hook calls."""
 
     def log(self, *event):
         self.db.currentEnv.setdefault('events', []).append(event)
@@ -60,10 +57,6 @@ class Child(Table):
         self.log('child onDeleted', record['id'])
 
 
-class Db(WriteMixin, SqlDatabase):
-    pass
-
-
 def recipe(implementation, conninfo=None, path=None, schema=None):
     source = SqlDatabaseConfig()
     kwargs = {'implementation': implementation}
@@ -107,7 +100,7 @@ def db(request, tmp_path):
     else:
         schema = 'wcy_' + uuid4().hex[:8]
         source, prefix = recipe('postgresql', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
-    with Db(model=source.render(mode='objects_tree'), config=_owned_handler(source)) as database:
+    with SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source)) as database:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')
         for statement in DDL:

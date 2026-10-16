@@ -12,7 +12,7 @@ from .environment import ApplicationEnvironment, SqlEnvironment
 from .runtime import Database
 from .object_tree import DbModel
 from .write_compiler import WriteCompiler
-from .writes import WriteMixin
+from .db_write import WriteMixin
 
 
 class SqlDatabase(WriteMixin, Database):
@@ -84,11 +84,6 @@ class SqlDatabase(WriteMixin, Database):
     def schema(self, name: str):
         self._check_open()
         raise UnsupportedFeatureError('SQL schemas are derived from packages')
-
-    def _write_table(self, table):
-        if isinstance(self.model, DbModel):
-            raise UnsupportedFeatureError('Writes on the hierarchical model are not connected yet')
-        return super()._write_table(table)
 
     def _connection_settings(self):
         from .configuration import connection_settings

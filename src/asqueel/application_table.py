@@ -6,10 +6,11 @@ not open connections, commit, or emulate legacy Bag/selection result objects.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from contextlib import contextmanager
 from copy import deepcopy
 
 from .contracts import UnsupportedFeatureError
+from .table_crud import CrudMixin
+from .table_triggers import TriggersMixin
 
 
 class RecordNotFoundError(LookupError):
@@ -175,7 +176,7 @@ class SqlRecord:
         return self
 
 
-class SqlTable:
+class SqlTable(CrudMixin, TriggersMixin):
     """Database-bound application table with stable column/relation handles."""
 
     def __init__(self, db, model):
@@ -297,57 +298,10 @@ class SqlTable:
                            ignoreMissing=ignoreMissing)
         return result.output(mode) if mode is not None else result
 
-    def trigger_onInserting(self, record):
-        """Override to validate/change the outgoing record in the selected connection."""
-
-    def trigger_onInserted(self, record):
-        """Override to react to input values overlaid with available returned fields."""
-
-    def trigger_onUpdating(self, record, old_record=None):
-        """Override to prepare a complete record using its locked old snapshot."""
-
-    def trigger_onUpdated(self, record, old_record=None):
-        """Override to react after updating within the same unit of work."""
-
-    def trigger_onDeleting(self, record):
-        """Override to validate a locked record before physical deletion."""
-
-    def trigger_onDeleted(self, record):
-        """Override to react after physical deletion."""
-
     @property
     def currentTrigger(self):
         """Current write operation; ``parent`` is the operation that caused it."""
         return getattr(self.db, 'currentTrigger', None)
-
-    @contextmanager
-    def _trigger_operation(self, event, record=None, old_record=None):
-        operation = getattr(self.db, '_trigger_operation', None)
-        if operation is None:
-            yield None
-            return
-        with operation(event, self, record=record, old_record=old_record) as item:
-            yield item
-
-    def _locked_record(self, where, sqlparams, ignore_partition):
-        if not self.model.pkey:
-            raise ValueError('Ordinary update/delete require a declared primary key')
-        columns = ', '.join(_reference(name) for name, column in self.model.columns.items()
-                            if not column.is_virtual)
-        query = self.query(columns=columns, where=where, sqlparams=sqlparams, for_update=True, limit=2,
-                           exclude_draft=False, exclude_logical_deleted=False,
-                           ignore_partition=ignore_partition)
-        return SqlRecord(query).output()
-
-    def _overlay_returned(self, record, result):
-        if result.rows:
-            sources = {column.identity or f'{self.fullname}.{name}': name
-                       for name, column in self.model.columns.items()}
-            returned = result.rows[0]
-            for column in result.columns:
-                name = sources.get(column.source)
-                if name is not None and column.name in returned:
-                    record[name] = _copy(returned[column.name])
 
     def sql_insert(self, record):
         """raw_insert without triggers; a list runs one executemany per column set."""
@@ -369,37 +323,3 @@ class SqlTable:
     def sql_delete(self, record):
         """raw_delete without triggers or related actions."""
         self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot()))
-
-    def insert(self, values, returning='*', *, ignore_partition=False):
-        return self.db.insert(self, values, returning, ignore_partition=ignore_partition)
-
-    def raw_insert(self, values, returning='*', *, ignore_partition=False):
-        return self.db.raw_insert(self, values, returning, ignore_partition=ignore_partition)
-
-    def update(self, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
-        return self.db.update(self, values, where, sqlparams, returning, ignore_partition=ignore_partition)
-
-    def raw_update(self, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
-        return self.db.raw_update(self, values, where, sqlparams, returning, ignore_partition=ignore_partition)
-
-    def delete(self, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
-        return self.db.delete(self, record_or_pkey, where=where, sqlparams=sqlparams,
-                              returning=returning, ignore_partition=ignore_partition)
-
-    def raw_delete(self, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
-        return self.db.raw_delete(self, record_or_pkey, where=where, sqlparams=sqlparams,
-                                  returning=returning, ignore_partition=ignore_partition)
-
-    def soft_delete(self, value, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        with self.db._write_operation():
-            if value is None:
-                raise ValueError('soft_delete requires a non-None tombstone value')
-            field = self.db.compiler._tombstone(self.fullname)
-            return self.update({field: value}, where, sqlparams, returning,
-                               ignore_partition=ignore_partition)
-
-    def restore(self, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        with self.db._write_operation():
-            field = self.db.compiler._tombstone(self.fullname)
-            return self.update({field: None}, where, sqlparams, returning,
-                               ignore_partition=ignore_partition)

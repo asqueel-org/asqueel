@@ -234,16 +234,21 @@ def resolve_source_references(builder):
 
 
 def require_write_capabilities(table):
-    """Fail before hooks/I/O while execution of these declarations is deferred."""
+    """Refuse the write cycle, before hooks and I/O, while a declaration is not executed.
+
+    ``table`` is a DbTableObj. Each implementation step removes what it executes.
+    """
     from .contracts import UnsupportedFeatureError
-    fields = table.options.get('sys_fields')
-    pending = bool(fields and fields.enabled) or table.attributes.get('x_expanded_legacy')
-    pending = pending or any(option.enabled for option in table.options.values())
-    pending = pending or any(any(d.kind != 'relation' for d in column.declarations) or any(column.attributes.get(key) is not None
-        for key in ('default', 'default_from', 'sql_value', 'x_generation'))
-        or column.attributes.get('read_only') or column.attributes.get('unmodifiable')
-        for column in table.columns.values())
-    pending = pending or any(any(key.startswith('x_app_') for key in relation.attributes)
-                            for relation in table.relations.values())
+    pending = [f'option {name}' for name, option in table.options.items()
+               if option.attributes.get('enabled', True)]
+    if table.attributes.get('x_expanded_legacy'):
+        pending.append('legacy expansion')
+    for name, column in table.columns.items():
+        pending.extend(f'{name}.{child.tag}' for child in column.values() if child.tag != 'relation')
+        attributes = column.attributes
+        pending.extend(f'{name}.{key}' for key in ('default', 'default_from', 'x_generation')
+                       if attributes.get(key) is not None)
+        pending.extend(f'{name}.{key}' for key in ('read_only', 'unmodifiable') if attributes.get(key))
     if pending:
-        raise UnsupportedFeatureError(f'{table.key}: write execution for these declarations is not implemented')
+        raise UnsupportedFeatureError(
+            f'{table.fullname}: write execution for these declarations is not implemented: {", ".join(pending)}')

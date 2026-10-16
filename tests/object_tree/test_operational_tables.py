@@ -125,11 +125,6 @@ def test_query_compiles_without_execution_or_writes():
         assert 'SELECT' in compiled.sql
         record = table.record(pkey=3)
         assert record.query.compiled.params == {'__record_key_0': 3}
-        for name, args in [('insert', ({'id': 3},)), ('update', ({'id': 3},)),
-                           ('delete', (3,)), ('raw_insert', ({'id': 3},)),
-                           ('raw_update', ({'id': 3},)), ('raw_delete', (3,))]:
-            with pytest.raises(UnsupportedFeatureError, match='Writes'):
-                getattr(table, name)(*args)
         assert db._connections == {}
     finally:
         db.close()
