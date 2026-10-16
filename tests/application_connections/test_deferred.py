@@ -325,3 +325,33 @@ def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup()
         assert db.driver.persisted == ['saved', 'next']
     finally:
         db.close()
+
+
+@pytest.mark.parametrize('action', ['commit', 'rollback'])
+def test_trigger_finishes_another_named_connection_but_not_its_own(action):
+    class Item(SqlTable):
+        def trigger_onInserting(self, record):
+            with pytest.raises(TransactionStateError, match='in progress'):
+                getattr(self.db, action)()
+            with self.db.tempEnv(connectionName='system'):
+                self.db.execute(CompiledQuery('log'))
+                getattr(self.db, action)()
+
+    with database(Item) as db:
+        db.table('app.item').insert({'id': 1})
+        assert db.driver.persisted == (['log'] if action == 'commit' else [])
+        with pytest.raises(TransactionStateError, match='inside a table write'):
+            with db._write_operation():
+                db.closeConnection()
+        db.rollback()
+
+
+def test_deferred_blocks_run_in_lowercase_label_order():
+    db = Database(driver=Driver())
+    events = []
+    for block in ('b', 'C', 'A', 'a'):
+        db.deferToCommit(events.append, block, _deferredBlock=block)
+    db.execute(CompiledQuery('work'))
+    db.commit()
+    assert events == ['A', 'a', 'b', 'C']
+    db.close()

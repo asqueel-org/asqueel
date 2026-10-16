@@ -26,6 +26,7 @@ class _ConnectionState(TypedDict):
     closed: bool
     execution_error: BaseException | None
     execution_count: int
+    write_depth: int
     deferred: dict[str, dict[str, dict[tuple[int, str], tuple[Any, tuple, dict]]]]
     pending_exceptions: list[BaseException]
     outcome: str
@@ -34,7 +35,6 @@ class _ConnectionState(TypedDict):
 class _ThreadState(local):
     def __init__(self) -> None:
         self.connections: dict[str, _ConnectionState] = {}
-        self.write_depth = 0
         self.trigger_stack = TriggerStack()
         self.closed = False
         self.acquired = False
@@ -77,11 +77,11 @@ class Database:
 
     @property
     def _write_depth(self):
-        return self._thread_state.write_depth
+        """Table writes in progress on the selected named connection."""
+        return self._connection_state['write_depth']
 
-    @_write_depth.setter
-    def _write_depth(self, value):
-        self._thread_state.write_depth = value
+    def _writing(self) -> bool:
+        return any(state['write_depth'] for state in self._connections.values())
 
     @property
     def _closed(self):
@@ -117,7 +117,7 @@ class Database:
                 owner=current_thread(), connection=None, pending=False,
                 committing=False, completion_failed=False, connection_name=name,
                 failed=False, executing=False, closed=False, execution_error=None,
-                execution_count=0, deferred={'before': {}, 'after': {}},
+                execution_count=0, write_depth=0, deferred={'before': {}, 'after': {}},
                 pending_exceptions=[], outcome='not_started',
             )
         return self._connections[name]
@@ -240,7 +240,7 @@ class Database:
     def _check_boundary(self) -> None:
         self._check_open()
         if self._write_depth:
-            raise TransactionStateError('Cannot finish a transaction inside a table write or hook')
+            raise TransactionStateError('Cannot finish the transaction of a table write or hook in progress')
 
     def commit(self) -> None:
         self._check_boundary()
@@ -256,7 +256,7 @@ class Database:
         state = self._connection_state
         self._check_connection_usable(state)
         execution_count = state['execution_count']
-        self._write_depth += 1
+        state['write_depth'] += 1
         try:
             yield
         except BaseException as error:
@@ -268,11 +268,13 @@ class Database:
                 self._mark_connection_failed(state)
             raise
         finally:
-            self._write_depth -= 1
+            state['write_depth'] -= 1
 
     def closeConnection(self) -> None:
         """Release the current thread's named connections, keeping it usable."""
-        self._check_boundary()
+        self._check_open()
+        if self._writing():
+            raise TransactionStateError('Cannot close connections inside a table write or hook')
         for state in self._connections.values():
             self._check_connection_completion(state)
         try:
@@ -296,7 +298,7 @@ class Database:
 
     def close(self) -> None:
         """Close this thread's DB state; other threads remain usable."""
-        if self._write_depth:
+        if self._writing():
             raise TransactionStateError('Cannot close the database inside a table write or hook')
         if self._closed:
             return
@@ -338,7 +340,8 @@ class Database:
     def _drain_deferred(self, state: _ConnectionState, queue: str) -> None:
         blocks = state['deferred'][queue]
         while blocks:
-            block_name = sorted(blocks)[0]
+            # GenroPy Bag.sort('#k:a'): labels in lowercase, stable on ties.
+            block_name = min(blocks, key=str.lower)
             entries = blocks[block_name]
             while entries:
                 key = next(iter(entries))
