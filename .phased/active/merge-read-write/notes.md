@@ -31,3 +31,15 @@
 - Gate approved 2026-10-16: drafts 1-11 from attribution.md O rows (draft 1 also covers recordToUpdate); 12 newrecord, 13 sys_fields, 14 hierarchical, 15 auto_counter, 16 batchUpdate. No open issue covered 12-16 (`gh issue list`, 2026-10-16).
 - Drafts cite only public sources (code, tests, legacy, genropy issues): the private write-cycle plan is not named.
 - xfail reasons use `asqueel#<number>` (not bare `#<number>`), the form Phase 2 already used for asqueel#15. Draft n became asqueel#(n+16): #17-#32, list in issues/opened.txt.
+
+## Final touch
+
+- Reviewed revision: 0cc44aa (REVIEW_HEAD), review by quality-check-agent (opus / medium) over 7e97958..0cc44aa.
+- Correction commit: b6865b6.
+- Rows applied:
+  1. G9 drift left by Phase 2: docs/guide/formulas.md (2 places), docs/row-policies.md, tests/application_integration/test_formula_subqueries.py now use @customer_id / @invoice_id.
+  2. sql_insert/sql_update/sql_delete docstrings named raw_* as if they existed; now "(legacy raw_*)".
+  3. Tests renamed because their names stated removed behaviour: test_raw_insert_input_contract_and_hook_mutation -> test_sql_insert_returns_input_and_runs_no_db_hooks; test_plan_rejects_grouping_outside_select -> test_query_write_terminals_reject_grouping. attribution.md keeps the old nodeids as history.
+- Dismissed: docs/asqueel-target-architecture.md:525 (candidate-syntax design doc, outside this workflow); db_hooks in test_raw_writes.py (asserts d-sql-effects: sql_* run no hooks); issues #23 #24 #25 #27 without tests (by design, tests come with the issue work).
+- Checks run after the batch: pytest on the 3 touched test files + tests/documentation (38 passed, 8 xfailed), ruff src tests scripts, sphinx -W. Re-check of the delta: those runs; no residual finding.
+- Rows on the phase road: none.
