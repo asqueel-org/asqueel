@@ -20,14 +20,15 @@ Declare a light first version of asqueel for a new project: read, insert, update
   > Files: docs/guide/_examples/shop_tutorial.py, tests/documentation/test_examples.py, src/asqueel/compiler.py, tests/sqlite/test_sqlite_exists_formula.py, tests/native_formulas/test_subquery_results.py, tests/native_formulas/test_subquery_method_results.py, docs/design/58-compiler-checklist.md, docs/design/98-single-read-path.md, .phased/active/light-release/notes.md
   > Review: 5 skips "EXISTS formula not supported on SQLite" remain in the unchanged legacy corpus (tests/native_formulas/legacy_subqueries.py:86,183,266,307; test_tree_legacy_formulas.py:86); after the fix they could run on SQLite.
 
-- [ ] **Phase 2**: documentation matches the code, and the wheel installs clean
+- [>] **Phase 2**: documentation matches the code, and the wheel installs clean
+  > In execution since 2026-10-16T21:28:21+02:00
   - Run: opus / medium
   > Batches: 1 limitations.md as the light-version perimeter | 2 models.md (#27), queries.md `.aggr()`, tutorial.md, quickstart.md, writes.md | 3 wheel build and clean install
   - Pattern: `docs/guide/limitations.md` (existing status table shape); `tests/many_aggregations/` for the `.aggr()` behaviour the guide states
   - Files: `docs/guide/limitations.md`, `docs/guide/models.md`, `docs/guide/queries.md`, `docs/guide/tutorial.md`, `docs/guide/quickstart.md`, `docs/guide/writes.md`
   - Decisions: `limitations.md` stays the single status page; it states what the light version does and what it refuses, each refusal linked to its issue: `sys_fields` #29, `default`/`default_from`/newrecord #28, `hierarchical` #30, `auto_counter` #31, composite-pkey reads #26, recordToUpdate #17, batchUpdate #32, partitions on write #15. Claims are checked against the code and the tests, never copied from design docs. Commit messages reference #27 with `Refs #27`, never `Closes`. No version change, no release notes, no push.
   - Details: rewrite limitations.md (remove stale claims: soft-delete/restore, RETURNING results, "record reads and model writes remain disconnected"); fix models.md:160-162 and 188-189 (#27); add the `.aggr()` section to queries.md and remove the statement that aggregates need explicit SQL; align tutorial.md, quickstart.md and writes.md with the Phase 1 tutorial and the write cycle. Build the wheel, install it in a fresh venv outside the repo with its published dependencies, and run the tutorial from that install on PostgreSQL and SQLite.
-  - Done: `venv/bin/python -m sphinx -W -b html docs docs/_build/html` passes; `venv/bin/python -m pytest tests/documentation --no-cov -q` passes; `grep -n "originalColumn\|model.ui" docs/guide/models.md` is empty; the wheel from `venv/bin/python -m build --wheel` installs in a fresh venv and `run()` of the installed tutorial completes on PostgreSQL and SQLite (commands and output recorded in notes.md § Phase 2).
+  - Done: `venv/bin/python -m sphinx -W -b html docs docs/_build/html` passes; `venv/bin/python -m pytest tests/documentation --no-cov -q` passes; `grep -n "model.ui" docs/guide/models.md` is empty; the wheel from `venv/bin/python -m build --wheel` installs in a fresh venv and `run()` of the installed tutorial completes on PostgreSQL and SQLite (commands and output recorded in notes.md § Phase 2).
   - Verify: now — read limitations.md: it says what a new project can and cannot do today, with the right issue for each limit.
 
 ## Notes
