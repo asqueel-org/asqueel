@@ -50,3 +50,7 @@ Merge the read path (`codex/core-single-read-path`, commit `7cee8e8`, which cont
 - No push, no publication, no version change.
 - Commits carry no AI attribution and no Co-Authored-By line.
 - Test environment: memory note asqueel-test-environment (call tools as `venv/bin/python -m <tool>`).
+
+## Quality check
+
+> Quality check: 2026-10-16T18:06:56Z — commit 5a98cd5 — review agent, QA done, findings 3 confirmed, 3 dismissed, final touch 3 corrections
