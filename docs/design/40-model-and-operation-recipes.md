@@ -204,22 +204,15 @@ override arbitrario dei metadati interni della colonna. Restano ammesse le
 personalizzazioni descrittive previste dal contratto delle options.
 
 La generazione appartiene all'esecuzione, non alla costruzione, serializzazione
-o compilazione della ricetta. **Deciso:** usare lo stesso algoritmo di
-`getUuid()` del legacy, verificato in
-`gnrpy/gnr/core/gnrlang.py:165` del checkout GenroPy il 12 ottobre:
-
-```python
-thread_id = str(_thread.get_ident())
-uuid_bytes = uuid.uuid3(uuid.uuid1(), thread_id).bytes
-value = base64.urlsafe_b64encode(uuid_bytes)[:22].replace(b'-', b'_').decode()
-```
-
-UUID3 con un nuovo UUID1 come namespace e l'id del thread come nome; codifica
-base64 URL-safe, primi 22 caratteri e sostituzione di `-` con `_`. Il risultato
-è una stringa di 22 caratteri nell'alfabeto `A-Z`, `a-z`, `0-9`, `_`, senza
-padding. Anche la sostituzione è parte del contratto: non sostituire con UUID4
-o una diversa codifica compatta. L'uso dello stesso algoritmo non richiede una
-dipendenza runtime da GenroPy né importa le altre strategie di `pkeyValue`.
+o compilazione della ricetta. **Deciso il 16 ottobre** (sostituisce la decisione
+del 12 ottobre sull'algoritmo di `getUuid()` del legacy): usare
+`genro_toolbox.uid.get_uuid()`, una stringa di 22 caratteri ordinabile nel tempo:
+`Z`, 9 caratteri base62 con i microsecondi dal 2025-01-01, 12 caratteri base62
+casuali. Il `getUuid()` del legacy (`gnrpy/gnr/core/gnrlang.py:165`, uuid3 su
+uuid1 e id del thread, base64 URL-safe) produce un hash e non conserva l'ordine
+di generazione. Entrambi occupano una colonna di 22 caratteri: nelle tabelle
+esistenti convivono id legacy e id nuovi, e l'ordine nel tempo vale solo fra gli
+id nuovi.
 
 La precedente collocazione `table(..., pkey_type=...)` è **superata per il
 campo di sistema `id`**; non va implementata in parallelo per questo caso.
