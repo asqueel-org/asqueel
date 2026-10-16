@@ -22,6 +22,8 @@ Declare a light first version of asqueel for a new project: read, insert, update
 
 - [>] **Phase 2**: documentation matches the code, and the wheel installs clean
   > In execution since 2026-10-16T21:28:21+02:00
+  > Testing: awaiting the human's `Verify: now` checks | commit: 48b88f2
+  > Verify: now — read docs/guide/limitations.md: it says what a new project can and cannot do today, with the right issue for each limit.
   - Run: opus / medium
   > Batches: 1 limitations.md as the light-version perimeter | 2 models.md (#27), queries.md `.aggr()`, tutorial.md, quickstart.md, writes.md | 3 wheel build and clean install
   - Pattern: `docs/guide/limitations.md` (existing status table shape); `tests/many_aggregations/` for the `.aggr()` behaviour the guide states
