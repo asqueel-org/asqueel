@@ -33,7 +33,9 @@ Merge the read path (`codex/core-single-read-path`, commit `7cee8e8`, which cont
   - Details: fix B rows in code following the contracts; realign R rows to the merged API. Re-run the lock, record and named-connection tests on both dialects (contention with a second connection, release on rollback, no implicit commit). Record every non-obvious choice in notes.md under ## Phase 2.
   - Done: `venv/bin/python -m pytest tests --no-cov -q` green on PostgreSQL and SQLite with only the O xfails; `venv/bin/ruff check src tests scripts`, `venv/bin/python -m mypy src/asqueel`, `venv/bin/python -m sphinx -W -b html docs docs/_build/html` pass; every xfail reason names a draft number present in attribution.md.
 
-- [ ] **Phase 3**: draft one issue per remaining problem
+- [>] **Phase 3**: draft one issue per remaining problem
+  > In execution since 2026-10-16T19:39:30+02:00
+  > Testing: 16 drafts in issues/; awaiting the user's ok to open them on asqueel-org/asqueel
   - Run: opus / low
   - Pattern: `new-pattern`
   - Files: `.phased/active/merge-read-write/issues/<n>-<slug>.md`
