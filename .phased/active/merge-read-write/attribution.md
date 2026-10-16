@@ -10,7 +10,7 @@ Static checks: `venv/bin/ruff check src tests scripts` passes; `venv/bin/python 
 
 Classes: R = old test to realign to the merged API; B = integration bug in code; O = out of scope, to become an issue. Count: R 134, B 0, O 0. Every row fails before reaching the merged write code, so B rows can surface only once Phase 2 realigns the tests.
 
-Draft numbers for O rows are assigned in Phase 2.
+Draft numbers for O rows are assigned in Phase 2: see the section "Phase 2 — outcome" at the end.
 
 ## G1 — R — 89 rows
 
@@ -255,3 +255,37 @@ Action: realign: declare a compositeColumn and use its name as pkey.
 | nodeid | class | evidence | area | action |
 |---|---|---|---|---|
 | `tests/native_model/test_postgres.py::test_composite_fk_is_applied_and_enforced_by_postgres_migration` | R | collection | native_model | realign |
+
+## Phase 2 — outcome
+
+Every row above was realigned; its nodeid is collected and passes, except:
+
+- `test_raw_writes.py::test_raw_list_late_python_failure_requires_rollback[postgresql|sqlite]` — deleted, approved at the Phase 2 gate (it failed only through `onWritten`; `sql_insert` runs no Python code).
+- `test_handles.py::test_delete_hook_cannot_redirect_the_saved_key` — deleted, approved at the Phase 2 gate (the write cycle reproduces the legacy, d-legacy-bugs). The file-level row stays: the other tests of the module are realigned, some renamed.
+- `test_compiler.py::test_writes_need_predicate[...]` — the five parametrized nodeids become the single `test_writes_need_predicate`: WriteCompiler takes no free predicate, every write uses a key WHERE.
+- Rows whose whole test is O, marked `xfail(strict=True)`: `test_write_hooks.py::test_exactly_one_locked_record_before_any_hook[update|delete]` (draft 1), `test_write_hooks.py::test_pre_hook_holds_postgres_row_lock` (draft 10), `test_compiler.py::test_quoted_logical_names_work_in_wildcards_predicates_and_returning[*]` (draft 4), `test_policies.py::test_allowed_only_insert_requires_value_and_empty_allowed_refuses_insert` (asqueel#15).
+
+Assertions on behaviour removed by closed write-cycle decisions were rewritten to the decided mechanism or dropped (notes.md § Phase 2, foreman clarify 1). Assertions on O behaviour that was part of an otherwise R test moved into new xfail tests next to it.
+
+### B rows fixed in code
+
+- WriteCompiler: a `--` line comment in a `sql_value` removed the clause that followed it (on UPDATE the WHERE, so every row was updated). Each `sql_value` is now followed by a newline (`src/asqueel/write_compiler.py`). Tests: `tests/adapter_dialect/test_postgres.py::test_clauses_have_fixed_separators_without_repairing_expression_text`, `tests/adapter_dialect/test_postgres_execution.py`.
+- `query(...).sql_update/sql_delete` copied `group_by`/`having` into the key SELECT; they are now refused with `UnsupportedFeatureError` (`src/asqueel/application_table.py`, `_key_plan`). Test: `tests/test_wf_phase2_query_grouping.py`.
+
+### O rows — issue drafts for Phase 3
+
+| draft | problem | xfail tests | evidence |
+|---|---|---|---|
+| 1 | `recordToUpdate` is missing: no hooked update/delete of exactly one record selected by a `where` and read with a lock (RecordNotFoundError / RecordMultipleRowsError before the hooks). Deferred feature. | `test_raw_writes.py::test_ordinary_write_by_where_needs_exactly_one_record[*]`, `test_write_hooks.py::test_exactly_one_locked_record_before_any_hook[*]` | `src/asqueel/db_write.py:35-50`; write-cycle plan d-reverse |
+| 2 | The hierarchical DbModel has no JSON round trip: `model_to_json`/`model_from_json` raise TypeError on a DbModel. | `test_release_model_semantics.py::test_validation_model_survives_a_json_round_trip`, `test_native_option_expansion.py::test_declarative_options_survive_a_json_round_trip` | `src/asqueel/model_codec.py:16-30,50` |
+| 3 | A `%` in a physical table or column name is not escaped for psycopg; such a table cannot be read or written on PostgreSQL. | `test_compiler.py::test_insert_escapes_percent_in_physical_names`, `test_plans.py::test_compiled_sql_escapes_percent_in_physical_names` | `src/asqueel/drivers/sql.py:110-111` |
+| 4 | Quoted logical names `$"..."` are not supported by the read compiler; DML binds a logical name that is not an identifier to a truncated parameter, and a missing binding becomes None. | `test_compiler.py::test_quoted_logical_names_work_in_wildcards_predicates_and_returning[*]` | `src/asqueel/compiler.py:28`, `src/asqueel/drivers/sql.py:13,104-105` |
+| 5 | WriteCompiler does not enforce the dialect capabilities: DEFAULT VALUES is emitted without `default_values`, a missing `returning_insert` silently drops RETURNING. | `test_postgres.py::test_missing_write_capabilities_are_rejected` | `src/asqueel/write_compiler.py` (`_insert_sql`, `_returning`) |
+| 6 | `inspect_postgres` still returns the removed `contracts.ResolvedModel`, which QueryCompiler rejects. | `test_postgres_vertical.py::test_imported_model_compiles_selects` | `src/asqueel/importers.py:207`, `src/asqueel/compiler.py:808-809` |
+| 7 | `pkey='a,b'` is accepted by `WriteCompiler.pkeys` and described by the `table` grammar as comma-joined names, while the legacy requires `pkey` to name one column (composite through `composed_of`) and `object_tree.physical_columns` fails on it. No test. | — | `src/asqueel/write_compiler.py:34-42`, `src/asqueel/elements.py:179`, `src/asqueel/object_tree.py:386-391`; legacy `gnrsqlmodel/table.py:194-209` |
+| 8 | `_key_where` writes `__pkey__N` into the record parameters without a collision check; a record key `__pkey__0` is overwritten silently. No test. | — | `src/asqueel/write_compiler.py` (`_key_where`; `_selection_where` has the check) |
+| 9 | A schema-tag model (SqlBuilder) cannot set a table prefix: the schema validator refuses `sqlprefix`, and `x_sql_prefix`, documented in `docs/native-model.md:13-15`, is ignored by `tableSqlName`. No test. | — | `src/asqueel/object_tree.py:146-153` |
+| 10 | A SELECT on a table whose pkey is a compositeColumn fails with `virtual/composite columns are not connected yet`; `record(...)` on such a table fails too. Known read-path limit (write-cycle plan, p-sql status). | `test_write_hooks.py::test_record_read_with_lock_includes_the_draft_row`, `test_write_hooks.py::test_pre_hook_holds_postgres_row_lock`, `test_write_hooks.py::test_logically_deleted_record_is_hidden_until_restored`, `test_handles.py::test_composite_record_reads_through_the_physical_names` | `src/asqueel/compiler.py:63-66,570-571` |
+| 11 | `docs/guide/models.md` keeps prose that contradicts the code: `originalColumn` and `model.ui` (:160-162) do not exist; "writes with an alias in their value mapping fail explicitly" and `RETURNING '*'` (:188-189) contradict d-record-keys and d-return. No test. | — | `docs/guide/models.md:160-162,188-189` |
+
+Partitions on write are covered by the open issue asqueel-org/asqueel#15; their xfail reason is `asqueel#15: ...` and Phase 3 drafts nothing for them: `test_postgres_policies.py::test_application_insert_fills_the_partition_field`, `test_sqlite_application.py::test_raw_insert_refuses_and_fills_the_partition`, `test_policies.py::test_dml_partition_guards_and_autofill`, `test_policies.py::test_allowed_only_insert_requires_value_and_empty_allowed_refuses_insert`, `test_policies.py::test_relational_partition_writes_are_explicitly_unsupported`, `test_row_policies.py::test_writes_fill_and_guard_the_partition`.
