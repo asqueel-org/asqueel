@@ -21,12 +21,13 @@ Merge the read path (`codex/core-single-read-path`, commit `7cee8e8`, which cont
   - Done: merge commit exists; `attribution.md` lists every nodeid from the `-rfE` summary (count of rows == count of failures + errors), each with exactly one class; no file outside `.phased/` changed after the merge commit (`git diff --stat <merge commit> HEAD -- . ':!.phased'` empty).
   - Verify: now — read attribution.md: each class is right; every test proposed for deletion is approved or refused by you, one by one.
 
-- [ ] **Phase 2**: integrate — fix the approved R and B rows  `vast`
+- [>] **Phase 2**: integrate — fix the approved R and B rows  `vast`
+  > In execution since 2026-10-16T16:56:52Z
   - Run: opus / high
   > Batches: 1 B rows (code) | 2 R rows per test area, one batch per area in attribution.md | 3 O rows marked xfail
   - Pattern: contracts in `../../asqueel-read-path/docs/design/97-read-write-contracts.md`, `99-writer-handoff-single-read-path.md`, `111-read-write-integration-handoff.md` (merged into `docs/design/` by Phase 1); write tests `tests/write_compiler/test_write_cycle.py` as the model for realigned DML tests
   - Files: the files named by the approved rows of attribution.md
-  - Decisions: no shim, no restored API (QueryPlan, Fragment, SqlStatement, driver.prepare, writes.py), no new syntax, no recovered deferral, no rename. A test is deleted only if Phase 1's Verify approved it. O rows are marked `pytest.mark.xfail(strict=True, reason="issue draft <n>: <one line>")`, where <n> is the draft number Phase 3 will use (assign it here, in attribution.md).
+  - Decisions: no shim, no restored API (QueryPlan, Fragment, SqlStatement, driver.prepare, writes.py), no new syntax, no recovered deferral, no rename. A test is deleted only if Phase 1's Verify approved it. O rows are marked `pytest.mark.xfail(strict=True, reason="issue draft <n>: <one line>")`; rows already covered by an open issue use `reason="asqueel#<number>: <one line>"`, where <n> is the draft number Phase 3 will use (assign it here, in attribution.md).
   - Details: fix B rows in code following the contracts; realign R rows to the merged API. Re-run the lock, record and named-connection tests on both dialects (contention with a second connection, release on rollback, no implicit commit). Record every non-obvious choice in notes.md under ## Phase 2.
   - Done: `venv/bin/python -m pytest tests --no-cov -q` green on PostgreSQL and SQLite with only the O xfails; `venv/bin/ruff check src tests scripts`, `venv/bin/python -m mypy src/asqueel`, `venv/bin/python -m sphinx -W -b html docs docs/_build/html` pass; every xfail reason names a draft number present in attribution.md.
 
