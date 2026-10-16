@@ -12,6 +12,7 @@ Merge the read path (`codex/core-single-read-path`, commit `7cee8e8`, which cont
 - [>] **Phase 1**: merge the read path and attribute every failure of the full suite
   > In execution since 2026-10-16T16:40:00Z
   > Verify: now — read attribution.md: each class is right; every test proposed for deletion is approved or refused by you, one by one.
+  > Testing: awaiting the human's `Verify: now` checks | commit: 5f4bed2
   - Run: opus / medium
   - Pattern: `library-standard` (git merge, pytest)
   - Files: no source or test edit; output in `.phased/active/merge-read-write/notes.md` (## Phase 1) and `.phased/active/merge-read-write/attribution.md`
