@@ -9,10 +9,11 @@ Must not break: the full suite result of merge-read-write (4739 passed, 42 skipp
 Declare a light first version of asqueel for a new project: read, insert, update, delete, formulas and aggregations on PostgreSQL and SQLite, proven by one end-to-end example, with documentation that matches the code and states the limits. No new feature: issues #15 and #17-#32 stay open, except #27 (documentation), which this workflow resolves.
 
 ## Work Plan
-- [ ] **Phase 1**: the tutorial becomes the end-to-end example on PostgreSQL and SQLite
+- [>] **Phase 1**: the tutorial becomes the end-to-end example on PostgreSQL and SQLite
+  > In execution since 2026-10-16T19:13:39Z
   - Run: opus / medium
   - Pattern: `docs/guide/_examples/shop_tutorial.py` (model, deployment, seed, reads, changes, run sections); `tests/sqlite/test_migration_api.py` (migrate on SQLite); `tests/many_aggregations/` (`.aggr()` usage); `examples/sqlite/configure.py` (SQLite deployment)
-  - Files: `docs/guide/_examples/shop_tutorial.py`, `tests/documentation/test_examples.py`
+  - Files: `docs/guide/_examples/shop_tutorial.py`, `tests/documentation/test_examples.py`, `src/asqueel/compiler.py` (exists= double parenthesis, notes.md § Phase 1) and its SQLite regression test
   - Decisions: tables are created by `db.migrate()` (src/asqueel/application.py:123), not by hand-written DDL. The flow is insert → read (relation path `@customer_id.name`, one formula, one `.aggr()` aggregation) → update → read → delete → read, with one rollback check. Only tables the light version can write: no options, no `default=`/`default_from`, single-column pkey. The tutorial's section markers (`# model-start` ... `# run-end`) stay, because docs/guide/tutorial.md includes them. No new API.
   - Details: rewrite `create_tables` as the migration step, add the aggregation to the reads and a delete step to the changes, and make `run()` work for a PostgreSQL DSN and a SQLite file. Parametrize `test_downloadable_tutorial` over both dialects (PostgreSQL marked as today). Keep `test_application_query_guide_against_tutorial_data` and `test_application_environment_examples` working on the new tutorial.
   - Done: `venv/bin/python -m pytest tests/documentation --no-cov -q` passes, with `test_downloadable_tutorial` run on PostgreSQL and SQLite; `venv/bin/ruff check src tests scripts docs/guide/_examples` passes; full suite unchanged from Must not break.
