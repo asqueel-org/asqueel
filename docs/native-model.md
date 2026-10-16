@@ -1,5 +1,8 @@
 # Modello nativo e importazione PostgreSQL V1
 
+> Historical profile: live queries now use the [single hierarchical path](guide/compiler.md).
+> Catalog snapshot descriptions remain applicable; previous compiler/renderer APIs do not.
+
 `resolve_model(builder, *, ui=None)` in `asqueel.model` risolve una ricetta
 `SqlBuilder` già costruita e validata nei contratti `ResolvedModel`, `Table`,
 `Column`, `Relation`. Non modifica la ricetta e non richiede il migratore.

@@ -123,8 +123,8 @@ def test_query_compiles_without_execution_or_writes():
         compiled = query.compiled
         assert compiled.params == {'id': 3}
         assert 'SELECT' in compiled.sql
-        with pytest.raises(UnsupportedFeatureError, match='Record reads'):
-            table.record(pkey=3)
+        record = table.record(pkey=3)
+        assert record.query.compiled.params == {'__record_key_0': 3}
         for name, args in [('insert', ({'id': 3},)), ('update', ({'id': 3},)),
                            ('delete', (3,)), ('raw_insert', ({'id': 3},)),
                            ('raw_update', ({'id': 3},)), ('raw_delete', (3,))]:
@@ -135,7 +135,7 @@ def test_query_compiles_without_execution_or_writes():
         db.close()
 
 
-def test_default_renderer_remains_independent():
+def test_default_renderer_uses_the_same_hierarchy():
     source, _, _ = recipe()
     tree_db = bind(source)
     old_db = source.render()
@@ -145,7 +145,8 @@ def test_default_renderer_remains_independent():
         new = tree_db.table('invc.customer')
         assert old is not new
         assert old.model is not new.model
-        assert old.column('id').model is old.model.columns['id']
+        assert old.column('id') is old.model.columns['id']
+        assert type(old.model) is type(new.model)
         assert new.column('id') is new.model.columns['id']
         assert old.query(columns='$id').compiled.sql
     finally:

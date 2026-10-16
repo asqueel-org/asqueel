@@ -23,8 +23,8 @@ class Driver:
         self.close_error = None
         self.callback = None
 
-    def prepare(self, statement):
-        return PsycopgDriver().prepare(statement)
+    def prepare_sql(self, sql, sqlargs, snapshot):
+        return PsycopgDriver().prepare_sql(sql, sqlargs, snapshot)
 
     def validate(self, query):
         PsycopgDriver().validate(query)

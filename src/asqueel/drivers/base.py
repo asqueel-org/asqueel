@@ -2,14 +2,12 @@
 from typing import Any, Protocol, Mapping
 
 from ..contracts import CompiledQuery, QueryResult
-from ..query_plan import SqlStatement
 
 
 class BindingFormatter(Protocol):
     dialect: str
     binding: str
 
-    def prepare(self, statement: SqlStatement) -> CompiledQuery: ...
 
     def prepare_sql(self, sql: str, sqlargs: Mapping[str, Any] | None,
                     snapshot: Mapping[str, Any]) -> CompiledQuery: ...

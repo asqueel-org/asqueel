@@ -36,7 +36,7 @@ def no_io(monkeypatch):
     for driver in (PsycopgDriver, SqliteDriver):
         monkeypatch.setattr(driver, 'connect', denied)
         monkeypatch.setattr(driver, 'execute', denied)
-        monkeypatch.setattr(driver, 'prepare', denied)
+        assert not hasattr(driver, 'prepare')
 
 
 @pytest.mark.parametrize('record', ORACLE['records'], ids=lambda r: ':'.join(

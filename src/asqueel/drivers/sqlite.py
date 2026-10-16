@@ -8,7 +8,6 @@ import re
 import sqlite3
 
 from ..contracts import CompiledQuery
-from ..query_plan import Parameter, SqlStatement
 from .result import query_result
 
 
@@ -20,28 +19,6 @@ class SqliteDriver:
         from .sql import prepare_text
         return prepare_text(self, sql, sqlargs, snapshot)
 
-    def prepare(self, statement):
-        from .sql import sqlite_ilike
-        if not isinstance(statement, SqlStatement):
-            raise TypeError('prepare requires a SqlStatement')
-        if statement.dialect != self.dialect:
-            raise ValueError(f'Unsupported SQL dialect: {statement.dialect!r}')
-        parts, params = [], {}
-        for part in statement.parts:
-            if isinstance(part, str):
-                parts.append(part)
-            elif isinstance(part, Parameter):
-                if not isinstance(part.name, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', part.name):
-                    raise ValueError('Invalid parameter name')
-                if part.name not in statement.params:
-                    raise ValueError(f'Missing parameter: {part.name}')
-                parts.append(':' + part.name)
-                params[part.name] = statement.params[part.name]
-            else:
-                raise TypeError('Unsupported SQL statement part')
-        return CompiledQuery(sqlite_ilike(''.join(parts)), params, statement.columns,
-                             dialect=self.dialect, binding=self.binding,
-                             environment=statement.environment)
 
     def validate(self, query):
         if not isinstance(query, CompiledQuery):
@@ -86,6 +63,11 @@ class SqliteDriver:
         self.validate(query)
         if not connection.in_transaction:
             connection.execute('BEGIN IMMEDIATE')
+        elif query.for_update:
+            if not query.lock_table or not query.lock_column:
+                raise ValueError('A locked SQLite query requires a physical table and column')
+            # Acquire the write reservation without changing rows or ending the transaction.
+            connection.execute(f'UPDATE {query.lock_table} SET {query.lock_column}={query.lock_column} WHERE 0')
         params = {name: self._value(value) for name, value in query.params.items()}
         cursor = connection.execute(query.sql, params)
         try:

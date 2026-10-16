@@ -144,14 +144,14 @@ def test_package_source_exports_the_declared_table():
     assert len(model.tables) == 1
     table = next(iter(model.tables.values()))
     physical = SqlMigrationRenderer(builder).render()['root']['schemas']
-    assert physical[table.physical_schema]['tables'][table.physical_name]['columns']['id']['attributes']['dtype'] == 'L'
+    assert physical[table.sqlschema]['tables'][table.sqlname]['columns']['id']['attributes']['dtype'] == 'L'
 
 
 def test_direct_declarations_also_work_on_legacy_schema_tables():
     builder = SqlBuilder()
     table = builder.source.db('d').schemas().schema('public').tables().table('customer', pkey='id')
     table.column('id', dtype='L')
-    assert resolve_model(builder).table('public.customer').pkey == ('id',)
+    assert resolve_model(builder).table('public.customer').pkey == 'id'
 
 
 def test_column_groups_do_not_change_shared_grammar_or_other_columns():

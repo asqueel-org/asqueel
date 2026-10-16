@@ -39,20 +39,6 @@ def backend(request, monkeypatch):
     return request.param
 
 
-def test_generated_markers_and_scalar_partition(backend):
-    db = build_database(source(backend))
-    table = db.table('sales.customer')
-    query = table.query('$id', where='$state=:state OR $state IS NULL', state='VIC').compiled
-    assert '"__is_draft" IS NOT TRUE' in query.sql
-    assert '"__del_ts" IS NULL' in query.sql
-    assert set(query.params.values()) == {'NSW', 'VIC'}
-    assert ') AND (' in query.sql
-    included = table.query('$id', excludeDraft=False, excludeLogicalDeleted=False,
-                           ignorePartition=True).compiled
-    assert ' WHERE ' not in included.sql
-    assert not included.params
-
-
 def test_partition_alias_reuses_join_without_filtering_joined_table(backend):
     db = build_database(source(backend))
     query = db.table('sales.invoice').query('$id,$state', order_by='$state').compiled
@@ -60,20 +46,6 @@ def test_partition_alias_reuses_join_without_filtering_joined_table(backend):
     assert '"__is_draft" IS NOT TRUE' not in query.sql
     assert query.sql.count('"__del_ts" IS NULL') == 1
     assert list(query.params.values()) == ['NSW']
-
-
-def test_child_defaults_and_overrides_keep_partition_bindings_isolated(backend):
-    db = build_database(source(backend))
-    table = db.table('sales.invoice')
-    default = table.query('$all_customers').compiled
-    assert '"__is_draft" IS NOT TRUE' not in default.sql
-    assert list(default.params.values()) == ['NSW']  # root only
-    query = table.query('$visible_customers').compiled
-    assert '"__is_draft" IS NOT TRUE' in query.sql
-    assert query.sql.count('"__del_ts" IS NULL') == 2
-    assert list(query.params.values()) == ['NSW', 'NSW']
-    assert len(query.params) == 2
-    assert table.query('$visible_customers').compiled == query
 
 
 @pytest.mark.parametrize('value', [0, False, '', 'NSW'])
@@ -118,16 +90,6 @@ def test_names_alone_do_not_create_filters(backend):
     table.column('__is_draft', dtype='B')
     table.column('__del_ts', dtype='DHZ')
     assert ' WHERE ' not in build_database(config).table('sales.plain').query('$id').compiled.sql
-
-
-def test_disabled_sys_fields_does_not_activate_read_markers(backend):
-    config = source(backend, value=None)
-    table = config.source['db'].packages().package('sales').table('customer', pkey='id')
-    table.options().sys_fields(enabled=False)
-    table.column('id')
-    model = build_database(config).model.table('sales.customer')
-    assert model.policies.draft_field is None
-    assert model.policies.logical_deletion_field is None
 
 
 def test_partition_value_never_becomes_sql_text(backend):

@@ -14,7 +14,7 @@ from importlib import import_module
 from .builder import SqlBuilder
 from .application import AsqueelDb, SqlDatabase
 from .application_table import (
-    SqlTable, SqlColumn, SqlRelation, SqlQuery, SqlRecord,
+    SqlTable, SqlQuery, SqlRecord,
     RecordNotFoundError, RecordMultipleRowsError,
 )
 from .configuration import SqlDatabaseConfig, ConfigurationView, build_database
@@ -49,7 +49,7 @@ __version__ = "0.6.0"
 __all__ = [
     "Schema", "Package", "Option", "Declaration", "model_to_json", "model_from_json",
     "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
-    "SqlTable", "SqlColumn", "SqlRelation", "SqlQuery", "SqlRecord",
+    "SqlTable", "SqlQuery", "SqlRecord",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
     "Column", "CompiledQuery", "QueryResult", "Relation", "ResolvedModel",

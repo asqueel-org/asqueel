@@ -9,7 +9,6 @@ import re
 from typing import Any
 
 from ..contracts import CompiledQuery, QueryResult
-from ..query_plan import Parameter, SqlStatement
 from .result import query_result
 
 
@@ -26,28 +25,6 @@ class PsycopgDriver:
         from .sql import prepare_text
         return prepare_text(self, sql, sqlargs, snapshot)
 
-    def prepare(self, statement: SqlStatement) -> CompiledQuery:
-        if not isinstance(statement, SqlStatement):
-            raise TypeError('prepare requires a SqlStatement')
-        if statement.dialect != self.dialect:
-            raise ValueError(f'Unsupported SQL dialect: {statement.dialect!r}')
-        text = []
-        params: dict[str, Any] = {}
-        for part in statement.parts:
-            if isinstance(part, str):
-                text.append(part.replace('%', '%%'))
-            elif isinstance(part, Parameter):
-                if not isinstance(part.name, str) or not _PARAMETER_NAME.fullmatch(part.name):
-                    raise ValueError(f'Invalid parameter name: {part.name!r}')
-                if part.name not in statement.params:
-                    raise ValueError(f'Missing parameter: {part.name}')
-                text.append(f'%({part.name})s')
-                params[part.name] = statement.params[part.name]
-            else:
-                raise TypeError(f'Unsupported SQL statement part: {type(part).__name__}')
-        return CompiledQuery(''.join(text), params, statement.columns,
-                             dialect=self.dialect, binding=self.binding,
-                             environment=statement.environment)
 
     def validate(self, query: CompiledQuery) -> None:
         if not isinstance(query, CompiledQuery):

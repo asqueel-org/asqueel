@@ -23,6 +23,7 @@ class SqlCompiledQuery:
     limit: int | None = None
     offset: int | None = None
     for_update: bool = False
+    lock_column: str | None = None
     relationDict: dict[str, str] = field(default_factory=dict)
     aliasDict: dict[str, str] = field(default_factory=dict)
     params: dict = field(default_factory=dict)

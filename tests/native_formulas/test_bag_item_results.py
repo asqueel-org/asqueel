@@ -43,7 +43,7 @@ def db():
 
 
 def read(db, columns, id=1):
-    return db.table('item').query(columns, where='$id=:id', id=id).fetch()[0]
+    return db.table('app.item').query(columns, where='$id=:id', id=id).fetch()[0]
 
 
 def test_exact_text_numeric_attribute_position_and_first_match(db):
@@ -75,14 +75,14 @@ def test_alias_dependencies_and_correlated_subquery_keep_values(db):
     assert dict(read(db, '$weight,$alias,$total')) == dict(
         weight=Decimal('12.5'), alias=Decimal('12.5'), total=Decimal('34.45'))
     assert dict(read(db, '$related,$nested', id=2)) == dict(related=Decimal('12.5'), nested=Decimal('12.5'))
-    query = db.table('item').query('$weight, @parent_id.weight AS parent',
+    query = db.table('app.item').query('$weight, @parent_id.weight AS parent',
         where='$id=:calculated_path', calculated_path=5)
     assert dict(query.fetch()[0]) == dict(weight=0, parent=Decimal('12.5'))
     assert dict(query.fetch()[0]) == dict(weight=0, parent=Decimal('12.5'))
 
 
 def test_where_order_group_and_distinct_count_use_extraction(db):
-    table = db.table('item')
+    table = db.table('app.item')
     query = table.query('$id,$weight', where='$weight IS NOT NULL', order_by='$weight DESC')
     assert [dict(row) for row in query.fetch()] == [dict(id=1, weight=Decimal('12.5')), dict(id=5, weight=0)]
     grouped = table.query('$weight,COUNT(*) AS n', where='$weight IS NOT NULL',
@@ -95,7 +95,7 @@ def test_where_order_group_and_distinct_count_use_extraction(db):
 def test_bad_xml_and_bad_cast_remain_database_errors(db, xml):
     import psycopg
     quote = db.dialect.quote_identifier
-    schema = db.model.table('app.item').physical_schema
+    schema = db.model.table('app.item').sqlschema
     try:
         db.execute(f'UPDATE {quote(schema)}.app_item SET payload=:xml WHERE id=1', {'xml': xml})
         with pytest.raises(psycopg.DataError):

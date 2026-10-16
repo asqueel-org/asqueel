@@ -4,7 +4,6 @@ import pytest
 from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.configuration import _copy_recipe, _owned_handler
 from asqueel.model import resolve_model
-from asqueel.model_codec import model_from_json, model_to_json
 
 
 def source():
@@ -33,16 +32,16 @@ def test_gep_bindings_and_filtered_relations_are_preserved():
         condition='$total>0')
     for builder in (b, _copy_recipe(b), _owned_handler(b).builder):
         assert builder.validate_source() == []
-        model = model_from_json(model_to_json(resolve_model(builder)))
-        attrs = model.table('app.customer').relations['selected_invoices'].attributes
+        model = resolve_model(builder)
+        attrs = model.table('app.customer')['virtualrelation_selected_invoices'].attributes
         assert attrs['condition'] == '$total>:var_min AND $year=:ask_year'
         assert attrs['var_min'] == '$id + 1'
         assert attrs['ask'] == {'title': 'Year', 'fields': [{'name': 'year', 'dtype': 'I'}]}
         assert not {'order_by', 'limit', 'one_one'} & attrs.keys()
-        assert model.table('app.customer').relations['nested'].target == 'app.invoice'
+        assert model.table('app.customer')['virtualrelation_nested'].attributes['relation'] == '@direct_invoices'
         # The ordinary inverse remains; no virtual relation appears on the target.
-        assert model.table('app.customer').relations['invoices'].kind == 'inverse'
-        assert not any(r.kind == 'virtual' for r in model.table('app.invoice').relations.values())
+        assert model.table('app.customer').relations.get_node('@invoices').attr['joiner']['mode'] == 'M'
+        assert not any(r.tag == 'virtualRelation' for r in model.table('app.invoice').values())
     physical = SqlMigrationRenderer(b).render()['root']['schemas']['public']['tables']
     assert not physical['app_customer']['relations']
     assert len(physical['app_invoice']['relations']) == 1

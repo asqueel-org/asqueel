@@ -12,7 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from asqueel import Column, PostgresCompiler, Relation, ResolvedModel, Table
+from asqueel import SqlDatabaseConfig, resolve_model
 
 
 def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype():
@@ -42,17 +42,16 @@ def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype(
     assert original.attributes['name_long'] == 'Original'
     assert alias_attributes['tag'] == 'aliasColumn'
 
-    target = Table('customer', pkey=('id',), columns={
-        'id': Column('id', dtype='I', attributes=original.attributes),
-    })
-    source = Table('source', columns={
-        'customer_id': Column('customer_id', dtype='I'),
-        'identifier': Column('identifier', relation_path='@customer.id',
-                             attributes={'name_long': 'Customer identifier'}),
-    }, relations={'customer': Relation('customer', target.key, ('customer_id',), ('id',))})
-    modern = PostgresCompiler(ResolvedModel({source.key: source, target.key: target}))
-    modern_alias = modern.model.table('source').columns['identifier']
+    config = SqlDatabaseConfig()
+    pkg = config.source.db('aliases').packages().package('app')
+    target = pkg.table('customer', pkey='id')
+    target.column('id', dtype='I', name_long='Original', x_legacy_format='#,###')
+    source = pkg.table('source')
+    source.column('customer', dtype='I').relation('app.customer.id')
+    source.aliasColumn('identifier', relation_path='@customer.id', name_long='Customer identifier')
+    modern_alias = resolve_model(config).table('app.source').column('identifier')
     assert modern_alias.dtype == alias.dtype
-    for key in ('dtype', 'name_long', 'format'):
+    for key in ('dtype', 'name_long'):
         assert modern_alias.attributes[key] == alias.attributes[key]
+    assert modern_alias.attributes['x_legacy_format'] == alias.attributes['format']
     assert modern_alias.relation_path == alias.relation_path

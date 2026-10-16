@@ -86,3 +86,21 @@ def test_bag_sqlite_explicitly_unsupported():
     with tree_database(source('sqlite')) as db:
         with pytest.raises(UnsupportedFeatureError, match='XPath'):
             db.table('app.item').query('$weight').compiled
+
+
+@pytest.mark.parametrize('implementation', ['postgresql', 'sqlite'])
+@pytest.mark.parametrize('bag_fields', [False, True])
+def test_locked_star_includes_x_fields_as_legacy(implementation, bag_fields):
+    # gnrsqldata/query.py: self.bagFields = bagFields or for_update.
+    from tests.object_tree.test_minimal_select import recipe, bind
+
+    source, table = recipe(implementation)
+    table.column('payload', dtype='X')
+    with bind(source) as db:
+        query = db.table('sales.invoice').query('*', for_update=True, bagFields=bag_fields)
+        assert 'payload' in [column.name for column in query.compiled.columns]
+        ordinary = db.table('sales.invoice').query('*').compiled
+        assert 'payload' not in [column.name for column in ordinary.columns]
+        explicit = db.table('sales.invoice').query('$id', for_update=True).compiled
+        assert [column.name for column in explicit.columns] == ['id']
+        assert db._connections == {}

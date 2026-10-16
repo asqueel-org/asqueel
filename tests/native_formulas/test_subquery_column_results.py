@@ -35,11 +35,11 @@ def db(request, tmp_path_factory):
                 db.execute('CREATE SCHEMA ' + quote(schema))
             for table in db.model.tables.values():
                 columns = ','.join(
-                    f'{quote(c.physical_name)} {SQL_TYPES.get(c.dtype, "TEXT")}'
+                    f'{quote(c.sqlname)} {SQL_TYPES.get(c.dtype, "TEXT")}'
                     for c in table.columns.values()
-                    if not c.is_virtual
+
                 )
-                db.execute(f'CREATE TABLE {quote(schema)}.{quote(table.physical_name)} ({columns})')
+                db.execute(f'CREATE TABLE {quote(schema)}.{quote(table.sqlname)} ({columns})')
             for id, parent in [(1, None), (2, 1), (3, None), (99, None)]:
                 db.execute(
                     f'INSERT INTO {quote(schema)}.app_owner(id,parent_id) VALUES (:id,:parent)',
@@ -73,7 +73,7 @@ def db(request, tmp_path_factory):
 
 
 def read(db, columns, id=1, **kwargs):
-    return db.table('owner').query(columns, where='$id=:id', id=id, **kwargs).fetch()[0]
+    return db.table('app.owner').query(columns, where='$id=:id', id=id, **kwargs).fetch()[0]
 
 
 def test_scalar_alias_dependency_null_and_locals_match_values(db):
@@ -81,7 +81,7 @@ def test_scalar_alias_dependency_null_and_locals_match_values(db):
     assert dict(row) == dict(maximum=30, max_alias=30, dependent=150, twice=120, triple=180)
     assert dict(read(db, '$maximum,$twice', id=3)) == dict(maximum=None, twice=None)
     assert read(db, '$other_mode')['other_mode'] == 30
-    query = db.table('owner').query(
+    query = db.table('app.owner').query(
         '$id,$maximum', where='$maximum>:minimum', minimum=15, order_by='$maximum DESC'
     )
     assert [dict(row) for row in query.fetch()] == [{'id': 99, 'maximum': 60}, {'id': 1, 'maximum': 30}]

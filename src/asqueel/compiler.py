@@ -1,220 +1,536 @@
-"""Resolve the native asqueel expression profile into driver-independent query plans.
+"""Legacy SELECT algorithm over DbTableObj.relations, without descriptor plans.
 
-The data dialect owns SQL tokenization and rendering. Binding formatters own
-placeholder syntax and escaping. Authored SQL fragments remain trusted code.
+Reference: fa35e5ad compiledQuery/getFieldAlias/_findRelationAlias/
+_getRelationAlias. The agreed exception is many-side traversal: no exploding
+rows or implicit DISTINCT. Many operations are recognized, but have no handlers.
 """
-from __future__ import annotations
-
-import re
 from collections.abc import Collection, Mapping
+from copy import deepcopy
 from dataclasses import replace
+import re
 
-from ._compiler_bindings import _Bindings
-from ._legacy_sql import _bag_item_path, _in_range
-from .contracts import (CompiledQuery, EnvironmentBinding, ResolvedModel, ResultColumn,
-                        UnsupportedFeatureError)
+from ._legacy_sql import FieldReferences, embed_field_parameters, projection_columns, split_sql, _bag_item_path, _in_range
+from .contracts import EnvironmentBinding, ResultColumn, UnsupportedFeatureError
 from .environment import SqlEnvironment
-from .dialects.base import DataDialect
-from .drivers.base import BindingFormatter
-from .model import (
-    _formula_definition, _formula_parameters, _resolve_aliases, _unique_target,
-    _subquery_definition, validate_row_policies,
-)
-from .model_sections import thaw
-from .query_plan import (
-    _IDENT, _PARAM, Assignment, Identifier, Join, Projection, QueryPlan,
-    SqlStatement, TableRef, _column_reference, concat, separated,
-)
+from .object_tree import DbModel
+from .model import column_ui, _formula_definition, _formula_parameters, _subquery_definition, _parse_row_policies
+from ._sql_bindings import SqlBindings
+from .sql_compiled_query import SqlCompiledQuery
 
-_FIELD = re.compile(r"\$(" + _IDENT + r")")
-_PATH = re.compile(r"@(" + _IDENT + r"(?:\.@?" + _IDENT + r")*\." + _IDENT + r")")
-_THIS = re.compile(r"#THIS\.(@?" + _IDENT + r"(?:\.@?" + _IDENT + r")*)")
-_MACRO = re.compile(r"#(" + _IDENT + r")")
-# Legacy grammar: simple field/path/parameter operands, not arbitrary SQL calls.
-_IN_RANGE = re.compile(
-    r"#IN_RANGE\s*\(\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*"
-    r"((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*\)")
+
+# New, explicitly agreed call boundary. It does not replace legacy field parsing.
+_MANY_CALL = re.compile(r'(@\w+(?:\.@?\w+)*)\.(\w+)\s*\(')
+_CALL_BOUNDARIES = re.compile(r"'[^']*'|\"[^\"]*\"|[()]")
+_THIS = re.compile(r'#THIS\.([\w\.@]+)')
+_IN_RANGE = re.compile(r"#IN_RANGE\s*\(\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*\)\s*", re.MULTILINE)
 _PERIOD = re.compile(r"#PERIOD\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*,\s*:?(\w+)\)")
+_COLREL = re.compile(r'([@$]\w+(?:\.\w+)*)')
 
 
-def _replace_macro(expression, pattern, replacement, tokens):
-    # Unlike the legacy whole-string regex, preserve quoted SQL and comments.
-    return ''.join(pattern.sub(replacement, text) if kind == 'code' else text
-                   for kind, text in _runs(expression, tokens))
-
-
-def distinct_ordering(context, projections, order_by):
-    """Reject a DISTINCT ORDER BY item that is not one of the projected columns (R18, D10).
-
-    DISTINCT removes rows before ORDER BY, so a sort key outside the projection
-    has no single value per result row.
-    """
-    aliases = {projection.alias for projection in projections}
-    expressions = [projection.expression for projection in projections]
-    for item in _split(order_by, context.dialect.tokens):
-        term = re.sub(r'(?i)\s+NULLS\s+(?:FIRST|LAST)$', '', item.strip()).strip()
-        term = re.sub(r'(?i)\s+(?:ASC|DESC)$', '', term).strip()
-        if re.fullmatch(_IDENT, term) or re.fullmatch(r'"(?:[^"]|"")+"', term):
-            name = term[1:-1].replace('""', '"') if term.startswith('"') else term
-            if name in aliases:
-                continue
-        elif context.expression(term) in expressions:
-            continue
-        raise UnsupportedFeatureError(
-            f'ORDER BY {item!r} with distinct must be a projected alias or expression')
-
-
-def quote_identifier(name: str) -> str:
-    """Legacy convenience: PostgreSQL quoting followed by psycopg escaping.
-
-    New code should use the dialect and formatter boundaries explicitly.
-    This result assumes execution with a parameter mapping, even when empty.
-    """
-    from .dialects.postgres import PostgresDialect
-    from .drivers.psycopg import PsycopgDriver
-
-    dialect = PostgresDialect()
-    statement = SqlStatement((dialect.quote_identifier(name),), dialect=dialect.name)
-    return PsycopgDriver().prepare(statement).sql
-
-
-def _characters(sql, tokens):
-    # Dialects may emit either contiguous code or individual code characters.
-    for kind, value in tokens(sql):
-        if kind == 'code':
-            yield from (('code', char) for char in value)
-        else:
-            yield kind, value
-
-
-def _runs(sql, tokens):
-    buffer = []
-    for kind, value in tokens(sql):
-        if kind == 'code':
-            buffer.append(value)
-        else:
-            if buffer:
-                yield 'code', ''.join(buffer)
-                buffer.clear()
-            yield kind, value
-    if buffer:
-        yield 'code', ''.join(buffer)
-
-
-def _split(sql: str, tokens) -> list[str]:
-    values: list[str] = []
-    current: list[str] = []
-    depth = 0
-    for kind, value in _characters(sql, tokens):
-        if kind == 'code':
-            if value in '([':
-                depth += 1
-            elif value in ')]':
-                depth -= 1
-                if depth < 0:
-                    raise ValueError('Unbalanced expression')
-            elif value == ',' and depth == 0:
-                values.append(''.join(current).strip())
-                current.clear()
-                continue
-        current.append(value)
-    if depth:
-        raise ValueError('Unbalanced expression')
-    values.append(''.join(current).strip())
-    if any(not value for value in values):
-        raise ValueError('Empty projection or expression')
-    return values
-
-
-def _reference(expression):
-    if match := _FIELD.fullmatch(expression):
-        return match.group(1)
-    if re.fullmatch(r'\$"(?:[^"]|"")+"', expression):
-        return expression[2:-1].replace('""', '"')
-    return None
-
-
-def _projection_alias(expression, tokens):
-    # Locate AS only outside protected tokens and nested expressions (CAST AS).
-    masked = ''.join(value if kind == 'code' else ' ' * len(value)
-                     for kind, value in tokens(expression))
-    depth = 0
-    candidates = []
-    for index, char in enumerate(masked):
-        if char in '([':
-            depth += 1
-        elif char in ')]':
-            depth -= 1
-        elif depth == 0 and re.match(r'(?i)\bAS\s', masked[index:]) and (
-                index == 0 or not (masked[index - 1].isalnum() or masked[index - 1] == '_')):
-            candidates.append(index)
-    if not candidates:
-        return expression.strip(), None
-    index = candidates[-1]
-    alias = expression[index + 2:].strip()
-    if re.fullmatch(_IDENT, alias):
-        return expression[:index].strip(), alias
-    if re.fullmatch(r'"(?:[^"]|"")+"', alias):
-        return expression[:index].strip(), alias[1:-1].replace('""', '"')
-    raise ValueError('A projection alias must be one SQL identifier')
-
-
-class _Context:
-    def __init__(self, model, table, params, dialect, snapshot, joins=True,
-                 *, parent=None, outer=None, namespace='', bindings=None, db=None):
+class _TreeContext:
+    def __init__(self, model, table, params, dialect, snapshot, *, parent=None,
+                 alias_prefix='t', bindings=None):
         self.model, self.table = model, table
         self.dialect, self.snapshot = dialect, snapshot
-        self.bindings = bindings if bindings is not None else _Bindings(params, dialect, snapshot)
-        self.environment_keys = self.bindings.environment_keys
-        self.policy_parameter_index = 0
-        self.joins = {}
-        self.allow_joins = joins
-        self.formulas = parent.formulas if parent else set()
+        self.bindings = bindings if bindings is not None else SqlBindings(params)
+        self.params = self.bindings.params
+        self.input_origins = self.bindings.inputs
+        self.consumed_inputs = self.bindings.consumed
+        self.environment_keys = parent.environment_keys if parent else set()
+        self.parent = parent
+        self.alias_prefix = alias_prefix
+        self.basealias = alias_prefix + '0'
+        self.active_formulas = parent.active_formulas if parent else set()
         self.formula_definitions = parent.formula_definitions if parent else {}
-        self.formula_attributes = parent.formula_attributes if parent else {}
-        self.db = parent.db if parent else db
         self.formula_bindings = {}
-        self.namespace = namespace
-        self.basealias = namespace + 't0'
-        self.outer = outer
         self.period_parameters = {}
+        self.policy_parameter_index = 0
+        self.references = FieldReferences()
+        self.aliases = {self.sql_fullname(table): self.basealias}
+        self.cpl: SqlCompiledQuery = SqlCompiledQuery(self.sql_fullname(table), maintable_as=self.basealias, dialect=dialect.name)
+        self.cpl.relationDict = self.references.paths
+
+    def sql_fullname(self, table):
+        quote = self.dialect.quote_identifier
+        return '.'.join(quote(name) for name in (table.sqlschema, table.sqlname) if name)
 
     @staticmethod
-    def table_ref(table, alias='t0'):
-        return TableRef(table.physical_schema, table.physical_name, alias)
+    def physical_column(table, name):
+        column = table.columns.get(name)
+        if column is not None:
+            return column
+        if name in table.virtual_columns or name in table.composites:
+            raise UnsupportedFeatureError(
+                f'{table.fullname}.{name}: virtual/composite columns are not connected yet')
+        raise ValueError(f'Unknown column {table.fullname}.{name}')
 
-    def environment_binding(self):
-        if not self.environment_keys:
-            return None
-        keys = tuple(sorted(self.environment_keys))
-        return EnvironmentBinding(keys, {k: self.snapshot[k] for k in keys if k in self.snapshot})
+    def field(self, table, alias, name):
+        column = self.physical_column(table, name)
+        quote = self.dialect.quote_identifier
+        return '%s.%s' % (quote(alias), quote(column.sqlname))
 
-    def _period(self, match):
-        """Legacy expandPeriod predicates, using Toolbox's existing decoder."""
+    def get_field_alias(self, path, curr=None, basealias=None, parent=None):
+        """getFieldAlias: traverse relations, then physical field or alias recursion."""
+        curr = self.table.relations if curr is None else curr
+        basealias = basealias or self.basealias
+        *pathlist, name = path.removeprefix('$').split('.')
+        if pathlist:
+            basealias, curr = self._find_relation_alias(
+                list(pathlist), curr, basealias, [], parent)
+        table = self.model.table(curr.tbl_name, pkg=curr.pkg_name)
+        column = table.virtual_columns.get(name)
+        if column is None:
+            return self.field(table, basealias, name)
+        key = (table.fullname, name)
+        if key in self.active_formulas:
+            raise ValueError(f'Cyclic formula/alias: {table.fullname}.{name}')
+        self.active_formulas.add(key)
+        try:
+            if column.attributes.get('relation_path'):
+                return self.get_field_alias(column.attributes['relation_path'], curr,
+                                            basealias, '.'.join(pathlist))
+            return self.formula(table, column, curr, basealias)
+        finally:
+            self.active_formulas.remove(key)
+
+    def formula_definition(self, table, column):
+        """Legacy method -> attributes -> select_* -> var_*, on a local copy."""
+        key = (table.fullname, column.name)
+        if key not in self.formula_definitions:
+            attrs = deepcopy(column.attributes)
+            if column.tag == 'bagItemColumn':
+                attrs['sql_formula'] = self.dialect.bag_item_formula(attrs['bagcolumn'], column.dtype)
+                attrs['var_calculated_path'] = _bag_item_path(attrs['itempath'])
+                definition = _formula_definition(attrs, column.fullname)
+            elif column.tag == 'subQueryColumn':
+                if attrs.get('mode') == 'xml' and isinstance(attrs.get('query'), str):
+                    raise UnsupportedFeatureError(
+                        f'{column.fullname}: legacy XML subQueryColumn requires a query mapping')
+                definition = (None, _subquery_definition(attrs.get('query'), column.fullname), None, {})
+            elif column.tag == 'formulaColumn':
+                if attrs.get('subqueries') or attrs.get('handler') is not None:
+                    raise UnsupportedFeatureError(f'{column.fullname}: use existing select_* declarations')
+                if attrs.get('sql_formula') is True:
+                    name = 'sql_formula_' + column.name
+                    method = getattr(table.dbtable, name, None)
+                    if not callable(method):
+                        raise UnsupportedFeatureError(f'{column.fullname}: missing table method {name}(attr)')
+                    attrs['sql_formula'] = method(attrs)
+                    if not isinstance(attrs['sql_formula'], str) or not attrs['sql_formula'].strip():
+                        raise ValueError(f'{column.fullname}: {name}(attr) must return nonempty SQL')
+                definition = _formula_definition(attrs, column.fullname)
+            else:
+                raise UnsupportedFeatureError(f'{column.fullname}: {column.tag} is not connected yet')
+            self.formula_definitions[key] = definition, attrs
+        return self.formula_definitions[key]
+
+    def formula(self, table, column, curr, alias):
+        (formula, select, exists, subqueries), attrs = self.formula_definition(table, column)
+        key = (table.fullname, alias, column.name)
+        if key not in self.formula_bindings:
+            values = _formula_parameters(column.fullname, **attrs)
+            self.formula_bindings[key] = self.bindings.child(values, 'f') if values else self.bindings
+        bindings = self.formula_bindings[key]
+        if select is not None or exists is not None:
+            formula = '#default' if select is not None else 'EXISTS(#default)'
+            subqueries = {'default': select if select is not None else exists}
+        # Bind the authored expression before inserting children: their local
+        # names already belong to their own scope and must never be remangled.
+        formula = self.expand_many_operations(formula, curr=curr)
+        formula = bindings.substitute(formula)
+        for name, definition in subqueries.items():
+            aggregate = attrs.get('mode') if column.tag == 'subQueryColumn' else None
+            query = self.subquery(definition, curr, alias, bindings,
+                                  exists=exists is not None, aggregate=aggregate,
+                                  row_alias=f'{table.fullname.replace(".", "_")}_{column.name}_{aggregate}')
+            formula = re.sub('#' + re.escape(name) + r'\b', lambda m: query, formula)
+        # Legacy discovers formula dependencies locally, resolving against the
+        # column owner rather than treating them as fields of the root table.
+        formula = _THIS.sub(lambda m: self.get_field_alias(m[1], curr, alias), formula)
+        refs = FieldReferences()
+        formula = refs.discover(formula)
+        formula = _IN_RANGE.sub(self.expand_in_range, formula)
+        self._check_macros(formula)
+        refs.resolve(lambda path: self.get_field_alias(path, curr, alias))
+        return f'( {refs.substitute(formula, safe=True)} )'
+
+    def subquery(self, definition, owner, alias, bindings, *, exists=False,
+                 aggregate=None, row_alias=None):
+        """getFieldAlias select_* branch: correlated child, same SELECT compiler."""
+        if isinstance(definition, str):
+            name = 'subquery_' + definition
+            method = getattr(self.table.dbtable, name, None)
+            if not callable(method):
+                raise UnsupportedFeatureError(f'{self.table.fullname}: missing table method {name}()')
+            definition = method()
+            if not isinstance(definition, Mapping):
+                raise ValueError(f'{name} must return a subquery mapping')
+            definition = _subquery_definition(definition, f'{self.table.fullname}.{name}')
+        if not isinstance(definition, Mapping):
+            raise ValueError('A subquery must be a mapping')
+        options = deepcopy(dict(definition))
+        for old, new in (('excludeDraft', 'exclude_draft'),
+                         ('excludeLogicalDeleted', 'exclude_logical_deleted'),
+                         ('ignorePartition', 'ignore_partition')):
+            if old in options:
+                if new in options:
+                    raise ValueError(f'Conflicting subquery options: {old}, {new}')
+                options[new] = options.pop(old)
+        for name, value in [('subtable', '*'), ('addPkeyColumn', False), ('ignoreTableOrderBy', True)]:
+            if name in options and options.pop(name) != value:
+                raise UnsupportedFeatureError(f'Unsupported subquery option: {name}')
+        known = {'table', 'where', 'columns', 'sqlparams', 'cast', 'order_by',
+                 'limit', 'offset', 'distinct', 'group_by', 'having', 'bagFields',
+                 'exclude_draft', 'exclude_logical_deleted', 'ignore_partition'}
+        if options.keys() - known:
+            raise UnsupportedFeatureError(f'Unsupported subquery options: {sorted(options.keys() - known)}')
+        if exists and 'cast' in options:
+            raise UnsupportedFeatureError('Cast applies to scalar subqueries, not EXISTS')
+        table = self.model.table(options.pop('table'))
+        where = options.pop('where')
+        where = _THIS.sub(lambda m: self.get_field_alias(m[1], owner, alias), where)
+        cast = options.pop('cast', None)
+        child_bindings = bindings.child(options.pop('sqlparams', None), 's')
+        child = type(self)(self.model, table, None, self.dialect, self.snapshot,
+                           parent=self, alias_prefix=alias + '_t', bindings=child_bindings)
+        columns = options.pop('columns', '1' if exists else '*')
+        columns = columns if isinstance(columns, str) else ','.join(columns)
+        options.setdefault('exclude_draft', False)
+        options.setdefault('exclude_logical_deleted', False)
+        options.setdefault('ignore_partition', True)
+        plan = child.select_plan(columns, where=where, **options)
+        sql = plan.get_sqltext(self.dialect)
+        if aggregate in ('json', 'xml'):
+            if cast:
+                raise UnsupportedFeatureError('Cast of a row source is not supported for JSON/XML subQueryColumn')
+            return self.dialect.aggregate_sql_subquery(sql, aggregate, row_alias,
+                                                       [c.name for c in plan.result_columns])
+        if not exists and len(projection_columns(child.expanded_columns, self.dialect.as_translator)) != 1:
+            raise ValueError('A scalar subquery requires exactly one result column')
+        return f' CAST( ( {sql} ) AS {cast}) ' if cast else f' ( {sql} ) '
+
+    def _find_relation_alias(self, pathlist, curr, basealias, newpath, parent=None):
+        name = pathlist.pop(0)
+        node = curr.get_node(name)
+        if node is None:
+            raise ValueError(f'Relation {name} not found')
+        alias, newpath = self._get_relation_alias(node, newpath, basealias, parent)
+        curr = curr[name]
+        if pathlist:
+            return self._find_relation_alias(pathlist, curr, alias, newpath,
+                                             f'{parent}.{name}' if parent else name)
+        return alias, curr
+
+    @staticmethod
+    def _is_many(joiner):
+        return joiner['mode'] != 'O' and not joiner.get('one_one', False)
+
+    def _sql_column(self, table, name):
+        # Equivalent to legacy sqlnamemapper lookup, directly on the hierarchy.
+        # In particular an absent physical target remains a KeyError.
+        column = table.columns.get(name)
+        if column is None:
+            raise KeyError(name)
+        return self.dialect.quote_identifier(column.sqlname)
+
+    def _get_relation_alias(self, node, path, basealias, parent=None):
+        """_getRelationAlias, retaining allocation order and physical path keys."""
+        joiner = node.attr['joiner']
+        if self._is_many(joiner):
+            raise UnsupportedFeatureError(f'{node.label}: many relation not yet supported')
+        newpath = path + [joiner['many_relation'].split('.', 1)[-1]]
+        key = tuple(newpath + [basealias])
+        if key in self.aliases:
+            return self.aliases[key], newpath
+        alias = f'{self.alias_prefix}{len(self.aliases)}'
+        self.aliases[key] = alias
+        target, origin = ((joiner['one_relation'], joiner['many_relation'])
+                          if joiner['mode'] == 'O' else
+                          (joiner['many_relation'], joiner['one_relation']))
+        target_table, from_table = self.model.table(target), self.model.table(origin)
+        target_column, from_column = target.split('.')[-1], origin.split('.')[-1]
+        pairs = []
+        target_sqlcolumn = None
+        from_sqlcolumn = (self._sql_column(from_table, from_column)
+                          if not joiner.get('virtual') else None)
+        if from_sqlcolumn:
+            pairs.append((from_sqlcolumn, self._sql_column(target_table, target_column)))
+        elif from_column in from_table.composites:
+            from_columns = from_table.composites[from_column].attributes['columns']
+            target_columns = target_table.column(target_column).attributes.get('columns')
+            if not target_columns:
+                raise ValueError('Relation with multikey works only with compositeColumns')
+            pairs = list(zip(
+                (self._sql_column(from_table, c) for c in from_columns.split(',')),
+                (self._sql_column(target_table, c) for c in target_columns.split(','))))
+        else:
+            target_sqlcolumn = self._sql_column(target_table, target_column)
+        quote = self.dialect.quote_identifier
+        adapted_alias, adapted_base = quote(alias), quote(basealias)
+        # Native joiners include absent keys with None. Never mutate the shared joiner.
+        condition = joiner.get('join_on') or joiner.get('cnd')
+        if condition:
+            pass
+        elif joiner.get('between'):
+            value, low, high = joiner['between'].split(';')
+            condition = f"""
+                ({low} IS NULL AND {high} IS NOT NULL AND {value}<{high}) OR
+                ({low} IS NOT NULL AND {high} IS NULL AND {value}>={low}) OR
+                ({low} IS NOT NULL AND {high} IS NOT NULL AND
+                    {value} >= {low} AND {value} < {high}) OR
+                ({low} IS NULL AND {high} IS NULL)
+            """
+        elif joiner.get('case_insensitive') == 'Y':
+            condition = f'lower({adapted_alias}.{target_sqlcolumn}) = lower({adapted_base}.{from_sqlcolumn})'
+        elif pairs:
+            condition = ' AND '.join(f'({adapted_base}.{left})={adapted_alias}.{right}'
+                                     for left, right in pairs)
+        else:
+            condition = f'(${from_column})={adapted_alias}.{target_sqlcolumn}'
+        self._check_macros(condition)
+        if parent:
+            condition = _COLREL.sub(lambda m: parent + '.' + m[0].replace('$', ''), condition)
+        condition = self.expand_many_operations(condition)
+        condition = self.bindings.substitute(condition)
+        joinrefs = FieldReferences()
+        condition = joinrefs.discover(condition)
+        for field in joinrefs.paths.values():
+            self.get_field_alias(field)
+        self.references.paths.update(joinrefs.paths)
+        self.cpl.joins.append(
+            f'LEFT JOIN {self.sql_fullname(target_table)} AS {adapted_alias} ON ({condition})')
+        return alias, newpath
+
+    def _dispatch_many_operation(self, relation, operation, arguments):
+        """Dispatch only; no many_* handler is implemented in this phase."""
+        handler = getattr(self, f'many_{operation}', None)
+        if handler is None:
+            raise UnsupportedFeatureError(
+                f'{relation.label}.{operation}(...): many_{operation} not yet supported')
+        return handler(relation, arguments)
+
+    def expand_many_operations(self, expression, *, curr=None):
+        """Recognize relation.operation(arguments) before legacy field discovery.
+
+        Argument text is kept intact: no evaluation, SQL interpretation, or
+        first/last/aggregate semantics. Boundaries accept nested parentheses;
+        the existing legacy split handles commas inside argument expressions.
+        """
+        if not expression:
+            return expression
+        origin = self.table.relations if curr is None else curr
+        for match in _MANY_CALL.finditer(expression):
+            curr = origin
+            segments = match[1].split('.')
+            node = None
+            for index, name in enumerate(segments):
+                node = curr.get_node(name)
+                if node is None:
+                    break
+                many = self._is_many(node.attr['joiner'])
+                if many and index != len(segments) - 1:
+                    raise UnsupportedFeatureError(f'{name}: many relation not yet supported')
+                curr = curr[name]
+            else:
+                if many:
+                    depth = 1
+                    start = match.end()
+                    for boundary in _CALL_BOUNDARIES.finditer(expression, start):
+                        if boundary[0] == '(':
+                            depth += 1
+                        elif boundary[0] == ')':
+                            depth -= 1
+                        if depth == 0:
+                            text = expression[start:boundary.start()]
+                            arguments = tuple(split_sql(text)) if text.strip() else ()
+                            expanded = self._dispatch_many_operation(node, match[2], arguments)
+                            return (expression[:match.start()] + expanded
+                                    + self.expand_many_operations(expression[boundary.end():], curr=origin))
+                    raise ValueError(f'{match[1]}.{match[2]}: missing closing parenthesis')
+        return expression
+
+    @staticmethod
+    def _check_macros(expression):
+        if re.search(r'#[A-Za-z_]\w*', expression or ''):
+            raise UnsupportedFeatureError('Hierarchical macro expansion is not connected yet')
+
+    def result_column(self, field, name):
+        path = self.references.paths[field]
+        column = self.table.column(path)
+        identity = column.attributes.get('x_identity') or column.fullname
+        return ResultColumn(name, column.dtype, identity,
+                            column_ui(column.attributes, column.fullname, identity, None))
+
+    def projection(self, columns):
+        result, metadata = [], []
+        for column in projection_columns(columns, self.dialect.as_translator):
+            parts = split_sql(column, ' AS ')
+            item = None
+            if len(parts) == 2:
+                value, name = parts[0].strip(), parts[-1].strip()
+                if re.fullmatch(r'"(?:[^"]|"")*"', name):
+                    name = name[1:-1].replace('""', '"')
+                elif not re.fullmatch(r'[a-z_][a-z_0-9]*', name):
+                    name = None
+                if name is not None:
+                    field = re.fullmatch(r'\$(\w+)', value)
+                    item = self.result_column(field[1], name) if field else ResultColumn(name)
+            if item is not None:
+                metadata.append(item)
+            else:
+                # Partial metadata cannot be matched reliably to cursor positions.
+                metadata.append(None)
+            result.append(self.references.substitute(column, safe=True))
+        return ',\n'.join(result), tuple(metadata) if all(metadata) else ()
+
+    def select_plan(self, columns='*', where=None, order_by=None, limit=None, offset=None,
+                    *, exclude_draft=True, exclude_logical_deleted=True,
+                    ignore_partition=False, for_update=False, distinct=False,
+                    group_by=None, having=None, bagFields=False, addPkeyColumn=False,
+                    count=False) -> SqlCompiledQuery:
+        for name, value in [('for_update', for_update), ('bagFields', bagFields), ('addPkeyColumn', addPkeyColumn)]:
+            if type(value) is not bool:
+                raise ValueError(f'{name} must be a boolean')
+        if distinct is not None and type(distinct) is not bool:
+            raise ValueError('distinct must be True, False or None')
+        aggregate = bool(distinct or group_by)
+        if for_update and aggregate:
+            raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
+        if group_by == '*':
+            group_by = None
+        # Child SELECTs use ignoreTableOrderBy=True, as in legacy queryCompile.
+        if self.parent is None and not aggregate and order_by is None:
+            order_by = self.table.attributes.get('order_by') or self.table.attributes.get('x_legacy_order_by')
+        if self.table.pkey:
+            self.references.paths['pkey'] = self.table.pkey
+        columns = columns if isinstance(columns, str) else ','.join(columns)
+        columns = columns.replace('  ', ' ').replace('\n', '').replace(' as ', ' AS ').replace(' ,', ',')
+        # Recognize the agreed many-call boundary before split handles columns.
+        columns = self.expand_many_operations(columns)
+        # Legacy SqlQuery includes X fields whenever the read requests a lock.
+        columns = self.expand_columns(columns, bagFields=bagFields or for_update)
+        if count:
+            # Legacy compiledQuery: groups return their keys, DISTINCT retains
+            # its projection; only an ordinary query becomes COUNT(*).
+            order_by = ''
+            if group_by:
+                columns = group_by
+            elif not distinct:
+                columns = 'count(*) AS "gnr_row_count"'
+        elif addPkeyColumn and self.table.pkey and not aggregate:
+            columns += f',${self.table.pkey} AS "pkey"'
+            columns = columns.lstrip(',')
+        if not columns:
+            raise ValueError('SELECT needs result columns')
+        # The legacy expands WHERE macros, adds implicit filters, then embeds
+        # field-valued parameters and discovers every clause's references.
+        if where:
+            where = _IN_RANGE.sub(self.expand_in_range, where)
+            where = _PERIOD.sub(self.expand_period, where)
+        columns, where = self.select_policies(columns, where,
+            exclude_draft=exclude_draft, exclude_logical_deleted=exclude_logical_deleted,
+            ignore_partition=ignore_partition, aggregate=aggregate or count)
+        columns, where, order_by, group_by, having = (
+            self.expand_many_operations(clause)
+            for clause in (columns, where, order_by, group_by, having))
+        for clause in (columns, where, order_by, group_by, having):
+            self._check_macros(clause)
+        self.expanded_columns = columns
+        columns = self.references.discover(columns)
+        if where:
+            where, consumed = embed_field_parameters(where, self.bindings.embed_values, self.table)
+            where = self.expand_many_operations(where)
+            self.consumed_inputs.update(consumed & self.input_origins)
+            where = self.references.discover(where)
+        order_by = self.references.discover(order_by) if order_by else None
+        group_by = self.references.discover(group_by) if group_by else None
+        having = self.references.discover(having) if having else None
+        for column in split_sql(columns):
+            if ' AS ' in column:
+                value, alias = column.split(' AS ', 1)
+                self.cpl.aliasDict[self.dialect.as_translator(alias.strip())] = value.strip()
+        columns = self.bindings.substitute(columns)
+        where = self.bindings.substitute(where) if where else where
+        order_by = self.bindings.substitute(order_by) if order_by else order_by
+        group_by = self.bindings.substitute(group_by) if group_by else group_by
+        having = self.bindings.substitute(having) if having else having
+        self.references.resolve(self.get_field_alias)
+        self.cpl.columns, self.cpl.result_columns = self.projection(columns)
+        self.cpl.where = self.references.substitute(where) if where else ''
+        self.cpl.order_by = self.references.substitute(order_by) if order_by else ''
+        self.cpl.joins = [self.references.substitute(join) for join in self.cpl.joins]
+        self.cpl.group_by = self.references.substitute(group_by) if group_by else ''
+        self.cpl.having = self.references.substitute(having) if having else ''
+        self.cpl.distinct = 'DISTINCT ' if distinct else ''
+        self.cpl.for_update = for_update
+        if for_update and self.table.columns:
+            names = (self.model.physical_columns(self.table, self.table.pkey)
+                     if self.table.pkey else tuple(self.table.columns))
+            self.cpl.lock_column = self.dialect.quote_identifier(self.table.columns[names[0]].sqlname)
+        self.cpl.limit, self.cpl.offset = limit, offset
+        for clause in (self.cpl.columns, self.cpl.where, self.cpl.order_by,
+                       self.cpl.group_by, self.cpl.having, *self.cpl.joins):
+            for name, _ in re.findall(r':env_(\S\w*)(\W|$)', clause):
+                parameter = 'env_' + name
+                if parameter not in self.params:
+                    self.environment_keys.add(name)
+                    self.params[parameter] = self.snapshot.get(name)
+                if parameter in self.input_origins:
+                    self.consumed_inputs.add(parameter)
+        self.cpl.params = self.params
+        if self.environment_keys:
+            keys = tuple(sorted(self.environment_keys))
+            self.cpl.environment = EnvironmentBinding(
+                keys, {k: self.snapshot[k] for k in keys if k in self.snapshot})
+        self.cpl.input_parameters = tuple(sorted(self.consumed_inputs))
+        self.cpl.local_parameters = tuple(sorted(self.bindings.state['generated']))
+        return self.cpl
+
+    def star_columns(self, *, bagFields):
+        """Legacy starColumns: physical fields, then static virtual columns."""
+        return (['$' + name for name, col in self.table.columns.items() if bagFields or col.dtype != 'X']
+                + ['$' + name for name, col in self.table.virtual_columns.items() if col.attributes.get('static')])
+
+    def expand_columns(self, columns, *, bagFields):
+        expanded = []
+        for column in split_sql(columns):
+            column = column.strip()
+            if column == '*':
+                expanded.extend(self.star_columns(bagFields=bagFields))
+            elif column.startswith('*'):
+                raise UnsupportedFeatureError('Wildcard prefixes/paths are not connected; use * or explicit columns')
+            elif column:
+                expanded.append(column)
+        return ','.join(expanded)
+
+    # Approved existing PostgreSQL correction: typed comparisons before IS NULL.
+    # Share the same four-branch helper with the previous compiler, no scanner.
+    expand_in_range = staticmethod(_in_range)
+
+    def expand_period(self, match):
+        """Legacy expandPeriod with the existing Toolbox decoder and allocator."""
         from genro_toolbox.dates import parse_period
-
         field, name = match.groups()
-        self.bindings.resolve(name)
+        if name in self.input_origins:
+            self.consumed_inputs.add(name)
+        if name not in self.bindings.available and name.startswith('env_'):
+            key = name[4:]
+            self.environment_keys.add(key)
+            if key in self.snapshot:
+                self.bindings.available[name] = self.snapshot[key]
+        if name not in self.bindings.available:
+            raise ValueError(f'Missing query parameter: {name}')
         if name not in self.period_parameters:
             if any(key not in self.snapshot for key in ('workdate', 'locale')):
                 raise ValueError('#PERIOD requires workdate and locale in the compilation environment')
             self.environment_keys.update(('workdate', 'locale'))
-            # Legacy accepts None as no period and commas as range separators.
             text = self.bindings.available[name] or ''
             if not isinstance(text, str):
                 raise ValueError('#PERIOD requires a string or an empty period')
-            start, end = parse_period(text.replace(',', ';'), self.snapshot['workdate'],
-                                      self.snapshot['locale'])
-
-            def parameter(suffix, value):
-                if value is None:
-                    return None
-                generated = self.bindings.add(name + suffix, value)
-                return ':' + generated
-
-            lower = parameter('_from', start)
-            upper = parameter('_to', end) if end != start else lower
-            self.period_parameters[name] = (lower, upper)
+            start, end = parse_period(text.replace(',', ';'), self.snapshot['workdate'], self.snapshot['locale'])
+            lower = ':' + self.bindings.add(name + '_from', start) if start is not None else None
+            upper = (lower if end == start else ':' + self.bindings.add(name + '_to', end)) if end is not None else None
+            self.period_parameters[name] = lower, upper
         lower, upper = self.period_parameters[name]
         if lower is None and upper is None:
             return ' true '
@@ -224,626 +540,157 @@ class _Context:
             return f' ({field} BETWEEN {lower} AND {upper}) '
         return f' {field} >= {lower} ' if lower is not None else f' {field} <= {upper} '
 
-    def where(self, expression):
-        """Expand only the legacy WHERE query macros before resolving fields."""
-        if expression is None:
-            return None
-        if not isinstance(expression, str):
-            raise ValueError('Expected nonempty SQL expression')
-        expression = _replace_macro(expression, _IN_RANGE, _in_range, self.dialect.tokens)
-        expression = _replace_macro(expression, _PERIOD, self._period, self.dialect.tokens)
-        return self.expression(expression)
-
     def policy_binding(self, value):
         name = f'__policy_{self.policy_parameter_index}'
         self.policy_parameter_index += 1
-        name = self.bindings.add(name, value)
-        return self.bindings.binding(name)
+        return ':' + self.bindings.add(name, value)
 
-    def policy_field(self, field, *, write=False, allow_alias=False):
-        if field.startswith('@'):
-            if write:
-                raise UnsupportedFeatureError('Relational partition writes require ignore_partition=True in this profile')
-            match = _PATH.fullmatch(field)
-            if match is None:
-                raise ValueError(f'Invalid partition relation path: {field}')
-            expression, owner, name = self.related(match.group(1), self.table, self.basealias)
-        else:
-            name = _reference(field) if field.startswith('$') else field
-            owner = self.table
-            expression = self.field(owner, self.basealias, name)
-        column = owner.columns[name]
-        if allow_alias and column.alias_target is not None:
-            target, target_name = column.alias_target
-            column = self.model.table(target).columns[target_name]
-        if column.is_virtual:
-            raise UnsupportedFeatureError('Row policies require physical columns')
-        return expression, name
+    def policy_field(self, field, *, allow_alias=False, dtype=None):
+        column = self.table.column(field)
+        if column.tag != 'column' or (not allow_alias and field.removeprefix('$') in self.table.virtual_columns):
+            raise ValueError(f'{self.table.fullname}: policy field {field!r} must be a physical column')
+        if dtype and column.dtype != dtype:
+            raise ValueError(f'{self.table.fullname}: draft field must have boolean type')
+        return field if field.startswith(('$', '@')) else '$' + field
 
     @staticmethod
     def scalar(value):
         if isinstance(value, Collection) and not isinstance(value, (str, bytes)):
             raise ValueError('Partition values must be scalars, not nested collections')
-        if isinstance(value, Mapping):
-            raise ValueError('Partition values must be scalars, not mappings')
         return value
 
-    def scope_values(self, scope):
-        keys = [scope.current] + ([scope.allowed] if scope.allowed is not None else [])
-        self.environment_keys.update(keys)
-        has_current = scope.current in self.snapshot
-        has_allowed = scope.allowed is not None and scope.allowed in self.snapshot
-        if not has_current and not has_allowed:
-            raise ValueError(f'Missing partition context for {scope.field}')
-        current = self.scalar(self.snapshot[scope.current]) if has_current else None
-        allowed = None
-        if has_allowed:
-            value = self.snapshot[scope.allowed]
-            if not isinstance(value, Collection) or isinstance(value, (str, bytes, Mapping)):
-                raise ValueError(f'Allowed partition values for {scope.field} must be a collection')
-            allowed = tuple(self.scalar(v) for v in value)
-        return has_current, current, allowed
-
-    def partition_predicates(self, ignore_partition=False, *, write=False):
-        if type(ignore_partition) is not bool:
-            raise ValueError('ignore_partition must be boolean')
+    def partition_conditions(self, policies, ignore_partition):
         if ignore_partition:
             return []
         conditions = []
-        for scope in self.table.policies.partitions:
-            field, _ = self.policy_field(scope.field, write=write)
-            has_current, current, allowed = self.scope_values(scope)
+        # Retain the pre-existing explicit x_partition contract separately from
+        # native options; never infer current_/allowed_ keys for native values.
+        for scope in policies.partitions:
+            field = self.policy_field(scope.field)
+            keys = [scope.current] + ([scope.allowed] if scope.allowed is not None else [])
+            self.environment_keys.update(keys)
+            has_current = scope.current in self.snapshot
+            has_allowed = scope.allowed is not None and scope.allowed in self.snapshot
+            if not has_current and not has_allowed:
+                raise ValueError(f'Missing partition context for {scope.field}')
             if has_current:
-                conditions.append(concat(field, ' IS NULL') if current is None else
-                                  concat(field, ' = ', self.policy_binding(current)))
-            if allowed is not None:
-                if not allowed:
-                    conditions.append(concat('FALSE'))
+                value = self.scalar(self.snapshot[scope.current])
+                conditions.append(f'{field} IS NULL' if value is None else f'{field} = {self.policy_binding(value)}')
+            if has_allowed:
+                values = self.snapshot[scope.allowed]
+                if not isinstance(values, Collection) or isinstance(values, (str, bytes, Mapping)):
+                    raise ValueError(f'Allowed partition values for {scope.field} must be a collection')
+                values = tuple(self.scalar(v) for v in values)
+                if not values:
+                    conditions.append('FALSE')
                     continue
                 terms = []
-                nonnull = [v for v in allowed if v is not None]
+                nonnull = [v for v in values if v is not None]
                 if nonnull:
-                    terms.append(concat(field, ' IN (', separated(self.policy_binding(v) for v in nonnull), ')'))
-                if scope.include_null or None in allowed:
-                    terms.append(concat(field, ' IS NULL'))
-                conditions.append(concat('(', separated(terms, ' OR '), ')'))
-        return conditions
-
-    def native_partition_predicates(self, ignore_partition):
-        """Read the scalar value already resolved by the native model render.
-
-        No current_/allowed_ environment convention is inferred here. These
-        declarations concern SELECT; legacy write lifecycle is a separate step.
-        """
-        if ignore_partition:
-            return []
-        conditions = []
+                    terms.append(f'{field} IN ({", ".join(self.policy_binding(v) for v in nonnull)})')
+                if scope.include_null or None in values:
+                    terms.append(f'{field} IS NULL')
+                conditions.append('(' + ' OR '.join(terms) + ')')
         for option in self.table.options.values():
-            if option.name != 'partition' or not option.enabled:
-                continue
             attrs = option.attributes
+            if option.tag != 'partition' or not attrs.get('enabled', True):
+                continue
             value = self.scalar(attrs.get('value'))
             if value is None:
                 if attrs.get('required', False):
-                    raise ValueError(f'{self.table.key}: missing required partition {attrs["name"]}')
+                    raise ValueError(f'{self.table.fullname}: missing required partition {attrs["name"]}')
                 continue
-            field, _ = self.policy_field(attrs['field'], allow_alias=True)
-            conditions.append(concat(field, ' = ', self.policy_binding(value)))
+            field = self.policy_field(attrs['field'], allow_alias=True)
+            conditions.append(f'{field} = {self.policy_binding(value)}')
         return conditions
 
-    @staticmethod
-    def combine_where(predicate, conditions):
-        if not conditions:
-            return predicate
-        fragments = ([predicate] if predicate is not None else []) + conditions
-        return separated((concat('(', fragment, ')') for fragment in fragments), ' AND ')
-
-    def guard_values(self, values, *, insert=False, ignore_partition=False):
-        if not isinstance(values, Mapping):
-            raise TypeError('DML values must be a mapping of logical column names')
-        values = dict(values)
-        if type(ignore_partition) is not bool:
-            raise ValueError('ignore_partition must be boolean')
-        if ignore_partition:
-            return values
-        for scope in self.table.policies.partitions:
-            _, name = self.policy_field(scope.field, write=True)
-            has_current, current, allowed = self.scope_values(scope)
-            if name not in values:
-                if not insert:
-                    continue
-                if not has_current:
-                    raise ValueError(f'INSERT requires partition value {name} without a current value')
-                values[name] = current
-            value = self.scalar(values[name])
-            current_ok = not has_current or value == current
-            allowed_ok = (allowed is None or bool(allowed) and (
-                value in allowed or value is None and scope.include_null))
-            if not current_ok or not allowed_ok:
-                raise ValueError(f'Value for partition {scope.field} is outside the active scope')
-        return values
-
-    def select_policies(self, projections, predicate, *, exclude_draft,
-                        exclude_logical_deleted, ignore_partition):
-        if type(exclude_draft) is not bool:
-            raise ValueError('exclude_draft must be boolean')
-        if exclude_logical_deleted is not True and exclude_logical_deleted is not False and exclude_logical_deleted != 'mark':
+    def select_policies(self, columns, where, *, exclude_draft,
+                        exclude_logical_deleted, ignore_partition, aggregate):
+        """Legacy root-only filter order: WHERE, partition, deletion, draft."""
+        if type(exclude_draft) is not bool or type(ignore_partition) is not bool:
+            raise ValueError('exclude_draft and ignore_partition must be boolean')
+        if (exclude_logical_deleted is not True and exclude_logical_deleted is not False
+                and exclude_logical_deleted != 'mark'):
             raise ValueError('exclude_logical_deleted must be True, False or mark')
-        conditions = self.partition_predicates(ignore_partition)
-        conditions.extend(self.native_partition_predicates(ignore_partition))
-        policy = self.table.policies
-        if policy.draft_field and exclude_draft:
-            field, _ = self.policy_field(policy.draft_field)
-            conditions.append(concat(field, ' IS NOT TRUE'))
-        if policy.logical_deletion_field:
-            field, name = self.policy_field(policy.logical_deletion_field)
+        policies = _parse_row_policies(self.table.attributes)
+        conditions = [where] if where else []
+        conditions.extend(self.partition_conditions(policies, ignore_partition))
+        if policies.logical_deletion_field:
+            field = self.policy_field(policies.logical_deletion_field)
             if exclude_logical_deleted is True:
-                conditions.append(concat(field, ' IS NULL'))
-            elif exclude_logical_deleted == 'mark':
-                if any(p.alias == '_isdeleted' for p in projections):
-                    raise ValueError('The _isdeleted result alias is reserved in mark mode')
-                for projection in projections:
-                    if not _column_reference(projection.expression):
-                        raise UnsupportedFeatureError('mark requires physical column projections; opaque expressions/formulas are unsupported')
-                column = self.table.columns[name]
-                metadata = ResultColumn('_isdeleted', column.dtype,
-                                        column.identity or self.table.key + '.' + name, column.ui)
-                projections += (Projection(field, '_isdeleted', metadata),)
-        return projections, self.combine_where(predicate, conditions)
-
-    def select_plan(self, columns='*', where=None, order_by=None, limit=None, offset=None,
-                    *, exclude_draft=True, exclude_logical_deleted=True,
-                    ignore_partition=False, for_update=False, distinct=False,
-                    group_by=None, having=None, bagFields=False) -> QueryPlan:
-        """One SELECT algorithm for the root and correlated child scopes.
-
-        Keep identifiers and parameters structured until the dialect/driver
-        boundary; child scopes differ in ownership and defaults, not clauses.
-        """
-        if type(for_update) is not bool:
-            raise ValueError('for_update must be a boolean')
-        if type(bagFields) is not bool:
-            raise ValueError('bagFields must be a boolean')
-        if distinct is None:
-            distinct = False
-        if distinct is not True and distinct is not False:
-            raise ValueError(f'distinct must be True, False or None, not {distinct!r}')
-        if having is not None and group_by is None:
-            raise UnsupportedFeatureError('having requires group_by')
-        if for_update and (distinct or group_by is not None):
-            raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
-        if exclude_logical_deleted == 'mark' and (distinct or group_by is not None):
-            raise UnsupportedFeatureError('mark is incompatible with distinct or group_by')
-        if isinstance(group_by, str) and group_by.strip() == '*':
-            raise UnsupportedFeatureError(
-                "group_by='*' is unsupported; group by the projected columns, and project "
-                'the aggregates explicitly')
-        projections = self.projection(columns, bagFields=bagFields)
-        if not projections:
-            raise ValueError('SELECT needs result columns')
-        predicate = self.where(where)
-        grouping = self.expression(group_by) if group_by is not None else None
-        aggregate_filter = self.expression(having) if having is not None else None
-        if distinct and order_by is not None:
-            distinct_ordering(self, projections, order_by)
-        ordering = self.expression(order_by) if order_by is not None else None
-        projections, predicate = self.select_policies(
-            projections, predicate, exclude_draft=exclude_draft,
-            exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition)
-        for clause, value in [('LIMIT', limit), ('OFFSET', offset)]:
-            if value is not None:
-                if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-                    raise ValueError(f'{clause} must be a nonnegative integer')
-        return QueryPlan('select', self.table_ref(self.table, self.basealias), projections,
-                         tuple(self.joins.values()), predicate, ordering, limit, offset,
-                         params=self.bindings.params, dialect=self.dialect.name,
-                         environment=self.environment_binding(), for_update=for_update,
-                         input_parameters=tuple(sorted(self.bindings.consumed_inputs)),
-                         distinct=distinct, group_by=grouping, having=aggregate_filter)
-
-    def subquery(self, definition, owner, outer_alias, *, exists=False, bindings=None,
-                 aggregate=None, row_alias=None):
-        if not self.allow_joins:
-            raise UnsupportedFeatureError('Subquery columns are not supported in native DML')
-        if isinstance(definition, str):
-            # Legacy resolves subquery_* on the current SELECT root, unlike
-            # sql_formula_* which belongs to the column's owning table.
-            method_name = 'subquery_' + definition
-            label = f'{self.table.key}.{method_name}()'
-            if self.db is None:
-                raise UnsupportedFeatureError(f'{label} requires a database-bound table')
-            method = getattr(self.db.table(self.table.key), method_name, None)
-            if not callable(method):
-                raise UnsupportedFeatureError(f'{self.table.key}: missing table method {method_name}()')
-            definition = method()
-            if not isinstance(definition, Mapping):
-                raise ValueError(f'{label} must return a subquery mapping')
-            # Own the returned collections; never modify a mapping kept by the
-            # application. Validation and SQL compilation follow the dict path.
-            definition = _subquery_definition(definition, label)
-        if not isinstance(definition, Mapping):
-            raise ValueError('A subquery must be a mapping')
-        options = dict(definition)
-        for old, new in [('excludeDraft', 'exclude_draft'),
-                         ('excludeLogicalDeleted', 'exclude_logical_deleted'),
-                         ('ignorePartition', 'ignore_partition')]:
-            if old in options:
-                if new in options:
-                    raise ValueError(f'Conflicting subquery options: {old}, {new}')
-                options[new] = options.pop(old)
-        for name, value in [('subtable', '*'), ('addPkeyColumn', False),
-                            ('ignoreTableOrderBy', True)]:
-            if name in options:
-                actual = options.pop(name)
-                if type(actual) is not type(value) or actual != value:
-                    raise UnsupportedFeatureError(f'Unsupported subquery option: {name}={actual!r}')
-        known = {'table', 'columns', 'where', 'sqlparams', 'order_by',
-                 'limit', 'offset', 'exclude_draft', 'exclude_logical_deleted',
-                 'ignore_partition', 'cast', 'distinct', 'group_by', 'having', 'bagFields'}
-        if options.keys() - known:
-            raise UnsupportedFeatureError(f'Unsupported subquery options: {sorted(options.keys() - known)}')
-        if exists and 'cast' in options:
-            raise UnsupportedFeatureError('Cast applies to scalar subqueries, not EXISTS')
-        if not isinstance(options.get('table'), str) or not options['table']:
-            raise ValueError('A subquery requires a table')
-        if not isinstance(options.get('where'), str) or not options['where'].strip():
-            raise ValueError('A subquery requires an explicit WHERE expression')
-        local = options.get('sqlparams')
-        if local is None:
-            local = {}
-        if not isinstance(local, Mapping):
-            raise ValueError('Subquery sqlparams must be a mapping')
-        bindings = (bindings if bindings is not None else self.bindings).child(local, 's')
-        child = _Context(self.model, self.model.table(options['table']), None,
-                         self.dialect, self.snapshot, parent=self,
-                         outer=(self, owner, outer_alias), namespace=bindings.namespace,
-                         bindings=bindings)
-        columns = options.get('columns', '1 AS __exists' if exists else '*')
-        expressions = _split(columns, self.dialect.tokens) if isinstance(columns, str) else list(columns)
-        # Subquery expressions need no public output alias. Give opaque scalar
-        # expressions a deterministic internal one while preserving field metadata.
-        normalized = []
-        for index, expression in enumerate(expressions):
-            value, output_name = _projection_alias(expression, self.dialect.tokens)
-            if (output_name is None and value != '*' and _reference(value) is None
-                    and _PATH.fullmatch(value) is None):
-                expression = value + f' AS __value_{index}'
-            normalized.append(expression)
-        # Legacy formula defaults: no implicit pkey/order, include drafts and
-        # deleted rows, bypass partition unless explicitly requested otherwise.
-        plan = child.select_plan(
-            normalized, where=options['where'], order_by=options.get('order_by'),
-            limit=options.get('limit'), offset=options.get('offset'),
-            distinct=options.get('distinct', False), group_by=options.get('group_by'),
-            having=options.get('having'), exclude_draft=options.get('exclude_draft', False),
-            exclude_logical_deleted=options.get('exclude_logical_deleted', False),
-            ignore_partition=options.get('ignore_partition', True),
-            bagFields=options.get('bagFields', False))
-        if aggregate is not None:
-            if 'cast' in options:
-                raise UnsupportedFeatureError('Cast of a row source is not supported for JSON/XML subQueryColumn')
-            return self.dialect.aggregate_subquery(plan, aggregate, row_alias)
-        if not exists and len(plan.projections) != 1:
-            raise ValueError('A scalar subquery requires exactly one result column')
-        statement = self.dialect.render(plan)
-        result = concat('(', *statement.parts, ')')
-        if 'cast' in options:
-            cast = options['cast']
-            # Type names are authored SQL but not arbitrary statement fragments.
-            if (not isinstance(cast, str) or not re.fullmatch(
-                    r'[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)?'
-                    r'(?:\s+[A-Za-z_][A-Za-z_0-9]*)*(?:\(\s*\d+(?:\s*,\s*\d+)?\s*\))?(?:\[\])*', cast)):
-                raise ValueError('Unsupported subquery cast type')
-            result = concat('CAST(', result, ' AS ', cast, ')')
-        return result
-
-    def field(self, table, alias, name):
-        try:
-            column = table.columns[name]
-        except KeyError:
-            raise ValueError(f'Unknown column {table.key}.{name}') from None
-        capability = column.attributes.get('x_requires_compilation')
-        if capability and capability not in ('formulaColumn', 'subQueryColumn', 'bagItemColumn'):
-            raise UnsupportedFeatureError(f'{table.key}.{name}: requires {capability} compiler capability')
-        if sum(value is not None for value in
-               (column.formula, column.relation_path, column.select, column.exists)) > 1:
-            raise ValueError(f'Column has conflicting virtual definitions: {table.key}.{name}')
-        if column.subqueries and column.formula is None:
-            raise ValueError(f'Named subqueries require a formula: {table.key}.{name}')
-        if not column.is_virtual:
-            return concat(Identifier(alias), '.', Identifier(column.physical_name))
-        key = (table.key, name)
-        if key in self.formulas:
-            raise ValueError(f'Cyclic formula/alias: {table.key}.{name}')
-        self.formulas.add(key)
-        try:
-            if column.relation_path is not None:
-                path = column.relation_path
-                if match := _PATH.fullmatch(path):
-                    return self.related(match.group(1), table, alias)[0]
-                name = _reference(path) if path.startswith('$') else path
-                if name not in table.columns:
-                    raise ValueError(f'Invalid alias relation path: {path}')
-                return self.field(table, alias, name)
-            formula, select, exists, subqueries = self.formula_definition(table, column)
-            bindings = self.formula_scope(table, alias, column)
-            if select is not None or exists is not None:
-                is_exists = exists is not None
-                mode = column.attributes.get('mode') if capability == 'subQueryColumn' else None
-                # Legacy only stores other modes as subquery_aggr; it does not
-                # synthesize an aggregate function around the plain select.
-                aggregate = mode if mode in ('json', 'xml') else None
-                row_alias = f'{table.key.replace(".", "_")}_{column.name}_{mode}' if aggregate else None
-                query = self.subquery(exists if is_exists else select, table, alias,
-                                      exists=is_exists, bindings=bindings,
-                                      aggregate=aggregate, row_alias=row_alias)
-                return concat('EXISTS ' if is_exists else '', query)
-            formula = _replace_macro(formula, _IN_RANGE, _in_range, self.dialect.tokens)
-            return concat('(', self.expression(formula, table, alias,
-                                               subqueries=subqueries, bindings=bindings,
-                                               this_owner=(self, table, alias)), ')')
-        finally:
-            self.formulas.remove(key)
-
-    def formula_definition(self, table, column):
-        """Normalize declarations lazily, once per column in this compilation."""
-        key = (table.key, column.name)
-        if key not in self.formula_definitions:
-            capability = column.attributes.get('x_requires_compilation')
-            if capability == 'bagItemColumn':
-                # Keep the source declaration intact. Generated var_* values use
-                # the same per-formula bindings as authored SQL formulas.
-                attrs = thaw(column.attributes)
-                attrs['sql_formula'] = self.dialect.bag_item_formula(attrs['bagcolumn'], column.dtype)
-                attrs['var_calculated_path'] = _bag_item_path(attrs['itempath'])
-                definition = _formula_definition(attrs, f'{table.key}.{column.name}')
-                self.formula_attributes[key] = attrs
-            elif capability == 'subQueryColumn':
-                if column.attributes.get('mode') == 'xml' and isinstance(column.attributes.get('query'), str):
-                    # Legacy needs query['columns'] to declare its XML fields.
-                    raise UnsupportedFeatureError(
-                        f'{table.key}.{column.name}: legacy XML subQueryColumn requires a query mapping')
-                definition = (None, _subquery_definition(column.attributes.get('query'),
-                              f'{table.key}.{column.name}.query'), None, {})
-            elif capability == 'formulaColumn':
-                attrs = column.attributes
-                if attrs.get('subqueries'):
-                    raise UnsupportedFeatureError(
-                        f'{table.key}.{column.name}: use the existing select_* declarations')
-                if attrs.get('handler') is not None:
-                    raise UnsupportedFeatureError(f'{table.key}.{column.name}: formula handlers are unsupported')
-                if attrs.get('sql_formula') is True:
-                    attrs = thaw(attrs)
-                    method_name = 'sql_formula_' + column.name
-                    if self.db is None:
-                        raise UnsupportedFeatureError(
-                            f'{table.key}.{column.name}: {method_name} requires a database-bound table')
-                    method = getattr(self.db.table(table.key), method_name, None)
-                    if not callable(method):
-                        raise UnsupportedFeatureError(
-                            f'{table.key}.{column.name}: missing table method {method_name}(attr)')
-                    # Legacy evaluates the method before select_* and var_*.
-                    # Its edits belong to this compilation, never to the model.
-                    formula = method(attrs)
-                    if not isinstance(formula, str) or not formula.strip():
-                        raise ValueError(
-                            f'{table.key}.{column.name}: {method_name}(attr) must return nonempty SQL')
-                    attrs['sql_formula'] = formula
-                definition = _formula_definition(attrs, f'{table.key}.{column.name}')
-                self.formula_attributes[key] = attrs
-            else:
-                definition = column.formula, column.select, column.exists, column.subqueries
-            self.formula_definitions[key] = definition
-        return self.formula_definitions[key]
-
-    def formula_scope(self, table, alias, column):
-        # A formula owns its locals, independently of the formula referring to it.
-        # Repeated uses on the same SQL row reuse bindings without caching SQL.
-        key = (table.key, alias, column.name)
-        if key not in self.formula_bindings:
-            attrs = self.formula_attributes.get((table.key, column.name), column.attributes)
-            local = _formula_parameters(f'{table.key}.{column.name}', **attrs)
-            self.formula_bindings[key] = self.bindings.child(local, 'f') if local else self.bindings
-        return self.formula_bindings[key]
-
-    def related(self, path, table, alias):
-        if not self.allow_joins:
-            raise UnsupportedFeatureError('Relation paths are not supported in native DML')
-        parts = path.replace('@', '').split('.')
-        for name in parts[:-1]:
-            try:
-                relation = table.relations[name]
-            except KeyError:
-                raise ValueError(f'Unknown relation {table.key}.{name}') from None
-            if relation.kind == 'virtual':
-                raise UnsupportedFeatureError(f'{table.key}.{name}: {relation.kind} navigation requires an additional compiler capability')
-            target = self.model.table(relation.target)
-            key = (alias, name)
-            if key not in self.joins:
-                target_alias = f'{self.namespace}t{len(self.joins) + 1}'
-                if not relation.columns or len(relation.columns) != len(relation.target_columns):
-                    raise ValueError(f'Invalid join columns for {table.key}.{name}')
-                if any(column not in table.columns for column in relation.columns) or any(
-                        column not in target.columns for column in relation.target_columns):
-                    raise ValueError(f'Unknown join columns for {table.key}.{name}')
-                # Inverses already swap the key pairs in the resolved model.
-                # Their unique side is the source; the target may have many rows.
-                if relation.kind == 'inverse':
-                    if not _unique_target(table, relation.columns):
-                        raise UnsupportedFeatureError(f'{table.key}.{name}: source must have a unique key')
-                elif not _unique_target(target, relation.target_columns):
-                    raise UnsupportedFeatureError(f'{table.key}.{name}: target must have a unique key')
-                terms = []
-                for source, dest in zip(relation.columns, relation.target_columns):
-                    if table.columns[source].is_virtual or target.columns[dest].is_virtual:
-                        raise UnsupportedFeatureError('Virtual join keys are outside native V1')
-                    terms.append(concat(self.field(table, alias, source), ' = ',
-                                        self.field(target, target_alias, dest)))
-                self.joins[key] = Join(self.table_ref(target, target_alias),
-                                       separated(terms, ' AND '))
-            alias = self.joins[key].table.alias
-            table = target
-        return self.field(table, alias, parts[-1]), table, parts[-1]
-
-    def expression(self, expression, table=None, alias=None, *, subqueries=None,
-                   this_owner=None, bindings=None):
-        if not isinstance(expression, str) or not expression.strip():
-            raise ValueError('Expected nonempty SQL expression')
-        table = table or self.table
-        alias = alias or self.basealias
-        bindings = bindings if bindings is not None else self.bindings
-        result = []
-        used_subqueries = set()
-        for kind, code in _runs(expression, self.dialect.tokens):
-            if kind == 'field':
-                result.append(self.field(table, alias, code[2:-1].replace('""', '"')))
-                continue
-            if kind != 'code':
-                result.append(code)
-                if kind == 'line_comment' and not code.endswith('\n'):
-                    result.append('\n')
-                continue
-            if re.search(r'(?i)\baggregateRows\b', code):
-                raise UnsupportedFeatureError('aggregateRows has been removed; use explicit SQL aggregates')
-            i = 0
-            while i < len(code):
-                if match := _THIS.match(code, i):
-                    owner_context = this_owner or self.outer
-                    if owner_context is None:
-                        raise UnsupportedFeatureError('#THIS requires a correlated subquery')
-                    context, owner, outer_alias = owner_context
-                    path = match.group(1)
-                    result.append(context.related(path.lstrip('@'), owner, outer_alias)[0]
-                                  if '.' in path else context.field(owner, outer_alias, path))
-                    i = match.end()
-                elif (match := _MACRO.match(code, i)) and subqueries and match.group(1) in subqueries:
-                    used_subqueries.add(match.group(1))
-                    result.append(self.subquery(subqueries[match.group(1)], table, alias,
-                                                bindings=bindings))
-                    i = match.end()
-                elif match := _PARAM.match(code, i):
-                    if match['keyword'] is None:
-                        result.append(bindings.binding(match['name']))
-                    else:
-                        result.extend(bindings.collection(
-                            match['name'], match['keyword'][:3].upper() == 'NOT'))
-                    i = match.end()
-                elif match := _FIELD.match(code, i):
-                    result.append(self.field(table, alias, match.group(1)))
-                    i = match.end()
-                elif match := _PATH.match(code, i):
-                    result.append(self.related(match.group(1), table, alias)[0])
-                    i = match.end()
-                elif match := _MACRO.match(code, i):
-                    raise UnsupportedFeatureError(
-                        f'Unsupported macro #{match.group(1)} in this expression')
-                elif code[i] == ';':
-                    raise UnsupportedFeatureError('Statement separators are not SQL expressions')
-                elif code[i] in '$@' or (code[i] == '#' and re.match(r'#[A-Za-z_]', code[i:])):
-                    raise UnsupportedFeatureError('Unsupported asqueel expression syntax')
-                else:
-                    result.append(code[i])
-                    i += 1
-        if subqueries and subqueries.keys() - used_subqueries:
-            raise ValueError(f'Unused named subqueries: {sorted(subqueries.keys() - used_subqueries)}')
-        return concat(*result)
-
-    def star_columns(self, *, bagFields=False):
-        # Legacy starColumns: physical fields first, then static virtuals.
-        # RETURNING keeps all physical fields and never expands virtuals.
-        physical = [name for name, col in self.table.columns.items()
-                    if not col.is_virtual and (not self.allow_joins or bagFields or col.dtype != 'X')]
-        virtual = [name for name, col in self.table.columns.items()
-                   if self.allow_joins and col.is_virtual and col.attributes.get('static')]
-        return ('$"' + name.replace('"', '""') + '"' for name in physical + virtual)
-
-    def result_column(self, table, field, name):
-        column = table.columns.get(field)
-        if column is None:
-            return ResultColumn(name, None)
-        return ResultColumn(name, column.dtype,
-                            column.identity or table.key + '.' + column.name, column.ui)
-
-    def projection(self, columns, *, bagFields=False):
-        if columns is None:
-            return ()
-        if isinstance(columns, str):
-            expressions = _split(columns, self.dialect.tokens)
-        else:
-            expressions = list(columns)
-        expanded = []
-        for expression in expressions:
-            if expression.strip() == '*':
-                expanded.extend(self.star_columns(bagFields=bagFields))
-            else:
-                expanded.append(expression)
-        if not expanded:
-            raise ValueError('At least one result column is required')
-        projections, names = [], set()
-        for expression in expanded:
-            value, name = _projection_alias(expression, self.dialect.tokens)
-            metadata = None
-            resolved_value = None
-            if (field_name := _reference(value)) is not None:
-                name = name or field_name
-                metadata = self.result_column(self.table, field_name, name)
-            elif match := _PATH.fullmatch(value):
-                resolved_value, owner, field = self.related(match.group(1), self.table, self.basealias)
-                name = name or match.group(1).replace('@', '').replace('.', '_')
-                metadata = self.result_column(owner, field, name)
-            if name is None:
-                raise ValueError('Computed SQL expressions require an explicit AS alias')
-            if name in names:
-                raise ValueError(f'Duplicate result alias: {name}')
-            names.add(name)
-            metadata = metadata if metadata is not None else ResultColumn(name)
-            projections.append(Projection(resolved_value if resolved_value is not None
-                                          else self.expression(value), name, metadata))
-        return tuple(projections)
+                conditions.append(f'{field} IS NULL')
+            elif exclude_logical_deleted == 'mark' and not aggregate:
+                columns += f',{field} AS "_isdeleted"'
+        if policies.draft_field and exclude_draft:
+            field = self.policy_field(policies.draft_field, dtype='B')
+            conditions.append(f'{field} IS NOT TRUE')
+        return columns, ' AND '.join(f'({condition})' for condition in conditions)
 
 
-class _SelectCompiler:
-    """Shared SELECT pipeline; model-specific lookup belongs to the context."""
+class QueryCompiler:
+    """Compile against the hierarchy with a fresh local context per request."""
 
-    def __init__(self, model, dialect: DataDialect, formatter: BindingFormatter,
-                 *, environment: SqlEnvironment | None = None, _db=None):
+    def __init__(self, model, dialect, formatter, *, environment=None, _db=None):
+        if not isinstance(model, DbModel):
+            raise TypeError('QueryCompiler requires a hierarchical DbModel')
         if dialect.name != formatter.dialect:
             raise ValueError('The data dialect and binding formatter are incompatible')
-        self.model = model
-        self.dialect = dialect
-        self.formatter = formatter
+        self.model, self.dialect, self.formatter = model, dialect, formatter
         self.environment = environment if environment is not None else SqlEnvironment()
-        self._db = _db
 
-    def _context(self, table, params=None) -> _Context:
-        raise NotImplementedError
+    def _context(self, table, params=None) -> _TreeContext:
+        return _TreeContext(self.model, self.model.table(table), params, self.dialect,
+                            self.environment.snapshot())
 
-    def compile_plan(self, plan: QueryPlan) -> CompiledQuery:
-        """Ask the configured dialect to render and formatter to prepare bindings."""
-        if plan.dialect != self.dialect.name:
-            raise ValueError('Query plan belongs to a different data dialect')
-        query = self.formatter.prepare(self.dialect.render(plan))
-        return replace(query, input_parameters=plan.input_parameters)
-
-    def plan_select(self, table, columns='*', where=None, sqlparams=None, order_by=None,
-                    limit=None, offset=None, *, exclude_draft=True,
-                    exclude_logical_deleted=True, ignore_partition=False,
-                    for_update=False, distinct=False, group_by=None, having=None, bagFields=False,
-                    **options) -> QueryPlan:
-        """Resolve a select without rendering the root or formatting parameters.
-
-        Correlated child plans are rendered by the dialect into structured
-        fragments; driver parameter formatting happens only at compile_plan.
-        """
+    @staticmethod
+    def _check_options(options):
         if options:
             if 'aggregateRows' in options:
                 raise UnsupportedFeatureError('aggregateRows has been removed; use explicit SQL aggregates')
             raise UnsupportedFeatureError(f'Unsupported query options: {sorted(options)}')
+
+    def compile_plan(self, plan):
+        if plan.dialect != self.dialect.name:
+            raise ValueError('Query plan belongs to a different data dialect')
+        sql = plan.get_sqltext(self.dialect)
+        snapshot = plan.environment.values if plan.environment else {}
+        query = self.formatter.prepare_sql(sql, plan.params, snapshot)
+        environment_inputs = {'env_' + key for key in plan.environment.keys} if plan.environment else set()
+        used_inputs = (set(query.input_parameters) - environment_inputs - set(plan.local_parameters)) | set(plan.input_parameters)
+        return replace(query, columns=plan.result_columns, environment=plan.environment,
+                       for_update=plan.for_update, lock_table=plan.maintable, lock_column=plan.lock_column,
+                       input_parameters=tuple(sorted(used_inputs)))
+
+    def plan_select(self, table, columns='*', where=None, sqlparams=None, order_by=None,
+                    limit=None, offset=None, *, exclude_draft=True,
+                    exclude_logical_deleted=True, ignore_partition=False,
+                    for_update=False, distinct=False, group_by=None, having=None, bagFields=False, addPkeyColumn=False,
+                    **options) -> SqlCompiledQuery:
+        """Resolve clauses; SQL assembly and preparation happen in compile_plan."""
+        self._check_options(options)
         return self._context(table, sqlparams).select_plan(
             columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
             exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
             for_update=for_update, distinct=distinct, group_by=group_by, having=having,
-            bagFields=bagFields)
+            bagFields=bagFields, addPkeyColumn=addPkeyColumn)
+
+    def plan_count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
+                   limit=None, offset=None, *, exclude_draft=True,
+                   exclude_logical_deleted=True, ignore_partition=False,
+                   for_update=False, distinct=False, group_by=None, having=None,
+                   bagFields=False, addPkeyColumn=False, **options) -> SqlCompiledQuery:
+        """Legacy count branch; grouped/distinct SQL still returns result rows."""
+        self._check_options(options)
+        return self._context(table, sqlparams).select_plan(
+            columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
+            exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
+            for_update=for_update, distinct=distinct, group_by=group_by, having=having,
+            bagFields=bagFields, addPkeyColumn=addPkeyColumn, count=True)
+
+    def count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
+              limit=None, offset=None, **options):
+        return self.compile_plan(self.plan_count(table, columns, where, sqlparams, order_by,
+                                                 limit, offset, **options))
 
     def select(self, table, columns='*', where=None, sqlparams=None, order_by=None,
                limit=None, offset=None, *, exclude_draft=True,
@@ -857,143 +704,10 @@ class _SelectCompiler:
                                                   group_by=group_by, having=having, **options))
 
 
-class QueryCompiler(_SelectCompiler):
-    """Resolve asqueel syntax, then delegate SQL and binding to explicit adapters."""
-
-    def __init__(self, model: ResolvedModel, dialect: DataDialect, formatter: BindingFormatter,
-                 *, environment: SqlEnvironment | None = None, _db=None):
-        if model.attributes.get('x_legacy_expanded'):
-            raise UnsupportedFeatureError('Expanded legacy model requires legacy runtime/compiler providers; migration projection remains available')
-        if dialect.name != formatter.dialect:
-            raise ValueError('The data dialect and binding formatter are incompatible')
-        if any(column.relation_path is not None and column.alias_target is None
-               for table in model.tables.values() for column in table.columns.values()):
-            model = replace(model, tables=_resolve_aliases(dict(model.tables)))
-        super().__init__(validate_row_policies(model), dialect, formatter,
-                         environment=environment, _db=_db)
-
-    def _context(self, table, params=None, joins=True) -> _Context:
-        resolved = self.model.table(table)
-        if not joins:
-            from .model_source import require_write_capabilities
-            require_write_capabilities(resolved)
-        return _Context(self.model, resolved, params, self.dialect,
-                        self.environment.snapshot(), joins=joins, db=self._db)
-
-    def plan_count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
-                   limit=None, offset=None, *, for_update=False, **options) -> QueryPlan:
-        """Resolve the same select, without pagination or ordering, as a count."""
-        for clause, value in [('limit', limit), ('offset', offset)]:
-            if value is not None:
-                raise UnsupportedFeatureError(
-                    f'count() cannot apply {clause}; count the query without limit/offset')
-        plan = self.plan_select(table, columns, where, sqlparams, None, None, None, **options)
-        return replace(plan, operation='count')
-
-    def count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
-              limit=None, offset=None, **options):
-        return self.compile_plan(self.plan_count(table, columns, where, sqlparams, order_by,
-                                                 limit, offset, **options))
-
-    def _values(self, context, values):
-        if not isinstance(values, Mapping):
-            raise TypeError('DML values must be a mapping of logical column names')
-        assignments = []
-        for index, (name, value) in enumerate(values.items()):
-            column = context.table.columns.get(name)
-            if column is None:
-                raise ValueError(f'Unknown column {context.table.key}.{name}')
-            if column.is_virtual:
-                kind = 'formula' if column.formula is not None else 'alias'
-                raise ValueError(f'Cannot write {kind} column {name}')
-            parameter = context.bindings.add(f'__value_{index}', value)
-            assignments.append(Assignment(column.physical_name, concat(context.bindings.binding(parameter))))
-        return tuple(assignments)
-
-    @staticmethod
-    def _where(context, where):
-        if not isinstance(where, str) or not where.strip():
-            raise ValueError("UPDATE/DELETE require a predicate; use where='TRUE' explicitly for all rows")
-        if not any(kind not in {'comment', 'line_comment'} and value.strip()
-                   for kind, value in _runs(where, context.dialect.tokens)):
-            raise ValueError('A comment is not a write predicate')
-        return context.expression(where)
-
-    def plan_insert(self, table, values, returning='*', *, ignore_partition=False) -> QueryPlan:
-        """Resolve insert assignments and returning metadata into a plan."""
-        context = self._context(table, joins=False)
-        values = context.guard_values(values, insert=True, ignore_partition=ignore_partition)
-        assignments = self._values(context, values)
-        projections = context.projection(returning)
-        return QueryPlan('insert', context.table_ref(context.table), projections,
-                         assignments=assignments, params=context.bindings.params, dialect=self.dialect.name,
-                         environment=context.environment_binding(),
-                         input_parameters=tuple(sorted(context.bindings.consumed_inputs)))
-
-    def insert(self, table, values, returning='*', *, ignore_partition=False):
-        return self.compile_plan(self.plan_insert(table, values, returning, ignore_partition=ignore_partition))
-
-    def plan_update(self, table, values, where, sqlparams=None, returning='*', *, ignore_partition=False) -> QueryPlan:
-        """Resolve a guarded update without executing or rendering SQL."""
-        context = self._context(table, sqlparams, joins=False)
-        values = context.guard_values(values, ignore_partition=ignore_partition)
-        assignments = self._values(context, values)
-        if not assignments:
-            raise ValueError('UPDATE requires at least one value')
-        predicate = self._where(context, where)
-        predicate = context.combine_where(predicate, context.partition_predicates(ignore_partition, write=True))
-        projections = context.projection(returning)
-        return QueryPlan('update', context.table_ref(context.table), projections,
-                         where=predicate, assignments=assignments, params=context.bindings.params,
-                         dialect=self.dialect.name, environment=context.environment_binding(),
-                         input_parameters=tuple(sorted(context.bindings.consumed_inputs)))
-
-    def update(self, table, values, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        return self.compile_plan(self.plan_update(table, values, where, sqlparams, returning,
-                                                   ignore_partition=ignore_partition))
-
-    def plan_delete(self, table, where, sqlparams=None, returning='*', *, ignore_partition=False) -> QueryPlan:
-        """Resolve a guarded delete without executing or rendering SQL."""
-        context = self._context(table, sqlparams, joins=False)
-        predicate = self._where(context, where)
-        predicate = context.combine_where(predicate, context.partition_predicates(ignore_partition, write=True))
-        projections = context.projection(returning)
-        return QueryPlan('delete', context.table_ref(context.table), projections,
-                         where=predicate, params=context.bindings.params, dialect=self.dialect.name,
-                         environment=context.environment_binding(),
-                         input_parameters=tuple(sorted(context.bindings.consumed_inputs)))
-
-    def delete(self, table, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        return self.compile_plan(self.plan_delete(table, where, sqlparams, returning, ignore_partition=ignore_partition))
-
-
-    def _tombstone(self, table):
-        owner = self.model.table(table)
-        name = owner.policies.logical_deletion_field
-        if name and name.startswith('$'):
-            name = _reference(name)
-        if not name or name not in owner.columns or owner.columns[name].is_virtual:
-            raise ValueError('Soft deletion requires a physical logical_deletion_field')
-        return name
-
-    def soft_delete(self, table, value, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        """Write the explicit tombstone value; normal partition write guards apply."""
-        if value is None:
-            raise ValueError('soft_delete requires a non-None tombstone value')
-        return self.update(table, {self._tombstone(table): value}, where, sqlparams, returning,
-                           ignore_partition=ignore_partition)
-
-    def restore(self, table, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        """Clear the tombstone without applying draft/deleted read filters."""
-        return self.update(table, {self._tombstone(table): None}, where, sqlparams, returning,
-                           ignore_partition=ignore_partition)
-
-
 class PostgresCompiler(QueryCompiler):
-    """Compatible convenience facade selecting PostgreSQL and psycopg adapters."""
+    """Select PostgreSQL and psycopg adapters for the hierarchical compiler."""
 
-    def __init__(self, model: ResolvedModel, *, environment: SqlEnvironment | None = None):
+    def __init__(self, model, *, environment=None):
         from .dialects.postgres import PostgresDialect
         from .drivers.psycopg import PsycopgDriver
-
         super().__init__(model, PostgresDialect(), PsycopgDriver(), environment=environment)

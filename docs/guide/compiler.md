@@ -1,292 +1,96 @@
-# Using the compiler directly
+# Compile queries without executing them
 
-For application development, prefer [live table queries](queries.md). This page
-is for integrations that need to compile statements independently of an
-application database.
-
-These examples expose the components used internally by `SqlDatabase`.
-`PostgresCompiler` turns model-based queries into SQL and bound parameters;
-`PostgresDatabase` executes them synchronously. Its `execute()` joins the selected connection’s pending transaction;
-call `commit()` or `rollback()` explicitly, as with the application database. Compilation does not
-connect to a database, create tables, or apply migrations.
-
-This page describes the existing `QueryCompiler` profile through
-`PostgresCompiler`. The hierarchical `TreeQueryCompiler` differs for symbolic
-WHERE parameters and missing bindings; see
-[symbolic parameters](queries.md#symbolic-parameters-and-external-values).
-
-This page uses a small resolved model. You can obtain the same kind of model
-from [builder declarations](models.md) or [database inspection](importing.md).
+Asqueel has one live model and one SELECT compiler. `AsqueelDb`,
+`build_database()` and the default configuration render construct the hierarchical
+`DbModel`. Its tables own the operational `SqlTable` objects; relations are
+resolved from the model's `relations` branch.
 
 ```python
-from asqueel import (
-    Column, PostgresCompiler, Relation, ResolvedModel, Table,
-)
+from asqueel import SqlDatabaseConfig
 
-customer = Table(
-    'customer', schema='sales', pkey=('id',),
-    columns={
-        'id': Column('id', 'I'),
-        'name': Column('name', ui={'label': 'Customer'}),
-    },
-)
-invoice = Table(
-    'invoice', schema='sales', pkey=('id',),
-    columns={
-        'id': Column('id', 'I'),
-        'customer_id': Column('customer_id', 'I'),
-        'total': Column('total', 'N'),
-        'note': Column('note'),
-        'doubled_total': Column('doubled_total', 'N', formula='$total * 2'),
-    },
-    relations={
-        'customer': Relation(
-            'customer', 'sales.customer', ('customer_id',), ('id',),
-        ),
-    },
-)
-model = ResolvedModel({customer.key: customer, invoice.key: invoice})
-compiler = PostgresCompiler(model)
+source = SqlDatabaseConfig()
+root = source.source.db('example', implementation='sqlite')
+root.connection('main', database=':memory:')
+table = root.packages().package('sales', sqlschema='main').table('invoice', pkey='id')
+table.column('id', dtype='L')
+table.column('total', dtype='N')
+
+with source.render() as db:
+    query = db.table('sales.invoice').query(
+        '$id,$total', where='$total >= :minimum', minimum=100,
+    )
+    compiled = query.compiled
+    sql, kwargs = compiled.sql, dict(compiled.params)
 ```
 
-## Select rows
+This example opens no connection. Compilation uses the environment current at
+`.compiled`, `.fetch()` or `.count()`. The query can be reused without sharing
+parameter manglers or table aliases between compilations.
 
-```python
-query = compiler.select(
-    'sales.invoice',
-    columns='$id, @customer.name AS customer_name, $total',
-    where='$total >= :minimum',
-    sqlparams={'minimum': 100},
-    order_by='$id',
-    limit=20,
-    offset=0,
-)
+## Compilation boundaries
 
-assert [column.name for column in query.columns] == [
-    'id', 'customer_name', 'total',
-]
-```
+1. `QueryCompiler.plan_select()` resolves fields, relations, formulas and
+   parameters into `SqlCompiledQuery`, following the legacy recursion.
+2. `SqlCompiledQuery.get_sqltext(dialect)` delegates clause assembly to
+   `dialect.compile_sql()`.
+3. `QueryCompiler.compile_plan()` prepares the SQL and kwargs through
+   `driver.prepare_sql()` and returns `CompiledQuery` with result metadata.
+4. `db.execute(compiled)` executes on the owning connection and transaction.
 
-The main arguments are:
+`QueryCompiler.select()` combines steps 1–3. `plan_count()` and `count()` use the
+legacy count algorithm. `PostgresCompiler(model)` selects PostgreSQL and psycopg
+adapters for the same compiler; it is not another compilation path.
 
-| Argument | Meaning |
-|---|---|
-| `table` | Logical `schema.table` name; a short table name is accepted only when unambiguous. |
-| `columns` | A comma-separated string or sequence of projection expressions. Defaults to `'*'`. |
-| `bagFields` | `False`; include physical X columns in wildcard SELECTs when true. |
-| `where` | A trusted SQL expression with Asqueel column references and named data parameters. |
-| `params` | A mapping of parameter names to Python values. |
-| `order_by` | A trusted ordering expression, such as `'$total DESC, $id'`. |
-| `limit`, `offset` | Nonnegative integers. `limit=0` returns no rows. |
-| `exclude_draft` | Defaults to `True`; applies a declared draft policy. |
-| `exclude_logical_deleted` | `True`, `False`, or `'mark'`; defaults to `True`. |
-| `ignore_partition` | Defaults to `False`; `True` explicitly bypasses declared partition filters. |
+There is no `QueryPlan`, SQL `Fragment`, scanner-based SELECT compiler or
+`driver.prepare(SqlStatement)` path. DML is developed separately and does not
+belong in this SELECT compiler. Raw SQL can use the same `prepare_sql` /
+`db.execute` execution boundary.
 
-See [row policies](row-policies.md) for the last three options. If a table has the older
-`x_partition` policy, its required [environment](environment.md) must be available
-even when the query's explicit `where` already restricts that column.
+## Fields, relations and projections
 
-### Column references and names
+The agreed references are `$column` and `@relation.column`. Logical quoted-field
+syntax and advanced wildcards are not supported. `*` expands physical columns,
+followed by declared static virtual columns. It omits X fields unless
+`bagFields=True` or `for_update=True`. An explicit projection stays explicit.
 
-`$total` names a logical column in the selected table. The compiler uses the
-model's physical schema, table, and column names and quotes them separately.
-Application queries therefore do not need to embed naming prefixes.
+Relations toward one use the legacy join resolution and aliases. Operations
+on many relations are recognized as `@relation.operation(...)`; dispatch looks
+for `many_operation`, and raises unsupported when absent. No handlers are
+implemented and no exploding-row join is generated.
 
-For logical names containing spaces, punctuation, or non-ASCII characters, use
-`$"display name"`. Double an embedded double quote: `$"a""b"` refers to the
-logical name `a"b`. The same syntax works in projections, filters, ordering, and
-formulas. Wildcards also handle these names.
+Native SQL formulas, aliases, dependencies, formula parameters, supported macros,
+subqueries and bagItemColumn retain the tested legacy behavior. SQLite does not
+emulate PostgreSQL XPath or JSON/XML aggregate formulas.
 
-A direct projection retains its logical name unless you provide `AS`:
+Missing ordinary bindings become SQL NULL during preparation. Symbolic WHERE
+parameters follow legacy `embedFieldPars`; see [queries](queries.md#symbolic-parameters-and-external-values)
+for external values and the existing escape convention.
 
-```python
-query = compiler.select(
-    'sales.invoice',
-    columns='$id AS invoice_id, $total AS amount',
-)
-```
+## Record reads and locks
 
-Computed SQL expressions require an explicit alias:
+`table.record(pkey)` is lazy; `output('dict')` returns an independent dictionary
+snapshot. `output('record')` returns a Bag without relation resolvers, with X
+fields decoded into Bags. `refresh()` reloads the snapshot.
+`ignoreMissing=True` returns an empty dict/Bag; otherwise missing or multiple
+records raise the corresponding record error.
 
-```python
-query = compiler.select(
-    'sales.invoice',
-    columns='COALESCE($total, 0) AS amount',
-)
-```
+Record reads select physical columns and include X fields by default. They do
+not add static virtual columns. As in legacy `compiledRecordQuery`, they do not
+apply query draft/deletion/partition filters by default.
 
-Aliases must be unique. An alias containing spaces must be quoted, for example
-`'$total AS "Invoice amount"'`. `*` expands physical columns followed by virtual
-columns marked `static=True`. Physical X columns require `bagFields=True`; static
-virtual X columns are included in either mode. Explicit projections are unaffected.
-The wildcard is resolved by the model, not forwarded to the database. DML
-`RETURNING *` continues to include all physical columns and no virtual columns.
+`for_update=True` acquires locks only at execution. PostgreSQL uses
+`FOR UPDATE OF t0`. SQLite uses `BEGIN IMMEDIATE` when no transaction is active;
+in an existing transaction the driver issues a zero-row self-update on the
+physical table to acquire the write reservation. Neither path commits,
+opens a second connection or changes a row as part of lock acquisition.
 
-### Relations
+## Model-only rendering and catalog snapshots
 
-`@customer.name` resolves the model relation named `customer`, then its target
-column `name`. The relation target must have a recognized unique key for the
-join columns. Traversal uses a LEFT JOIN and reuses that join when the same path
-appears in projections, filters, and ordering. Multiple declared relation
-segments can be chained.
+`source.render(mode='objects_tree')` and `resolve_model(source)` return the same
+hierarchical model without binding an operational database. They use the same
+walk/finalize construction as the default operational render.
 
-A missing related row therefore produces NULL target values. A target condition
-placed in `where`, such as `@customer.name = :name`, still excludes rows where
-that condition is not true; the LEFT JOIN does not override your filter.
-
-Without an explicit alias, `@customer.name` is returned as `customer_name`:
-the automatic name omits the target's leading underscore. Use explicit aliases
-for public result contracts. Reverse relations require an
-explicit collection or aggregate shape; a scalar path must identify one value.
-
-### Parameters, literals, and expressions
-
-```python
-query = compiler.select(
-    'sales.invoice',
-    where='$note ILIKE :pattern AND $total >= :minimum',
-    sqlparams={'pattern': '%overdue%', 'minimum': 0},
-)
-```
-
-Values are bound separately from SQL. Missing referenced parameters raise
-`ValueError`; unused supplied parameters are omitted from the executable query.
-`:env_name` can fall back to an environment value, as described in
-[the environment guide](environment.md).
-
-Use `IS NULL` for a NULL test; binding `None` to an equality expression does not
-change SQL's NULL comparison rules. PostgreSQL casts such as `:minimum::numeric`
-are preserved. SQL strings, quoted identifiers, dollar quotes, and comments
-protect their contents from Asqueel reference expansion.
-
-SQL expressions are trusted application code. Parameters bind data values;
-they do not make user-supplied column names, operators, ordering clauses, or SQL
-fragments safe. Choose such expressions from application-controlled options.
-Do not interpolate values into `where` or `columns`.
-
-### Formulas and aggregates
-
-The model's `doubled_total` formula can be selected like any other column:
-
-```python
-query = compiler.select('sales.invoice', '$id, $doubled_total')
-```
-
-Formula references are expanded and cycles are rejected. A formula is read-only
-for insert/update values.
-
-An explicit SQL aggregate is supported as an expression:
-
-```python
-query = compiler.select('sales.invoice', 'COUNT(*) AS invoice_count')
-```
-
-This returns a normal compiled SELECT with the applicable read filters. The
-`distinct`, `group_by` and `having` options express grouping and uniqueness,
-and `SqlQuery.count()` is the count terminal; their rules and errors are in
-[queries](queries.md). An aggregate SQL expression on its own still does not
-enable automatic grouping, row deduplication or collection assembly, and the
-`aggregateRows` option is rejected.
-
-## Execute and read results
-
-With the corresponding tables already present in PostgreSQL:
-
-```python
-from asqueel import PostgresDatabase
-
-db = PostgresDatabase('dbname=myapp user=myapp')
-try:
-    result = db.execute(query)
-    for row in result.rows:
-        print(row)
-finally:
-    db.close()
-```
-
-`QueryResult.rows` is an eagerly materialized list of Toolbox `NamedList` rows,
-with mutable values accessible by name and position on PostgreSQL and SQLite.
-This also applies to DML RETURNING. Use `dict(row)` for a dictionary; iteration
-and JSON serialization of the row itself follow list semantics.
-`QueryResult.rowcount` is the driver's affected/returned-row count, and
-`QueryResult.columns` describes the result columns. For direct columns,
-metadata includes the model dtype, UI metadata, and the stable column identity
-in `source` when one is declared. Otherwise `source` is the logical column path.
-Arbitrary computed expressions do not acquire inferred dtype or UI metadata.
-
-Successive `db.execute()` calls on the same selected connection share a pending
-transaction. Call `db.commit()` after the unit of work, or `db.rollback()` to
-cancel it; see [the low-level runtime](low-level-runtime.md).
-
-`query.sql` and `query.params` are available for diagnostics. The SQL is already
-prepared for psycopg parameter binding: literal percent signs are doubled.
-If executing directly through psycopg, always pass the mapping, even when empty:
-
-```python
-# `connection` is an existing psycopg connection owned by your application.
-# connection.execute(query.sql, dict(query.params))
-```
-
-Do not use Python string interpolation or omit the mapping. Bound values may
-contain application data; choose what to record in diagnostic logs accordingly.
-
-## Insert, update, and delete
-
-```python
-inserted = compiler.insert(
-    'sales.invoice',
-    {'id': 10, 'customer_id': 2, 'total': 125, 'note': 'Initial invoice'},
-    returning='$id, $total',
-)
-updated = compiler.update(
-    'sales.invoice',
-    {'total': 150},
-    where='$id = :id',
-    sqlparams={'id': 10},
-    returning='$id, $total',
-)
-deleted = compiler.delete(
-    'sales.invoice',
-    where='$id = :id',
-    sqlparams={'id': 10},
-    returning='$id',
-)
-```
-
-Keys in `values` are logical column names. Values are bound parameters, not SQL
-expressions. Unknown columns and writes to formulas are rejected. Database
-constraints still govern generated columns, identity columns, and other
-server-side restrictions.
-
-`returning` defaults to `'*'`; use `None` when no returned rows are needed. An
-empty insert mapping emits DEFAULT VALUES, although partition policies may fill
-in required columns first. Update needs at least one value. Update and delete
-require a nonempty predicate; use `where='TRUE'` deliberately when all rows in
-the active partition scope should be affected.
-
-Choose local returning columns for the write result. A subsequent SELECT in
-the same transaction can read related values and computed projections.
-
-`delete()` is a physical deletion. [Soft deletion and restoration](row-policies.md)
-are separate operations. Declared partition guards apply to writes; draft and
-logical-deletion read filters do not automatically restrict them.
-
-## Compiler responsibilities
-
-The [compile-only query example](queries.md#compile-without-executing) uses this
-same pipeline. The [legacy filter macros](queries.md#legacy-filter-macros)
-IN_RANGE and PERIOD are expanded before field and parameter resolution in WHERE.
-When using the compiler directly with PERIOD, supply `workdate` and `locale`
-through its existing `SqlEnvironment`; the application database already provides
-their defaults. A bare low-level environment has no such defaults and reports
-the missing inputs rather than inventing them.
-
-The compiler resolves model references, relation paths, formulas, aliases and
-named parameters. Uppercase `#NAME` constructs introduce operations owned by Asqueel
-with defined expansion rules. Result shaping belongs to the result layer;
-application routing and connection selection belong to the database context.
-Unsupported options raise errors rather than being silently ignored. PostgreSQL
-SQL fragments remain PostgreSQL-specific even when the model uses logical names.
-
-Continue with [row policies](row-policies.md), [environment scopes](environment.md),
-or [low-level transactions](low-level-runtime.md).
+`ResolvedModel` remains only as the catalog import/serialization snapshot used
+by `inspect_postgres`, `model_to_json` and `model_from_json`. It is not accepted
+by the live database or SELECT compiler. Migration projection supports both the
+live hierarchy and catalog snapshots without constructing a parallel live model.

@@ -88,7 +88,8 @@ class Shop:
 
 def seed(db, invoice_sql):
     for row in CUSTOMERS:
-        db.table('sales.customer').insert(dict(zip(('id', 'name'), row)))
+        db.execute(f'INSERT INTO {invoice_sql.rsplit(".", 1)[0]}.customer (id, name) VALUES (:id, :name)',
+                   dict(zip(('id', 'name'), row)))
     for invoice_id, customer_id, total, note, deleted in INVOICES:
         db.execute(f'INSERT INTO {invoice_sql} (id, customer_id, total, note, __del_ts) '
                    'VALUES (:id, :customer_id, :total, :note, :deleted)',

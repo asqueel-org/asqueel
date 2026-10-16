@@ -145,7 +145,8 @@ class DbPackageObj(DbModelObj):
     @property
     def sqlschema(self):
         default = 'main' if self._model.implementation == 'sqlite' else 'public'
-        return self.attributes.get('sqlschema') or (self.name if self.tag == 'schema' else default)
+        return (self.attributes.get('sqlschema') or self.attributes.get('x_sql_schema')
+                or ((self.attributes.get('sqlname') or self.name) if self.tag == 'schema' else default))
 
     def tableSqlName(self, table):
         prefix = self.attributes.get('sqlprefix', self.tag == 'package')
@@ -158,7 +159,10 @@ class DbTableObj(DbModelObj):
         from .application_table import SqlTable
         # Legacy _getMixinObj creates the operational table before its children.
         # No mixins are installed here; their composition is still undecided.
-        self.dbtable = SqlTable(self.db, self)
+        table_class = self.attributes.get('x_table_class', SqlTable)
+        if not isinstance(table_class, type) or not issubclass(table_class, SqlTable):
+            raise TypeError(f'{self.fullname}: x_table_class must be a SqlTable subclass')
+        self.dbtable = table_class(self.db, self)
         self._relation_tree = None
 
     def afterChildrenCreation(self):

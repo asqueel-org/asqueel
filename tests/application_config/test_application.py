@@ -19,7 +19,7 @@ class Recipe(SqlDatabaseConfig):
 def test_database_owns_graph_environment_and_lazy_lifetime():
     driver = Driver()
     db = build_database(Recipe, driver=driver)
-    assert db.tables['app.item'] is db.table('item')
+    assert db.tables['app.item'] is db.table('app.item')
     with pytest.raises(TypeError):
         db.tables['app.item'] = None
     assert db.current_env == db.currentEnv == {}
@@ -32,22 +32,22 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
         pass
     assert driver.calls == []
     with db:
-        db.table('item').query().fetch()
+        db.table('app.item').query().fetch()
     assert driver.calls[-2:] == ['rollback', 'close']
     assert db.outcome == 'rolled_back'
     db.close()
     with pytest.raises(DatabaseClosedError):
-        db.table('item')
+        db.table('app.item')
 
 
 def test_database_and_handles_can_be_used_by_another_thread():
     driver = Driver()
     db = build_database(Recipe, driver=driver)
-    table = db.table('item')
+    table = db.table('app.item')
     query = table.query()
 
     def worker():
-        assert db.table('item') is table
+        assert db.table('app.item') is table
         query.fetch()
         db.close()
 
@@ -77,13 +77,13 @@ def test_custom_constructor_cannot_execute_on_partially_published_graph():
     class Premature(SqlTable):
         def __init__(self, db, model):
             super().__init__(db, model)
-            db.table('item')
+            self.query().compiled
 
     recipe = Recipe()
     recipe.create()
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = Premature
     driver = Driver()
-    with pytest.raises(TransactionStateError, match='not ready'):
+    with pytest.raises(UnsupportedFeatureError, match='not bound'):
         build_database(recipe, driver=driver)
     assert driver.calls == []
 

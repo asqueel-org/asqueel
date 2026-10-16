@@ -56,7 +56,7 @@ def test_nested_mount_preserves_named_paths_and_real_consumers():
     model.validate_model()
     rendered = SqlMigrationRenderer(model).render()
     assert rendered['root']['schemas']['sales']['tables']['customer']['attributes']['pkeys'] == 'id'
-    assert resolve_model(model).table('customer').columns['label'].ui == {'label': 'Customer'}
+    assert resolve_model(model).table('sales.customer').columns['label'].attributes['x_ui_label'] == 'Customer'
 
 
 def test_dynamic_mount_class_configuration_is_not_emittable_python():
@@ -85,7 +85,7 @@ def invoice_recipe(tables):
 
 class ModularModel(SqlBuilder):
     def main(self, root):
-        schema = root.db('demo').schemas().schema('sales', x_sql_schema='public', x_sql_prefix=True)
+        schema = root.db('demo').schemas().schema('sales', x_sql_schema='public')
         tables = schema.tables()
         customer_recipe(tables)
         invoice_recipe(tables)
@@ -102,32 +102,23 @@ def test_modular_recipes_emit_rebuild_and_keep_all_consumer_contracts():
     rebuilt = build(namespace['Rebuilt'])
     rebuilt.validate_model()
     assert SqlMigrationRenderer(model).render() == SqlMigrationRenderer(rebuilt).render()
-    overlay = {'customer-label': {'label': 'Customer override'}}
     for recipe in (model, rebuilt):
         catalog = SqlModelCatalog(recipe)
         assert set(catalog.tables) == {('sales', 'customer'), ('sales', 'invoice')}
         assert len(catalog.relations) == 1
-        resolved = resolve_model(recipe, ui=overlay)
-        customer = resolved.table('customer')
-        assert customer.physical_schema == 'public'
-        assert customer.physical_name == 'sales_customer'
-        assert customer.columns['label'].physical_name == 'display_name'
-        assert customer.columns['label'].ui == {'label': 'Customer override', 'format': 'text'}
-        assert resolved.table('invoice').physical_name == 'documents'
+        resolved = resolve_model(recipe)
+        customer = resolved.table('sales.customer')
+        assert customer.sqlschema == 'public'
+        assert customer.sqlname == 'customer'
+        assert customer.columns['label'].sqlname == 'display_name'
+        assert customer.columns['label'].attributes['x_ui_label'] == 'Customer'
+        assert customer.columns['label'].attributes['x_ui_format'] == 'text'
+        assert resolved.table('sales.invoice').sqlname == 'documents'
         physical = to_physical_builder(resolved)
         physical.validate_model()
         rendered = SqlMigrationRenderer(physical).render()
-        assert set(rendered['root']['schemas']['public']['tables']) == {'sales_customer', 'documents'}
-        assert 'display_name' in rendered['root']['schemas']['public']['tables']['sales_customer']['columns']
-
-
-def test_ui_overlay_does_not_change_physical_projection():
-    from asqueel.projection import to_physical_builder
-
-    model = build(ModularModel)
-    base = resolve_model(model)
-    changed = resolve_model(model, ui={'customer-label': {'label': 'Translated', 'widget': 'textbox'}})
-    assert SqlMigrationRenderer(to_physical_builder(base)).render() == SqlMigrationRenderer(to_physical_builder(changed)).render()
+        assert set(rendered['root']['schemas']['public']['tables']) == {'customer', 'documents'}
+        assert 'display_name' in rendered['root']['schemas']['public']['tables']['customer']['columns']
 
 
 def test_duplicate_recipe_contribution_fails_explicitly():
@@ -167,4 +158,4 @@ def test_indirect_mounted_grammar_preserves_namespaced_attribute():
     model = build(CustomMountedModel)
     # Namespaced attributes survive even when Builders owns the base signature.
     model.validate_model()
-    assert resolve_model(model).table('customer').columns['id'].attributes['domain_hint'] == 'local grammar field'
+    assert resolve_model(model).table('sales.customer').columns['id'].attributes['domain_hint'] == 'local grammar field'

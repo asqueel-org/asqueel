@@ -42,7 +42,7 @@ def invoice_table(tables):
 class SalesModel(SqlDatabaseConfig):
     def main(self, root):
         tables = root.db('sales_app').schemas().schema(
-            'sales', x_sql_schema='public', x_sql_prefix=True,
+            'sales', x_sql_schema='public',
         ).tables()
         customer_table(tables)
         invoice_table(tables)
@@ -53,8 +53,8 @@ builder.create()
 with builder.render() as db:
     model = db.model
 
-assert model.table('sales.invoice').physical_name == 'sales_invoice'
-assert model.table('sales.invoice').physical_schema == 'public'
+assert model.table('sales.invoice').sqlname == 'invoice'
+assert model.table('sales.invoice').sqlschema == 'public'
 ```
 
 The example uses caller-supplied integer primary keys. It does not allocate
@@ -72,47 +72,26 @@ when several helper functions contribute to it.
 
 ## Keep logical and physical names separate
 
-Use logical names such as `sales.invoice` in queries. The resolver supplies
-the physical names to query rendering and the migration bridge.
+Queries use qualified names such as `sales.invoice`. The live table exposes
+`sqlschema` and `sqlname`; its physical columns expose `sqlname`.
+Native packages declare `sqlschema` and `sqlprefix`; a table or column can declare
+`sqlname`. A package prefix defaults to the package name, following the legacy.
+The source-to-migration projection uses these same objects.
 
-| Attribute | Where to declare it | Meaning |
-|---|---|---|
-| `x_sql_schema` | Schema or table | Physical SQL schema; table overrides schema. |
-| `x_sql_prefix=True` | Schema or table | Prefix table names with the logical schema plus `_`. |
-| `x_sql_prefix='app_'` | Schema or table | Use this exact prefix. |
-| `x_sql_prefix=False` | Schema or table | Disable an inherited prefix. |
-| `x_sql_name` | Table or column | Exact physical name; on a table, it overrides the prefix. |
+## Keep descriptive attributes on the column
 
-No convention is inferred from underscores. For example, an imported table
-named `sales_invoice` remains named `sales_invoice` unless you explicitly
-construct a different logical mapping. Physical table and column collisions
-are rejected. PostgreSQL rendering also rejects identifiers exceeding 63 UTF-8
-bytes instead of accepting server-side truncation.
-
-## Attach UI metadata to the same column
-
-`x_ui_*` keeps display information alongside the declaration. An overlay lets
-you manage that information separately without creating a second column model:
+Labels and other flat attributes stay on their model node:
 
 ```python
-model = resolve_model(builder, ui={
-    'sales.customer.name': {'placeholder': 'Enter a name'},
-    'customer-name': {'label': 'Account name'},
-})
-column = model.table('sales.customer').columns['name']
-assert column.ui['label'] == 'Account name'
-assert column.ui['placeholder'] == 'Enter a name'
+column = model.table('sales.customer').column('name')
+label = column.attributes.get('x_ui_label')
+dtype = column.dtype
 ```
 
-Precedence is inline `x_ui_*`, then the logical-path overlay, then the explicit
-identity overlay. An identity defaults to `schema.table.column`; use
-`x_identity` when it must remain stable after a logical rename. Stable identity
-is metadata, not an automatic database-rename migration.
-
-UI metadata cannot redefine the column type, formula, SQL name, nullability,
-uniqueness or primary-key status. No GUI library is needed to resolve or query
-the model. Labels, placeholders and formats are data for your application;
-Asqueel does not instantiate editors or render forms.
+Use source contributions to override declarations before rendering. The removed
+`resolve_model(..., ui=...)` overlay and separate column `.config` wrapper are
+not part of the live model. Namespaced flat attributes remain available in
+`attributes`; validation attributes are exposed separately by `validations`.
 
 ## Declare relations and formulas
 
@@ -199,11 +178,15 @@ subset; a store selects a database context. Neither is a physical partition.
 
 ## Read resolved metadata or save a recipe
 
-`model.tables` is keyed by fully qualified logical names. `model.table('invoice')`
-is also accepted when that short name is unambiguous. Tables expose `columns`,
-`relations`, `pkey`, physical names and `policies`; columns expose `dtype`, `ui`,
-`identity`, `formula` and `attributes`. Attributes retain source information and
-provenance. Outer mappings are read-only; treat nested metadata as immutable too.
+`model.table('sales.invoice')` returns the `DbTableObj` owned by the hierarchical
+model. The operational `db.table('sales.invoice').model` is that same object.
+`columns` contains physical nodes, `virtual_columns` contains virtual nodes,
+and `relations` is the legacy relation Bag. Descriptive attributes and option
+nodes remain in this hierarchy. `pkey` is the logical key name.
+
+The catalog DTO codec is separate: `model_to_json`/`model_from_json` serialize
+catalog snapshots, not the live `DbModel`. Use the source for a configuration
+recipe, and `SqlMigrationRenderer(to_physical_builder(model))` for migration JSON.
 
 `SqlPythonEmitter` emits an editable Python module from a built recipe:
 

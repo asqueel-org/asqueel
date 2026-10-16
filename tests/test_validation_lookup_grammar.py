@@ -3,7 +3,7 @@ import pytest
 
 from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.model import resolve_model
-from asqueel.model_codec import model_from_json, model_to_json
+from asqueel.configuration import _copy_recipe
 
 
 def source():
@@ -27,10 +27,10 @@ def test_lookup_rules_keep_values_without_resolving_targets_or_executing(rule, v
     table.column('embedded', **{f'validate_{key}': item for key, item in expected.items()})
     table.column('explicit').validation(**expected)
     model = resolve_model(builder)
-    assert model.table('item').columns['embedded'].validations == expected
-    assert model.table('item').columns['explicit'].validations == expected
-    restored = model_from_json(model_to_json(model))
-    assert restored.table('item').columns['embedded'].validations == expected
+    assert model.table('app.item').columns['embedded'].validations == expected
+    assert model.table('app.item').columns['explicit'].validations == expected
+    restored = resolve_model(_copy_recipe(builder))
+    assert restored.table('app.item').columns['embedded'].validations == expected
     physical = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']['app_item']
     assert not physical.get('relations')
     assert not physical['columns']['embedded']['attributes'].get('unique')
@@ -52,8 +52,8 @@ def test_legacy_lookup_parameters_survive_composition_and_round_trip():
         column.validation(nodup_relative='account_id', exist=False)
     expected.update(nodup_relative='account_id', exist=False)
     builder.validate_source()
-    model = model_from_json(model_to_json(resolve_model(builder)))
-    assert model.table('item').columns['code'].validations == expected
+    model = resolve_model(_copy_recipe(builder))
+    assert model.table('app.item').columns['code'].validations == expected
 
 
 @pytest.mark.parametrize('key,value', [
@@ -69,6 +69,6 @@ def test_validation_data_survives_all_source_forms_without_vocabulary_checks(key
     node = table.column('imported').validation()
     node.attr[key] = value
     builder.validate_source()
-    model = model_from_json(model_to_json(resolve_model(builder)))
+    model = resolve_model(_copy_recipe(builder))
     for name in ('embedded', 'explicit', 'imported'):
-        assert model.table('item').columns[name].validations == {key: value}
+        assert model.table('app.item').columns[name].validations == {key: value}

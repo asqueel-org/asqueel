@@ -7,46 +7,13 @@ import threading
 
 import pytest
 
-from asqueel.contracts import CompiledQuery, QueryResult, ResultColumn
+from asqueel.contracts import CompiledQuery, QueryResult
 from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.query_plan import Identifier, Parameter, SqlStatement
 from asqueel.runtime import PostgresDatabase, Database
-
-
-def test_formatter_preserves_literal_percent_and_structural_parameter_boundaries():
-    column = ResultColumn('result', 'T')
-    statement = SqlStatement((
-        'SELECT \'50% and %(literal)s\', 8 % 3, "percent%name", ',
-        Parameter('value'), ', ', Parameter('value'), ' -- 10%\n',
-    ), {'value': "O'Reilly", 'unused': 99}, (column,))
-    query = PsycopgDriver().prepare(statement)
-    assert query.sql == 'SELECT \'50%% and %%(literal)s\', 8 %% 3, "percent%%name", %(value)s, %(value)s -- 10%%\n'
-    assert dict(query.params) == {'value': "O'Reilly"}
-    assert query.columns == (column,)
-    assert (query.dialect, query.binding) == ('postgresql', 'psycopg_named')
-    assert "O'Reilly" not in query.sql
-    assert PsycopgDriver().prepare(statement) == query
-
-
-@pytest.mark.parametrize('parts,params,error', [
-    ((Parameter('missing'),), {}, ValueError),
-    ((Parameter('bad)name'),), {'bad)name': 1}, ValueError),
-    ((Parameter('1name'),), {'1name': 1}, ValueError),
-    ((Parameter('é'),), {'é': 1}, ValueError),
-    ((Identifier('unquoted'),), {}, TypeError),
-    ((object(),), {}, TypeError),
-])
-def test_formatter_rejects_invalid_parts_or_parameters(parts, params, error):
-    with pytest.raises(error):
-        PsycopgDriver().prepare(SqlStatement(parts, params))
 
 
 def test_formatter_and_execution_profile_are_explicit():
     driver = PsycopgDriver()
-    with pytest.raises(ValueError, match='dialect'):
-        driver.prepare(SqlStatement(('SELECT 1',), dialect='sqlite'))
-    with pytest.raises(TypeError):
-        driver.prepare(CompiledQuery('SELECT 1'))
     driver.validate(CompiledQuery('SELECT %(raw)s', {'raw': 1}))
     for query in (CompiledQuery('x', dialect='sqlite'), CompiledQuery('x', binding='qmark')):
         with pytest.raises(ValueError, match='profile'):
@@ -69,7 +36,7 @@ class RecordingDriver:
     def record(self, name):
         self.calls.append((name, threading.get_ident()))
 
-    def prepare(self, statement):
+    def prepare_sql(self, sql, sqlargs, snapshot):
         raise NotImplementedError
 
     def connect(self, conninfo, **kwargs):
@@ -137,10 +104,9 @@ def guarded(name, *args, **kwargs):
     return original(name, *args, **kwargs)
 builtins.__import__ = guarded
 from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.query_plan import SqlStatement, Parameter
 from asqueel.runtime import Database, PostgresDatabase
 from asqueel.contracts import CompiledQuery, QueryResult
-query = PsycopgDriver().prepare(SqlStatement(('SELECT ', Parameter('x')), {'x': 3}))
+query = PsycopgDriver().prepare_sql('SELECT :x', {'x': 3}, {})
 assert query.sql == 'SELECT %(x)s'
 class Driver:
     dialect = 'fake'

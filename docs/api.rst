@@ -15,7 +15,7 @@ Application configuration and objects
    :members: AsqueelDb, SqlDatabase
 
 .. automodule:: asqueel.application_table
-   :members: SqlTable, SqlColumn, SqlRelation, SqlQuery, SqlRecord, RecordNotFoundError, RecordMultipleRowsError
+   :members: SqlTable, SqlQuery, SqlRecord, RecordNotFoundError, RecordMultipleRowsError
 
 Compiler
 --------
@@ -52,3 +52,9 @@ Database inspection
 
 .. automodule:: asqueel.projection
    :members: to_physical_builder
+
+Hierarchical model
+------------------
+
+.. automodule:: asqueel.object_tree
+   :members: DbModel, DbModelObj, DbTableObj, DbColumnObj

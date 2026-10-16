@@ -9,7 +9,7 @@ from asqueel import SqlDatabase, UnsupportedFeatureError
 from asqueel.configuration import _owned_handler
 from asqueel.drivers.psycopg import PsycopgDriver
 from asqueel.drivers.sqlite import SqliteDriver
-from asqueel.object_tree_compiler import _TreeContext
+from asqueel.compiler import _TreeContext
 from asqueel.sql_compiled_query import SqlCompiledQuery
 from examples.test_invoice_pg import source
 from tests.object_tree.test_legacy_rewrite_contracts import normalized
@@ -122,13 +122,11 @@ def test_many_traversal_does_not_allocate_join(db):
 
 
 def test_new_container_is_independent_and_compilation_is_local(db, monkeypatch):
-    def forbidden(*args, **kwargs):
-        pytest.fail('New compiler reached the previous plan/expression pipeline')
-    for name in ('QueryPlan', 'Projection', 'Fragment', 'SqlStatement'):
-        monkeypatch.setattr(f'asqueel.query_plan.{name}', forbidden)
-    monkeypatch.setattr('asqueel.compiler._SelectCompiler.plan_select', forbidden)
-    monkeypatch.setattr('asqueel.compiler._Context.__init__', forbidden)
-    monkeypatch.setattr(type(db.dialect), 'render', forbidden)
+    import importlib.util
+    import asqueel.compiler as compiler
+    assert importlib.util.find_spec('asqueel.query_plan') is None
+    assert not hasattr(compiler, '_SelectCompiler')
+    assert not hasattr(db.dialect, 'render')
     attrs = {table.fullname: deepcopy(table.attributes) for table in db.model.tables.values()}
     relations = db.model.relations.to_xml()
     params = {'minimum': 12}

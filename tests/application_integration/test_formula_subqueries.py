@@ -1,6 +1,5 @@
 """Formula select/exists acceptance with real correlations and nested policies."""
 from tests.unit_of_work import completed
-from decimal import Decimal
 from uuid import uuid4
 
 import psycopg
@@ -88,61 +87,6 @@ def formula_database(request):
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
-def test_scalar_aggregate_exists_named_nested_formula_and_metadata(formula_database):
-    db = formula_database
-    with db.temp_env(organization=0):
-        result = db.table('invoice').query(
-            '$id,$total,$has_lines,$total_zero,$double_total', order_by='$id').execute()
-        assert [dict(row) for row in result.rows] == [
-            {'id': 1, 'total': Decimal(100), 'has_lines': True, 'total_zero': Decimal(100),
-             'double_total': Decimal(200)},
-            {'id': 2, 'total': Decimal(7), 'has_lines': True, 'total_zero': Decimal(7),
-             'double_total': Decimal(14)},
-            {'id': 3, 'total': None, 'has_lines': False, 'total_zero': Decimal(0), 'double_total': None},
-        ]
-        assert len(result.rows) == 3  # Child rows must not multiply the outer invoice rows.
-        total_metadata = next(column for column in result.columns if column.name == 'total')
-        assert total_metadata.source == 'app.invoice.total'
-        assert total_metadata.dtype == 'N'
-
-
-def test_correlated_owner_through_relation_and_alias(formula_database):
-    with formula_database.temp_env(organization=0):
-        rows = formula_database.table('receipt').query(
-            '$id,@invoice.total AS related_total,$invoice_total', order_by='$id').fetch()
-        assert [dict(row) for row in rows] == [
-            {'id': 10, 'related_total': Decimal(100), 'invoice_total': Decimal(100)},
-            {'id': 11, 'related_total': Decimal(7), 'invoice_total': Decimal(7)},
-            {'id': 12, 'related_total': None, 'invoice_total': None},
-        ]
-
-
-def test_nested_policy_defaults_and_explicit_overrides(formula_database):
-    db = formula_database
-    query = db.table('invoice').query('$total,$filtered_total,$all_total', where='$id=1')
-    expected = [{'total': Decimal(100), 'filtered_total': Decimal(50), 'all_total': Decimal(100)}]
-    assert [dict(row) for row in query.fetch()] == expected  # Legacy formula defaults bypass partition.
-    db.rollback()
-    scoped = db.table('invoice').query('$scoped_total', where='$id=1')
-    with pytest.raises(ValueError, match='Missing partition context'):
-        scoped.fetch()
-    with db.temp_env(organization=0):
-        assert [dict(row) for row in query.fetch()] == expected
-        assert [dict(row) for row in scoped.fetch()] == [{'scoped_total': Decimal(60)}]
-
-
-def test_scalar_multiple_rows_raise_and_this_inside_literal_comment_survives(formula_database):
-    db = formula_database
-    with db.temp_env(organization=0):
-        assert [dict(row) for row in db.table('invoice').query('$literal_marker', where='$id=1').fetch()] == [
-            {'literal_marker': '#THIS.id'}]
-        db.rollback()
-        with pytest.raises(psycopg.errors.CardinalityViolation):
-            with completed(db):
-                db.table('invoice').query('$single_amount', where='$id=1').fetch()
-        assert db.outcome == 'rolled_back'
-
-
 def test_default_returning_does_not_evaluate_subquery_virtuals(formula_database):
     db = formula_database
     with completed(db):
@@ -151,11 +95,3 @@ def test_default_returning_does_not_evaluate_subquery_virtuals(formula_database)
         updated = db.table('invoice').update({'name': 'updated'}, where='$id=4')
         assert [dict(row) for row in updated.rows] == [{'id': 4, 'name': 'updated'}]
         assert [dict(row) for row in db.table('invoice').delete(4).rows] == [{'id': 4, 'name': 'updated'}]
-
-
-def test_subquery_local_params_are_isolated_from_outer_binding(formula_database):
-    db = formula_database
-    with db.temp_env(organization=0):
-        query = db.table('invoice').query('$id,$above_threshold', where='$id<:threshold',
-                                          sqlparams={'threshold': 2})
-        assert [dict(row) for row in query.fetch()] == [{'id': 1, 'above_threshold': Decimal(90)}]

@@ -1,5 +1,12 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**16 ottobre 2026 — percorso unico delle letture nel worktree dedicato:**
+[Rapporto 98](98-single-read-path.md). Gli ingressi operativi usano DbModel e
+QueryCompiler gerarchico; eliminati il vecchio compilatore, QueryPlan/Fragment e
+le copie SqlColumn/SqlRelation. Record e lock verificati su SQLite/PostgreSQL.
+**3.200 test passati, 8 skip nel perimetro letture**. Le scritture restano al
+lavoro separato; questo risultato non dichiara verde la suite generale.
+
 **Aggiornamento 15 ottobre 2026 — campi condivisi dalle options verificati:**
 [Rapporto 94](94-shared-option-fields.md). Le 12 differenze d'ordine sono accettate;
 non richiedono riallineamento. Verificati tipo, attributi, relazioni e unicità dei

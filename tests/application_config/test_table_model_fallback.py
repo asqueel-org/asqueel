@@ -2,12 +2,19 @@
 import pytest
 
 from asqueel import SqlTable, build_database
-from asqueel.contracts import Column, Table
+from types import SimpleNamespace
 from tests.application_config.test_application import Recipe
 from tests.application_connections.test_connections import Driver
 
 
-class StructuralTable(Table):
+class StructuralTable:
+    fullname = "app.item"
+    name = "item"
+    columns = {"id": SimpleNamespace(name="id")}
+
+    def column(self, name):
+        return self.columns[name]
+
     def owner(self):
         return self
 
@@ -21,19 +28,19 @@ class StructuralTable(Table):
 
 @pytest.fixture
 def table():
-    return SqlTable(None, StructuralTable('item', columns={'id': Column('id')}))
+    return SqlTable(None, StructuralTable())
 
 
 def test_database_table_exposes_model_members_without_connecting():
     driver = Driver()
     db = build_database(Recipe, driver=driver)
     try:
-        table = db.table('item')
+        table = db.table('app.item')
         assert table.model is db.model.table('app.item')
         assert table.name == table.model.name == 'item'
-        assert table.pkey == table.model.pkey == ('id',)
+        assert table.pkey == table.model.pkey == 'id'
         assert table.attributes is table.model.attributes
-        assert table.options is table.model.options
+        assert table.model is db.model.table('app.item')
         assert driver.calls == []
     finally:
         db.close()
@@ -43,8 +50,8 @@ def test_operational_members_take_precedence(table):
     assert table.query.__self__ is table
     assert table.query.__func__ is SqlTable.query
     assert table.column('id') is table.columns['id']
-    assert table.columns['id'].model is table.model.columns['id']
-    assert table.columns is not table.model.columns
+    assert table.columns['id'] is table.model.columns['id']
+    assert table.columns is table.model.columns
     table.name = 'local name'
     assert table.name == 'local name'
     assert table.model.name == 'item'
@@ -75,7 +82,6 @@ def test_fallback_before_model_assignment_does_not_recurse():
 
 
 def test_fallback_can_read_hierarchical_model_without_rebinding_its_methods():
-    # Lookup-only probe: the operational constructor is not yet wired to objects_tree.
     recipe = Recipe()
     recipe.create()
     model = recipe.render(mode='objects_tree')

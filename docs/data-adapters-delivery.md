@@ -1,5 +1,8 @@
 # Adapter dati — estrazione dalla V1
 
+> Historical profile: live queries now use the [single hierarchical path](guide/compiler.md).
+> Catalog snapshot descriptions remain applicable; previous compiler/renderer APIs do not.
+
 **Aggiornamento:** il runtime corrente è sincrono; i risultati di verifica qui riportati descrivono la consegna adapter precedente. Vedi [runtime attuale](native-runtime.md).
 
 29 settembre 2026. Implementazione del [piano 08](design/08-data-adapters-plan.md).

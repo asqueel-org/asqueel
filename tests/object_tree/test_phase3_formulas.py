@@ -5,7 +5,7 @@ import pytest
 
 from asqueel import SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError
 from asqueel.configuration import _owned_handler
-from asqueel.object_tree_compiler import _TreeContext
+from asqueel.compiler import _TreeContext
 from tests.native_compiler.test_subquery_methods import (
     declare, install, TestLegacySubqueryMethodContract as TestLegacySubqueryMethodContract,
 )

@@ -52,7 +52,7 @@ def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
     db = AsqueelDb(Recipe, driver=Driver())
     try:
         assert db.workdate == date(2026, 9, 30)
-        query = db.table('item').query(columns=':env_workdate AS day').compiled
+        query = db.table('app.item').query(columns=':env_workdate AS day').compiled
         Clock.today_value = date(2026, 10, 1)
         assert db.workdate == Clock.today_value
         with pytest.raises(EnvironmentMismatchError):
@@ -73,7 +73,7 @@ def test_nested_scopes_restore_context_after_error_and_reject_stale_query():
         with pytest.raises(RuntimeError, match='cancel'):
             with db.tempEnv(workdate=date(2024, 2, 1), locale='middle'):
                 with db.tempEnv(workdate=date(2024, 3, 1), locale='inner'):
-                    query = db.table('item').query(
+                    query = db.table('app.item').query(
                         columns=':env_workdate AS day, :env_locale AS lang').compiled
                     assert query.params == {'env_workdate': date(2024, 3, 1), 'env_locale': 'inner'}
                 assert (db.workdate, db.locale) == (date(2024, 2, 1), 'middle')

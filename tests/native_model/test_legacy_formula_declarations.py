@@ -56,8 +56,8 @@ def test_legacy_task_formula_select_dictionaries_compile_unchanged():
 
     with build_database(Recipe) as db:
         for name, attributes in declarations.items():
-            column = db.table('sys.task').column(name).model
-            assert dict(column.select) == attributes['select']
+            column = db.table('sys.task').column(name)
+            assert dict(column.attributes['select']) == attributes['select']
             query = db.table('sys.task').query(columns=f'${name}').compiled
             assert '#THIS' not in query.sql
             assert 'SELECT' in query.sql

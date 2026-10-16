@@ -33,14 +33,14 @@ class Shop(SqlDatabaseConfig):
 
 
 db = AsqueelDb(Shop)
-assert db.table("customer") is db.table("sales.customer")
-assert db.table("customer").config("name_long") == "Customers"
+assert db.table("sales.customer").model is db.model.table("sales.customer")
+assert db.table("sales.customer").attributes["name_long"] == "Customers"
 db.close()
 
 recipe = Shop()
 recipe.create()
 db = recipe.render()
-print(db.table("customer").query(columns="$id, $name").sqltext)
+print(db.table("sales.customer").query(columns="$id, $name").sqltext)
 db.close()
 ```
 
@@ -89,7 +89,7 @@ a default raises `KeyError`. Explicit nullable SQL attributes retain `None`;
 db = AsqueelDb(Shop)
 try:
     assert db.config("implementation") == "postgresql"
-    customer = db.table("customer")
+    customer = db.table("sales.customer")
     assert customer.config("pkey") == "id"
     assert customer.column("name").config("dtype") == "T"
     assert customer.config("optional_hint", default=False) is False
@@ -124,7 +124,7 @@ Against an existing database with the example table:
 ```python
 db = AsqueelDb(Shop)
 try:
-    customer = db.table("customer")
+    customer = db.table("sales.customer")
     try:
         customer.insert({"id": 1, "name": "Ada"})
         rows = customer.query(where="$id = :wanted", wanted=1).fetch()
@@ -147,9 +147,9 @@ Queries compile in the environment current at the terminal call.
 
 `record(pkey)` returns a lazy exactly-one reader. `.output('dict')` returns a
 copy of its cached result; `.refresh()` reloads it in the current environment.
-`record(pkey, mode='dict')` is the immediate form. These APIs use ordinary Python
-dictionaries. Legacy `Selection`, Bag output, and the `count()` terminal are not
-implemented. Use an explicit aggregate projection for counting.
+`record(pkey, mode='dict')` is the immediate form. `output('record')` returns a Bag without relation resolvers. `ignoreMissing=True`
+returns an empty result. `query.count()` follows the legacy count algorithm;
+Selection remains outside this profile.
 
 Insert, update, delete, soft-delete and restore return `QueryResult`. Read the
 [transaction guide](transactions.md) before using writes: operations share the selected connection and do not commit individually.
@@ -165,7 +165,7 @@ semantics and transaction rules.
 A database shares its model and table handles between threads. Connections and
 mutable execution state are isolated per thread. Repeated table lookup within one
 instance preserves identity; custom table classes must not store per-request state
-on shared attributes. Table and column `.config` views read the completed model;
+on shared attributes. Table and column nodes expose the completed model through `.attributes`;
 editing the source or `db.config.builder` does not alter their structural values.
 `db.config` retains administrative connection configuration. Editing it does not
 reconfigure an already-open physical connection.

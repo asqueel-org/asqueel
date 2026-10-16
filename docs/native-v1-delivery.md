@@ -1,5 +1,8 @@
 # V1 nativa PostgreSQL — implementazione e verifiche
 
+> Historical profile: live queries now use the [single hierarchical path](guide/compiler.md).
+> Catalog snapshot descriptions remain applicable; previous compiler/renderer APIs do not.
+
 > Rapporto storico della prima consegna. La scelta successiva è un runtime
 > interamente sincrono: [contratto corrente](native-runtime.md). I riferimenti
 > a worker e API async sotto descrivono la versione precedente.

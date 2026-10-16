@@ -40,22 +40,22 @@ def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
     # Preserve physical schema names too: authored SQL in the legacy model
     # refers directly to invc.invc_invoice_note. Isolation is per database.
     db = build_database(config)
-    schemas = [s.physical_name for s in db.model.schemas.values()]
+    schemas = sorted({t.sqlschema for t in db.model.tables.values()})
     try:
         if backend == 'postgresql':
             for schema in schemas:
                 db.execute(f'CREATE SCHEMA "{schema}"')
         for name in TABLES:
             table = db.model.table('invc.' + name)
-            physical = [c for c in table.columns.values() if not c.is_virtual]
-            columns = ', '.join(f'"{c.physical_name}" {SQL_TYPES.get(c.dtype, "TEXT")}'
+            physical = [c for c in table.columns.values()]
+            columns = ', '.join(f'"{c.sqlname}" {SQL_TYPES.get(c.dtype, "TEXT")}'
                                 for c in physical)
-            target = f'"{table.physical_schema}"."{table.physical_name}"'
+            target = f'"{table.sqlschema}"."{table.sqlname}"'
             db.execute(f'CREATE TABLE {target} ({columns})')
             with (Path(__file__).parent / 'data' / (name + '.csv')).open() as stream:
                 reader = csv.DictReader(stream)
                 names = [n for n in reader.fieldnames if n != 'pkey']
-                fields = ', '.join(f'"{table.columns[n].physical_name}"' for n in names)
+                fields = ', '.join(f'"{table.columns[n].sqlname}"' for n in names)
                 values = ', '.join(':' + n for n in names)
                 for row in reader:
                     params = {n: None if row[n] == '' else row[n] for n in names}

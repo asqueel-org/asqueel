@@ -12,12 +12,12 @@ import pytest
 from asqueel import SqlDatabase
 from asqueel.configuration import _owned_handler
 from examples.test_invoice_pg import source
-from tests.native_formulas import (test_legacy_sql_formulas, test_legacy_subqueries,
-                                   test_legacy_method_formulas, test_legacy_subquery_columns)
+from tests.native_formulas import (legacy_sql_formulas, legacy_subqueries,
+                                   legacy_method_formulas, legacy_subquery_columns)
 from tests.native_formulas.conftest import db_pg as execution_pg, db_sqlite as execution_sqlite  # noqa: F401
 
-MODULES = (test_legacy_sql_formulas, test_legacy_subqueries,
-           test_legacy_method_formulas, test_legacy_subquery_columns)
+MODULES = (legacy_sql_formulas, legacy_subqueries,
+           legacy_method_formulas, legacy_subquery_columns)
 
 
 class ResultQuery:

@@ -8,7 +8,6 @@ from asqueel.contracts import (
 )
 from asqueel.drivers.psycopg import PsycopgDriver
 from asqueel.environment import SqlEnvironment
-from asqueel.query_plan import SqlStatement
 from asqueel.runtime import PostgresDatabase, Database
 
 
@@ -23,8 +22,8 @@ class ContextDriver:
     def validate(self, query):
         PsycopgDriver().validate(query)
 
-    def prepare(self, statement):
-        return PsycopgDriver().prepare(statement)
+    def prepare_sql(self, sql, sqlargs, snapshot):
+        return PsycopgDriver().prepare_sql(sql, sqlargs, snapshot)
 
     def record(self, method):
         self.calls.append((method, dict(self.environment.snapshot()), threading.get_ident()))
@@ -53,8 +52,9 @@ class ContextDriver:
 
 def test_driver_preparation_preserves_environment_binding():
     binding = EnvironmentBinding(('company',), {'company': 1})
-    query = PsycopgDriver().prepare(SqlStatement(('SELECT 1',), environment=binding))
-    assert query.environment is binding
+    query = PsycopgDriver().prepare_sql('SELECT :env_company', {}, {'company': 1})
+    assert query.environment.keys == binding.keys
+    assert query.environment.values == binding.values
 
 
 def test_stale_environment_rejected_before_connect_and_before_transaction_dispatch():

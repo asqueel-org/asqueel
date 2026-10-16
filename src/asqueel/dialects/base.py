@@ -1,7 +1,5 @@
 """Data dialect interface; capability checks describe implemented operations."""
-from typing import Iterable, Protocol
-
-from ..query_plan import Fragment, QueryPlan, SqlStatement
+from typing import Protocol
 
 
 class DataDialect(Protocol):
@@ -12,19 +10,16 @@ class DataDialect(Protocol):
 
     def as_translator(self, name: str) -> str: ...
 
-    def tokens(self, expression: str) -> Iterable[tuple[str, str]]: ...
 
     def empty_collection(self, negated: bool) -> str: ...
 
     def concat_non_null(self, expressions: list[str], separator: str) -> str: ...
 
-    def render(self, plan: QueryPlan) -> SqlStatement: ...
 
     def compile_sql(self, maintable, columns, distinct='', joins=None, where=None,
                     group_by=None, having=None, order_by=None, limit=None, offset=None,
                     for_update=False, maintable_as='t0') -> str: ...
 
-    def aggregate_subquery(self, plan: QueryPlan, mode: str, alias: str) -> Fragment: ...
 
     def aggregate_sql_subquery(self, sql, mode, alias, columns) -> str: ...
 

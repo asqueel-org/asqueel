@@ -1,4 +1,4 @@
-"""Alternative object construction over RendererBase's unmodified walk."""
+"""Hierarchical object construction over RendererBase's unmodified walk."""
 from copy import deepcopy
 
 from genro_builders.renderer import RendererBase
@@ -12,14 +12,23 @@ class SqlObjectTreeRenderer(RendererBase):
     mode = 'objects_tree'
     render_type = 'object'
 
+    def __init__(self, builder, *, config=None):
+        super().__init__(builder)
+        self.config = config
+
     def preprocess(self, source):
         # Reuse the agreed source expansions, not resolve_model or SqlDatabase.
         # Work on an owned recipe: neither render can mutate the authored source.
-        self.config = _owned_handler(self.builder)
-        self.prepared = prepare_source(_effective_model_builder(self.config), options_first=True)
+        if self.config is None:
+            self.config = _owned_handler(self.builder)
+        builder = _effective_model_builder(self.config)
+        builder.source.get_node('db').attr['implementation'] = (
+            self.config('connection.implementation', default=None)
+            or self.config('implementation', default='postgresql'))
+        self.prepared = prepare_source(builder, options_first=True)
         self.prepared.validate_model()
         root = self.prepared.source.get_node('db').value
-        for node in list(root):
+        for node in list(root or ()):
             if node.node_tag == 'connection':
                 root.pop_node(node.label)
         self.add_render(self.prepared, self)
@@ -52,3 +61,10 @@ class SqlObjectTreeRenderer(RendererBase):
         # Builders may use different renderer instances for materialize/finalize.
         # The fragment retains its owned source; finalize needs no walk state.
         return DbModel(fragments[0], source=fragments[0].node.parent_bag)
+
+
+def render_model(config):
+    """Build from the already-owned configuration using the generic walk once."""
+    renderer = SqlObjectTreeRenderer(config.builder, config=config)
+    source = renderer.preprocess(config.builder.source)
+    return renderer.finalize(renderer.render_children(source))

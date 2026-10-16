@@ -16,7 +16,7 @@ def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
     with build_database(DatabaseConfiguration) as db:
         for name in ('identity.user', 'identity.access', 'sales.customer',
                      'sales.product', 'sales.invoice', 'sales.invoice_row'):
-            assert db.table(name).model.pkey == ('id',)
+            assert db.table(name).model.pkey == 'id'
         assert db.config('connection.name') == 'example_test'
         invoice = db.table('sales.invoice')
         assert isinstance(invoice, InvoiceLogic)

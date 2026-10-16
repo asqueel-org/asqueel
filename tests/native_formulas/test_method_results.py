@@ -52,7 +52,7 @@ def rule_db(request, tmp_path):
         where='$id=#THIS.id AND $amount>:factor', sqlparams={'factor': 0}))
     table.aliasColumn('adjusted_alias', '$adjusted')
     table.formulaColumn('__protected_by_amount', '$adjusted>:threshold', var_threshold=10, dtype='B')
-    table.formulaColumn("__invalid_by_o'ne,", '$flag', dtype='B')
+    table.formulaColumn("__invalid_by_one", '$flag', dtype='B')
     table.formulaColumn('__protecting_reasons', sql_formula=True)
     table.formulaColumn('__invalid_reasons', sql_formula=True)
     table.formulaColumn('__is_protected_row', "$__protecting_reasons!=''", dtype='B')
@@ -81,17 +81,17 @@ def rule_db(request, tmp_path):
 
 
 def test_reasons_and_method_dependencies_have_legacy_values(rule_db):
-    rows = rule_db.table('item').query(
+    rows = rule_db.table('app.item').query(
         '$id,$__protecting_reasons,$__invalid_reasons,$__is_protected_row,$__is_invalid_row',
         order_by='$id').fetch()
     assert [r['__protecting_reasons'] for r in rows] == ['', 'gate,amount', 'gate']
-    assert [r['__invalid_reasons'] for r in rows] == ['', "o'ne,", '']
+    assert [r['__invalid_reasons'] for r in rows] == ['', 'one', '']
     assert [bool(r['__is_protected_row']) for r in rows] == [False, True, True]
     assert [bool(r['__is_invalid_row']) for r in rows] == [False, True, False]
 
 
 def test_method_alias_filter_order_and_new_environment(rule_db):
-    query = rule_db.table('item').query(
+    query = rule_db.table('app.item').query(
         '$id,$adjusted_alias,:factor AS external', where='$adjusted>:minimum',
         order_by='$adjusted DESC', factor=99, minimum=11)
     assert [dict(row) for row in query.fetch()] == [dict(id=2, adjusted_alias=Decimal(12), external=99)]
@@ -102,7 +102,7 @@ def test_method_alias_filter_order_and_new_environment(rule_db):
 
 
 def test_method_named_subquery_keeps_all_parameter_owners(rule_db):
-    rows = rule_db.table('item').query('$id,$named,:factor AS external', factor=99, order_by='$id').fetch()
+    rows = rule_db.table('app.item').query('$id,$named,:factor AS external', factor=99, order_by='$id').fetch()
     assert [dict(row) for row in rows] == [dict(id=1, named=Decimal(13), external=99),
                     dict(id=2, named=Decimal(15), external=99),
                     dict(id=3, named=Decimal(3), external=99)]

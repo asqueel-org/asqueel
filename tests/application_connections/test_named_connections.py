@@ -73,7 +73,7 @@ def test_legacy_environment_scope_preserves_unrelated_changes():
     assert db.workdate == date.today()
     db.workdate = date(2024, 1, 2)
     db.locale = 'it_IT'
-    compiled = db.table('item').query(columns=':env_workdate AS day, :env_locale AS lang').compiled
+    compiled = db.table('app.item').query(columns=':env_workdate AS day, :env_locale AS lang').compiled
     assert compiled.params == {'env_workdate': date(2024, 1, 2), 'env_locale': 'it_IT'}
     db.close()
 
@@ -155,7 +155,7 @@ def test_default_workdate_binding_and_stale_snapshot_rejection():
     from asqueel import EnvironmentMismatchError
     driver = Driver()
     db = build_database(Recipe, driver=driver)
-    query = db.table('item').query(columns=':env_workdate AS day').compiled
+    query = db.table('app.item').query(columns=':env_workdate AS day').compiled
     assert query.params['env_workdate'] == date.today()
     db.workdate = date(2000, 1, 1)
     with pytest.raises(EnvironmentMismatchError):

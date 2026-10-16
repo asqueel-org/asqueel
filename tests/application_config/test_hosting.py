@@ -57,7 +57,8 @@ def host(tmp_path):
     for owner, name in ((server, 'default'), (server, 'alfadb'), (chat, 'default'), (chat, 'alfadb')):
         db = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}.db'))
         db.migrate()
-        db.table('app.item').insert({'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
+        db.execute('INSERT INTO app.item (id, owner) VALUES (:id, :owner)',
+                   {'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
         db.commit()
         db.closeConnection()
     yield server, chat, plain

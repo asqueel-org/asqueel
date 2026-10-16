@@ -10,7 +10,7 @@ from tests.adapter_integration.test_named_list_rows import (
     test_raw_compiled_and_empty_result_metadata as test_raw_compiled_and_empty_result_metadata,
     test_duplicate_names_rejected_consistently as test_duplicate_names_rejected_consistently,
 )
-from tests.test_wf_phase3_query_count import (
+from tests.read_path.count_cases import (
     test_count_uses_the_current_environment as original_environment,
     test_count_does_not_commit as original_transaction,
 )

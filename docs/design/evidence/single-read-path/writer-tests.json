@@ -1,0 +1,65 @@
+{
+  "excluded_files": [
+    "adapter_compiler/test_locking.py",
+    "adapter_compiler/test_plans.py",
+    "adapter_dialect/test_postgres.py",
+    "adapter_dialect/test_postgres_execution.py",
+    "adapter_integration/test_postgres_pipeline.py",
+    "application_connections/test_python_errors.py",
+    "application_connections/test_request_lifecycle.py",
+    "application_integration/test_alias_columns.py",
+    "application_integration/test_cli_postgres.py",
+    "application_integration/test_formula_subqueries.py",
+    "application_integration/test_postgres_application.py",
+    "application_integration/test_postgres_policies.py",
+    "application_integration/test_python_errors_postgres.py",
+    "application_integration/test_raw_writes.py",
+    "application_integration/test_write_hooks.py",
+    "application_integration/test_write_lifecycle.py",
+    "application_table/test_handles.py",
+    "native_compiler/test_aliases.py",
+    "native_compiler/test_compiler.py",
+    "native_compiler/test_inverse_relations.py",
+    "native_compiler/test_policies.py",
+    "native_compiler/test_subqueries.py",
+    "native_integration/test_postgres_vertical.py",
+    "native_integration/test_row_policies.py",
+    "sqlite/test_sqlite_application.py",
+    "test_release_model_semantics.py",
+    "test_wf_phase2_query_grouping.py"
+  ],
+  "excluded_functions": {
+    "application_config/test_application.py": [
+      "test_rollback_only_session_rejects_write_before_calling_hooks"
+    ],
+    "application_config/test_mounted_grammar.py": [
+      "test_mounted_database_writes_and_reads_on_sqlite"
+    ],
+    "application_connections/test_deferred.py": [
+      "test_hooks_can_register_both_queues_and_deferred_errors",
+      "test_stack_tracks_nested_writes_and_restores_after_exception"
+    ],
+    "adapter_integration/test_named_list_rows.py": [
+      "test_returning_and_record_dict_keep_their_declared_interfaces"
+    ],
+    "native_compiler/test_native_star.py": [
+      "test_returning_keeps_all_physical_columns"
+    ],
+    "native_model/test_postgres.py": [
+      "test_composite_fk_is_applied_and_enforced_by_postgres_migration"
+    ],
+    "sqlite/test_migration_api.py": [
+      "test_plan_changes_nothing_and_migrate_creates_the_tables",
+      "test_a_database_declared_in_a_host_configuration_migrates"
+    ],
+    "test_native_option_expansion.py": [
+      "test_declarative_options_are_preserved_without_new_columns_or_runtime_effects"
+    ],
+    "documentation/test_examples.py": [
+      "test_downloadable_tutorial",
+      "test_application_query_guide_against_tutorial_data",
+      "test_quickstart_as_published",
+      "test_application_environment_examples"
+    ]
+  }
+}

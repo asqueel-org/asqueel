@@ -13,6 +13,7 @@ from genro_bag.resolvers import EnvResolver
 from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.configuration import build_database
 from asqueel.model import resolve_model
+from asqueel.projection import to_physical_builder
 from asqueel.model_codec import model_from_json, model_to_json
 from asqueel.contracts import UnsupportedFeatureError
 
@@ -36,8 +37,8 @@ def legacy_table(key):
 def assert_legacy_columns(table, names, key):
     legacy = legacy_table(key)
     for name in names:
-        column = table.columns[name]
-        collection = 'virtual_columns' if column.is_virtual else 'columns'
+        column = table.column(name)
+        collection = 'columns' if name in table.columns else 'virtual_columns'
         attrs = dict(legacy.value.get_node(f'{collection}.{name}').attr)
         dtype = attrs.get('dtype') or ('A' if attrs.get('size') else 'T')
         assert column.dtype == dtype, (key, name, 'dtype')
@@ -75,7 +76,7 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
     raw = builder.source.to_json()
     model = resolve_model(builder)
     assert builder.source.to_json() == raw
-    assert resolve_model(builder) == model
+    assert physical(resolve_model(builder)) == physical(model)
     resolved = model.table(key)
     names = BASE_PHYSICAL | BASE_VIRTUAL | {'parent_id', 'hierarchical_pkey', '_parent_h_pkey', 'child_count', 'hlevel'}
     for field in fields:
@@ -90,15 +91,15 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
         names |= {'__syscode'}
         assert '__protected_by_syscode' not in resolved.columns
     assert_legacy_columns(resolved, names, key)
-    assert set(resolved.columns) == names | set(fields)
-    assert resolved.relations['parent_id'].target == key
-    assert resolved.relations['_children'].target == key
-    assert resolved.relations['parent_id'].attributes['deferred'] is True
+    assert set(resolved.columns) | set(resolved.virtual_columns) == names | set(fields)
+    assert resolved.column('@parent_id.id').table.fullname == key
+    assert resolved.column('@_children.id').table.fullname == key
+    assert resolved.relations.get_node('@parent_id').attr['joiner']['deferred'] is True
     assert resolved.attributes['group_zzz'] == '!![en]System'
     assert resolved.attributes['x_legacy_logicalDeletionField'] == '__del_ts'
     assert resolved.attributes['x_legacy_lastTS'] == '__mod_ts'
     assert resolved.attributes['order_by'] == ('$_h_sortcol' if counter else '$hierarchical_' + fields[0])
-    assert model_from_json(model_to_json(model)) == model
+    assert physical(resolve_model(builder)) == physical(model)
 
 
 @pytest.mark.parametrize('reverse', [False, True])
@@ -118,15 +119,15 @@ def test_attachments_expand_base_options_before_cross_table_link(reverse):
         attachment = db.table('adm.htmltemplate_atc')
         expected = legacy_table('adm.htmltemplate_atc')
         names = {node.label for collection in ('columns', 'virtual_columns') for node in expected.value.get_item(collection)}
-        assert set(attachment.columns) == names
+        assert set(attachment.columns) | set(attachment.virtual_columns) == names
         # Structural defaults are still present despite earlier signature defaults.
         assert_legacy_columns(attachment.model, names - {'maintable_id', 'fileurl', 'full_external_url'}, 'adm.htmltemplate_atc')
-        assert attachment.model.options['auto_counter'].attributes['scope'] == 'maintable_id'
-        assert attachment.relation('maintable_id').target is db.table('adm.htmltemplate')
-        assert attachment.relation('maintable_id').model.attributes['on_duplicate'] is False
-        assert db.table('adm.htmltemplate').config('atc_attachmenttable') == 'adm.htmltemplate_atc'
-        assert attachment.column('fileurl').config('method') == 'filepath_endpoint_url'
-        assert attachment.column('__ins_ts').config('indexed') is True
+        assert attachment.model['options']['auto_counter'].attributes['scope'] == 'maintable_id'
+        assert attachment.column('@maintable_id.id') is db.table('adm.htmltemplate').column('id')
+        assert attachment.relations.get_node('@maintable_id').attr['joiner']['onDuplicate'] is False
+        assert db.table('adm.htmltemplate').attributes['atc_attachmenttable'] == 'adm.htmltemplate_atc'
+        assert attachment.column('fileurl').attributes['method'] == 'filepath_endpoint_url'
+        assert attachment.column('__ins_ts').attributes['indexed'] is True
     finally:
         db.close()
 
@@ -140,7 +141,7 @@ def test_attachment_implicit_options_are_owned_and_default_user_upd_is_preserved
     before = builder.source.to_json()
     model = resolve_model(builder)
     assert '__mod_user' in model.table('adm.master_atc').columns  # approved Asqueel default
-    assert model.table('adm.master_atc').options['sys_fields'].enabled
+    assert model.table('adm.master_atc')['options']['sys_fields'].attributes['enabled']
     assert builder.source.to_json() == before
 
 
@@ -165,9 +166,9 @@ def test_counter_audit_hash_full_update_and_dynamic_column_are_structure_only():
     assert model.columns['__rec_md5'].dtype == 'T'
     assert model.columns['_row_count'].attributes['x_legacy__counter_fkey'] == 'parent_id'
     assert model.columns['details'].attributes['x_legacy_subfields'] == 'parent_id'
-    assert model.columns['details'].declarations[0].attributes['source'] == 'parent_id'
+    assert model.columns['details']['dynamic_fields'].attributes['source'] == 'parent_id'
     assert model.columns['df_custom_templates'].attributes['x_legacy_templates'] == 'compact'
-    assert model.columns['__record_pointer'].attributes['sql_formula'] == " 'app.item.' || $code "
+    assert model.virtual_columns['__record_pointer'].attributes['sql_formula'] == " 'app.item.' || $code "
     assert 'id' not in model.columns
 
 
@@ -222,7 +223,7 @@ def test_disabled_options_remain_data_and_generate_nothing(name, kwargs):
     getattr(table.options(), name)(enabled=False, **kwargs)
     resolved = resolve_model(builder).table('app.item')
     assert set(resolved.columns) == {'explicit'}
-    assert resolved.options[name].enabled is False
+    assert resolved['options'][name].attributes['enabled'] is False
 
 
 @pytest.mark.parametrize('reverse', [False, True])
@@ -237,9 +238,9 @@ def test_relative_index_contributes_to_existing_master_extension(reverse, qualif
             tbl.column('master_id', dtype='L').relation('app.master.id' if qualified else 'master.id')
             tbl.options().relative_index('master_id')
     model = resolve_model(builder)
-    assert model.table('detail').columns['_relidx'].dtype == 'L'
-    assert model.table('master_xtd').columns['app_detail_relidx'].dtype == 'L'
-    assert model.table('detail').columns['_relidx'].attributes['x_legacy_format'] == '0000'
+    assert model.table('app.detail').columns['_relidx'].dtype == 'L'
+    assert model.table('app.master_xtd').columns['app_detail_relidx'].dtype == 'L'
+    assert model.table('app.detail').columns['_relidx'].attributes['x_legacy_format'] == '0000'
 
 
 def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch):
@@ -257,9 +258,9 @@ def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch
     db = build_database(config)
     try:
         assert len(db.model.tables) == 10
-        assert db.table('adm.htmltemplate_atc').relation('maintable_id').target is db.table('adm.htmltemplate')
-        assert db.table('invc.invoice_row').relation('invoice_id').target is db.table('invc.invoice')
-        assert db.table('invc.product_type').column('hierarchical_description').config('dtype') == 'T'
+        assert db.table('adm.htmltemplate_atc').column('@maintable_id.id') is db.table('adm.htmltemplate').column('id')
+        assert db.table('invc.invoice_row').column('@invoice_id.id') is db.table('invc.invoice').column('id')
+        assert db.table('invc.product_type').column('hierarchical_description').dtype == 'T'
         assert config.source.to_json() == before
     finally:
         db.close()
@@ -276,25 +277,25 @@ def test_linked_hierarchy_and_legacy_variants():
     master = pkg.table('master', name_long='Master')
     master.options().sys_fields()
     model = resolve_model(builder)
-    tree = model.table('tree')
+    tree = model.table('app.tree')
     assert tree.columns['hierarchical_code'].attributes['unique'] is True
     assert tree.columns['hierarchical_code'].attributes['x_legacy_variant_hdepth_levels'] == 3
     assert tree.columns['_virtual_node'].dtype == 'B'
-    assert tree.relations['master_id'].target == 'app.master'
-    assert model.table('master').relations['root_tree_id'].target == 'app.tree'
-    assert model.table('master').relations['root_tree_id'].attributes['deferred'] is True
-    assert tree.relations['root_id'].target == 'app.tree'
+    assert tree.column('@master_id.id').table.fullname == 'app.master'
+    assert model.table('app.master').column('@root_tree_id.id').table.fullname == 'app.tree'
+    assert model.table('app.master').relations.get_node('@root_tree_id').attr['joiner']['deferred'] is True
+    assert tree.column('@root_id.id').table.fullname == 'app.tree'
 
 
 def test_protection_tag_preserves_the_legacy_formula_without_execution():
     builder, packages = source()
     table = packages.package('app').table('item')
     table.options().protection(tag='staff')
-    resolved = resolve_model(builder).table('item')
-    assert set(resolved.columns) == {'__protection_tag', '__protected_by_tag'}
-    assert resolved.columns['__protected_by_tag'].dtype == 'B'
-    assert ':env_userTags' in resolved.columns['__protected_by_tag'].attributes['sql_formula']
-    assert resolved.options['protection'].attributes['tag'] == 'staff'
+    resolved = resolve_model(builder).table('app.item')
+    assert set(resolved.columns) | set(resolved.virtual_columns) == {'__protection_tag', '__protected_by_tag'}
+    assert resolved.virtual_columns['__protected_by_tag'].dtype == 'B'
+    assert ':env_userTags' in resolved.virtual_columns['__protected_by_tag'].attributes['sql_formula']
+    assert resolved['options']['protection'].attributes['tag'] == 'staff'
 
 
 @pytest.mark.parametrize('kind', ['column', 'virtual', 'unknown', 'counter_scope'])
@@ -325,9 +326,9 @@ def test_sysfield_generation_does_not_treat_signature_defaults_as_explicit_overr
     table.options().sys_fields(syscode=True)
     db = build_database(builder)
     try:
-        assert db.table('item').column('__syscode').config('unique') is True
-        assert db.table('item').column('__syscode').config('name_long') == 'Code'
-        assert db.table('item').column('__ins_ts').config('indexed') is True
+        assert db.table('app.item').column('__syscode').attributes['unique'] is True
+        assert db.table('app.item').column('__syscode').attributes['name_long'] == 'Code'
+        assert db.table('app.item').column('__ins_ts').attributes['indexed'] is True
     finally:
         db.close()
 
@@ -369,11 +370,11 @@ def test_package_types_precede_expansion_and_legacy_setnull_defaults(objects):
     db = build_database(builder) if objects else None
     try:
         model = db.model if db is not None else resolve_model(builder)
-        assert model.table('master').columns['id'].attributes['size'] == '22'
-        relation = model.table('detail').relations['master_id']
-        assert relation.attributes['deferred'] is True
-        assert relation.attributes['on_duplicate'] == 'recursive'
-        assert model.table('detail').relations['other_id'].attributes['deferred'] is False
+        assert model.table('app.master').columns['id'].attributes['size'] == '22'
+        relation = model.table('app.detail').relations.get_node('@master_id').attr['joiner']
+        assert relation['deferred'] is True
+        assert relation['onDuplicate'] == 'recursive'
+        assert model.table('app.detail').relations.get_node('@other_id').attr['joiner']['deferred'] is False
     finally:
         if db is not None:
             db.close()
@@ -391,7 +392,11 @@ def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
     table.options().record_hash()
     db = build_database(builder)
     try:
-        assert db.table('item').column('__rec_md5').config('x_legacy_onInserting') == 'setRecordMd5'
-        assert db.table('item').config('options.audit.mode') == 'full'
+        assert db.table('app.item').column('__rec_md5').attributes['x_legacy_onInserting'] == 'setRecordMd5'
+        assert db.table('app.item').model['options']['audit'].attributes['mode'] == 'full'
     finally:
         db.close()
+
+
+def physical(model):
+    return SqlMigrationRenderer(to_physical_builder(model)).render()

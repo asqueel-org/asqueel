@@ -24,24 +24,6 @@ def select(**options):
     return QueryPlan('select', TableRef('public', 'rows'), projections=(projection(),), **options)
 
 
-def test_plan_renders_identifiers_parameters_and_zero_pagination_without_driver_format():
-    dialect = PostgresDialect()
-    plan = select(where=concat(Identifier('id'), ' = ', Parameter('key')), params={'key': 2}, limit=0, offset=0)
-    statement = dialect.render(plan)
-    assert text(statement) == 'SELECT "t0"."id" AS "id"\n FROM "public"."rows" AS "t0"\nWHERE "id" = <bind:key>\nLIMIT 0\nOFFSET 0'
-    assert statement.params['key'] == 2
-    assert statement.columns == (projection().column,)
-    assert any(isinstance(part, Parameter) for part in statement.parts)
-    assert dialect.quote_identifier('amount%"') == '"amount%"""'
-
-
-def test_left_join_uses_only_resolved_table_references():
-    joined = Join(TableRef('sales', 'customer', 't1'), concat(
-        Identifier('t0'), '.', Identifier('customer_id'), ' = ', Identifier('t1'), '.', Identifier('id')))
-    statement = PostgresDialect().render(select(joins=(joined,)))
-    assert 'LEFT JOIN "sales"."customer" AS "t1" ON "t0"."customer_id" = "t1"."id"' in text(statement)
-
-
 @pytest.mark.parametrize(('operation', 'expected'), [
     ('insert', 'INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)'),
     ('update', 'UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE'),
@@ -80,46 +62,6 @@ def test_malformed_plans_are_rejected(plan):
         PostgresDialect().render(plan)
 
 
-def test_disabled_features_and_join_variants_fail_explicitly():
-    with pytest.raises(UnsupportedFeatureError, match='select'):
-        PostgresDialect(capabilities=frozenset()).render(select())
-    with pytest.raises(UnsupportedFeatureError, match='join kind'):
-        PostgresDialect().render(select(joins=(Join(TableRef('s', 't', 't1'), concat('TRUE'), 'right'),)))
-
-
-def test_scanner_protects_sql_lexical_regions_and_exposes_cast_operator():
-    sql = '''E'\\\' $ignored' "id" $"field" $$:no $field$$ /* outer /*nested*/ $x */ -- :hidden
-:x::integer'''
-    tokens = list(PostgresDialect().tokens(sql))
-    assert ''.join(value for _, value in tokens) == sql
-    assert ('field', '$"field"') in tokens
-    assert ('operator', '::') in tokens
-    assert any(kind == 'line_comment' for kind, _ in tokens)
-    assert [v for k, v in tokens if k == 'string'] == ["'\\\' $ignored'", '$$:no $field$$']
-
-
-@pytest.mark.parametrize('expression', ["'open", '/* unclosed', '$body$unclosed', '$"unclosed'])
-def test_scanner_rejects_unclosed_regions(expression):
-    with pytest.raises(ValueError):
-        list(PostgresDialect().tokens(expression))
-
-
-@pytest.mark.parametrize('name', ['', '\x00', 'x' * 64, 'à' * 32])
-def test_identifier_boundaries_are_explicit(name):
-    with pytest.raises(ValueError):
-        PostgresDialect().quote_identifier(name)
-
-
-def test_manual_projection_text_is_not_rewritten_before_alias():
-    expression = concat('1 -- comment')
-    plan = QueryPlan('select', TableRef('missing_schema', 'missing_table'), projections=(
-        Projection(expression, 'value', ResultColumn('value')),))
-    statement = PostgresDialect().render(plan)
-    assert text(statement) == ('SELECT 1 -- comment AS "value"\n FROM '
-                               '"missing_schema"."missing_table" AS "t0"')
-    assert plan.projections[0].expression == expression  # Input plan remains unchanged.
-
-
 def test_clauses_have_fixed_separators_without_repairing_expression_text():
     dialect = PostgresDialect()
     statement = dialect.render(select(
@@ -133,9 +75,3 @@ def test_clauses_have_fixed_separators_without_repairing_expression_text():
     assert 'SET "first" = 1 -- value, "second" = <bind:p>\nWHERE FALSE -- guard\nRETURNING' in rendered
     insert = QueryPlan('insert', TableRef('s', 't'), assignments=assignments, params={'p': 2})
     assert 'VALUES (1 -- value, <bind:p>)' in text(dialect.render(insert))
-
-
-def test_fragment_parts_are_preserved_without_comment_detection():
-    plan = select(where=Fragment(('TRUE ', '-- ', 'tail')), order_by=concat("'%--literal'"))
-    rendered = text(PostgresDialect().render(plan))
-    assert "WHERE TRUE -- tail\nORDER BY '%--literal'" in rendered

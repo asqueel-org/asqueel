@@ -68,10 +68,10 @@ class App(SqlDatabaseConfig):
 db = AsqueelDb(App)
 try:
     rank = db.table('sales.customer').column('rank')
-    assert rank.config('dtype') == 'I'
-    assert rank.model.dtype == 'I'
-    assert rank.config('ui_hint') == 'Number'
-    assert db.table('customer').column('id').config('ui_hint') == 'Identifier'
+    assert rank.dtype == 'I'
+    assert rank.dtype == 'I'
+    assert rank.attributes['ui_hint'] == 'Number'
+    assert db.table('sales.customer').column('id').attributes['ui_hint'] == 'Identifier'
 finally:
     db.close()
 
@@ -217,7 +217,7 @@ One call runs on one thread; each thread releases only its own takes.
 
 - The effective model is built from a private copy; resolving defaults does not
   rewrite the authored recipe.
-- Keep grammar classes explicit and verify both `.config` and `.model` when
+- Keep grammar classes explicit and verify column `.attributes` and `.dtype` when
   composing declaration rules.
 - A generated Python recipe is not a round trip of arbitrary dynamic grammar
   mounts, class hierarchy or original file decomposition.

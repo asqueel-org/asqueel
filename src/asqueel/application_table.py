@@ -8,11 +8,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from contextlib import contextmanager
 from copy import deepcopy
-from types import MappingProxyType
 
-from .configuration import ConfigurationView, _MISSING
 from .contracts import UnsupportedFeatureError
-from .object_tree import DbTableObj
 
 
 class RecordNotFoundError(LookupError):
@@ -63,85 +60,7 @@ def _bindings(*sources):
 
 
 def _reference(name):
-    return '$"' + name.replace('"', '""') + '"'
-
-
-def _model_config(model):
-    """Keep the existing scoped read API, using only finalized model data."""
-    def values(item):
-        result = dict(item.attributes)
-        if hasattr(item, 'dtype'):
-            result['dtype'] = item.dtype
-        for child in getattr(item, 'declarations', getattr(item, 'children', ())):
-            key = (f'{child.kind}_{child.name}'
-                   if child.kind in ('subtable', 'virtualRelation') else child.name)
-            result[key] = values(child)
-        if hasattr(item, 'options'):
-            result['options'] = {key: values(option) for key, option in item.options.items()}
-        if hasattr(item, 'columns'):
-            for collection, virtual in (('columns', False), ('virtual_columns', True)):
-                result[collection] = {name: values(column) for name, column in item.columns.items()
-                                      if column.is_virtual == virtual}
-        return result
-
-    data = values(model)
-
-    def read(path, default=_MISSING):
-        current = data
-        try:
-            for key in path.split('.'):
-                current = current[key]
-        except (KeyError, TypeError):
-            if default is not _MISSING:
-                return default
-            raise KeyError(path) from None
-        return deepcopy(current)
-
-    return read
-
-
-class SqlColumn:
-    """A stable live column handle backed by the completed structural model."""
-
-    def __init__(self, table, model):
-        self.table = self.owner = table
-        self.db = table.db
-        self.model = model
-        self.name = model.name
-        self.fullname = f'{table.fullname}.{self.name}'
-        fallback = (lambda: self.originalColumn.config) if model.alias_target is not None else None
-        self.config = ConfigurationView(_model_config(model), fallback=fallback)
-
-    @property
-    def validations(self):
-        """Validation declarations from the translated column, without execution."""
-        return self.model.validations
-
-    @property
-    def originalColumn(self):
-        """Legacy-style link to an alias's target live column, if it is an alias."""
-        if self.model.alias_target is None:
-            return None
-        table_name, column_name = self.model.alias_target
-        return self.db.table(table_name).column(column_name)
-
-    @property
-    def relation_path(self):
-        return self.model.relation_path
-
-
-class SqlRelation:
-    """A live relation whose target resolves lazily from the database registry."""
-
-    def __init__(self, table, model):
-        self.table = table
-        self.db = table.db
-        self.model = model
-        self.name = model.name
-
-    @property
-    def target(self):
-        return self.db.table(self.model.target)
+    return '$' + name
 
 
 class SqlQuery:
@@ -185,19 +104,17 @@ class SqlQuery:
 
     def count(self):
         result = self.db.execute(self._compile(self.db.compiler.count))
-        if isinstance(self.table.model, DbTableObj):
-            # Legacy SqlQuery.count: grouped/distinct queries return rows;
-            # only the ordinary COUNT(*) result carries gnr_row_count.
-            if len(result.rows) == 1 and result.columns[0].name == 'gnr_row_count':
-                return int(result.rows[0][0])
-            return len(result.rows)
-        return int(result.rows[0]['count'])
+        # Legacy count returns rows for grouped/distinct queries.
+        if len(result.rows) == 1 and result.columns[0].name == 'gnr_row_count':
+            return int(result.rows[0][0])
+        return len(result.rows)
 
 
 class SqlRecord:
     """Lazy exactly-one read; loaded data stays cached until explicit refresh."""
 
-    def __init__(self, query):
+    def __init__(self, query, *, ignoreMissing=False):
+        self.ignoreMissing = ignoreMissing
         self.query = query
         self.table = query.table
         self.db = query.db
@@ -206,6 +123,9 @@ class SqlRecord:
     def _load(self):
         if self._result is None:
             rows = self.query.fetch()
+            if not rows and self.ignoreMissing:
+                self._result = {}
+                return self._result
             if not rows:
                 raise RecordNotFoundError(f'No visible record in {self.table.fullname}')
             if len(rows) != 1:
@@ -214,9 +134,17 @@ class SqlRecord:
         return self._result
 
     def output(self, mode='dict'):
-        if mode != 'dict':
-            raise UnsupportedFeatureError(f'Unsupported record output: {mode!r}; supported: dict')
-        return _copy(self._load())
+        if mode == 'dict':
+            return _copy(self._load())
+        if mode == 'record':
+            from genro_bag import Bag
+            result = Bag()
+            for name, value in _copy(self._load()).items():
+                column = self.table.model.column(name)
+                result.set_item(name, Bag(value) if column.dtype == 'X' else value,
+                                _attributes=dict(column.attributes, dtype=column.dtype))
+            return result
+        raise UnsupportedFeatureError(f'Unsupported record output: {mode!r}; supported: dict, record')
 
     def refresh(self):
         """Discard the snapshot, reload in the current environment, and return self."""
@@ -230,31 +158,14 @@ class SqlTable:
 
     def __init__(self, db, model):
         self.model = model
-        if isinstance(model, DbTableObj):
-            # As in legacy, construction precedes columns and global relations.
-            # Structural access stays on the model, without SqlColumn/SqlRelation copies.
-            self.fullname = model.fullname
-            return
-        self.db = db
-        self.fullname = model.key
-        self.config = ConfigurationView(_model_config(model))
-        self.columns = MappingProxyType({name: SqlColumn(self, column)
-                                         for name, column in model.columns.items()})
-        self.relations = MappingProxyType({name: SqlRelation(self, relation)
-                                           for name, relation in model.relations.items()})
+        self.fullname = model.fullname
 
     @property
     def db(self):
-        if isinstance(self.model, DbTableObj):
-            db = self.model._model._operational_db
-            if db is None:
-                raise UnsupportedFeatureError('Hierarchical table is not bound to a SqlDatabase')
-            return db
-        return self._db
-
-    @db.setter
-    def db(self, value):
-        self._db = value
+        db = self.model._model._operational_db
+        if db is None:
+            raise UnsupportedFeatureError('Table is not bound to a SqlDatabase')
+        return db
 
     def __getattr__(self, name):
         """Read missing members from the model, preserving their original binding."""
@@ -263,21 +174,7 @@ class SqlTable:
         return getattr(model, name)
 
     def column(self, name):
-        if isinstance(self.model, DbTableObj):
-            return self.model.column(name)
-        try:
-            return self.columns[name]
-        except KeyError:
-            raise ValueError(f'Unknown column {self.fullname}.{name}') from None
-
-    def relation(self, name):
-        if isinstance(self.model, DbTableObj):
-            raise UnsupportedFeatureError(
-                'Hierarchical relations use table.relations and table.column("@relation.field")')
-        try:
-            return self.relations[name]
-        except KeyError:
-            raise ValueError(f'Unknown relation {self.fullname}.{name}') from None
+        return self.model.column(name)
 
     def sql_formula___protecting_reasons(self, attr):
         """Legacy sysFields formula; this describes reasons, not write checks."""
@@ -292,12 +189,11 @@ class SqlTable:
     def _sql_reasons(self, prefix, protection=None):
         def reason(name, condition, label):
             literal = "'" + label.replace("'", "''") + "'"
-            reference = '$' + name if isinstance(self.model, DbTableObj) else _reference(name)
+            reference = '$' + name
             return f'CASE WHEN {reference} {condition} THEN {literal} ELSE NULL END'
 
         reasons = [reason(protection, 'IS NOT NULL', protection)] if protection else []
-        columns = (self.model.virtual_columns.items() if isinstance(self.model, DbTableObj)
-                   else ((name, column) for name, column in self.model.columns.items() if column.is_virtual))
+        columns = self.model.virtual_columns.items()
         reasons.extend(reason(name, 'IS TRUE', name[len(prefix):])
                        for name, column in columns if name.startswith(prefix))
         return self.db.dialect.concat_non_null(reasons, ',') if reasons else 'NULL'
@@ -312,9 +208,8 @@ class SqlTable:
                 incoming[native] = incoming.pop(alias)
         select_options = _SELECT_OPTIONS
         unsupported_options = _UNSUPPORTED
-        if isinstance(self.model, DbTableObj):
-            select_options = select_options | {'addPkeyColumn'}
-            unsupported_options = unsupported_options - {'addPkeyColumn'}
+        select_options = select_options | {'addPkeyColumn'}
+        unsupported_options = unsupported_options - {'addPkeyColumn'}
         unsupported = incoming.keys() & unsupported_options
         if unsupported:
             raise UnsupportedFeatureError(f'Unsupported query options: {sorted(unsupported)}')
@@ -324,7 +219,7 @@ class SqlTable:
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 
     def _key_selector(self, pkey, sqlparams=None):
-        names = self.model.pkey
+        names = self.model._model.physical_columns(self.model, self.model.pkey) if self.model.pkey else ()
         if not names:
             raise ValueError(f'{self.fullname} has no declared primary key')
         if isinstance(pkey, Mapping):
@@ -350,10 +245,8 @@ class SqlTable:
             conditions.append(f'{_reference(name)} = :{parameter}')
         return ' AND '.join(conditions), bindings
 
-    def record(self, pkey=None, where=None, sqlparams=None, mode=None, **options_or_bindings):
+    def record(self, pkey=None, where=None, sqlparams=None, mode=None, *, ignoreMissing=False, **options_or_bindings):
         self.db._check_open()
-        if isinstance(self.model, DbTableObj):
-            raise UnsupportedFeatureError('Record reads on the hierarchical model are not connected yet')
         if 'columns' in options_or_bindings:
             raise UnsupportedFeatureError('Record reads select the complete row; use query for custom projections')
         if 'limit' in options_or_bindings or 'offset' in options_or_bindings:
@@ -368,8 +261,18 @@ class SqlTable:
             raise ValueError('Record lookup requires a primary key or explicit where')
         # Legacy compiledRecordQuery includes physical X fields by default,
         # unlike a normal SELECT wildcard. Preserve the complete record here.
+        # compiledRecordQuery selects the record without the query visibility filters.
+        for alias, native, value in [('excludeDraft', 'exclude_draft', False),
+                                     ('excludeLogicalDeleted', 'exclude_logical_deleted', False),
+                                     ('ignorePartition', 'ignore_partition', True)]:
+            if alias not in options_or_bindings and native not in options_or_bindings:
+                options_or_bindings[native] = value
         options_or_bindings.setdefault('bagFields', True)
-        result = SqlRecord(self.query(where=where, sqlparams=bindings, **options_or_bindings))
+        bag_fields = options_or_bindings['bagFields'] or options_or_bindings.get('for_update', False)
+        columns = ','.join('$' + name for name, column in self.model.columns.items()
+                           if bag_fields or column.dtype != 'X')
+        result = SqlRecord(self.query(columns=columns, where=where, sqlparams=bindings, **options_or_bindings),
+                           ignoreMissing=ignoreMissing)
         return result.output(mode) if mode is not None else result
 
     def trigger_onInserting(self, record):

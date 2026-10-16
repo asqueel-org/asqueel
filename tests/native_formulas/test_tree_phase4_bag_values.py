@@ -19,7 +19,7 @@ from tests.object_tree.test_phase4_options import tree_database
 def db(request):
     executor = request.getfixturevalue('execution_db')
     config = source()
-    config.source['db'].packages().package('app', sqlschema=executor.model.table('app.item').physical_schema)
+    config.source['db'].packages().package('app', sqlschema=executor.model.table('app.item').sqlschema)
     with tree_database(config) as tree:
         yield TreeExecution(tree, executor, package='app')
         assert not tree._connections

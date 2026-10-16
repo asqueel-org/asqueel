@@ -5,7 +5,6 @@ import pytest
 
 from asqueel import CompiledQuery, ResultColumn
 from asqueel.drivers.sqlite import SqliteDriver
-from asqueel.query_plan import Parameter, SqlStatement
 from asqueel.runtime import Database
 
 
@@ -52,18 +51,6 @@ def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
     db.close()
 
 
-@pytest.mark.parametrize('statement,error', [
-    ('text', TypeError),
-    (SqlStatement(('SELECT 1',)), ValueError),
-    (SqlStatement((Parameter('bad-name'),), dialect='sqlite'), ValueError),
-    (SqlStatement((Parameter('missing'),), dialect='sqlite'), ValueError),
-    (SqlStatement((object(),), dialect='sqlite'), TypeError),
-])
-def test_prepare_rejects_invalid_statement(statement, error):
-    with pytest.raises(error):
-        SqliteDriver().prepare(statement)
-
-
 @pytest.mark.parametrize('sql,columns,message', [
     ('SELECT 1 AS same, 2 AS same', (), 'unique names'),
     ('SELECT 1 AS actual', (ResultColumn('wrong'),), 'match cursor'),
@@ -96,8 +83,8 @@ def test_native_foreign_key_failure_rolls_back_prior_work():
 def test_direct_prepared_query_preserves_parameters_and_metadata():
     driver = SqliteDriver()
     metadata = (ResultColumn('value', 'T', 'app.item.value'),)
-    query = driver.prepare(SqlStatement(('SELECT ', Parameter('v'), ' AS value'),
-                                        {'v': 'data', 'unused': 'ignored'}, metadata, dialect='sqlite'))
+    from dataclasses import replace
+    query = replace(driver.prepare_sql('SELECT :v AS value', {'v': 'data'}, {}), columns=metadata)
     assert dict(query.params) == {'v': 'data'}
     db = Database(':memory:', driver=driver)
     try:

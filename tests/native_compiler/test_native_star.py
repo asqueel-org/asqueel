@@ -2,7 +2,6 @@
 import pytest
 
 from asqueel import SqlDatabaseConfig, build_database
-from asqueel.contracts import UnsupportedFeatureError
 
 
 @pytest.fixture(params=['postgresql', 'sqlite'])
@@ -41,19 +40,6 @@ def test_bag_fields_requires_boolean(table):
         table.query(bagFields='true').compiled
 
 
-def test_static_unimplemented_column_is_not_silently_dropped(table):
-    from dataclasses import replace
-    model = table.db.model
-    item = table.model
-    column = item.columns['not_implemented']
-    changed = replace(column, attributes={**column.attributes, 'static': True})
-    changed_table = replace(item, columns={**item.columns, column.name: changed})
-    compiler = table.db.compiler
-    compiler.model = replace(model, tables={**model.tables, item.key: changed_table})
-    with pytest.raises(UnsupportedFeatureError, match='PREF'):
-        compiler.select(item.key)
-
-
 def test_static_alias_uses_existing_relation_join():
     config = SqlDatabaseConfig()
     pkg = config.source.db('aliases').packages().package('sales')
@@ -82,9 +68,3 @@ def test_subquery_star_uses_same_bag_fields_option(backend):
                                          limit=1, bagFields=True), dtype='X')
     sql = build_database(config).table('sales.item').query('$data').compiled.sql
     assert '"data" AS "data"' in sql
-
-
-def test_record_keeps_physical_x_fields_unless_explicitly_excluded(table):
-    assert 'payload' in names(table.record(1).query)
-    assert 'payload' not in names(table.record(1, bagFields=False).query)
-    assert 'dynamic_value' not in names(table.record(1).query)

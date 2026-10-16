@@ -11,7 +11,7 @@ def shop(execution_shop):  # noqa: F811
     config = SqlDatabaseConfig()
     root = config.source.db('tree_shop', implementation=execution.backend)
     physical = execution.db.model.table('sales.invoice')
-    package = root.packages().package('sales', sqlschema=physical.physical_schema, sqlprefix=False)
+    package = root.packages().package('sales', sqlschema=physical.sqlschema, sqlprefix=False)
     customer = package.table('customer', pkey='id')
     customer.column('id', dtype='L')
     customer.column('name', dtype='T', notnull=True)

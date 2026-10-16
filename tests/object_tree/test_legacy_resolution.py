@@ -5,7 +5,7 @@ from dataclasses import replace
 import pytest
 
 from asqueel._legacy_sql import FieldReferences, template_replace
-from asqueel.object_tree_compiler import _TreeContext
+from asqueel.compiler import _TreeContext
 from tests.object_tree import test_minimal_select as minimal
 
 db = minimal.db
@@ -34,14 +34,10 @@ def test_resolve_distinct_fields_once_across_clauses(db, monkeypatch):
 
 
 def test_field_resolution_does_not_use_previous_expression_scanner(db, monkeypatch):
-    def denied(*args, **kwargs):
-        pytest.fail('Hierarchical field resolution reached the previous scanner')
-
-    monkeypatch.setattr('asqueel.compiler._Context.expression', denied)
-    monkeypatch.setattr('asqueel.compiler._split', denied)
-    monkeypatch.setattr('asqueel.compiler._projection_alias', denied)
-    monkeypatch.setattr('asqueel.dialects.postgres.PostgresDialect.tokens', denied)
-    monkeypatch.setattr('asqueel.dialects.sqlite.SqliteDialect.tokens', denied)
+    import asqueel.compiler as compiler
+    assert not hasattr(compiler, '_Context')
+    assert not hasattr(compiler, '_split')
+    assert not hasattr(db.dialect, 'tokens')
     compiled = db.table('sales.invoice').query(
         columns="COALESCE($total,0) AS amount, '$id' AS literal",
         where='$id=:id', id=1).compiled

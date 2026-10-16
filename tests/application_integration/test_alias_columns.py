@@ -6,7 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, build_database, resolve_model, to_physical_builder
+from asqueel import SqlDatabaseConfig, SqlTable, build_database
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -66,45 +66,6 @@ def alias_database():
                 yield db
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
-
-
-def test_alias_projection_filter_order_null_chains_and_formula(alias_database):
-    table = alias_database.table('invoice')
-    query = table.query('$id,$customer_name,$country_name,$country_chain,$loud_customer', order_by='$id')
-    result = query.execute()
-    assert [dict(row) for row in result.rows] == [
-        {'id': 1, 'customer_name': 'Alice', 'country_name': 'Italy',
-         'country_chain': 'Italy', 'loud_customer': 'ALICE'},
-        {'id': 2, 'customer_name': 'Bob', 'country_name': None,
-         'country_chain': None, 'loud_customer': 'BOB'},
-        {'id': 3, 'customer_name': None, 'country_name': None,
-         'country_chain': None, 'loud_customer': None},
-    ]
-    metadata = {column.name: column for column in result.columns}
-    assert metadata['customer_name'].source == 'app.invoice.customer_name'
-    assert metadata['customer_name'].dtype == 'T'
-    assert metadata['customer_name'].ui['label'] == 'Buyer'
-    filtered = table.query('$id,$customer_name', where='$customer_name=:name', name='Alice').fetch()
-    assert [dict(row) for row in filtered] == [{'id': 1, 'customer_name': 'Alice'}]
-    assert [r['id'] for r in table.query('$id', where='$customer_name IS NOT NULL',
-                                        order_by='$customer_name DESC').fetch()] == [2, 1]
-
-
-def test_alias_metadata_and_physical_projection(alias_database):
-    db = alias_database
-    handle = db.table('invoice').column('customer_name')
-    assert handle.config('dtype') == 'T'
-    assert handle.config('name_long') == 'Buyer name'
-    assert handle.originalColumn is db.table('customer').column('name')
-    assert handle.relation_path == '@customer.name'
-    column = db.model.table('invoice').columns['country_name']
-    assert column.dtype == 'T'
-    assert column.ui['label'] == 'Country label'
-    assert column.is_virtual
-    assert column.alias_target == ('app.country', 'name')
-    physical = resolve_model(to_physical_builder(db.model))
-    invoice = next(table for table in physical.tables.values() if table.name == 'invoice')
-    assert set(invoice.columns) == {'id', 'customer_id', 'amount'}
 
 
 def test_aliases_are_read_only_and_default_dml_returning_is_physical(alias_database):

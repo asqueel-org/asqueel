@@ -1,6 +1,6 @@
 """Text bindings for the hierarchical compiler, independent of SQL aliases.
 
-The allocator and scope inheritance follow _compiler_bindings._Bindings;
+The allocator and scope inheritance retain the established binding rules;
 substitution follows the legacy experimental mangle algorithm. No Parameter,
 Fragment, model state or application environment is written here.
 """

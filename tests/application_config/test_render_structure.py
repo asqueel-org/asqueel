@@ -47,25 +47,24 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
     db = source.render()
     try:
         handle = db.table('invc.customer').column('label')
-        assert handle.config('foo_bar_color') == 'blue'
+        assert handle.attributes['foo_bar_color'] == 'blue'
         assert handle.validations == {'len': '3:40'}
-        assert handle.config.scope('validation')('len') == '3:40'
         assert calls
         count = len(calls)
         monkeypatch.setenv('INVOICE_COLOR', 'red')
         column.attr['foo_bar_color'] = 'green'
         db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['foo_bar_color'] = 'yellow'
-        assert handle.config('foo_bar_color') == 'blue'
-        assert handle.config('dtype') == 'T'
-        assert handle.config('missing', default=None) is None
+        assert handle.attributes['foo_bar_color'] == 'blue'
+        assert handle.dtype == 'T'
+        assert handle.attributes.get('missing') is None
         assert handle.validations == {'len': '3:40'}
         assert len(calls) == count
-        assert db.table('invc.invoice').relation('customer_id').target is db.table('invc.customer')
-        assert db.table('invc.customer') is db.table('customer')
-        assert db.package('empty').tables == ()
-        assert set(db.model.schemas) == {'main'}
-        assert db.model.table('invc.invoice').physical_name == 'invoices'
-        assert 'archive' not in db.model.attributes
+        assert db.table('invc.invoice').model.column('@customer_id.id') is db.table('invc.customer').column('id')
+        assert db.table('invc.customer').model is db.model.table('invc.customer')
+        assert not db.model.package('empty').tables
+        assert {t.sqlschema for t in db.model.tables.values()} == {'main'}
+        assert db.model.table('invc.invoice').sqlname == 'invoices'
+        assert 'archive' not in db.model.obj.attributes
     finally:
         db.close()
 
@@ -80,8 +79,8 @@ def test_callback_cache_semantics_are_owned_by_existing_resolver():
     customer.column('value', foo_first=resolver, foo_second=resolver)
     db = build_database(source)
     try:
-        col = db.table('customer').column('value')
-        assert col.config('foo_first') == col.config('foo_second') == 'fixed'
+        col = db.table('invc.customer').column('value')
+        assert col.attributes['foo_first'] == col.attributes['foo_second'] == 'fixed'
         assert calls == [1]  # one shared resolver with its own permanent cache
     finally:
         db.close()
@@ -94,9 +93,9 @@ def test_render_defaults_follow_composition_and_failure_publishes_nothing():
     table.column('account_name', foo_bar_color='red')
     db = build_database(overlay, parents=[base])
     try:
-        assert db.table('customer').config('name_long') == 'Cliente'
-        assert db.table('customer').column('account_name').validations == {'notnull': True, 'len': '2:40'}
-        assert db.table('customer').column('account_name').config('foo_bar_color') == 'red'
+        assert db.table('invc.customer').attributes['name_long'] == 'Cliente'
+        assert db.table('invc.customer').column('account_name').validations == {'notnull': True, 'len': '2:40'}
+        assert db.table('invc.customer').column('account_name').attributes['foo_bar_color'] == 'red'
         assert 'name_long' not in table.attr
     finally:
         db.close()
@@ -120,7 +119,7 @@ def test_validation_spellings_share_contribution_order(explicit_first):
             customer.column('code', validate_len='3:8')
         else:
             column.validation(len='3:8')
-    assert resolve_model(source).table('customer').columns['code'].validations == {'len': '3:8'}
+    assert resolve_model(source).table('invc.customer').columns['code'].validations == {'len': '3:8'}
 
 
 def test_removed_metadata_forms_are_not_part_of_source_grammar():

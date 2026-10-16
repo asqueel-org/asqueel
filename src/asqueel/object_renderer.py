@@ -1,29 +1,18 @@
-"""Materialize SQL configuration into a context-owned application object."""
-from genro_builders.renderer import RendererBase
-
-from .configuration import _effective_model_builder, _owned_handler
-from .model import resolve_model
+"""Operational output of the single hierarchical object renderer."""
+from .configuration import _owned_handler
+from .object_tree_renderer import SqlObjectTreeRenderer
 
 
-class SqlObjectRenderer(RendererBase):
-    """Resolve the complete graph before publishing its live database facade."""
-
+class SqlObjectRenderer(SqlObjectTreeRenderer):
     mode = 'objects'
-    render_type = 'object'
 
-    def render_children(self, nodes, *, config=None, driver=None, dialect=None,
-                        environment=None, **opts):
-        # Relations require the complete model, so materialize the document once,
-        # rather than publishing partially initialized objects during a node walk.
+    def finalize(self, result, target=None, *, config=None, driver=None, dialect=None,
+                 environment=None, **opts):
         from .application import SqlDatabase
-        config = config if config is not None else _owned_handler(self.builder)
-        model = resolve_model(_effective_model_builder(config))
-        return [SqlDatabase(model=model, config=config, driver=driver,
-                            dialect=dialect, environment=environment)]
-
-    def finalize(self, result, target=None, **opts):
-        if target is not None:
-            raise ValueError('SQL object rendering returns its database; targets are unsupported')
-        if len(result) != 1:
-            raise ValueError('SQL object rendering requires exactly one database')
-        return result[0]
+        model = super().finalize(result, target=target, **opts)
+        config = config if config is not None else self.config
+        if config is None:
+            # Builders can use separate renderer instances for walk and delivery.
+            config = _owned_handler(self.builder)
+        return SqlDatabase(model=model, config=config, driver=driver,
+                           dialect=dialect, environment=environment)

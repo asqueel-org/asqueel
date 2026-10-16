@@ -1,15 +1,14 @@
 from asqueel.writes import WriteMixin
 from contextlib import contextmanager
 from copy import deepcopy
-from dataclasses import replace
 
 import pytest
 
 from asqueel.application_table import (
-    RecordMultipleRowsError, RecordNotFoundError, SqlRecord, SqlTable,
+    RecordMultipleRowsError, RecordNotFoundError, SqlTable,
 )
 from asqueel.compiler import PostgresCompiler
-from asqueel.contracts import Column, QueryResult, Relation, ResolvedModel, Table, UnsupportedFeatureError
+from asqueel.contracts import Column, QueryResult, Relation, ResolvedModel, Table
 from asqueel.environment import SqlEnvironment
 
 
@@ -77,100 +76,6 @@ def db():
         'id': Column('id', 'I'), 'customer_id': Column('customer_id', 'I'),
     }, relations={'customer': Relation('customer', customer.key, ('customer_id',), ('id',))})
     return Application(ResolvedModel({customer.key: customer, invoice.key: invoice}))
-
-
-def test_stable_live_handles_and_model_configuration(db):
-    table = db.table('customer')
-    assert table is db.table('app.customer')
-    assert table.column('name') is table.columns['name']
-    assert table.column('name').table is table
-    assert table.column('name').db is db
-    relation = db.table('invoice').relation('customer')
-    assert relation is db.table('invoice').relations['customer']
-    assert relation.target is table
-    assert table.config.handler is not db.config
-    assert table.column('name').config('dtype') == 'T'
-    db.config.values['schemas.app.tables.customer.columns.name.name_long'] = 'Customer name'
-    db.config.values['schemas.app.tables.customer.virtual_columns.label.name_long'] = 'Label'
-    assert table.column('name').config('name_long', default=None) is None
-    assert table.column('label').config('name_long', default=None) is None
-    with pytest.raises(ValueError, match='Unknown column'):
-        table.column('missing')
-
-
-def test_query_is_lazy_inspection_does_not_pin_environment_and_fetch_reexecutes(db):
-    query = db.table('customer').query('$id, $name', where='$id=:env_customer')
-    assert not db.executions
-    with db.environment.temp_env(customer=1):
-        inspected = query.compiled
-        assert inspected.params['env_customer'] == 1
-        assert query.sqltext.startswith('SELECT ')
-    assert not db.executions
-    with db.environment.temp_env(customer=2):
-        db.results = [[{'id': 2, 'name': 'Two'}], [{'id': 2, 'name': 'Changed'}]]
-        assert query.fetch()[0]['name'] == 'Two'
-        assert query.execute().rows[0]['name'] == 'Changed'
-    assert [q.params['env_customer'] for q in db.executions] == [2, 2]
-
-
-def test_detached_parameters_and_legacy_keyword_bindings(db):
-    params = {'ids': [0, 1]}
-    query = db.table('customer').query('$id', where='$id=ANY(:ids)', sqlparams=params)
-    params['ids'].append(2)
-    assert query.compiled.params['ids'] == [0, 1]
-    assert db.table('customer').query('$id', where='$id=:id', id=0).compiled.params['id'] == 0
-    with pytest.raises(ValueError, match='Duplicate parameter'):
-        db.table('customer').query(where='$id=:id', sqlparams={'id': 1}, id=2)
-    with pytest.raises(UnsupportedFeatureError, match='unused keyword'):
-        db.table('customer').query(nonsense=True).compiled
-
-
-@pytest.mark.parametrize('option', ['aggregateRows', '_aggregateRows', 'relationDict', 'addPkeyColumn'])
-def test_unsupported_options_are_not_silently_treated_as_bindings(db, option):
-    with pytest.raises(UnsupportedFeatureError):
-        db.table('customer').query(**{option: True})
-
-
-def test_alias_conflicts_and_no_fake_selection(db):
-    table = db.table('customer')
-    assert table.query('$id', excludeDraft=False, excludeLogicalDeleted=False, ignorePartition=True).compiled
-    with pytest.raises(ValueError, match='Conflicting'):
-        table.query(excludeDraft=False, exclude_draft=False)
-    with pytest.raises(UnsupportedFeatureError):
-        table.query().selection()
-
-
-def test_record_is_lazy_cached_defensive_and_explicitly_refreshable(db):
-    db.results = [[{'id': 0, 'name': 'Before'}], [{'id': 0, 'name': 'After'}]]
-    record = db.table('customer').record(0)
-    assert isinstance(record, SqlRecord) and not db.executions
-    first = record.output('dict')
-    first['name'] = 'Caller mutation'
-    assert record.output('dict')['name'] == 'Before'
-    assert len(db.executions) == 1
-    assert record.refresh() is record
-    assert record.output('dict')['name'] == 'After'
-    assert len(db.executions) == 2
-    assert 'LIMIT 1' not in db.executions[0].sql
-    assert 0 in db.executions[0].params.values()
-
-
-def test_record_errors_and_unsupported_modes(db):
-    table = db.table('customer')
-    with pytest.raises(ValueError, match='requires a primary key'):
-        table.record()
-    with pytest.raises(ValueError, match='nonempty selector'):
-        table.record(where='')
-    with pytest.raises(UnsupportedFeatureError):
-        table.record(1, limit=1)
-    with pytest.raises(UnsupportedFeatureError):
-        table.record(1, mode='bag')
-    assert not db.executions
-    with pytest.raises(RecordNotFoundError):
-        table.record(1).output('dict')
-    db.results = [[{'id': 1}, {'id': 2}]]
-    with pytest.raises(RecordMultipleRowsError):
-        table.record(where='TRUE', mode='dict')
 
 
 def test_composite_selector_requires_complete_keys_and_uses_named_physical_resolution(db):
@@ -295,21 +200,6 @@ def test_delete_hook_cannot_redirect_the_saved_key(db):
     db.table('customer').delete(0)
     assert 0 in db.executions[-1].params.values()
     assert 123 not in db.executions[-1].params.values()
-
-
-def test_cycles_resolve_relation_target_only_after_handle_registration():
-    a = Table('a', columns={'id': Column('id')}, pkey=('id',))
-    b = Table('b', columns={'id': Column('id')}, pkey=('id',))
-    a = replace(a, relations={'b': Relation('b', b.key, ('id',), ('id',))})
-    b = replace(b, relations={'a': Relation('a', a.key, ('id',), ('id',))})
-    app = Application(ResolvedModel({a.key: a, b.key: b}))
-    assert app.table('a').relation('b').target.relation('a').target is app.table('a')
-
-
-def test_record_cannot_hide_duplicates_behind_an_aggregate_projection(db):
-    with pytest.raises(UnsupportedFeatureError, match='complete row'):
-        db.table('customer').record(where='TRUE', columns='COUNT(*) AS count')
-    assert not db.executions
 
 
 def test_post_insert_hook_maps_returning_alias_to_column_identity(db):

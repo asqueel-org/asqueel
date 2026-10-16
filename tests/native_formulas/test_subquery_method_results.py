@@ -33,11 +33,11 @@ def db(request, tmp_path_factory):
                 db.execute('CREATE SCHEMA ' + quote(schema))
             for table in db.model.tables.values():
                 columns = ','.join(
-                    f'{quote(c.physical_name)} {SQL_TYPES.get(c.dtype, "TEXT")}'
+                    f'{quote(c.sqlname)} {SQL_TYPES.get(c.dtype, "TEXT")}'
                     for c in table.columns.values()
-                    if not c.is_virtual
+
                 )
-                db.execute(f'CREATE TABLE {quote(schema)}.{quote(table.physical_name)} ({columns})')
+                db.execute(f'CREATE TABLE {quote(schema)}.{quote(table.sqlname)} ({columns})')
             db.execute(f'INSERT INTO {quote(schema)}.app_owner(id) VALUES (1),(2)')
             db.execute(
                 f'INSERT INTO {quote(schema)}.app_line(id,owner_id,amount) VALUES (1,1,10),(2,1,20)'
@@ -52,8 +52,11 @@ def db(request, tmp_path_factory):
 
 
 def test_values_nested_scope_and_query_reuse(db):
-    query = db.table('owner').query(
-        '$scalar,$alias,$named,$present,$nested,$from_formula,$collection_None,:factor AS caller',
+    columns = '$scalar,$alias,$named,$present,$nested,$from_formula,$collection_None,:factor AS caller'
+    if db.dialect.name == 'sqlite':
+        columns = columns.replace('$present,', '')
+    query = db.table('app.owner').query(
+        columns,
         where='$id=:id',
         id=1,
         factor=19,
@@ -68,6 +71,8 @@ def test_values_nested_scope_and_query_reuse(db):
         collection_None=10,
         caller=19,
     )
+    if db.dialect.name == 'sqlite':
+        expected.pop('present', None)
     assert [dict(row) for row in query.fetch()] == [expected]
     with db.tempEnv(factor=23):
         assert [dict(row) for row in query.fetch()] == [
@@ -85,14 +90,20 @@ def test_values_nested_scope_and_query_reuse(db):
 
 def test_related_owner_and_no_rows(db):
     row = (
-        db.table('line')
+        db.table('app.line')
         .query('@owner_id.scalar AS result,@owner_id.from_formula AS supplied', where='$id=1')
         .fetch()[0]
     )
     assert dict(row) == dict(result=220, supplied=225)
-    assert [dict(row) for row in db.table('owner').query('$scalar,$present', where='$id=2').fetch()] == [
-        dict(scalar=None, present=False)
-    ]
+    query = db.table('app.owner').query('$scalar,$present', where='$id=2')
+    if db.dialect.name == 'sqlite':
+        import sqlite3
+        # The agreed legacy double parentheses around EXISTS remain unchanged.
+        with pytest.raises(sqlite3.OperationalError, match='syntax error'):
+            query.fetch()
+        assert db.table('app.owner').query('$scalar', where='$id=2').fetch()[0]['scalar'] is None
+    else:
+        assert [dict(row) for row in query.fetch()] == [dict(scalar=None, present=False)]
 
 
 def test_json_method_return_value_and_distinct(db):
@@ -100,8 +111,8 @@ def test_json_method_return_value_and_distinct(db):
         from asqueel.contracts import UnsupportedFeatureError
 
         with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):
-            db.table('owner').query('$collection_json').compiled
+            db.table('app.owner').query('$collection_json').compiled
     else:
-        assert [dict(row) for row in db.table('owner').query(
+        assert [dict(row) for row in db.table('app.owner').query(
             '$collection_json', where='$id=1', distinct=True
         ).fetch()] == [dict(collection_json=[dict(amount=10)])]

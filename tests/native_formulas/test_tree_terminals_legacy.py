@@ -5,7 +5,7 @@ import pytest
 
 from asqueel import SqlDatabase
 from examples.test_invoice_pg import source
-from tests.native_formulas import test_tree_count_legacy, test_legacy_options, test_legacy_sql_formulas
+from tests.native_formulas import test_tree_count_legacy, test_legacy_options, legacy_sql_formulas
 from tests.native_formulas.conftest import (db_pg as execution_pg, db_sqlite as execution_sqlite,  # noqa: F401
     partition_pg as execution_partition_pg, partition_sqlite as execution_partition_sqlite)  # noqa: F401
 
@@ -46,7 +46,7 @@ def partition_sqlite(execution_partition_sqlite):  # noqa: F811
 def cases():
     classes = [cls for module in (test_tree_count_legacy, test_legacy_options)
                for name, cls in vars(module).items() if name.startswith('Test') and inspect.isclass(cls)]
-    classes.extend((test_legacy_sql_formulas.TestAliasColumn, test_legacy_sql_formulas.TestFormulaSql))
+    classes.extend((legacy_sql_formulas.TestAliasColumn, legacy_sql_formulas.TestFormulaSql))
     for cls in classes:
         for name, method in vars(cls).items():
             if name.startswith('test_'):

@@ -20,15 +20,16 @@ def test_syscode_is_opt_in_and_does_not_expand_the_source():
     config, table = source(syscode=True)
     assert table.value.get_node('columns') is None
     first = resolve_model(config)
-    assert first == resolve_model(config)
+    assert first is not resolve_model(config)
+    assert SqlMigrationRenderer(to_physical_builder(first)).render() == SqlMigrationRenderer(to_physical_builder(resolve_model(config))).render()
     assert table.value.get_node('columns') is None
     resolved = first.table('adm.htag')
     code = resolved.columns['__syscode']
     assert code.dtype == 'A'
     assert {key: code.attributes[key] for key in ('size', 'indexed', 'unique')} == {
         'size': ':20', 'indexed': True, 'unique': True}
-    assert resolved.pkey == ('id',)
-    assert 'system_records' not in resolved.options
+    assert resolved.pkey == 'id'
+    assert resolved.get('options') is None or 'system_records' not in resolved['options']
     assert not {'__protected_by_syscode', '__invalid_by_duplicate_sysrecord'} & resolved.columns.keys()
     assert not {'default', 'sqldefault', 'x_generation', 'onInserting'} & code.attributes.keys()
     physical = SqlMigrationRenderer(to_physical_builder(first)).render()
@@ -52,7 +53,7 @@ def test_syscode_preserves_an_explicit_primary_key_and_column_labels():
     config.source['db.packages.adm'].table('htag', pkey='__syscode')
     table.column('__syscode', size=':20', unique=True, indexed=True, name_long='Internal code')
     resolved = resolve_model(config).table('adm.htag')
-    assert resolved.pkey == ('__syscode',)
+    assert resolved.pkey == '__syscode'
     assert 'id' not in resolved.columns
     assert resolved.columns['__syscode'].attributes['name_long'] == 'Internal code'
 
