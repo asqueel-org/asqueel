@@ -230,11 +230,11 @@ A physical column — the only element that projects as a column.
 
 A virtual column projecting a related column. Never physical.
 
-An alias reads through a relation that already exists, so it never
-carries one of its own.
+An alias inherits the target column's relation as a weak relation during
+model rendering, unless it declares an explicit relation of its own.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
 - Extra keys: accepted (flat namespace prefixes)
 
@@ -279,8 +279,8 @@ A virtual column defined by SQL. Never physical.
 
 A virtual column defined by a sub-query. Never physical.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
 - Extra keys: accepted (flat namespace prefixes)
 
@@ -299,8 +299,8 @@ A virtual column defined by a sub-query. Never physical.
 
 A virtual column computed in Python. Never physical.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
 - Extra keys: accepted (flat namespace prefixes)
 
@@ -616,8 +616,8 @@ rule-specific type checks. Translation never executes these rules.
 
 
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
 - Extra keys: accepted (flat namespace prefixes)
 

@@ -163,6 +163,27 @@ target when no local value is declared. `model.ui` exposes the merged UI metadat
 Inherited `notnull` metadata describes the target column; a LEFT JOIN can still
 produce NULL when the source record has no related row.
 
+An alias of a column that has a relation also inherits that relation during
+model rendering. This is an approved extension to the legacy behavior:
+
+```python
+# invoice.customer_id already relates to customer.id
+row.aliasColumn('customer_id', '@invoice_id.customer_id')
+# The row can now query @customer_id.name.
+```
+
+The inherited relation is weak: no physical column, foreign key or supporting
+index is created for the alias. Its own declared relation takes precedence:
+
+```python
+row.aliasColumn('customer_id', '@invoice_id.customer_id').relation('other_customer.id')
+```
+
+Relations on virtual columns default to weak. The target key is inherited,
+not the original owner's inverse name, inverse cardinality or lifecycle actions.
+Alias chains follow the effective relation, including explicit overrides.
+This does not enable virtualRelation declarations or to-many query operations.
+
 Aliases are read-only and never become physical columns in migration output.
 Writes with an alias in their value mapping fail explicitly. `RETURNING '*'`
 includes only physical columns; explicitly returning an alias is supported only when its

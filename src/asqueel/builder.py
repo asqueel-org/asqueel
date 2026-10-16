@@ -19,6 +19,7 @@ from genro_builders.builder import BuilderBase, SourceBag
 from genro_builders.builder.base import SOURCE_ROOT
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
+from .catalog import _VIRTUAL_COLUMN_TAGS
 from .semantic_elements import SemanticElements
 from .option_elements import BehaviorOptionElements, TABLE_OPTIONS, NAMED_OPTIONS
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
@@ -386,8 +387,12 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if node_tag == 'weak_relation':
             return self.set_child(build_where, 'relation', node_value,
                                   foreign_key=False, x_weak=True, **attr)
-        if node_tag == 'relation' and parent is not None and parent.node_tag == 'formulaColumn' and not attr.get('x_weak'):
-            raise ValueError('A scalar virtual column requires weak_relation, never a physical relation')
+        if node_tag == 'relation' and parent is not None and parent.node_tag in _VIRTUAL_COLUMN_TAGS:
+            attr.setdefault('foreign_key', False)
+            if attr['foreign_key']:
+                raise ValueError('foreign_key is not allowed on virtual columns')
+            if not attr['foreign_key']:
+                attr['x_weak'] = True
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
             attr.setdefault('foreign_key', True)
             attr['x_canonical'] = True

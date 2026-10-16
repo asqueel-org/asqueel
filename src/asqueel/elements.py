@@ -279,7 +279,7 @@ class TableElements:
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def aliasColumn(self, name: str, relation_path: str,
                     dtype: str | None = None,
                     name_long: str | None = None,
@@ -287,8 +287,8 @@ class TableElements:
                     comment: str | None = None, static: bool = False, **extra):
         """A virtual column projecting a related column. Never physical.
 
-        An alias reads through a relation that already exists, so it never
-        carries one of its own.
+        An alias inherits the target column's relation as a weak relation during
+        model rendering, unless it declares an explicit relation of its own.
 
         Args:
             name: the alias name.
@@ -322,7 +322,7 @@ class TableElements:
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def subQueryColumn(self, name: str, query: str | dict | None = None,
                        mode: str | None = None, dtype: str | None = None,
                        name_long: str | None = None,
@@ -341,7 +341,7 @@ class TableElements:
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def pyColumn(self, name: str, py_method: str | None = None,
                  method: str | None = None, required_columns: str | tuple | list | None = None, static: bool = False,
                  dtype: str | None = None,
@@ -422,7 +422,7 @@ class TableElements:
 class ColumnElements:
     """Column-level grammar: the relation."""
 
-    @element(parent_tags="column, compositeColumn, formulaColumn", sub_tags="")
+    @element(parent_tags="column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn", sub_tags="")
     def relation(self, to: str, foreign_key: bool = False,
                  on_delete: FK_ACTION | str | None = None,
                  on_update: FK_ACTION | str | None = None,

@@ -56,49 +56,116 @@ def build_relations(model):
                 for flag in ('one_one', 'deferred'):
                     if flag in defaults and attrs.get(flag) is False:
                         attrs.pop(flag)
-                virtual = column.tag != 'column'
-                if virtual:
-                    attrs.update(virtual=True, one_name=attrs.get('one_name') or column.name_long)
-                target = attrs['to'].split('.')
-                if len(target) == 2 and target[0] not in model.namespaces:
-                    target.insert(0, table.pkg.name)
-                if len(target) == 2:
-                    target.append(model.table('.'.join(target)).pkey)
-                if len(target) != 3 or not target[2]:
-                    raise ValueError(f'Invalid relation target: {attrs["to"]!r}')
-                remote = model.table('.'.join(target[:2]))
-                remote_column = remote.column(target[2])
-                local_fields = model.physical_columns(table, column.name)
-                remote_fields = model.physical_columns(remote, remote_column.name)
-                if len(local_fields) != len(remote_fields):
-                    raise ValueError(f'Relation key length mismatch: {column.fullname}')
-                for local, distant in (() if virtual else zip(local_fields, remote_fields)):
-                    left, right = table.column(local), remote.column(distant)
-                    if left.attributes.get('size') != right.attributes.get('size'):
-                        logger.warning('Different size in relation %s -> %s', left.fullname, right.fullname)
-                target_name = '.'.join(target)
-                common, inverse = _joiner(table, column, target_name, attrs)
-                forward = attrs.get('name') or column.name
-                entries = [
-                    (f'{table.fullname}.@{forward}', dict(common, mode='O',
-                     foreignkey=bool(attrs.get('foreign_key')), relation_name=inverse,
-                     resolver_kwargs=deepcopy(attrs.get('resolver_kwargs') or {}))),
-                    (f'{remote.fullname}.@{inverse}', dict(common, mode='M', one_rel_name=attrs.get('one_name'))),
-                ]
-                for path, values in entries:
-                    if model.relations.get_node(path) is not None:
-                        raise ValueError(f'Duplicate relation: {path}')
-                    model.relations.set_item(path, None, _attributes=values)
-                if not virtual:
-                    # checkRelationIndex: native indexed=False remains explicit.
-                    for owner, fields in ((table, local_fields), (remote, remote_fields)):
-                        if owner.pkey and fields == model.physical_columns(owner, owner.pkey):
-                            continue
-                        if len(fields) == 1 and owner.column(fields[0]).attributes.get('indexed') is False:
-                            continue
-                        if owner is table and attrs.get('indexed') is False:
-                            continue
-                        owner._column_index(','.join(fields))
+                _register_relation(model, table, column, attrs)
+    _inherit_alias_relations(model)
+
+
+def _register_relation(model, table, column, attrs):
+    """Register a declared or inherited edge through the same legacy algorithm."""
+    virtual = column.tag != 'column'
+    if virtual:
+        attrs.update(virtual=True, one_name=attrs.get('one_name') or column.name_long)
+    target = attrs['to'].split('.')
+    if len(target) == 2 and target[0] not in model.namespaces:
+        target.insert(0, table.pkg.name)
+    if len(target) == 2:
+        target.append(model.table('.'.join(target)).pkey)
+    if len(target) != 3 or not target[2]:
+        raise ValueError(f'Invalid relation target: {attrs["to"]!r}')
+    remote = model.table('.'.join(target[:2]))
+    remote_column = remote.column(target[2])
+    # A virtual scalar is already a key expression. Resolving an alias here
+    # would cache a partial relation tree while registration is still running.
+    local_fields = ((column.name,) if virtual and column.tag != 'compositeColumn'
+                    else model.physical_columns(table, column.name))
+    remote_fields = model.physical_columns(remote, remote_column.name)
+    if len(local_fields) != len(remote_fields):
+        raise ValueError(f'Relation key length mismatch: {column.fullname}')
+    for local, distant in (() if virtual else zip(local_fields, remote_fields)):
+        left, right = table.column(local), remote.column(distant)
+        if left.attributes.get('size') != right.attributes.get('size'):
+            logger.warning('Different size in relation %s -> %s', left.fullname, right.fullname)
+    target_name = '.'.join(target)
+    common, inverse = _joiner(table, column, target_name, attrs)
+    forward = attrs.get('name') or column.name
+    entries = [
+        (f'{table.fullname}.@{forward}', dict(common, mode='O',
+         foreignkey=bool(attrs.get('foreign_key')), relation_name=inverse,
+         resolver_kwargs=deepcopy(attrs.get('resolver_kwargs') or {}))),
+        (f'{remote.fullname}.@{inverse}', dict(common, mode='M', one_rel_name=attrs.get('one_name'))),
+    ]
+    for path, values in entries:
+        if model.relations.get_node(path) is not None:
+            raise ValueError(f'Duplicate relation: {path}')
+        model.relations.set_item(path, None, _attributes=values)
+    if not virtual:
+        # checkRelationIndex: native indexed=False remains explicit.
+        for owner, fields in ((table, local_fields), (remote, remote_fields)):
+            if owner.pkey and fields == model.physical_columns(owner, owner.pkey):
+                continue
+            if len(fields) == 1 and owner.column(fields[0]).attributes.get('indexed') is False:
+                continue
+            if owner is table and attrs.get('indexed') is False:
+                continue
+            owner._column_index(','.join(fields))
+
+
+def _inherit_alias_relations(model):
+    """Inherit an alias target's forward edge after all explicit edges exist.
+
+    Only the target is inherited. FK constraints, inverse names/cardinality and
+    lifecycle actions belong to the original owner, not to this derived key.
+    Work on the registry, without resolving/caching incomplete relation trees.
+    """
+    aliases = {column.fullname: column for table in model.tables.values()
+               for column in table.virtual_columns.values() if column.tag == 'aliasColumn'}
+    forward = {node.attr['many_relation']: node.attr
+               for package in model.relations for table in package.value
+               for node in table.value if node.attr['mode'] == 'O'}
+    active, done = set(), set()
+
+    def target_column(table, path):
+        parts = path.removeprefix('$').split('.')
+        for part in parts[:-1]:
+            node = model.relations.get_node(f'{table.fullname}.{part}')
+            if node is None:
+                alias = aliases.get(f'{table.fullname}.{part.removeprefix("@")}')
+                if alias is not None:
+                    inherit(alias)
+                    node = model.relations.get_node(f'{table.fullname}.{part}')
+            if node is None:
+                # Unsupported/deferred paths retain their existing compile-time error.
+                return None
+            attrs = node.attr
+            table = model.table(attrs['one_relation'] if attrs['mode'] == 'O'
+                                else attrs['many_relation'])
+        name = parts[-1]
+        return table.columns.get(name) or table.virtual_columns.get(name) or table.composites.get(name)
+
+    def inherit(column):
+        key = column.fullname
+        if key in active or key in done:
+            return forward.get(key)
+        active.add(key)
+        target = target_column(column.table, column.attributes['relation_path'])
+        relation = None
+        if target is not None:
+            relation = forward.get(target.fullname)
+            if target.tag == 'aliasColumn':
+                relation = inherit(target)
+        if (key in forward or relation is not None) and target is not None and not column.attributes.get('dtype'):
+            column.attributes['dtype'] = target.dtype
+        if key not in forward and relation is not None:
+            _register_relation(model, column.table, column,
+                               dict(to=relation['one_relation'], foreign_key=False))
+            column.attributes['virtual'] = True
+            forward[key] = model.relations.get_node(f'{key.rsplit(".", 1)[0]}.@{column.name}').attr
+        active.remove(key)
+        done.add(key)
+        return forward.get(key)
+
+    for column in aliases.values():
+        inherit(column)
 
 
 class RelationTreeResolver(BagResolver):

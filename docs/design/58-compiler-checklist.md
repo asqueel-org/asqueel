@@ -15,6 +15,15 @@ Nessuna scrittura viene implementata o certificata da questa checklist.
 - I rinvii espliciti sono separati dalle lacune ancora da valutare. Questo
   censimento non autorizza nuove sintassi, implementazioni o cambi di comportamento.
 
+**Aggiornamento successivo alla consegna:** eredità weak delle relazioni sugli
+alias nel renderer, con precedenza alla relazione esplicita; vedere il
+[rapporto 100](100-alias-relation-inheritance.md). Le virtualRelation non sono
+abbreviazioni di percorsi verso uno: il chiarimento successivo dell'utente
+supera quella parte del piano, senza modificare qui il compilatore.
+Regressione dopo il raccordo: **4.262 passati, 12 skip, 16 deselected**;
+JSON migration invariato sui 74 modelli. I numeri della consegna originaria
+restano nel rapporto 98.
+
 ## 1. 🟢 Percorso unico e modello
 
 - [x] AsqueelDb, build_database, CLI e hosting usano il DbModel gerarchico.
@@ -127,7 +136,7 @@ Non confondere «non implementato» con «rinviato dall'utente».
 
 | Stato | Funzionalità | Cosa manca esattamente |
 | --- | --- | --- |
-| 🔴 | virtualRelation nativa | Le dichiarazioni sono conservate, ma il compilatore attraversa i joiner delle relation/weak_relation sulle colonne. Manca il raccordo SQL di virtualRelation: abbreviazione di percorso, destinazione esplicita, condizione, var_*, ask e derivazioni ammesse. Non va presentata come già compilabile neppure la sola abbreviazione `customer` di invoice_row. |
+| 🔴 | virtualRelation nativa | Le dichiarazioni sono conservate, ma il compilatore attraversa i joiner delle relation/weak_relation sulle colonne. Manca il raccordo SQL delle relazioni verso molti filtrate/parametrizzate (condition, var_*, ask e derivazioni concordate), da coordinare con gli handler many ancora rinviati. L’abbreviazione verso uno `customer` di invoice_row non è un requisito da implementare: per quella navigazione vale l’aliasColumn con relazione ereditata, secondo il chiarimento successivo dell’utente. |
 | 🟡 | Copertura dei join dichiarativi | Esistono joiner e condizioni ON legacy testate; manca una certificazione completa delle forme native e delle condizioni ulteriori. Il vecchio punto generico «joinColumn da portare» non autorizza una nuova firma: la grammatica 42 distingue relation/weak_relation e virtualRelation. |
 | 🔴 | Macro non portate | `#ENV`, TSQUERY, TSRANK, TSHEADLINE, VECQUERY, VECRANK, BAG e BAGCOLS. Serve ancora il confronto conclusivo del contratto; `:env_nome`, SQL esplicito e bagItemColumn non ne sono sostituti equivalenti. |
 | 🔴 | Selection e risultati legacy estesi | `query.selection()` è esplicitamente non supportata. Mancano il contenitore Selection e i suoi output; record supporta solo dict/record, senza resolver lazy/eager per navigare le relazioni e senza gli altri output legacy. |

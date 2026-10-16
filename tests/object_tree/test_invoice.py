@@ -14,6 +14,13 @@ TABLES = [f'{p}.{t}' for p, pkg in LEGACY.items()
 # Those two legacy joinColumns were deliberately replaced by GEP declarations.
 GEP_REPLACEMENTS = {'invc.invoice.@discount_tier_id', 'invc.discount_tier.@invoices_in_tier',
                     'invc.invoice_row.@customer_id', 'invc.customer.@invoice_rows_by_customer'}
+# Approved alias inheritance adds weak edges; the original legacy oracle stays unchanged.
+INHERITED_RELATIONS = {
+    'invc.invoice.@customer_state': ('invc.invoice.customer_state', 'invc.state.code', 'O'),
+    'invc.state.@invc_invoice_customer_state': ('invc.invoice.customer_state', 'invc.state.code', 'M'),
+    'invc.invoice_row.@customer_id': ('invc.invoice_row.customer_id', 'invc.customer.id', 'O'),
+    'invc.customer.@invc_invoice_row_customer_id': ('invc.invoice_row.customer_id', 'invc.customer.id', 'M'),
+}
 
 
 @pytest.fixture(scope='module')
@@ -52,6 +59,12 @@ def test_global_registry_matches_all_ordinary_legacy_relations(model):
     actual = {f'{p.label}.{t.label}.{r.label}': dict(r.attr)
               for p in model.relations for t in p.value for r in t.value}
     expected = {k: v for k, v in RELATIONS['relations'].items() if k not in GEP_REPLACEMENTS}
+    assert set(actual) - set(expected) == set(INHERITED_RELATIONS)
+    for path, (many, one, mode) in INHERITED_RELATIONS.items():
+        joiner = actual.pop(path)
+        assert (joiner['many_relation'], joiner['one_relation'], joiner['mode']) == (many, one, mode)
+        assert joiner['virtual'] and joiner['private_relation']
+        assert not joiner.get('foreignkey') and joiner.get('onDelete') is None
     assert len(actual) == 144
     assert actual == expected
 
@@ -63,7 +76,8 @@ def test_relation_views_keep_legacy_fields_and_navigation(model, key):
     # Source authors may reorder declarations; fields precede their own link,
     # followed by virtual links and incoming relations, as in the legacy loop.
     actual = table.relations.keys()
-    assert set(actual) == set(expected)
+    inherited = {path.rsplit('.', 1)[1] for path in INHERITED_RELATIONS if path.rsplit('.', 1)[0] == key}
+    assert set(actual) == set(expected) | inherited
     for name in actual:
         if name.startswith('@'):
             node = table.relations.get_node(name)

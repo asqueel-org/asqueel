@@ -516,7 +516,15 @@ ma il modello mantiene il collegamento inverso per dipendenze e ciclo scritture.
 metadati comuni. `inverse` corrisponde al legacy `relation_name`, non al nome
 della FK SQL. `constraint_name` è un ulteriore parametro solo di `relation`.
 
-`relation` crea FK; target fisico PK/UNIQUE e componenti compatibili obbligatori.
+Sulle colonne virtuali `.relation(...)` è weak per default; una FK fisica
+sulla virtuale resta vietata. L'alias senza relazione esplicita eredita nel renderer
+la destinazione della relazione della colonna riferita, come weak; una relazione
+esplicita prevale, anche quando un altro alias dipende da essa. Non eredita nomi
+inversi, cardinalità inversa o azioni del ciclo record appartenenti alla colonna
+originaria. Nessuna modifica della source e nessun indice/FK aggiunto per l'alias.
+
+Per le dichiarazioni fisiche il profilo esistente di `relation` crea FK;
+target fisico PK/UNIQUE e componenti compatibili obbligatori.
 `weak_relation` non crea FK e accetta anche sorgenti virtuali scalari: il target
 è dichiarato logicamente unico, assunzione da validare dall'applicazione.
 Condizioni arbitrarie appartengono a virtualRelation, non a weak_relation.

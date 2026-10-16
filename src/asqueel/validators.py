@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections import Counter
 import re
 
-from .catalog import SqlModelCatalog
+from .catalog import SqlModelCatalog, _VIRTUAL_COLUMN_TAGS
 from .common import split_names
 
 _META_KEY = "_meta"
@@ -334,7 +334,7 @@ class SqlModelValidator:
                     "column or a compositeColumn",
                 )
                 return
-            if owner is None or owner.node_tag != 'formulaColumn' or not node.get_attr('x_weak'):
+            if owner is None or owner.node_tag not in _VIRTUAL_COLUMN_TAGS or not node.get_attr('x_weak'):
                 return
         if owner.node_tag == "compositeColumn":
             local = self._names(owner.get_attr("columns"))
