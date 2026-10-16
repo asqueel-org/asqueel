@@ -72,6 +72,27 @@ class WriteCompiler:
     def insert(self, table, record, snapshot):
         """INSERT of the non-None physical columns plus every sql_value column."""
         data = self.prepare_record_data(table, record)
+        sql = self._insert_sql(table, data)
+        sql += self._returning(table, self._insert_returning(table, data), 'returning_insert')
+        return self.driver.prepare_sql(sql, data, snapshot)
+
+    def insert_many(self, table, records, snapshot):
+        """insertMany: consecutive records with the same SQL share one statement.
+
+        Returns ``(compiled, params)`` pairs for ``db.executemany``; no RETURNING,
+        as in the legacy insertMany.
+        """
+        groups: list[tuple] = []
+        for record in records:
+            data = self.prepare_record_data(table, record)
+            compiled = self.driver.prepare_sql(self._insert_sql(table, data), data, snapshot)
+            if groups and groups[-1][0].sql == compiled.sql:
+                groups[-1][1].append(compiled.params)
+            else:
+                groups.append((compiled, [compiled.params]))
+        return groups
+
+    def _insert_sql(self, table, data):
         quote = self.dialect.quote_identifier
         names, values = [], []
         for key, value in data.items():
@@ -84,11 +105,8 @@ class WriteCompiler:
                 values.append(sql_value or f':{key}')
         target = self.sql_fullname(table)
         if names:
-            sql = f'INSERT INTO {target}({",".join(names)}) VALUES ({",".join(values)})'
-        else:
-            sql = f'INSERT INTO {target} DEFAULT VALUES'
-        sql += self._returning(table, self._insert_returning(table, data), 'returning_insert')
-        return self.driver.prepare_sql(sql, data, snapshot)
+            return f'INSERT INTO {target}({",".join(names)}) VALUES ({",".join(values)})'
+        return f'INSERT INTO {target} DEFAULT VALUES'
 
     def update(self, table, record, snapshot, *, pkey=None, old_record=None):
         """UPDATE of every physical column present in the record, None included.
@@ -127,6 +145,33 @@ class WriteCompiler:
         sql = f'DELETE FROM {self.sql_fullname(table)} WHERE {where}'
         return self.driver.prepare_sql(sql, params, snapshot)
 
+    def update_selection(self, table, plan, values, snapshot):
+        """UPDATE of the rows a query selects: ``WHERE pk IN (<its key SELECT>)``.
+
+        ``plan`` is the query's SELECT reduced to the key columns, prepared by
+        the query compiler; its filters, order and limit decide the rows.
+        """
+        data = self.prepare_record_data(table, values)
+        quote = self.dialect.quote_identifier
+        assignments = []
+        for key in list(data):
+            column = table.columns.get(key)
+            if column is None:
+                continue
+            sql_value = column.attributes.get('sql_value')
+            assignments.append(f'{quote(column.sqlname)}={sql_value or ":" + key}')
+        if not assignments:
+            raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
+        where = self._selection_where(table, plan, data)
+        sql = f'UPDATE {self.sql_fullname(table)} SET {",".join(assignments)} WHERE {where}'
+        return self.driver.prepare_sql(sql, data, snapshot)
+
+    def delete_selection(self, table, plan, snapshot):
+        """DELETE of the rows a query selects: ``WHERE pk IN (<its key SELECT>)``."""
+        params = {}
+        where = self._selection_where(table, plan, params)
+        return self.driver.prepare_sql(f'DELETE FROM {self.sql_fullname(table)} WHERE {where}', params, snapshot)
+
     def lock_table(self, table, snapshot, mode='ACCESS EXCLUSIVE', nowait=False):
         """lockTable; SQLite has no table lock and gets no statement."""
         if self.dialect.name == 'sqlite':
@@ -155,6 +200,15 @@ class WriteCompiler:
             params[parameter] = value
             conditions.append(f'{quote(table.columns[name].sqlname)}=:{parameter}')
         return ' AND '.join(conditions)
+
+    def _selection_where(self, table, plan, params):
+        shared = set(plan.params) & set(params)
+        if shared:
+            raise ValueError(f'{table.fullname}: parameters used by both the query and the values: {sorted(shared)}')
+        params.update(plan.params)
+        quote = self.dialect.quote_identifier
+        keys = ','.join(quote(table.columns[name].sqlname) for name in self.pkeys(table))
+        return f'({keys}) IN ({plan.get_sqltext(self.dialect)})'
 
     @staticmethod
     def _insert_returning(table, data):

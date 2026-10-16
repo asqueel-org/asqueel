@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 import sqlite3
 
-from ..contracts import CompiledQuery
+from ..contracts import CompiledQuery, QueryResult
 from .result import query_result
 
 
@@ -73,6 +73,18 @@ class SqliteDriver:
         try:
             names = [column[0] for column in cursor.description] if cursor.description is not None else None
             return query_result(query.columns, names, cursor)
+        finally:
+            cursor.close()
+
+    def executemany(self, connection, query, params_seq):
+        """One statement, one parameter mapping per execution; no result rows."""
+        self.validate(query)
+        if not connection.in_transaction:
+            connection.execute('BEGIN IMMEDIATE')
+        rows = [{name: self._value(value) for name, value in params.items()} for params in params_seq]
+        cursor = connection.executemany(query.sql, rows)
+        try:
+            return QueryResult([], cursor.rowcount, ())
         finally:
             cursor.close()
 

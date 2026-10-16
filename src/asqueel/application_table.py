@@ -77,10 +77,10 @@ class SqlQuery:
     def compiled(self):
         return self._compile(self.db.compiler.select)
 
-    def _compile(self, terminal):
+    def _compile(self, terminal, options=None):
         self.db._check_open()
         query = terminal(self.table.fullname, sqlparams=_copy(self._params),
-                         **_copy(self._options))
+                         **_copy(self._options if options is None else options))
         unused = set(self._keyword_bindings) - set(query.input_parameters)
         if unused:
             raise UnsupportedFeatureError(
@@ -98,6 +98,28 @@ class SqlQuery:
     def fetch(self):
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
         return self.execute().rows
+
+    def sql_delete(self):
+        """DELETE the rows this query selects, without triggers; returns the row count."""
+        table = self.table.model
+        plan = self._key_plan(table)
+        compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot())
+        return self.db.execute(compiled).rowcount
+
+    def sql_update(self, values):
+        """UPDATE the rows this query selects with ``values``, without triggers; returns the row count."""
+        table = self.table.model
+        plan = self._key_plan(table)
+        compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot())
+        return self.db.execute(compiled).rowcount
+
+    def _key_plan(self, table):
+        """The query's SELECT with the same filters, order and limit, reduced to the key."""
+        options = _copy(self._options)
+        options['columns'] = ','.join(_reference(name) for name in self.db.write_compiler.pkeys(table))
+        options.pop('addPkeyColumn', None)
+        options.pop('bagFields', None)
+        return self._compile(self.db.compiler.plan_select, options)
 
     def selection(self, *args, **kwargs):
         raise UnsupportedFeatureError('Selection and Bag output are outside this application profile')
@@ -326,6 +348,27 @@ class SqlTable:
                 name = sources.get(column.source)
                 if name is not None and column.name in returned:
                     record[name] = _copy(returned[column.name])
+
+    def sql_insert(self, record):
+        """raw_insert without triggers; a list runs one executemany per column set."""
+        writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
+        if isinstance(record, list):
+            for compiled, params in writer.insert_many(self.model, record, snapshot):
+                self.db.executemany(compiled, params)
+            return record
+        result = self.db.execute(writer.insert(self.model, record, snapshot))
+        if result.rows:
+            record.update(dict(result.rows[0]))
+        return record
+
+    def sql_update(self, record, old_record=None, pkey=None):
+        """raw_update without triggers; the key comes from old_record, pkey or record."""
+        self.db.execute(self.db.write_compiler.update(
+            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record))
+
+    def sql_delete(self, record):
+        """raw_delete without triggers or related actions."""
+        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot()))
 
     def insert(self, values, returning='*', *, ignore_partition=False):
         return self.db.insert(self, values, returning, ignore_partition=ignore_partition)

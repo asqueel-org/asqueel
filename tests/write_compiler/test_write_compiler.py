@@ -197,3 +197,72 @@ def test_executed_insert_update_delete(live):
     assert deleted.rowcount == 1
     assert rows(db, f'SELECT id FROM {item_sql}') == []
     db.commit()
+
+
+def seed(db, prefix):
+    for key, name, state in (('a', 'ada', 'old'), ('b', 'bob', 'old'), ('c', 'cid', 'new')):
+        db.execute(f"INSERT INTO {prefix}sales_item (id, name, state) VALUES ('{key}', '{name}', '{state}')")
+    for order_id, line in ((1, 1), (1, 2), (2, 1)):
+        db.execute(f'INSERT INTO {prefix}sales_row (order_id, line, qty_sql) VALUES ({order_id}, {line}, 1)')
+
+
+def item_sql(db):
+    schema = model(db, 'sales.item').sqlschema
+    return (f'"{schema}".' if db.dialect.name == 'postgresql' else ''), schema
+
+
+def test_query_fetch_then_sql_update_and_sql_delete(live):
+    db = live
+    prefix, _ = item_sql(db)
+    seed(db, prefix)
+    query = db.table('sales.item').query(columns='$name', where='$state = :s', s='old',
+                                         order_by='$name', addPkeyColumn=True)
+    assert [(row['pkey'], row['name']) for row in query.fetch()] == [('a', 'ada'), ('b', 'bob')]
+    assert query.sql_update({'label': 'checked'}) == 2
+    assert rows(db, f'SELECT id FROM {prefix}sales_item WHERE label_sql = \'checked\' ORDER BY id') == [
+        {'id': 'a'}, {'id': 'b'}]
+    first = db.table('sales.item').query(columns='$name', where='$state = :s', s='old', order_by='$name', limit=1)
+    assert first.sql_delete() == 1
+    assert rows(db, f'SELECT id FROM {prefix}sales_item ORDER BY id') == [{'id': 'b'}, {'id': 'c'}]
+    assert query.sql_delete() == 1
+    assert rows(db, f'SELECT id FROM {prefix}sales_item ORDER BY id') == [{'id': 'c'}]
+    db.commit()
+
+
+
+def test_query_sql_update_refuses_shared_parameter_names(db):
+    query = db.table('sales.item').query(where='$name = :name', name='x')
+    with pytest.raises(ValueError, match='both the query and the values'):
+        writer(db).update_selection(model(db, 'sales.item'), query._key_plan(model(db, 'sales.item')),
+                                    {'name': 'y'}, {})
+
+
+def test_selection_statement_embeds_the_key_select(db):
+    query = db.table('sales.item').query(where='$name > :q', q='a')
+    compiled = writer(db).delete_selection(model(db, 'sales.item'), query._key_plan(model(db, 'sales.item')), {})
+    assert compiled.sql.startswith('DELETE FROM') and '("id") IN (SELECT' in compiled.sql
+
+
+def test_insert_many_groups_consecutive_records_with_the_same_columns(db):
+    records = [{'id': 'a', 'name': 'x'}, {'id': 'b', 'name': 'y'}, {'id': 'c'}, {'id': 'd', 'name': 'z'}]
+    groups = writer(db).insert_many(model(db, 'sales.item'), records, {})
+    assert [len(params) for _, params in groups] == [2, 1, 1]
+    assert all('RETURNING' not in compiled.sql for compiled, _ in groups)
+
+
+def test_table_sql_commands_without_triggers(live):
+    db = live
+    prefix, _ = item_sql(db)
+    table = db.table('sales.item')
+    record = {'id': 'a', 'name': 'ada'}
+    assert table.sql_insert(record) is record
+    assert record['state'] == 'new' and record['code'] == 'ADA'
+    batch = [{'id': 'b', 'name': 'bob'}, {'id': 'c', 'name': 'cid'}, {'id': 'd'}]
+    assert table.sql_insert(batch) is batch
+    assert rows(db, f'SELECT id, code FROM {prefix}sales_item ORDER BY id') == [
+        {'id': 'a', 'code': 'ADA'}, {'id': 'b', 'code': 'BOB'}, {'id': 'c', 'code': 'CID'}, {'id': 'd', 'code': None}]
+    assert table.sql_update({'id': 'z', 'name': 'zed'}, old_record={'id': 'd'}) is None
+    assert table.sql_delete({'id': 'a'}) is None
+    assert rows(db, f'SELECT id, name FROM {prefix}sales_item ORDER BY id') == [
+        {'id': 'b', 'name': 'bob'}, {'id': 'c', 'name': 'cid'}, {'id': 'z', 'name': 'zed'}]
+    db.commit()

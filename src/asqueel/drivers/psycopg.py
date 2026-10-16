@@ -50,6 +50,13 @@ class PsycopgDriver:
             names = [column.name for column in cursor.description] if cursor.description is not None else None
             return query_result(query.columns, names, cursor)
 
+    def executemany(self, connection: Any, query: CompiledQuery, params_seq: Any) -> QueryResult:
+        """One statement, one parameter mapping per execution; no result rows."""
+        self.validate(query)
+        with connection.cursor() as cursor:
+            cursor.executemany(query.sql, [dict(params) for params in params_seq])
+            return QueryResult([], cursor.rowcount, ())
+
     def commit(self, connection: Any) -> None:
         connection.commit()
 

@@ -11,6 +11,7 @@ from .contracts import UnsupportedFeatureError
 from .environment import ApplicationEnvironment, SqlEnvironment
 from .runtime import Database
 from .object_tree import DbModel
+from .write_compiler import WriteCompiler
 from .writes import WriteMixin
 
 
@@ -47,6 +48,7 @@ class SqlDatabase(WriteMixin, Database):
         super().__init__(conninfo, driver=driver, connect_kwargs=kwargs, environment=ApplicationEnvironment(environment))
         self._ready = False
         self._compiler = None
+        self._write_compiler = None
         model._bind_db(self)
         self._ready = True
 
@@ -56,6 +58,13 @@ class SqlDatabase(WriteMixin, Database):
             self._compiler = QueryCompiler(self.model, self.dialect, self.driver,
                                            environment=self.environment, _db=self)
         return self._compiler
+
+    @property
+    def write_compiler(self):
+        """Compiler of insert, update and delete statements, separate from queries."""
+        if self._write_compiler is None:
+            self._write_compiler = WriteCompiler(self.dialect, self.driver)
+        return self._write_compiler
 
     @property
     def tables(self):

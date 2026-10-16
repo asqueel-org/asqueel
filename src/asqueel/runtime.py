@@ -200,6 +200,11 @@ class Database:
             raise TypeError('Parameters are already part of a CompiledQuery')
         return self._execute_on_connection(self._connection_state, query)
 
+    def executemany(self, query: CompiledQuery, params_seq) -> QueryResult:
+        """Execute one compiled statement once per parameter mapping, as DB-API executemany."""
+        self._check_open()
+        return self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
+
     def _prepare_sql(self, sql, sqlargs) -> CompiledQuery:
         query: CompiledQuery = self.driver.prepare_sql(sql, sqlargs, self.environment.snapshot())
         return query
@@ -373,7 +378,7 @@ class Database:
         if state['failed'] or state['completion_failed']:
             raise TransactionStateError('Connection is rollback-only; call rollback before reuse')
 
-    def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery) -> QueryResult:
+    def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None) -> QueryResult:
         self._check_connection_usable(state)
         self.driver.validate(query)
         if query.environment is not None:
@@ -390,6 +395,8 @@ class Database:
                     conninfo, **connect_kwargs)
             state['pending'] = True
             state['outcome'] = 'active'
+            if many is not None:
+                return self.driver.executemany(state['connection'], query, many)
             return self.driver.execute(state['connection'], query)
         except BaseException as error:
             state['execution_error'] = error
