@@ -1,5 +1,10 @@
 # 58 — Checklist del compilatore e stato corrente
 
+**Priorità attuale:** riunificare letture e scritture e definire il perimetro
+verificato della prima versione operativa per un progetto nuovo.
+Consegna, basi Git e criteri di verifica nel [report 111](111-read-write-integration-handoff.md).
+Il backlog legacy sotto non è automaticamente un requisito della prima release.
+
 **Aggiornamento aggregazioni:** count/sum/avg/min/max, join, to_json e to_xml via `.aggr()`,
 con ordine base e override `.order_by(...)`, sono implementati nel
 [rapporto 106](106-xml-many-aggregates.md). XML Bag è disponibile su PostgreSQL,

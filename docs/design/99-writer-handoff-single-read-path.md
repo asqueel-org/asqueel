@@ -1,5 +1,9 @@
 # 99 — Messaggio per il writer: base e contratti di fusione
 
+**Consegna successiva:** il [report 111](111-read-write-integration-handoff.md)
+aggiorna commit, aggregazioni, virtualRelation e stato Git del writer.
+Il testo sotto conserva la consegna originaria precedente alle aggregazioni.
+
 16 ottobre 2026. Testo da passare alla sessione scritture; preparato, non inviato.
 La checklist aggiornata è [58](58-compiler-checklist.md); il dettaglio delle API
 condivise è [97](97-read-write-contracts.md).
