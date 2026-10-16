@@ -86,7 +86,7 @@ def hooked_database():
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
-COMPOSITE_READ = ('issue draft 10: a SELECT on a table whose pkey is a compositeColumn fails, '
+COMPOSITE_READ = ('asqueel#26: a SELECT on a table whose pkey is a compositeColumn fails, '
                   'the read compiler does not resolve the composite (compiler.py:63-66, 570-571)')
 
 
@@ -151,7 +151,7 @@ def test_post_hook_failure_rolls_back_write_and_cross_table_effects(hooked_datab
     assert audit_events(observer, schema) == []
 
 
-@pytest.mark.xfail(strict=True, reason='issue draft 1: hooked update/delete of exactly one locked record selected by a where')
+@pytest.mark.xfail(strict=True, reason='asqueel#17: hooked update/delete of exactly one locked record selected by a where')
 @pytest.mark.parametrize('operation', ['update', 'delete'])
 def test_exactly_one_locked_record_before_any_hook(hooked_database, operation):
     db, observer, schema = hooked_database

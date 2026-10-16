@@ -30,3 +30,4 @@
 ## Phase 3
 - Gate approved 2026-10-16: drafts 1-11 from attribution.md O rows (draft 1 also covers recordToUpdate); 12 newrecord, 13 sys_fields, 14 hierarchical, 15 auto_counter, 16 batchUpdate. No open issue covered 12-16 (`gh issue list`, 2026-10-16).
 - Drafts cite only public sources (code, tests, legacy, genropy issues): the private write-cycle plan is not named.
+- xfail reasons use `asqueel#<number>` (not bare `#<number>`), the form Phase 2 already used for asqueel#15. Draft n became asqueel#(n+16): #17-#32, list in issues/opened.txt.

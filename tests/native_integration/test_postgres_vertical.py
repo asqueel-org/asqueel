@@ -130,7 +130,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
     assert imported.model.table(f'{schema}.crm_customer').columns['display name'].ui['label'] == 'Cliente'
 
 
-@pytest.mark.xfail(strict=True, reason='issue draft 6: inspect_postgres returns the removed contracts.ResolvedModel, '
+@pytest.mark.xfail(strict=True, reason='asqueel#22: inspect_postgres returns the removed contracts.ResolvedModel, '
                                        'which the compiler rejects')
 def test_imported_model_compiles_selects(native_database):
     _, schema, connection = native_database

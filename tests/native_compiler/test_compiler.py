@@ -44,7 +44,7 @@ def test_insert_values_mapping_and_default_values(db):
     assert 'DEFAULT VALUES' in writer(db).insert(model(db, 'app.customer'), {}, {}).sql
 
 
-@pytest.mark.xfail(strict=True, reason="issue draft 3: a '%' in a physical column name is not escaped for psycopg")
+@pytest.mark.xfail(strict=True, reason="asqueel#19: a '%' in a physical column name is not escaped for psycopg")
 def test_insert_escapes_percent_in_physical_names(db):
     query = writer(db).insert(model(db, 'app.customer'), {'id': 1, 'name': 'x'}, {})
     assert '"full%%name"' in query.sql
@@ -79,7 +79,7 @@ def test_dml_rejects_formula_writes_and_relation_paths(db):
     assert dict(deleted.params) == {'__pkey__0': 1}
 
 
-@pytest.mark.xfail(strict=True, reason='issue draft 4: quoted logical names $"..." are not supported; '
+@pytest.mark.xfail(strict=True, reason='asqueel#20: quoted logical names $"..." are not supported; '
                                        'DML binds non-identifier logical names wrongly')
 @pytest.mark.parametrize('name', ['display name', 'a-b', 'città', 'αριθμός', '50%', 'a"b'])
 def test_quoted_logical_names_work_in_wildcards_predicates_and_returning(name):

@@ -210,7 +210,7 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
         db.close()
 
 
-@pytest.mark.xfail(strict=True, reason='issue draft 2: the hierarchical DbModel has no JSON round trip')
+@pytest.mark.xfail(strict=True, reason='asqueel#18: the hierarchical DbModel has no JSON round trip')
 def test_declarative_options_survive_a_json_round_trip():
     builder, packages = source()
     table = packages.package('invc').table('customer', pkey='id')

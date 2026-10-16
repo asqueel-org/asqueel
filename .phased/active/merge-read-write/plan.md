@@ -33,9 +33,10 @@ Merge the read path (`codex/core-single-read-path`, commit `7cee8e8`, which cont
   - Details: fix B rows in code following the contracts; realign R rows to the merged API. Re-run the lock, record and named-connection tests on both dialects (contention with a second connection, release on rollback, no implicit commit). Record every non-obvious choice in notes.md under ## Phase 2.
   - Done: `venv/bin/python -m pytest tests --no-cov -q` green on PostgreSQL and SQLite with only the O xfails; `venv/bin/ruff check src tests scripts`, `venv/bin/python -m mypy src/asqueel`, `venv/bin/python -m sphinx -W -b html docs docs/_build/html` pass; every xfail reason names a draft number present in attribution.md.
 
-- [>] **Phase 3**: draft one issue per remaining problem
-  > In execution since 2026-10-16T19:39:30+02:00
-  > Testing: 16 drafts in issues/; awaiting the user's ok to open them on asqueel-org/asqueel
+- [x] **Phase 3**: draft one issue per remaining problem
+  > Done: 16 drafts (11 O root causes + newrecord, sys_fields, hierarchical, auto_counter, batchUpdate; recordToUpdate in draft 1) opened as asqueel-org/asqueel#17-#32 with the user's ok; xfail reasons now name asqueel#<number>; `grep -rn "issue draft" tests` empty; pytest 4739 passed, 42 skipped, 32 xfailed (= Phase 2)
+  > Files: .phased/active/merge-read-write/issues/01..16-*.md, issues/opened.txt, notes.md, plan.md, tests/application_integration/test_write_hooks.py, tests/application_integration/test_raw_writes.py, tests/test_release_model_semantics.py, tests/test_native_option_expansion.py, tests/native_compiler/test_compiler.py, tests/adapter_compiler/test_plans.py, tests/adapter_dialect/test_postgres.py, tests/native_integration/test_postgres_vertical.py, tests/application_table/test_handles.py
+  > Verify: now — done: the user read the drafts and gave the ok to open them
   - Run: opus / low
   - Pattern: `new-pattern`
   - Files: `.phased/active/merge-read-write/issues/<n>-<slug>.md`

@@ -44,7 +44,7 @@ def test_default_values_and_returning_are_independent_capabilities(db):
     assert WriteCompiler(dialect, db.driver).insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES'
 
 
-@pytest.mark.xfail(strict=True, reason='issue draft 5: WriteCompiler does not enforce the dialect capabilities')
+@pytest.mark.xfail(strict=True, reason='asqueel#21: WriteCompiler does not enforce the dialect capabilities')
 def test_missing_write_capabilities_are_rejected(db):
     ticket = model(db, 'ticket')
     dialect = PostgresDialect(capabilities=PostgresDialect.capabilities - {'returning_insert'})
