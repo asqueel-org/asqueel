@@ -46,7 +46,7 @@ def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(db):
 
 
 @pytest.mark.xfail(strict=True, reason="issue draft 3: a '%' in a physical table/column name is not escaped for psycopg")
-def test_compiled_sql_escapes_percent_in_physical_names(db):  # wf:phase-2:new
+def test_compiled_sql_escapes_percent_in_physical_names(db):
     selected = db.compiler.select('app.invoice', '$id', where='$id=:id', sqlparams={'id': 4}, limit=0)
     assert selected.sql == ('SELECT "t0"."ID%%" AS "id"\n FROM "physical"."Bills%%" AS "t0"\n'
                             'WHERE ("t0"."ID%%"=%(id)s)\nLIMIT 0')

@@ -198,7 +198,7 @@ def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: sql_insert neither refuses nor fills the partition field')
-def test_raw_insert_refuses_and_fills_the_partition(tmp_path):  # wf:phase-2:new
+def test_raw_insert_refuses_and_fills_the_partition(tmp_path):
     db = partitioned(tmp_path / 'policies.db')
     try:
         with pytest.raises(ValueError, match='partition'):

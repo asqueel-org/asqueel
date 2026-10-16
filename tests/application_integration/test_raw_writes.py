@@ -101,7 +101,7 @@ def test_ordinary_cardinality_and_raw_predicates(make_db, table_hooks, db_hooks,
 @pytest.mark.xfail(strict=True, reason='issue draft 1: hooked update/delete of exactly one locked record selected by a where')
 @pytest.mark.parametrize('table_hooks', [False, True])
 @pytest.mark.parametrize('operation', ['update', 'delete'])
-def test_ordinary_write_by_where_needs_exactly_one_record(make_db, table_hooks, operation):  # wf:phase-2:new
+def test_ordinary_write_by_where_needs_exactly_one_record(make_db, table_hooks, operation):
     db = make_db(table_hooks=table_hooks)
     table = db.table(db.item)
     table.sql_insert([{'id': 1}, {'id': 2}])

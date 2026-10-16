@@ -85,7 +85,7 @@ def test_application_partition_draft_deletion_and_scoped_writes(policy_database)
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: insert does not fill the partition field from the environment')
-def test_application_insert_fills_the_partition_field(policy_database):  # wf:phase-2:new
+def test_application_insert_fills_the_partition_field(policy_database):
     db, observer, schema = policy_database
     item = db.table('app.item')
     with db.temp_env(organization=0), completed(db):

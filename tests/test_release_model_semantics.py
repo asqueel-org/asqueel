@@ -61,7 +61,7 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
 
 
 @pytest.mark.xfail(strict=True, reason='issue draft 2: the hierarchical DbModel has no JSON round trip')
-def test_validation_model_survives_a_json_round_trip():  # wf:phase-2:new
+def test_validation_model_survives_a_json_round_trip():
     b, pkg = source()
     t = pkg.table('item')
     t.column('a', 'T', validate_len='2:5', validate_len_error='Length', validate_case='U')

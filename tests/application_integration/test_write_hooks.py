@@ -130,7 +130,7 @@ def test_full_records_old_snapshot_composite_zero_key_and_atomic_hooks(hooked_da
 
 
 @pytest.mark.xfail(strict=True, reason=COMPOSITE_READ)
-def test_record_read_with_lock_includes_the_draft_row(hooked_database):  # wf:phase-2:new
+def test_record_read_with_lock_includes_the_draft_row(hooked_database):
     db, observer, schema = hooked_database
     old = db.table('app.item').record((0, 0), for_update=True).output('dict')
     assert old['draft'] is True
@@ -205,7 +205,7 @@ def test_soft_delete_restore_call_update_hooks_with_deleted_record_visible(hooke
 
 
 @pytest.mark.xfail(strict=True, reason=COMPOSITE_READ)
-def test_logically_deleted_record_is_hidden_until_restored(hooked_database):  # wf:phase-2:new
+def test_logically_deleted_record_is_hidden_until_restored(hooked_database):
     db, observer, schema = hooked_database
     table = db.table('app.item')
     marker = datetime(2026, 9, 29, tzinfo=timezone.utc)

@@ -39,7 +39,7 @@ def test_dml_partition_guards_autofill_and_no_draft_or_deleted_filters():
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: partition autofill and guard on write')
-def test_dml_partition_guards_and_autofill():  # wf:phase-2:new
+def test_dml_partition_guards_and_autofill():
     snapshot = {'organization': 0, 'allowed_organizations': [0]}
     with database() as db:
         values = {'id': 1}
@@ -94,7 +94,7 @@ def test_relational_partition_reads_work_but_writes_are_explicitly_unsupported()
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: relational partition writes are not refused')
-def test_relational_partition_writes_are_explicitly_unsupported():  # wf:phase-2:new
+def test_relational_partition_writes_are_explicitly_unsupported():
     with relational_database() as db:
         table, snapshot = item(db), db.environment.snapshot()
         for action in (lambda: writer(db).insert(table, {'id': 1}, snapshot),

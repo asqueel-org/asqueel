@@ -132,7 +132,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
 
 @pytest.mark.xfail(strict=True, reason='issue draft 6: inspect_postgres returns the removed contracts.ResolvedModel, '
                                        'which the compiler rejects')
-def test_imported_model_compiles_selects(native_database):  # wf:phase-2:new
+def test_imported_model_compiles_selects(native_database):
     _, schema, connection = native_database
     connection.execute(sql.SQL("INSERT INTO {}.crm_customer VALUES (1, 'x')").format(sql.Identifier(schema)))
     connection.execute(sql.SQL('INSERT INTO {}.crm_invoice VALUES (11, 1, 15)').format(sql.Identifier(schema)))
