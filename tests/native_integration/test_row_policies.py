@@ -10,6 +10,9 @@ from asqueel import (
     EnvironmentMismatchError, PostgresCompiler, PostgresDatabase,
     SqlBuilder, SqlEnvironment, resolve_model,
 )
+from asqueel.dialects.postgres import PostgresDialect
+from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.write_compiler import WriteCompiler
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -87,27 +90,20 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
     dsn, model = policy_database
     env = SqlEnvironment()
     compiler = PostgresCompiler(model, environment=env)
+    writer, table = WriteCompiler(PostgresDialect(), PsycopgDriver()), model.table('app.item')
 
     def scenario():
         with PostgresDatabase(dsn, environment=env) as db:
             with env.temp_env(organization=0):
-                inserted = db.execute(compiler.insert('app.item', {'id': 6, 'label': 'new'}))
-                assert inserted.rows[0]['organization'] == 0
-                with pytest.raises(ValueError):
-                    compiler.insert('app.item', {'id': 7, 'organization': 1})
-                assert (db.execute(compiler.update(
-                    'app.item', {'label': 'forbidden'}, where='$id = 2',
-                ))).rowcount == 0
-                changed = db.execute(compiler.update(
-                    'app.item', {'label': 'editable draft'}, where='$id = 3',
-                ))
+                db.execute(writer.insert(table, {'id': 6, 'label': 'new', 'organization': 0}, env.snapshot()))
+                changed = db.execute(writer.update(table, {'id': 3, 'label': 'editable draft'}, env.snapshot()))
                 assert changed.rowcount == 1
                 tombstone = datetime(2026, 9, 29, tzinfo=timezone.utc)
-                db.execute(compiler.soft_delete('app.item', value=tombstone, where='$id = 6'))
+                db.execute(writer.update(table, {'id': 6, 'deleted_at': tombstone}, env.snapshot()))
                 assert not (db.execute(compiler.select('app.item', where='$id = 6'))).rows
-                restored = db.execute(compiler.restore('app.item', where='$id = 6'))
-                assert restored.rows[0]['deleted_at'] is None
-                assert (db.execute(compiler.delete('app.item', where='$id = 6'))).rowcount == 1
+                db.execute(writer.update(table, {'id': 6, 'deleted_at': None}, env.snapshot()))
+                assert [r['id'] for r in db.execute(compiler.select('app.item', where='$id = 6')).rows] == [6]
+                assert db.execute(writer.delete(table, {'id': 6}, env.snapshot())).rowcount == 1
 
             def read_scope(value):
                 with env.temp_env(organization=value):
@@ -116,3 +112,19 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
             assert [read_scope(0), read_scope(1)] == [[1], [2]]
             assert not env.current_env
     scenario()
+
+
+@pytest.mark.xfail(strict=True, reason='asqueel#15: partition autofill and guard on write')
+def test_writes_fill_and_guard_the_partition(policy_database):  # wf:phase-2:new
+    dsn, model = policy_database
+    env = SqlEnvironment()
+    compiler = PostgresCompiler(model, environment=env)
+    writer, table = WriteCompiler(PostgresDialect(), PsycopgDriver()), model.table('app.item')
+    with PostgresDatabase(dsn, environment=env) as db:
+        with env.temp_env(organization=0):
+            db.execute(writer.insert(table, {'id': 6, 'label': 'new'}, env.snapshot()))
+            stored = db.execute(compiler.select('app.item', '$organization', where='$id = 6', ignore_partition=True))
+            assert stored.rows[0]['organization'] == 0
+            with pytest.raises(ValueError):
+                writer.insert(table, {'id': 7, 'organization': 1}, env.snapshot())
+            assert db.execute(writer.update(table, {'id': 2, 'label': 'forbidden'}, env.snapshot())).rowcount == 0

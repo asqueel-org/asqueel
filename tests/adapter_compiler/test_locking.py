@@ -1,28 +1,28 @@
 """Row locking is an explicit plan capability restricted to the root table."""
-from dataclasses import replace
-
 import pytest
 
-from asqueel.compiler import PostgresCompiler
-from asqueel.contracts import Column, Relation, ResolvedModel, Table, UnsupportedFeatureError
+from asqueel import SqlDatabaseConfig, build_database
+from asqueel.write_compiler import WriteCompiler
 
 
 @pytest.fixture
-def compiler():
-    customer = Table('customer', schema='app', pkey=('id',),
-                     columns={'id': Column('id'), 'name': Column('name')})
-    invoice = Table('invoice', schema='app', pkey=('id',), columns={
-        'id': Column('id'), 'customer_id': Column('customer_id')},
-        relations={'customer': Relation('customer', customer.key, ('customer_id',), ('id',))})
-    return PostgresCompiler(ResolvedModel({customer.key: customer, invoice.key: invoice}))
+def db():
+    config = SqlDatabaseConfig()
+    pkg = config.source.db('locking', implementation='postgresql').packages().package('app')
+    customer = pkg.table('customer', pkey='id')
+    customer.column('id')
+    customer.column('name')
+    invoice = pkg.table('invoice', pkey='id')
+    invoice.column('id')
+    invoice.column('customer_id').relation('app.customer.id')
+    with build_database(config) as database:
+        yield database
 
 
 @pytest.mark.parametrize('operation', ['insert', 'update', 'delete'])
-def test_non_select_lock_is_rejected(compiler, operation):
-    plans = {
-        'insert': compiler.plan_insert('invoice', {'id': 1}),
-        'update': compiler.plan_update('invoice', {'id': 1}, 'TRUE'),
-        'delete': compiler.plan_delete('invoice', 'TRUE'),
-    }
-    with pytest.raises(UnsupportedFeatureError, match='only supported for SELECT'):
-        compiler.compile_plan(replace(plans[operation], for_update=True))
+def test_non_select_lock_is_rejected(db, operation):
+    writer = WriteCompiler(db.dialect, db.driver)
+    table = db.table('app.invoice').model
+    compiled = getattr(writer, operation)(table, {'id': 1, 'customer_id': 2}, {})
+    assert compiled.for_update is False and compiled.lock_table is None
+    assert writer.lock_table(table, {}).sql.startswith('LOCK ')

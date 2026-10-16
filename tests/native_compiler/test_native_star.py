@@ -31,8 +31,12 @@ def test_star_selects_physical_then_static_virtual_columns(table):
 
 
 def test_returning_keeps_all_physical_columns(table):
-    query = table.db.compiler.delete(table.fullname, '$id=:id', dict(id=1))
-    assert [col.name for col in query.columns] == ['id', 'payload', 'description']
+    writer = table.db.write_compiler
+    assert 'RETURNING' not in writer.delete(table.model, {'id': 1}, {}).sql
+    virtuals = ('static_value', 'dynamic_value', 'static_xml', 'not_implemented')
+    inserted = writer.insert(table.model, {'id': 1, **{name: 1 for name in virtuals}}, {})
+    for name in virtuals:
+        assert f'"{name}"' not in inserted.sql
 
 
 def test_bag_fields_requires_boolean(table):

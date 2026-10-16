@@ -121,10 +121,11 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
         def main(self, root):
             db = root.db('demo', conninfo=dsn)
             tables = db.schemas().schema('s', x_sql_schema=schema).tables()
-            parent = tables.table('parent', pkey='x,y')
+            parent = tables.table('parent', pkey='pk')
             columns = parent.columns()
             columns.column('x', dtype='I')
             columns.column('y', dtype='I')
+            parent.composites().compositeColumn('pk', columns='x,y')
             child = tables.table('child', pkey='id')
             columns = child.columns()
             columns.column('id', dtype='I')

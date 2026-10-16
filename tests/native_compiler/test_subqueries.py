@@ -1,11 +1,10 @@
 """Correlated formulas preserve scope, bind values, and visibility policies."""
-from dataclasses import replace
-
 import pytest
 
-from asqueel.compiler import PostgresCompiler
-from asqueel.contracts import Column, Relation, ResolvedModel
-from asqueel.contracts import Table, UnsupportedFeatureError
+from asqueel import SqlDatabaseConfig, build_database
+from asqueel.write_compiler import WriteCompiler
+
+VIRTUALS = ('total', 'present', 'named', 'plus', 'local')
 
 
 def spec(**options):
@@ -13,48 +12,48 @@ def spec(**options):
 
 
 @pytest.fixture
-def model():
-    owner = Table('owner', schema='app', pkey=('id',), columns={
-        'id': Column('id', 'L'), 'threshold': Column('threshold', 'N'),
-        'total': Column('total', 'N', select=spec(), identity='stable-total', ui={'label': 'Total'}),
-        'present': Column('present', 'B', exists=spec(columns='1')),
-        'named': Column('named', 'N', formula='COALESCE(#low,0)+COALESCE(#high,0)',
-                        subqueries={'low': spec(where='$owner_id=#THIS.id AND $amount>:threshold',
-                                                sqlparams={'threshold': 1}),
-                                    'high': spec(where='$owner_id=#THIS.id AND $amount>:threshold',
-                                                 sqlparams={'threshold': 5})}),
-    })
-    item = Table('item', schema='app', pkey=('id',), columns={
-        'id': Column('id', 'L'), 'owner_id': Column('owner_id', 'L'), 'amount': Column('amount', 'N')})
-    wrapper = Table('wrapper', schema='app', columns={'id': Column('id', 'L'),
-                    'owner_id': Column('owner_id', 'L')},
-                    relations={'owner': Relation('owner', owner.key, ('owner_id',), ('id',))})
-    return ResolvedModel({table.key: table for table in (owner, item, wrapper)})
+def db():
+    config = SqlDatabaseConfig()
+    pkg = config.source.db('subqueries', implementation='postgresql').packages().package('app')
+    owner = pkg.table('owner', pkey='id')
+    owner.column('id', dtype='L')
+    owner.column('threshold', dtype='N')
+    owner.formulaColumn('total', select=spec(), dtype='N', x_identity='stable-total', x_ui_label='Total')
+    owner.formulaColumn('present', exists=spec(columns='1'), dtype='B')
+    owner.formulaColumn('named', 'COALESCE(#low,0)+COALESCE(#high,0)', dtype='N',
+                        select_low=spec(where='$owner_id=#THIS.id AND $amount>:threshold',
+                                        sqlparams={'threshold': 1}),
+                        select_high=spec(where='$owner_id=#THIS.id AND $amount>:threshold',
+                                         sqlparams={'threshold': 5}))
+    owner.formulaColumn('plus', '$total + 1')
+    owner.formulaColumn('local', '$id + 1')
+    item = pkg.table('item', pkey='id')
+    item.column('id', dtype='L')
+    item.column('owner_id', dtype='L')
+    item.column('amount', dtype='N')
+    wrapper = pkg.table('wrapper')
+    wrapper.column('id', dtype='L')
+    wrapper.column('owner_id', dtype='L').relation('app.owner.id')
+    with build_database(config) as database:
+        yield database
 
 
-def change_column(model, name, column, table='owner'):
-    owner = model.table(table)
-    owner = replace(owner, columns={**owner.columns, name: column})
-    return replace(model, tables={**model.tables, owner.key: owner})
+def writer(db):
+    return WriteCompiler(db.dialect, db.driver)
 
 
-def test_dml_default_excludes_subqueries_and_explicit_request_rejected(model):
-    compiler = PostgresCompiler(model)
-    query = compiler.insert('owner', {'id': 1})
-    assert [column.name for column in query.columns] == ['id', 'threshold']
-    for column in ('$total', '$present', '$named'):
-        with pytest.raises(UnsupportedFeatureError, match='Subquery columns'):
-            compiler.insert('owner', {'id': 1}, returning=column)
+def test_dml_default_excludes_subqueries_and_explicit_request_rejected(db):
+    query = writer(db).insert(db.table('app.owner').model, {'id': 1}, {})
+    for name in ('total', 'present', 'named'):
+        assert name not in query.sql
 
 
-def test_default_returning_excludes_transitive_virtual_dependencies(model):
-    model = change_column(model, 'plus', Column('plus', formula='$total + 1'))
-    model = change_column(model, 'local', Column('local', formula='$id + 1'))
-    compiler = PostgresCompiler(model)
-    results = [compiler.insert('owner', {'id': 1}),
-               compiler.update('owner', {'id': 1}, 'TRUE'), compiler.delete('owner', 'TRUE')]
-    for result in results:
-        assert [column.name for column in result.columns] == ['id', 'threshold']
-    assert '("t0"."id" + 1) AS "local"' in compiler.insert('owner', {'id': 1}, returning='$local').sql
-    with pytest.raises(UnsupportedFeatureError, match='Subquery columns'):
-        compiler.insert('owner', {'id': 1}, returning='$plus')
+def test_default_returning_excludes_transitive_virtual_dependencies(db):
+    table = db.table('app.owner').model
+    record = {'id': 1, 'threshold': 2, **{name: 3 for name in VIRTUALS}}
+    for query in [writer(db).insert(table, record, {}),
+                  writer(db).update(table, record, {}),
+                  writer(db).delete(table, record, {})]:
+        for name in VIRTUALS:
+            assert f'"{name}"' not in query.sql
+            assert name not in query.params

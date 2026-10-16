@@ -3,6 +3,7 @@
 import pytest
 
 from asqueel import SqlDatabaseConfig, build_database
+from asqueel.contracts import UnsupportedFeatureError
 from asqueel.drivers.psycopg import PsycopgDriver
 from asqueel.drivers.sqlite import SqliteDriver
 
@@ -37,5 +38,6 @@ def db(request, monkeypatch):
 
 
 def test_inverse_does_not_enable_joined_dml(db):
-    with pytest.raises(ValueError, match='DML'):
-        db.compiler.update('owner', {'parent_id': 1}, '@children.id=:child', sqlparams={'child': 2})
+    query = db.table('app.owner').query(where='@children.id=:child', child=2)
+    with pytest.raises(UnsupportedFeatureError, match='many relation'):
+        query.sql_update({'parent_id': 1})

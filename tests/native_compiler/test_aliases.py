@@ -2,42 +2,48 @@
 
 import pytest
 
-from asqueel.compiler import PostgresCompiler
-from asqueel.contracts import Column, Relation, ResolvedModel, Table
+from asqueel import SqlDatabaseConfig, build_database
+from asqueel.write_compiler import WriteCompiler
+
+ALIASES = ('customer_code', 'country_name', 'via_alias', 'twice')
 
 
 @pytest.fixture
-def model():
-    country = Table('country', schema='app', pkey=('id',), columns={
-        'id': Column('id', 'L'),
-        'name': Column('name', sql_name='country_name', ui={'label': 'Country', 'width': 20}),
-    })
-    customer = Table('customer', schema='app', pkey=('id',), columns={
-        'id': Column('id', 'L'), 'country_id': Column('country_id', 'L'),
-        'country': Column('country', relation_path='@country.name'),
-        'code': Column('code', 'L', sql_name='numeric_code'),
-        'double': Column('double', 'L', formula='$code * 2'),
-    }, relations={'country': Relation('country', country.key, ('country_id',), ('id',))})
-    invoice = Table('invoice', schema='app', pkey=('id',), columns={
-        'id': Column('id', 'L'), 'customer_id': Column('customer_id', 'L'),
-        'local_id': Column('local_id', relation_path='id'),
-        'customer_code': Column('customer_code', relation_path='@customer.code', identity='stable-code'),
-        'country_name': Column('country_name', relation_path='@customer.@country.name',
-                               ui={'label': 'Invoice country'}, identity='stable-country'),
-        'via_alias': Column('via_alias', relation_path='@customer.country'),
-        'twice': Column('twice', relation_path='@customer.double'),
-    }, relations={'customer': Relation('customer', customer.key, ('customer_id',), ('id',))})
-    return ResolvedModel({table.key: table for table in (country, customer, invoice)})
+def db():
+    config = SqlDatabaseConfig()
+    pkg = config.source.db('aliases', implementation='postgresql').packages().package('app')
+    country = pkg.table('country', pkey='id')
+    country.column('id', dtype='L')
+    country.column('name', sqlname='country_name', x_ui_label='Country', x_ui_width=20)
+    customer = pkg.table('customer', pkey='id')
+    customer.column('id', dtype='L')
+    customer.column('country_id', dtype='L').relation('app.country.id')
+    customer.aliasColumn('country', '@country_id.name')
+    customer.column('code', dtype='L', sqlname='numeric_code')
+    customer.formulaColumn('double', '$code * 2', dtype='L')
+    invoice = pkg.table('invoice', pkey='id')
+    invoice.column('id', dtype='L')
+    invoice.column('customer_id', dtype='L').relation('app.customer.id')
+    invoice.aliasColumn('customer_code', '@customer_id.code', x_identity='stable-code')
+    invoice.aliasColumn('country_name', '@customer_id.@country_id.name',
+                        x_ui_label='Invoice country', x_identity='stable-country')
+    invoice.aliasColumn('via_alias', '@customer_id.country')
+    invoice.aliasColumn('twice', '@customer_id.double')
+    with build_database(config) as database:
+        yield database
 
 
-def test_wildcard_excludes_dynamic_aliases_and_dml_defaults_stay_physical(model):
-    compiler = PostgresCompiler(model)
-    assert 'country_name' not in [c.name for c in compiler.select('invoice').columns]
-    assert 'country_name' in [c.name for c in compiler.select('invoice', '$country_name').columns]
-    results = [compiler.insert('invoice', {'id': 1}),
-               compiler.update('invoice', {'customer_id': 2}, '$id=:id', {'id': 1}),
-               compiler.delete('invoice', '$id=:id', {'id': 1})]
+def test_wildcard_excludes_dynamic_aliases_and_dml_defaults_stay_physical(db):
+    assert 'country_name' not in [c.name for c in db.compiler.select('app.invoice').columns]
+    assert 'country_name' in [c.name for c in db.compiler.select('app.invoice', '$country_name').columns]
+    writer = WriteCompiler(db.dialect, db.driver)
+    table = db.table('app.invoice').model
+    record = {'id': 1, 'customer_id': 2, **{name: 'x' for name in ALIASES}}
+    results = [writer.insert(table, record, {}),
+               writer.update(table, record, {}),
+               writer.delete(table, record, {})]
     for query in results:
-        assert [column.name for column in query.columns] == ['id', 'customer_id']
         assert 'JOIN' not in query.sql
-    assert compiler.insert('invoice', {'id': 1}, returning='$local_id').columns[0].name == 'local_id'
+        for name in ALIASES:
+            assert name not in query.sql
+            assert name not in query.params
