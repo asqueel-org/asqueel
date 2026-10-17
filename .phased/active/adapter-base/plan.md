@@ -38,3 +38,6 @@ First macro of the cleanup decided on 2026-10-17 after the audit of unauthorized
 - Adopted branch plan/write-cycle, worktree worktrees/write-cycle. No push. Commits carry no AI attribution.
 - The full list of the 2026-10-17 decisions is the local, untracked file `temp/audit-invenzioni/decisioni.md`; later macros are in `.phased/roadmap.md`.
 - Test environment: memory note asqueel-test-environment.
+
+## Quality check
+> Quality check: 2026-10-17T19:10:14Z — commit d51756c — review extended, QA done, findings 4 confirmed, 4 dismissed, final touch 4 corrections
