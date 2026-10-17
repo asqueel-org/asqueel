@@ -53,6 +53,23 @@ def query_result(columns, names, cursor) -> QueryResult:
     return QueryResult(rows, cursor.rowcount, columns or tuple(ResultColumn(name) for name in names))
 
 
+#: Legacy ageAtDate time units, in seconds.
+_TIME_UNITS = dict(year=365 * 24 * 60 * 60, month=int(365 * 24 * 60 * 60 / 12), week=7 * 24 * 60 * 60,
+                   day=24 * 60 * 60, hour=60 * 60, minute=60, second=1)
+
+
+def sql_literal(text):
+    return "'" + text.replace("'", "''") + "'"
+
+
+def mask_bounds(mode):  # wf:phase-2:new
+    """Visible characters at start and end of an 'N-M' mask_field_sql mode."""
+    parts = mode.split('-')
+    if len(parts) != 2 or not all(part.isdigit() for part in parts):
+        raise ValueError(f"mask_field_sql: unknown mode {mode!r}; use 'email', 'creditcard', 'phone' or 'N-M'")
+    return int(parts[0]), int(parts[1])
+
+
 class SqlDbAdapter:
     """Common SQL; each backend adapter overrides its own peculiarities."""
 
@@ -218,3 +235,28 @@ class SqlDbAdapter:
 
     def close(self, connection) -> None:
         connection.close()
+
+    # ------------------------------------------------------------------
+    #  SQL functions for table formulas, as legacy
+    # ------------------------------------------------------------------
+
+    def string_agg(self, fieldpath, separator):  # wf:phase-2:new
+        """Legacy string_agg: a string_agg() SQL expression."""
+        return f"string_agg({fieldpath},{sql_literal(separator)})"
+
+    def unaccentFormula(self, field):  # wf:phase-2:new
+        """Legacy unaccentFormula: the field unchanged where the backend has no unaccent."""
+        return field
+
+    def ageAtDate(self, dateColumn, dateArg=None, timeUnit='day'):  # wf:phase-2:new
+        """Legacy ageAtDate: age of dateColumn at :dateArg (default the workdate) in timeUnit."""
+        if timeUnit not in _TIME_UNITS:
+            raise ValueError(f'ageAtDate: unknown timeUnit {timeUnit!r}; use one of {sorted(_TIME_UNITS)}')
+        dateArg = dateArg or 'env_workdate'
+        return ('CAST((EXTRACT (EPOCH FROM(cast(:%s as date))) -  \n'
+                '                        EXTRACT (EPOCH FROM(%s)))/%i as bigint)'
+                % (dateArg, dateColumn, _TIME_UNITS[timeUnit]))
+
+    def mask_field_sql(self, field, mode='2-4', placeholder='*'):  # wf:phase-2:new
+        """Legacy mask_field_sql: modes 'email', 'creditcard', 'phone' or 'N-M'."""
+        raise UnsupportedFeatureError(f'{self.dialect}: mask_field_sql is not implemented')

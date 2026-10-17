@@ -9,7 +9,7 @@ from typing import Any
 
 from ..contracts import UnsupportedFeatureError
 from ._bag_xml import bag_xml_subquery
-from .base import SQL_PARAMS, SqlDbAdapter as SqlDbBaseAdapter
+from .base import SQL_PARAMS, SqlDbAdapter as SqlDbBaseAdapter, mask_bounds
 
 
 class SqlDbAdapter(SqlDbBaseAdapter):
@@ -110,3 +110,63 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         else:
             raise UnsupportedFeatureError(f'Unsupported subquery aggregate mode: {mode!r}')
         return f'(SELECT {aggregate} FROM ({sql}) AS {row})'
+
+    def unaccentFormula(self, field):  # wf:phase-2:new
+        return 'unaccent({prefix}{field})'.format(field=field,
+                                                  prefix='' if field[0] in ('@', '$') else '$')
+
+    def mask_field_sql(self, field, mode='2-4', placeholder='*'):  # wf:phase-2:new
+        """Legacy PostgreSQL masking expression."""
+        placeholder = placeholder.replace("'", "''")
+        if mode == 'email':
+            # Mask local part of email, keep domain visible (default 2 chars visible at start)
+            sql_formula = f"""
+                CASE
+                    WHEN position('@' in {field}) > 0 THEN
+                        substring({field} from 1 for 2) ||
+                        repeat('{placeholder}', greatest(length(split_part({field}, '@', 1)) - 2, 0)) ||
+                        '@' ||
+                        split_part({field}, '@', 2)
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        elif mode == 'creditcard':
+            # Show only last 4 digits
+            sql_formula = f"""
+                CASE
+                    WHEN length({field}) > 4 THEN
+                        repeat('{placeholder}', length({field}) - 4) || right({field}, 4)
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        elif mode == 'phone':
+            # Keep country code (3 chars) and last 3 digits visible
+            sql_formula = f"""
+                CASE
+                    WHEN length({field}) > 6 THEN
+                        substring({field} from 1 for 3) ||
+                        repeat('{placeholder}', length({field}) - 6) ||
+                        right({field}, 3)
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        else:
+            visible_start, visible_end = mask_bounds(mode)
+            sql_formula = f"""
+                CASE
+                    WHEN length({field}) > {visible_start + visible_end} THEN
+                        substring({field} from 1 for {visible_start}) ||
+                        repeat('{placeholder}', length({field}) - {visible_start} - {visible_end}) ||
+                        right({field}, {visible_end})
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        return sql_formula

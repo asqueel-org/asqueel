@@ -14,7 +14,7 @@ import sqlite3
 from .._legacy_sql import split_sql
 from ..contracts import UnsupportedFeatureError
 from .postgres import SqlDbAdapter as PostgresAdapter
-from .base import SqlDbAdapter as SqlDbBaseAdapter
+from .base import SqlDbAdapter as SqlDbBaseAdapter, mask_bounds, sql_literal
 
 
 _ILIKE = re.compile(
@@ -176,3 +176,68 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             limit = 9223372036854775807
         return super().compileSql(maintable, columns, distinct, joins, where, group_by,
                                   having, order_by, limit, offset, False, maintable_as)
+
+    def string_agg(self, fieldpath, separator):  # wf:phase-2:new
+        return f"group_concat({fieldpath},{sql_literal(separator)})"
+
+    def ageAtDate(self, dateColumn, dateArg=None, timeUnit='day'):  # wf:phase-2:new
+        raise UnsupportedFeatureError('SQLite does not support ageAtDate: the legacy SQL needs EXTRACT(EPOCH ...)')
+
+    def mask_field_sql(self, field, mode='2-4', placeholder='*'):  # wf:phase-2:new
+        """Legacy SQLite masking expression; SQLite has no repeat(), so a mask string is cut."""
+        placeholder = placeholder.replace("'", "''")
+        max_mask_chars = 100  # Maximum mask length supported
+        mask_base = '*' * max_mask_chars
+
+        if mode == 'email':
+            # Mask local part of email, keep domain visible (default 2 chars visible at start)
+            sql_formula = f"""
+                CASE
+                    WHEN instr({field}, '@') > 0 THEN
+                        substr({field}, 1, 2) ||
+                        replace(substr('{mask_base}', 1, max(instr({field}, '@') - 1 - 2, 0)), '*', '{placeholder}') ||
+                        substr({field}, instr({field}, '@'))
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        elif mode == 'creditcard':
+            # Show only last 4 digits
+            sql_formula = f"""
+                CASE
+                    WHEN length({field}) > 4 THEN
+                        replace(substr('{mask_base}', 1, length({field}) - 4), '*', '{placeholder}') ||
+                        substr({field}, -4)
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        elif mode == 'phone':
+            # Keep country code (3 chars) and last 3 digits visible
+            sql_formula = f"""
+                CASE
+                    WHEN length({field}) > 6 THEN
+                        substr({field}, 1, 3) ||
+                        replace(substr('{mask_base}', 1, length({field}) - 6), '*', '{placeholder}') ||
+                        substr({field}, -3)
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        else:
+            visible_start, visible_end = mask_bounds(mode)
+            sql_formula = f"""
+                CASE
+                    WHEN length({field}) > {visible_start + visible_end} THEN
+                        substr({field}, 1, {visible_start}) ||
+                        replace(substr('{mask_base}', 1, length({field}) - {visible_start} - {visible_end}), '*', '{placeholder}') ||
+                        substr({field}, -{visible_end})
+                    ELSE
+                        {field}
+                END
+            """.strip()
+
+        return sql_formula
