@@ -297,7 +297,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if tag == 'driver':
             if owner.get_attr('options') is not None:
                 raise ValueError('Use driver() or legacy connection options, not both')
-            dialect = owner.get_attr('implementation') or owner.parent_node.get_attr('implementation') or 'sqlite'
+            implementation = owner.get_attr('implementation') or owner.parent_node.get_attr('implementation') or 'sqlite'
+            dialect = implementation.partition(':')[0]
             allowed = ({'timeout', 'cached_statements'} if dialect == 'sqlite' else
                        {'connect_timeout', 'application_name', 'sslmode', 'sslrootcert', 'options'})
             unknown = attributes.keys() - allowed - {'_meta'}

@@ -60,3 +60,25 @@ def test_current_implementation_selects_the_adapter_on_demand():
             assert db.adapter is db.adapters['postgres']
     finally:
         db.close()
+
+
+# The 'name:module' form below loads this class: SQLite, from an external module.
+class SqlDbAdapter(SqliteAdapter):
+    pass
+
+
+EXTERNAL_SQLITE = 'sqlite:tests.adapters.test_db_adapter'
+
+
+def test_external_module_is_classified_by_its_implementation_name(tmp_path):
+    config = SqlDatabaseConfig()
+    db = config.source.db('shop', implementation=EXTERNAL_SQLITE)
+    db.connection(name=str(tmp_path / 'shop.db')).options().driver(timeout=5)
+    db.packages().package('app').table('item', pkey='id').column('id', dtype='L')
+    with build_database(config) as database:
+        assert database.implementation == 'sqlite'
+        assert type(database.adapter).__module__ == 'tests.adapters.test_db_adapter'
+        assert isinstance(database.adapter, SqliteAdapter)
+        assert database.model.table('app.item').sqlschema == 'main'
+        plan = database.migration_plan()
+        assert 'CREATE TABLE' in plan.commands

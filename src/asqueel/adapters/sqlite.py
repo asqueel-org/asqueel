@@ -13,7 +13,6 @@ import sqlite3
 
 from .._legacy_sql import split_sql
 from ..contracts import UnsupportedFeatureError
-from .postgres import SqlDbAdapter as PostgresAdapter
 from .base import SqlDbAdapter as SqlDbBaseAdapter, mask_bounds, sql_literal
 
 
@@ -29,7 +28,11 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
     dialect = 'sqlite'
     binding = 'sqlite_named'
-    capabilities = PostgresAdapter.capabilities
+    capabilities = frozenset({
+        'select', 'insert', 'update', 'delete', 'returning_insert',
+        'returning_update', 'returning_delete', 'left_join', 'limit', 'offset',
+        'default_values', 'for_update',
+    })
 
     def connect(self, conninfo='', *, dbname=None, schemas=(), **kwargs):
         if sqlite3.sqlite_version_info < (3, 35, 0):
@@ -86,8 +89,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def executemany(self, connection, query, params_seq):
         """One statement, one parameter mapping per execution; no result rows."""
         self.validate(query)
-        if not connection.in_transaction:
-            connection.execute('BEGIN IMMEDIATE')
+        self._begin(connection, query)
         return super().executemany(connection, query, params_seq)
 
     def _params(self, params):

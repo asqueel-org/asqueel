@@ -144,7 +144,7 @@ class DbPackageObj(DbModelObj):
 
     @property
     def sqlschema(self):
-        default = 'main' if self._model.implementation == 'sqlite' else 'public'
+        default = 'main' if self._model.implementation.partition(':')[0] == 'sqlite' else 'public'
         return (self.attributes.get('sqlschema') or self.attributes.get('x_sql_schema')
                 or ((self.attributes.get('sqlname') or self.name) if self.tag == 'schema' else default))
 

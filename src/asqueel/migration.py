@@ -333,6 +333,8 @@ def _plan_of(migrator) -> MigrationPlan:
 def _prepared_migrator(db, *, allow_removals):
     """Project the model and prepare the backend migrator, its commands computed."""
     implementation, conninfo, kwargs = connection_settings(db.config)
+    # 'name:module' names the implementation before the colon, as legacy.
+    implementation = implementation.partition(':')[0]
     if implementation == 'sqlite':
         params = dict(kwargs or {})
         params.setdefault('dbname', conninfo)
