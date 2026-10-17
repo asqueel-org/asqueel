@@ -37,13 +37,15 @@ The cycle runs in this order: key assignment, `protect_validate`, column
 See [hooks](hooks.md) for the methods a table subclass can override.
 
 A key that is `None` or `''` is generated before the triggers: `max(key)+1`
-for an integer key, a 22-character UUID for a text key, or the value of the
+for an integer key, a 22-character UUID for a text key with size 22 or no size,
+or the value of the
 table's `newPkeyValue()` when it is overridden. `max(key)+1` is not safe under
 concurrent inserts; use a `serial` column or your own `newPkeyValue()` there.
 
 On PostgreSQL, the INSERT reads back with RETURNING the columns whose value the
-database decides (`sql_value`, generated columns, server defaults of omitted
-columns) and writes them into the record. SQLite has no RETURNING in the write
+database decides (`sql_value`, generated columns, omitted columns declaring
+`sqldefault`) and writes them into the record. A database default the model does
+not declare is applied but not read back: read the row again to see it. SQLite has no RETURNING in the write
 cycle. There is no `returning=` argument.
 
 ## Update a record
@@ -69,8 +71,10 @@ key, pass the old row as `old_record` and the new key in the record.
 
 Every physical column present in the record is written, `None` included. Pass
 the complete row, as above, or only the columns to change with their key:
-`customer.update({"id": 3, "name": "Katherine Johnson"})`. The UPDATE does not
-check how many rows it changed.
+`customer.update({"id": 3, "name": "Katherine Johnson"})`. Without `old_record`
+the update raises `ValueError` when a relation pointing to this table declares
+`onUpdate`: the cycle needs the old key to apply it. The UPDATE does not check
+how many rows it changed.
 
 The cycle runs `protect_update`, `protect_validate`, column `onUpdating`
 triggers, `trigger_onUpdating`, `protect_draft`, `trigger_assignCounters`, the

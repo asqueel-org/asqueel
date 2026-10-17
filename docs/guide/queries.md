@@ -363,7 +363,7 @@ line, with NULL when there are no lines. It does not produce a Python list
 of amounts. Use `@lines.aggr(...)` for one value per invoice, or GROUP BY,
 a declared scalar subquery or `distinct=True` according to the required result. `count()`
 counts the SQL result rows; there is no implicit DISTINCT or parent grouping.
-Virtual relations remain pending. Related-table policies are not automatically
+A `virtualRelation` can be aggregated with `aggr()` like a declared inverse. Related-table policies are not automatically
 added to a plain join; the root table's policies govern the query.
 
 ## Use relations, formulas and aggregates

@@ -158,9 +158,8 @@ query = db.table('app.document').query(columns='$id', ignore_partition=True)
 print(query.sqltext)
 ```
 
-It does not disable draft or logical-deletion filtering. The same option exists
-on insert, update, delete, soft_delete, and restore; expose it only where your
-application intends to allow that behavior.
+It does not disable draft or logical-deletion filtering. Writes do not read
+partitions, so the option has no write counterpart.
 
 ### Relational partition fields
 
@@ -218,71 +217,35 @@ aggregates, are rejected in mark mode. If `*` includes a formula, use an explici
 physical-column list. For an aggregate that should include deleted rows, use
 `exclude_logical_deleted=False` without requesting a marker.
 
-## Guarded writes
+## Writes and policies
 
-Partition policies apply to insert, update, and physical delete. Draft and
-logical-deletion read filters do not automatically apply to these operations.
+Partition, draft and logical-deletion policies filter reads only. As in GenroPy,
+`insert` does not fill the partition column from the environment, and `update`
+and `delete` do not check that the row belongs to the current or allowed
+partition ([#15](https://github.com/asqueel-org/asqueel/issues/15) proposes it).
+Set the partition column in the record yourself.
 
-For INSERT, a missing partition column is filled from its current environment
-value, including `None`. With only an allowed set and no current value, the
-insert must provide that column explicitly. Provided values must satisfy both
-the current and allowed restrictions; out-of-scope values raise `ValueError`.
+## Logical deletion and restoration
 
-For UPDATE, the existing row is restricted by the partition predicate. If the
-update changes a partition column, its new value is checked against the same
-scope. An explicit empty allowed collection matches no existing rows and
-cannot be used to insert a new row. A supplied out-of-scope replacement value
-is rejected before execution.
-
-```python
-with db.temp_env(organization=10):
-    # Compile only, without executing a write.
-    created = db.compiler.insert(
-        'app.document', {'id': 100, 'title': 'Draft', 'draft': True},
-    )  # organization_id is filled with 10.
-    print(created.sql, dict(created.params))
-```
-
-Here `db.compiler` is used explicitly to inspect the generated write before
-executing anything. Ordinary application calls to `table.insert()` and
-`table.update()` execute immediately.
-
-A SQL guard that matches no rows produces a normal zero-row update/delete;
-it is not an authorization exception. Update and delete still require an
-explicit predicate. `where='TRUE'` means every row allowed by the partition
-scope, unless that scope is explicitly bypassed.
-
-## Soft deletion and restoration
-
-Soft deletion is an UPDATE with an explicit non-NULL marker value. Restoration
-sets the marker to NULL. Neither operation adds draft/deletion read filters;
-both retain the normal partition write guards.
+There is no soft-delete command. Mark a row as deleted by writing its
+logical-deletion column with `update()`, and restore it by writing `None`:
 
 ```python
 from datetime import datetime, timezone
 
-with db.temp_env(organization=10):
-    try:
-        document = db.table('app.document')
-        deleted = document.soft_delete(
-            value=datetime.now(timezone.utc),
-            where='$id = :id', sqlparams={'id': 100},
-            returning='$id, $deleted_at',
-        )
-        restored = document.restore(
-            where='$id = :id', sqlparams={'id': 100},
-            returning='$id, $deleted_at',
-        )
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+try:
+    document = db.table('app.document')
+    old = document.record(100, for_update=True, mode='dict')
+    document.update(dict(old, deleted_at=datetime.now(timezone.utc)), old)
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
 
 ```
 
-These table methods execute immediately in the shared transaction. They require
-an existing row to affect any data. `document.delete(...)` remains a physical
-DELETE even when the model declares a logical-deletion field.
+The update runs the normal write cycle and its hooks. `document.delete(...)`
+remains a physical DELETE even when the model declares a logical-deletion field.
 
 See [environment scopes](environment.md) for query reuse checks and
 [transactions](transactions.md) for grouping changes atomically.

@@ -14,7 +14,7 @@ class CustomerTable(SqlTable):
             raise ValueError("Customer name is required")
 
     def trigger_onInserted(self, record):
-        # Returned fields, when requested, are available in this record.
+        # On PostgreSQL, values the database decided are already in the record.
         pass
 
 
@@ -28,41 +28,39 @@ class ShopWithBehavior(SqlDatabaseConfig):
         columns.column("name", dtype="T")
 ```
 
-The input mapping is copied before the before-insert hook. Returned fields are
-overlaid before the after-insert hook. Hooks may use other tables on the same
-database; those operations participate in the same connection. A hook failure marks
-the unit of work rollback-only, including a failure before any SQL. Hooks cannot
-commit, roll back or close the database during a write.
+The hooks receive the caller's record itself, not a copy: a change made by
+`trigger_onInserting` is what the INSERT writes, and the caller sees it after
+the call. On PostgreSQL, values the database decides are written into the record
+before `trigger_onInserted`. Hooks may use other tables on the same database;
+those operations join the same connection. A Python error inside the cycle makes
+the connection rollback-only, including an error before any SQL. Hooks cannot
+commit or roll back during a write.
 
 For updates, override `trigger_onUpdating(record, old_record=None)` and/or
 `trigger_onUpdated(record, old_record=None)`. For physical deletion, override
 `trigger_onDeleting(record)` and/or `trigger_onDeleted(record)`.
 
-Ordinary update and delete always first read and lock the
-matching record with PostgreSQL `FOR UPDATE OF` the base table. A declared primary
-key and exactly one matching row are required; missing or multiple matches raise
-`RecordNotFoundError` or `RecordMultipleRowsError` before any hook runs. Locks last
-until commit or rollback. This single-record contract also applies when no hook is overridden.
-Use raw commands for predicates affecting multiple rows.
+`old_record` is what the caller passed to `update()`; it is never read from the
+database. Read it yourself with `record(key, for_update=True, mode='dict')` when
+the hooks need it and the row must stay locked until commit. `delete()` with a
+key string, or with a record lacking physical columns, reads the row with a lock
+before the hooks.
 
-The update before-hook receives the complete physical row overlaid with the
-caller's changes. It may modify that record. Both update hooks receive independent
-copies of the original locked row as `old_record`. SQL targets the saved old key,
-so changing a key in the new record does not redirect the update. Delete hooks
-share the loaded record, but changing its key cannot redirect deletion either.
-Returned physical fields are mapped back by column identity before the update
-after-hook; returning aliases do not rename record fields.
+To refuse a write, override `protect_update(record, old_record=None)`,
+`protect_delete(record)` or `protect_validate(record, old_record=None)` and
+raise `self.exception('protect_update', record=record, msg=...)` (or
+`'protect_delete'`, `'protect_validate'`).
 
-Draft and logical-deletion read filters do not hide the row being written;
-partition restrictions still apply. `soft_delete()` and `restore()` follow the
-update hook lifecycle. An unexpected affected-row count makes the unit of work
-rollback-only, as does any hook error. Related SQL writes share this rollback;
+Column triggers run in the same cycle: a column attribute `onInserting`,
+`onUpdating`, `onDeleting`, `onInserted`, `onUpdated` or `onDeleted` names a
+method `trigger_<name>` of the table (or of `trigger_table`), called with the
+record and `fldname`; a callable is called with the record and the column name.
+
+Draft and logical-deletion read filters do not hide the row being written, and
+partitions are not applied to writes. Related SQL writes share the rollback;
 external side effects, such as sending messages, cannot be undone by it.
 
-Application integration connects package contributions, field-level behavior,
-protection rules and related-record operations to the write lifecycle. Keep the
-execution order explicit: validation, SQL work and post-commit effects belong
-to different stages.
+The full order of each cycle is in [writes](writes.md).
 
 
 ## Follow the write's parent
@@ -111,55 +109,19 @@ action in both mechanisms.
 | Insert | `trigger_onInserting(record)` | `trigger_onInserted(record)` |
 | Update | `trigger_onUpdating(record, old_record=None)` | `trigger_onUpdated(record, old_record=None)` |
 | Physical delete | `trigger_onDeleting(record)` | `trigger_onDeleted(record)` |
-| Soft-delete / restore | The update lifecycle | The update lifecycle |
 
-Ordinary update/delete locks exactly one existing row before hooks. Adding a
-hook does not change cardinality. A broad predicate must use raw update/delete
-when per-record Python table triggers are intentionally bypassed.
+`sql_insert`, `sql_update` and `sql_delete`, and `query(...).sql_update()` /
+`.sql_delete()`, run no hooks.
 
 See [writes](writes.md) for selectors and returned values, and
 [transactions](transactions.md) for failure recovery.
 
-## Database-level write lifecycle and raw commands
+## Database-level write cycle
 
-Table commands delegate to `db.insert(table, values)`, `db.update(table, ...)`
-and `db.delete(table, ...)`. The DB accepts a table handle belonging to it or a
-logical table name. Its cycle is:
-
-1. `onWriting(table, event, record, old_record=None, raw=False)`.
-2. The table's before-hook, unless raw.
-3. `onExecutingWrite(...)`, immediately before compilation/execution of the write.
-4. `db.execute(...)`, followed by mapping RETURNING values to the record.
-5. `_onDbChange(table, event, record, old_record=None, _raw=False)`.
-6. The table's after-hook, unless raw.
-7. `onWritten(...)`, after the write cycle and still before commit.
-
-Override the shared hooks on an `AsqueelDb` subclass. Events are `I`, `U` and
-`D`; the raw flag is a keyword argument. The `_raw` spelling on `_onDbChange`
-follows the legacy extension point. Default shared hooks do nothing. They can
-perform nested writes or defer callbacks, but cannot commit/rollback inside a
-write. Any Python failure makes the selected connection rollback-only.
-
-`table.raw_insert`, `raw_update` and `raw_delete` also exist on `db`, with the
-table as first argument. They bypass Python table triggers, not DB hooks,
-policies, parameterization, SQL triggers or transaction/error handling.
-
-- Raw insert accepts a mapping or a list of mappings. Shared hooks run once per
-  inserted record, in list order, and receive that record. Returned physical
-  values are available to after-hooks. No intermediate commit occurs.
-- Raw update executes one SQL statement for its entire predicate. Shared hooks
-  run once, receiving only the supplied update values, without an old snapshot.
-  Before-hooks may modify those values before SQL compilation.
-- Raw delete executes one SQL statement. For a key/record selector, shared hooks
-  receive a copied key mapping or the supplied record. For an explicit predicate
-  they receive `record=None`. This is selector information, not a loaded row;
-  mutating it does not change the compiled deletion predicate.
-
-Overriding shared hooks never turns a raw command into a single-record command.
-Raw update/delete call them even when zero rows match, and provide no implicit
-per-row events. Hook implementations must branch on `raw`/`_raw` and tolerate
-partial records or `None`. For raw commands `old_record` remains `None`.
-
-The native shared hooks do not implement Genropy field/package dispatch,
-counters, totalizers or notifications. Their mapping is tracked in
+Table commands delegate to `db.insert(table, record)`, `db.update(table, record,
+old_record=None, pkey=None)` and `db.delete(table, record)`, which run the cycle
+with the table's hooks. There are no shared database-level hooks: no
+`onWriting`, `onWritten` or `_onDbChange`. Change log, totalizers, counters
+([#31](https://github.com/asqueel-org/asqueel/issues/31)) and package triggers
+are not executed; their mapping is tracked in
 [Adattamenti legacy](../adattamenti-legacy.md).

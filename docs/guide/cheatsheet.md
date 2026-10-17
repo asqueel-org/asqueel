@@ -46,17 +46,16 @@ the [formula](formulas.md) context, not a general public-query macro language.
 |---|---|
 | Insert | `table.insert({'id': 3, 'name': 'Katherine'})` |
 | Update by key | `table.update({'id': 3, 'name': 'Katherine Johnson'})` |
-| Update by predicate | `table.update({'name': 'New'}, where='$id=:id', sqlparams={'id': 3})` |
-| Physical delete | `table.delete(3)` |
-| Choose returned columns | Add `returning='$id, $name'`. |
-| Omit returned rows | Add `returning=None`. |
-| Soft-delete a policy table | `document.soft_delete(marker, where='$id=:id', sqlparams={'id': 100})` |
-| Restore a policy table | `document.restore(where='$id=:id', sqlparams={'id': 100})` |
+| Update with the old row | `table.update(record, old_record)` |
+| Physical delete | `table.delete({'id': 3})` |
+| Without triggers | `table.sql_insert(...)`, `table.sql_update(...)`, `table.sql_delete(...)` |
+| Rows a query selects | `table.query(where=...).sql_update({...})`, `.sql_delete()` |
+| Logical deletion | `table.update(dict(old, deleted_at=now), old)` |
 
-All return `QueryResult`. Default RETURNING includes physical columns only.
-Write values use logical names without `$`. A scalar or complete mapping selects
-a single-column key; composite keys require all components. Hooked update/delete
-requires exactly one row. See [writes](writes.md) for the detailed contract.
+`insert` and `update` return the record they received, modified by the cycle;
+the `sql_*` query commands return the affected row count. Write values use
+logical names without `$`. `delete` must remove exactly one row. See
+[writes](writes.md) for the detailed contract.
 
 ## Lifecycle and context
 

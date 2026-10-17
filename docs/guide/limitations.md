@@ -20,11 +20,11 @@ step below on both databases.
 | Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and BEGIN IMMEDIATE. PostgreSQL-specific SQL is not translated. |
 | Tables | `db.migrate()` creates and alters the declared tables; it needs `asqueel[migration]`. | Without the extra, create tables with your own DDL, as in the [quickstart](quickstart.md). |
 | Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; `record()` for exactly one row, `for_update=True` for a locked read. | No streaming cursor: rows are materialized Toolbox `NamedList` rows. |
-| Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `inverse` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows. | Virtual relations are not executed. |
+| Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `inverse` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |
 | Formulas | SQL formula columns, table formula methods, `select`/`exists` dictionaries, named subqueries, `subQueryColumn`. | Formulas are read-only. JSON/XML `subQueryColumn` modes and `aggr(to_xml(...))` need PostgreSQL; `aggr(to_json(...))` runs on both. |
 | Alias columns | `aliasColumn` through to-one paths, with inherited metadata and `originalColumn`. | Read-only: an alias key in a write mapping is skipped. |
 | Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
-| Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
+| Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
 | Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
 | Row policies | Partition, draft and logical-deletion filters on reads. | They do not apply to writes (see below). |
 
@@ -70,8 +70,8 @@ a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-o
 ## Write cycle boundaries
 
 - The commands modify the caller's record in place and return it. Values the
-  database decides (`sql_value`, generated columns, server defaults of omitted
-  columns) are read back with RETURNING on PostgreSQL. SQLite has no RETURNING
+  database decides (`sql_value`, generated columns, omitted columns declaring
+  `sqldefault`) are read back with RETURNING on PostgreSQL. SQLite has no RETURNING
   in the write cycle. There is no `returning=` argument.
 - Keys of the mapping that are not physical columns (alias, formula, `@path`,
   unknown names) do not become SQL columns. They raise no error.
