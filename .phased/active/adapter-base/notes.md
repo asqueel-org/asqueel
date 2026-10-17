@@ -24,3 +24,18 @@
 - Build: rows are indexed by `cursor.description[i][0]` on both backends, as legacy (GnrDictCursor._build_index, GnrSqliteCursor); the fake psycopg cursor of tests/native_runtime/test_runtime.py now exposes a DB-API description tuple instead of `.name`. `cursor()` returns a cursor usable as a context manager (psycopg as is, sqlite3 through closing).
 - Build: ageAtDate with an unknown timeUnit raises ValueError (legacy falls back to 'day'), same rule as mask_field_sql; the base adapter's mask_field_sql raises UnsupportedFeatureError (legacy warns and returns the field). Batch 4 SQL checked equal to the legacy adapters' output at 95da66ee for every case in tests/adapters/test_adapter_functions.py.
 - Naming review (2026-10-17): all names accepted, markers stripped.
+
+## Final touch
+- Reviewed revision: 17858f2 (REVIEW_HEAD), range e0b3d01..17858f2; review extended (code-review, effort high), QA done (Phase 2 Verify: now, passed at the gate).
+- Corrections, commit 565ed0b ("wf: final touch — 3 corrections"):
+  1. 'name:module' implementations classified by the name before the colon in migration.py, builder.py (driver options) and object_tree.py (default schema), as configuration already did; test in tests/adapters/test_db_adapter.py.
+  2. SQLite executemany starts its transaction through `_begin` instead of a copy of its BEGIN branch.
+  3. The SQLite adapter declares its own capability set (equal to today's) instead of importing the PostgreSQL one.
+- Re-check (light, effort low, over the touched files and their callers) found one residual of root cause 1: the SQLite branch of configuration.connection_settings compared the full string. User chose one more bounded correction, commit 05f79e9 ("wf: final touch — +1"), with a test.
+- Dismissed, with evidence:
+  - currentImplementation reuses the open named connection of the other backend: legacy keys connections by (storename, connectionName) the same way (gnrsql/connections.py:_get_store_connection); no asqueel code switches implementation today.
+  - SqlSourceBag not a TYTX subtype (Phase 1 > Review:): no asqueel code serialises the source with TYTX; registering it is a new surface no decision covers.
+  - Unbuilt design notes (docs/data-driver.md, data-adapters-delivery.md, native-runtime.md, sql-environment.md) still show the removed classes: gate decision, only built pages realigned.
+  - xmldocs/booklet/kajenn-app.xml uses implementation="postgresql": it describes asqueel 0.5.1; to update with the release that ships the adapter.
+- Checks run: full suite 4802 passed, 42 skipped, 32 xfailed; ruff and mypy clean.
+- Rows on the phase road: none.
