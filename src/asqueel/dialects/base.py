@@ -15,6 +15,8 @@ class DataDialect(Protocol):
 
     def concat_non_null(self, expressions: list[str], separator: str) -> str: ...
 
+    def concat_template(self, parts: list[tuple[str, bool]]) -> str: ...
+
 
     def compile_sql(self, maintable, columns, distinct='', joins=None, where=None,
                     group_by=None, having=None, order_by=None, limit=None, offset=None,

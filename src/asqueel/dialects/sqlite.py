@@ -59,6 +59,12 @@ class SqliteDialect(PostgresDialect):
         joined = ' || '.join(terms) or "''"
         return f'substr({joined}, {len(separator) + 1})'
 
+    def concat_template(self, parts):
+        # concat() needs SQLite 3.44; COALESCE keeps the same NULL rule on 3.35.
+        terms = [f"'{text.replace(chr(39), chr(39) * 2)}'" if literal
+                 else f"COALESCE(CAST(({text}) AS TEXT), '')" for text, literal in parts]
+        return f"({' || '.join(terms) or chr(39) * 2})"
+
 
     def compile_sql(self, maintable, columns, distinct='', joins=None, where=None,
                     group_by=None, having=None, order_by=None, limit=None, offset=None,

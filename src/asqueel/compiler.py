@@ -26,6 +26,70 @@ _THIS = re.compile(r'#THIS\.([\w\.@]+)')
 _IN_RANGE = re.compile(r"#IN_RANGE\s*\(\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*\)\s*", re.MULTILINE)
 _PERIOD = re.compile(r"#PERIOD\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*,\s*:?(\w+)\)")
 _COLREL = re.compile(r'([@$]\w+(?:\.\w+)*)')
+_TEMPLATE = re.compile(r'#TEMPLATE\s*\(')
+_TEMPLATE_LITERAL = re.compile(r"\s*'((?:[^']|'')*)'\s*", re.S)
+_TEMPLATE_ARGUMENT = re.compile(r'(.+)\s+as\s+(\w+)\s*', re.I | re.S)
+# Placeholder marker. Temporary: genro-builders expands ${name} in model
+# attributes; the marker goes back to $ once builders changes its syntax.
+_TEMPLATE_MARK = '§'
+_TEMPLATE_FIELD = re.compile(re.escape(_TEMPLATE_MARK) + r'(?:\{(\w+)\}|(' + re.escape(_TEMPLATE_MARK) + r'))?')
+
+
+def _closing_parenthesis(text, start):
+    depth, quote = 1, None
+    for position in range(start, len(text)):
+        char = text[position]
+        if quote:
+            if char == quote:
+                quote = None
+        elif char in '\'"':
+            quote = char
+        elif char == '(':
+            depth += 1
+        elif char == ')':
+            depth -= 1
+            if not depth:
+                return position
+    raise ValueError('#TEMPLATE: missing closing parenthesis')
+
+
+def expand_templates(text, dialect):
+    """#TEMPLATE('§{n} - §{s}', $name AS n, $surname AS s) as the dialect's concatenation."""
+    match = _TEMPLATE.search(text or '')
+    while match:
+        end = _closing_parenthesis(text, match.end())
+        literal, *arguments = split_sql(text[match.end():end])
+        found = _TEMPLATE_LITERAL.fullmatch(literal)
+        if not found:
+            raise ValueError('#TEMPLATE: the first argument must be a quoted template')
+        expressions = {}
+        for argument in arguments:
+            named = _TEMPLATE_ARGUMENT.fullmatch(argument.strip())
+            if not named:
+                raise ValueError(f'#TEMPLATE: {argument.strip()!r} needs "AS <name>"')
+            if named[2] in expressions:
+                raise ValueError(f'#TEMPLATE: duplicate name {named[2]!r}')
+            expressions[named[2]] = named[1].strip()
+        template, parts, used, last = found[1].replace("''", "'"), [], set(), 0
+        for field in _TEMPLATE_FIELD.finditer(template):
+            parts.append((template[last:field.start()], True))
+            last = field.end()
+            if field[2]:
+                parts.append((_TEMPLATE_MARK, True))
+            elif field[1] in expressions:
+                used.add(field[1])
+                parts.append((expressions[field[1]], False))
+            elif field[1]:
+                raise ValueError(f'#TEMPLATE: {_TEMPLATE_MARK}{{{field[1]}}} has no argument')
+            else:
+                raise ValueError(f'#TEMPLATE: write a literal {_TEMPLATE_MARK} as {_TEMPLATE_MARK * 2}')
+        parts.append((template[last:], True))
+        if expressions.keys() - used:
+            raise ValueError(f'#TEMPLATE: unused arguments {sorted(expressions.keys() - used)}')
+        sql = dialect.concat_template([part for part in parts if part != ('', True)])
+        text = text[:match.start()] + sql + text[end + 1:]
+        match = _TEMPLATE.search(text, match.start() + len(sql))
+    return text
 
 
 class _TreeContext:
@@ -140,6 +204,7 @@ class _TreeContext:
             subqueries = {'default': select if select is not None else exists}
         # Bind the authored expression before inserting children: their local
         # names already belong to their own scope and must never be remangled.
+        formula = expand_templates(formula, self.dialect)
         formula = self.expand_many_operations(formula, curr=curr)
         formula = bindings.substitute(formula)
         for name, definition in subqueries.items():
@@ -570,6 +635,9 @@ class _TreeContext:
         if self.table.pkey:
             self.references.paths['pkey'] = self.table.pkey
         columns = columns if isinstance(columns, str) else ','.join(columns)
+        columns, where, order_by, group_by, having = (
+            expand_templates(clause, self.dialect) if clause else clause
+            for clause in (columns, where, order_by, group_by, having))
         columns = columns.replace('  ', ' ').replace('\n', '').replace(' as ', ' AS ').replace(' ,', ',')
         # Recognize the agreed many-call boundary before split handles columns.
         try:

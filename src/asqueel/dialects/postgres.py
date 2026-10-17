@@ -98,6 +98,12 @@ class PostgresDialect:
         literal = "'" + separator.replace("'", "''") + "'"
         return f"array_to_string(ARRAY[{', '.join(expressions)}]::text[], {literal})"
 
+    def concat_template(self, parts: list[tuple[str, bool]]) -> str:
+        """#TEMPLATE: literal text and expressions; a NULL expression gives ''."""
+        terms = [f"'{text.replace(chr(39), chr(39) * 2)}'" if literal else text
+                 for text, literal in parts]
+        return f"concat({', '.join(terms)})" if terms else "''"
+
 
     def _require(self, capability):
         if capability not in self.capabilities:
