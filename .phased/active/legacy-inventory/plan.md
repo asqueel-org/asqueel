@@ -37,7 +37,10 @@ Describe asqueel 0.6 against GenroPy legacy for the release: one verified invent
   - Details: write the page; every `diverso`/`mancante`/`nuovo` row of the inventory appears exactly once.
   - Done: `venv/bin/python -m sphinx -W -b html docs docs/_build/html` passes; `grep -c "issues/" docs/guide/legacy-features.md` is at least the number of distinct issues cited by `mancante` rows of the inventory; `git diff --stat "$(git log -1 --diff-filter=A --format=%H -- .phased/active/legacy-inventory/plan.md)" -- src tests docs/review` is empty.
 
-- [ ] **Phase 4**: new Italian review page for the team
+- [x] **Phase 4**: new Italian review page for the team
+  > Done: docs/review/asqueel-vs-genropy-0.6-it.html, self-contained (inline CSS from the old page, no script, no external link): header with both revisions and date, summary table of counts, 8 area sections (presente collapsed, diverso with motivation, 68 mancante as open points with alternatives side by side, nuovo). HTMLParser exits 0; all 205 inventory IDs found; sphinx -W passes; no diff under src, tests, docs/review/asqueel-vs-genropy-it.html.
+  > Files: docs/review/asqueel-vs-genropy-0.6-it.html, .phased/active/legacy-inventory/plan.md, .phased/active/legacy-inventory/notes.md
+  > Verify: now — open docs/review/asqueel-vs-genropy-0.6-it.html in a browser, light and dark theme, and check the layout at phone width.
   - Pattern reference: `docs/review/asqueel-vs-genropy-it.html` (CSS variables, status colours legacy/decided/open/proposed, light/dark theme, section layout) — copy the style, not the content
   - Files: `docs/review/asqueel-vs-genropy-0.6-it.html` (new)
   - Decisions: Italian; self-contained HTML (inline CSS, no external script); derived only from the inventory. Per area: rows present (collapsed), differences with motivation, missing items with issue and the alternatives (a)/(b)/… shown side by side as open points for discussion, new features. A header states both revisions and the date, and says it supersedes, without changing, the page of 5 October. The old page is not modified.

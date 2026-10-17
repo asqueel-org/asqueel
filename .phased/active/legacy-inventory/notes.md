@@ -22,3 +22,10 @@
 - The workaround of a `mancante` item is the inventory's "leave it out" alternative (c); the other alternatives stay out of the page, as decided.
 - Reasons recorded as "nessuna motivazione registrata" read "not recorded". Reasons citing a user decision read "decision of <date>"; genropy#n issues are described, never linked.
 - Issues cited in `diverso`/`nuovo` rows (#3, #15, #16, #19, #21, #22, #23, #25, #26) are linked too.
+
+## Phase 4
+
+- The page is generated from the inventory by a throwaway script (not committed): rows are copied, not rewritten, so the page adds no claim.
+- The old page is dated 4 October 2026 in its header and was committed on 5 October 2026; the new header names both dates.
+- Google Fonts link of the old page dropped to keep the page self-contained; the font stacks fall back to system fonts.
+- Only plain `#n` is linked to asqueel issues; `genropy#n` stays unlinked text.
