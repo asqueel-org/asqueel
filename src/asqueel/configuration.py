@@ -387,7 +387,7 @@ def _connection_settings(config, prefix):
     if not isinstance(name, str) or not name.strip():
         raise ValueError('connection.name must resolve to a nonempty database name')
     options['dbname'] = name
-    if implementation == 'sqlite':
+    if implementation.partition(':')[0] == 'sqlite':
         if any(read(key) is not None
                for key in ('host', 'port', 'user', 'password')):
             raise ValueError('SQLite uses a filename, not host/user/password/port')

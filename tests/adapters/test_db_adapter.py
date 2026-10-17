@@ -82,3 +82,12 @@ def test_external_module_is_classified_by_its_implementation_name(tmp_path):
         assert database.model.table('app.item').sqlschema == 'main'
         plan = database.migration_plan()
         assert 'CREATE TABLE' in plan.commands
+
+
+def test_external_sqlite_module_keeps_the_sqlite_connection_checks(tmp_path):
+    config = SqlDatabaseConfig()
+    db = config.source.db('shop', implementation=EXTERNAL_SQLITE)
+    db.connection(name=str(tmp_path / 'shop.db'), host='localhost')
+    db.packages().package('app').table('item', pkey='id').column('id', dtype='L')
+    with pytest.raises(ValueError, match='SQLite uses a filename'):
+        build_database(config)
