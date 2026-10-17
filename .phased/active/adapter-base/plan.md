@@ -23,6 +23,8 @@ First macro of the cleanup decided on 2026-10-17 after the audit of unauthorized
 
 - [>] **Phase 2**: `db.adapter` as in the legacy  `vast`
   > In execution since 2026-10-17T14:25:00Z
+  > Verify: now — read the adapter base class (src/asqueel/adapters/base.py, then postgres.py and sqlite.py): it reads as the legacy SqlDbAdapter, one place per backend peculiarity
+  > Testing: awaiting the human's `Verify: now` checks | commit: cd65adb
   - Run: opus / high
   > Batches: 1 adapter classes absorbing dialects/ (SQL text, quoting, capabilities) | 2 connection, cursor, execute and the translations now in drivers/sql.py | 3 db.adapter wiring, implementation loading, compilers and runtime on the adapter, old modules removed | 4 string_agg, unaccentFormula, mask_field_sql, ageAtDate with tests
   - Pattern: legacy `gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:SqlDbAdapter`, `gnrpy/gnr/sql/adapters/gnrpostgres.py`, `gnrpy/gnr/sql/adapters/gnrsqlite.py` at GenroPy `95da66ee` (`git -C ~/Sviluppo/Genropy/genropy show 95da66ee:<path>`); legacy loading `gnrpy/gnr/sql/gnrsql/db.py:151-156`; current code to absorb: `src/asqueel/dialects/{base,postgres,sqlite,_bag_xml}.py`, `src/asqueel/drivers/{base,psycopg,sqlite,sql,result}.py`
