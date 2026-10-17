@@ -1,0 +1,6 @@
+✓ Phase 1 completata: inventario, aree 1-4 (modello, query, formule, relazioni). Commit `8b3844a`, non pushato.
+
+- **Cosa contiene:** `docs/design/112-legacy-inventory.md` ha la sezione `## Fonti` e 94 righe: 27 modello, 26 query, 20 formule, 21 relazioni.
+- **Done verificato in questa sessione:** `check_inventory.py --areas 1-4` esce 0, `sphinx -W` passa, nessuna modifica sotto `src/` e `tests/`. Test e lint erano verdi prima di iniziare: 4741 test passati, ruff pulito.
+- **Righe `diverso` senza motivazione registrata:** A1.5, A1.11, A1.13, A1.19 e A1.22 citano il documento pubblico che descrive il comportamento asqueel e scrivono "nessuna motivazione registrata". Il checker chiede una fonte e non ho inventato motivazioni.
+- **Documentazione in contrasto con il codice:** queries.md, limitations.md, models.md e formulas.md descrivono comportamenti che il codice non ha. Le righe lo segnalano, il codice prevale. L'elenco è in `notes.md` per la Phase 3.
