@@ -1,6 +1,5 @@
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from types import SimpleNamespace
 
 import pytest
 
@@ -11,7 +10,7 @@ from asqueel.runtime import DatabaseClosedError, PostgresDatabase, TransactionSt
 class FakeConnection:
     def __init__(self, calls):
         self.calls = calls
-        self.description = [SimpleNamespace(name='value')]
+        self.description = [('value',)]
         self.rowcount = 1
 
     def record(self, name):

@@ -4,7 +4,7 @@ Ported from the GenroPy adapter (reference fa35e5ad,
 gnr/sql/adapters/_gnrbaseadapter.py: prepareRecordData, insert, update,
 delete; _gnrbasepostgresadapter.lockTable). It is separate from the query
 compiler: statements are legacy SQL text with ``:name`` parameters, prepared by
-the driver into the common CompiledQuery and executed by ``db.execute``.
+the adapter into the common CompiledQuery and executed by ``db.execute``.
 """
 from __future__ import annotations
 
@@ -17,18 +17,17 @@ _GENERATED_KEY_DTYPES = frozenset({'serial', 'serial4'})
 
 
 class WriteCompiler:
-    """Build write statements for one database's dialect and driver."""
+    """Build write statements for one database's adapter."""
 
-    def __init__(self, dialect, driver):
-        self.dialect = dialect
-        self.driver = driver
+    def __init__(self, adapter):
+        self.adapter = adapter
 
     # ------------------------------------------------------------------
     #  Names
     # ------------------------------------------------------------------
 
     def sql_fullname(self, table):
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         return '.'.join(quote(name) for name in (table.sqlschema, table.sqlname) if name)
 
     def pkeys(self, table):
@@ -74,7 +73,7 @@ class WriteCompiler:
         data = self.prepare_record_data(table, record)
         sql = self._insert_sql(table, data)
         sql += self._returning(table, self._insert_returning(table, data), 'returning_insert')
-        return self.driver.prepare_sql(sql, data, snapshot)
+        return self.adapter.prepare_sql(sql, data, snapshot)
 
     def insert_many(self, table, records, snapshot):
         """insertMany: consecutive records with the same SQL share one statement.
@@ -85,7 +84,7 @@ class WriteCompiler:
         groups: list[tuple] = []
         for record in records:
             data = self.prepare_record_data(table, record)
-            compiled = self.driver.prepare_sql(self._insert_sql(table, data), data, snapshot)
+            compiled = self.adapter.prepare_sql(self._insert_sql(table, data), data, snapshot)
             if groups and groups[-1][0].sql == compiled.sql:
                 groups[-1][1].append(compiled.params)
             else:
@@ -93,7 +92,7 @@ class WriteCompiler:
         return groups
 
     def _insert_sql(self, table, data):
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         names, values = [], []
         for key, value in data.items():
             column = table.columns.get(key)
@@ -116,7 +115,7 @@ class WriteCompiler:
         itself, as in the legacy adapter.
         """
         data = self.prepare_record_data(table, record)
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         assignments = []
         for key in list(data):
             column = table.columns.get(key)
@@ -136,7 +135,7 @@ class WriteCompiler:
         where = self._key_where(table, keys, key_values, data)
         sql = f'UPDATE {self.sql_fullname(table)} SET {",".join(assignments)} WHERE {where}'
         sql += self._returning(table, self._update_returning(table), 'returning_update')
-        return self.driver.prepare_sql(sql, data, snapshot)
+        return self.adapter.prepare_sql(sql, data, snapshot)
 
     def delete(self, table, record, snapshot):
         """DELETE of one record by its key, with the SQL column names."""
@@ -144,7 +143,7 @@ class WriteCompiler:
         params = {}
         where = self._key_where(table, keys, [record[name] for name in keys], params)
         sql = f'DELETE FROM {self.sql_fullname(table)} WHERE {where}'
-        return self.driver.prepare_sql(sql, params, snapshot)
+        return self.adapter.prepare_sql(sql, params, snapshot)
 
     def update_selection(self, table, plan, values, snapshot):
         """UPDATE of the rows a query selects: ``WHERE pk IN (<its key SELECT>)``.
@@ -153,7 +152,7 @@ class WriteCompiler:
         the query compiler; its filters, order and limit decide the rows.
         """
         data = self.prepare_record_data(table, values)
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         assignments = []
         for key in list(data):
             column = table.columns.get(key)
@@ -165,20 +164,20 @@ class WriteCompiler:
             raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
         where = self._selection_where(table, plan, data)
         sql = f'UPDATE {self.sql_fullname(table)} SET {",".join(assignments)} WHERE {where}'
-        return self.driver.prepare_sql(sql, data, snapshot)
+        return self.adapter.prepare_sql(sql, data, snapshot)
 
     def delete_selection(self, table, plan, snapshot):
         """DELETE of the rows a query selects: ``WHERE pk IN (<its key SELECT>)``."""
         params = {}
         where = self._selection_where(table, plan, params)
-        return self.driver.prepare_sql(f'DELETE FROM {self.sql_fullname(table)} WHERE {where}', params, snapshot)
+        return self.adapter.prepare_sql(f'DELETE FROM {self.sql_fullname(table)} WHERE {where}', params, snapshot)
 
     def lock_table(self, table, snapshot, mode='ACCESS EXCLUSIVE', nowait=False):
         """lockTable; SQLite has no table lock and gets no statement."""
-        if self.dialect.name == 'sqlite':
+        if self.adapter.dialect == 'sqlite':
             return None
         sql = f'LOCK {self.sql_fullname(table)} IN {mode} MODE{" NOWAIT" if nowait else ""}'
-        return self.driver.prepare_sql(sql, {}, snapshot)
+        return self.adapter.prepare_sql(sql, {}, snapshot)
 
     # ------------------------------------------------------------------
     #  Helpers
@@ -194,7 +193,7 @@ class WriteCompiler:
         raise ValueError(f'{table.fullname}: a composite key needs a mapping or a sequence of {len(keys)} values')
 
     def _key_where(self, table, keys, values, params):
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         conditions = []
         for index, (name, value) in enumerate(zip(keys, values)):
             parameter = f'__pkey__{index}'
@@ -207,9 +206,9 @@ class WriteCompiler:
         if shared:
             raise ValueError(f'{table.fullname}: parameters used by both the query and the values: {sorted(shared)}')
         params.update(plan.params)
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         keys = ','.join(quote(table.columns[name].sqlname) for name in self.pkeys(table))
-        return f'({keys}) IN ({plan.get_sqltext(self.dialect)})'
+        return f'({keys}) IN ({plan.get_sqltext(self.adapter)})'
 
     @staticmethod
     def _insert_returning(table, data):
@@ -231,8 +230,8 @@ class WriteCompiler:
                 if column.attributes.get('sql_value') is not None or column.attributes.get('generated_expression')]
 
     def _returning(self, table, names, capability):
-        if not names or capability not in self.dialect.capabilities:
+        if not names or capability not in self.adapter.capabilities:
             return ''
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         projections = ','.join(f'{quote(table.columns[name].sqlname)} AS {quote(name)}' for name in names)
         return f' RETURNING {projections}'

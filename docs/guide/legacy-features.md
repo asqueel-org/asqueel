@@ -560,15 +560,23 @@ the write cycle, see [Current status](limitations.md).
 
 ### Works as in GenroPy
 
+- `db.adapter`, one adapter object per implementation (A8.1).
+- **Backend choice `implementation`** (A8.1): default `'sqlite'`; `'postgres'`,
+  `'postgres3'`, `'sqlite'`; custom modules as `'<name>:<module>'`;
+  `currentImplementation` in the environment selects another adapter. In
+  asqueel `'postgres'` and `'postgres3'` both load the psycopg 3 adapter.
+- `db.adapter.string_agg(field, separator)` and `unaccentFormula(field)` (A8.15, A8.16).
 - Collections after `IN :param` (A8.3).
 - `REGEXP` / `~*` and the regexp function on SQLite (A8.4).
 - `IS TRUE` / `IS FALSE` on SQLite (A8.6).
 
 ### Works differently
 
-- **Backend choice `implementation`** (A8.1): only `'postgresql'` (default)
-  and `'sqlite'`; `'postgres'`, `'postgres3'` and custom modules are refused.
-  Reason: not recorded.
+- **`mask_field_sql` and `ageAtDate`** (A8.16): an invalid `mask_field_sql`
+  mode raises `ValueError` instead of falling back to `'2-4'`; `ageAtDate` on
+  SQLite raises `UnsupportedFeatureError`, because the legacy SQL uses
+  `EXTRACT(EPOCH ...)`, which SQLite does not have. Reason: anything outside
+  the grammar raises.
 - **`:name` parameters and the PostgreSQL driver** (A8.2): psycopg 3 only,
   with server-side binding; a missing parameter becomes `None`. Reason: SQL and
   mapping stay separate; a literal `%` is tracked in
@@ -609,12 +617,6 @@ the write cycle, see [Current status](limitations.md).
   `db.execute`.
 - **Table `lock()` (`lockTable`)** (A8.12): no public method. No issue yet.
   Workaround: `db.execute('LOCK ...')`.
-- **`db.adapter.string_agg(field, separator)`** (A8.15): no `db.adapter`
-  object. No issue yet. Workaround: `@rel.aggr(join(...))` or dialect SQL in
-  the formula.
-- **`unaccentFormula`, `mask_field_sql`, `ageAtDate`** (A8.16): absent. No
-  issue yet. Workaround: `sql_formula` with `unaccent()` or the explicit
-  expression.
 - **`db.listen` / `db.notify`** (A8.17): absent. No issue yet. Workaround:
   `db.execute('NOTIFY channel, :payload')` and a dedicated psycopg connection.
 - **`db.analyze()` / `db.vacuum(table, full)`** (A8.18): absent; VACUUM fails

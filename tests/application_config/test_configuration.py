@@ -13,7 +13,7 @@ class Recipe(SqlDatabaseConfig):
 
 class Overlay(SqlDatabaseConfig):
     def main(self, root):
-        root.db('demo', conninfo='dbname=overlay')
+        root.db('demo', implementation='postgres', conninfo='dbname=overlay')
 
 
 def test_layering_owns_instances_and_preserves_parent_tree():
@@ -42,7 +42,7 @@ def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
     recipe = Recipe()
     recipe.create()
     database = recipe.render()
-    assert database.config('implementation') == 'postgresql'
+    assert database.config('implementation') == 'sqlite'
     assert database.config('conninfo') == ''
     assert database.table('sales.customer').model is database.model.table('sales.customer')
     with pytest.raises(TypeError, match='object'):
@@ -147,9 +147,9 @@ def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits(
 
 @pytest.mark.parametrize(('root_impl', 'connection_impl', 'expected'), [
     ('sqlite', None, 'sqlite'),
-    ('postgresql', None, 'postgresql'),
-    ('postgresql', 'sqlite', 'sqlite'),
-    ('sqlite', 'postgresql', 'postgresql'),
+    ('postgres', None, 'postgres'),
+    ('postgres', 'sqlite', 'sqlite'),
+    ('sqlite', 'postgres', 'postgres'),
 ])
 def test_connection_implementation_inherits_root_unless_explicit(root_impl, connection_impl, expected):
     from asqueel.configuration import connection_settings
@@ -164,7 +164,7 @@ def test_connection_implementation_inherits_root_unless_explicit(root_impl, conn
     db = build_database(Config)
     try:
         implementation, conninfo, options = connection_settings(db.config)
-        assert implementation == db.driver.dialect == expected
+        assert implementation == db.adapter.dialect == expected
         assert conninfo == ''
         assert options == {'dbname': 'app.db'}
     finally:

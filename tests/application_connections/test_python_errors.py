@@ -23,7 +23,7 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
         assert db.currentTrigger is None
         with pytest.raises(TransactionStateError, match='rollback-only'):
             db.commit()
-        assert db.driver.persisted == []
+        assert db.adapter.persisted == []
         assert events == []
         # A failed domain operation on A must not poison independent C or the
         # already rolled-back B. Both can still complete their own work.
@@ -33,7 +33,7 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
             db.execute(CompiledQuery('recovered B'))
             db.commit()
         db.rollback()
-        assert db.driver.persisted == ['independent C', 'recovered B']
+        assert db.adapter.persisted == ['independent C', 'recovered B']
         assert events == []
 
 
@@ -48,11 +48,11 @@ def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
         raise original
 
     with database(Item) as db:
-        db.driver.callback = sql_failure
+        db.adapter.callback = sql_failure
         with pytest.raises(LookupError) as caught:
             db.execute(CompiledQuery('first attempt'))
         assert caught.value is original
-        db.driver.callback = None
+        db.adapter.callback = None
         with pytest.raises(LookupError) as caught:
             db.table('app.item').insert({'id': 1})
         assert caught.value is original
@@ -61,7 +61,7 @@ def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
         db.rollback()
         db.execute(CompiledQuery('recovered'))
         db.commit()
-        assert db.driver.persisted == ['recovered']
+        assert db.adapter.persisted == ['recovered']
 
 
 @pytest.mark.parametrize('cleanup', ['rollback', 'close'])
@@ -74,21 +74,21 @@ def test_db_context_preserves_hook_exception_when_cleanup_also_fails(cleanup):
             raise original
 
     db = database(Item)
-    setattr(db.driver, cleanup + '_error', cleanup_error)
+    setattr(db.adapter, cleanup + '_error', cleanup_error)
     with pytest.raises(ValueError) as caught:
         with db:
             db.table('app.item').insert({'id': 1})
     assert caught.value is original
     assert caught.value.__cause__ is cleanup_error
     assert any('cleanup' in note.lower() for note in caught.value.__notes__)
-    assert db.driver.persisted == []
-    assert db.driver.calls[-1] == 'close'
+    assert db.adapter.persisted == []
+    assert db.adapter.calls[-1] == 'close'
     assert db._closed
 
 
 def test_successful_db_context_still_reports_cleanup_failure():
     db = database()
-    db.driver.rollback_error = OSError('cleanup failed')
+    db.adapter.rollback_error = OSError('cleanup failed')
     with pytest.raises(OSError, match='cleanup failed'):
         with db:
             db.execute(CompiledQuery('pending'))

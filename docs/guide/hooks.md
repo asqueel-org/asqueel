@@ -20,7 +20,7 @@ class CustomerTable(SqlTable):
 
 class ShopWithBehavior(SqlDatabaseConfig):
     def main(self, root):
-        customer = root.db("shop", conninfo="dbname=shop").schemas().schema(
+        customer = root.db("shop", implementation="postgres", conninfo="dbname=shop").schemas().schema(
             "sales",
         ).tables().table("customer", pkey="id", x_table_class=CustomerTable)
         columns = customer.columns()

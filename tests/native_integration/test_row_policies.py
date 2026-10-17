@@ -10,8 +10,7 @@ from asqueel import (
     EnvironmentMismatchError, PostgresCompiler, PostgresDatabase,
     SqlBuilder, SqlEnvironment, resolve_model,
 )
-from asqueel.dialects.postgres import PostgresDialect
-from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.write_compiler import WriteCompiler
 from tests.native_support import postgres_dsn
 
@@ -90,7 +89,7 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
     dsn, model = policy_database
     env = SqlEnvironment()
     compiler = PostgresCompiler(model, environment=env)
-    writer, table = WriteCompiler(PostgresDialect(), PsycopgDriver()), model.table('app.item')
+    writer, table = WriteCompiler(PostgresAdapter(None)), model.table('app.item')
 
     def scenario():
         with PostgresDatabase(dsn, environment=env) as db:
@@ -119,7 +118,7 @@ def test_writes_fill_and_guard_the_partition(policy_database):
     dsn, model = policy_database
     env = SqlEnvironment()
     compiler = PostgresCompiler(model, environment=env)
-    writer, table = WriteCompiler(PostgresDialect(), PsycopgDriver()), model.table('app.item')
+    writer, table = WriteCompiler(PostgresAdapter(None)), model.table('app.item')
     with PostgresDatabase(dsn, environment=env) as db:
         with env.temp_env(organization=0):
             db.execute(writer.insert(table, {'id': 6, 'label': 'new'}, env.snapshot()))

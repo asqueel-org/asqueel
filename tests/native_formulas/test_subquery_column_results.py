@@ -13,7 +13,7 @@ from tests.native_formulas.conftest import SQL_TYPES
 from tests.native_support import postgres_dsn
 
 
-@pytest.fixture(scope='module', params=['postgresql', 'sqlite'])
+@pytest.fixture(scope='module', params=['postgres', 'sqlite'])
 def db(request, tmp_path_factory):
     backend = request.param
     config = source(backend)
@@ -24,14 +24,14 @@ def db(request, tmp_path_factory):
         implementation=backend,
         **(
             {'dsn': postgres_dsn()}
-            if backend == 'postgresql'
+            if backend == 'postgres'
             else {'database': str(tmp_path_factory.mktemp('sq_columns') / 'test.db')}
         ),
     )
     with build_database(config) as db:
-        quote = db.dialect.quote_identifier
+        quote = db.adapter.adaptSqlName
         try:
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute('CREATE SCHEMA ' + quote(schema))
             for table in db.model.tables.values():
                 columns = ','.join(
@@ -67,7 +67,7 @@ def db(request, tmp_path_factory):
             yield db
         finally:
             db.rollback()
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
                 db.commit()
 
@@ -90,7 +90,7 @@ def test_scalar_alias_dependency_null_and_locals_match_values(db):
 
 @pytest.fixture
 def pg(db):
-    if db.dialect.name != 'postgresql':
+    if db.adapter.dialect != 'postgres':
         pytest.skip('Legacy JSON/XML subQueryColumn wrappers are PostgreSQL-specific')
     return db
 

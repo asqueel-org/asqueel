@@ -16,7 +16,7 @@ class DatabaseConfiguration(SqlDatabaseConfig):
         database = root.db()
         database.connection(
             name=EnvResolver("PGDATABASE", default="two_schemas"),
-            implementation="postgresql",
+            implementation="postgres",
             host=EnvResolver("PGHOST", default="localhost"),
             port=EnvResolver("PGPORT", default=5432, dtype="L"),
             user=EnvResolver("PGUSER", default="app"),

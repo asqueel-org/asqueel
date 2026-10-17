@@ -13,8 +13,8 @@ import pytest
 
 from asqueel import SqlDatabase, UnsupportedFeatureError
 from asqueel.configuration import _owned_handler
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from examples.test_invoice_pg import source
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,18 +38,18 @@ def normalized(sql):
 
 def local_bindings(sql, params, dialect):
     """Compare local binding identity and values, not process-dependent id()."""
-    pattern = r'%\((\w+)\)s' if dialect == 'postgresql' else r':(\w+)'
+    pattern = r'%\((\w+)\)s' if dialect == 'postgres' else r':(\w+)'
     names = list(dict.fromkeys(re.findall(pattern, sql)))
     assert set(names) == set(params)
     positions = {name: f'LOCAL_{i}' for i, name in enumerate(names)}
     return re.sub(pattern, lambda m: positions[m[1]], sql), [params[name] for name in names]
 
 
-@pytest.fixture(params=['sqlite', 'postgresql'])
+@pytest.fixture(params=['sqlite', 'postgres'])
 def database(request, monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail('Contract compilation attempted I/O')
-    for driver in (PsycopgDriver, SqliteDriver):
+    for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
     monkeypatch.setattr(SqlDatabase, 'execute', forbidden)
@@ -80,7 +80,7 @@ def contract_parameters():
 @pytest.mark.parametrize('name', list(contract_parameters()))
 def test_legacy_sql_and_kwargs_contract(database, name):
     case = next(c for c in ORACLE['cases']
-                if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+                if c['dialect'] == database.adapter.dialect and c['request']['name'] == name)
     request, expected = case['request'], case['expected']
     query = database.table(request['table']).query(
         request['columns'], sqlparams=request['params'], **request['options'])
@@ -96,7 +96,7 @@ def test_legacy_sql_and_kwargs_contract(database, name):
     if name == 'macro_range':
         # Approved exception: typed comparisons precede NULL checks so psycopg
         # can bind absent bounds. Keep the frozen legacy oracle unchanged.
-        low, high = (('%(low)s', '%(high)s') if database.dialect.name == 'postgresql'
+        low, high = (('%(low)s', '%(high)s') if database.adapter.dialect == 'postgres'
                      else (':low', ':high'))
         approved_where = (
             f'((("t0"."total">={low} AND "t0"."total"<={high} AND {low} IS NOT NULL AND {high} IS NOT NULL) OR '
@@ -109,9 +109,9 @@ def test_legacy_sql_and_kwargs_contract(database, name):
     if name == 'formula_parameters':
         # Local scope ownership is the contract already agreed; names include
         # id() in the legacy and are deliberately not a process-stable API.
-        sql, params = local_bindings(sql, params, database.dialect.name)
+        sql, params = local_bindings(sql, params, database.adapter.dialect)
         expected_sql, expected_params = local_bindings(
-            expected_sql, expected_params, database.dialect.name)
+            expected_sql, expected_params, database.adapter.dialect)
     assert normalized(sql) == normalized(expected_sql)
     assert params == expected_params
     again = query._compile(database.compiler.count) if request['count'] else query.compiled
@@ -125,7 +125,7 @@ def test_legacy_sql_and_kwargs_contract(database, name):
 @pytest.mark.parametrize('name', sorted(MANY))
 def test_legacy_exploding_requests_are_deliberately_unsupported(database, name):
     case = next(c for c in ORACLE['cases']
-                if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+                if c['dialect'] == database.adapter.dialect and c['request']['name'] == name)
     request = case['request']
     # Reject the SELECT itself, including requests formerly consumed by count.
     with pytest.raises(UnsupportedFeatureError):

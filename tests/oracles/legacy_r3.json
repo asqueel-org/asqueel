@@ -4,7 +4,7 @@
     {
       "kind": "prepared",
       "name": "ordinary",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :value AS value",
       "params": {
         "value": 3
@@ -27,7 +27,7 @@
     {
       "kind": "prepared",
       "name": "repeat",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x+:x AS value",
       "params": {
         "x": 2
@@ -50,7 +50,7 @@
     {
       "kind": "prepared",
       "name": "prefix",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x+:xx AS value",
       "params": {
         "x": 2,
@@ -75,7 +75,7 @@
     {
       "kind": "prepared",
       "name": "unicode",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :soglia_è AS value",
       "params": {
         "soglia_è": {
@@ -104,7 +104,7 @@
     {
       "kind": "prepared",
       "name": "missing",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :missing AS value",
       "params": {},
       "snapshot": {
@@ -123,7 +123,7 @@
     {
       "kind": "prepared",
       "name": "unused",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": 2,
@@ -148,7 +148,7 @@
     {
       "kind": "prepared",
       "name": "null",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": null
@@ -171,7 +171,7 @@
     {
       "kind": "prepared",
       "name": "bytes",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": {
@@ -197,7 +197,7 @@
     {
       "kind": "prepared",
       "name": "date",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": {
@@ -226,7 +226,7 @@
     {
       "kind": "prepared",
       "name": "decimal",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": {
@@ -255,7 +255,7 @@
     {
       "kind": "prepared",
       "name": "escaped_field",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": "\\$id"
@@ -278,7 +278,7 @@
     {
       "kind": "prepared",
       "name": "escaped_relation",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": "\\@customer_id.name"
@@ -301,7 +301,7 @@
     {
       "kind": "prepared",
       "name": "escaped_bytes",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value",
       "params": {
         "x": {
@@ -327,7 +327,7 @@
     {
       "kind": "prepared",
       "name": "escaped_sql",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT '\\:value' AS value",
       "params": {},
       "snapshot": {
@@ -346,7 +346,7 @@
     {
       "kind": "prepared",
       "name": "percent",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT '10%%' AS value",
       "params": {},
       "snapshot": {
@@ -365,7 +365,7 @@
     {
       "kind": "prepared",
       "name": "percent_bound",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x AS value, 8 %% 3 AS remainder",
       "params": {
         "x": "10%"
@@ -388,7 +388,7 @@
     {
       "kind": "prepared",
       "name": "environment",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :env_workdate AS value",
       "params": {},
       "snapshot": {
@@ -412,7 +412,7 @@
     {
       "kind": "prepared",
       "name": "environment_missing",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :env_absent AS value",
       "params": {},
       "snapshot": {
@@ -433,7 +433,7 @@
     {
       "kind": "prepared",
       "name": "environment_override",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :env_workdate AS value",
       "params": {
         "env_workdate": {
@@ -462,7 +462,7 @@
     {
       "kind": "prepared",
       "name": "cast",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :x::numeric AS value",
       "params": {
         "x": 3
@@ -485,7 +485,7 @@
     {
       "kind": "prepared",
       "name": "cast_no_bind",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT t0.value::numeric AS value FROM t0",
       "params": {},
       "snapshot": {
@@ -504,7 +504,7 @@
     {
       "kind": "prepared",
       "name": "regexp",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT value REGEXP :pattern AS value FROM t0",
       "params": {
         "pattern": "^a"
@@ -527,7 +527,7 @@
     {
       "kind": "prepared",
       "name": "ilike",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT value ILIKE :pattern AS value FROM t0",
       "params": {
         "pattern": "a%"
@@ -550,7 +550,7 @@
     {
       "kind": "prepared",
       "name": "ilike_lower",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT value ilike :pattern AS value FROM t0",
       "params": {
         "pattern": "a%"
@@ -573,7 +573,7 @@
     {
       "kind": "prepared",
       "name": "sqlite_regex",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT value ~* :pattern AS value FROM t0",
       "params": {
         "pattern": "^a"
@@ -596,7 +596,7 @@
     {
       "kind": "prepared",
       "name": "boolean",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT (t0.flag IS NOT TRUE) AS value FROM t0",
       "params": {},
       "snapshot": {
@@ -615,7 +615,7 @@
     {
       "kind": "prepared",
       "name": "false",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT t0.flag IS FALSE AS value FROM t0",
       "params": {},
       "snapshot": {
@@ -634,7 +634,7 @@
     {
       "kind": "prepared",
       "name": "literal_operator",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT 'ILIKE REGEXP' AS value",
       "params": {},
       "snapshot": {
@@ -653,7 +653,7 @@
     {
       "kind": "prepared",
       "name": "literal_binding",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT ':x' AS value",
       "params": {
         "x": "text"
@@ -676,7 +676,7 @@
     {
       "kind": "prepared",
       "name": "list",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
       "params": {
         "ids": [
@@ -723,7 +723,7 @@
     {
       "kind": "prepared",
       "name": "tuple",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
       "params": {
         "ids": {
@@ -776,7 +776,7 @@
     {
       "kind": "prepared",
       "name": "set",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
       "params": {
         "ids": {
@@ -829,7 +829,7 @@
     {
       "kind": "prepared",
       "name": "one",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
       "params": {
         "ids": [
@@ -872,7 +872,7 @@
     {
       "kind": "prepared",
       "name": "empty",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
       "params": {
         "ids": []
@@ -911,7 +911,7 @@
     {
       "kind": "prepared",
       "name": "empty_not",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
       "params": {
         "ids": []
@@ -950,7 +950,7 @@
     {
       "kind": "prepared",
       "name": "null_member",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
       "params": {
         "ids": [
@@ -997,7 +997,7 @@
     {
       "kind": "prepared",
       "name": "not_in",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
       "params": {
         "ids": [
@@ -1044,7 +1044,7 @@
     {
       "kind": "prepared",
       "name": "collection_repeat",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT 1 IN :ids OR 2 IN :ids AS value",
       "params": {
         "ids": [
@@ -1091,7 +1091,7 @@
     {
       "kind": "prepared",
       "name": "collection_prefix",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT 1 IN :ids AND 3=:ids0 AS value",
       "params": {
         "ids": [
@@ -1142,7 +1142,7 @@
     {
       "kind": "prepared",
       "name": "collection_pg_collision",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT 1 IN :ids AND 3=:ids_0 AS value",
       "params": {
         "ids": [
@@ -1191,7 +1191,7 @@
     {
       "kind": "prepared",
       "name": "collection_unused",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT 1 AS value",
       "params": {
         "ids": [
@@ -1242,7 +1242,7 @@
     {
       "kind": "prepared",
       "name": "collection_non_in",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT :ids AS value",
       "params": {
         "ids": [
@@ -1293,7 +1293,7 @@
     {
       "kind": "prepared",
       "name": "collection_shared_scalar",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "sql": "SELECT 1 IN :ids AND :ids IS NOT NULL AS value",
       "params": {
         "ids": [

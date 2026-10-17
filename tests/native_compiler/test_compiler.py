@@ -12,7 +12,7 @@ def bind(source):
 @pytest.fixture
 def db():
     source = SqlDatabaseConfig()
-    pkg = source.source.db('compiler', implementation='postgresql').packages().package(
+    pkg = source.source.db('compiler', implementation='postgres').packages().package(
         'app', sqlschema='Actual "Schema')
     customer = pkg.table('customer', pkey='id')
     customer.column('id', dtype='L')
@@ -30,7 +30,7 @@ def db():
 
 
 def writer(db):
-    return WriteCompiler(db.dialect, db.driver)
+    return WriteCompiler(db.adapter)
 
 
 def model(db, name):
@@ -84,7 +84,7 @@ def test_dml_rejects_formula_writes_and_relation_paths(db):
 @pytest.mark.parametrize('name', ['display name', 'a-b', 'città', 'αριθμός', '50%', 'a"b'])
 def test_quoted_logical_names_work_in_wildcards_predicates_and_returning(name):
     source = SqlDatabaseConfig()
-    table = source.source.db('quoted', implementation='postgresql').packages().package('app').table('t', pkey='id')
+    table = source.source.db('quoted', implementation='postgres').packages().package('app').table('t', pkey='id')
     table.column('id', dtype='L')
     table.column(name)
     with bind(source) as db:
@@ -102,7 +102,7 @@ def test_quoted_logical_names_work_in_wildcards_predicates_and_returning(name):
 
 def test_returning_formula_that_requires_join_is_rejected():
     source = SqlDatabaseConfig()
-    pkg = source.source.db('joined', implementation='postgresql').packages().package('app')
+    pkg = source.source.db('joined', implementation='postgres').packages().package('app')
     customer = pkg.table('customer', pkey='id')
     customer.column('id')
     invoice = pkg.table('invoice', pkey='id')
@@ -120,7 +120,7 @@ def test_returning_formula_that_requires_join_is_rejected():
 
 def test_result_source_preserves_stable_identity_across_alias_and_physical_names():
     source = SqlDatabaseConfig()
-    pkg = source.source.db('identity', implementation='postgresql').packages().package('app')
+    pkg = source.source.db('identity', implementation='postgres').packages().package('app')
     customer = pkg.table('customer', pkey='id', sqlname='renamed_customer')
     customer.column('id', x_identity='stable:customer:id')
     customer.column('name', sqlname='renamed_name', x_identity='stable:customer:name', x_ui_label='Customer')

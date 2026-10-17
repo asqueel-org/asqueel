@@ -5,29 +5,25 @@ import threading
 import pytest
 
 from asqueel.contracts import CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult
-from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import DatabaseClosedError, TransactionStateError
 from asqueel.runtime import Database
 
 
-class Driver:
-    dialect = 'postgresql'
-    binding = 'psycopg_named'
+# Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
+FAKE = 'postgres:tests.application_connections.test_connections'
 
-    def __init__(self):
+
+class SqlDbAdapter(PostgresAdapter):
+    def __init__(self, dbroot):
+        super().__init__(dbroot)
         self.calls = []
         self.persisted = []
         self.commit_error = None
         self.rollback_error = None
         self.close_error = None
         self.callback = None
-
-    def prepare_sql(self, sql, sqlargs, snapshot):
-        return PsycopgDriver().prepare_sql(sql, sqlargs, snapshot)
-
-    def validate(self, query):
-        PsycopgDriver().validate(query)
 
     def connect(self, *args, **kwargs):
         self.calls.append('connect')
@@ -62,8 +58,8 @@ class Driver:
 
 
 def test_creation_and_empty_context_have_no_io():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     with completed(db) as active:
         assert active is db
     db.commit()
@@ -73,8 +69,8 @@ def test_creation_and_empty_context_have_no_io():
 
 
 def test_ambient_operations_share_connection_and_wait_for_commit():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     db.execute(CompiledQuery('parent'))
     db.execute(CompiledQuery('child'))
     assert driver.calls == ['connect', 'parent', 'child']
@@ -90,8 +86,8 @@ def test_ambient_operations_share_connection_and_wait_for_commit():
 
 
 def test_context_commits_atomically_or_rolls_back_on_python_error():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     with completed(db):
         db.execute(CompiledQuery('first'))
         db.execute(CompiledQuery('second'))
@@ -106,8 +102,8 @@ def test_context_commits_atomically_or_rolls_back_on_python_error():
 
 
 def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     db.execute(CompiledQuery('parent'))
     with pytest.raises(LookupError):
         db.execute(CompiledQuery('fail'))
@@ -123,8 +119,8 @@ def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
 
 @pytest.mark.parametrize('with_sql', [False, True])
 def test_mark_failed_prevents_silent_context_success(with_sql):
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     with pytest.raises(TransactionStateError, match='rollback-only'):
         with completed(db):
             if with_sql:
@@ -139,8 +135,8 @@ def test_mark_failed_prevents_silent_context_success(with_sql):
 
 
 def test_mark_failed_without_sql_requires_manual_rollback():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     db._mark_connection_failed(db._connection_state)
     with pytest.raises(TransactionStateError):
         db.commit()
@@ -154,8 +150,8 @@ def test_mark_failed_without_sql_requires_manual_rollback():
 
 
 def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     db.execute(CompiledQuery('pending'))
     db.commit()
     db.commit()
@@ -167,9 +163,9 @@ def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
 
 
 def test_guards_run_before_connect_and_reject_stale_context():
-    driver = Driver()
     environment = SqlEnvironment({'company': 1})
-    db = Database(driver=driver, environment=environment)
+    db = Database(implementation=FAKE, environment=environment)
+    driver = db.adapter
     with pytest.raises(ValueError, match='profile'):
         db.execute(CompiledQuery('wrong', dialect='other'))
     query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
@@ -183,8 +179,8 @@ def test_guards_run_before_connect_and_reject_stale_context():
 
 
 def test_connection_record_ownership_and_closed_database_state():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     state = db._connection_state
     with ThreadPoolExecutor(max_workers=1) as executor:
         assert executor.submit(threading.get_ident).result() != threading.get_ident()
@@ -204,11 +200,11 @@ def test_connection_record_ownership_and_closed_database_state():
 
 @pytest.mark.parametrize('operation', ['commit', 'rollback'])
 def test_control_failure_preserves_original_and_attempts_close(operation):
-    driver = Driver()
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     error = OSError('control failed')
     setattr(driver, operation + '_error', error)
     driver.close_error = RuntimeError('close failed')
-    db = Database(driver=driver)
     db.execute(CompiledQuery('pending'))
     with pytest.raises(OSError) as caught:
         getattr(db, operation)()
@@ -219,8 +215,8 @@ def test_control_failure_preserves_original_and_attempts_close(operation):
 
 
 def test_close_marks_closed_even_when_rollback_cleanup_fails():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     db.execute(CompiledQuery('pending'))
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(OSError):
@@ -232,8 +228,8 @@ def test_close_marks_closed_even_when_rollback_cleanup_fails():
 
 
 def test_driver_callback_cannot_reenter_connection_completion():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     def callback():
         for operation in (db.commit, db.rollback, db.close,
                           lambda: db.execute(CompiledQuery('recursive'))):
@@ -247,8 +243,8 @@ def test_driver_callback_cannot_reenter_connection_completion():
 
 
 def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     db.execute(CompiledQuery('before'))
     with pytest.raises(LookupError):
         db.execute(CompiledQuery('fail'))
@@ -260,12 +256,12 @@ def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
 
 
 def test_failed_connection_is_not_cached_and_can_be_retried():
-    driver = Driver()
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     original = driver.connect
     def fail(*args, **kwargs):
         raise OSError('connect failed')
     driver.connect = fail
-    db = Database(driver=driver)
     with pytest.raises(OSError, match='connect failed'):
         db.execute(CompiledQuery('first'))
     assert db._connection_state['connection'] is None
@@ -277,8 +273,8 @@ def test_failed_connection_is_not_cached_and_can_be_retried():
 
 
 def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
-    driver = Driver()
-    db = Database(driver=driver)
+    db = Database(implementation=FAKE)
+    driver = db.adapter
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(LookupError):
         db.execute(CompiledQuery('fail'))

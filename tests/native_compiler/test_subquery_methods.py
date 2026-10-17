@@ -90,16 +90,16 @@ def install(db):
     return calls
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def db(request, monkeypatch):
     from asqueel import SqlDatabaseConfig, build_database
-    from asqueel.drivers.psycopg import PsycopgDriver
-    from asqueel.drivers.sqlite import SqliteDriver
+    from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+    from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
     def forbidden(*args, **kwargs):
         pytest.fail('Subquery method compilation attempted database I/O')
 
-    for driver in [PsycopgDriver, SqliteDriver]:
+    for driver in [PostgresAdapter, SqliteAdapter]:
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
     config = SqlDatabaseConfig()
@@ -136,7 +136,7 @@ class TestLegacySubqueryMethodContract:
 
     @pytest.mark.parametrize('mode', ['None', 'json'])
     def test_subquery_column_method(self, db, mode):
-        if getattr(db, 'dialect', None) and db.dialect.name == 'sqlite' and mode != 'None':
+        if db.adapter.dialect == 'sqlite' and mode != 'None':
             from asqueel.contracts import UnsupportedFeatureError
 
             with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):

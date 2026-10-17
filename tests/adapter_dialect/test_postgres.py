@@ -4,14 +4,14 @@ import pytest
 from asqueel import SqlDatabase, SqlDatabaseConfig
 from asqueel.configuration import _owned_handler
 from asqueel.contracts import UnsupportedFeatureError
-from asqueel.dialects.postgres import PostgresDialect
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.write_compiler import WriteCompiler
 
 
 @pytest.fixture
 def db():
     source = SqlDatabaseConfig()
-    pkg = source.source.db('render', implementation='postgresql').packages().package('s', sqlschema='s', sqlprefix=False)
+    pkg = source.source.db('render', implementation='postgres').packages().package('s', sqlschema='s', sqlprefix=False)
     table = pkg.table('t', pkey='id')
     table.column('id', dtype='I')
     table.column('amount', dtype='N')
@@ -40,18 +40,18 @@ def test_dml_rendering(db, operation, record, expected):
 def test_default_values_and_returning_are_independent_capabilities(db):
     ticket = model(db, 'ticket')
     assert db.write_compiler.insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES RETURNING "id" AS "id"'
-    dialect = PostgresDialect(capabilities=PostgresDialect.capabilities - {'returning_insert'})
-    assert WriteCompiler(dialect, db.driver).insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES'
+    adapter = PostgresAdapter(db, capabilities=PostgresAdapter.capabilities - {'returning_insert'})
+    assert WriteCompiler(adapter).insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES'
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#21: WriteCompiler does not enforce the dialect capabilities')
+@pytest.mark.xfail(strict=True, reason='asqueel#21: WriteCompiler does not enforce the adapter capabilities')
 def test_missing_write_capabilities_are_rejected(db):
     ticket = model(db, 'ticket')
-    dialect = PostgresDialect(capabilities=PostgresDialect.capabilities - {'returning_insert'})
+    adapter = PostgresAdapter(db, capabilities=PostgresAdapter.capabilities - {'returning_insert'})
     with pytest.raises(UnsupportedFeatureError, match='returning_insert'):
-        WriteCompiler(dialect, db.driver).insert(ticket, {}, {})
+        WriteCompiler(adapter).insert(ticket, {}, {})
     with pytest.raises(UnsupportedFeatureError, match='default_values'):
-        WriteCompiler(PostgresDialect(capabilities=frozenset({'insert'})), db.driver).insert(ticket, {}, {})
+        WriteCompiler(PostgresAdapter(db, capabilities=frozenset({'insert'}))).insert(ticket, {}, {})
 
 
 def test_malformed_statements_are_rejected(db):
@@ -61,11 +61,11 @@ def test_malformed_statements_are_rejected(db):
         db.write_compiler.delete(model(db, 'nokey'), {'amount': 1}, {})
     for options in ({'limit': -1}, {'limit': True}, {'columns': ' '}):
         with pytest.raises(ValueError):
-            PostgresDialect().compile_sql(**{'maintable': '"s"."t"', 'columns': '1', **options})
+            PostgresAdapter(None).compileSql(**{'maintable': '"s"."t"', 'columns': '1', **options})
 
 
 def test_clauses_have_fixed_separators_without_repairing_expression_text(db):
-    select = PostgresDialect().compile_sql('"s"."t"', '1', joins=['LEFT JOIN "s"."t" AS "t1" ON TRUE -- join'],
+    select = PostgresAdapter(None).compileSql('"s"."t"', '1', joins=['LEFT JOIN "s"."t" AS "t1" ON TRUE -- join'],
                                            where='TRUE -- predicate', order_by='1 -- order', limit=0)
     assert 'TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0' in select
     table = model(db, 't')

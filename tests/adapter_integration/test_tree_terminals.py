@@ -77,13 +77,13 @@ def test_fetch_shares_transaction_and_each_terminal_executes_once(shop, monkeypa
     shop.db.execute(f'INSERT INTO {shop.invoice_sql} (id, customer_id, total) '
                     'VALUES (:id, :customer, :total)', {'id': 16, 'customer': 3, 'total': 1})
     calls = []
-    execute = shop.db.driver.execute
+    execute = shop.db.adapter.execute
 
     def recording(connection, compiled):
         calls.append((connection, compiled.sql))
         return execute(connection, compiled)
 
-    monkeypatch.setattr(shop.db.driver, 'execute', recording)
+    monkeypatch.setattr(shop.db.adapter, 'execute', recording)
     query = shop.query(columns='$id', where='$id=16')
     assert query.fetch()[0]['id'] == 16
     assert len(calls) == 1

@@ -15,7 +15,7 @@ CASES = [c for c in ORACLE['cases'] if c['dialect'] == 'sqlite']
 def test_count_legacy_contract(database, case):  # noqa: F811
     request = case['request']
     expected = next(c['expected'] for c in ORACLE['cases']
-                    if c['dialect'] == database.dialect.name and c['request']['name'] == request['name'])
+                    if c['dialect'] == database.adapter.dialect and c['request']['name'] == request['name'])
     query = database.table(request['table']).query(request['columns'], sqlparams=request['params'], **request['options'])
     before = query.compiled
     actual = query._compile(database.compiler.count)
@@ -56,13 +56,13 @@ def test_all_74_tables_compile_count_without_static_formula_execution(database):
 def test_count_environment_and_preparation_are_local(database, monkeypatch):  # noqa: F811
     compiler = database.compiler
     calls = []
-    prepare = compiler.formatter.prepare_sql
+    prepare = compiler.adapter.prepare_sql
 
     def recording(*args, **kwargs):
         calls.append(args)
         return prepare(*args, **kwargs)
 
-    monkeypatch.setattr(compiler.formatter, 'prepare_sql', recording)
+    monkeypatch.setattr(compiler.adapter, 'prepare_sql', recording)
     query = database.table('invc.invoice').query('$status_label', distinct=True,
         where='$total>:env_minimum', order_by='$total')
     for minimum in (10, 20, 10):

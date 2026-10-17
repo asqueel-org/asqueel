@@ -1021,7 +1021,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "plain",
         "table": "invc.invoice",
@@ -1064,7 +1064,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "where",
         "table": "invc.invoice",
@@ -1115,7 +1115,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "empty",
         "table": "invc.invoice",
@@ -1159,7 +1159,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "to_one",
         "table": "invc.invoice",
@@ -1206,7 +1206,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "projection_only",
         "table": "invc.invoice",
@@ -1249,7 +1249,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "group",
         "table": "invc.invoice",
@@ -1292,7 +1292,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "having",
         "table": "invc.invoice",
@@ -1343,7 +1343,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "empty_group",
         "table": "invc.invoice",
@@ -1387,7 +1387,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "group_relation",
         "table": "invc.invoice",
@@ -1434,7 +1434,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "distinct",
         "table": "invc.invoice",
@@ -1477,7 +1477,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "distinct_relation",
         "table": "invc.invoice",
@@ -1522,7 +1522,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "distinct_formula",
         "table": "invc.invoice_row",
@@ -1565,7 +1565,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "empty_distinct",
         "table": "invc.invoice",
@@ -1609,7 +1609,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "group_star",
         "table": "invc.invoice",
@@ -1653,7 +1653,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "aggregate_projection",
         "table": "invc.invoice",
@@ -1696,7 +1696,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "defaults",
         "table": "invc.customer",
@@ -1737,7 +1737,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "mark",
         "table": "invc.customer",
@@ -1779,7 +1779,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "group_mark",
         "table": "invc.customer",
@@ -1821,7 +1821,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "distinct_mark",
         "table": "invc.customer",
@@ -1863,7 +1863,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "drop_order",
         "table": "invc.invoice",
@@ -1907,7 +1907,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "limit",
         "table": "invc.invoice",
@@ -1951,7 +1951,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "offset",
         "table": "invc.invoice",
@@ -1996,7 +1996,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "distinct_limit",
         "table": "invc.invoice",

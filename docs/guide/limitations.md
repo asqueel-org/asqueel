@@ -61,7 +61,7 @@ timestamp in read filters ([#16](https://github.com/asqueel-org/asqueel/issues/1
 the hierarchical model has no JSON round trip ([#18](https://github.com/asqueel-org/asqueel/issues/18));
 a `%` in a physical name is not escaped for psycopg ([#19](https://github.com/asqueel-org/asqueel/issues/19));
 quoted logical names `$"..."` are not supported ([#20](https://github.com/asqueel-org/asqueel/issues/20));
-the write compiler does not check the dialect capabilities ([#21](https://github.com/asqueel-org/asqueel/issues/21));
+the write compiler does not check the adapter capabilities ([#21](https://github.com/asqueel-org/asqueel/issues/21));
 `inspect_postgres` returns a removed model type ([#22](https://github.com/asqueel-org/asqueel/issues/22));
 `pkey='a,b'` is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23));
 a record key named `__pkey__N` is overwritten without error ([#24](https://github.com/asqueel-org/asqueel/issues/24));

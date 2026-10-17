@@ -18,8 +18,7 @@ from .db_write import WriteMixin
 class SqlDatabase(WriteMixin, Database):
     """A model and table graph over thread-local named connections."""
 
-    def __init__(self, *, model: DbModel, config, driver=None, dialect=None,
-                 environment: SqlEnvironment | None = None):
+    def __init__(self, *, model: DbModel, config, environment: SqlEnvironment | None = None):
         if not isinstance(model, DbModel):
             raise TypeError('SqlDatabase requires a hierarchical DbModel')
         if model._operational_db is not None:
@@ -30,41 +29,29 @@ class SqlDatabase(WriteMixin, Database):
         implementation, conninfo, kwargs = connection_settings(config)
         if implementation != model.implementation:
             raise ValueError('Configured implementation does not match the hierarchical model')
-        default_driver: Any
-        if implementation == 'postgresql':
-            from .dialects.postgres import PostgresDialect
-            from .drivers.psycopg import PsycopgDriver
-            default_dialect, default_driver = PostgresDialect, PsycopgDriver
-        elif implementation == 'sqlite':
-            from .dialects.sqlite import SqliteDialect
-            from .drivers.sqlite import SqliteDriver
-            default_dialect, default_driver = SqliteDialect, SqliteDriver
-        else:
-            raise UnsupportedFeatureError(f'Unsupported database implementation: {implementation!r}')
-        driver = driver if driver is not None else default_driver()
-        self.dialect = dialect if dialect is not None else default_dialect()
-        if self.dialect.name != implementation or driver.dialect != implementation:
-            raise ValueError('Configured implementation does not match the data dialect/driver')
-        super().__init__(conninfo, driver=driver, connect_kwargs=kwargs, environment=ApplicationEnvironment(environment))
+        super().__init__(conninfo, implementation=implementation, connect_kwargs=kwargs,
+                         environment=ApplicationEnvironment(environment))
         self._ready = False
-        self._compiler = None
-        self._write_compiler = None
+        self._compilers: dict[Any, QueryCompiler] = {}
+        self._write_compilers: dict[Any, WriteCompiler] = {}
         model._bind_db(self)
         self._ready = True
 
     @property
     def compiler(self):
-        if self._compiler is None:
-            self._compiler = QueryCompiler(self.model, self.dialect, self.driver,
-                                           environment=self.environment, _db=self)
-        return self._compiler
+        adapter = self.adapter
+        if adapter not in self._compilers:
+            self._compilers[adapter] = QueryCompiler(self.model, adapter,
+                                                     environment=self.environment, _db=self)
+        return self._compilers[adapter]
 
     @property
     def write_compiler(self):
         """Compiler of insert, update and delete statements, separate from queries."""
-        if self._write_compiler is None:
-            self._write_compiler = WriteCompiler(self.dialect, self.driver)
-        return self._write_compiler
+        adapter = self.adapter
+        if adapter not in self._write_compilers:
+            self._write_compilers[adapter] = WriteCompiler(adapter)
+        return self._write_compilers[adapter]
 
     @property
     def tables(self):
@@ -88,10 +75,10 @@ class SqlDatabase(WriteMixin, Database):
     def _connection_settings(self):
         from .configuration import connection_settings
         implementation, conninfo, kwargs = connection_settings(self.config, self.currentConnectionName)
-        if implementation != self.dialect.name:
+        if implementation != self.model.implementation:
             raise ValueError('Configured implementation changed after database construction')
         kwargs = dict(kwargs or {})
-        if implementation == 'sqlite':
+        if self.implementation == 'sqlite':
             kwargs['schemas'] = sorted({table.sqlschema for table in self.model.tables.values()})
         return conninfo, kwargs
 
@@ -130,11 +117,10 @@ class AsqueelDb(SqlDatabase):
         from .migration import migrate
         return migrate(self, allow_removals=allow_removals)
 
-    def __init__(self, source, *, parents=None, driver=None, dialect=None, environment=None):
+    def __init__(self, source, *, parents=None, environment=None):
         from .configuration import _owned_handler
         from .object_tree_renderer import render_model
 
         config = _owned_handler(source, parents)
         model = render_model(config)
-        super().__init__(model=model, config=config, driver=driver,
-                         dialect=dialect, environment=environment)
+        super().__init__(model=model, config=config, environment=environment)

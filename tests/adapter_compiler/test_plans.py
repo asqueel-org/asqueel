@@ -8,7 +8,7 @@ from asqueel.write_compiler import WriteCompiler
 @pytest.fixture
 def db():
     config = SqlDatabaseConfig()
-    pkg = config.source.db('plans', implementation='postgresql').packages().package('app', sqlschema='physical')
+    pkg = config.source.db('plans', implementation='postgres').packages().package('app', sqlschema='physical')
     customer = pkg.table('customer', pkey='id')
     customer.column('id')
     customer.column('name')
@@ -22,7 +22,7 @@ def db():
 
 
 def writer(db):
-    return WriteCompiler(db.dialect, db.driver)
+    return WriteCompiler(db.adapter)
 
 
 def test_write_plans_keep_assignments_and_parameters_structured(db):
@@ -40,9 +40,9 @@ def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(db):
                             'WHERE ("t0"."id"=%(id)s)\nLIMIT 0')
     inserted = writer(db).insert(db.table('app.customer').model, {'id': 4}, {})
     assert inserted.sql == 'INSERT INTO "physical"."app_customer"("id") VALUES (%(id)s)'
-    assert db.dialect.quote_identifier('a"50%') == '"a""50%"'
+    assert db.adapter.adaptSqlName('a"50%') == '"a""50%"'
     with pytest.raises(ValueError, match='63 UTF-8 bytes'):
-        db.dialect.quote_identifier('x' * 64)
+        db.adapter.adaptSqlName('x' * 64)
 
 
 @pytest.mark.xfail(strict=True, reason="asqueel#19: a '%' in a physical table/column name is not escaped for psycopg")

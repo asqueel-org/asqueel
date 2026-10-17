@@ -8,7 +8,7 @@ from asqueel.model import resolve_model
 
 def source():
     b = SqlDatabaseConfig()
-    pkg = b.source.db('example').packages().package('app')
+    pkg = b.source.db('example', implementation='postgres').packages().package('app')
     customer = pkg.table('customer', pkey='id')
     customer.column('id', 'L')
     invoice = pkg.table('invoice', pkey='id')

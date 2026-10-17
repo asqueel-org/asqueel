@@ -10,7 +10,7 @@ from tests.native_formulas.conftest import SQL_TYPES
 from tests.native_support import postgres_dsn
 
 
-@pytest.fixture(scope='module', params=['postgresql', 'sqlite'])
+@pytest.fixture(scope='module', params=['postgres', 'sqlite'])
 def db(request, tmp_path_factory):
     backend = request.param
     schema = 'sq_methods_' + uuid4().hex
@@ -21,15 +21,15 @@ def db(request, tmp_path_factory):
         implementation=backend,
         **(
             {'dsn': postgres_dsn()}
-            if backend == 'postgresql'
+            if backend == 'postgres'
             else {'database': str(tmp_path_factory.mktemp('sq_methods') / 'test.db')}
         ),
     )
     with build_database(config) as db:
         install(db)
-        quote = db.dialect.quote_identifier
+        quote = db.adapter.adaptSqlName
         try:
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute('CREATE SCHEMA ' + quote(schema))
             for table in db.model.tables.values():
                 columns = ','.join(
@@ -46,14 +46,14 @@ def db(request, tmp_path_factory):
             yield db
         finally:
             db.rollback()
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
                 db.commit()
 
 
 def test_values_nested_scope_and_query_reuse(db):
     columns = '$scalar,$alias,$named,$present,$nested,$from_formula,$collection_None,:factor AS caller'
-    if db.dialect.name == 'sqlite':
+    if db.adapter.dialect == 'sqlite':
         columns = columns.replace('$present,', '')
     query = db.table('app.owner').query(
         columns,
@@ -71,7 +71,7 @@ def test_values_nested_scope_and_query_reuse(db):
         collection_None=10,
         caller=19,
     )
-    if db.dialect.name == 'sqlite':
+    if db.adapter.dialect == 'sqlite':
         expected.pop('present', None)
     assert [dict(row) for row in query.fetch()] == [expected]
     with db.tempEnv(factor=23):
@@ -100,7 +100,7 @@ def test_related_owner_and_no_rows(db):
 
 
 def test_json_method_return_value_and_distinct(db):
-    if db.dialect.name == 'sqlite':
+    if db.adapter.dialect == 'sqlite':
         from asqueel.contracts import UnsupportedFeatureError
 
         with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):

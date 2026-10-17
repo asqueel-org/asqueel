@@ -8,7 +8,7 @@ from asqueel.configuration import _copy_recipe
 
 def source():
     builder = SqlDatabaseConfig()
-    table = builder.source.db('example').packages().package('app').table('item')
+    table = builder.source.db('example', implementation='postgres').packages().package('app').table('item')
     return builder, table
 
 

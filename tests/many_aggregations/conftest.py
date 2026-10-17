@@ -5,8 +5,8 @@ import psycopg
 import pytest
 
 from asqueel import SqlDatabaseConfig, build_database
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from tests.native_support import postgres_dsn
 
 # Deliberately inserted out of order; customer 2 has no invoices, customer 3
@@ -23,7 +23,7 @@ INVOICES = [
 def source(backend, order_by='$id'):
     config = SqlDatabaseConfig()
     pkg = config.source.db('aggregation_contracts', implementation=backend).packages().package(
-        'app', sqlschema='pg_temp' if backend == 'postgresql' else 'main')
+        'app', sqlschema='pg_temp' if backend == 'postgres' else 'main')
     customer = pkg.table('customer', pkey='id')
     customer.column('id', dtype='L')
     customer.column('name')
@@ -47,14 +47,14 @@ def source(backend, order_by='$id'):
     return config
 
 
-@pytest.fixture(scope='module', params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(scope='module', params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def backend(request):
     return request.param
 
 
 @pytest.fixture(scope='module')
 def connection(backend):
-    connection = (psycopg.connect(postgres_dsn()) if backend == 'postgresql'
+    connection = (psycopg.connect(postgres_dsn()) if backend == 'postgres'
                   else sqlite3.connect(':memory:'))
     try:
         cursor = connection.cursor()
@@ -64,9 +64,9 @@ def connection(backend):
             ('invoice', 'id BIGINT, customer_id BIGINT, code TEXT, total NUMERIC, qty BIGINT, vat_id BIGINT'),
         ]:
             # No application DML: only test fixture SQL, isolated to this connection.
-            kind = 'TEMP ' if backend == 'postgresql' else ''
+            kind = 'TEMP ' if backend == 'postgres' else ''
             cursor.execute(f'CREATE {kind}TABLE app_{name} ({columns})')
-        marker = '%s' if backend == 'postgresql' else '?'
+        marker = '%s' if backend == 'postgres' else '?'
         for name, rows in [('customer', [(1, 'A'), (2, 'B'), (3, 'C')]),
                            ('vat', [(1, 10), (2, 20)]), ('invoice', INVOICES)]:
             cursor.executemany(f'INSERT INTO app_{name} VALUES ({",".join([marker] * len(rows[0]))})', rows)
@@ -84,7 +84,7 @@ def model(backend):
         pytest.fail('Aggregation compilation attempted database I/O')
 
     with pytest.MonkeyPatch.context() as patch:
-        for driver in (PsycopgDriver, SqliteDriver):
+        for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
         with build_database(config) as database:
@@ -94,5 +94,5 @@ def model(backend):
 
 @pytest.fixture
 def xml_backend(backend):
-    if backend != 'postgresql':
+    if backend != 'postgres':
         pytest.skip('SQLite has no to_xml capability; rejection is tested separately')

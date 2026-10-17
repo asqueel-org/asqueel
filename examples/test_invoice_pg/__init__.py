@@ -5,7 +5,7 @@ from . import sys, adm, invc
 
 def source():
     config = SqlDatabaseConfig()
-    db = config.source.db('test_invoice_pg', implementation='postgresql')
+    db = config.source.db('test_invoice_pg', implementation='postgres')
     packages = db.packages()
     sys_pkg = packages.package('sys', sqlschema='sys', comment='sys', name_short='System', name_long='System', name_full='System', x_legacy__syspackage=True)
     adm_pkg = packages.package('adm', sqlschema='adm', comment='Admin', name_short='Adm', name_long='!!Administration')

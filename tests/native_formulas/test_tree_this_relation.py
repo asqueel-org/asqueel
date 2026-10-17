@@ -20,7 +20,7 @@ def test_this_relation_in_sql_formula_returns_related_value(
         request, backend, table, formula, direct, condition):
     executor = request.getfixturevalue(backend)
     config = source()
-    config.source['db'].attr['implementation'] = executor.dialect.name
+    config.source['db'].attr['implementation'] = executor.adapter.dialect
     invoice = config.source['db'].packages().package('invc').table('invoice')
     invoice.formulaColumn('this_customer', '#THIS.@customer_id.account_name', dtype='T')
     with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as tree:

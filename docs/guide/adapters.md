@@ -1,26 +1,37 @@
-# Dialects, drivers and catalog providers
+# Adapters and catalog providers
 
 The SELECT compiler follows the [single hierarchical pipeline](compiler.md).
-PostgreSQL uses `PostgresDialect` and `PsycopgDriver`; SQLite uses `SqliteDialect`
-and `SqliteDriver`.
+`db.adapter` adapts the database to its implementation, as in GenroPy: SQL
+syntax, quoting, capabilities, connection, cursor and value conversion. There is
+one adapter class per implementation; each module exposes `SqlDbAdapter`.
+
+| `implementation` | Adapter |
+| --- | --- |
+| `'sqlite'` (default) | `asqueel.adapters.sqlite` |
+| `'postgres'`, `'postgres3'` | `asqueel.adapters.postgres` (psycopg 3) |
+| `'<name>:<module>'` | `SqlDbAdapter` of `<module>` |
+
+Any other name raises `ModuleNotFoundError`. With
+`db.tempEnv(currentImplementation='postgres')`, `db.adapter` is the adapter of
+that implementation, loaded on first use.
 
 | Boundary | Responsibility |
 | --- | --- |
 | `QueryCompiler` | Resolve fields, relations, formulas, aliases and parameters against DbModel. |
 | `SqlCompiledQuery` | Hold resolved SELECT clauses and result metadata. |
-| `dialect.compile_sql()` | Assemble SQL clauses and apply backend syntax. |
-| `driver.prepare_sql(sql, kwargs, snapshot)` | Prepare placeholders and binding values, without a connection. |
+| `db.adapter.compileSql()` | Assemble SQL clauses and apply backend syntax. |
+| `db.adapter.prepare_sql(sql, kwargs, snapshot)` | Prepare placeholders and binding values, without a connection. |
 | `db.execute(compiled)` | Execute on the selected connection and transaction. |
 
 For inspection, use `db.compiler.plan_select('sales.invoice', columns='$id')`;
 `db.compiler.compile_plan(plan)` returns the executable `CompiledQuery`.
-Driver/dialect mismatches are rejected.
+A `CompiledQuery` of another adapter profile is rejected.
 
 For SQL already constructed by an adapter, the shared boundary is:
 
 ```python
 def execute_sql(db, sql, kwargs):
-    compiled = db.driver.prepare_sql(sql, kwargs, db.environment.snapshot())
+    compiled = db.adapter.prepare_sql(sql, kwargs, db.environment.snapshot())
     return db.execute(compiled)
 ```
 
@@ -29,4 +40,33 @@ text preparation handles bindings; it does not validate untrusted SQL.
 
 Catalog providers perform read-only introspection. Their serialized snapshots
 are distinct from the live model; migration uses the physical projection and
-asqueel-migration. The SELECT dialect does not implement schema migration.
+asqueel-migration. The adapter does not implement schema migration.
+
+## SQL functions of the adapter
+
+Table code can build formulas with the adapter functions of GenroPy:
+
+| Function | PostgreSQL | SQLite |
+| --- | --- | --- |
+| `string_agg(field, separator)` | `string_agg(field, 'separator')` | `group_concat(field, 'separator')` |
+| `unaccentFormula(field)` | `unaccent($field)` (needs the `unaccent` extension) | the field unchanged |
+| `mask_field_sql(field, mode='2-4', placeholder='*')` | masking expression | masking expression |
+| `ageAtDate(dateColumn, dateArg=None, timeUnit='day')` | age in `timeUnit` at `:dateArg` (default `:env_workdate`) | raises `UnsupportedFeatureError` |
+
+`mask_field_sql` modes are `'email'`, `'creditcard'`, `'phone'` and `'N-M'`
+(N characters visible at the start, M at the end); any other mode raises
+`ValueError`.
+
+```python
+from asqueel import SqlTable
+
+class Customer(SqlTable):
+    def sql_formula_masked_email(self, attr):
+        return self.db.adapter.mask_field_sql('$email', mode='email')
+
+# pkg is the package declared in your configuration.
+customer = pkg.table('customer', pkey='id', x_table_class=Customer)
+customer.column('id', dtype='L')
+customer.column('email')
+customer.formulaColumn('masked_email', sql_formula=True)
+```

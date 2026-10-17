@@ -3,11 +3,11 @@ import pytest
 from genro_bag.resolvers import EnvResolver
 
 from asqueel import SqlDatabaseConfig, build_database
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
 
-def source(backend='postgresql', *, value='NSW', required=False, enabled=True):
+def source(backend='postgres', *, value='NSW', required=False, enabled=True):
     config = SqlDatabaseConfig()
     pkg = config.source.db('options', implementation=backend).packages().package('sales')
     customer = pkg.table('customer')
@@ -29,11 +29,11 @@ def source(backend='postgresql', *, value='NSW', required=False, enabled=True):
     return config
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def backend(request, monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail('Compiling native options attempted database I/O')
-    for driver in (PsycopgDriver, SqliteDriver):
+    for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
     return request.param

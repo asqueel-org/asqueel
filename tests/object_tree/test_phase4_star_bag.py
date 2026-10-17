@@ -88,7 +88,7 @@ def test_bag_sqlite_explicitly_unsupported():
             db.table('app.item').query('$weight').compiled
 
 
-@pytest.mark.parametrize('implementation', ['postgresql', 'sqlite'])
+@pytest.mark.parametrize('implementation', ['postgres', 'sqlite'])
 @pytest.mark.parametrize('bag_fields', [False, True])
 def test_locked_star_includes_x_fields_as_legacy(implementation, bag_fields):
     # gnrsqldata/query.py: self.bagFields = bagFields or for_update.

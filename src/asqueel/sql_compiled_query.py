@@ -28,13 +28,13 @@ class SqlCompiledQuery:
     aliasDict: dict[str, str] = field(default_factory=dict)
     params: dict = field(default_factory=dict)
     result_columns: tuple[ResultColumn, ...] = ()
-    dialect: str = 'postgresql'
+    dialect: str = 'postgres'
     environment: EnvironmentBinding | None = None
     input_parameters: tuple[str, ...] = ()
     local_parameters: tuple[str, ...] = ()
 
     def get_sqltext(self, adapter):
         """SqlCompiledQuery.get_sqltext: delegate only the resolved clauses."""
-        return adapter.compile_sql(**{name: getattr(self, name) for name in (
+        return adapter.compileSql(**{name: getattr(self, name) for name in (
             'maintable', 'maintable_as', 'columns', 'distinct', 'joins', 'where',
             'group_by', 'having', 'order_by', 'limit', 'offset', 'for_update')})

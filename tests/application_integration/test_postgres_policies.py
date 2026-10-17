@@ -32,7 +32,7 @@ def policy_database():
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    columns = root.db('policy', conninfo=dsn).schemas().schema(
+                    columns = root.db('policy', implementation='postgres', conninfo=dsn).schemas().schema(
                         'app', x_sql_schema=schema,
                     ).tables().table(
                         'item', pkey='id',

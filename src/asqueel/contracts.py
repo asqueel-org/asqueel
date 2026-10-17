@@ -196,7 +196,7 @@ class CompiledQuery:
     params: Mapping[str, Any] = field(default_factory=dict)
     columns: tuple[ResultColumn, ...] = ()
     # Existing positional constructors remain PostgreSQL/psycopg statements.
-    dialect: str = 'postgresql'
+    dialect: str = 'postgres'
     binding: str = 'psycopg_named'
     environment: EnvironmentBinding | None = None
     # Original caller parameter names consumed before scoped SQL renaming.

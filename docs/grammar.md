@@ -28,7 +28,7 @@ Database root, one per model.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the database name — the JSON `entity_name`. |
-| implementation | `str` | `'postgresql'` | physical |  |
+| implementation | `str` | `'sqlite'` | physical |  |
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |

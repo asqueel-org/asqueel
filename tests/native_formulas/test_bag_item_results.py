@@ -24,7 +24,7 @@ def db():
     root.packages().package('app', sqlschema=schema)
     root.connection('main', dsn=postgres_dsn())
     with build_database(config) as database:
-        quote = database.dialect.quote_identifier
+        quote = database.adapter.adaptSqlName
         target = quote(schema) + '.app_item'
         try:
             database.execute('CREATE SCHEMA ' + quote(schema))
@@ -94,7 +94,7 @@ def test_where_order_group_and_distinct_count_use_extraction(db):
 @pytest.mark.parametrize('xml', ['not XML', '<GenRoBag><specs><weight>not numeric</weight></specs></GenRoBag>'])
 def test_bad_xml_and_bad_cast_remain_database_errors(db, xml):
     import psycopg
-    quote = db.dialect.quote_identifier
+    quote = db.adapter.adaptSqlName
     schema = db.model.table('app.item').sqlschema
     try:
         db.execute(f'UPDATE {quote(schema)}.app_item SET payload=:xml WHERE id=1', {'xml': xml})

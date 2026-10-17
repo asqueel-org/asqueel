@@ -44,7 +44,7 @@ def test_registry_rejects_non_symbolic_names(tmp_path, name):
 def test_connection_resolvers_and_override_layer_use_the_same_read_stack(monkeypatch):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            root.db().connection(name=EnvResolver('ASQUEEL_TEST_NAME', default='fallback'),
+            root.db(implementation='postgres').connection(name=EnvResolver('ASQUEEL_TEST_NAME', default='fallback'),
                                  port=EnvResolver('ASQUEEL_TEST_PORT', dtype='L', default=5432),
                                  password=EnvResolver('ASQUEEL_TEST_PASSWORD'))
 
@@ -67,7 +67,7 @@ def test_connection_resolvers_and_override_layer_use_the_same_read_stack(monkeyp
 def test_mixed_connection_forms_are_rejected():
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            root.db(conninfo='dbname=old').connection(name='new')
+            root.db(implementation='postgres', conninfo='dbname=old').connection(name='new')
     with pytest.raises(ValueError, match='not both'):
         build_database(Recipe)
 
@@ -131,7 +131,7 @@ def test_missing_connection_name_and_invalid_resolved_type_are_rejected(monkeypa
 
     class Invalid(SqlDatabaseConfig):
         def main(self, root):
-            root.db().connection(name='demo', port=EnvResolver('ASQUEEL_BAD_PORT'))
+            root.db(implementation='postgres').connection(name='demo', port=EnvResolver('ASQUEEL_BAD_PORT'))
 
     monkeypatch.setenv('ASQUEEL_BAD_PORT', 'not-an-integer')
     with pytest.raises(ValueError, match='invalid type'):

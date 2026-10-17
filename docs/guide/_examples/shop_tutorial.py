@@ -63,7 +63,7 @@ class Shop(SqlDatabaseConfig):
 def open_shop(dsn, physical_schema):
     class Deployment(SqlDatabaseConfig):
         def main(self, root):
-            root.db("shop", conninfo=dsn).schemas().schema(
+            root.db("shop", implementation="postgres", conninfo=dsn).schemas().schema(
                 "sales", x_sql_schema=physical_schema,
             )
 

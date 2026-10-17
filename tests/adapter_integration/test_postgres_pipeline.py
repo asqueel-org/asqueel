@@ -5,8 +5,7 @@ import pytest
 from asqueel.catalog_provider import PostgresCatalogProvider
 from asqueel.compiler import QueryCompiler
 from asqueel.contracts import CompiledQuery
-from asqueel.dialects.postgres import PostgresDialect
-from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.model import resolve_model
 from asqueel.runtime import Database
 from asqueel.write_compiler import WriteCompiler
@@ -19,13 +18,13 @@ pytestmark = pytest.mark.postgresql
 
 def test_explicit_pipeline_and_catalog_provider(native_database):
     params, schema, connection = native_database
-    dialect, driver = PostgresDialect(), PsycopgDriver()
+    adapter = PostgresAdapter(None)
     model = resolve_model(recipe(schema))
-    compiler = QueryCompiler(model, dialect, driver)
-    writer = WriteCompiler(dialect, driver)
+    compiler = QueryCompiler(model, adapter)
+    writer = WriteCompiler(adapter)
 
     def scenario():
-        with Database(driver=driver, connect_kwargs=params) as db:
+        with Database(implementation='postgres', connect_kwargs=params) as db:
             db.execute(writer.insert(model.table('crm.customer'), {'id': 1, 'name': "L'impresa 50%"},
                                      db.environment.snapshot()))
             # Literal SQL reaches psycopg as written: the author doubles its %.

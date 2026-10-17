@@ -16,7 +16,7 @@ def native_db(execution_db):  # noqa: F811
 def test_native_default_visibility_and_explicit_overrides(native_db, key):
     db = native_db
     table = db.model.table(key)
-    quote = db.dialect.quote_identifier
+    quote = db.adapter.adaptSqlName
     target = f'{quote(table.sqlschema)}.{quote(table.sqlname)}'
     draft = table.attributes.get('x_legacy_draftField')
     deleted = table.attributes.get('x_legacy_logicalDeletionField')

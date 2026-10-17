@@ -7,7 +7,7 @@ from asqueel import SqlDatabaseConfig
 from asqueel.configuration import connection_settings, configuration_source, _owned_handler
 
 
-def recipe(implementation='postgresql'):
+def recipe(implementation='postgres'):
     builder = SqlDatabaseConfig()
     return builder, builder.source.db('invoice', implementation=implementation)
 
@@ -18,9 +18,9 @@ def test_named_connections_select_their_own_settings_and_driver_options():
     db.connection('reporting', database='invoice_replica', host='replica').options().driver(
         application_name='reports')
     config = ConfigHandler(builder)
-    assert connection_settings(config) == ('postgresql', '', {
+    assert connection_settings(config) == ('postgres', '', {
         'dbname': 'invoice', 'host': 'primary', 'connect_timeout': 3})
-    assert connection_settings(config, 'reporting') == ('postgresql', '', {
+    assert connection_settings(config, 'reporting') == ('postgres', '', {
         'dbname': 'invoice_replica', 'host': 'replica', 'application_name': 'reports'})
 
 
@@ -28,7 +28,7 @@ def test_dsn_is_passed_separately_from_driver_parameters():
     builder, db = recipe()
     db.connection('main', dsn='dbname=invoice service=local').options().driver(connect_timeout=2)
     assert connection_settings(ConfigHandler(builder)) == (
-        'postgresql', 'dbname=invoice service=local', {'connect_timeout': 2})
+        'postgres', 'dbname=invoice service=local', {'connect_timeout': 2})
     with pytest.raises(ValueError, match='cannot be combined'):
         db.connection('bad', dsn='dbname=invoice', host='localhost')
 

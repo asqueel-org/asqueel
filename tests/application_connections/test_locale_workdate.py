@@ -8,7 +8,6 @@ import pytest
 
 from asqueel import AsqueelDb, EnvironmentMismatchError, SqlDatabaseConfig
 from tests.application_config.test_application import Recipe
-from tests.application_connections.test_connections import Driver
 from tests.native_support import postgres_dsn
 
 
@@ -24,7 +23,7 @@ def test_locale_fallback_without_validation(monkeypatch, configured, system, exp
         monkeypatch.delenv('GNR_LOCALE', raising=False)
     else:
         monkeypatch.setenv('GNR_LOCALE', configured)
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     try:
         assert db.locale == expected
         assert db.currentEnv == {}  # Reading defaults does not populate the live mapping.
@@ -49,7 +48,7 @@ def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
             return cls.today_value
 
     monkeypatch.setattr(datetime, 'date', Clock)
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     try:
         assert db.workdate == date(2026, 9, 30)
         query = db.table('app.item').query(columns=':env_workdate AS day').compiled
@@ -67,7 +66,7 @@ def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
 
 
 def test_nested_scopes_restore_context_after_error_and_reject_stale_query():
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     db.workdate, db.locale = date(2024, 1, 1), 'outer'
     try:
         with pytest.raises(RuntimeError, match='cancel'):
@@ -93,7 +92,7 @@ def test_nested_scopes_restore_context_after_error_and_reject_stale_query():
 
 
 def test_dates_and_locales_are_isolated_between_live_threads():
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     db.workdate, db.locale = date(2024, 1, 1), 'main'
     barrier = Barrier(2)
 
@@ -119,14 +118,14 @@ def test_dates_and_locales_are_isolated_between_live_threads():
         db.close()
 
 
-@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def test_context_binding_on_real_database(backend):
     class Configuration(SqlDatabaseConfig):
         def main(self, root):
             if backend == 'sqlite':
                 root.db().connection(name=':memory:', implementation='sqlite')
             else:
-                root.db(conninfo=postgres_dsn())
+                root.db(implementation='postgres', conninfo=postgres_dsn())
 
     db = AsqueelDb(Configuration)
     try:

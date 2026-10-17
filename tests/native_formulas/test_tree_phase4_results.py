@@ -18,7 +18,7 @@ def bind(executor, state=None):
         else:
             patch.setenv('INVC_STATE', state)
         config = source()
-        config.source['db'].attr['implementation'] = executor.dialect.name
+        config.source['db'].attr['implementation'] = executor.adapter.dialect
         with tree_database(config) as tree:
             tree.currentEnv.update(dict(executor.currentEnv))
             yield TreeExecution(tree, executor)

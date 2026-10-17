@@ -16,11 +16,11 @@ from tests.object_tree.test_legacy_rewrite_contracts import ORACLE, READY
 def databases(request):
     execution = request.getfixturevalue(request.param)
     config = source()
-    config.source.get_node('db').attr['implementation'] = execution.dialect.name
+    config.source.get_node('db').attr['implementation'] = execution.adapter.dialect
     with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as tree:
         # The shared fixture already loads eight original CSVs. Add the two
         # composite-key tables used by the legacy composite join contracts.
-        quote = execution.dialect.quote_identifier
+        quote = execution.adapter.adaptSqlName
         for name in ('price_year', 'price_year_note'):
             table = tree.model.table('invc.' + name)
             target = f'{quote(table.sqlschema)}.{quote(table.sqlname)}'
@@ -46,14 +46,14 @@ COMPOSITE_DATA = Path(__file__).parent / 'data'
 def test_tree_select_matches_legacy_rows(databases, name):
     tree, execution = databases
     case = next(c for c in ORACLE['cases'] if c['request']['name'] == name
-                and c['dialect'] == tree.dialect.name)
+                and c['dialect'] == tree.adapter.dialect)
     request, expected = case['request'], case['expected']
     actual = tree.table(request['table']).query(
         request['columns'], sqlparams=request['params'],
         **dict(request['options'], **({'addPkeyColumn': True} if name == 'default_pkey' else {}))).compiled
     reference = CompiledQuery(expected['sql'],
                               {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'},
-                              dialect=execution.dialect.name, binding=execution.driver.binding)
+                              dialect=execution.adapter.dialect, binding=execution.adapter.binding)
     # The tree only compiles. Execution uses the isolated fixture connection,
     # never the old compiler, and does not enable fetch on the tree facade.
     first, second = execution.execute(actual), execution.execute(reference)

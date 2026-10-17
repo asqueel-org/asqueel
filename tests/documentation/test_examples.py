@@ -32,11 +32,11 @@ def test_all_guide_python_fragments_have_valid_syntax():
 
 
 @pytest.mark.parametrize('dialect', [
-    pytest.param('postgresql', marks=pytest.mark.postgresql), 'sqlite',
+    pytest.param('postgres', marks=pytest.mark.postgresql), 'sqlite',
 ])
 def test_downloadable_tutorial(dialect):
     tutorial = runpy.run_path(str(GUIDE / '_examples' / 'shop_tutorial.py'))
-    rows = tutorial['run'](postgres_dsn() if dialect == 'postgresql' else None)
+    rows = tutorial['run'](postgres_dsn() if dialect == 'postgres' else None)
     assert [row['id'] for row in rows] == [10, 11]
 
 

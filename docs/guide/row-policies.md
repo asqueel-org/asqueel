@@ -40,7 +40,7 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 
 class Documents(SqlDatabaseConfig):
     def main(self, root):
-        table = root.db("documents", conninfo="dbname=example").schemas().schema(
+        table = root.db("documents", implementation="postgres", conninfo="dbname=example").schemas().schema(
             "app",
         ).tables().table(
             "document", pkey="id",

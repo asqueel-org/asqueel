@@ -154,7 +154,7 @@ def test_the_cli_refuses_a_skipped_change_and_names_it(tmp_path, capsys):
 
 @pytest.mark.parametrize('module, implementation, hint', [
     ('asqueel_migration', 'sqlite', 'Install asqueel[migration]'),
-    ('psycopg', 'postgresql', 'Install asqueel[postgresql]'),
+    ('psycopg', 'postgres', 'Install asqueel[postgresql]'),
 ])
 def test_the_cli_names_the_missing_extra(tmp_path, monkeypatch, capsys, module, implementation, hint):
     from asqueel.cli import main

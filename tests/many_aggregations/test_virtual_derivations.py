@@ -5,8 +5,8 @@ from xml.etree import ElementTree as ET
 import pytest
 
 from asqueel import UnsupportedFeatureError, build_database
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
 from .conftest import source
 from .test_contracts import execute, json_value
@@ -45,7 +45,7 @@ def derived_model(backend):
         pytest.fail('Derived aggregation compilation attempted database I/O')
 
     with pytest.MonkeyPatch.context() as patch:
-        for driver in (PsycopgDriver, SqliteDriver):
+        for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
         with build_database(config) as database:

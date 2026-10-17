@@ -4,16 +4,16 @@ import pytest
 
 from asqueel import SqlDatabaseConfig, build_database
 from asqueel.contracts import UnsupportedFeatureError
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def db(request, monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail('Inverse compilation attempted database I/O')
 
-    for driver in (PsycopgDriver, SqliteDriver):
+    for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
     config = SqlDatabaseConfig()

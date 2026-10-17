@@ -23,7 +23,7 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 
 class Shop(SqlDatabaseConfig):
     def main(self, root):
-        database = root.db("shop", conninfo="dbname=shop")
+        database = root.db("shop", implementation="postgres", conninfo="dbname=shop")
         table = database.schemas().schema("sales").tables().table(
             "customer", pkey="id", name_long="Customers",
         )
@@ -47,13 +47,14 @@ db.close()
 The default renderer is an object renderer. `render()` returns a database, not
 DDL or serialized configuration. Structural changes belong to the migration integration.
 
-The root declares `name`, `implementation='postgresql'`, `conninfo=''`, and
+The root declares `name`, `implementation='sqlite'`, `conninfo=''`, and
 optional `connect_kwargs`. An empty connection string uses the driver's normal
-connection defaults when an operation is eventually executed. The supported
-implementations are `postgresql` and `sqlite` (see [SQLite](sqlite.md)). `connect_kwargs={'autocommit': True}` is rejected.
+connection defaults when an operation is eventually executed. The
+implementations are `sqlite` (see [SQLite](sqlite.md)), `postgres` and
+`postgres3`, as in GenroPy; `<name>:<module>` loads the adapter of another
+module (see [Adapters](adapters.md)). `connect_kwargs={'autocommit': True}` is rejected.
 
-`AsqueelDb(source, *, parents=None, driver=None, dialect=None,
-environment=None)` accepts a recipe class, an existing builder instance, or a
+`AsqueelDb(source, *, parents=None, environment=None)` accepts a recipe class, an existing builder instance, or a
 configuration recipe file as supported by Builders' `ConfigHandler`. Recipe
 classes and paths are instantiated by the handler. Existing instances are copied
 before layers are merged; previously rendered live objects are not copied into
@@ -68,7 +69,7 @@ root label. A childless higher-layer node does not erase the lower subtree.
 ```python
 class Deployment(SqlDatabaseConfig):
     def main(self, root):
-        root.db("shop", conninfo="host=localhost dbname=shop_test")
+        root.db("shop", implementation="postgres", conninfo="host=localhost dbname=shop_test")
 
 
 db = AsqueelDb(Deployment, parents=[Shop])
@@ -88,7 +89,7 @@ a default raises `KeyError`. Explicit nullable SQL attributes retain `None`;
 ```python
 db = AsqueelDb(Shop)
 try:
-    assert db.config("implementation") == "postgresql"
+    assert db.config("implementation") == "postgres"
     customer = db.table("sales.customer")
     assert customer.config("pkey") == "id"
     assert customer.column("name").config("dtype") == "T"

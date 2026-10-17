@@ -154,7 +154,7 @@ def test_model_only_render_does_not_resolve_connection_secrets():
     from genro_bag.resolvers import BagCbResolver
 
     source = SqlDatabaseConfig()
-    root = source.source.db('offline', implementation='postgresql')
+    root = source.source.db('offline', implementation='postgres')
     root.connection('main', database='offline', password=BagCbResolver(
         lambda: pytest.fail('Model rendering evaluated a connection password')))
     root.packages().package('app').table('item', pkey='id').column('id', dtype='L')

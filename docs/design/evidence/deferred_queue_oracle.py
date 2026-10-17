@@ -64,8 +64,8 @@ def scenarios(backend):
 
 def native_backend():
     from asqueel.runtime import Database
-    from tests.application_connections.test_connections import Driver
-    db = Database(driver=Driver())
+    from tests.application_connections.test_connections import FAKE
+    db = Database(implementation=FAKE)
     db.defer = db.deferToCommit
     db.drain = lambda: db._invoke_deferred(db._connection_state, 'before')
     return db

@@ -11,7 +11,7 @@ ALIASES = ('customer_code', 'country_name', 'via_alias', 'twice')
 @pytest.fixture
 def db():
     config = SqlDatabaseConfig()
-    pkg = config.source.db('aliases', implementation='postgresql').packages().package('app')
+    pkg = config.source.db('aliases', implementation='postgres').packages().package('app')
     country = pkg.table('country', pkey='id')
     country.column('id', dtype='L')
     country.column('name', sqlname='country_name', x_ui_label='Country', x_ui_width=20)
@@ -36,7 +36,7 @@ def db():
 def test_wildcard_excludes_dynamic_aliases_and_dml_defaults_stay_physical(db):
     assert 'country_name' not in [c.name for c in db.compiler.select('app.invoice').columns]
     assert 'country_name' in [c.name for c in db.compiler.select('app.invoice', '$country_name').columns]
-    writer = WriteCompiler(db.dialect, db.driver)
+    writer = WriteCompiler(db.adapter)
     table = db.table('app.invoice').model
     record = {'id': 1, 'customer_id': 2, **{name: 'x' for name in ALIASES}}
     results = [writer.insert(table, record, {}),

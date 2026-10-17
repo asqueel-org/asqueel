@@ -51,8 +51,8 @@ def _closing_parenthesis(text, start):
     raise ValueError('#TEMPLATE: missing closing parenthesis')
 
 
-def expand_templates(text, dialect):
-    """#TEMPLATE('${n} - ${s}', $name AS n, $surname AS s) as the dialect's concatenation."""
+def expand_templates(text, adapter):
+    """#TEMPLATE('${n} - ${s}', $name AS n, $surname AS s) as the adapter's concatenation."""
     match = _TEMPLATE.search(text or '')
     while match:
         end = _closing_parenthesis(text, match.end())
@@ -84,17 +84,17 @@ def expand_templates(text, dialect):
         parts.append((template[last:], True))
         if expressions.keys() - used:
             raise ValueError(f'#TEMPLATE: unused arguments {sorted(expressions.keys() - used)}')
-        sql = dialect.concat_template([part for part in parts if part != ('', True)])
+        sql = adapter.concat_template([part for part in parts if part != ('', True)])
         text = text[:match.start()] + sql + text[end + 1:]
         match = _TEMPLATE.search(text, match.start() + len(sql))
     return text
 
 
 class _TreeContext:
-    def __init__(self, model, table, params, dialect, snapshot, *, parent=None,
+    def __init__(self, model, table, params, adapter, snapshot, *, parent=None,
                  alias_prefix='t', bindings=None):
         self.model, self.table = model, table
-        self.dialect, self.snapshot = dialect, snapshot
+        self.adapter, self.snapshot = adapter, snapshot
         self.bindings = bindings if bindings is not None else SqlBindings(params)
         self.params = self.bindings.params
         self.input_origins = self.bindings.inputs
@@ -111,11 +111,11 @@ class _TreeContext:
         self.references = FieldReferences()
         self._many_columns = {}
         self.aliases = {self.sql_fullname(table): self.basealias}
-        self.cpl: SqlCompiledQuery = SqlCompiledQuery(self.sql_fullname(table), maintable_as=self.basealias, dialect=dialect.name)
+        self.cpl: SqlCompiledQuery = SqlCompiledQuery(self.sql_fullname(table), maintable_as=self.basealias, dialect=adapter.dialect)
         self.cpl.relationDict = self.references.paths
 
     def sql_fullname(self, table):
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         return '.'.join(quote(name) for name in (table.sqlschema, table.sqlname) if name)
 
     @staticmethod
@@ -130,7 +130,7 @@ class _TreeContext:
 
     def field(self, table, alias, name):
         column = self.physical_column(table, name)
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         return '%s.%s' % (quote(alias), quote(column.sqlname))
 
     def get_field_alias(self, path, curr=None, basealias=None, parent=None):
@@ -165,7 +165,7 @@ class _TreeContext:
         if key not in self.formula_definitions:
             attrs = deepcopy(column.attributes)
             if column.tag == 'bagItemColumn':
-                attrs['sql_formula'] = self.dialect.bag_item_formula(attrs['bagcolumn'], column.dtype)
+                attrs['sql_formula'] = self.adapter.bag_item_formula(attrs['bagcolumn'], column.dtype)
                 attrs['var_calculated_path'] = _bag_item_path(attrs['itempath'])
                 definition = _formula_definition(attrs, column.fullname)
             elif column.tag == 'subQueryColumn':
@@ -202,7 +202,7 @@ class _TreeContext:
             subqueries = {'default': select if select is not None else exists}
         # Bind the authored expression before inserting children: their local
         # names already belong to their own scope and must never be remangled.
-        formula = expand_templates(formula, self.dialect)
+        formula = expand_templates(formula, self.adapter)
         formula = self.expand_many_operations(formula, curr=curr)
         formula = bindings.substitute(formula)
         for name, definition in subqueries.items():
@@ -258,7 +258,7 @@ class _TreeContext:
         where = _THIS.sub(lambda m: self.get_field_alias(m[1], owner, alias), where)
         cast = options.pop('cast', None)
         child_bindings = bindings.child(options.pop('sqlparams', None), 's')
-        child = type(self)(self.model, table, None, self.dialect, self.snapshot,
+        child = type(self)(self.model, table, None, self.adapter, self.snapshot,
                            parent=self, alias_prefix=alias + '_t', bindings=child_bindings)
         columns = options.pop('columns', '1' if exists else '*')
         columns = columns if isinstance(columns, str) else ','.join(columns)
@@ -266,19 +266,19 @@ class _TreeContext:
         options.setdefault('exclude_logical_deleted', False)
         options.setdefault('ignore_partition', True)
         plan = child.select_plan(columns, where=where, **options)
-        sql = plan.get_sqltext(self.dialect)
+        sql = plan.get_sqltext(self.adapter)
         if aggregate == 'join':
-            return self.dialect.join_sql_subquery(sql, child.basealias + '_rows')
+            return self.adapter.join_sql_subquery(sql, child.basealias + '_rows')
         if aggregate == 'to_json':
-            return self.dialect.json_sql_subquery(sql, child.basealias + '_rows', plan.columns)
+            return self.adapter.json_sql_subquery(sql, child.basealias + '_rows', plan.columns)
         if aggregate == 'to_xml':
-            return self.dialect.xml_sql_subquery(sql, child.basealias + '_rows', plan.columns)
+            return self.adapter.xml_sql_subquery(sql, child.basealias + '_rows', plan.columns)
         if aggregate in ('json', 'xml'):
             if cast:
                 raise UnsupportedFeatureError('Cast of a row source is not supported for JSON/XML subQueryColumn')
-            return self.dialect.aggregate_sql_subquery(sql, aggregate, row_alias,
+            return self.adapter.aggregate_sql_subquery(sql, aggregate, row_alias,
                                                        [c.name for c in plan.result_columns])
-        if not exists and len(projection_columns(child.expanded_columns, self.dialect.as_translator)) != 1:
+        if not exists and len(projection_columns(child.expanded_columns, self.adapter.asTranslator)) != 1:
             raise ValueError('A scalar subquery requires exactly one result column')
         return f' CAST( ( {sql} ) AS {cast}) ' if cast else f' ( {sql} ) '
 
@@ -304,7 +304,7 @@ class _TreeContext:
         column = table.columns.get(name)
         if column is None:
             raise KeyError(name)
-        return self.dialect.quote_identifier(column.sqlname)
+        return self.adapter.adaptSqlName(column.sqlname)
 
     def _get_relation_alias(self, node, path, basealias, parent=None):
         """_getRelationAlias, retaining allocation order and physical path keys."""
@@ -338,7 +338,7 @@ class _TreeContext:
                 (self._sql_column(target_table, c) for c in target_columns.split(','))))
         else:
             target_sqlcolumn = self._sql_column(target_table, target_column)
-        quote = self.dialect.quote_identifier
+        quote = self.adapter.adaptSqlName
         adapted_alias, adapted_base = quote(alias), quote(basealias)
         # Native joiners include absent keys with None. Never mutate the shared joiner.
         condition = joiner.get('join_on') or joiner.get('cnd')
@@ -463,7 +463,7 @@ class _TreeContext:
             while token in self.table.columns or token in self.table.virtual_columns or token in self._many_columns:
                 token = '_' + token
             self._many_columns[token] = (relation, expression, curr, path, aggregate, order_by)
-            columns.append(f'${token} AS {self.dialect.as_translator(name)}')
+            columns.append(f'${token} AS {self.adapter.asTranslator(name)}')
         return ','.join(columns)
 
     def _virtual_relation(self, curr, name):
@@ -592,7 +592,7 @@ class _TreeContext:
 
     def projection(self, columns):
         result, metadata = [], []
-        for column in projection_columns(columns, self.dialect.as_translator):
+        for column in projection_columns(columns, self.adapter.asTranslator):
             parts = split_sql(column, ' AS ')
             item = None
             if len(parts) == 2:
@@ -634,7 +634,7 @@ class _TreeContext:
             self.references.paths['pkey'] = self.table.pkey
         columns = columns if isinstance(columns, str) else ','.join(columns)
         columns, where, order_by, group_by, having = (
-            expand_templates(clause, self.dialect) if clause else clause
+            expand_templates(clause, self.adapter) if clause else clause
             for clause in (columns, where, order_by, group_by, having))
         columns = columns.replace('  ', ' ').replace('\n', '').replace(' as ', ' AS ').replace(' ,', ',')
         # Recognize the agreed many-call boundary before split handles columns.
@@ -688,7 +688,7 @@ class _TreeContext:
             parts = split_sql(column, ' AS ')
             if len(parts) > 1:
                 value, alias = parts[0], ' AS '.join(parts[1:])
-                self.cpl.aliasDict[self.dialect.as_translator(alias.strip())] = value.strip()
+                self.cpl.aliasDict[self.adapter.asTranslator(alias.strip())] = value.strip()
         columns = self.bindings.substitute(columns)
         where = self.bindings.substitute(where) if where else where
         order_by = self.bindings.substitute(order_by) if order_by else order_by
@@ -706,7 +706,7 @@ class _TreeContext:
         if for_update and self.table.columns:
             names = (self.model.physical_columns(self.table, self.table.pkey)
                      if self.table.pkey else tuple(self.table.columns))
-            self.cpl.lock_column = self.dialect.quote_identifier(self.table.columns[names[0]].sqlname)
+            self.cpl.lock_column = self.adapter.adaptSqlName(self.table.columns[names[0]].sqlname)
         self.cpl.limit, self.cpl.offset = limit, offset
         for clause in (self.cpl.columns, self.cpl.where, self.cpl.order_by,
                        self.cpl.group_by, self.cpl.having, *self.cpl.joins):
@@ -870,16 +870,14 @@ class _TreeContext:
 class QueryCompiler:
     """Compile against the hierarchy with a fresh local context per request."""
 
-    def __init__(self, model, dialect, formatter, *, environment=None, _db=None):
+    def __init__(self, model, adapter, *, environment=None, _db=None):
         if not isinstance(model, DbModel):
             raise TypeError('QueryCompiler requires a hierarchical DbModel')
-        if dialect.name != formatter.dialect:
-            raise ValueError('The data dialect and binding formatter are incompatible')
-        self.model, self.dialect, self.formatter = model, dialect, formatter
+        self.model, self.adapter = model, adapter
         self.environment = environment if environment is not None else SqlEnvironment()
 
     def _context(self, table, params=None) -> _TreeContext:
-        return _TreeContext(self.model, self.model.table(table), params, self.dialect,
+        return _TreeContext(self.model, self.model.table(table), params, self.adapter,
                             self.environment.snapshot())
 
     @staticmethod
@@ -890,11 +888,11 @@ class QueryCompiler:
             raise UnsupportedFeatureError(f'Unsupported query options: {sorted(options)}')
 
     def compile_plan(self, plan):
-        if plan.dialect != self.dialect.name:
-            raise ValueError('Query plan belongs to a different data dialect')
-        sql = plan.get_sqltext(self.dialect)
+        if plan.dialect != self.adapter.dialect:
+            raise ValueError('Query plan belongs to a different adapter dialect')
+        sql = plan.get_sqltext(self.adapter)
         snapshot = plan.environment.values if plan.environment else {}
-        query = self.formatter.prepare_sql(sql, plan.params, snapshot)
+        query = self.adapter.prepare_sql(sql, plan.params, snapshot)
         environment_inputs = {'env_' + key for key in plan.environment.keys} if plan.environment else set()
         used_inputs = (set(query.input_parameters) - environment_inputs - set(plan.local_parameters)) | set(plan.input_parameters)
         return replace(query, columns=plan.result_columns, environment=plan.environment,
@@ -945,9 +943,8 @@ class QueryCompiler:
 
 
 class PostgresCompiler(QueryCompiler):
-    """Select PostgreSQL and psycopg adapters for the hierarchical compiler."""
+    """The hierarchical compiler on the PostgreSQL adapter, without a database."""
 
     def __init__(self, model, *, environment=None):
-        from .dialects.postgres import PostgresDialect
-        from .drivers.psycopg import PsycopgDriver
-        super().__init__(model, PostgresDialect(), PsycopgDriver(), environment=environment)
+        from .adapters.postgres import SqlDbAdapter
+        super().__init__(model, SqlDbAdapter(None), environment=environment)

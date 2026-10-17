@@ -35,14 +35,14 @@ def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
     root = config.source['db']
     root.attr['implementation'] = backend
     root.connection(implementation=backend, **(
-        {'dsn': dsn} if backend == 'postgresql'
+        {'dsn': dsn} if backend == 'postgres'
         else {'database': str(tmp_path / 'formulas.db')}))
     # Preserve physical schema names too: authored SQL in the legacy model
     # refers directly to invc.invc_invoice_note. Isolation is per database.
     db = build_database(config)
     schemas = sorted({t.sqlschema for t in db.model.tables.values()})
     try:
-        if backend == 'postgresql':
+        if backend == 'postgres':
             for schema in schemas:
                 db.execute(f'CREATE SCHEMA "{schema}"')
         for name in TABLES:
@@ -77,7 +77,7 @@ def pg_database(tmp_path_factory, *, state=None):
         name = 'test_asqueel_formulas_' + uuid4().hex
         admin.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(name)))
         try:
-            yield from database('postgresql', tmp_path_factory.mktemp('formula_pg'), patch,
+            yield from database('postgres', tmp_path_factory.mktemp('formula_pg'), patch,
                                 dsn=make_conninfo(postgres_dsn(), dbname=name), state=state)
         finally:
             admin.execute(sql.SQL('DROP DATABASE {}').format(sql.Identifier(name)))

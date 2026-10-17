@@ -76,7 +76,7 @@ class DbElements:
     """Database-level grammar: the root and its collections."""
 
     @element(sub_tags="schemas[:1], packages[:1], extensions[:1], options[:1]", node_label="db")
-    def db(self, name: str, implementation: str = 'postgresql',
+    def db(self, name: str, implementation: str = 'sqlite',
            name_long: str | None = None, name_short: str | None = None,
            comment: str | None = None, **extra):
         """Database root, one per model.

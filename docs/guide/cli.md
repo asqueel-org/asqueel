@@ -52,7 +52,7 @@ class Configuration(SqlDatabaseConfig):
         db.connection(
             "main",
             database=EnvResolver("PGDATABASE", default="gestionale"),
-            implementation="postgresql",
+            implementation="postgres",
             host=EnvResolver("PGHOST", default="localhost"),
             port=EnvResolver("PGPORT", default=5432, dtype="L"),
             user=EnvResolver("PGUSER"),

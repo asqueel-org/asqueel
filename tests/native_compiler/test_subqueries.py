@@ -14,7 +14,7 @@ def spec(**options):
 @pytest.fixture
 def db():
     config = SqlDatabaseConfig()
-    pkg = config.source.db('subqueries', implementation='postgresql').packages().package('app')
+    pkg = config.source.db('subqueries', implementation='postgres').packages().package('app')
     owner = pkg.table('owner', pkey='id')
     owner.column('id', dtype='L')
     owner.column('threshold', dtype='N')
@@ -39,7 +39,7 @@ def db():
 
 
 def writer(db):
-    return WriteCompiler(db.dialect, db.driver)
+    return WriteCompiler(db.adapter)
 
 
 def test_dml_default_excludes_subqueries_and_explicit_request_rejected(db):

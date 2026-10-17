@@ -332,7 +332,7 @@ class DbModel:
     def __init__(self, fragment, *, source):
         self.src = source
         self._operational_db = None
-        self.implementation = fragment.attributes.get('implementation', 'postgresql')
+        self.implementation = fragment.attributes.get('implementation', 'sqlite')
         self.relations = Bag()
         # Legacy model.obj is the namespace list, not the authored <db> node.
         # Database options remain on the database declaration, outside that root.

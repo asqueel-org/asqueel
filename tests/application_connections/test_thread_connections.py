@@ -8,12 +8,11 @@ from asqueel import AsqueelDb, TransactionStateError
 from asqueel.contracts import CompiledQuery
 from asqueel.environment import SqlEnvironment
 from tests.application_config.test_application import Recipe
-from tests.application_connections.test_connections import Driver
 
 
 def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
-    driver = Driver()
-    db = AsqueelDb(Recipe, driver=driver, environment=SqlEnvironment({'options': []}))
+    db = AsqueelDb(Recipe, environment=SqlEnvironment({'options': []}))
+    driver = db.adapter
     barrier = Barrier(2)
     callbacks = []
 
@@ -58,8 +57,8 @@ def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
 
 
 def test_named_environment_changes_selection_without_completion():
-    driver = Driver()
-    db = AsqueelDb(Recipe, driver=driver)
+    db = AsqueelDb(Recipe)
+    driver = db.adapter
     assert not hasattr(db, 'transaction')
     assert not hasattr(db, 'connection')
     db.execute(CompiledQuery('main'))
@@ -74,7 +73,7 @@ def test_named_environment_changes_selection_without_completion():
 
 
 def test_internal_connection_rejects_cross_thread_use():
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     state = db._connection_state
     with ThreadPoolExecutor(max_workers=1) as pool:
         for operation in (lambda: db._commit_connection(state), lambda: db._rollback_connection(state)):
@@ -84,8 +83,8 @@ def test_internal_connection_rejects_cross_thread_use():
 
 
 def test_explicit_commit_preserves_deferred_hook_and_pending_work():
-    driver = Driver()
-    db = AsqueelDb(Recipe, driver=driver)
+    db = AsqueelDb(Recipe)
+    driver = db.adapter
     db.execute(CompiledQuery('before'))
     db.deferToCommit(lambda: db.execute(CompiledQuery('hook')))
     db.execute(CompiledQuery('inside'))
@@ -97,7 +96,7 @@ def test_explicit_commit_preserves_deferred_hook_and_pending_work():
 
 
 def test_new_thread_does_not_inherit_closed_state_or_environment():
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     def worker():
         assert db.currentEnv == {}
         db.updateEnv(user='previous')

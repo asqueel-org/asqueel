@@ -6,24 +6,23 @@ import pytest
 from asqueel.contracts import (
     CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult,
 )
-from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import PostgresDatabase, Database
 
 
-class ContextDriver:
-    dialect = 'postgresql'
-    binding = 'psycopg_named'
+# Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
+FAKE = 'postgres:tests.environment.test_runtime_environment'
 
-    def __init__(self, environment):
-        self.environment = environment
+
+class SqlDbAdapter(PostgresAdapter):
+    def __init__(self, dbroot):
+        super().__init__(dbroot)
         self.calls = []
 
-    def validate(self, query):
-        PsycopgDriver().validate(query)
-
-    def prepare_sql(self, sql, sqlargs, snapshot):
-        return PsycopgDriver().prepare_sql(sql, sqlargs, snapshot)
+    @property
+    def environment(self):
+        return self.dbroot.environment
 
     def record(self, method):
         self.calls.append((method, dict(self.environment.snapshot()), threading.get_ident()))
@@ -35,7 +34,7 @@ class ContextDriver:
     def execute(self, connection, query):
         self.record('execute')
         result = dict(self.environment.snapshot())
-        # A nested driver scope restores the caller context on normal exit.
+        # A nested adapter scope restores the caller context on normal exit.
         with self.environment.temp_env(driver_local=True):
             assert self.environment.current_env['driver_local']
         return QueryResult([result], 1)
@@ -52,16 +51,16 @@ class ContextDriver:
 
 def test_driver_preparation_preserves_environment_binding():
     binding = EnvironmentBinding(('company',), {'company': 1})
-    query = PsycopgDriver().prepare_sql('SELECT :env_company', {}, {'company': 1})
+    query = PostgresAdapter(None).prepare_sql('SELECT :env_company', {}, {'company': 1})
     assert query.environment.keys == binding.keys
     assert query.environment.values == binding.values
 
 
 def test_stale_environment_rejected_before_connect_and_before_transaction_dispatch():
     env = SqlEnvironment({'company': 1})
-    driver = ContextDriver(env)
     query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
-    with Database(driver=driver, environment=env) as db:
+    with Database(implementation=FAKE, environment=env) as db:
+        driver = db.adapter
         with db.temp_env(company=2):
             with pytest.raises(EnvironmentMismatchError):
                 db.execute(query)
@@ -76,8 +75,8 @@ def test_stale_environment_rejected_before_connect_and_before_transaction_dispat
 
 def test_runtime_aliases_use_current_context_on_the_calling_thread():
     env = SqlEnvironment({'company': 1})
-    driver = ContextDriver(env)
-    with PostgresDatabase(driver=driver, environment=env) as db:
+    with Database(implementation=FAKE, environment=env) as db:
+        driver = db.adapter
         assert db.environment is env
         with db.tempEnv(company=2):
             assert db.currentEnv == db.current_env == {'company': 2}
@@ -94,8 +93,7 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
 
 def test_separate_sync_databases_share_explicit_environment_without_leaking_scopes():
     env = SqlEnvironment({'company': 0})
-    driver = ContextDriver(env)
-    with Database(driver=driver, environment=env) as first, Database(driver=driver, environment=env) as second:
+    with Database(implementation=FAKE, environment=env) as first, Database(implementation=FAKE, environment=env) as second:
         with first.temp_env(company=1):
             assert second.current_env == {'company': 1}
             first_query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))

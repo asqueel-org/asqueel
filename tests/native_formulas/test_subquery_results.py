@@ -31,7 +31,7 @@ def test_count_sum_and_empty_results_match_physical_invoice_rows(db):
         if row['total'] is not None:
             sums[row['customer_id']] += Decimal(str(row['total']))
     columns = '$id,$n_invoices,$invoiced_total'
-    if db.dialect.name != 'sqlite':
+    if db.adapter.dialect != 'sqlite':
         columns += ',$has_invoices'
     rows = db.table('invc.customer').query(columns).fetch()
     assert len({row['id'] for row in rows}) == len(rows)

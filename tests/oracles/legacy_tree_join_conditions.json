@@ -166,7 +166,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "on_root",
         "table": "invc.invoice",
@@ -221,7 +221,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "on_parent",
         "table": "invc.invoice_row",

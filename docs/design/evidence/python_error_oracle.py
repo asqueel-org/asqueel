@@ -124,7 +124,7 @@ def native_factory(dsn):
         def __init__(self, schema):
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    columns = root.db('oracle', conninfo=dsn).schemas().schema(
+                    columns = root.db('oracle', implementation='postgres', conninfo=dsn).schemas().schema(
                         'app', x_sql_schema=schema).tables().table(
                             'item', pkey='id', x_table_class=item_class).columns()
                     columns.column('id', dtype='I')

@@ -25,7 +25,7 @@ INVOICES = [
 ]
 VISIBLE = [10, 11, 12, 13, 15]
 ALL_IDS = [10, 11, 12, 13, 14, 15]
-BACKENDS = ['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)]
+BACKENDS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)]
 PLACEHOLDER = r'%\(\w+\)s|:\w+'
 
 PG_DDL = (
@@ -125,7 +125,7 @@ def shop(request, tmp_path):
 
     class PostgresRecipe(SqlDatabaseConfig):
         def main(self, root):
-            declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+            declare_tables(root.db('shop', implementation='postgres', conninfo=dsn).schemas().schema(
                 'sales', x_sql_schema=schema))
 
     db = AsqueelDb(PostgresRecipe)
@@ -135,7 +135,7 @@ def shop(request, tmp_path):
         db.commit()
         invoice_sql = f'"{schema}".invoice'
         seed(db, invoice_sql)
-        yield Shop('postgresql', db, invoice_sql)
+        yield Shop('postgres', db, invoice_sql)
     finally:
         db.rollback()
         db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))

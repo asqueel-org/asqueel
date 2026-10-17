@@ -7,18 +7,18 @@ from asqueel import (
     DatabaseClosedError, SqlDatabaseConfig, SqlTable, TransactionStateError,
     UnsupportedFeatureError, build_database,
 )
-from tests.application_connections.test_connections import Driver
+from tests.application_connections.test_connections import FAKE, SqlDbAdapter
 
 
 class Recipe(SqlDatabaseConfig):
     def main(self, root):
-        table = root.db('demo').schemas().schema('app').tables().table('item', pkey='id')
+        table = root.db('demo', implementation=FAKE).schemas().schema('app').tables().table('item', pkey='id')
         table.columns().column('id', dtype='I')
 
 
 def test_database_owns_graph_environment_and_lazy_lifetime():
-    driver = Driver()
-    db = build_database(Recipe, driver=driver)
+    db = build_database(Recipe)
+    driver = db.adapter
     assert db.tables['app.item'] is db.table('app.item')
     with pytest.raises(TypeError):
         db.tables['app.item'] = None
@@ -41,8 +41,8 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
 
 
 def test_database_and_handles_can_be_used_by_another_thread():
-    driver = Driver()
-    db = build_database(Recipe, driver=driver)
+    db = build_database(Recipe)
+    driver = db.adapter
     table = db.table('app.item')
     query = table.query()
 
@@ -59,21 +59,22 @@ def test_database_and_handles_can_be_used_by_another_thread():
     assert driver.calls.count('connect') == 2
 
 
-def test_invalid_implementation_and_table_class_fail_before_connection():
-    driver = Driver()
+def test_invalid_implementation_and_table_class_fail_before_connection(monkeypatch):
+    def connect(*args, **kwargs):
+        pytest.fail('Construction must not connect')
+    monkeypatch.setattr(SqlDbAdapter, 'connect', connect)
     recipe = Recipe()
     recipe.create()
     recipe.source.get_node('db').attr['implementation'] = 'unsupported'
-    with pytest.raises(UnsupportedFeatureError):
-        build_database(recipe, driver=driver)
-    recipe.source.get_node('db').attr['implementation'] = 'postgresql'
+    with pytest.raises(ModuleNotFoundError, match='asqueel.adapters.unsupported'):
+        build_database(recipe)
+    recipe.source.get_node('db').attr['implementation'] = FAKE
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = str
     with pytest.raises(TypeError, match='SqlTable subclass'):
-        build_database(recipe, driver=driver)
-    assert driver.calls == []
+        build_database(recipe)
 
 
-def test_custom_constructor_cannot_execute_on_partially_published_graph():
+def test_custom_constructor_cannot_execute_on_partially_published_graph(monkeypatch):
     class Premature(SqlTable):
         def __init__(self, db, model):
             super().__init__(db, model)
@@ -82,10 +83,11 @@ def test_custom_constructor_cannot_execute_on_partially_published_graph():
     recipe = Recipe()
     recipe.create()
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = Premature
-    driver = Driver()
+    def connect(*args, **kwargs):
+        pytest.fail('Construction must not connect')
+    monkeypatch.setattr(SqlDbAdapter, 'connect', connect)
     with pytest.raises(UnsupportedFeatureError, match='not bound'):
-        build_database(recipe, driver=driver)
-    assert driver.calls == []
+        build_database(recipe)
 
 
 def test_rollback_only_session_rejects_write_before_calling_hooks():
@@ -99,8 +101,8 @@ def test_rollback_only_session_rejects_write_before_calling_hooks():
     recipe = Recipe()
     recipe.create()
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = Failing
-    driver = Driver()
-    db = build_database(recipe, driver=driver)
+    db = build_database(recipe)
+    driver = db.adapter
     with pytest.raises(ValueError, match='domain validation'):
         db.table('app.item').insert({'id': 1})
     with pytest.raises(TransactionStateError, match='rollback-only'):

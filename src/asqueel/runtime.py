@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from importlib import import_module
 from threading import Thread, current_thread, local
 from typing import Any, TypedDict
 from uuid import uuid4
 
 from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError
 from .environment import ApplicationEnvironment
-from .drivers.base import SyncDriver
 from .errors import DatabaseClosedError, DeferredCommitError, TransactionStateError
 from .triggers import TriggerStack
 
@@ -47,15 +47,29 @@ class Database:
     connections. Use tempEnv for context selection, never automatic completion.
     """
 
-    def __init__(self, conninfo='', *, driver: SyncDriver, connect_kwargs=None, environment=None):
+    def __init__(self, conninfo='', *, implementation='sqlite', connect_kwargs=None, environment=None):
         self._ready = True
         self._thread_state = _ThreadState()
-        self.driver = driver
+        # Legacy adapter loading: 'name' or 'name:module'; the module exposes SqlDbAdapter.
+        if ':' in implementation:
+            implementation, module = implementation.split(':')
+        else:
+            module = f'asqueel.adapters.{implementation}'
+        self.implementation = implementation
+        self.adapters: dict[str, Any] = {implementation: import_module(module).SqlDbAdapter(self)}
         self.conninfo = conninfo
         self.connect_kwargs = dict(connect_kwargs or {})
         if self.connect_kwargs.get('autocommit'):
             raise ValueError('autocommit is incompatible with explicit transactions')
         self.environment = environment if environment is not None else ApplicationEnvironment()
+
+    @property
+    def adapter(self):  # wf:phase-2:new
+        """The adapter of the current implementation; ``currentImplementation`` overrides it."""
+        implementation = self.environment.currentEnv.get('currentImplementation') or self.implementation
+        if implementation not in self.adapters:
+            self.adapters[implementation] = import_module(f'asqueel.adapters.{implementation}').SqlDbAdapter(self)
+        return self.adapters[implementation]
 
     def _connection_settings(self):
         return self.conninfo, self.connect_kwargs
@@ -206,7 +220,7 @@ class Database:
         return self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
 
     def _prepare_sql(self, sql, sqlargs) -> CompiledQuery:
-        query: CompiledQuery = self.driver.prepare_sql(sql, sqlargs, self.environment.snapshot())
+        query: CompiledQuery = self.adapter.prepare_sql(sql, sqlargs, self.environment.snapshot())
         return query
 
     @property
@@ -383,7 +397,8 @@ class Database:
 
     def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None) -> QueryResult:
         self._check_connection_usable(state)
-        self.driver.validate(query)
+        adapter = self.adapter
+        adapter.validate(query)
         if query.environment is not None:
             query.environment.validate(self.environment.snapshot())
         state['execution_count'] += 1
@@ -394,13 +409,12 @@ class Database:
                 conninfo, connect_kwargs = self._connection_settings()
                 if connect_kwargs.get('autocommit'):
                     raise ValueError('autocommit is incompatible with explicit transactions')
-                state['connection'] = self.driver.connect(
-                    conninfo, **connect_kwargs)
+                state['connection'] = adapter.connect(conninfo, **connect_kwargs)
             state['pending'] = True
             state['outcome'] = 'active'
-            if many is not None:
-                return self.driver.executemany(state['connection'], query, many)
-            return self.driver.execute(state['connection'], query)
+            result: QueryResult = (adapter.executemany(state['connection'], query, many) if many is not None
+                                   else adapter.execute(state['connection'], query))
+            return result
         except BaseException as error:
             state['execution_error'] = error
             state['completion_failed'] = state['committing']
@@ -422,7 +436,7 @@ class Database:
     def _discard_connection(self, state: _ConnectionState) -> None:
         connection, state['connection'] = state['connection'], None
         if connection is not None:
-            self.driver.close(connection)
+            self.adapter.close(connection)
 
     def _finish(self, state: _ConnectionState, commit: bool) -> None:
         if not state['pending']:
@@ -433,7 +447,7 @@ class Database:
             return
         state['executing'] = True
         try:
-            operation = self.driver.commit if commit else self.driver.rollback
+            operation = self.adapter.commit if commit else self.adapter.rollback
             operation(state['connection'])
             state['outcome'] = 'committed' if commit else 'rolled_back'
             state['failed'] = False
@@ -536,12 +550,8 @@ class Database:
 
 
 class PostgresDatabase(Database):
-    """Driver-selecting facade using the shared, explicitly completed runtime."""
+    """The shared, explicitly completed runtime on the PostgreSQL adapter."""
 
-    def __init__(self, conninfo='', *, connect_kwargs=None, driver=None, environment=None):
-        from .drivers.psycopg import PsycopgDriver
-        driver = driver if driver is not None else PsycopgDriver()
-        if (driver.dialect, driver.binding) != ('postgresql', 'psycopg_named'):
-            raise ValueError('PostgresDatabase requires the postgresql/psycopg_named driver profile')
-        super().__init__(conninfo, driver=driver, connect_kwargs=connect_kwargs,
+    def __init__(self, conninfo='', *, connect_kwargs=None, environment=None):
+        super().__init__(conninfo, implementation='postgres', connect_kwargs=connect_kwargs,
                          environment=environment)

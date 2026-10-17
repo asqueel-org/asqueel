@@ -12,7 +12,7 @@ from tests.native_compiler.test_subquery_methods import (
 from tests.object_tree.test_minimal_select import no_io as no_io
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def db(request, no_io):
     config = SqlDatabaseConfig()
     pkg = config.source.db('phase3', implementation=request.param).packages().package('app')
@@ -158,13 +158,13 @@ def test_builtin_method_reads_tree_virtual_columns(db):
 
 def test_only_final_sql_is_prepared_by_driver(db, monkeypatch):
     calls = []
-    original = db.compiler.formatter.prepare_sql
+    original = db.compiler.adapter.prepare_sql
 
     def prepare(sql, params, snapshot):
         calls.append((sql, deepcopy(params)))
         return original(sql, params, snapshot)
 
-    monkeypatch.setattr(db.compiler.formatter, 'prepare_sql', prepare)
+    monkeypatch.setattr(db.compiler.adapter, 'prepare_sql', prepare)
     compiled = db.table('app.owner').query('$named,$nested,$collections').compiled
     assert len(calls) == 1
     assert calls[0][0].count('SELECT') > 3

@@ -28,7 +28,7 @@ def declare(target, tag, **attrs):
 @pytest.mark.parametrize('grouped', [False, True])
 @pytest.mark.parametrize('layered', [False, True])
 @pytest.mark.parametrize('reverse', [False, True])
-@pytest.mark.parametrize('dialect', ['sqlite', 'postgresql'])
+@pytest.mark.parametrize('dialect', ['sqlite', 'postgres'])
 def test_alias_formula_redefinition(grouped, layered, reverse, dialect):
     first, second = ('formulaColumn', 'aliasColumn') if reverse else ('aliasColumn', 'formulaColumn')
     config, table = recipe(dialect)

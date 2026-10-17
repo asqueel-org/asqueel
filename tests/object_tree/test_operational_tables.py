@@ -100,14 +100,18 @@ def test_binding_is_single_owner_and_failure_does_not_rebind():
         db.close()
 
 
-def test_bad_dialect_leaves_tree_unbound():
-    from asqueel.dialects.postgres import PostgresDialect
+def test_bad_implementation_leaves_tree_unbound():
     source, _, _ = recipe()
     model = source.render(mode='objects_tree')
     config = _owned_handler(source)
-    with pytest.raises(ValueError, match='dialect/driver'):
-        SqlDatabase(model=model, config=config, dialect=PostgresDialect())
+    implementation = model.implementation
+    config.builder.source.get_node(config.root_label).attr['implementation'] = 'unsupported'
+    model.implementation = 'unsupported'
+    with pytest.raises(ModuleNotFoundError, match='asqueel.adapters.unsupported'):
+        SqlDatabase(model=model, config=config)
     assert model._operational_db is None
+    config.builder.source.get_node(config.root_label).attr['implementation'] = implementation
+    model.implementation = implementation
     db = SqlDatabase(model=model, config=config)
     db.close()
 

@@ -1,4 +1,4 @@
-"""Read-only structural catalog providers, separate from data SQL dialects.
+"""Read-only structural catalog providers, separate from the database adapters.
 
 A future sqlmigration provider must preserve the importer's fidelity checks;
 the existing normalized migration structure alone is not a complete catalog.
@@ -21,7 +21,7 @@ class CatalogProvider(Protocol):
 class PostgresCatalogProvider:
     """Inspect PostgreSQL catalogs without owning connection or transaction."""
 
-    dialect = 'postgresql'
+    dialect = 'postgres'
 
     def inspect(self, connection: Any, schemas: Sequence[str], *,
                 ui: Mapping[str, Mapping[str, Any]] | None = None) -> ImportResult:

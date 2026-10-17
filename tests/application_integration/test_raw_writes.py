@@ -28,7 +28,7 @@ class SharedHooks(AsqueelDb):
         self.currentEnv['db_events'].append(('after', event))
 
 
-@pytest.fixture(params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def make_db(request, tmp_path):
     databases = []
     def make(*, table_hooks=False, db_hooks=False):
@@ -39,7 +39,7 @@ def make_db(request, tmp_path):
                     db = root.db(implementation='sqlite')
                     db.connection(name=str(tmp_path / f'{schema}.db'))
                 else:
-                    db = root.db(conninfo=postgres_dsn())
+                    db = root.db(implementation='postgres', conninfo=postgres_dsn())
                 table = db.schemas().schema(schema).tables().table(
                     'item', pkey='id', **({'x_table_class': TableHooks} if table_hooks else {}))
                 columns = table.columns()
@@ -48,7 +48,7 @@ def make_db(request, tmp_path):
         db = (SharedHooks if db_hooks else AsqueelDb)(Config)
         db.item = f'{schema}.item'
         databases.append((db, schema))
-        if request.param == 'postgresql':
+        if request.param == 'postgres':
             db.execute(f'CREATE SCHEMA "{schema}"')
         db.execute(f'CREATE TABLE "{schema}".item (id INTEGER PRIMARY KEY, name TEXT DEFAULT \'default\')')
         db.commit()
@@ -60,7 +60,7 @@ def make_db(request, tmp_path):
         for db, schema in databases:
             try:
                 db.rollback()
-                if request.param == 'postgresql':
+                if request.param == 'postgres':
                     db.execute(f'DROP SCHEMA "{schema}" CASCADE')
                     db.commit()
             finally:

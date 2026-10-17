@@ -34,7 +34,7 @@ def formula_database(request):
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    database = root.db('subqueries', conninfo=dsn)
+                    database = root.db('subqueries', implementation='postgres', conninfo=dsn)
                     if request.param == 'package':
                         tables = database.packages().package(
                             'app', sqlschema=schema, sqlprefix=False).tables()

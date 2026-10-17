@@ -34,7 +34,7 @@ class Request:
             self.shared_db.clearCurrentEnv()
 
 
-@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 @pytest.mark.parametrize('failure', ['application', 'hook', 'sql', 'before', 'after'])
 def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, failure):
     schema = 'request_' + uuid4().hex
@@ -45,7 +45,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 database = root.db()
                 database.connection(name=str(tmp_path / 'requests.db'), implementation='sqlite')
             else:
-                database = root.db(conninfo=postgres_dsn())
+                database = root.db(implementation='postgres', conninfo=postgres_dsn())
             table = database.schemas().schema(schema).tables().table('item', pkey='id', x_table_class=Item)
             table.columns().column('id', dtype='I')
 
@@ -56,7 +56,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
         raise ValueError('callback failure')
 
     try:
-        if backend == 'postgresql':
+        if backend == 'postgres':
             db.execute(f'CREATE SCHEMA "{schema}"')
         db.execute(f'CREATE TABLE "{schema}".item (id INTEGER PRIMARY KEY)')
         db.commit()
@@ -111,7 +111,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
     finally:
         try:
             db.closeConnection()
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
                 db.commit()
         finally:

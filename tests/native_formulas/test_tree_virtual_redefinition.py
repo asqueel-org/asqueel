@@ -12,7 +12,7 @@ from examples.test_invoice_pg import source
 def test_redefined_virtual_returns_the_new_definition(request, backend, grouped, reverse):
     executor = request.getfixturevalue(backend)
     config = source()
-    config.source['db'].attr['implementation'] = executor.dialect.name
+    config.source['db'].attr['implementation'] = executor.adapter.dialect
     table = config.source['db'].packages().package('invc').table('invoice')
     target = table.colgroup('redefinition') if grouped else table
     first, second = ('formulaColumn', 'aliasColumn') if reverse else ('aliasColumn', 'formulaColumn')

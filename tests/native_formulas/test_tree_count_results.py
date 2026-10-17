@@ -17,12 +17,12 @@ def test_count_matches_legacy_rows_and_value(databases, case):
     tree, execution = databases.tree, databases.executor
     request = case['request']
     expected = next(c['expected'] for c in ORACLE['cases']
-                    if c['dialect'] == tree.dialect.name and c['request']['name'] == request['name'])
+                    if c['dialect'] == tree.adapter.dialect and c['request']['name'] == request['name'])
     actual = tree.table(request['table']).query(request['columns'], sqlparams=request['params'],
                                                **request['options'])._compile(tree.compiler.count)
     reference = CompiledQuery(expected['sql'],
         {k:v for k,v in expected['params'].items() if k != 'jc_kwargs'},
-        dialect=execution.dialect.name, binding=execution.driver.binding)
+        dialect=execution.adapter.dialect, binding=execution.adapter.binding)
     result, legacy = execution.execute(actual), execution.execute(reference)
     assert [list(row) for row in result.rows] == [list(row) for row in legacy.rows]
     assert [c.name for c in result.columns] == [c.name for c in legacy.columns]

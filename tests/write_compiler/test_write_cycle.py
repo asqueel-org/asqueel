@@ -93,13 +93,13 @@ DDL = (
 )
 
 
-@pytest.fixture(params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def db(request, tmp_path):
     if request.param == 'sqlite':
         source, prefix = recipe('sqlite', path=tmp_path / 'cycle.db'), ''
     else:
         schema = 'wcy_' + uuid4().hex[:8]
-        source, prefix = recipe('postgresql', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
+        source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
     with SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source)) as database:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')

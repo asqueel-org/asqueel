@@ -252,7 +252,7 @@
     {
       "kind": "projection",
       "name": "0",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"id\""
@@ -261,7 +261,7 @@
     {
       "kind": "projection",
       "name": "1",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id,$total,$label",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\",\n\"t0\".\"label_sql\" AS \"label\""
@@ -270,7 +270,7 @@
     {
       "kind": "projection",
       "name": "2",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS code,$total AS amount",
       "legacy": {
         "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
@@ -279,7 +279,7 @@
     {
       "kind": "projection",
       "name": "3",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id as code, $total as amount",
       "legacy": {
         "value": "\"t0\".\"id\" AS code,\n\"t0\".\"total\" AS amount"
@@ -288,7 +288,7 @@
     {
       "kind": "projection",
       "name": "4",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$total * 2",
       "legacy": {
         "value": "\"t0\".\"total\" * 2 AS \"_total___2\""
@@ -297,7 +297,7 @@
     {
       "kind": "projection",
       "name": "5",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "COALESCE($total,0)",
       "legacy": {
         "value": "COALESCE(\"t0\".\"total\",0) AS \"COALESCE__total_0_\""
@@ -306,7 +306,7 @@
     {
       "kind": "projection",
       "name": "6",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "CASE WHEN $total>0 THEN $id ELSE 0 END",
       "legacy": {
         "value": "CASE WHEN \"t0\".\"total\">0 THEN \"t0\".\"id\" ELSE 0 END AS \"CASE_WHEN__total_0_THEN__id_ELSE_0_END\""
@@ -315,7 +315,7 @@
     {
       "kind": "projection",
       "name": "7",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS value,$total AS value",
       "legacy": {
         "value": "\"t0\".\"total\" AS value"
@@ -324,7 +324,7 @@
     {
       "kind": "projection",
       "name": "8",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id,$total,$id",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
@@ -333,7 +333,7 @@
     {
       "kind": "projection",
       "name": "9",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": " $id , $id ",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"id\""
@@ -342,7 +342,7 @@
     {
       "kind": "projection",
       "name": "10",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS \"code\",$total AS code",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"code\",\n\"t0\".\"total\" AS code"
@@ -351,7 +351,7 @@
     {
       "kind": "projection",
       "name": "11",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS CamelCase",
       "legacy": {
         "value": "\"t0\".\"id\" AS CamelCase"
@@ -360,7 +360,7 @@
     {
       "kind": "projection",
       "name": "12",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS \"CamelCase\"",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"CamelCase\""
@@ -369,7 +369,7 @@
     {
       "kind": "projection",
       "name": "13",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS \"display name\"",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"display name\""
@@ -378,7 +378,7 @@
     {
       "kind": "projection",
       "name": "14",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS \"a\"\"b\"",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"a\"\"b\""
@@ -387,7 +387,7 @@
     {
       "kind": "projection",
       "name": "15",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "CAST($total AS NUMERIC)",
       "legacy": {
         "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
@@ -396,7 +396,7 @@
     {
       "kind": "projection",
       "name": "16",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "CAST($total AS NUMERIC) AS amount",
       "legacy": {
         "value": "CAST(\"t0\".\"total\" AS NUMERIC) AS amount"
@@ -405,7 +405,7 @@
     {
       "kind": "projection",
       "name": "17",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "CAST($id AS NUMERIC),CAST($total AS NUMERIC)",
       "legacy": {
         "value": "CAST(\"t0\".\"total\" AS NUMERIC)"
@@ -414,7 +414,7 @@
     {
       "kind": "projection",
       "name": "18",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "'$id AS text'",
       "legacy": {
         "value": "'\"t0\".\"id\" AS text'"
@@ -423,7 +423,7 @@
     {
       "kind": "projection",
       "name": "19",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "' AS ' AS label",
       "legacy": {
         "value": "' AS ' AS label"
@@ -432,7 +432,7 @@
     {
       "kind": "projection",
       "name": "20",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "'a,b' AS label,$id",
       "legacy": {
         "value": "'a,b' AS label,\n\"t0\".\"id\" AS \"id\""
@@ -441,7 +441,7 @@
     {
       "kind": "projection",
       "name": "21",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id As code",
       "legacy": {
         "value": "\"t0\".\"id\" As code AS \"_id_As_code\""
@@ -450,7 +450,7 @@
     {
       "kind": "projection",
       "name": "22",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS code AS other",
       "legacy": {
         "value": "\"t0\".\"id\" AS code AS other"
@@ -459,7 +459,7 @@
     {
       "kind": "projection",
       "name": "23",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id,\n$total",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
@@ -468,7 +468,7 @@
     {
       "kind": "projection",
       "name": "24",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id,, $total,",
       "legacy": {
         "value": "\"t0\".\"id\" AS \"id\",\n\"t0\".\"total\" AS \"total\""
@@ -477,7 +477,7 @@
     {
       "kind": "projection",
       "name": "25",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS \"one\",$total AS \"one\"",
       "legacy": {
         "value": "\"t0\".\"total\" AS \"one\""
@@ -486,7 +486,7 @@
     {
       "kind": "projection",
       "name": "26",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "$id AS a, $total AS b, $total AS a",
       "legacy": {
         "value": "\"t0\".\"total\" AS a,\n\"t0\".\"total\" AS b"
@@ -495,7 +495,7 @@
     {
       "kind": "projection",
       "name": "27",
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "columns": "42",
       "legacy": {
         "value": "42 AS \"_42\""

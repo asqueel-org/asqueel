@@ -4,7 +4,6 @@ import pytest
 from asqueel import SqlTable, build_database
 from types import SimpleNamespace
 from tests.application_config.test_application import Recipe
-from tests.application_connections.test_connections import Driver
 
 
 class StructuralTable:
@@ -32,8 +31,8 @@ def table():
 
 
 def test_database_table_exposes_model_members_without_connecting():
-    driver = Driver()
-    db = build_database(Recipe, driver=driver)
+    db = build_database(Recipe)
+    driver = db.adapter
     try:
         table = db.table('app.item')
         assert table.model is db.model.table('app.item')

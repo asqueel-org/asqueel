@@ -24,7 +24,7 @@ class SqlObjectTreeRenderer(RendererBase):
         builder = _effective_model_builder(self.config)
         builder.source.get_node('db').attr['implementation'] = (
             self.config('connection.implementation', default=None)
-            or self.config('implementation', default='postgresql'))
+            or self.config('implementation', default='sqlite'))
         self.prepared = prepare_source(builder, options_first=True)
         self.prepared.validate_model()
         root = self.prepared.source.get_node('db').value

@@ -13,3 +13,12 @@
   4. Implementation names: decided (A8.1): legacy names 'postgres', 'postgres3', 'sqlite', default 'sqlite'. 'postgresql' is not a legacy name: it raises, no alias (rule "outside the grammar raises"). Configurations, tests and docs using 'postgresql' are realigned in this phase.
 - Gate, user (2026-10-17): 'postgres' and 'postgres3' both load the psycopg 3 adapter (no psycopg2 dependency).
 - Gate, user (2026-10-17): accepted the foreman's plan edit — currentImplementation is in Phase 2.
+- Gate, user (2026-10-17): accepted the foreman's proposal — ageAtDate on SQLite raises an explicit error; the test asserts the PostgreSQL SQL and the SQLite error.
+- Gate approved by the user (2026-10-17). Technical choices taken from the legacy and the user's rules:
+  - modules `asqueel/adapters/{base,postgres,postgres3,sqlite}.py`, each exposing `SqlDbAdapter`, loaded as legacy `module.SqlDbAdapter(db)`; `postgres3` loads the same class as `postgres`.
+  - legacy method names where a legacy method exists: compileSql, asTranslator, adaptSqlName (current quoting, checks kept), string_join (was concat_non_null), prepareSqlText, adaptTupleListSet, connect, cursor; other methods keep their current names; `capabilities` attribute as today.
+  - `QueryCompiler(model, adapter)`, `WriteCompiler(adapter)`, `Database(..., implementation=...)`; `driver=`/`dialect=` arguments and `db.dialect`/`db.driver` removed; test fakes become fake adapters loaded with `name:module`.
+  - `PostgresDatabase` and `PostgresCompiler` stay, built on the adapter.
+  - `mask_field_sql` raises on an invalid mode (legacy falls back to 2-4); `string_agg` escapes the separator (legacy does not).
+  - Sphinx pages in the toctree showing the removed classes are realigned; docs/design and probes are historical and untouched.
+- Build: rows are indexed by `cursor.description[i][0]` on both backends, as legacy (GnrDictCursor._build_index, GnrSqliteCursor); the fake psycopg cursor of tests/native_runtime/test_runtime.py now exposes a DB-API description tuple instead of `.name`. `cursor()` returns a cursor usable as a context manager (psycopg as is, sqlite3 through closing).

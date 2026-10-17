@@ -4,6 +4,7 @@ Attached schemas and connection-level write locking.
 """
 from __future__ import annotations
 
+from contextlib import closing
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -62,6 +63,10 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     @staticmethod
     def _regexp(expression, item):
         return re.compile(expression, re.U).match(item) is not None
+
+    def cursor(self, connection):  # wf:phase-2:new
+        # sqlite3 cursors are not context managers.
+        return closing(connection.cursor())
 
     def _begin(self, connection, query):  # wf:phase-2:new
         """Explicit transaction boundary; a locked query takes the write reservation."""

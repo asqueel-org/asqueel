@@ -4,17 +4,17 @@ from decimal import Decimal
 
 import pytest
 
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
 
-@pytest.fixture(params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def database(request, pg_params):
     if request.param == 'sqlite':
-        driver = SqliteDriver()
+        driver = SqliteAdapter(None)
         connection = driver.connect(':memory:')
     else:
-        driver = PsycopgDriver()
+        driver = PostgresAdapter(None)
         connection = driver.connect('', dbname='postgres', **pg_params)
     try:
         yield driver, connection
@@ -70,7 +70,7 @@ def test_legacy_operators(database):
     driver, _ = database
     sql = "WITH t0(value) AS (VALUES ('Alice'),('bob')) SELECT value FROM t0 WHERE value ILIKE :pattern"
     assert [r['value'] for r in run(database, sql, {'pattern': 'a%'}).rows] == ['Alice']
-    op = 'REGEXP' if driver.dialect == 'postgresql' else '~*'
+    op = 'REGEXP' if driver.dialect == 'postgres' else '~*'
     sql = f"WITH t0(value) AS (VALUES ('Alice'),('bob')) SELECT value FROM t0 WHERE value {op} :pattern"
     assert [r['value'] for r in run(database, sql, {'pattern': '^A'}).rows] == ['Alice']
 
@@ -85,8 +85,8 @@ def test_sqlite_boolean_adapter(database):
 
 def test_driver_percent_protocol(database):
     driver, _ = database
-    sql = "SELECT '10%%' AS value, 8 %% 3 AS remainder" if driver.dialect == 'postgresql' else "SELECT '10%' AS value, 8 % 3 AS remainder"
+    sql = "SELECT '10%%' AS value, 8 %% 3 AS remainder" if driver.dialect == 'postgres' else "SELECT '10%' AS value, 8 % 3 AS remainder"
     row = run(database, sql).rows[0]
     assert dict(row) == {'value': '10%', 'remainder': 2}
-    if driver.dialect == 'postgresql':
+    if driver.dialect == 'postgres':
         assert run(database, 'SELECT :value::numeric AS value', {'value': 2}).rows[0]['value'] == 2

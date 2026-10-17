@@ -40,14 +40,14 @@ def bind(source):
     return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def db(request):
     with bind(recipe(request.param)) as database:
         yield database
 
 
 def writer(db):
-    return WriteCompiler(db.dialect, db.driver)
+    return WriteCompiler(db.adapter)
 
 
 def model(db, name):
@@ -128,7 +128,7 @@ def test_composite_key_uses_component_sql_names(db):
 
 def test_delete_uses_sql_names_in_where(db):
     # Legacy adapter.delete used model names in the WHERE (genropy#1691).
-    source = recipe(db.dialect.name)
+    source = recipe(db.adapter.dialect)
     source.source['db'].packages().package('sales').table('item').column('id', sqlname='item_key')
     with bind(source) as other:
         compiled = writer(other).delete(model(other, 'sales.item'), {'id': 'a'}, {})
@@ -137,7 +137,7 @@ def test_delete_uses_sql_names_in_where(db):
 
 def test_lock_table_uses_nowait(db):
     compiled = writer(db).lock_table(model(db, 'sales.item'), {}, nowait=True)
-    if db.dialect.name == 'sqlite':
+    if db.adapter.dialect == 'sqlite':
         assert compiled is None
     else:
         assert compiled is not None
@@ -155,13 +155,13 @@ CREATE = (
 )
 
 
-@pytest.fixture(params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def live(request, tmp_path):
     if request.param == 'sqlite':
         source, prefix = recipe('sqlite', path=tmp_path / 'writes.db', schema=None), ''
     else:
         schema = 'wc_' + uuid4().hex[:8]
-        source, prefix = recipe('postgresql', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
+        source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
     with bind(source) as database:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')
@@ -183,7 +183,7 @@ def rows(db, sql):
 
 def test_executed_insert_update_delete(live):
     db, compile = live, writer(live)
-    prefix = '' if db.dialect.name == 'sqlite' else model(db, 'sales.item').sqlschema
+    prefix = '' if db.adapter.dialect == 'sqlite' else model(db, 'sales.item').sqlschema
     item_sql = f'"{prefix}".sales_item' if prefix else 'sales_item'
     inserted = db.execute(compile.insert(model(db, 'sales.item'), {'id': 'a', 'name': 'ada', 'state': None}, {}))
     assert [dict(row) for row in inserted.rows] == [{'state': 'new', 'code': 'ADA'}]
@@ -208,7 +208,7 @@ def seed(db, prefix):
 
 def item_sql(db):
     schema = model(db, 'sales.item').sqlschema
-    return (f'"{schema}".' if db.dialect.name == 'postgresql' else ''), schema
+    return (f'"{schema}".' if db.adapter.dialect == 'postgres' else ''), schema
 
 
 def test_query_fetch_then_sql_update_and_sql_delete(live):

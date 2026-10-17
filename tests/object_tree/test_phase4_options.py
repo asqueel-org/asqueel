@@ -58,7 +58,7 @@ def test_generated_markers_and_scalar_partition(backend):
         table = db.table('sales.customer')
         query = table.query('$id', where='$state=:state OR $state IS NULL', state='VIC').compiled
         # SQLite preparation retains the R3 legacy IS NOT TRUE -> IS NULL OR !=1.
-        draft = 'IS NOT TRUE' if backend == 'postgresql' else '!=1'
+        draft = 'IS NOT TRUE' if backend == 'postgres' else '!=1'
         assert f'"__is_draft" {draft}' in query.sql
         assert '"__del_ts" IS NULL' in query.sql
         assert set(query.params.values()) == {'NSW', 'VIC'}
@@ -74,7 +74,7 @@ def test_child_defaults_and_overrides_keep_partition_bindings_isolated(backend):
         assert '__is_draft' not in default.sql
         assert list(default.params.values()) == ['NSW']
         query = table.query('$visible_customers').compiled
-        draft = 'IS NOT TRUE' if backend == 'postgresql' else '!=1'
+        draft = 'IS NOT TRUE' if backend == 'postgres' else '!=1'
         assert f'"__is_draft" {draft}' in query.sql
         assert query.sql.count('"__del_ts" IS NULL') == 2
         assert list(query.params.values()) == ['NSW', 'NSW']

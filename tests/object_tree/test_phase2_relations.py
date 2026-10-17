@@ -7,8 +7,8 @@ import pytest
 
 from asqueel import SqlDatabase, UnsupportedFeatureError
 from asqueel.configuration import _owned_handler
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from asqueel.compiler import _TreeContext
 from asqueel.sql_compiled_query import SqlCompiledQuery
 from examples.test_invoice_pg import source
@@ -17,12 +17,12 @@ from tests.object_tree.test_legacy_rewrite_contracts import normalized
 ORACLE = json.loads((Path(__file__).parents[1]/'oracles/legacy_tree_relations.json').read_text())
 
 
-@pytest.fixture(scope='module', params=['postgresql', 'sqlite'])
+@pytest.fixture(scope='module', params=['postgres', 'sqlite'])
 def db(request):
     def forbidden(*args, **kwargs):
         pytest.fail('Compilation attempted database I/O')
     with pytest.MonkeyPatch.context() as patch:
-        for driver in (PsycopgDriver, SqliteDriver):
+        for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
         patch.setattr(SqlDatabase, 'execute', forbidden)
@@ -36,7 +36,7 @@ def db(request):
                                  if c['dialect'] == 'sqlite'])
 def test_all_declared_relations_against_frozen_legacy(db, name):
     record = next(c for c in ORACLE['cases'] if c['request']['name'] == name
-                  and c['dialect'] == db.dialect.name)
+                  and c['dialect'] == db.adapter.dialect)
     request, expected = record['request'], record['expected']
     joiner = request['joiner']
     query = db.table(request['table']).query(request['columns'], **request['options'])
@@ -126,7 +126,7 @@ def test_new_container_is_independent_and_compilation_is_local(db, monkeypatch):
     import asqueel.compiler as compiler
     assert importlib.util.find_spec('asqueel.query_plan') is None
     assert not hasattr(compiler, '_SelectCompiler')
-    assert not hasattr(db.dialect, 'render')
+    assert not hasattr(db.adapter, 'render')
     attrs = {table.fullname: deepcopy(table.attributes) for table in db.model.tables.values()}
     relations = db.model.relations.to_xml()
     params = {'minimum': 12}
@@ -157,10 +157,10 @@ def test_new_container_is_independent_and_compilation_is_local(db, monkeypatch):
 @pytest.mark.parametrize('name', ['on_root', 'on_parent'])
 def test_on_references_and_parent_qualification(db, name):
     records = json.loads((Path(__file__).parents[1]/'oracles/legacy_tree_join_conditions.json').read_text())
-    case = next(c for c in records['cases'] if c['dialect'] == db.dialect.name
+    case = next(c for c in records['cases'] if c['dialect'] == db.adapter.dialect
                 and c['request']['name'] == name)
     config = source()
-    config.source.get_node('db').attr['implementation'] = db.dialect.name
+    config.source.get_node('db').attr['implementation'] = db.adapter.dialect
     model = config.render(mode='objects_tree')
     node = model.relations.get_node('invc.invoice.@customer_id')
     node.attr['join_on'] = '$customer_id=@customer_id.id AND $total>:minimum'

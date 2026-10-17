@@ -35,7 +35,7 @@ def alias_database():
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    tables = root.db('aliases', conninfo=dsn).schemas().schema(
+                    tables = root.db('aliases', implementation='postgres', conninfo=dsn).schemas().schema(
                         'app', x_sql_schema=schema).tables()
                     country = tables.table('country', pkey='id').columns()
                     country.column('id', dtype='I')

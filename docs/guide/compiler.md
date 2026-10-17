@@ -31,8 +31,8 @@ parameter manglers or table aliases between compilations.
 
 1. `QueryCompiler.plan_select()` resolves fields, relations, formulas and
    parameters into `SqlCompiledQuery`, following the legacy recursion.
-2. `SqlCompiledQuery.get_sqltext(dialect)` delegates clause assembly to
-   `dialect.compile_sql()`.
+2. `SqlCompiledQuery.get_sqltext(adapter)` delegates clause assembly to
+   `adapter.compileSql()`.
 3. `QueryCompiler.compile_plan()` prepares the SQL and kwargs through
    `driver.prepare_sql()` and returns `CompiledQuery` with result metadata.
 4. `db.execute(compiled)` executes on the owning connection and transaction.

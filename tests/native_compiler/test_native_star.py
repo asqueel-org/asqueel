@@ -4,7 +4,7 @@ import pytest
 from asqueel import SqlDatabaseConfig, build_database
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def table(request):
     config = SqlDatabaseConfig()
     pkg = config.source.db('stars', implementation=request.param).packages().package('sales')
@@ -60,7 +60,7 @@ def test_static_alias_uses_existing_relation_join():
     assert query.sql.count('LEFT JOIN') == 1
 
 
-@pytest.mark.parametrize('backend', ['postgresql', 'sqlite'])
+@pytest.mark.parametrize('backend', ['postgres', 'sqlite'])
 def test_subquery_star_uses_same_bag_fields_option(backend):
     config = SqlDatabaseConfig()
     pkg = config.source.db('child', implementation=backend).packages().package('sales')

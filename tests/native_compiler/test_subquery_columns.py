@@ -4,11 +4,11 @@
 import pytest
 
 from asqueel import SqlDatabaseConfig, build_database
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
 
-def source(backend='postgresql'):
+def source(backend='postgres'):
     config = SqlDatabaseConfig()
     pkg = config.source.db('subquery_columns', implementation=backend).packages().package('app')
     owner = pkg.table('owner', pkey='id')
@@ -103,12 +103,12 @@ def source(backend='postgresql'):
     return config
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def db(request, monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail('subQueryColumn compilation attempted database I/O')
 
-    for driver in [PsycopgDriver, SqliteDriver]:
+    for driver in [PostgresAdapter, SqliteAdapter]:
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
     with build_database(source(request.param)) as db:

@@ -9,8 +9,7 @@ import pytest
 
 from asqueel import SqlDatabaseConfig
 from asqueel.compiler import PostgresCompiler
-from asqueel.dialects.postgres import PostgresDialect
-from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.importers import inspect_postgres
 from asqueel.model import resolve_model
 from asqueel.runtime import PostgresDatabase
@@ -72,7 +71,7 @@ def recipe(schema):
 
 
 def writer():
-    return WriteCompiler(PostgresDialect(), PsycopgDriver())
+    return WriteCompiler(PostgresAdapter(None))
 
 
 def test_native_model_compiler_runtime_and_import(native_database):

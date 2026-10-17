@@ -338,7 +338,7 @@ def _prepared_migrator(db, *, allow_removals):
         params.setdefault('dbname', conninfo)
         if params['dbname'] == ':memory:':
             raise MigrationError('Migrations require persistent SQLite files')
-    elif implementation == 'postgresql':
+    elif implementation in ('postgres', 'postgres3'):
         # psycopg is the PostgreSQL extra: a SQLite-only install does not have it.
         from psycopg.conninfo import conninfo_to_dict
         params = conninfo_to_dict(conninfo or '', **(kwargs or {}))

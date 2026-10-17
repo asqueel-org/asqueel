@@ -13,7 +13,7 @@ pytestmark = pytest.mark.postgresql
 def test_manual_assignment_line_comment_cannot_remove_update_guard():
     name = 'adapter_comment_' + uuid.uuid4().hex[:12]
     source = SqlDatabaseConfig()
-    pkg = source.source.db('adapter', implementation='postgresql', conninfo=postgres_dsn()).packages().package(
+    pkg = source.source.db('adapter', implementation='postgres', conninfo=postgres_dsn()).packages().package(
         'adapter', sqlschema='pg_temp', sqlprefix=False)
     table = pkg.table(name, pkey='id')
     table.column('id', dtype='I')

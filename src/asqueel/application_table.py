@@ -224,7 +224,7 @@ class SqlTable(CrudMixin, TriggersMixin):
         columns = self.model.virtual_columns.items()
         reasons.extend(reason(name, 'IS TRUE', name[len(prefix):])
                        for name, column in columns if name.startswith(prefix))
-        return self.db.dialect.concat_non_null(reasons, ',') if reasons else 'NULL'
+        return self.db.adapter.string_join(reasons, ',') if reasons else 'NULL'
 
     def query(self, columns='*', where=None, sqlparams=None, **options_or_bindings):
         self.db._check_open()

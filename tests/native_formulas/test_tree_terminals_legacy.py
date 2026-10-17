@@ -17,7 +17,7 @@ def live_database(executor, state=None):
         else:
             patch.setenv('INVC_STATE', state)
         config = source()
-        config.source['db'].attr['implementation'] = executor.dialect.name
+        config.source['db'].attr['implementation'] = executor.adapter.dialect
         with SqlDatabase(model=config.render(mode='objects_tree'), config=executor.config) as tree:
             tree.currentEnv.update(dict(executor.currentEnv))
             yield tree

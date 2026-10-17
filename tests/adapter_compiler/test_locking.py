@@ -8,7 +8,7 @@ from asqueel.write_compiler import WriteCompiler
 @pytest.fixture
 def db():
     config = SqlDatabaseConfig()
-    pkg = config.source.db('locking', implementation='postgresql').packages().package('app')
+    pkg = config.source.db('locking', implementation='postgres').packages().package('app')
     customer = pkg.table('customer', pkey='id')
     customer.column('id')
     customer.column('name')
@@ -21,7 +21,7 @@ def db():
 
 @pytest.mark.parametrize('operation', ['insert', 'update', 'delete'])
 def test_non_select_lock_is_rejected(db, operation):
-    writer = WriteCompiler(db.dialect, db.driver)
+    writer = WriteCompiler(db.adapter)
     table = db.table('app.invoice').model
     compiled = getattr(writer, operation)(table, {'id': 1, 'customer_id': 2}, {})
     assert compiled.for_update is False and compiled.lock_table is None

@@ -53,7 +53,7 @@ class SqlDatabaseElements:
     """Keep root grammar in a mixin so recipe subclasses retain its defaults."""
 
     @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
-    def db(self, name: str = 'db', implementation: str = 'postgresql', conninfo: str = '',
+    def db(self, name: str = 'db', implementation: str = 'sqlite', conninfo: str = '',
            connect_kwargs: dict | None = None, name_long: str | None = None,
            name_short: str | None = None, comment: str | None = None, **extra):
         ...
@@ -343,11 +343,11 @@ def _connection_settings(config, prefix):
             if root is not None and isinstance(root.value, Bag) and any(
                     child.node_tag == 'connection' for child in root.value):
                 raise ValueError('Named connections require an explicit main connection')
-        return (config('implementation', default='postgresql'),
+        return (config('implementation', default='sqlite'),
                 config('conninfo', default=''), config('connect_kwargs', default=None))
     implementation = read('implementation')
     if implementation is None:
-        implementation = config('implementation', default='postgresql')
+        implementation = config('implementation', default='sqlite')
     if config('conninfo', default='') or config('connect_kwargs', default=None):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
     options = dict(read('options') or {})
@@ -372,7 +372,7 @@ def _connection_settings(config, prefix):
         raise ValueError('connection.database must resolve to a nonempty database name')
     if explicit_dsn and dsn is None:
         raise ValueError('connection.dsn must resolve to a nonempty string')
-    if (database is not None or dsn is not None) and implementation != config('implementation', default='postgresql'):
+    if (database is not None or dsn is not None) and implementation != config('implementation', default='sqlite'):
         raise ValueError('Named connections must use the database dialect')
     if dsn is not None:
         if database is not None or any(read(field) is not None
@@ -380,7 +380,7 @@ def _connection_settings(config, prefix):
             raise ValueError('dsn and individual connection fields cannot be combined')
         if not isinstance(dsn, str) or not dsn.strip():
             raise ValueError('connection.dsn must resolve to a nonempty string')
-        if implementation != 'postgresql':
+        if implementation.partition(':')[0] not in ('postgres', 'postgres3'):
             raise ValueError('dsn requires a PostgreSQL connection')
         return implementation, dsn, options
     name = database if database is not None else name
@@ -406,11 +406,10 @@ def _connection_settings(config, prefix):
     return implementation, '', options
 
 
-def build_database(source, *, parents=None, driver=None, dialect=None, environment=None):
+def build_database(source, *, parents=None, environment=None):
     """Compatibility factory; new application code can instantiate AsqueelDb."""
     from .application import AsqueelDb
-    return AsqueelDb(source, parents=parents, driver=driver, dialect=dialect,
-                     environment=environment)
+    return AsqueelDb(source, parents=parents, environment=environment)
 
 
 def _effective_model_builder(config):

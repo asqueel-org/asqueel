@@ -12,7 +12,7 @@ SCOPE = {'field': 'organization', 'current': 'organization', 'allowed': 'allowed
 
 def database(*, partition=SCOPE, draft='draft', deleted='deleted_at', environment=None):
     config = SqlDatabaseConfig()
-    pkg = config.source.db('policies', implementation='postgresql').packages().package('app')
+    pkg = config.source.db('policies', implementation='postgres').packages().package('app')
     policies = {'x_partition': partition, 'x_draft_field': draft, 'x_logical_deletion_field': deleted}
     item = pkg.table('item', pkey='id', **{key: value for key, value in policies.items() if value})
     item.column('id', dtype='I')
@@ -24,7 +24,7 @@ def database(*, partition=SCOPE, draft='draft', deleted='deleted_at', environmen
 
 
 def writer(db):
-    return WriteCompiler(db.dialect, db.driver)
+    return WriteCompiler(db.adapter)
 
 
 def item(db):
@@ -77,7 +77,7 @@ def test_soft_delete_and_restore_are_explicit_guarded_updates_with_quoted_marker
 
 def relational_database():
     config = SqlDatabaseConfig()
-    pkg = config.source.db('policies', implementation='postgresql').packages().package('app')
+    pkg = config.source.db('policies', implementation='postgres').packages().package('app')
     organization = pkg.table('organization', pkey='id')
     organization.column('id', dtype='I')
     organization.column('region')

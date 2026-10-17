@@ -37,7 +37,7 @@ def test_field_resolution_does_not_use_previous_expression_scanner(db, monkeypat
     import asqueel.compiler as compiler
     assert not hasattr(compiler, '_Context')
     assert not hasattr(compiler, '_split')
-    assert not hasattr(db.dialect, 'tokens')
+    assert not hasattr(db.adapter, 'tokens')
     compiled = db.table('sales.invoice').query(
         columns="COALESCE($total,0) AS amount, '$id' AS literal",
         where='$id=:id', id=1).compiled
@@ -125,13 +125,13 @@ def test_environment_snapshot_and_preparation_are_separate(db, monkeypatch):
     plan = db.compiler.plan_select('sales.invoice', columns='$id',
                                   where='$issued=:env_workdate', sqlparams={})
     captured = []
-    prepare = db.driver.prepare_sql
+    prepare = db.adapter.prepare_sql
 
     def record(sql, params, snapshot):
         captured.append((sql, dict(params)))
         return prepare(sql, params, snapshot)
 
-    monkeypatch.setattr(db.driver, 'prepare_sql', record)
+    monkeypatch.setattr(db.adapter, 'prepare_sql', record)
     with db.tempEnv(workdate='changed after planning'):
         compiled = db.compiler.compile_plan(plan)
     assert len(captured) == 1
@@ -143,7 +143,7 @@ def test_environment_snapshot_and_preparation_are_separate(db, monkeypatch):
 
 def test_wrong_dialect_plan_still_rejected(db):
     plan = db.compiler.plan_select('sales.invoice', columns='$id')
-    other = 'sqlite' if plan.dialect == 'postgresql' else 'postgresql'
+    other = 'sqlite' if plan.dialect == 'postgres' else 'postgres'
     with pytest.raises(ValueError):
         db.compiler.compile_plan(replace(plan, dialect=other))
 
@@ -153,7 +153,7 @@ def test_r3_prepares_values_and_unicode_without_recompiling_fields(db):
         columns='$id', where='$total>:soglia_è AND $label=:value',
         sqlparams={'soglia_è': 3, 'value': b'\\$id'}).compiled
     assert compiled.params == {'soglia_è': 3, 'value': '$id'}
-    marker = '%(soglia_è)s' if db.dialect.name == 'postgresql' else ':soglia_è'
+    marker = '%(soglia_è)s' if db.adapter.dialect == 'postgres' else ':soglia_è'
     assert marker in compiled.sql
     assert compiled.input_parameters == ('soglia_è', 'value')
 

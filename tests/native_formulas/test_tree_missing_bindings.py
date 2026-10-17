@@ -17,7 +17,7 @@ def db(request):
 
 
 def nullable(db, name):
-    return f'CAST(:{name} AS TEXT)' if db.dialect.name == 'postgresql' else f':{name}'
+    return f'CAST(:{name} AS TEXT)' if db.adapter.dialect == 'postgres' else f':{name}'
 
 
 @pytest.mark.parametrize('params', [None, {}, {'root_fkey': None}])

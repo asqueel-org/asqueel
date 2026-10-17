@@ -33,14 +33,14 @@ class IntegrationDb(AsqueelDb):
         return super().execute(query, sqlargs)
 
 
-@pytest.fixture(params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def database(request, tmp_path):
     backend = request.param
-    physical_schema = 'life_' + uuid4().hex if backend == 'postgresql' else 'app'
-    dsn = postgres_dsn() if backend == 'postgresql' else None
+    physical_schema = 'life_' + uuid4().hex if backend == 'postgres' else 'app'
+    dsn = postgres_dsn() if backend == 'postgres' else None
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            db = root.db(conninfo=dsn) if dsn else root.db()
+            db = root.db(implementation='postgres', conninfo=dsn) if dsn else root.db()
             if not dsn:
                 db.connection(name=str(tmp_path / 'lifecycle.db'), implementation='sqlite')
             tables = db.schemas().schema('app', x_sql_schema=physical_schema).tables()
@@ -118,7 +118,7 @@ def test_integration_hook_error_blocks_commit_for_normal_and_raw(database):
 def test_direct_sql_uses_driver_binding_and_same_environment(database):
     db = database
     with db.tempEnv(user="O'Reilly 50%"):
-        literal = r"\:fake 50%%" if db.dialect.name == 'postgresql' else r"\:fake 50%"
+        literal = r"\:fake 50%%" if db.adapter.dialect == 'postgres' else r"\:fake 50%"
         result = db.execute(f"SELECT :env_user AS username, '{literal}' AS literal")
         assert [dict(row) for row in result.rows] == [{'username': "O'Reilly 50%", 'literal': ':fake 50%'}]
         db.commit()

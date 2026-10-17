@@ -25,7 +25,7 @@ BASE_VIRTUAL = {'__record_pointer', '__protecting_reasons', '__is_protected_row'
 
 def source():
     builder = SqlDatabaseConfig()
-    db = builder.source.db('options')
+    db = builder.source.db('options', implementation='postgres')
     return builder, db.packages()
 
 

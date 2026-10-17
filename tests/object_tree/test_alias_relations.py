@@ -8,7 +8,7 @@ from asqueel.compiler import PostgresCompiler
 from tests.native_support import postgres_dsn
 
 
-def source(*, implementation='postgresql', schema='public', conninfo=None, explicit=False):
+def source(*, implementation='postgres', schema='public', conninfo=None, explicit=False):
     config = SqlDatabaseConfig()
     root = config.source.db('aliases', implementation=implementation, **({'conninfo': conninfo} if conninfo else {}))
     package = root.packages().package('app', sqlschema=schema, sqlprefix=False)
@@ -78,8 +78,8 @@ def test_alias_cycle_does_not_recurse_during_inheritance():
 
 
 @pytest.fixture(params=[('sqlite', False), ('sqlite', True),
-                        pytest.param(('postgresql', False), marks=pytest.mark.postgresql),
-                        pytest.param(('postgresql', True), marks=pytest.mark.postgresql)])
+                        pytest.param(('postgres', False), marks=pytest.mark.postgresql),
+                        pytest.param(('postgres', True), marks=pytest.mark.postgresql)])
 def database(request):
     backend, explicit = request.param
     schema = 'main' if backend == 'sqlite' else 'alias_rel_' + uuid4().hex
@@ -89,7 +89,7 @@ def database(request):
     prefix = f'"{schema}".'
     created = False
     try:
-        if backend == 'postgresql':
+        if backend == 'postgres':
             db.execute(f'CREATE SCHEMA "{schema}"')
             created = True
         for name, fields in [('customer', 'id integer primary key, name text'),

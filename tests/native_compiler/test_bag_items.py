@@ -3,11 +3,11 @@
 import pytest
 
 from asqueel import SqlDatabaseConfig, build_database
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
 
-def source(backend='postgresql'):
+def source(backend='postgres'):
     config = SqlDatabaseConfig()
     pkg = config.source.db('bags', implementation=backend).packages().package('app')
     pkg.options().type('money', dtype='N', size='14,2')
@@ -38,7 +38,7 @@ def source(backend='postgresql'):
 def no_io(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail('Bag column compilation attempted database I/O')
-    for driver in [PsycopgDriver, SqliteDriver]:
+    for driver in [PostgresAdapter, SqliteAdapter]:
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
 

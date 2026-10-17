@@ -15,7 +15,7 @@ import pytest
 
 from asqueel._legacy_sql import embed_field_parameters
 from asqueel.contracts import UnsupportedFeatureError
-from asqueel.drivers.result import query_result
+from asqueel.adapters.base import query_result
 from tests.object_tree import test_minimal_select as minimal
 
 
@@ -49,7 +49,7 @@ def test_embed_original_function_oracle(record):
 
 
 @pytest.mark.parametrize('record', [r for r in ORACLE['records']
-                                   if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                                   if r['kind'] == 'projection' and r['dialect'] == 'postgres'],
                          ids=lambda r: r['name'])
 def test_projection_from_original_compiled_query(db, record):
     plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
@@ -68,7 +68,7 @@ def test_projection_from_original_compiled_query(db, record):
     else:
         expected = corrected.get(record['columns'], record['legacy']['value'])
     assert actual.strip() == expected.strip()
-    sql = plan.get_sqltext(db.compiler.dialect)
+    sql = plan.get_sqltext(db.compiler.adapter)
     assert sql.startswith('SELECT ')
     # The adapter must render authored projections without appending another AS.
     assert sql.split('\n FROM ', 1)[0] == 'SELECT ' + actual
@@ -97,7 +97,7 @@ def test_symbolic_binding_only_replaces_where_and_preserves_input(db):
     assert compiled.params == params
     assert compiled.input_parameters == ('threshold',)
     assert params == {'threshold': '$id'}
-    assert compiled.sql.count('%(threshold)s' if db.driver.dialect == 'postgresql' else ':threshold') == 2
+    assert compiled.sql.count('%(threshold)s' if db.adapter.dialect == 'postgres' else ':threshold') == 2
 
 
 def test_symbolic_bytes_and_prefix_boundaries(db):

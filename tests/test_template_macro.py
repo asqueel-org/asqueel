@@ -13,7 +13,7 @@ LABEL = "#TEMPLATE('${n} - ${s} (${c})', $name AS n, $surname AS s, @city_id.nam
 def source(backend):
     config = SqlDatabaseConfig()
     pkg = config.source.db('template_macro', implementation=backend).packages().package(
-        'app', sqlschema='pg_temp' if backend == 'postgresql' else 'main')
+        'app', sqlschema='pg_temp' if backend == 'postgres' else 'main')
     city = pkg.table('city', pkey='id')
     city.column('id', dtype='L')
     city.column('name')
@@ -26,18 +26,18 @@ def source(backend):
     return config
 
 
-@pytest.fixture(scope='module', params=['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.fixture(scope='module', params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def backend(request):
     return request.param
 
 
 @pytest.fixture(scope='module')
 def connection(backend):
-    connection = (psycopg.connect(postgres_dsn()) if backend == 'postgresql'
+    connection = (psycopg.connect(postgres_dsn()) if backend == 'postgres'
                   else sqlite3.connect(':memory:'))
     try:
         cursor = connection.cursor()
-        kind = 'TEMP ' if backend == 'postgresql' else ''
+        kind = 'TEMP ' if backend == 'postgres' else ''
         cursor.execute(f'CREATE {kind}TABLE app_city (id BIGINT, name TEXT)')
         cursor.execute(f'CREATE {kind}TABLE app_person (id BIGINT, name TEXT, surname TEXT, city_id BIGINT)')
         cursor.execute("INSERT INTO app_city VALUES (1, 'Roma')")

@@ -103,7 +103,7 @@ def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
             populate(root.database(db_class=AsqueelDb))
 
     def populate(root):
-        db = root.db('invoice')
+        db = root.db('invoice', implementation='postgres')
         db.connection('main', database='invoice').options().driver(connect_timeout=2)
         pkg = db.packages().package('invc', sqlschema='sales')
         table = pkg.table('customer', caption_field='name')

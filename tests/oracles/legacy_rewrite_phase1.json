@@ -16326,7 +16326,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "physical",
         "table": "invc.invoice",
@@ -16372,7 +16372,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "case_coalesce",
         "table": "invc.invoice",
@@ -16428,7 +16428,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "direct",
         "table": "invc.invoice",
@@ -16477,7 +16477,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "two_hops",
         "table": "invc.invoice_row",
@@ -16526,7 +16526,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "three_hops",
         "table": "invc.invoice",
@@ -16576,7 +16576,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "reuse_across_clauses",
         "table": "invc.invoice",
@@ -16625,7 +16625,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "inverse",
         "table": "invc.customer",
@@ -16677,7 +16677,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "inverse_reuse",
         "table": "invc.invoice",
@@ -16731,7 +16731,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "inverse_forward",
         "table": "invc.customer",
@@ -16787,7 +16787,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "different_paths_same_table",
         "table": "invc.invoice_row",
@@ -16839,7 +16839,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "alias_and_direct_reuse",
         "table": "invc.invoice",
@@ -16888,7 +16888,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "formula_relation",
         "table": "invc.customer",
@@ -16938,7 +16938,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "formula_dependencies",
         "table": "invc.invoice_row",
@@ -16984,7 +16984,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "correlated_subqueries",
         "table": "invc.customer",
@@ -17031,7 +17031,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "formula_chain",
         "table": "invc.customer",
@@ -17079,7 +17079,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "formula_parameters",
         "table": "invc.invoice",
@@ -17128,7 +17128,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "named_subqueries",
         "table": "invc.invoice",
@@ -17175,7 +17175,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "subquery_column",
         "table": "invc.invoice",
@@ -17221,7 +17221,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "composite_join",
         "table": "invc.price_year_note",
@@ -17269,7 +17269,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "composite_two_paths",
         "table": "invc.price_year_note",
@@ -17320,7 +17320,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "symbolic_relation_parameter",
         "table": "invc.invoice",
@@ -17378,7 +17378,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "group_inverse",
         "table": "invc.customer",
@@ -17438,7 +17438,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "distinct_inverse",
         "table": "invc.customer",
@@ -17489,7 +17489,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "implicit_distinct_hidden_order",
         "table": "invc.customer",
@@ -17541,7 +17541,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "count_inverse_explicit",
         "table": "invc.customer",
@@ -17590,7 +17590,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "count_inverse_filter",
         "table": "invc.customer",
@@ -17647,7 +17647,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "group_star",
         "table": "invc.invoice",
@@ -17694,7 +17694,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "star",
         "table": "invc.customer",
@@ -17757,7 +17757,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "macro_range",
         "table": "invc.invoice",
@@ -17813,7 +17813,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "default_pkey",
         "table": "invc.invoice",
@@ -17859,7 +17859,7 @@
       }
     },
     {
-      "dialect": "postgresql",
+      "dialect": "postgres",
       "request": {
         "name": "default_inverse",
         "table": "invc.customer",

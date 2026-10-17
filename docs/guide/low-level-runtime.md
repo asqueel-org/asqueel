@@ -23,12 +23,12 @@ parameter overrides it. SQL expressions and functions must fit the backend.
 
 `db.execute(compiled_query)` also accepts a `CompiledQuery`, including the one
 produced by `db.table(...).query(...).compiled`. Compiled queries already contain
-their parameters and dialect/binding profile; do not pass a separate parameter
+their parameters and adapter profile (`dialect`, `binding`); do not pass a separate parameter
 mapping. Environment bindings are checked before execution.
 
 ## Execution without a model
 
-`Database(driver=...)` and `PostgresDatabase(...)` remain available for callers
+`Database(implementation=...)` and `PostgresDatabase(...)` remain available for callers
 that only execute statements. Their implementation is the same execution base
 used by the configured DB: lazy named connections, thread-local state, and
 explicit `commit()` / `rollback()`.

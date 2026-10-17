@@ -10,7 +10,7 @@ from asqueel.validation import validate_value
 
 def source():
     b = SqlDatabaseConfig()
-    pkg = b.source.db('example').packages().package('sales')
+    pkg = b.source.db('example', implementation='postgres').packages().package('sales')
     return b, pkg
 
 

@@ -33,14 +33,14 @@ class Item(SqlTable):
         return 'COALESCE(#rows,0) + :factor'
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def rule_db(request, tmp_path):
     backend = request.param
     schema = 'method_formulas_' + uuid4().hex
     config = SqlDatabaseConfig()
     root = config.source.db('method_results', implementation=backend)
     root.connection(implementation=backend, **(
-        {'dsn': postgres_dsn()} if backend == 'postgresql'
+        {'dsn': postgres_dsn()} if backend == 'postgres'
         else {'database': str(tmp_path / 'rules.db')}))
     table = root.packages().package('app', sqlschema=schema, sqlprefix=False).table(
         'item', pkey='id', x_table_class=Item, x_legacy_protectionColumn='gate')
@@ -57,7 +57,7 @@ def rule_db(request, tmp_path):
     table.formulaColumn('__invalid_reasons', sql_formula=True)
     table.formulaColumn('__is_protected_row', "$__protecting_reasons!=''", dtype='B')
     table.formulaColumn('__is_invalid_row', "$__invalid_reasons!=''", dtype='B')
-    admin = psycopg.connect(postgres_dsn(), autocommit=True) if backend == 'postgresql' else None
+    admin = psycopg.connect(postgres_dsn(), autocommit=True) if backend == 'postgres' else None
     try:
         if admin is not None:
             admin.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))

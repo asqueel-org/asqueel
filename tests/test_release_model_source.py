@@ -8,7 +8,7 @@ from asqueel.validators import SqlModelValidationError
 
 def source():
     builder = SqlDatabaseConfig()
-    db = builder.source.db('test_invoice_pg', implementation='postgresql')
+    db = builder.source.db('test_invoice_pg', implementation='postgres')
     pkg = db.packages().package('invc', sqlschema='invc', sqlprefix=True)
     return builder, db, pkg
 

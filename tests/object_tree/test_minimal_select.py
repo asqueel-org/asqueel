@@ -8,8 +8,8 @@ import pytest
 
 from asqueel import SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError
 from asqueel.configuration import _owned_handler
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.drivers.sqlite import SqliteDriver
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from examples.test_invoice_pg import source as invoice_source
 from tests.object_tree.test_invoice import TABLES
 
@@ -18,7 +18,7 @@ from tests.object_tree.test_invoice import TABLES
 def no_io(monkeypatch):
     def denied(*args, **kwargs):
         pytest.fail('Compilation must not open a connection or execute SQL')
-    for driver in (PsycopgDriver, SqliteDriver):
+    for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', denied)
         monkeypatch.setattr(driver, 'execute', denied)
     monkeypatch.setattr(SqlDatabase, 'execute', denied)
@@ -46,7 +46,7 @@ def bind(source):
     return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
 
 
-@pytest.fixture(params=['postgresql', 'sqlite'])
+@pytest.fixture(params=['postgres', 'sqlite'])
 def db(request):
     source, _ = recipe(request.param)
     with bind(source) as database:
@@ -55,7 +55,7 @@ def db(request):
 
 
 def assert_bindings(query):
-    pattern = r'%\((\w+)\)s' if query.dialect == 'postgresql' else r':(\w+)'
+    pattern = r'%\((\w+)\)s' if query.dialect == 'postgres' else r':(\w+)'
     assert set(re.findall(pattern, query.sql)) == set(query.params)
 
 
@@ -100,7 +100,7 @@ def test_reuse_keeps_legacy_binding_names_and_detached_inputs(db):
     assert second.params['env_workdate'] == date(2026, 10, 15)
     # The legacy postgres3 allocator overwrites ids_0; SQLite uses ids0/ids1.
     # Preserve this observed contract, rather than silently add a new allocator.
-    pg = db.dialect.name == 'postgresql'
+    pg = db.adapter.dialect == 'postgres'
     assert first.params['ids_0'] == (1 if pg else 3)
     assert sorted(v for v in first.params.values() if isinstance(v, int)) == ([1, 2] if pg else [1, 2, 3])
     for compiled in (first, second, third):
@@ -118,7 +118,7 @@ def test_legacy_references_in_literals_comments_and_cast(db):
     assert compiled.input_parameters == ('id',)
 
 
-@pytest.mark.parametrize('db', ['postgresql'], indirect=True)
+@pytest.mark.parametrize('db', ['postgres'], indirect=True)
 def test_postgres_cast(db):
     query = db.table('sales.invoice').query(
         columns='$total::numeric AS amount',
@@ -199,7 +199,7 @@ def test_implicit_behaviour_and_explicit_bypass(feature):
         assert 'WHERE' not in query.sql
 
 
-@pytest.fixture(scope='module', params=['postgresql', 'sqlite'])
+@pytest.fixture(scope='module', params=['postgres', 'sqlite'])
 def invoice_databases(request):
     source = invoice_source()
     source.source.get_node('db').attr['implementation'] = request.param
@@ -234,7 +234,7 @@ def test_port_of_legacy_physical_columns(invoice_databases, columns, limit, name
     assert 'JOIN' not in compiled.sql
 
 
-@pytest.mark.parametrize('implementation', ['postgresql', 'sqlite'])
+@pytest.mark.parametrize('implementation', ['postgres', 'sqlite'])
 def test_quoted_physical_names_and_live_object_identity(implementation):
     source, table = recipe(implementation)
     table.attr['sqlname'] = 'Invoice Records'
@@ -254,7 +254,7 @@ def test_quoted_physical_names_and_live_object_identity(implementation):
 def test_empty_collection_and_legacy_params(db):
     compiled = db.table('sales.invoice').query(
         columns='$id', where='$id IN :ids', sqlparams={'ids': [], 'unused': 3}).compiled
-    pg = db.dialect.name == 'postgresql'
+    pg = db.adapter.dialect == 'postgres'
     assert compiled.params == ({'ids': [], 'unused': 3} if pg else {'unused': 3})
     assert compiled.input_parameters == ('ids',)
     empty = 'WHERE (FALSE)' if pg else 'IN ()'

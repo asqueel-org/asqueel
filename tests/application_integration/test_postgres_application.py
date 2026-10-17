@@ -38,7 +38,7 @@ def application():
 
         class Recipe(SqlDatabaseConfig):
             def main(self, root):
-                tables = root.db('acceptance', conninfo=dsn).schemas().schema(
+                tables = root.db('acceptance', implementation='postgres', conninfo=dsn).schemas().schema(
                     'app', x_sql_schema=schema).tables()
                 item = tables.table('item', pkey='id', x_table_class=AuditedItem).columns()
                 item.column('id', dtype='I')

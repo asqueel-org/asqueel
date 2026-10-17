@@ -9,7 +9,7 @@ from asqueel import SqlDatabaseConfig
 
 def source(*, current_state=None):
     config = SqlDatabaseConfig()
-    db = config.source.db('test_invoice_pg', implementation='postgresql')
+    db = config.source.db('test_invoice_pg', implementation='postgres')
     db.connection('main', database='test_invoice_pg',
                   host=EnvResolver('PGHOST', default='localhost'),
                   port=EnvResolver('PGPORT', default=5432, dtype='L'),

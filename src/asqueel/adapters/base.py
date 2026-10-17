@@ -190,6 +190,7 @@ class SqlDbAdapter:
                 f'adapter profile {self.dialect}/{self.binding}')
 
     def cursor(self, connection):  # wf:phase-2:new
+        """A cursor that closes as a context manager, as DB-API 2 psycopg cursors do."""
         return connection.cursor()
 
     def _params(self, params):  # wf:phase-2:new
@@ -197,23 +198,17 @@ class SqlDbAdapter:
 
     def execute(self, connection, query: CompiledQuery) -> QueryResult:
         self.validate(query)
-        cursor = self.cursor(connection)
-        try:
+        with self.cursor(connection) as cursor:
             cursor.execute(query.sql, self._params(query.params))
             names = [column[0] for column in cursor.description] if cursor.description is not None else None
             return query_result(query.columns, names, cursor)
-        finally:
-            cursor.close()
 
     def executemany(self, connection, query: CompiledQuery, params_seq) -> QueryResult:
         """One statement, one parameter mapping per execution; no result rows."""
         self.validate(query)
-        cursor = self.cursor(connection)
-        try:
+        with self.cursor(connection) as cursor:
             cursor.executemany(query.sql, [self._params(params) for params in params_seq])
             return QueryResult([], cursor.rowcount, ())
-        finally:
-            cursor.close()
 
     def commit(self, connection) -> None:
         connection.commit()
