@@ -13,7 +13,7 @@ from .configuration import SqlDatabaseConfig
 
 
 def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_aliases=None):
-    source = Bag(document)
+    source = Bag.from_xml(document)
     packages = source.get_item('packages')
     if not isinstance(packages, Bag) or not len(packages):
         raise ValueError('Expected an expanded legacy source with packages')

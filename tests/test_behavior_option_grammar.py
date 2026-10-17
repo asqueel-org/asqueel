@@ -1,6 +1,7 @@
 """Declaration-only contracts: no live-model or provider construction."""
 from pathlib import Path
 import importlib.util
+import json
 
 import pytest
 from asqueel import SqlDatabaseConfig, SqlBuilder, SqlMigrationRenderer
@@ -136,9 +137,10 @@ def test_grammar_export_and_source_json_preserve_declarations(tmp_path):
     SqlBuilder.to_grammar(path)
     text = path.read_text()
     assert all('"' + tag + '"' in text for tag in TABLE_OPTIONS)
-    from genro_bag import Bag
-    parsed = Bag.from_json(b.source.to_json())
-    assert parsed.get_node('db.packages.app.tables.item.options.hierarchical').get_attr('columns') == [{'name': 'code', 'unique': True}]
+    node, = json.loads(b.source.to_json())
+    for label in ('packages', 'app', 'tables', 'item', 'options', 'hierarchical'):
+        node, = (child for child in node['value'] if child['label'] == label)
+    assert node['attr']['columns'] == [{'name': 'code', 'unique': True}]
 
 
 def test_attachment_missing_master_cannot_be_silently_omitted_from_migration():

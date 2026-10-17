@@ -29,9 +29,7 @@ _COLREL = re.compile(r'([@$]\w+(?:\.\w+)*)')
 _TEMPLATE = re.compile(r'#TEMPLATE\s*\(')
 _TEMPLATE_LITERAL = re.compile(r"\s*'((?:[^']|'')*)'\s*", re.S)
 _TEMPLATE_ARGUMENT = re.compile(r'(.+)\s+as\s+(\w+)\s*', re.I | re.S)
-# Placeholder marker. Temporary: genro-builders expands ${name} in model
-# attributes; the marker goes back to $ once builders changes its syntax.
-_TEMPLATE_MARK = '§'
+_TEMPLATE_MARK = '$'
 _TEMPLATE_FIELD = re.compile(re.escape(_TEMPLATE_MARK) + r'(?:\{(\w+)\}|(' + re.escape(_TEMPLATE_MARK) + r'))?')
 
 
@@ -54,7 +52,7 @@ def _closing_parenthesis(text, start):
 
 
 def expand_templates(text, dialect):
-    """#TEMPLATE('§{n} - §{s}', $name AS n, $surname AS s) as the dialect's concatenation."""
+    """#TEMPLATE('${n} - ${s}', $name AS n, $surname AS s) as the dialect's concatenation."""
     match = _TEMPLATE.search(text or '')
     while match:
         end = _closing_parenthesis(text, match.end())

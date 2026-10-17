@@ -31,7 +31,7 @@ def source():
 
 def legacy_table(key):
     pkg, name = key.split('.')
-    return Bag(ORACLE.read_text()).get_node(f'packages.{pkg}.tables.{name}')
+    return Bag.from_xml(ORACLE.read_text()).get_node(f'packages.{pkg}.tables.{name}')
 
 
 def assert_legacy_columns(table, names, key):

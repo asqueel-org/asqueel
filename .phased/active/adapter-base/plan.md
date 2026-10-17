@@ -10,13 +10,16 @@ Must not break: later macros (.phased/roadmap.md) build on `db.adapter` as the o
 First macro of the cleanup decided on 2026-10-17 after the audit of unauthorized differences. Move to genro-builders 0.29 so `#TEMPLATE` uses `${name}`, then give asqueel the legacy `db.adapter`: one object per implementation that adapts the abstract db to the backend, replacing today's split between `dialects/` and `drivers/`.
 
 ## Work Plan
-- [ ] **Phase 1**: genro-builders 0.29 and `${name}` in #TEMPLATE
+- [x] **Phase 1**: genro-builders 0.29 and `${name}` in #TEMPLATE
   - Run: opus / medium
   - Pattern: `library-standard` (dependency bump); `tests/test_template_macro.py` for the macro tests
   - Files: `pyproject.toml`, `src/asqueel/compiler.py` (`_TEMPLATE_MARK`, `_TEMPLATE_FIELD`), `tests/test_template_macro.py`, any module the new genro-builders/genro-bag versions break
   - Decisions: dependencies `genro-builders>=0.29.0,<0.30` and `genro-bag>=0.28.0,<0.29` (genro-builders 0.29.0 requires genro-bag>=0.28.0). From 0.29.0 builders keeps ordinary `${name}` attribute text literal (CHANGELOG 0.29.0, BREAKING). #TEMPLATE placeholder back to `${name}`, literal marker `$$` (user decision 2026-10-17). Breaking changes of genro-bag 0.28 / genro-builders 0.28-0.29 are absorbed in asqueel code, never pinned around.
   - Details: bump the two dependencies, recreate venv/ (`uv pip install --python venv/bin/python -e ".[dev,docs]"`), run the suite and fix what the upgrade breaks; switch `_TEMPLATE_MARK` to `$` and rewrite the tests with `${n}` and `$$`; add a test where `${n}` sits in a model `formulaColumn` attribute and reaches the compiler intact.
   - Done: `venv/bin/python -m pytest tests --no-cov -q` green on PostgreSQL and SQLite (only the existing strict xfails); `venv/bin/python -m pytest tests/test_template_macro.py --no-cov -q` green with `${n}` placeholders, including the model formulaColumn case; `grep -n "§" src/asqueel/compiler.py tests/test_template_macro.py` empty; ruff and mypy pass.
+  > Done: genro-builders 0.29 / genro-bag 0.28; #TEMPLATE placeholder back to `${name}`, literal `$$`; XML text into Bag via `Bag.from_xml` (genro-bag 0.28 `Bag()` takes only dict/list/None); suite 4761 passed, 42 skipped, 32 xfailed; ruff, mypy clean
+  > Files: pyproject.toml, src/asqueel/compiler.py, src/asqueel/legacy_source.py, src/asqueel/application_table.py, tests/test_template_macro.py, tests/test_native_option_expansion.py, tests/test_behavior_option_grammar.py, .phased/active/adapter-base/notes.md, .phased/active/adapter-base/plan.md
+  > Review: `SqlSourceBag` is not a TYTX subtype, so `source.to_tytx()` raises and genro-bag 0.28 has no reader for the node-list `to_json`; the grammar test now reads `to_json` with `json.loads`. No plan decision covers registering it.
 
 - [ ] **Phase 2**: `db.adapter` as in the legacy  `vast`
   - Run: opus / high

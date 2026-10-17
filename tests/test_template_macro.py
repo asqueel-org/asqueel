@@ -7,7 +7,7 @@ import pytest
 from asqueel import SqlDatabaseConfig, build_database
 from tests.native_support import postgres_dsn
 
-LABEL = "#TEMPLATE('§{n} - §{s} (§{c})', $name AS n, $surname AS s, @city_id.name AS c)"
+LABEL = "#TEMPLATE('${n} - ${s} (${c})', $name AS n, $surname AS s, @city_id.name AS c)"
 
 
 def source(backend):
@@ -61,6 +61,10 @@ def rows(connection, query):
     return cursor.fetchall()
 
 
+def test_model_keeps_template_placeholders_literal(model):
+    assert model.table('app.person').column('label').attributes['sql_formula'] == LABEL
+
+
 def test_template_in_a_formula_column_reads_columns_and_relations(model, connection):
     query = model.table('app.person').query('$label', order_by='$id')
     assert rows(connection, query) == [('Ada - Lovelace (Roma)',), ('Bob -  ()',)]
@@ -68,25 +72,25 @@ def test_template_in_a_formula_column_reads_columns_and_relations(model, connect
 
 def test_template_in_columns_where_and_order_by(model, connection):
     query = model.table('app.person').query(
-        "#TEMPLATE('§{i}: §{n}', $id AS i, $name AS n) AS tag",
-        where="#TEMPLATE('§{n}!', $name AS n) = :value", sqlparams={'value': 'Ada!'},
-        order_by="#TEMPLATE('§{s}', $surname AS s)")
+        "#TEMPLATE('${i}: ${n}', $id AS i, $name AS n) AS tag",
+        where="#TEMPLATE('${n}!', $name AS n) = :value", sqlparams={'value': 'Ada!'},
+        order_by="#TEMPLATE('${s}', $surname AS s)")
     assert rows(connection, query) == [('1: Ada',)]
 
 
 def test_literal_marker_and_quotes(model, connection):
     query = model.table('app.person').query(
-        "#TEMPLATE('§§ it''s §{n}', $name AS n) AS tag", where='$id=1')
-    assert rows(connection, query) == [("§ it's Ada",)]
+        "#TEMPLATE('$$ it''s ${n}', $name AS n) AS tag", where='$id=1')
+    assert rows(connection, query) == [("$ it's Ada",)]
 
 
 @pytest.mark.parametrize('expression, message', [
-    ("#TEMPLATE('§{a}', $name AS b)", 'has no argument'),
-    ("#TEMPLATE('§{a}', $name AS a, $id AS b)", 'unused arguments'),
-    ("#TEMPLATE('§{a}', $name)", 'needs "AS <name>"'),
-    ("#TEMPLATE('§{a}', $name AS a, $id AS a)", 'duplicate name'),
+    ("#TEMPLATE('${a}', $name AS b)", 'has no argument'),
+    ("#TEMPLATE('${a}', $name AS a, $id AS b)", 'unused arguments'),
+    ("#TEMPLATE('${a}', $name)", 'needs "AS <name>"'),
+    ("#TEMPLATE('${a}', $name AS a, $id AS a)", 'duplicate name'),
     ("#TEMPLATE($name AS a)", 'quoted template'),
-    ("#TEMPLATE('§{a}', $name AS a", 'missing closing parenthesis'),
+    ("#TEMPLATE('${a}', $name AS a", 'missing closing parenthesis'),
 ])
 def test_template_errors(model, expression, message):
     with pytest.raises(ValueError, match=message):

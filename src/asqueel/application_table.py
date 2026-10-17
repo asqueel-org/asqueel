@@ -167,7 +167,9 @@ class SqlRecord:
             result = Bag()
             for name, value in _copy(self._load()).items():
                 column = self.table.model.column(name)
-                result.set_item(name, Bag(value) if column.dtype == 'X' else value,
+                if column.dtype == 'X':
+                    value = Bag() if value is None else Bag.from_xml(value)
+                result.set_item(name, value,
                                 _attributes=dict(column.attributes, dtype=column.dtype))
             return result
         raise UnsupportedFeatureError(f'Unsupported record output: {mode!r}; supported: dict, record')
