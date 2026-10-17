@@ -62,7 +62,7 @@ def sql_literal(text):
     return "'" + text.replace("'", "''") + "'"
 
 
-def mask_bounds(mode):  # wf:phase-2:new
+def mask_bounds(mode):
     """Visible characters at start and end of an 'N-M' mask_field_sql mode."""
     parts = mode.split('-')
     if len(parts) != 2 or not all(part.isdigit() for part in parts):
@@ -92,7 +92,7 @@ class SqlDbAdapter:
         if capability not in self.capabilities:
             raise UnsupportedFeatureError(f'{self.dialect}: unsupported capability {capability}')
 
-    def asTranslator(self, as_: str) -> str:  # wf:phase-2:new
+    def asTranslator(self, as_: str) -> str:
         """Legacy asTranslator: quote result aliases; let the DB handle length.
 
         A generated expression alias can exceed PostgreSQL's identifier length,
@@ -101,7 +101,7 @@ class SqlDbAdapter:
         """
         return '"' + as_.replace('"', '""') + '"'
 
-    def adaptSqlName(self, name: str) -> str:  # wf:phase-2:new
+    def adaptSqlName(self, name: str) -> str:
         if not isinstance(name, str) or not name or '\x00' in name:
             raise ValueError('SQL identifiers must be nonempty strings without NUL')
         return '"' + name.replace('"', '""') + '"'
@@ -110,7 +110,7 @@ class SqlDbAdapter:
         """Operand-free replacement of ``IN`` / ``NOT IN`` for an empty collection."""
         return "<> ALL('{}')" if negated else "= ANY('{}')"
 
-    def string_join(self, expressions: list[str], separator: str) -> str:  # wf:phase-2:new
+    def string_join(self, expressions: list[str], separator: str) -> str:
         """Legacy string_join: skip NULL terms, keep empty strings."""
         literal = "'" + separator.replace("'", "''") + "'"
         return f"array_to_string(ARRAY[{', '.join(expressions)}]::text[], {literal})"
@@ -127,7 +127,7 @@ class SqlDbAdapter:
         return (f"(SELECT COALESCE(string_agg({row}.value, {row}.separator), '') "
                 f'FROM ({sql}) AS {row})')
 
-    def compileSql(self, maintable, columns, distinct='', joins=None, where=None,  # wf:phase-2:new
+    def compileSql(self, maintable, columns, distinct='', joins=None, where=None,
                    group_by=None, having=None, order_by=None, limit=None, offset=None,
                    for_update=False, maintable_as='t0'):
         """Legacy compileSql over resolved strings."""
@@ -180,11 +180,11 @@ class SqlDbAdapter:
         return CompiledQuery(sql, params, dialect=self.dialect, binding=self.binding,
                              environment=binding, input_parameters=tuple(sorted(used)))
 
-    def prepareSqlText(self, sql, kwargs):  # wf:phase-2:new
+    def prepareSqlText(self, sql, kwargs):
         """Legacy prepareSqlText: backend syntax and parameters; returns (sql, kwargs)."""
         return self.adaptTupleListSet(sql, kwargs), kwargs
 
-    def adaptTupleListSet(self, sql, sqlargs):  # wf:phase-2:new
+    def adaptTupleListSet(self, sql, sqlargs):
         """Legacy adaptTupleListSet, including its generated names."""
         for key, values in [(k, v) for k, v in list(sqlargs.items())
                             if isinstance(v, (list, tuple, set))]:
@@ -206,11 +206,11 @@ class SqlDbAdapter:
                 f'Query profile {query.dialect}/{query.binding} does not match '
                 f'adapter profile {self.dialect}/{self.binding}')
 
-    def cursor(self, connection):  # wf:phase-2:new
+    def cursor(self, connection):
         """A cursor that closes as a context manager, as DB-API 2 psycopg cursors do."""
         return connection.cursor()
 
-    def _params(self, params):  # wf:phase-2:new
+    def _params(self, params):
         return dict(params)
 
     def execute(self, connection, query: CompiledQuery) -> QueryResult:
@@ -240,15 +240,15 @@ class SqlDbAdapter:
     #  SQL functions for table formulas, as legacy
     # ------------------------------------------------------------------
 
-    def string_agg(self, fieldpath, separator):  # wf:phase-2:new
+    def string_agg(self, fieldpath, separator):
         """Legacy string_agg: a string_agg() SQL expression."""
         return f"string_agg({fieldpath},{sql_literal(separator)})"
 
-    def unaccentFormula(self, field):  # wf:phase-2:new
+    def unaccentFormula(self, field):
         """Legacy unaccentFormula: the field unchanged where the backend has no unaccent."""
         return field
 
-    def ageAtDate(self, dateColumn, dateArg=None, timeUnit='day'):  # wf:phase-2:new
+    def ageAtDate(self, dateColumn, dateArg=None, timeUnit='day'):
         """Legacy ageAtDate: age of dateColumn at :dateArg (default the workdate) in timeUnit."""
         if timeUnit not in _TIME_UNITS:
             raise ValueError(f'ageAtDate: unknown timeUnit {timeUnit!r}; use one of {sorted(_TIME_UNITS)}')
@@ -257,6 +257,6 @@ class SqlDbAdapter:
                 '                        EXTRACT (EPOCH FROM(%s)))/%i as bigint)'
                 % (dateArg, dateColumn, _TIME_UNITS[timeUnit]))
 
-    def mask_field_sql(self, field, mode='2-4', placeholder='*'):  # wf:phase-2:new
+    def mask_field_sql(self, field, mode='2-4', placeholder='*'):
         """Legacy mask_field_sql: modes 'email', 'creditcard', 'phone' or 'N-M'."""
         raise UnsupportedFeatureError(f'{self.dialect}: mask_field_sql is not implemented')

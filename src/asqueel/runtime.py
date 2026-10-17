@@ -64,7 +64,7 @@ class Database:
         self.environment = environment if environment is not None else ApplicationEnvironment()
 
     @property
-    def adapter(self):  # wf:phase-2:new
+    def adapter(self):
         """The adapter of the current implementation; ``currentImplementation`` overrides it."""
         implementation = self.environment.currentEnv.get('currentImplementation') or self.implementation
         if implementation not in self.adapters:

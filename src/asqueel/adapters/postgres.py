@@ -31,17 +31,17 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             raise ValueError('autocommit is incompatible with explicit transactions')
         return psycopg.connect(conninfo, **kwargs)
 
-    def cursor(self, connection):  # wf:phase-2:new
+    def cursor(self, connection):
         from psycopg.rows import tuple_row
 
         return connection.cursor(row_factory=tuple_row)
 
-    def prepareSqlText(self, sql, kwargs):  # wf:phase-2:new
+    def prepareSqlText(self, sql, kwargs):
         """Named arguments as psycopg ``%(name)s``; ``REGEXP`` as ``~*``."""
         sql = self.adaptTupleListSet(sql, kwargs)
         return SQL_PARAMS.sub(r'%(\1)s\2', sql).replace('REGEXP', '~*'), kwargs
 
-    def adaptTupleListSet(self, sql, sqlargs):  # wf:phase-2:new
+    def adaptTupleListSet(self, sql, sqlargs):
         """gnrpostgres3.adaptTupleListSet: unroll IN values for psycopg 3.
 
         The old psycopg2 adapter kept a single tuple binding, which psycopg 3
@@ -68,7 +68,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                 sql = re.sub(r'( *IN) *(?::)(%s)\b' % key, unroll, sql, flags=re.I)
         return sql
 
-    def adaptSqlName(self, name: str) -> str:  # wf:phase-2:new
+    def adaptSqlName(self, name: str) -> str:
         quoted = super().adaptSqlName(name)
         if len(name.encode('utf-8')) > 63:
             raise ValueError('PostgreSQL identifiers must not exceed 63 UTF-8 bytes')
@@ -111,11 +111,11 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             raise UnsupportedFeatureError(f'Unsupported subquery aggregate mode: {mode!r}')
         return f'(SELECT {aggregate} FROM ({sql}) AS {row})'
 
-    def unaccentFormula(self, field):  # wf:phase-2:new
+    def unaccentFormula(self, field):
         return 'unaccent({prefix}{field})'.format(field=field,
                                                   prefix='' if field[0] in ('@', '$') else '$')
 
-    def mask_field_sql(self, field, mode='2-4', placeholder='*'):  # wf:phase-2:new
+    def mask_field_sql(self, field, mode='2-4', placeholder='*'):
         """Legacy PostgreSQL masking expression."""
         placeholder = placeholder.replace("'", "''")
         if mode == 'email':

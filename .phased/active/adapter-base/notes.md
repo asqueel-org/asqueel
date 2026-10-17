@@ -23,3 +23,4 @@
   - Sphinx pages in the toctree showing the removed classes are realigned; docs/design and probes are historical and untouched.
 - Build: rows are indexed by `cursor.description[i][0]` on both backends, as legacy (GnrDictCursor._build_index, GnrSqliteCursor); the fake psycopg cursor of tests/native_runtime/test_runtime.py now exposes a DB-API description tuple instead of `.name`. `cursor()` returns a cursor usable as a context manager (psycopg as is, sqlite3 through closing).
 - Build: ageAtDate with an unknown timeUnit raises ValueError (legacy falls back to 'day'), same rule as mask_field_sql; the base adapter's mask_field_sql raises UnsupportedFeatureError (legacy warns and returns the field). Batch 4 SQL checked equal to the legacy adapters' output at 95da66ee for every case in tests/adapters/test_adapter_functions.py.
+- Naming review (2026-10-17): all names accepted, markers stripped.

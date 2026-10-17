@@ -64,11 +64,11 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def _regexp(expression, item):
         return re.compile(expression, re.U).match(item) is not None
 
-    def cursor(self, connection):  # wf:phase-2:new
+    def cursor(self, connection):
         # sqlite3 cursors are not context managers.
         return closing(connection.cursor())
 
-    def _begin(self, connection, query):  # wf:phase-2:new
+    def _begin(self, connection, query):
         """Explicit transaction boundary; a locked query takes the write reservation."""
         if not connection.in_transaction:
             connection.execute('BEGIN IMMEDIATE')
@@ -90,7 +90,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             connection.execute('BEGIN IMMEDIATE')
         return super().executemany(connection, query, params_seq)
 
-    def _params(self, params):  # wf:phase-2:new
+    def _params(self, params):
         return {name: self._value(value) for name, value in params.items()}
 
     @staticmethod
@@ -101,7 +101,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             return str(value)
         return value
 
-    def prepareSqlText(self, sql, kwargs):  # wf:phase-2:new
+    def prepareSqlText(self, sql, kwargs):
         """Legacy gnrsqlite: ILIKE as LIKE, ``~*`` as REGEXP, IS TRUE/FALSE on 0/1."""
         sql = self.adaptTupleListSet(sql, kwargs)
         # Adapt only the ILIKE token, keeping quoted SQL and bindings intact.
@@ -111,7 +111,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                      self._booleanSubCb, sql, flags=re.I)
         return sql, kwargs
 
-    def _booleanSubCb(self, match):  # wf:phase-2:new
+    def _booleanSubCb(self, match):
         """gnrsqlite._booleanSubCb."""
         prefix, expr, is_not, truth = match.groups()
         value = '1' if truth.upper() == 'TRUE' else '0'
@@ -153,7 +153,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         # SQLite has no array literal; an empty row source is the portable form.
         return 'NOT IN (SELECT 1 WHERE 0)' if negated else 'IN (SELECT 1 WHERE 0)'
 
-    def string_join(self, expressions, separator):  # wf:phase-2:new
+    def string_join(self, expressions, separator):
         # Prefix each non-NULL term, then remove exactly the first separator.
         # Unlike trim(), this preserves separator characters in the values.
         literal = "'" + separator.replace("'", "''") + "'"
@@ -167,7 +167,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                  else f"COALESCE(CAST(({text}) AS TEXT), '')" for text, literal in parts]
         return f"({' || '.join(terms) or chr(39) * 2})"
 
-    def compileSql(self, maintable, columns, distinct='', joins=None, where=None,  # wf:phase-2:new
+    def compileSql(self, maintable, columns, distinct='', joins=None, where=None,
                    group_by=None, having=None, order_by=None, limit=None, offset=None,
                    for_update=False, maintable_as='t0'):
         if for_update:
@@ -177,13 +177,13 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         return super().compileSql(maintable, columns, distinct, joins, where, group_by,
                                   having, order_by, limit, offset, False, maintable_as)
 
-    def string_agg(self, fieldpath, separator):  # wf:phase-2:new
+    def string_agg(self, fieldpath, separator):
         return f"group_concat({fieldpath},{sql_literal(separator)})"
 
-    def ageAtDate(self, dateColumn, dateArg=None, timeUnit='day'):  # wf:phase-2:new
+    def ageAtDate(self, dateColumn, dateArg=None, timeUnit='day'):
         raise UnsupportedFeatureError('SQLite does not support ageAtDate: the legacy SQL needs EXTRACT(EPOCH ...)')
 
-    def mask_field_sql(self, field, mode='2-4', placeholder='*'):  # wf:phase-2:new
+    def mask_field_sql(self, field, mode='2-4', placeholder='*'):
         """Legacy SQLite masking expression; SQLite has no repeat(), so a mask string is cut."""
         placeholder = placeholder.replace("'", "''")
         max_mask_chars = 100  # Maximum mask length supported
