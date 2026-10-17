@@ -29,3 +29,7 @@
 - The old page is dated 4 October 2026 in its header and was committed on 5 October 2026; the new header names both dates.
 - Google Fonts link of the old page dropped to keep the page self-contained; the font stacks fall back to system fonts.
 - Only plain `#n` is linked to asqueel issues; `genropy#n` stays unlinked text.
+
+## Run inspection
+
+- uneventful run, 4/4 phases
