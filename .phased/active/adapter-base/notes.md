@@ -11,3 +11,5 @@
   2. currentImplementation: decided (decisioni.md A8.1, user 2026-10-17: «cambio adapter dall'ambiente con currentImplementation»). In Phase 2: db.adapter reads currentEnv['currentImplementation'] and loads that adapter on demand, as legacy. Plan edit proposed.
   3. ageAtDate on SQLite: the legacy SQLite adapter has no form (base SQL uses EXTRACT(EPOCH FROM), absent in SQLite). Proposed: SQLite raises an explicit error naming the missing capability ("anything outside the grammar raises", user 2026-10-17); the test asserts the SQL on PostgreSQL and the error on SQLite.
   4. Implementation names: decided (A8.1): legacy names 'postgres', 'postgres3', 'sqlite', default 'sqlite'. 'postgresql' is not a legacy name: it raises, no alias (rule "outside the grammar raises"). Configurations, tests and docs using 'postgresql' are realigned in this phase.
+- Gate, user (2026-10-17): 'postgres' and 'postgres3' both load the psycopg 3 adapter (no psycopg2 dependency).
+- Gate, user (2026-10-17): accepted the foreman's plan edit — currentImplementation is in Phase 2.
