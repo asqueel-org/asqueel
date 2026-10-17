@@ -15,3 +15,10 @@
 - Decision vs code: the 2026-10-16 SQLite decision (deferred transaction, lock only with for_update) is not what the code does: src/asqueel/drivers/sqlite.py:64-65 opens BEGIN IMMEDIATE for every unit of work (A6.27). The row describes the code.
 - Code contradicts public docs (code wins, rows say so): docs/guide/writes.md:48-49 and docs/guide/limitations.md:74-75 (SQLite has RETURNING); docs/guide/sqlite.md:65 (ILIKE is translated); docs/guide/limitations.md:20 (ILIKE, ~*, IS TRUE translated on SQLite); docs/guide/cheatsheet.md:87; docs/guide/hooks.md:70-71 (no `level` field); docs/guide/environment.md:101-103 (missing :env_* compiles to None); docs/adattamenti-legacy.md:48-97 and :75-78 (old write layer); docs/design/42-configuration-grammar.md:671 and :526-527. Phase 3 describes the code, not these pages.
 - WriteCompiler.lock_table (src/asqueel/write_compiler.py:176) has no caller in src: a project cannot lock a table (A6.25).
+
+## Phase 3
+
+- Every item carries its inventory ID `(A<n>.<m>)`, `presente` rows included, so coverage is checkable by regex; the page names the inventory path as plain text, not as a link.
+- The workaround of a `mancante` item is the inventory's "leave it out" alternative (c); the other alternatives stay out of the page, as decided.
+- Reasons recorded as "nessuna motivazione registrata" read "not recorded". Reasons citing a user decision read "decision of <date>"; genropy#n issues are described, never linked.
+- Issues cited in `diverso`/`nuovo` rows (#3, #15, #16, #19, #21, #22, #23, #25, #26) are linked too.

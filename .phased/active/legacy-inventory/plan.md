@@ -28,7 +28,9 @@ Describe asqueel 0.6 against GenroPy legacy for the release: one verified invent
   - Details: as Phase 1, areas 5-8. Close the document with `## Riepilogo`: per area the count of each Stato.
   - Done: `venv/bin/python .phased/active/legacy-inventory/check_inventory.py --areas 1-8` exits 0; `venv/bin/python -m sphinx -W -b html docs docs/_build/html` passes; `git diff --stat "$(git log -1 --diff-filter=A --format=%H -- .phased/active/legacy-inventory/plan.md)" -- src tests` is empty.
 
-- [ ] **Phase 3**: English Sphinx chapter for external users
+- [x] **Phase 3**: English Sphinx chapter for external users
+  > Done: docs/guide/legacy-features.md with the 8 areas (works as in GenroPy / differently / not available yet) and a new-features section; all 205 inventory IDs appear exactly once as `(A<n>.<m>)`; linked from docs/guide/legacy.md and the docs/index.rst toctree. sphinx -W passes; 20 `issues/` lines vs 8 distinct issues in mancante rows (#17, #18, #26, #28-#32); no diff under src, tests, docs/review.
+  > Files: docs/guide/legacy-features.md, docs/guide/legacy.md, docs/index.rst, .phased/active/legacy-inventory/plan.md, .phased/active/legacy-inventory/notes.md
   - Pattern reference: `docs/guide/limitations.md` (tone and table shape of the status page); `docs/guide/legacy.md` (existing chapter for GenroPy users)
   - Files: `docs/guide/legacy-features.md` (new), `docs/guide/legacy.md` (one link to the new page), `docs/index.rst` (toctree entry after guide/legacy)
   - Decisions: English; derived only from the inventory, no new claim. Organised by the same 8 areas; per area three lists: works as in GenroPy, works differently (with the reason in one sentence), not available yet (with issue link `https://github.com/asqueel-org/asqueel/issues/<n>` and the workaround); then a section of new features. Alternatives under discussion are NOT in this page (they are team material). `legacy.md` keeps its text; it only gains the link.

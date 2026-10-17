@@ -1,0 +1,9 @@
+✓ Phase 3 completed: English Sphinx chapter for external users
+
+- La nuova pagina `docs/guide/legacy-features.md` copre le 8 aree e le funzioni nuove di asqueel. Ognuno dei 205 ID dell'inventario compare una volta sola.
+- La pagina ha un link da `docs/guide/legacy.md` e una voce nel toctree di `docs/index.rst`.
+- Done criteria eseguiti in questa sessione:
+  - `sphinx -W` passa.
+  - La pagina ha 20 righe con link `issues/`. Le righe `mancante` citano 8 issue distinte (#17, #18, #26, #28-#32).
+  - Nessun diff sotto `src`, `tests` e `docs/review`.
+- Commit `a41eb55`.

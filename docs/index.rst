@@ -76,6 +76,7 @@ Choose your starting point
    :caption: Coming from another data layer
 
    guide/legacy
+   guide/legacy-features
    guide/for-sqlalchemy
    guide/for-django
    guide/for-peewee

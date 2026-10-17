@@ -1,0 +1,668 @@
+# Legacy feature status
+
+This page compares asqueel 0.6 with the SQL layer of GenroPy (`gnrpy/gnr/sql/`),
+feature by feature. It covers what a project calls or declares: methods,
+attributes, macros. For each of eight areas it lists:
+
+- what works as in GenroPy;
+- what works differently, with the reason in one sentence;
+- what is not available yet, with its issue and the workaround.
+
+A last section lists the asqueel features with no GenroPy counterpart.
+
+Every item carries an ID such as `A1.4`. The IDs refer to the verified
+inventory `docs/design/112-legacy-inventory.md` (in Italian), which cites the
+code on both sides. The legacy reference is GenroPy commit `95da66ee`.
+When a reason reads "not recorded", the difference exists in the code and no
+document states why. When this page and another page of the manual disagree,
+this page describes the installed code.
+
+For porting guidance, see [For Genropy users](legacy.md). For the refusals of
+the write cycle, see [Current status](limitations.md).
+
+## 1 Model
+
+### Works as in GenroPy
+
+- `validate_*` attributes (A1.8).
+- `columns` and `relations` of a table (A1.21).
+
+### Works differently
+
+- **`package()`, `sqlschema`, `sqlprefix`, `sqlname`** (A1.1): declared with
+  `package(name, sqlschema, sqlprefix, ...)` under `db.packages()`; there is no
+  `tenant_schema`. Reason: schema and prefix follow the legacy rules; a model
+  with a schema tag does not set the prefix
+  ([#25](https://github.com/asqueel-org/asqueel/issues/25)); `tenant_schema`:
+  not recorded.
+- **`table(name, pkey=, ..., **kwargs)`** (A1.2): only declared parameters are
+  accepted; an extra keyword passes only if it contains `_`, otherwise it is an
+  error (`lastTS`, `logicalDeletionField`, `draftField`, `hierarchical`, `xtd`
+  are refused). Reason: flat `x_*` namespaces replace free attributes.
+- **`lastTS`, `logicalDeletionField`, `draftField`** (A1.3): declared as
+  `x_draft_field` and `x_logical_deletion_field`; `lastTS` exists only as
+  `x_legacy_lastTS` from `sys_fields`, with no `lastTS` property. Reason: row
+  policies are declared in the model; the read filter ignores the deletion
+  timestamp ([#16](https://github.com/asqueel-org/asqueel/issues/16)).
+- **`partition_<field>='path'`** (A1.4): declared with
+  `options().partition(name, field=, value=)`; a legacy `partition_x`
+  attribute is accepted and ignored. Reason: partitions are declared row
+  policies; they do not apply to writes
+  ([#15](https://github.com/asqueel-org/asqueel/issues/15)).
+- **`column()` attributes** (A1.5): same attributes and dtype default;
+  `indexed` and `unique` must be booleans, `indexed='y'` is refused. Reason:
+  not recorded for the refused string.
+- **UI attributes without `_`** (`format`, `values`, `print_width`,
+  `encrypted`, ...) (A1.9): refused as unknown attributes; `values` becomes
+  `validate_values`, `encrypted` becomes the `encryption` child. Reason: UI
+  attributes live in `x_ui_*` namespaces.
+- **`colgroup()`** (A1.11): available; `colgroup_label`,
+  `colgroup_name_long` and `group_<name>` are not set. Reason: not recorded
+  for the missing attributes.
+- **`compositeColumn()`** (A1.12): declared in the `composites` collection
+  with `unique=`; SELECT and `record()` fail when it is the pkey. Reason: open
+  defect ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
+- **`index()`** (A1.13): `index(name, columns, unique, method, where, ...)`:
+  the first positional argument is the name, and `columns` is required.
+  Reason: not recorded for the argument order.
+- **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a recipe
+  `main(self, root)` with one function per table; overrides through
+  `builder.contribution`. Reason: the legacy adapter is not implemented.
+- **`model.table('pkg.tbl')`, `model.column()`, `tblobj.column(name)`**
+  (A1.19): an unknown package or column raises `ValueError` instead of
+  returning `None`. Reason: not recorded.
+- **`pkey` / `pkeys`** (A1.20): `pkey` returns the logical pkey; `pkey='a,b'`
+  is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23)); the
+  `pkeys` property does not exist. Reason: not recorded for `pkeys`.
+- **`name_long`, `name_short`, `name_full`** (A1.22): `name_long` falls back
+  to the name; `name_full` does not exist; there are no setters. Reason: not
+  recorded.
+- **Package custom types `custom_type_<dtype>`** (A1.26): declared with
+  `options().type(name, dtype, size, ...)`; an unknown dtype raises
+  `ValueError`. Reason: a declaration replaces the hook.
+
+### Not available yet
+
+- **`name::dtype` shorthand for physical and virtual columns** (A1.6): the
+  name is kept literally. No issue yet. Workaround: pass `dtype=`.
+- **`column(default=)`** (A1.7): declared, but a table with it cannot be
+  written ([#28](https://github.com/asqueel-org/asqueel/issues/28)).
+  Workaround: set the value in `trigger_onInserting`.
+- **`localized`, `variant`, `ext_<pkg>`** (A1.10): `localized` and `variant`
+  are refused; `ext_*` is accepted and not executed. No issue yet.
+  Workaround: declare the generated columns by hand.
+- **`sysFields(tbl, ...)`** (A1.14): `options().sys_fields(...)` expands the
+  columns, but a table with it cannot be written
+  ([#29](https://github.com/asqueel-org/asqueel/issues/29)). Workaround:
+  declare the columns by hand and set them in hooks.
+- **`sysFields(hierarchical=...)`** (A1.15): `options().hierarchical`
+  expands, but a table with it cannot be written
+  ([#30](https://github.com/asqueel-org/asqueel/issues/30); model JSON:
+  [#18](https://github.com/asqueel-org/asqueel/issues/18)). Workaround:
+  application hooks on `parent_id`.
+- **`sysFields(counter=)`, `sysFields_counter`** (A1.16):
+  `options().auto_counter` expands, but a table with it cannot be written
+  ([#31](https://github.com/asqueel-org/asqueel/issues/31)). Workaround: set
+  the value in `trigger_onInserting`.
+- **Table and package mixins** (`tableMixin`, `packageMixin`, `_plugins`,
+  `mixin=`) (A1.18): no mixin is installed. No issue yet. Workaround:
+  `x_table_class`.
+- **`rowcaption`, `newrecord_caption` properties** (A1.23): the attributes are
+  declared, the properties do not exist. No issue yet. Workaround:
+  `attributes.get('rowcaption')`.
+- **`virtual_columns`, `starColumns()`** (A1.24): only declared columns are
+  listed. No issue yet. Workaround: declare the columns in the recipe.
+- **`subtable()`** (A1.25): only on a table; the package variant and the query
+  option `subtable` are missing. No issue yet. Workaround: a `where` on
+  `$subtable_<name>`.
+
+## 2 Query
+
+### Works as in GenroPy
+
+- `*` expansion and `bagFields` (A2.2).
+- Automatic column names (`colToAs`) (A2.5).
+- `$col`, `$pkey` and to-one `@rel` in columns, where and order_by (A2.6).
+- `sqlparams` and symbolic parameters (A2.7).
+- The `:env_name` parameter (A2.9).
+- `distinct`, `group_by`, `having`, `limit`, `offset` (A2.11).
+- `excludeLogicalDeleted` (also `'mark'`) and `excludeDraft` (A2.13).
+- `fetch()` (A2.16).
+- `count()` (A2.18).
+
+### Works differently
+
+- **`*@rel`, `*@rel1.@rel2`, `*prefix_`, `*name`, `*@rel.(a,b)`** (A2.3):
+  raise `UnsupportedFeatureError`. Reason: only `*` and explicit columns were
+  kept (decision of 15 October 2026).
+- **`addPkeyColumn` / automatic `pkey` column** (A2.4): the `pkey` column is
+  added only with `addPkeyColumn=True`. Reason: the legacy adapter adds it
+  (decision of 2 October 2026).
+- **kwargs as query parameters** (A2.8): a keyword the query does not use
+  raises `UnsupportedFeatureError`, `jc_*` included. Reason: it catches
+  misspelled options.
+- **`for_update`** (A2.12): as in GenroPy, but refused together with
+  `distinct` or `group_by`. Reason: early refusal of a combination the
+  database rejects.
+- **`ignorePartition` and the partition filter** (A2.14): `0` and `False` are
+  valid values, an empty allowed set returns no rows, a missing context raises
+  an error. Reason: agreed difference, described in [For Genropy users](legacy.md).
+- **`compiled`, `sqltext`, `test()`** (A2.19): recompiled at every access in
+  the current environment; `test()` does not exist. Reason: recompilation is
+  deliberate; a cache of compiled queries is under discussion
+  ([#3](https://github.com/asqueel-org/asqueel/issues/3)).
+- **`record(pkey= / where=, for_update, ignoreMissing)`** (A2.21): a composite
+  pkey is a mapping or a sequence; `ignoreMissing` returns `{}`. Reason: shape
+  of the composite pkey; a `compositeColumn` pkey fails
+  ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
+
+### Not available yet
+
+- **Default columns / `columns=None`** (A2.1): the default is `*`;
+  `columns=None` raises `TypeError`. No issue yet. Workaround: omit `columns`.
+- **`env_<table>_condition_*` conditions** (A2.10): not read. No issue yet.
+  Workaround: an explicit `where` in the caller.
+- **`ignoreTableOrderBy`, `_storename`, `locale`, `mode`, `checkPermissions`,
+  `aliasPrefix`** (A2.15): raise `UnsupportedFeatureError`; the table
+  `order_by` is applied and cannot be disabled. No issue yet. Workaround: an
+  explicit `order_by` and filters in the `where`.
+- **`fetchAsDict`, `fetchAsBag`, `fetchGrouped`, `fetchPkeys`, `fetchAsJson`,
+  `cursor`, `servercursor`, `iterfetch`** (A2.17): no such methods. No issue
+  yet. Workaround: a comprehension over `fetch()`.
+- **`selection()` and the `SqlSelection` API** (A2.20): raises
+  `UnsupportedFeatureError`. No issue yet. Workaround: `fetch()` and
+  processing in Python.
+- **`record` keyword selectors, `ignoreDuplicate`, `virtual_columns`,
+  `lazy`/`eager`** (A2.22): refused. No issue yet. Workaround: an explicit
+  `where`, and `query()` for formulas.
+- **`record` mode / `output(mode)`** (A2.23): only `'dict'` and `'record'`;
+  `'bag'` raises an error. No issue yet. Workaround: `output('record')` or
+  `output('dict')`.
+- **`readColumns`, `countRecords`, `recordAs`, `cachedRecord` /
+  `tableCachedData`, `db.query(table)`** (A2.25): absent. No issue yet.
+  Workaround: `query(...).fetch()` and `record(...)`.
+- **`sqlWhereFromBag`, `whereTranslator`, `opTranslate`** (A2.26): absent. No
+  issue yet. Workaround: a `where` written by the caller.
+
+## 3 Formulas
+
+### Works as in GenroPy
+
+- `sql_formula=True` with `sql_formula_<name>(attr)`, and the `sysFields`
+  formulas `__protecting_reasons` / `__invalid_reasons` (A3.2).
+- `select=`, `exists=`, `select_<name>` with `#<name>`, cast and
+  `subquery_<name>()` (A3.3).
+- `var_*` in formulas (A3.4).
+- `aliasColumn` with `relation_path`, its own dtype and metadata (A3.6).
+- Redefinition of a virtual column with a different kind (A3.7).
+- `static=True` and `*` (A3.9).
+- `bagItemColumn` (A3.11).
+- References in formulas: `$col`, `@rel.col`, `:param`, `:env_*` (A3.16).
+- `#THIS`, `#IN_RANGE`, `#PERIOD` (A3.17).
+
+### Works differently
+
+- **`formulaColumn` (`sql_formula`, `dtype`)** (A3.1): exactly one of
+  `sql_formula`, `select`, `exists` is required; an unused `select_<name>` is
+  an error; without dtype the type is `T`. Reason: ambiguous combinations are
+  refused instead of picking one definition; the `T` default: not recorded.
+- **`subQueryColumn` (`query=`, `mode=`)** (A3.10): `json` and `xml` modes run
+  only on PostgreSQL; `mode='join'`, `'to_json'`, `'to_xml'` produce
+  aggregations. Reason: SQLite has no equivalent for json/xml.
+
+### Not available yet
+
+- **`_override`** (A3.8): refused; a virtual column cannot replace a physical
+  one. No issue yet. Workaround: rename the virtual column.
+- **`pyColumn`** (A3.12): declared; selecting it raises "pyColumn is not
+  connected yet". No issue yet. Workaround: compute the value after `fetch()`.
+- **`compositeColumn` read as a value** (A3.13): selecting it raises an error
+  ([#26](https://github.com/asqueel-org/asqueel/issues/26) covers only the
+  pkey case). Workaround: select the member columns.
+- **`toolColumn`** (A3.14): absent. No issue yet. Workaround: a
+  `formulaColumn` with the explicit expression.
+- **Dynamic columns: `formulaColumn_<x>()` methods, `variant=` with
+  `variantColumn_<v>()`, `sqlparams[name]={field:...}`** (A3.15): not read.
+  No issue yet. Workaround: declare explicit `formulaColumn`s.
+- **`#ENV(name[,fallback])` and `#PREF(path[,default])`** (A3.18): refused
+  with the message "Hierarchical macro expansion is not connected yet", which
+  does not name the macro. No issue yet. Workaround: `:env_name` and `var_*`.
+- **`#BAG` / `#BAGCOLS` in columns** (A3.19): refused with the same message.
+  No issue yet. Workaround: `bagItemColumn` or decoding in the application.
+- **Dialect macros `#TSQUERY`, `#TSRANK`, `#TSHEADLINE`, `#VECQUERY`,
+  `#VECRANK`** (A3.20): refused with the same message. No issue yet.
+  Workaround: explicit full-text SQL in `sql_formula` or in the `where`.
+
+## 4 Relations
+
+### Works as in GenroPy
+
+- `relation()` to `'pkg.tbl.col'` or `'tbl.col'`, also to another package
+  (A4.1).
+- `one_name`, `many_name`, `one_group`, `many_group`, `many_order_by` (A4.5).
+- To-one path `@fkey_col.col` in columns, where, order_by (A4.7).
+- Multi-hop path `@a.@b.c` (A4.8).
+- Relation on a composite key (A4.10).
+- The `relations` Bag of table and model (A4.15).
+
+### Works differently
+
+- **`relation(mode='foreignkey'/'relation'/'insensitive')`** (A4.2):
+  `relation(to, foreign_key=, case_insensitive=)`; inside a package
+  `foreign_key` defaults to `True`; `weak_relation` creates no FK; `mode=` is
+  refused. Reason: `relation` creates the FK and `weak_relation` does not.
+- **`relation(relation_name=...)`** (A4.3): the inverse name is `inverse=`;
+  `relation_name=` is accepted and ignored. Reason: `inverse` corresponds to
+  the legacy `relation_name`; the silent discard: not recorded.
+- **Default inverse name and `one_one='*'`** (A4.4): the default name is
+  `pkg_tbl_col`; `one_one` is a boolean and `'*'` is refused. Reason:
+  `one_one=True` declares at most one; the `'*'` default: not recorded.
+- **`onDelete`, `onUpdate`, `onDelete_sql`, `onUpdate_sql`, `deferred`**
+  (A4.6): declared as `on_delete`, `on_update`, `on_delete_sql`,
+  `on_update_sql`, `deferred`, `deferrable`, `initially_deferred`;
+  `onDelete=` is refused, `onDelete_sql=` is accepted and ignored. Reason:
+  snake_case names with the actions raise, cascade, set_null, ignore; the
+  silent discard: not recorded.
+- **To-many path `@relation_name.col`** (A4.9): raises
+  `UnsupportedFeatureError`; with `one_one=True` it becomes a LEFT JOIN.
+  Reason: no to-many JOIN, no multiplied rows, no implicit DISTINCT; `aggr`
+  replaces it (decision of 16 October 2026).
+- **Join conditions `cnd`, `join_on`, `between`** (A4.12): executed in the
+  to-one join; `join_on` is accepted, `cnd` and `between` are refused; `aggr`
+  refuses these relations. Reason: arbitrary conditions belong to
+  `virtualRelation`; accepting `join_on`: not recorded.
+- **`aliasTable` / `table_alias`** (A4.18): removed from the grammar;
+  `virtualRelation(relation=...)` works only inside `aggr`. Reason:
+  `virtualRelation` is to-many only (decision of 13 October 2026); a
+  multi-hop to-one alias cannot be expressed.
+
+### Not available yet
+
+- **`joinColumn`** (A4.11): a relation on a virtual column exists, the
+  `joinColumn` signature does not. No issue yet. Workaround: write
+  `formulaColumn` with `relation` and an `aliasColumn` by hand.
+- **`joinConditions`, `setJoinCondition`, query kwargs `jc_*`** (A4.13):
+  refused. No issue yet. Workaround: the condition in the `where` or in a
+  `subQueryColumn`.
+- **`relationDict`** (A4.14): refused by `query()`. No issue yet.
+  Workaround: `aliasColumn` in the model.
+- **`getRelation`, `getRelationBlock`, `getJoiner`, `resolveRelationPath`,
+  `relations_one`, `relations_many`, `manyRelationsList`,
+  `oneRelationsList`** (A4.16): absent. No issue yet. Workaround: read
+  `table.relations` and the joiner.
+- **`relationExplorer`** (A4.17): absent. No issue yet. Workaround: none in
+  the SQL layer; it is a UI function.
+
+## 5 Writes
+
+### Works as in GenroPy
+
+- Table triggers `trigger_onInserting`, `onInserted`, `onUpdating`,
+  `onUpdated`, `onDeleting`, `onDeleted`; `trigger_assignCounters` /
+  `trigger_releaseCounters` (A5.4).
+- Column triggers and `trigger_table` on the column (A5.5).
+- `protect_update`, `protect_delete`, `protect_validate` (A5.6).
+- Record data in writes: `@`, `pkey`, virtual and unknown keys discarded;
+  `None` omitted in INSERT; UPDATE of every present key; `sql_value` always
+  emitted (A5.14).
+- Row policies in writes: physical delete, logical deletion by update,
+  partition and draft not applied (A5.28).
+
+### Works differently
+
+- **`insert(record)`** (A5.1): same order, without package triggers,
+  `dbo_onInserting` and `_onDbChange`; a table with declarations the cycle
+  does not execute is refused before any hook. Reason: the write cycle is
+  database-only; see [Current status](limitations.md) for the refusals.
+- **`update(record, old_record=None, pkey=None)`** (A5.2): key from
+  `old_record`, then `pkey`, then `record`; composite pkey as mapping or
+  sequence; no storename; extra kwargs ignored. Reason: same pkey shape as
+  `record()`; the package storename: not recorded.
+- **`delete(record)` and `deletable`** (A5.3): a missing string key returns
+  without error; an incomplete dict is re-read with a lock; the DELETE must
+  remove exactly one row, otherwise `RecordNotFoundError`; `deletable` is only
+  a boolean. Reason: design decision of 2026-10-15 (provisional); `deletable`
+  as a permission tag: not recorded.
+- **`protect_draft` and `dbo_onInserting` / `dbo_onUpdating` /
+  `dbo_onDeleting`** (A5.7): `protect_draft` is called directly in the legacy
+  positions; no `dbo_*` is called. Reason: the dbo concept is removed; only
+  `protect_draft` remains (decision of 2026-10-16).
+- **`currentTrigger` and the trigger stack** (A5.9): same fields, without
+  `level`; the stack is popped also on exceptions; `sql_*` commands do not
+  enter it. Reason: stack as in GenroPy, with the pop on exception
+  (decision of 2026-10-15).
+- **`self.exception(name, record=, msg=)`** (A5.10): same exceptions; the
+  caption is the pkey value; no localizer. Reason: not recorded (the
+  `rowcaption` property is missing, A1.23).
+- **`deleteRelated`** (A5.11): actions raise, cascade, setnull, ignore with
+  `action:message`, default ignore; short forms are refused; no subtable or
+  dbstore. Reason: legacy spellings kept, the short forms had no uses
+  (decision of 2026-10-16).
+- **`updateRelated`** (A5.12): continues to the next relation; raise with
+  `'save'`; setnull ignored as in GenroPy; without `old_record` a
+  `ValueError`. Reason: legacy defects corrected (decision of 2026-10-16,
+  provisional).
+- **`checkPkey`, `newPkeyValue`, `pkeyValue`** (A5.13): same order of
+  strategies; composite key as JSON; UUID from `genro_toolbox`; `__syscode`
+  without `sysRecord_<code>`. Reason: a time-ordered id (decision of
+  16 October); `sysRecord_<code>` and the JSON format: not recorded.
+- **`raw_insert`, `raw_update`, `raw_delete`, `insertMany`** (A5.17):
+  replaced by `sql_insert` (record or list), `sql_update`, `sql_delete`: SQL
+  only, no capability check. Reason: raw commands exist to skip triggers;
+  `insertMany` becomes `sql_insert` with a list (decision of 2026-10-15).
+- **`sql_deleteSelection(where, _pkeys)`** (A5.18): replaced by
+  `query(...).sql_delete()`, one `DELETE ... WHERE pk IN (SELECT ...)`
+  returning the row count. Reason: removed from the core (decision of
+  2026-10-15).
+
+### Not available yet
+
+- **Package triggers `trigger_<event>_<pkg>` and `avoid_trigger_<pkg>`**
+  (A5.8): not called. No issue yet. Workaround: put the logic in the table
+  trigger.
+- **Bag value in an `X` column** (A5.15): not converted; the driver raises an
+  error. No issue yet (depends on the bagfield format of genro-bag).
+  Workaround: convert the Bag to text before the write.
+- **`deleteSelection` with triggers** (A5.20): absent. No issue yet.
+  Workaround: fetch with `for_update` and `delete()` for each row.
+- **`batchUpdate`** (A5.21): absent
+  ([#32](https://github.com/asqueel-org/asqueel/issues/32)). Workaround: fetch
+  with `for_update` and `update()` for each row.
+- **`recordToUpdate(pkey, ...)`** (A5.22): absent
+  ([#17](https://github.com/asqueel-org/asqueel/issues/17)). Workaround:
+  `record(..., for_update=True, mode='dict')` and `update(record, old_record)`.
+- **`insertOrUpdate(record)`** (A5.23): absent. No issue yet. Workaround:
+  `record` with `ignoreMissing`, then `insert` or `update`.
+- **`newrecord`, `defaultValues`, `extendDefaultValues`, `recordCopy`**
+  (A5.24): absent; a column with `default` or `default_from` blocks the write
+  ([#28](https://github.com/asqueel-org/asqueel/issues/28)). Workaround:
+  initial values in the caller or in `trigger_onInserting`.
+- **`touchRecords`** (A5.25): absent. No issue yet. Workaround: fetch and
+  `update()` for each row.
+- **`_onDbChange` effects: `totalizer_<x>`, `logChanges`, `notify`** (A5.26):
+  no `_onDbChange`; `logChanges` and `notify` are refused, `totalizer_<x>` is
+  ignored. No issue yet. Workaround: application after-triggers or database
+  triggers.
+- **Logical archiving cascade `onArchivingRecord` / `archiveRelatedRecords`**
+  (A5.27): the children are not touched. No issue yet. Workaround: update the
+  children in `trigger_onUpdating`.
+- **`check_updatable`, `check_deletable`, `isDraft`, `islocked_write`,
+  `islocked_delete`, `hasProtectionColumns`** (A5.29): absent. No issue yet.
+  Workaround: catch the exceptions of `protect_*`.
+- **Table helpers `setColumns`, `changePrimaryKeyValue`, `empty`,
+  `fillFromSqlTable`, `duplicateRecord`, copy/paste** (A5.30): absent. No
+  issue yet. Workaround: `record`, `update`, `insert` and `sql_delete` on the
+  query.
+
+## 6 Transactions
+
+### Works as in GenroPy
+
+- `tempEnv(**kwargs)` / `temp_env` (A6.1).
+- `connectionName` in the environment, `currentConnectionName`,
+  `usingMainConnection`, `'_main_connection'` (A6.5).
+- `:env_*` parameters and argument preparation in `execute` (A6.19).
+
+### Works differently
+
+- **`currentEnv`, `updateEnv`, `clearCurrentEnv`** (A6.2): a per-thread dict;
+  the setter raises `TypeError` for a non-dict; `current_env` returns a
+  read-only copy. Reason: `current_env` is a snapshot; the `TypeError`: not
+  recorded.
+- **`workdate` / `locale`** (A6.3): same `workdate` fallback; `locale` comes
+  from `GNR_LOCALE` or the system, without validation. Reason: not recorded.
+- **Per-thread, per-name connections opened at the first statement** (A6.6):
+  a name may point to another physical database; with explicit declarations an
+  undeclared name raises `ValueError`; a connection is used only in the thread
+  that created it. Reason: not recorded.
+- **`db.commit()`** (A6.8): same order on the selected connection; inside a
+  write or a hook, a commit on the connection in use raises
+  `TransactionStateError`, on another named connection it is allowed; no
+  `onDbCommitted`. Reason: avoids a deadlock reported in GenroPy (decision of
+  2026-10-15, provisional).
+- **`db.rollback()` / `rollbackAll()`** (A6.9): rollback also empties the
+  deferred queues; `rollbackAll` is absent because there is one store. Reason:
+  a GenroPy defect on rollback and deferred callbacks is corrected (decision
+  of 2026-10-16).
+- **Automatic rollback on SQL error** (A6.10): rollback and re-raise; if the
+  rollback fails the connection is discarded and `outcome` is `unknown`.
+  Reason: documented recovery contract.
+- **Python error in a trigger or write hook** (A6.11): the connection becomes
+  rollback-only; commit is refused until `rollback()`. Reason: decision of
+  2026-10-15 (provisional).
+- **`deferToCommit` / `deferAfterCommit`** (A6.12): same blocks,
+  deduplication and returned kwargs; the queues live in the connection state,
+  so `clearCurrentEnv` and `acquire()` do not clear them. Reason: queues per
+  thread and name; moving them out of `currentEnv`: not recorded.
+- **`deferredRaise(exception)`** (A6.13): `TypeError` for a non-exception;
+  `DeferredCommitError` and a rollback-only connection at commit. Reason: a
+  GenroPy defect is corrected (decision of 2026-10-16).
+- **`db.execute(sql, sqlargs, ...)`** (A6.17): `execute(query, sqlargs)` takes
+  an SQL string or a `CompiledQuery` and returns a `QueryResult`; `cursor`,
+  `cursorname`, `dbtable`, `storename` raise `TypeError`; `executemany` is
+  added. Reason: a single execution path; the reduced signature: not
+  recorded.
+- **`autocommit`** (A6.18): `execute` has no such parameter and an
+  autocommit connection is refused. Reason: `execute()` never commits
+  automatically.
+- **`db.closeConnection()`** (A6.21): rollback and close of every connection
+  of the thread; refused inside a write; the first cleanup error is re-raised
+  after closing the others. Reason: not recorded for the error propagation.
+- **SQLite transactions and locks** (A6.27): `BEGIN IMMEDIATE` at the first
+  statement, reads included; `for_update` takes the database write lock.
+  Reason: `for_update` on SQLite takes the write lock of the database
+  (decision of 2026-10-16).
+
+### Not available yet
+
+- **`setLocale()`** (A6.4): absent. No issue yet. Workaround: the locale is
+  only an environment value (`:env_locale`).
+- **`storename`, `use_store`, multiple stores, `currentStorename`,
+  `connection`, `connectionKey`, `get_dbname`** (A6.7): a storename other than
+  `_main_db` raises `UnsupportedFeatureError`. No issue yet. Workaround: one
+  `AsqueelDb` per physical database, or a declared named connection.
+- **`autoCommit`, `dbevents`, `systemDbEvent`, `GnrMissedCommitException`,
+  `tblobj.dbevents` / `notifyDbUpdate`** (A6.14): absent. No issue yet.
+  Workaround: `deferAfterCommit` for application notifications.
+- **`onDbCommitted()`** (A6.15): absent. No issue yet. Workaround:
+  `deferAfterCommit` registered by the caller.
+- **NOTIFY: table attribute `notify`, `db.notify`, `db.listen`** (A6.16):
+  absent. No issue yet. Workaround: run NOTIFY with `db.execute`.
+- **SQL comment with the user, `sql_audit`, debugger** (A6.20): absent. No
+  issue yet. Workaround: driver logging (psycopg, sqlite3).
+- **`tblobj.lock(mode, nowait)` / `adapter.lockTable`** (A6.25): absent. No
+  issue yet. Workaround: `db.execute('LOCK ...')`.
+- **`for_update` with a string mode (`'NOWAIT'`, `'SKIP LOCKED'`)** (A6.26):
+  `for_update` must be a boolean. No issue yet. Workaround: boolean
+  `for_update`.
+- **`setConstraintsDeferred()`** (A6.28): absent. No issue yet. Workaround:
+  `db.execute('SET CONSTRAINTS ALL DEFERRED')`.
+- **`analyze()` / `vacuum(table, full)`** (A6.29): absent. No issue yet.
+  Workaround: `db.execute('ANALYZE')`; VACUUM cannot run through
+  `db.execute`, which always opens a transaction.
+
+## 7 Migration
+
+### Works as in GenroPy
+
+- Creation of a missing database (CREATE DATABASE) (A7.5).
+- Application schemas and CREATE SCHEMA from the package `sqlschema` (A7.6).
+- Migrated column attributes and dtype normalization (A7.10).
+- Primary key in the migration: pkeys, composite pkey, pkey change (A7.11).
+- Removal policy (`removeDisabled`) (A7.14).
+- FKs from relations with `foreign_key`: SQL actions, deferred, composite
+  columns, target schema (A7.15).
+- `unique` on a column and `compositeColumn(unique=True)` (A7.20).
+- Constraint and index names (`ignore_constraint_name`) (A7.22).
+
+### Works differently
+
+- **`db.checkDb(applyChanges=)`, `model.check()`, `modelChanges`,
+  `applyModelChanges()`** (A7.1): `db.migration_plan()` with `plan.empty`, and
+  `db.migrate()`; one engine, asqueel-migration. Reason: not recorded for the
+  absence of `checkDb`.
+- **`db.diffOrmToSql()` / `SqlMigrator.getChanges()`** (A7.2):
+  `db.migration_plan()` changes nothing and returns
+  `MigrationPlan(commands, warnings, skipped)`. Reason: not recorded for the
+  changed return value.
+- **`db.syncOrmToSql()` / `SqlMigrator.applyChanges()`** (A7.3): `db.migrate()`
+  refuses before any DDL if changes were skipped and verifies after the run;
+  it refuses in-memory SQLite, a connection without database name and a model
+  without tables. Reason: skipped changes are refused and the result is
+  verified.
+- **Extensions: `SqlMigrator(extensions=)` and automatic unaccent** (A7.9):
+  declared with `db.extensions().extension(name)`, never removed;
+  `column(unaccent=True)` is refused. Reason: not recorded for the removed
+  automatic extension.
+- **Column type change** (A7.12): same engine on PostgreSQL; on SQLite the
+  change is skipped and `migrate()` refuses. Reason: documented in
+  [Migrations](migrations.md).
+- **Abbreviated SQL actions `'C'`, `'R'`, `'N'`, `'SN'`, `'SD'`, `'SETNULL'`**
+  (A7.16): refused; `cascade`, `restrict`, `no_action`, `set_null`,
+  `set_default` are accepted, case and spaces normalized. Reason: not
+  recorded.
+- **Index on relation columns** (A7.17): an FK relation gets a source index
+  unless `indexed=False`; `foreign_key=False` gets none; `weak_relation`
+  indexes source and target. Reason: not recorded for FK targets and
+  `foreign_key=False`.
+- **`column(indexed=True)` and `indexed={options}`** (A7.18): `indexed` is
+  only a boolean; options go through `index()`. Reason: not recorded.
+- **`index()` in the migration** (A7.19): projected with `unique`, `method`,
+  `where`, `tablespace`, `with_options` and per-column ordering. Reason: not
+  recorded.
+- **`model.importFromDb()`** (A7.28): `inspect_postgres` returns
+  `ImportResult(model, warnings)` and does not touch `db.model`. Reason: the
+  imported model cannot be queried
+  ([#22](https://github.com/asqueel-org/asqueel/issues/22)).
+- **Model JSON: `extractOrm`, `ormStructure`, `jsonModelWithoutMeta`**
+  (A7.29): rendered by `SqlMigrationRenderer`; no orm/sql Bag view. Reason:
+  not recorded.
+
+### Not available yet
+
+- **Package `readOnly` / storename excluded from migration** (A7.7):
+  `readOnly=True` is refused. No issue yet. Workaround: do not declare those
+  tables in the migrated model.
+- **Tenant schemas: `multi_tenant` tables replicated per tenant** (A7.8):
+  `options().tenant()` is accepted and ignored. No issue yet. Workaround: one
+  database per tenant.
+- **`force`, `backup`, `verifyConversionBackups`** (A7.13): absent. No issue
+  yet. Workaround: use `SqlMigrator` of asqueel-migration directly.
+- **TSV dtype: mandatory gin index** (A7.21): no automatic index. No issue
+  yet. Workaround: `index(columns=..., method='gin')`.
+- **`model.enableForeignKeys(enable=False)`** (A7.26): absent. No issue yet.
+  Workaround: `weak_relation` where the FK is not needed.
+- **Direct DDL: `createDb`, `dropDb`, `createSchema`, `dropSchema`,
+  `dropTable`, `dropColumn`** (A7.27): absent. No issue yet. Workaround: SQL
+  executed by the application.
+
+## 8 Dialects
+
+### Works as in GenroPy
+
+- Collections after `IN :param` (A8.3).
+- `REGEXP` / `~*` and the regexp function on SQLite (A8.4).
+- `IS TRUE` / `IS FALSE` on SQLite (A8.6).
+
+### Works differently
+
+- **Backend choice `implementation`** (A8.1): only `'postgresql'` (default)
+  and `'sqlite'`; `'postgres'`, `'postgres3'` and custom modules are refused.
+  Reason: not recorded.
+- **`:name` parameters and the PostgreSQL driver** (A8.2): psycopg 3 only,
+  with server-side binding; a missing parameter becomes `None`. Reason: SQL and
+  mapping stay separate; a literal `%` is tracked in
+  [#19](https://github.com/asqueel-org/asqueel/issues/19).
+- **ILIKE on SQLite** (A8.5): only the operator is replaced, outside strings,
+  quoted identifiers and comments. Reason: not recorded.
+- **SQLite schemas as attached files** (A8.7): `<name>_<schema>.db` files,
+  default schema `main`, the folder must exist. Reason: same layout as the
+  migration adapter; the file name change: not recorded.
+- **SQLite connection opening** (A8.8): `PRAGMA foreign_keys = ON`; only
+  `timeout` and `cached_statements`; SQLite 3.35 required. Reason: FKs are on
+  by decision of 2026-10-16; the timeout default: not recorded.
+- **Value types on SQLite** (A8.9): dates and Decimal are written as strings;
+  no read converters. Reason: not recorded.
+- **Transaction and `for_update` on SQLite** (A8.10): `BEGIN IMMEDIATE` at the
+  start of every unit of work, reads included; `for_update` runs a no-op
+  UPDATE. Reason: it protects the hook cycle with a database lock.
+- **Bulk insert (`insertMany`, `executemany`)** (A8.14): `sql_insert` with a
+  list runs one executemany per group of records with the same columns,
+  without RETURNING and without generating the pkey. Reason: `insertMany`
+  becomes `sql_insert` with a list (decision of 2026-10-15); the missing pkey:
+  not recorded.
+- **Adapter capabilities** (A8.20): SQL capabilities per dialect, reducible in
+  the constructor; no `has_capability`. Reason: declaring a capability does
+  not implement it; the write compiler does not check all of them
+  ([#21](https://github.com/asqueel-org/asqueel/issues/21)).
+- **LIMIT and OFFSET per dialect** (A8.21): `LIMIT 0` is emitted; on SQLite
+  OFFSET without LIMIT adds the maximum LIMIT. Reason: the legacy truthiness
+  of `limit=0` is not imported; SQLite OFFSET: not recorded.
+- **SQL types of dtypes** (A8.22): DDL from asqueel-migration with the legacy
+  PostgreSQL types; `X`, `Z`, `P` and `A` without size become `T` in package
+  models. Reason: not recorded.
+
+### Not available yet
+
+- **`for_update` with a mode (`'NOWAIT'`, `'SKIP LOCKED'`)** (A8.11):
+  `for_update` must be a boolean. No issue yet. Workaround: explicit SQL with
+  `db.execute`.
+- **Table `lock()` (`lockTable`)** (A8.12): no public method. No issue yet.
+  Workaround: `db.execute('LOCK ...')`.
+- **`db.adapter.string_agg(field, separator)`** (A8.15): no `db.adapter`
+  object. No issue yet. Workaround: `@rel.aggr(join(...))` or dialect SQL in
+  the formula.
+- **`unaccentFormula`, `mask_field_sql`, `ageAtDate`** (A8.16): absent. No
+  issue yet. Workaround: `sql_formula` with `unaccent()` or the explicit
+  expression.
+- **`db.listen` / `db.notify`** (A8.17): absent. No issue yet. Workaround:
+  `db.execute('NOTIFY channel, :payload')` and a dedicated psycopg connection.
+- **`db.analyze()` / `db.vacuum(table, full)`** (A8.18): absent; VACUUM fails
+  through `db.execute`. No issue yet. Workaround: `vacuumdb` or `psql`.
+- **`createDb`, `dropDb`, `dbExists`, `dump`, `restore`, `importRemoteDb`**
+  (A8.19): absent. No issue yet. Workaround: `createdb`, `dropdb`, `pg_dump`,
+  `pg_restore`.
+- **Other legacy adapters: mssql, mysql, db2_400, fourd, postgres8000**
+  (A8.23): refused with `UnsupportedFeatureError`. No issue yet. Workaround:
+  PostgreSQL or SQLite.
+
+## New in asqueel
+
+- **`column(sqldefault=, extra_sql=, generated_expression=)`** (A1.27):
+  database-side defaults, extra DDL and generated columns.
+- **`SqlRecord.refresh()`** (A2.24): discards the result and reads again in
+  the current environment.
+- **`parameters=` and `expression=`** (A3.5): `parameters` is a mapping in
+  place of `var_*`; `expression` is a synonym of `sql_formula` without public
+  documentation.
+- **`@rel.aggr(...)` and `@rel.order_by('...').aggr(...)`** (A4.19): count,
+  sum, avg, min, max, join, to_json, to_xml over related rows, in the
+  projection only; `to_xml` needs PostgreSQL.
+- **`virtualRelation`** (A4.20): derived (`relation=`) or direct (`table=`)
+  to-many relations with `var_*`, usable only inside `aggr`; `ask` is
+  refused.
+- **Relation inherited by an `aliasColumn`** (A4.21): `@alias.col` works
+  without `.relation()` on the alias.
+- **RETURNING of database-decided values** (A5.16): values from `sql_value`,
+  generated expressions, omitted `sqldefault` and serial columns are written
+  into the record before the after-triggers, on PostgreSQL and SQLite; on a
+  dialect without the capability RETURNING is dropped without error
+  ([#21](https://github.com/asqueel-org/asqueel/issues/21)).
+- **`query(...).sql_update(values)`** (A5.19): one
+  `UPDATE ... WHERE pk IN (SELECT ...)`; `group_by` and `having` are refused.
+- **`db.close()`, `with db:`, `acquire()`** (A6.22): close for the current
+  thread, a context manager, and environment reset at the first acquire of a
+  thread.
+- **`db.outcome`** (A6.23): `not_started`, `active`, `committed`,
+  `rolled_back`, `unknown`.
+- **Environment check of compiled queries (`EnvironmentMismatchError`)**
+  (A6.24): a compiled query is refused if the environment values it used
+  have changed.
+- **`asqueel db plan`, `asqueel db apply [--allow-removals]`, `asqueel check`**
+  (A7.4): migration and model check from the command line.
+- **Table and column `comment` in the migration** (A7.23).
+- **Declared CHECK constraint `constraints().constraint(constraint_type='CHECK')`**
+  (A7.24).
+- **`serial4` dtype** (A7.25): 32-bit SERIAL.
+- **Minimum SQLite version** (A8.13): `connect()` raises `RuntimeError`
+  below SQLite 3.35, the version that introduced RETURNING.

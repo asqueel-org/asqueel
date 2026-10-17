@@ -14,6 +14,8 @@ rows = db.table('sales.invoice').query(
 Use this chapter to understand the relationship with Genropy’s legacy database layer and the
 intentional differences. It is organized around application behavior rather
 than the internal modules of either implementation.
+For the status of each legacy feature, see
+[Legacy feature status](legacy-features.md).
 
 ## Contracts to carry forward
 
