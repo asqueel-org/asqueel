@@ -135,9 +135,9 @@ class SqlDbAdapter:
         if not columns.strip():
             raise ValueError('SELECT needs result columns')
         for name, value in (('limit', limit), ('offset', offset)):
-            if value is not None and (type(value) is not int or value < 0):
+            if value and (type(value) is not int or value < 0):
                 raise ValueError(f'{name} must be a nonnegative integer')
-            if value is not None:
+            if value:
                 self._require(name)
         if for_update:
             self._require('for_update')
@@ -150,10 +150,10 @@ class SqlDbAdapter:
                             ('ORDER BY', order_by)):
             if value:
                 result.append(f'{name} {value}')
-        # Retain the already agreed zero/offset contract of the native adapters.
-        if limit is not None:
+        # GenroPy _smartappend: a falsy limit or offset emits no clause.
+        if limit:
             result.append(f'LIMIT {limit}')
-        if offset is not None:
+        if offset:
             result.append(f'OFFSET {offset}')
         if for_update:
             result.append(f'FOR UPDATE OF {maintable_as}')

@@ -66,8 +66,8 @@ def test_malformed_statements_are_rejected(db):
 
 def test_clauses_have_fixed_separators_without_repairing_expression_text(db):
     select = PostgresAdapter(None).compileSql('"s"."t"', '1', joins=['LEFT JOIN "s"."t" AS "t1" ON TRUE -- join'],
-                                           where='TRUE -- predicate', order_by='1 -- order', limit=0)
-    assert 'TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0' in select
+                                           where='TRUE -- predicate', order_by='1 -- order', limit=1)
+    assert 'TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 1' in select
     table = model(db, 't')
     # A sql_value is always emitted, so a record key set to None places it before 'second'.
     update = db.write_compiler.update(table, {'id': 1, 'first': None, 'second': 2}, {}).sql

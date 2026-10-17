@@ -142,6 +142,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                         raise ValueError(f'{name}: {field} passed twice')
                     kwargs[field] = value
                 args = ()
+                # GenroPy column/virtual_column: 'name::dtype' carries the dtype in the name.
+                if name != 'compositeColumn' and '::' in str(kwargs.get('name', '')):
+                    if 'dtype' in kwargs:
+                        raise ValueError(f'{name}: dtype passed twice')
+                    kwargs['name'], kwargs['dtype'] = kwargs['name'].split('::')
             elif len(args) > 1:
                 raise TypeError(f'{name}: at most one positional argument is allowed')
             return handler(destination, *args, **kwargs)

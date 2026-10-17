@@ -13,7 +13,8 @@ Must not break: every refusal names the feature the user wrote: Macro 8 lists th
 Macro 2 of `.phased/roadmap.md`: no declaration is accepted and ignored. The easy silent behaviours become legacy (`name::dtype`, `relation_name=`, FK action names, `limit=0`, SQLite value types, deferred SQLite transactions); the grammar closes, so every attribute, option, method or environment key outside it raises an error that names it; the generic `UnsupportedFeatureError` messages become specific.
 
 ## Work Plan
-- [ ] **Phase 1**: legacy behaviours of model and query
+- [>] **Phase 1**: legacy behaviours of model and query
+  > In execution since 2026-10-17T21:21:00Z
   - Run: opus / medium
   > Batches: 1 `name::dtype` and falsy limit/offset | 2 `relation_name=` | 3 legacy FK action names
   - Pattern: legacy `gnrpy/gnr/sql/gnrsqlmodel/model.py:901-902` (column split), `:990-991` (virtual_column split), `:232-290` (relation_name), `:229`, `:263-264`, `:1339` (onDelete/onUpdate/onDelete_sql/onUpdate_sql/deferred), `gnrpy/gnr/sql/adapters/_gnrbaseadapter.py:701-716` (`_smartappend`); asqueel call wrapper `src/asqueel/builder.py:113-148`; FK translation `src/asqueel/model_source.py:137-176`; tests `tests/test_release_model_semantics.py:test_custom_types_forward_fk_inference_inverse_and_application_sql_actions`, `tests/object_tree/test_migration.py` (~:135-146), `tests/adapter_compiler/test_plans.py`

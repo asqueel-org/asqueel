@@ -174,7 +174,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                    for_update=False, maintable_as='t0'):
         if for_update:
             self._require('for_update')
-        if offset is not None and limit is None:
+        if offset and not limit:
             limit = 9223372036854775807
         return super().compileSql(maintable, columns, distinct, joins, where, group_by,
                                   having, order_by, limit, offset, False, maintable_as)

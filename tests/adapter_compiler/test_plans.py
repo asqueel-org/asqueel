@@ -35,9 +35,9 @@ def test_write_plans_keep_assignments_and_parameters_structured(db):
 
 
 def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(db):
-    selected = db.compiler.select('app.customer', '$id', where='$id=:id', sqlparams={'id': 4}, limit=0)
+    selected = db.compiler.select('app.customer', '$id', where='$id=:id', sqlparams={'id': 4}, limit=1)
     assert selected.sql == ('SELECT "t0"."id" AS "id"\n FROM "physical"."app_customer" AS "t0"\n'
-                            'WHERE ("t0"."id"=%(id)s)\nLIMIT 0')
+                            'WHERE ("t0"."id"=%(id)s)\nLIMIT 1')
     inserted = writer(db).insert(db.table('app.customer').model, {'id': 4}, {})
     assert inserted.sql == 'INSERT INTO "physical"."app_customer"("id") VALUES (%(id)s)'
     assert db.adapter.adaptSqlName('a"50%') == '"a""50%"'
@@ -47,8 +47,8 @@ def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(db):
 
 @pytest.mark.xfail(strict=True, reason="asqueel#19: a '%' in a physical table/column name is not escaped for psycopg")
 def test_compiled_sql_escapes_percent_in_physical_names(db):
-    selected = db.compiler.select('app.invoice', '$id', where='$id=:id', sqlparams={'id': 4}, limit=0)
+    selected = db.compiler.select('app.invoice', '$id', where='$id=:id', sqlparams={'id': 4}, limit=1)
     assert selected.sql == ('SELECT "t0"."ID%%" AS "id"\n FROM "physical"."Bills%%" AS "t0"\n'
-                            'WHERE ("t0"."ID%%"=%(id)s)\nLIMIT 0')
+                            'WHERE ("t0"."ID%%"=%(id)s)\nLIMIT 1')
     inserted = writer(db).insert(db.table('app.invoice').model, {'id': 4}, {})
     assert inserted.sql == 'INSERT INTO "physical"."Bills%%"("ID%%") VALUES (%(id)s)'
