@@ -2,9 +2,9 @@
 
 Cleanup of the unauthorized differences from GenroPy legacy, decided with the user on 2026-10-17. Rule: legacy unless the user decided otherwise; anything outside the grammar raises; this release is the low-level SQL layer. Full decisions: local untracked `temp/audit-invenzioni/decisioni.md`; inventory `docs/design/112-legacy-inventory.md`.
 
-## Macro 1 (current): genro-builders 0.29 and db.adapter — detailed in active/adapter-base/plan.md
+## Macro 1 (done): genro-builders 0.29 and db.adapter — done/adapter-base/plan.md
 
-## Macro 2: silent behaviours and "outside the grammar raises"
+## Macro 2 (current): silent behaviours and "outside the grammar raises" — detailed in active/silent-behaviours/plan.md
 - Objective: no legacy declaration is accepted and ignored. Fix the easy silent ones as legacy; make every deferred feature raise with an error that names it.
 - Starts from: Macro 1 landed (`db.adapter`).
 - Ends at: `name::dtype`, `relation_name=`, `limit=0`, `onDelete_sql=`/`onUpdate_sql=`, SQLite value types and deferred SQLite transactions behave as legacy; multi_tenant, subtable, totalizer, package triggers, sql_comment, env conditions and every other deferred input raise; `UnsupportedFeatureError` generic messages replaced by specific errors.
@@ -24,7 +24,7 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Starts from: Macro 2. Ends at: legacy model sources load unchanged within the low-level scope.
 
 ## Macro 5: query
-- Objective: formulaColumn (dtype A, sql_formula=True, select_<name>, exists_<name>, error on sql_formula with select/exists), subQueryColumn with `aggr=`, fetch and derivatives, `fetchRecord()` (legacy record() out of this release), #ENV/#BAG/#BAGCOLS, compiled/sqltext cache and test(), kwargs warning, compositeColumn as a value (#26).
+- Objective: formulaColumn_<name>() table methods as legacy (dynamic columns, legacy gnrsqlmodel/table.py:405; they raise from Macro 2), formulaColumn (dtype A, sql_formula=True, select_<name>, exists_<name>, error on sql_formula with select/exists), subQueryColumn with `aggr=`, fetch and derivatives, `fetchRecord()` (legacy record() out of this release), #ENV/#BAG/#BAGCOLS, compiled/sqltext cache and test(), kwargs warning, compositeColumn as a value (#26).
 - Starts from: Macro 4. Ends at: legacy queries of the low-level scope run unchanged.
 
 ## Macro 6: read-write and transactions
