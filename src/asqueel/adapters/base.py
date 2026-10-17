@@ -6,7 +6,51 @@ Backend modules override what differs.
 """
 from __future__ import annotations
 
-from ..contracts import UnsupportedFeatureError
+from datetime import date
+import re
+
+from genro_toolbox import NamedList
+
+from ..contracts import (CompiledQuery, EnvironmentBinding, QueryResult, ResultColumn,
+                         UnsupportedFeatureError)
+
+
+SQL_PARAMS = re.compile(r'(?<!:):(?!:)(\S\w*)(\W|$)')
+ENV_PARAMS = re.compile(r':env_(\S\w*)(\W|$)')
+
+
+def prepare_arguments(sql, sqlargs, snapshot):
+    """The value preparation from legacy execute, without connection/store lifecycle."""
+    keys = {key for key, _ in ENV_PARAMS.findall(sql)}
+    params = {'env_' + key: snapshot.get(key) for key in keys}
+    if 'env_workdate' in params:
+        params['env_workdate'] = params['env_workdate'] or date.today()
+    if snapshot.get('storename'):
+        params['env_storename'] = snapshot['storename']
+    keys = {key for key in keys if 'env_' + key not in (sqlargs or {})}
+    params.update(sqlargs or {})
+    for key, value in list(params.items()):
+        if isinstance(value, bytes):
+            value = value.decode('utf-8')
+            params[key] = value
+        if isinstance(value, str) and value.startswith((r'\$', r'\@')):
+            params[key] = value[1:]
+    return params, keys
+
+
+def query_result(columns, names, cursor) -> QueryResult:
+    """One column index per result set, shared by its mutable rows."""
+    if names is None:
+        if columns:
+            raise ValueError('Compiled result columns supplied for a statement without a result set')
+        return QueryResult([], cursor.rowcount, columns)
+    if len(set(names)) != len(names):
+        raise ValueError('Result columns must have unique names; use explicit aliases')
+    if columns and [column.name for column in columns] != names:
+        raise ValueError('Compiled result columns do not match cursor column names and order')
+    index = {name: position for position, name in enumerate(names)}
+    rows = [NamedList(index, row) for row in cursor.fetchall()]
+    return QueryResult(rows, cursor.rowcount, columns or tuple(ResultColumn(name) for name in names))
 
 
 class SqlDbAdapter:
@@ -97,3 +141,85 @@ class SqlDbAdapter:
         if for_update:
             result.append(f'FOR UPDATE OF {maintable_as}')
         return '\n'.join(result)
+
+    # ------------------------------------------------------------------
+    #  Statement preparation, after legacy execute and prepareSqlText
+    # ------------------------------------------------------------------
+
+    def prepare_sql(self, sql, sqlargs, snapshot) -> CompiledQuery:
+        params, keys = prepare_arguments(sql, sqlargs, snapshot)
+        # execute shields escaped colons before adapter.prepareSqlText, then restores.
+        sql = sql.replace(r'\:', chr(1))
+        used = {name for name, _ in SQL_PARAMS.findall(sql)}
+        # GenroPy 5ddb6813dc defaults missing bindings to None. Materialize them
+        # before CompiledQuery freezes the mapping and execution copies it to a dict.
+        for name in sorted(used):
+            params.setdefault(name, None)
+        sql, params = self.prepareSqlText(sql, params)
+        sql = sql.replace(chr(1), ':')
+        binding = (EnvironmentBinding(tuple(sorted(keys)),
+                                      {key: snapshot[key] for key in keys if key in snapshot})
+                   if keys else None)
+        return CompiledQuery(sql, params, dialect=self.dialect, binding=self.binding,
+                             environment=binding, input_parameters=tuple(sorted(used)))
+
+    def prepareSqlText(self, sql, kwargs):  # wf:phase-2:new
+        """Legacy prepareSqlText: backend syntax and parameters; returns (sql, kwargs)."""
+        return self.adaptTupleListSet(sql, kwargs), kwargs
+
+    def adaptTupleListSet(self, sql, sqlargs):  # wf:phase-2:new
+        """Legacy adaptTupleListSet, including its generated names."""
+        for key, values in [(k, v) for k, v in list(sqlargs.items())
+                            if isinstance(v, (list, tuple, set))]:
+            placeholders = '(%s) ' % ','.join(':%s%i' % (key, i) for i, _ in enumerate(values))
+            sqlargs.pop(key)
+            sqlargs.update(('%s%i' % (key, i), value) for i, value in enumerate(values))
+            sql = re.sub(r':%s(\W|$)' % key, placeholders + r'\1', sql)
+        return sql
+
+    # ------------------------------------------------------------------
+    #  Connection and cursor
+    # ------------------------------------------------------------------
+
+    def validate(self, query: CompiledQuery) -> None:
+        if not isinstance(query, CompiledQuery):
+            raise TypeError('execute requires a CompiledQuery')
+        if (query.dialect, query.binding) != (self.dialect, self.binding):
+            raise ValueError(
+                f'Query profile {query.dialect}/{query.binding} does not match '
+                f'adapter profile {self.dialect}/{self.binding}')
+
+    def cursor(self, connection):  # wf:phase-2:new
+        return connection.cursor()
+
+    def _params(self, params):  # wf:phase-2:new
+        return dict(params)
+
+    def execute(self, connection, query: CompiledQuery) -> QueryResult:
+        self.validate(query)
+        cursor = self.cursor(connection)
+        try:
+            cursor.execute(query.sql, self._params(query.params))
+            names = [column[0] for column in cursor.description] if cursor.description is not None else None
+            return query_result(query.columns, names, cursor)
+        finally:
+            cursor.close()
+
+    def executemany(self, connection, query: CompiledQuery, params_seq) -> QueryResult:
+        """One statement, one parameter mapping per execution; no result rows."""
+        self.validate(query)
+        cursor = self.cursor(connection)
+        try:
+            cursor.executemany(query.sql, [self._params(params) for params in params_seq])
+            return QueryResult([], cursor.rowcount, ())
+        finally:
+            cursor.close()
+
+    def commit(self, connection) -> None:
+        connection.commit()
+
+    def rollback(self, connection) -> None:
+        connection.rollback()
+
+    def close(self, connection) -> None:
+        connection.close()

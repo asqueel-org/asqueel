@@ -4,9 +4,12 @@ The names ``postgres`` and ``postgres3`` both load this adapter.
 """
 from __future__ import annotations
 
+import re
+from typing import Any
+
 from ..contracts import UnsupportedFeatureError
 from ._bag_xml import bag_xml_subquery
-from .base import SqlDbAdapter as SqlDbBaseAdapter
+from .base import SQL_PARAMS, SqlDbAdapter as SqlDbBaseAdapter
 
 
 class SqlDbAdapter(SqlDbBaseAdapter):
@@ -19,6 +22,51 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         'returning_update', 'returning_delete', 'left_join', 'limit', 'offset',
         'default_values', 'for_update',
     })
+
+    def connect(self, conninfo: str, **kwargs: Any) -> Any:
+        # psycopg is the PostgreSQL extra: imported only when connecting.
+        import psycopg
+
+        if kwargs.get('autocommit'):
+            raise ValueError('autocommit is incompatible with explicit transactions')
+        return psycopg.connect(conninfo, **kwargs)
+
+    def cursor(self, connection):  # wf:phase-2:new
+        from psycopg.rows import tuple_row
+
+        return connection.cursor(row_factory=tuple_row)
+
+    def prepareSqlText(self, sql, kwargs):  # wf:phase-2:new
+        """Named arguments as psycopg ``%(name)s``; ``REGEXP`` as ``~*``."""
+        sql = self.adaptTupleListSet(sql, kwargs)
+        return SQL_PARAMS.sub(r'%(\1)s\2', sql).replace('REGEXP', '~*'), kwargs
+
+    def adaptTupleListSet(self, sql, sqlargs):  # wf:phase-2:new
+        """gnrpostgres3.adaptTupleListSet: unroll IN values for psycopg 3.
+
+        The old psycopg2 adapter kept a single tuple binding, which psycopg 3
+        cannot use after IN. Reuse the existing legacy psycopg3 algorithm instead.
+        """
+        for key, values in list(sqlargs.items()):
+            if not isinstance(values, (list, set, tuple)):
+                continue
+            if not isinstance(values, list):
+                values = list(values)
+            if not values:
+                pattern = r'''((\"?t\d+)(_t\d+)*\"?.\"?\w+\"?" +)(NOT +)*(IN) *:%s''' % key
+                sql = re.sub(pattern, lambda m: 'TRUE' if m.group(4) else 'FALSE', sql, flags=re.I)
+            else:
+                def unroll(match):
+                    sqlargs.pop(key, None)
+                    base = match.group(2)
+                    names = []
+                    for i, value in enumerate(values):
+                        name = '%s_%s' % (base, i)
+                        names.append(':' + name)
+                        sqlargs[name] = value
+                    return '%s(%s)' % (match.group(1), ','.join(names))
+                sql = re.sub(r'( *IN) *(?::)(%s)\b' % key, unroll, sql, flags=re.I)
+        return sql
 
     def adaptSqlName(self, name: str) -> str:  # wf:phase-2:new
         quoted = super().adaptSqlName(name)
