@@ -61,3 +61,7 @@ Describe asqueel 0.6 against GenroPy legacy for the release: one verified invent
 | Phase 3 | medium | opus |
 | Phase 4 | medium | opus |
 | Repair | high | opus |
+
+## Quality check
+
+> Quality check: 2026-10-17T13:14:40Z — commit 6fe5848 — review none, QA declined, findings none, final touch none

@@ -33,3 +33,7 @@
 ## Run inspection
 
 - uneventful run, 4/4 phases
+
+## Closing
+
+- Closed 2026-10-17 without quality check by user decision: the inventory (docs/design/112) is the base of the comparison document, which will be rewritten after the pruning of unauthorized differences; docs/guide/legacy-features.md and docs/review/asqueel-vs-genropy-0.6-it.html are superseded drafts.
