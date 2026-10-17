@@ -20,3 +20,16 @@
   - Copy of `docs/guide/_examples/shop_tutorial.py`, run from `<scratch>/run`: without `ASQUEEL_DSN` (SQLite) and with the test DSN (PostgreSQL), both print the two invoice rows and "Tutorial completed; committed writes and rollback verified."
   - First python block of `docs/guide/quickstart.md`, saved as `quickstart.py`, run with `venv-pg` (asqueel_migration not importable) → `[[id=1,name=Ada], [id=2,name=Grace]]`, exit 0.
 - Batch 2 (2026-10-16): quickstart.md left unchanged; no statement in it contradicts the code. `aggr(to_json(...))` runs on SQLite (dialects/sqlite.py json_sql_subquery); only `to_xml` and the JSON/XML subQueryColumn modes need PostgreSQL — limitations.md states this.
+
+## Final touch
+
+- Reviewed revision: 4709275 (review extended, effort high, whole diff e94b395..4709275). QA: the one `Verify: now` check (limitations.md) done by the user in Phase 2. No naming markers.
+- Correction commit: 80dc2a1 `wf: final touch — 5 corrections`.
+  1. limitations.md, queries.md: virtual relations are aggregated by `aggr()` (compiler._virtual_relation; tests/many_aggregations test_filtered_virtual_many_relations_use_same_aggregation_contract); the false "not executed / remain pending" claims removed.
+  2. cheatsheet.md, row-policies.md, hooks.md: removed `soft_delete`, `restore`, `returning=`, `raw_*`, shared DB hooks (`onWriting`/`onWritten`/`_onDbChange`) and partition write guards, which the code does not have; sections rewritten on the write cycle, `sql_*` commands and logical deletion through `update()`. The scope grew from the named lines to the sections around them, because those sections described the same removed APIs.
+  3. writes.md: `update()` without `old_record` raises ValueError when a relation pointing to the table declares onUpdate (table_crud.updateRelated).
+  5. writes.md, limitations.md: RETURNING reads back omitted columns only when they declare `sqldefault` (write_compiler._insert_returning).
+  6. writes.md, limitations.md: the 22-character UUID key only for text keys with size 22 or no size (table_crud.pkeyValue).
+- Not fixed, risk accepted (user decision of Phase 1, legacy corpus untouched): 4 SQLite tests in tests/native_formulas/legacy_subqueries.py (86, 183, 266, 307) still skip with "EXISTS formula not supported on SQLite", now false after the compiler.py fix.
+- Checks run after the touch: `pytest tests/documentation` 11 passed; `sphinx -W` exit 0; grep of removed APIs in docs/guide (release-notes.md excluded, it is history) only finds sentences stating they do not exist. Re-check (light) over the touched files: exception names in `self.exception(...)` (errors.EXCEPTIONS) and `trigger_table` (table_crud._doFieldTriggers) confirmed.
+- No rows on the phase road.

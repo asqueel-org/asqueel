@@ -38,3 +38,6 @@ Declare a light first version of asqueel for a new project: read, insert, update
 - Adopted branch plan/write-cycle, worktree worktrees/write-cycle; the merge-read-write plan is archived in .phased/done/.
 - Test environment: memory note asqueel-test-environment (venv/ with -e .[dev,docs]; call tools as `venv/bin/python -m <tool>`).
 - Commits carry no AI attribution and no Co-Authored-By line.
+
+## Quality check
+> Quality check: 2026-10-17T05:29:27Z — commit 80dc2a1 — review extended, QA done, findings 6 confirmed, 0 dismissed, final touch 5 corrections
