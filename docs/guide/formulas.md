@@ -19,7 +19,7 @@ reached through a relation or an alias.
 These are query-time expressions, not stored/generated database columns. They
 are read-only in application writes and excluded from physical schema projection.
 Set the dtype for expressions explicitly; arbitrary SQL does not infer it. An
-alias inherits its target dtype and UI metadata, as described in [models](models.md).
+alias inherits its target dtype and descriptive metadata, as described in [models](models.md).
 
 For a first working example, use the [invoice tutorial](tutorial.md). This page
 then expands the correlation and visibility rules you need for larger formulas.

@@ -526,8 +526,8 @@ except Exception:
 ```
 
 `QueryResult` has `rows`, `rowcount` and `columns`. Direct model projections carry
-dtype, UI and source identity metadata. Arbitrary SQL expressions do not acquire
-inferred dtype or UI metadata. Results are fully materialized; pagination limits
+dtype and source identity metadata. Arbitrary SQL expressions do not acquire
+inferred dtype. Results are fully materialized; pagination limits
 memory use when fetching large datasets.
 
 `compiled.sql` is prepared for the driver, not for Python string interpolation.

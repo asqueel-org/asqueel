@@ -177,6 +177,17 @@ Native features outside the declared profile generally raise
 mismatches raise `EnvironmentMismatchError`, while closed or incorrectly used
 runtime objects raise `DatabaseClosedError` or `TransactionStateError`.
 
+The model grammar is closed. An attribute an element does not declare raises
+when it is written, naming the attribute and the element, for example
+`Element 'table' does not accept 'multi_tenant'`; free `x_*` keys and legacy UI
+attributes (`group_*`, `cell_*`, `template_*`, `name_full`, ...) are refused the
+same way. The legacy loader `from_expanded_legacy_xml` raises on the first legacy
+attribute it does not map. `subtable()` and `options().tenant()` are not part of
+the grammar. A table class defining a package trigger (`trigger_onInserted_<pkg>`)
+or a `formulaColumn_<x>` method raises `UnsupportedFeatureError` when the model is
+built; the environment keys `sql_comment`, `sql_details` and
+`env_<table>_condition_*` raise it at execution.
+
 A custom adapter must declare and test its own supported behavior. See
 [adapters](adapters.md) for the boundaries; adding a capability name does not
 implement the capability or certify another database backend.

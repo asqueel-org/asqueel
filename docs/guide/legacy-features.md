@@ -36,9 +36,11 @@ the write cycle, see [Current status](limitations.md).
   ([#25](https://github.com/asqueel-org/asqueel/issues/25)); `tenant_schema`:
   not recorded.
 - **`table(name, pkey=, ..., **kwargs)`** (A1.2): only declared parameters are
-  accepted; an extra keyword passes only if it contains `_`, otherwise it is an
-  error (`lastTS`, `logicalDeletionField`, `draftField`, `hierarchical`, `xtd`
-  are refused). Reason: flat `x_*` namespaces replace free attributes.
+  accepted; any other keyword raises, naming the attribute and the element
+  (`lastTS`, `logicalDeletionField`, `draftField`, `hierarchical`, `xtd`,
+  `multi_tenant`, `group_<name>` and free `x_*` keys are refused). Reason: no
+  attribute outside the grammar is accepted in this release (decision of
+  17 October 2026).
 - **`lastTS`, `logicalDeletionField`, `draftField`** (A1.3): declared as
   `x_draft_field` and `x_logical_deletion_field`; `lastTS` exists only as
   `x_legacy_lastTS` from `sys_fields`, with no `lastTS` property. Reason: row
@@ -46,19 +48,20 @@ the write cycle, see [Current status](limitations.md).
   timestamp ([#16](https://github.com/asqueel-org/asqueel/issues/16)).
 - **`partition_<field>='path'`** (A1.4): declared with
   `options().partition(name, field=, value=)`; a legacy `partition_x`
-  attribute is accepted and ignored. Reason: partitions are declared row
+  attribute raises. Reason: partitions are declared row
   policies; they do not apply to writes
   ([#15](https://github.com/asqueel-org/asqueel/issues/15)).
 - **`column()` attributes** (A1.5): same attributes and dtype default;
   `indexed` and `unique` must be booleans, `indexed='y'` is refused. Reason:
   not recorded for the refused string.
-- **UI attributes without `_`** (`format`, `values`, `print_width`,
-  `encrypted`, ...) (A1.9): refused as unknown attributes; `values` becomes
-  `validate_values`, `encrypted` becomes the `encryption` child. Reason: UI
-  attributes live in `x_ui_*` namespaces.
+- **UI attributes** (`format`, `values`, `print_width`, `encrypted`,
+  `cell_*`, `template_*`, `batch_*`, ...) (A1.9): refused as unknown
+  attributes; `values` becomes `validate_values`, `encrypted` becomes the
+  `encryption` child. Reason: UI attributes are outside this release's
+  grammar; free `x_ui_*` keys are refused too.
 - **`colgroup()`** (A1.11): available; `colgroup_label`,
-  `colgroup_name_long` and `group_<name>` are not set. Reason: not recorded
-  for the missing attributes.
+  `colgroup_name_long` and `group_<name>` raise as attributes outside the
+  grammar. Reason: not recorded for the missing attributes.
 - **`compositeColumn()`** (A1.12): declared in the `composites` collection
   with `unique=`; SELECT and `record()` fail when it is the pkey. Reason: open
   defect ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
@@ -75,8 +78,8 @@ the write cycle, see [Current status](limitations.md).
   is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23)); the
   `pkeys` property does not exist. Reason: not recorded for `pkeys`.
 - **`name_long`, `name_short`, `name_full`** (A1.22): `name_long` falls back
-  to the name; `name_full` does not exist; there are no setters. Reason: not
-  recorded.
+  to the name; `name_full` raises as an attribute outside the grammar; there
+  are no setters. Reason: not recorded.
 - **Package custom types `custom_type_<dtype>`** (A1.26): declared with
   `options().type(name, dtype, size, ...)`; an unknown dtype raises
   `ValueError`. Reason: a declaration replaces the hook.
@@ -89,7 +92,7 @@ the write cycle, see [Current status](limitations.md).
   written ([#28](https://github.com/asqueel-org/asqueel/issues/28)).
   Workaround: set the value in `trigger_onInserting`.
 - **`localized`, `variant`, `ext_<pkg>`** (A1.10): `localized` and `variant`
-  are refused; `ext_*` is accepted and not executed. No issue yet.
+  are refused; `ext_*` raises as an attribute outside the grammar. No issue yet.
   Workaround: declare the generated columns by hand.
 - **`sysFields(tbl, ...)`** (A1.14): `options().sys_fields(...)` expands the
   columns, but a table with it cannot be written
@@ -112,9 +115,9 @@ the write cycle, see [Current status](limitations.md).
   `attributes.get('rowcaption')`.
 - **`virtual_columns`, `starColumns()`** (A1.24): only declared columns are
   listed. No issue yet. Workaround: declare the columns in the recipe.
-- **`subtable()`** (A1.25): only on a table; the package variant and the query
-  option `subtable` are missing. No issue yet. Workaround: a `where` on
-  `$subtable_<name>`.
+- **`subtable()`** (A1.25): `subtable()`, the `default_subtable` attribute and
+  the query option `subtable` are outside this release's grammar and raise.
+  No issue yet. Workaround: a `where` with the subtable condition.
 
 ## 2 Query
 
@@ -160,8 +163,10 @@ the write cycle, see [Current status](limitations.md).
 
 - **Default columns / `columns=None`** (A2.1): the default is `*`;
   `columns=None` raises `TypeError`. No issue yet. Workaround: omit `columns`.
-- **`env_<table>_condition_*` conditions** (A2.10): not read. No issue yet.
-  Workaround: an explicit `where` in the caller.
+- **`env_<table>_condition_*` conditions** (A2.10): an environment key of this
+  form raises `UnsupportedFeatureError` at execution, naming the key; so do
+  `sql_comment` and `sql_details`. No issue yet. Workaround: an explicit
+  `where` in the caller.
 - **`ignoreTableOrderBy`, `_storename`, `locale`, `mode`, `checkPermissions`,
   `aliasPrefix`** (A2.15): raise `UnsupportedFeatureError`; the table
   `order_by` is applied and cannot be disabled. No issue yet. Workaround: an
@@ -222,8 +227,10 @@ the write cycle, see [Current status](limitations.md).
 - **`toolColumn`** (A3.14): absent. No issue yet. Workaround: a
   `formulaColumn` with the explicit expression.
 - **Dynamic columns: `formulaColumn_<x>()` methods, `variant=` with
-  `variantColumn_<v>()`, `sqlparams[name]={field:...}`** (A3.15): not read.
-  No issue yet. Workaround: declare explicit `formulaColumn`s.
+  `variantColumn_<v>()`, `sqlparams[name]={field:...}`** (A3.15): a table
+  class defining a `formulaColumn_<x>` method raises `UnsupportedFeatureError`
+  when the model is built, naming the method; the others are not read. No
+  issue yet. Workaround: declare explicit `formulaColumn`s.
 - **`#ENV(name[,fallback])` and `#PREF(path[,default])`** (A3.18): refused
   with the message "Hierarchical macro expansion is not connected yet", which
   does not name the macro. No issue yet. Workaround: `:env_name` and `var_*`.
@@ -310,7 +317,8 @@ the write cycle, see [Current status](limitations.md).
 
 ### Works differently
 
-- **`insert(record)`** (A5.1): same order, without package triggers,
+- **`insert(record)`** (A5.1): same order, without package triggers (a table
+  class defining `trigger_on<Event>_<pkg>` raises when the model is built),
   `dbo_onInserting` and `_onDbChange`; a table with declarations the cycle
   does not execute is refused before any hook. Reason: the write cycle is
   database-only; see [Current status](limitations.md) for the refusals.
@@ -380,8 +388,8 @@ the write cycle, see [Current status](limitations.md).
 - **`touchRecords`** (A5.25): absent. No issue yet. Workaround: fetch and
   `update()` for each row.
 - **`_onDbChange` effects: `totalizer_<x>`, `logChanges`, `notify`** (A5.26):
-  no `_onDbChange`; `logChanges` and `notify` are refused, `totalizer_<x>` is
-  ignored. No issue yet. Workaround: application after-triggers or database
+  no `_onDbChange`; `logChanges`, `notify` and `totalizer_<x>` are refused.
+  No issue yet. Workaround: application after-triggers or database
   triggers.
 - **Logical archiving cascade `onArchivingRecord` / `archiveRelatedRecords`**
   (A5.27): the children are not touched. No issue yet. Workaround: update the
@@ -544,8 +552,8 @@ the write cycle, see [Current status](limitations.md).
   `readOnly=True` is refused. No issue yet. Workaround: do not declare those
   tables in the migrated model.
 - **Tenant schemas: `multi_tenant` tables replicated per tenant** (A7.8):
-  `options().tenant()` is accepted and ignored. No issue yet. Workaround: one
-  database per tenant.
+  `tenant` is not an option of the grammar and `multi_tenant` is not a table
+  attribute: both raise. No issue yet. Workaround: one database per tenant.
 - **`force`, `backup`, `verifyConversionBackups`** (A7.13): absent. No issue
   yet. Workaround: use `SqlMigrator` of asqueel-migration directly.
 - **TSV dtype: mandatory gin index** (A7.21): no automatic index. No issue

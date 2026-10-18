@@ -4,8 +4,9 @@
 
 This release completes the structural path from native package configuration to
 live model objects and migration JSON. Package schemas follow the legacy rules;
-table and column declarations retain labels, captions and flat namespaced
-attributes. Existing Builders resolvers supply external or calculated values.
+table and column declarations retain labels, captions and the other attributes
+their grammar declares; an attribute outside the grammar raises. Existing
+Builders resolvers supply external or calculated values.
 
 - Expand structural options, including system fields, hierarchies, counters,
   dynamic fields, audit and attachments, before resolving cross-table relations
@@ -14,11 +15,10 @@ attributes. Existing Builders resolvers supply external or calculated values.
   legacy source or repeating option expansion. Normalize logical types at the
   physical projection boundary.
 - Include the native `test_invoice_pg` example: 74 tables across sys, adm and
-  invc, 789 physical columns, 526 virtual columns, 58 foreign keys and 282 indexes.
+  invc, 789 physical columns, 522 virtual columns, 58 foreign keys and 282 indexes.
   Its migration JSON equals the legacy oracle after excluding `sys.locked_record`.
 - Keep `validate_*` as column validations; `validate_values` deliberately replaces
-  legacy `values`. Attribute namespaces are flat: use `x_ui_label=...`, not an
-  `x_ui` dictionary. `sys_fields(syscode=True)` adds an indexed UNIQUE column
+  legacy `values`. `sys_fields(syscode=True)` adds an indexed UNIQUE column
   without reintroducing system records.
 
 System records, locked records, release options and optional diagnostics remain
