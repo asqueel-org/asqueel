@@ -4,16 +4,12 @@ from __future__ import annotations
 from typing import Literal
 from genro_builders.builder import element
 
-TABLE_OPTIONS = (
-    'hierarchical', 'auto_counter', 'relative_index',
-    'dynamic_fields', 'record_hash', 'full_update', 'audit', 'system_records',
-    'protection', 'release', 'partition', 'tenant', 'retention',
-    'broadcast', 'archive', 'enabled_when', 'attachments', 'numbering',
-)
 NAMED_OPTIONS = {'partition': 'name', 'numbering': 'field'}
 
 
 class BehaviorOptionElements:
+    """Table options. The elements of this class and of its subclasses mixed into a builder are its table options."""
+
     @element(parent_tags='options', sub_tags='', node_label='hierarchical')
     def hierarchical(self, columns: str | list | tuple | None = None, *, parent: str = 'parent_id',
                      root_id: bool = False, virtual_roots: bool = False,
@@ -78,11 +74,6 @@ class BehaviorOptionElements:
     def partition(self, name: str, *, field: str | None = None, value: object = None,
                   required: bool = False, enabled: bool = True):
         """Declare a logical partition with a value or an existing lazy resolver."""
-        ...
-
-    @element(parent_tags='options', sub_tags='', node_label='tenant')
-    def tenant(self, *, field: str | None = None, enabled: bool = True):
-        """Declare the legacy multi-tenant flag."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='retention')

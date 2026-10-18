@@ -5,6 +5,7 @@ from copy import deepcopy
 import inspect
 from genro_toolbox import extract_kwargs
 
+from .common import in_attribute_family
 from .configuration import _copy_recipe, _validate_source_shape
 from .model_sections import Declaration, Option, Package, Schema
 
@@ -35,6 +36,22 @@ def options(node):
     if container is None:
         return {}
     return {child.label: Option(child.node_tag, attributes(child)) for child in container.value or ()}
+
+
+def generate_attributes(builder, node, attributes):  # wf:phase-3:new
+    """Write attributes for ``node``; those outside its grammar are recorded as generated.
+
+    The domain validator accepts a key outside the grammar only when it is
+    recorded here: a user who writes the same key by hand still gets the error.
+    """
+    declared = builder._get_schema_info(node.node_tag).get('declared_names') or set()
+    node.attr.update(attributes)
+    generated = {key for key in attributes if key not in declared
+                 and not in_attribute_family(builder, node.node_tag, key)}
+    if generated:
+        meta = dict(node.attr.get('_meta') or {})
+        meta['generated_attributes'] = sorted(set(meta.get('generated_attributes', ())) | generated)
+        node.attr['_meta'] = meta
 
 
 def prepare_source(builder, *, options_first=False):
@@ -142,7 +159,7 @@ def resolve_source_references(builder):
                     # DbModelSrc.relation moves the FK display group to the
                     # one-side relation unless one_group was supplied.
                     attrs['one_group'] = group
-                    column.attr.update(group='_', one_group=group)
+                    generate_attributes(builder, column, {'group': '_', 'one_group': group})
             # onDuplicate is opaque legacy data (including False and recursive).
             defaults = (attrs.get('_meta') or {}).get('signature_defaults', ())
             if ('deferred' not in attrs or 'deferred' in defaults) and (

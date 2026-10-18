@@ -6,7 +6,6 @@ import json
 import pytest
 from asqueel import SqlDatabaseConfig, SqlBuilder, SqlMigrationRenderer
 from asqueel.configuration import _copy_recipe, _owned_handler
-from asqueel.option_elements import TABLE_OPTIONS
 
 
 def source():
@@ -48,7 +47,6 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
     ('system_records', {'records': {'a': {'title': 'A'}}}),
     ('protection', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
     ('partition', {'name': 'org', 'field': 'org_id', 'value': 'organization'}),
-    ('tenant', {}),
     ('retention', {'field': 'created', 'days': 30}),
     ('broadcast', {}), ('archive', {}),
     ('enabled_when', {'preference': 'enabled'}),
@@ -136,7 +134,7 @@ def test_grammar_export_and_source_json_preserve_declarations(tmp_path):
     path = tmp_path / 'grammar.json'
     SqlBuilder.to_grammar(path)
     text = path.read_text()
-    assert all('"' + tag + '"' in text for tag in TABLE_OPTIONS)
+    assert all('"' + tag + '"' in text for tag in b.table_options)
     node, = json.loads(b.source.to_json())
     for label in ('packages', 'app', 'tables', 'item', 'options', 'hierarchical'):
         node, = (child for child in node['value'] if child['label'] == label)
@@ -183,7 +181,7 @@ def test_old_source_nodes_cannot_silently_survive_composition(name):
 
 
 @pytest.mark.parametrize(('tag', 'kwargs'), [
-    ('audit', {'mode': 'lazy'}), ('tenant', {}),
+    ('audit', {'mode': 'lazy'}),
     ('retention', {'field': '__ins_ts', 'days': 60}),
     ('broadcast', {'columns': 'objtype'}), ('archive', {}),
     ('enabled_when', {'preference': 'adm.dev.connection_log_enabled'}),
@@ -257,3 +255,9 @@ def test_alias_table_is_deferred_but_virtual_relation_remains():
         assert builder.validate_source() == []
         node = builder.source.get_node('db.packages.app.tables.item.virtualRelation_customer')
         assert node.get_attr('relation') == '@invoice_id.@customer_id'
+
+
+def test_tenant_is_not_an_option_of_the_grammar():
+    _, _, table = source()
+    with pytest.raises(AttributeError, match="'tenant'"):
+        table.options().tenant()

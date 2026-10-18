@@ -10,9 +10,9 @@ from copy import deepcopy
 import inspect
 
 from .catalog import SqlModelCatalog
-from .common import split_names
+from .common import in_attribute_family, split_names
 from .contracts import UnsupportedFeatureError
-from .model_source import options
+from .model_source import generate_attributes, options
 
 
 def _legacy(**attributes):
@@ -68,6 +68,9 @@ class _TableExpansion:
         data = {**attributes, **previous, **structure}
         if kind == 'formulaColumn':
             data['x_requires_compilation'] = 'formulaColumn'
+        declared = self.builder._get_schema_info(kind).get('declared_names') or set()
+        generated = {key: data.pop(key) for key in list(data)
+                     if key not in declared and not in_attribute_family(self.builder, kind, key)}
         # The tree renderer consumes options before ordinary declarations.
         # Keep the complete source available for validation/cross-table reads,
         # but insert each generated field at the next option position.
@@ -76,6 +79,7 @@ class _TableExpansion:
         first = self.options_first and name not in emitted
         position = len(emitted) if first else None
         result = getattr(self.table, kind)(name, node_position=position, **data)
+        generate_attributes(self.builder, result, generated)
         if first:
             if existing is not None:
                 # Composition updates a predeclared node in place. Preserve its
@@ -90,8 +94,8 @@ class _TableExpansion:
                         sql_formula=formula, **attributes)
 
     def table_default(self, **attributes):
-        for key, value in attributes.items():
-            self.table.attr.setdefault(key, value)
+        generate_attributes(self.builder, self.table,
+                            {key: value for key, value in attributes.items() if key not in self.table.attr})
 
     def relation(self, column, to, **attributes):
         existing = [n for n in column.value or () if n.node_tag == 'relation']
@@ -106,9 +110,13 @@ class _TableExpansion:
             for key, value in attributes.items():
                 if key in relation.attr and key not in defaults and relation.attr[key] != value:
                     raise ValueError(f'{self.key}.{column.label}: conflicting relation {key}')
-            relation.attr.update(attributes)
+            generate_attributes(self.builder, relation, attributes)
             return
-        column.relation(to, foreign_key=True, **attributes)
+        declared = self.builder._get_schema_info('relation').get('declared_names') or set()
+        relation = column.relation(to, foreign_key=True,
+                                   **{key: value for key, value in attributes.items() if key in declared})
+        generate_attributes(self.builder, relation,
+                            {key: value for key, value in attributes.items() if key not in declared})
 
     def sys_fields(self):
         spec = self.spec('sys_fields')
@@ -165,20 +173,6 @@ class _TableExpansion:
                          **_legacy(_sysfield=True))
 
     def local(self):
-        # DbModelSrc._subtable_table exposes each declared filter as a boolean
-        # virtual column. Keep the SQL and its bindings as model data.
-        for child in list(self.table.value or ()):
-            if child.node_tag != 'subtable':
-                continue
-            name = child.get_attr('name')
-            bindings = {f'var_{key}': value for key, value in
-                        (child.get_attr('parameters') or {}).items()}
-            bindings.update({f'var_{key[10:]}': value for key, value in child.attr.items()
-                             if key.startswith('condition_')})
-            self.formula('subtable_' + name, child.get_attr('condition'), dtype='B',
-                         name_long=child.get_attr('name_long') or name, group='subtables',
-                         **_legacy(_addClass='subtable_' + name), **bindings)
-            self.table_default(group_subtables='!![en]Subtables')
         spec = self.spec('full_update')
         if spec is not None:
             self.add(spec['field'], 'DHZ', indexed=True, group=self.group,
@@ -223,7 +217,7 @@ class _TableExpansion:
         for column in columns or ():
             child = column.value.get_node('dynamic_fields') if column.value else None
             if child is not None and child.get_attr('enabled', True):
-                column.attr.update(_legacy(subfields=child.get_attr('source')))
+                generate_attributes(self.builder, column, _legacy(subfields=child.get_attr('source')))
 
     def hierarchy(self):
         spec = self.spec('hierarchical')
@@ -278,7 +272,7 @@ class _TableExpansion:
         if spec.get('depth'):
             for name in fields:
                 column = self.node('hierarchical_' + name)
-                column.attr.update(_legacy(variant='hdepth', variant_hdepth_levels=spec['depth']))
+                generate_attributes(self.builder, column, _legacy(variant='hdepth', variant_hdepth_levels=spec['depth']))
                 if not column.get_attr('group'):
                     column.attr['group'] = 'hierarchical_' + name
                     self.table_default(**{'group_hierarchical_' + name: column.get_attr('name_long')})

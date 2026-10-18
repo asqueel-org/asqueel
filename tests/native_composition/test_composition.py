@@ -37,7 +37,7 @@ class MountedModel(SqlBuilder):
         table = schema.tables().table(name='customer', pkey='id', x_config=TableConfig)
         columns = table.columns()
         columns.column(name='id', dtype='I')
-        columns.column(name='label', dtype='T', x_ui_label='Customer')
+        columns.column(name='label', dtype='T')
 
 
 def build(cls):
@@ -56,7 +56,7 @@ def test_nested_mount_preserves_named_paths_and_real_consumers():
     model.validate_model()
     rendered = SqlMigrationRenderer(model).render()
     assert rendered['root']['schemas']['sales']['tables']['customer']['attributes']['pkeys'] == 'id'
-    assert resolve_model(model).table('sales.customer').columns['label'].attributes['x_ui_label'] == 'Customer'
+    assert resolve_model(model).table('sales.customer').columns['label'].dtype == 'T'
 
 
 def test_dynamic_mount_class_configuration_is_not_emittable_python():
@@ -73,7 +73,7 @@ def customer_recipe(tables):
     columns = table.columns()
     columns.column('id', dtype='I')
     columns.column('label', dtype='T', x_sql_name='display_name',
-                   x_identity='customer-label', x_ui_label='Customer', x_ui_format='text')
+                   x_identity='customer-label')
 
 
 def invoice_recipe(tables):
@@ -111,8 +111,7 @@ def test_modular_recipes_emit_rebuild_and_keep_all_consumer_contracts():
         assert customer.sqlschema == 'public'
         assert customer.sqlname == 'customer'
         assert customer.columns['label'].sqlname == 'display_name'
-        assert customer.columns['label'].attributes['x_ui_label'] == 'Customer'
-        assert customer.columns['label'].attributes['x_ui_format'] == 'text'
+        assert customer.columns['label'].attributes['x_identity'] == 'customer-label'
         assert resolved.table('sales.invoice').sqlname == 'documents'
         physical = to_physical_builder(resolved)
         physical.validate_model()
@@ -140,7 +139,7 @@ def test_validator_still_checks_cross_module_relations():
         build(MissingDependency).validate_model()
 
 
-def test_indirect_mounted_grammar_preserves_namespaced_attribute():
+def test_indirect_mounted_grammar_preserves_its_declared_attribute():
     class CustomTableGrammar(TableGrammar):
         @element(parent_tags='columns', _meta={'projects_column': True})
         def column(self, name: str, dtype: str, domain_hint: str = ''):
@@ -149,13 +148,18 @@ def test_indirect_mounted_grammar_preserves_namespaced_attribute():
     class CustomTableConfig:
         grammar = CustomTableGrammar
 
-    class CustomMountedModel(MountedModel):
+    class CustomMountedModel(SqlBuilder):
+        # genro_builders: a second-level subclass loses MountedModel's schema override.
+        @element(parent_tags='schemas', _meta={'subbuilder': 'x_config:grammar'})
+        def schema(self, name: str, x_config=None, **extra):
+            ...
+
         def main(self, root):
             schema = root.db('demo').schemas().schema(name='sales', x_config=SchemaConfig)
             table = schema.tables().table(name='customer', pkey='id', x_config=CustomTableConfig)
             table.columns().column(name='id', dtype='I', domain_hint='local grammar field')
 
     model = build(CustomMountedModel)
-    # Namespaced attributes survive even when Builders owns the base signature.
+    # An attribute declared by the mounted grammar survives resolution.
     model.validate_model()
     assert resolve_model(model).table('sales.customer').columns['id'].attributes['domain_hint'] == 'local grammar field'

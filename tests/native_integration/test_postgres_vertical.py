@@ -60,8 +60,7 @@ def recipe(schema):
     pkg = config.source.db('acceptance').packages().package('crm', sqlschema=schema, sqlprefix=True)
     customer = pkg.table('customer', pkey='id')
     customer.column('id', dtype='L')
-    customer.column('name', dtype='T', notnull=True, sqlname='display name',
-                    x_ui_label='Cliente', x_ui_placeholder='Nome')
+    customer.column('name', dtype='T', notnull=True, sqlname='display name')
     invoice = pkg.table('invoice', pkey='id')
     invoice.column('id', dtype='L')
     invoice.column('customer_id', dtype='L').relation('crm.customer.id', foreign_key=True)
@@ -103,8 +102,6 @@ def test_native_model_compiler_runtime_and_import(native_database):
             assert [(r['id'], r['customer'], r['double_total']) for r in result.rows] == [
                 (11, "L'impresa 50%", 20), (12, None, None),
             ]
-            assert result.columns[1].ui['label'] == 'Cliente'
-            assert result.columns[1].ui['placeholder'] == 'Nome'
             updated = db.execute(write.update(model.table('crm.invoice'), {'id': 11, 'total': 15}, {}))
             assert updated.rowcount == 1
             assert db.execute(compiler.select(

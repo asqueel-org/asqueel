@@ -149,19 +149,19 @@ def test_relations_with_the_same_local_structural_key_are_loud():
 
 
 def test_undeclared_bare_attribute_is_rejected_on_db():
-    """Extra DB attributes need a namespace; a bare typo is rejected."""
+    """An attribute the db signature does not declare is rejected."""
     model = _mount()
     with pytest.raises(ValueError):
         model.source.db(name="d", dbnmae="typo")
 
 
-def test_extra_attributes_are_carried_where_the_signature_is_open():
+@pytest.mark.parametrize("extra", ["x_widget", "group_b_address", "name_full", "cell_format"])
+def test_extra_attributes_are_rejected_naming_attribute_and_element(extra):
     model = _mount()
     schema = model.source.db(name="d").schemas().schema(name="p")
     t = schema.tables().table(name="t")
-    t.columns().column(name="c", dtype="L", x_widget="slider")
-    node = model.source.get_node("db.schemas.p.tables.t.columns.c")
-    assert node.get_attr("x_widget") == "slider"
+    with pytest.raises(ValueError, match=f"Element 'column' does not accept '{extra}'"):
+        t.columns().column(name="c", dtype="L", **{extra: "value"})
 
 
 def test_dtype_must_be_a_known_code():

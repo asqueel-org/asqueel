@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from genro_bag import BagResolver
 
-from .option_elements import TABLE_OPTIONS, NAMED_OPTIONS
+from .option_elements import NAMED_OPTIONS
 
 REQUIRED = {
     'relative_index': ('relation',),
@@ -64,8 +64,6 @@ def names(value, path, *, hierarchical=False):
 
 
 def validate_option(tag, parent, attributes):
-    if tag not in TABLE_OPTIONS:
-        return
     if parent is not None and parent.node_tag == 'column':
         if tag != 'dynamic_fields':
             raise ValueError(f'{tag}: option is not available at this level')

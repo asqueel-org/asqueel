@@ -588,7 +588,7 @@ class _TreeContext:
         column = self.table.column(path)
         identity = column.attributes.get('x_identity') or column.fullname
         return ResultColumn(name, column.dtype, identity,
-                            column_ui(column.attributes, column.fullname, identity, None))
+                            column_ui(column.fullname, identity, None))
 
     def projection(self, columns):
         result, metadata = [], []

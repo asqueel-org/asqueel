@@ -45,7 +45,7 @@ def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype(
     config = SqlDatabaseConfig()
     pkg = config.source.db('aliases').packages().package('app')
     target = pkg.table('customer', pkey='id')
-    target.column('id', dtype='I', name_long='Original', x_legacy_format='#,###')
+    target.column('id', dtype='I', name_long='Original')
     source = pkg.table('source')
     source.column('customer', dtype='I').relation('app.customer.id')
     source.aliasColumn('identifier', relation_path='@customer.id', name_long='Customer identifier')
@@ -53,5 +53,4 @@ def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype(
     assert modern_alias.dtype == alias.dtype
     for key in ('dtype', 'name_long'):
         assert modern_alias.attributes[key] == alias.attributes[key]
-    assert modern_alias.attributes['x_legacy_format'] == alias.attributes['format']
     assert modern_alias.relation_path == alias.relation_path

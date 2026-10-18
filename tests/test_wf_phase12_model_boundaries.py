@@ -103,9 +103,8 @@ def test_auto_index_over_the_exact_pkey_is_suppressed():
 
 def test_sql_type_and_dotted_address_names_are_rejected():
     model, _table_node, columns = _table()
-    columns.column(name="native", sql_type="geometry(Point,4326)")
-    with pytest.raises(SqlModelValidationError, match="sql_type"):
-        model.validate_model()
+    with pytest.raises(ValueError, match="does not accept 'sql_type'"):
+        columns.column(name="native", sql_type="geometry(Point,4326)")
     dotted = _mount()
     db = dotted.source.db(name="d")
     with pytest.raises(ValueError, match="dot|separator|name"):

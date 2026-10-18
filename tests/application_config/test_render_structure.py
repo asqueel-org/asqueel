@@ -35,7 +35,7 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
         calls.append('len')
         return '3:40'
     source, root, customer = recipe()
-    column = customer.column('label', foo_bar_color=EnvResolver('INVOICE_COLOR'),
+    column = customer.column('label', comment=EnvResolver('INVOICE_COLOR'),
                              validate_len=BagCbResolver(length))
     # Unselected administrative connections must not be evaluated as model nodes.
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Unused connection read')))
@@ -47,14 +47,14 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
     db = source.render()
     try:
         handle = db.table('invc.customer').column('label')
-        assert handle.attributes['foo_bar_color'] == 'blue'
+        assert handle.attributes['comment'] == 'blue'
         assert handle.validations == {'len': '3:40'}
         assert calls
         count = len(calls)
         monkeypatch.setenv('INVOICE_COLOR', 'red')
-        column.attr['foo_bar_color'] = 'green'
-        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['foo_bar_color'] = 'yellow'
-        assert handle.attributes['foo_bar_color'] == 'blue'
+        column.attr['comment'] = 'green'
+        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['comment'] = 'yellow'
+        assert handle.attributes['comment'] == 'blue'
         assert handle.dtype == 'T'
         assert handle.attributes.get('missing') is None
         assert handle.validations == {'len': '3:40'}
@@ -76,11 +76,11 @@ def test_callback_cache_semantics_are_owned_by_existing_resolver():
         calls.append(1)
         return 'fixed'
     resolver = BagCbResolver(value, cache_time=-1)
-    customer.column('value', foo_first=resolver, foo_second=resolver)
+    customer.column('value', name_long=resolver, name_short=resolver)
     db = build_database(source)
     try:
         col = db.table('invc.customer').column('value')
-        assert col.attributes['foo_first'] == col.attributes['foo_second'] == 'fixed'
+        assert col.attributes['name_long'] == col.attributes['name_short'] == 'fixed'
         assert calls == [1]  # one shared resolver with its own permanent cache
     finally:
         db.close()
@@ -90,12 +90,12 @@ def test_render_defaults_follow_composition_and_failure_publishes_nothing():
     base, _, _ = recipe()
     overlay = SqlDatabaseConfig()
     table = overlay.source.db('invoice').packages().package('invc').table('customer')
-    table.column('account_name', foo_bar_color='red')
+    table.column('account_name', comment='red')
     db = build_database(overlay, parents=[base])
     try:
         assert db.table('invc.customer').attributes['name_long'] == 'Cliente'
         assert db.table('invc.customer').column('account_name').validations == {'notnull': True, 'len': '2:40'}
-        assert db.table('invc.customer').column('account_name').attributes['foo_bar_color'] == 'red'
+        assert db.table('invc.customer').column('account_name').attributes['comment'] == 'red'
         assert 'name_long' not in table.attr
     finally:
         db.close()
@@ -125,7 +125,7 @@ def test_validation_spellings_share_contribution_order(explicit_first):
 def test_removed_metadata_forms_are_not_part_of_source_grammar():
     source, root, customer = recipe()
     for kwargs in ({'metadata': {'ui': {'color': 'red'}}}, {'x_ui': {'color': 'red'}}):
-        with pytest.raises(ValueError, match='flat'):
+        with pytest.raises(ValueError, match="Element 'column' does not accept"):
             customer.column('label', **kwargs)
     with pytest.raises(AttributeError):
         root.options().metadata('ui', {'color': 'red'})

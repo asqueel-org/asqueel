@@ -133,21 +133,21 @@ def test_check_requires_clause_unique_requires_columns():
     assert "ck" in msg and "uq" in msg
 
 
-def test_extra_attributes_must_be_namespaced():
+def test_undeclared_attribute_is_reported_by_the_validator():
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         t = tables.table(name="t", pkey="id")
-        t.columns().column(name="id", dtype="serial", dtypo="A")
+        t.columns().column(name="id", dtype="serial").attr["dtypo"] = "A"
 
     msg = _errors(main)
-    assert "dtypo" in msg and "namespace" in msg
+    assert "unknown attribute 'dtypo' on <column>" in msg
 
 
 def test_all_errors_reported_together():
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         t = tables.table(name="t", pkey="ghost")
-        t.columns().column(name="id", dtype="serial", dtypo="A")
+        t.columns().column(name="id", dtype="serial").attr["dtypo"] = "A"
         t.indexes().index(name="ix", columns="nope")
 
     msg = _errors(main)

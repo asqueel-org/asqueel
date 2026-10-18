@@ -39,7 +39,7 @@ def _joiner(table, column, target, attrs):
         one_group=attrs.get('one_group'), many_group=attrs.get('many_group'),
     )
     # These legacy attributes remain opaque data; their execution is not added.
-    for key in ('eager_one', 'eager_many', 'external_relation', 'ignore_tenant',
+    for key in ('eager_one', 'eager_many', 'external_relation',
                 'storefield', 'between', 'cnd', 'join_on', 'virtual'):
         result[key] = attrs.get(key)
     return result, relation_name or many.replace('.', '_')

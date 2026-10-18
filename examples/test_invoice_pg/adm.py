@@ -125,7 +125,6 @@ def connection(pkg):
 # SHA256: 543fa4c606a978c6befb783874c7de0b3318b0e04a958e94787cce92398e5332
 def counter(pkg):
     tbl = pkg.table('counter', pkey='codekey', pkey_columns='pkg,tbl,code,fld,period', name_long='!!Counter')
-    tbl.options().tenant()
     tbl.options().sys_fields(id=False, ins=True, upd=True, user_upd=False, group_name='!![en]System')
     tbl.column('codekey', size=':80', read_only=True, name_long='!!Codekey', indexed=True)
     tbl.column('code', size=':12', read_only=True, name_long='!!Code')

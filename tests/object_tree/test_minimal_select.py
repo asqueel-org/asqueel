@@ -32,7 +32,7 @@ def recipe(implementation):
     customer.column('id', dtype='L')
     customer.column('name')
     invoice = pkg.table('invoice', pkey='id')
-    invoice.column('id', dtype='L', x_ui_label='Identifier')
+    invoice.column('id', dtype='L')
     invoice.column('customer_id', dtype='L').relation('sales.customer.id')
     invoice.column('total', dtype='N')
     invoice.column('issued', dtype='D')
@@ -79,7 +79,7 @@ def test_legacy_physical_expression_where_order_limit(db):
     assert compiled.input_parameters == ('day', 'empty', 'threshold')
     assert [(c.name, c.dtype, c.source) for c in compiled.columns] == [
         ('code', 'L', 'sales.invoice.id'), ('amount', None, None), ('category', None, None)]
-    assert compiled.columns[0].ui == {'label': 'Identifier'}
+    assert compiled.columns[0].ui == {}
     assert_bindings(compiled)
     assert db.outcome == 'not_started'
     assert db._connections == {}
@@ -261,8 +261,7 @@ def test_empty_collection_and_legacy_params(db):
     assert empty in compiled.sql
 
 
-def test_result_metadata_uses_existing_validation(db):
-    column = db.table('sales.invoice').model.columns['id']
-    column.attributes['x_ui_dtype'] = 'T'
+def test_result_metadata_uses_existing_validation():
+    from asqueel.model import column_ui
     with pytest.raises(ValueError, match='UI metadata cannot override column semantics'):
-        db.table('sales.invoice').query(columns='$id').compiled
+        column_ui('sales.invoice.id', 'sales.invoice.id', {'sales.invoice.id': {'dtype': 'T'}})

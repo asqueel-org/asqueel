@@ -110,7 +110,7 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
             attrs['size'] = size
         if dtype == row['dtype'] and dtype != 'jsonb':
             warnings.append(f'{path}: type {dtype} has no asqueel code; raw type preserved')
-        column = Column(name, dtype, ui=column_ui({}, path, path, ui),
+        column = Column(name, dtype, ui=column_ui(path, path, ui),
                         identity=path, attributes=attrs)
         tables[key] = replace(tables[key], columns={**tables[key].columns, name: column})
     constraints = _query(connection, '''

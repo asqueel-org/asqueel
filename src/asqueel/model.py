@@ -12,15 +12,10 @@ from .contracts import (
 )
 
 
-@extract_kwargs(x_ui=True)
-def _ui_attributes(*, x_ui_kwargs=None, **attributes) -> dict[str, Any]:
-    return dict(x_ui_kwargs or {})
-
-
-def column_ui(attributes: Mapping[str, Any], path: str, identity: str,
+def column_ui(path: str, identity: str,
               ui: Mapping[str, Mapping[str, Any]] | None) -> dict[str, Any]:
-    """Apply inline metadata, then path overlay, then stable identity overlay."""
-    result = _ui_attributes(**dict(attributes))
+    """Apply the path overlay, then the stable identity overlay."""
+    result: dict[str, Any] = {}
     overlays = ui or {}
     result.update(overlays.get(path, {}))
     if identity != path:

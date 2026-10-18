@@ -35,7 +35,7 @@ def test_alias_formula_redefinition(grouped, layered, reverse, dialect):
     target = table.colgroup('grp', name_long='Group') if grouped else table
     target.formulaColumn('before', '1', dtype='L')
     original = declare(target, first, dtype='T', name_long='Original', name_short='V',
-                       comment='Keep', static=True, x_ui_color='blue')
+                       comment='Keep', static=True)
     target.formulaColumn('after', '2', dtype='L')
     old_group = original.get_attr('group')
     before = deepcopy(dict(original.attr))
@@ -53,7 +53,7 @@ def test_alias_formula_redefinition(grouped, layered, reverse, dialect):
         assert node is original
     assert node.node_tag == second
     assert node.get_attr('name_long') == 'Replacement'
-    for name in ('dtype', 'name_short', 'comment', 'static', 'x_ui_color'):
+    for name in ('dtype', 'name_short', 'comment', 'static'):
         assert node.get_attr(name) == before[name]
     assert node.get_attr('group') == old_group
     obsolete = 'sql_formula' if reverse else 'relation_path'
@@ -126,8 +126,9 @@ def test_native_definition_attributes_follow_the_new_virtual_kind(old, new):
     config, table = recipe()
     table.column('payload', dtype='X')
     extras = {'static': True} if old in ('aliasColumn', 'formulaColumn', 'pyColumn') else {}
-    node = getattr(table, old)('value', **DEFINITIONS[old], **extras, dtype='T', name_long='Value',
-                               x_ui_color='blue', var_threshold=7)
+    if old in ('formulaColumn', 'subQueryColumn'):
+        extras['var_threshold'] = 7
+    node = getattr(table, old)('value', **DEFINITIONS[old], **extras, dtype='T', name_long='Value')
     assert getattr(table, new)('value', **DEFINITIONS[new]) is node
     for key in DEFINITIONS[old].keys() - DEFINITIONS[new].keys():
         if key in ('select_rows', 'required_columns', 'mode'):
@@ -138,8 +139,6 @@ def test_native_definition_attributes_follow_the_new_virtual_kind(old, new):
         assert node.get_attr(key) == value
     assert node.get_attr('dtype') == 'T'
     assert node.get_attr('name_long') == 'Value'
-    assert node.get_attr('x_ui_color') == 'blue'
-    assert node.get_attr('var_threshold') == 7
     for key, value in extras.items():
         assert node.get_attr(key) == value
     config.validate_model()
@@ -164,7 +163,5 @@ def test_inherited_attributes_survive_composition_of_an_already_redefined_source
 
 def test_redefinition_does_not_legitimize_unknown_attributes():
     config, table = recipe()
-    table.aliasColumn('value', '@person_id.name', typo='not a declared attribute')
-    table.formulaColumn('value', '1')
-    with pytest.raises(ValueError, match="unknown attribute 'typo'"):
-        config.validate_model()
+    with pytest.raises(ValueError, match="Element 'aliasColumn' does not accept 'typo'"):
+        table.aliasColumn('value', '@person_id.name', typo='not a declared attribute')

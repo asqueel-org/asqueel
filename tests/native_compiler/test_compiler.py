@@ -16,7 +16,7 @@ def db():
         'app', sqlschema='Actual "Schema')
     customer = pkg.table('customer', pkey='id')
     customer.column('id', dtype='L')
-    customer.column('name', sqlname='full%name', x_ui_label='Name')
+    customer.column('name', sqlname='full%name')
     invoice = pkg.table('invoice', pkey='id', sqlname='Order')
     invoice.column('id', dtype='L')
     invoice.column('customer_id', dtype='L').relation('app.customer.id')
@@ -123,7 +123,7 @@ def test_result_source_preserves_stable_identity_across_alias_and_physical_names
     pkg = source.source.db('identity', implementation='postgres').packages().package('app')
     customer = pkg.table('customer', pkey='id', sqlname='renamed_customer')
     customer.column('id', x_identity='stable:customer:id')
-    customer.column('name', sqlname='renamed_name', x_identity='stable:customer:name', x_ui_label='Customer')
+    customer.column('name', sqlname='renamed_name', x_identity='stable:customer:name')
     invoice = pkg.table('invoice', pkey='customer_id')
     invoice.column('customer_id').relation('app.customer.id')
     with bind(source) as db:
@@ -132,5 +132,5 @@ def test_result_source_preserves_stable_identity_across_alias_and_physical_names
         for query in (direct, related):
             assert query.columns[0].source == 'stable:customer:name'
             assert query.columns[0].name == 'display'
-            assert query.columns[0].ui == {'label': 'Customer'}
+            assert query.columns[0].ui == {}
         assert db.compiler.select('app.invoice').columns[0].source == 'app.invoice.customer_id'

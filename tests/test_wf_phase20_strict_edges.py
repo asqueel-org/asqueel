@@ -86,21 +86,23 @@ def test_schema_comment_is_explicitly_source_only():
 
 
 def test_emitter_handles_empty_tuples_and_rejects_invalid_class_names():
-    # wf:contract: validator-green x_* empty tuples emit as () and the complete
+    # wf:contract: validator-green empty tuples emit as () and the complete
     # wf:contract: module compiles and executes; invalid/keyword class names raise
     # wf:contract: ValueError before any source is returned.
     model = _Model()
     model.create()
-    model.source.db("d").schemas().schema("s", x_marker=())
+    table = model.source.db("d").schemas().schema("s").tables().table("t", pkey="id")
+    table.columns().column("id", dtype="L")
+    table.virtual_columns().pyColumn("p", method="compute", required_columns=())
     model.validate_model()
 
     emitted = SqlPythonEmitter(model).emit(class_name="TupleRecipe")
-    assert "x_marker=()" in emitted
+    assert "required_columns=()" in emitted
     namespace = {}
     exec(compile(emitted, "<phase20>", "exec"), namespace)  # noqa: S102
     rebuilt = namespace["TupleRecipe"]()
     rebuilt.create()
-    assert rebuilt.source["db.schemas.s"].get_attr("x_marker") == ()
+    assert rebuilt.source["db.schemas.s.tables.t.virtual_columns.p"].get_attr("required_columns") == ()
 
     for invalid in ("123Bad", "bad-name", "class"):
         with pytest.raises(ValueError, match="class name"):

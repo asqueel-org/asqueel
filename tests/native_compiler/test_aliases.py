@@ -14,7 +14,7 @@ def db():
     pkg = config.source.db('aliases', implementation='postgres').packages().package('app')
     country = pkg.table('country', pkey='id')
     country.column('id', dtype='L')
-    country.column('name', sqlname='country_name', x_ui_label='Country', x_ui_width=20)
+    country.column('name', sqlname='country_name')
     customer = pkg.table('customer', pkey='id')
     customer.column('id', dtype='L')
     customer.column('country_id', dtype='L').relation('app.country.id')
@@ -25,8 +25,7 @@ def db():
     invoice.column('id', dtype='L')
     invoice.column('customer_id', dtype='L').relation('app.customer.id')
     invoice.aliasColumn('customer_code', '@customer_id.code', x_identity='stable-code')
-    invoice.aliasColumn('country_name', '@customer_id.@country_id.name',
-                        x_ui_label='Invoice country', x_identity='stable-country')
+    invoice.aliasColumn('country_name', '@customer_id.@country_id.name', x_identity='stable-country')
     invoice.aliasColumn('via_alias', '@customer_id.country')
     invoice.aliasColumn('twice', '@customer_id.double')
     with build_database(config) as database:

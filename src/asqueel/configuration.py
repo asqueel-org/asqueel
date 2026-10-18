@@ -55,7 +55,7 @@ class SqlDatabaseElements:
     @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
     def db(self, name: str = 'db', implementation: str = 'sqlite', conninfo: str = '',
            connect_kwargs: dict | None = None, name_long: str | None = None,
-           name_short: str | None = None, comment: str | None = None, **extra):
+           name_short: str | None = None, comment: str | None = None):
         ...
 
     @element(parent_tags='db', sub_tags='options[:1]')
@@ -66,7 +66,7 @@ class SqlDatabaseElements:
                    password: str | BagResolver | None = None,
                    options: dict | None = None, database: str | BagResolver | None = None,
                    dsn: str | BagResolver | None = None, name_long: str | None = None,
-                   name_short: str | None = None, comment: str | None = None, **extra):
+                   name_short: str | None = None, comment: str | None = None):
         """Named connection; legacy declarations without database/dsn keep name as database."""
         ...
 
@@ -111,15 +111,11 @@ def _owned_handler(source, parents=None):
 
 def _validate_source_shape(builder):
     """Validate composition without resolving defaults, references or secrets."""
-    from .model_elements import OPTION_LEVELS
-    from .option_elements import TABLE_OPTIONS
     tags = {node.node_tag for _, node in builder.source.query('#p,#n', deep=True)}
     if 'packages' in tags and 'schemas' in tags:
         raise ValueError('Package configuration derives schemas from package.sqlschema; '
                          'remove the explicit schemas section')
     for _, node in builder.source.query('#p,#n', deep=True):
-        if node.node_tag != 'validation' and {'metadata', 'x_ui'}.intersection(node.attr):
-            raise ValueError(f'{node.node_tag}: use flat namespaced attributes, not metadata/x_ui mappings')
         if node.node_tag in ('context', 'generation', 'behavior', 'pkey_from', 'macro',
                              'normalize', 'aliasTable', 'table_alias', 'metadata', 'diagnostics'):
             raise ValueError(f'{node.node_tag}: removed from the source grammar')
@@ -131,10 +127,10 @@ def _validate_source_shape(builder):
             if node.attr.get('table') and (condition is None or
                     isinstance(condition, str) and not condition.strip()):
                 raise ValueError('virtualRelation: table requires a nonempty condition')
-        if node.node_tag in (*TABLE_OPTIONS, 'encryption') and 'provider' in node.attr:
+        if (node.node_tag in builder.table_options or node.node_tag == 'encryption') and 'provider' in node.attr:
             raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
-        if node.node_tag in OPTION_LEVELS:
-            if node.node_tag in TABLE_OPTIONS:
+        if builder.option_levels(node.node_tag) is not None:
+            if node.node_tag in builder.table_options:
                 owner = node._resolve_builder()
                 owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
                     {key: value for key, value in node.attr.items() if key != '_meta'}, node.node_tag)

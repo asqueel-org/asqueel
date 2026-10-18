@@ -38,7 +38,6 @@ def source(*, current_state=None):
     attachments.options().attachments(master='adm.htmltemplate')
     counter = adm.table('counter', pkey='codekey', pkey_columns='pkg,tbl,code,fld,period')
     counter.options().sys_fields(id=False, user_upd=False)
-    counter.options().tenant()
     counter.column('codekey', size=':80')
     for name, size in (('pkg', ':12'), ('tbl', ':30'), ('code', ':12'),
                        ('fld', ':30'), ('period', ':10')):

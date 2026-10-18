@@ -188,7 +188,6 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
     table.column('state')
     opts = table.options()
     opts.partition('state', field='state', value=EnvResolver('INVC_STATE'))
-    opts.tenant()
     opts.retention(field='id', days=60)
     opts.broadcast('state')
     opts.archive()
@@ -199,7 +198,7 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
     try:
         item = db.table('invc.customer')
         assert set(item.columns) == {'id', 'state'}
-        assert set(item.model.options) == {'partition_state', 'tenant', 'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id', 'protection'}
+        assert set(item.model.options) == {'partition_state', 'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id', 'protection'}
         assert item.model.options['partition_state'].attributes['value'] == 'MI'
         assert item.model.options['protection'].attributes['rules'] == ['protect_validate']
         assert item.model.options['numbering_id'].attributes['parameters']['format'] == '$YYYY$NNNNN'

@@ -32,7 +32,7 @@ class GoldenRecipe(SqlBuilder):
         author_columns.column(name="id", dtype="serial")
         author_columns.column(
             name="name", dtype="A", size="0:120", notnull=True,
-            name_long="Author name", x_gui="hidden",
+            name_long="Author name",
         )
 
         recipe = tables.table(name="recipe", pkey="id")
@@ -135,7 +135,7 @@ def test_output_passes_structure_validator():
 def test_semantic_plane_never_reaches_the_json():
     flat = json.dumps(_render())
     for banned in ("name_long", "one_name", "many_name", "relation_name",
-                   "x_gui", "caption_field"):
+                   "caption_field"):
         assert banned not in flat, banned
 
 

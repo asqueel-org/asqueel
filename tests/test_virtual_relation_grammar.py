@@ -56,13 +56,13 @@ def test_gep_bindings_and_filtered_relations_are_preserved():
 ])
 def test_retired_or_unknown_virtual_relation_arguments_are_rejected(key, value):
     b, customer, _ = source()
-    with pytest.raises(ValueError, match='unsupported attributes'):
+    with pytest.raises(ValueError, match=f"Element 'virtualRelation' does not accept '{key}'"):
         customer.virtualRelation('bad', relation='@invoices', **{key: value})
     node = customer.virtualRelation('imported', relation='@invoices')
     node.attr[key] = value
-    with pytest.raises(ValueError, match='unsupported attributes'):
+    with pytest.raises(ValueError, match=f"unknown attribute '{key}' on <virtualRelation>"):
         b.validate_source()
-    with pytest.raises(ValueError, match='unsupported attributes'):
+    with pytest.raises(ValueError, match=f"unknown attribute '{key}' on <virtualRelation>"):
         resolve_model(b)
 
 

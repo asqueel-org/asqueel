@@ -20,7 +20,7 @@ def test_physical_and_related_nodes_publish_effective_dtype(attributes, dtype):
     target.column('code', **attributes)
     item = pkg.table('item', pkey='id')
     item.column('id', dtype='L')
-    item.column('ref', name_long='Reference', ui_hint={'color': 'blue'},
+    item.column('ref', name_long='Reference', default={'color': 'blue'},
                 **attributes).relation('app.target.code')
     source_before = source.source.to_json()
     model = source.render(mode='objects_tree')
@@ -36,8 +36,8 @@ def test_physical_and_related_nodes_publish_effective_dtype(attributes, dtype):
     assert field.attr['name_long'] == relation.attr['name_long'] == 'Reference'
     assert relation.attr['joiner']['many_relation'] == 'app.item.ref'
     assert relation.resolver.parentpath[0] is column
-    relation.attr['ui_hint']['color'] = 'red'
-    assert field.attr['ui_hint']['color'] == 'blue'
+    relation.attr['default']['color'] = 'red'
+    assert field.attr['default']['color'] == 'blue'
     assert column.attributes == attributes_before
     assert source.source.to_json() == source_before
 

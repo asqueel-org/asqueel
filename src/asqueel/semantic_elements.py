@@ -32,16 +32,10 @@ class SemanticElements:
     def bagItemColumn(self, name: str, bagcolumn: str, itempath: str,
                       dtype: str | None = None, group: str | None = None,
                       name_long: str | None = None, name_short: str | None = None,
-                      comment: str | None = None, **extra):
+                      comment: str | None = None, x_identity: str | None = None):
         ...
 
-    @element(parent_tags='table', sub_tags='')
-    def subtable(self, name: str, condition: str, parameters: dict | None = None,
-                 name_long: str | None = None, name_short: str | None = None,
-                 comment: str | None = None, **extra):
-        ...
-
-    @element(parent_tags='table', sub_tags='')
+    @element(parent_tags='table', sub_tags='', _meta={'attribute_families': ['var_']})
     def virtualRelation(self, name: str, relation: str | None = None, table: str | None = None,
                         condition: str | None = None, ask: dict | None = None,
                         name_long: str | None = None, name_short: str | None = None,
