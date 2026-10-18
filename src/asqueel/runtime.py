@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from importlib import import_module
+import re
 from threading import Thread, current_thread, local
 from typing import Any, TypedDict
 from uuid import uuid4
@@ -395,8 +396,15 @@ class Database:
         if state['failed'] or state['completion_failed']:
             raise TransactionStateError('Connection is rollback-only; call rollback before reuse')
 
+    def _check_environment_keys(self) -> None:  # wf:phase-3:new
+        """Refuse the legacy environment keys whose effect this release does not have."""
+        for key in self.environment.currentEnv:
+            if key in ('sql_comment', 'sql_details') or re.fullmatch(r'env_\w+_condition_\w+', key):
+                raise UnsupportedFeatureError(f'environment key {key!r} is not available in this release')
+
     def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None) -> QueryResult:
         self._check_connection_usable(state)
+        self._check_environment_keys()
         adapter = self.adapter
         adapter.validate(query)
         if query.environment is not None:

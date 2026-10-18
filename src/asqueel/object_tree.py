@@ -162,8 +162,19 @@ class DbTableObj(DbModelObj):
         table_class = self.attributes.get('x_table_class', SqlTable)
         if not isinstance(table_class, type) or not issubclass(table_class, SqlTable):
             raise TypeError(f'{self.fullname}: x_table_class must be a SqlTable subclass')
+        self._check_table_methods(table_class)
         self.dbtable = table_class(self.db, self)
         self._relation_tree = None
+
+    def _check_table_methods(self, table_class):  # wf:phase-3:new
+        """Refuse legacy package triggers (``trigger_on<Event>_<pkg>``) and ``formulaColumn_<x>`` methods."""
+        from .contracts import UnsupportedFeatureError
+        from .table_triggers import TriggersMixin
+        hooks = [name for name in vars(TriggersMixin) if name.startswith('trigger_on')]
+        for name in dir(table_class):
+            if name.startswith('formulaColumn_') or any(name.startswith(hook + '_') for hook in hooks):
+                raise UnsupportedFeatureError(
+                    f'{self.fullname}: table method {name!r} is not available in this release')
 
     def afterChildrenCreation(self):
         # DbTableObj.afterChildrenCreation, restricted to admitted containers.
