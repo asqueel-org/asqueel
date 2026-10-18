@@ -154,8 +154,6 @@ def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rena
                             continue
                         if kind != 'u':
                             raise UnsupportedFeatureError(f'{table.key}: constraint kind {kind}')
-                        if constraint.get('deferrable'):
-                            raise UnsupportedFeatureError(f'{table.key}: deferrable UNIQUE')
                         data = {'constraint_type': 'UNIQUE',
                                 'columns': mapped(constraint['columns'])}
                     else:

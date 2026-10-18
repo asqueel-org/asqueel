@@ -54,3 +54,17 @@ A full run at 569b88f with the `_` gate instrumented: keys accepted through it, 
 - Gate (user, 2026-10-18): approved. Common phrase `<feature>: ... is not available in this release`, the one Phase 3 introduced (`object_tree.py`, `runtime.py`). Options are named one at a time. `_many_aggregates.py` and `tests/native_model/test_postgres.py` join the phase: the Done grep covers all `src/asqueel` and the test matches the old phrase.
 - Build: projection refusals name the first blocking property through `_constraint_index_feature`/`_index_feature`; `formulaColumn` names `subqueries=` or `handler=`; the many path names the relation; `aggr` with `join_on`/`cnd`/`between` names the key; macros are named as written.
 - Build: `docs/guide/legacy-features.md` A3.18-A3.20 no longer quote the old macro message. `docs/design/*` keep the old phrases: they record history.
+
+## Final touch
+Quality check 2026-10-18, review extended (in-session code-review, effort high) over 0b36069..da0cd5d; reviewed revision da0cd5d. QA: the one authored check (Phase 3) was confirmed by the user at the phase.
+
+| Finding (evidence) | Root cause | Fix | Verification | Road |
+|---|---|---|---|---|
+| `pyColumn('p::N')`, `bagItemColumn('b::N')` give column `p::n` dtype T (probe) | the split runs only for tags in the positional `fields` map | `pyColumn`/`bagItemColumn` get `('name',)` in `fields` (builder.py) | tests/test_legacy_model_query.py extended | final touch |
+| `column('a::b::c')` raises "too many values to unpack" | split without a shape check | ValueError `<tag>: '<name>' must be 'name::dtype'` | same test | final touch |
+| docs/guide/legacy-features.md A1.6 says name::dtype unavailable | stale since Phase 1 | bullet removed | sphinx -W | final touch |
+| docs/native-model.md:25, docs/native-composition.md:30,58 describe `x_ui_*` | stale since Phase 3 | text realigned | sphinx -W | final touch |
+| projection.py `deferrable UNIQUE` raise unreachable | the DEFERRABLE primary/unique check precedes it | branch removed | suite | final touch |
+
+Dismissed: SQLite boolean converter on text values (asqueel writes 1/0; a tolerant parse is defensive code; the legacy "bool" converter returns True even for b'0'); converters registered in `connect` (user decision at the Phase 2 gate); environment-key check per execution (plan decision: checked at execution); legacy table indexes now projected by the loader (user decision A7.19: model `index()` is projected).
+Checks run after the fixes: full suite 4903 passed, 42 skipped, 32 xfailed; ruff, mypy, sphinx -W green. Re-check (light, low) over builder.py, projection.py and the three docs: no residual finding. No row on the phase road.

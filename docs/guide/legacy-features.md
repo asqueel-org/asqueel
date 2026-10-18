@@ -86,8 +86,6 @@ the write cycle, see [Current status](limitations.md).
 
 ### Not available yet
 
-- **`name::dtype` shorthand for physical and virtual columns** (A1.6): the
-  name is kept literally. No issue yet. Workaround: pass `dtype=`.
 - **`column(default=)`** (A1.7): declared, but a table with it cannot be
   written ([#28](https://github.com/asqueel-org/asqueel/issues/28)).
   Workaround: set the value in `trigger_onInserting`.

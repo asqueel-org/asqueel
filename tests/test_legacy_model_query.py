@@ -19,12 +19,17 @@ def test_name_dtype_split_on_column_and_virtual_columns():
     t.column('n::N')
     t.formulaColumn('f::N', sql_formula='$n * 2')
     t.aliasColumn('a::N', relation_path='$n')
+    t.column('data', 'X')
+    t.pyColumn('p::N', py_method='calc')
+    t.bagItemColumn('b::N', bagcolumn='$data', itempath='a')
     table = resolve_model(b).table('sales.invoice')
     assert table.columns['n'].dtype == 'N'
-    assert table.virtual_columns['f'].dtype == 'N'
-    assert table.virtual_columns['a'].dtype == 'N'
+    for name in ('f', 'a', 'p', 'b'):
+        assert table.virtual_columns[name].dtype == 'N'
     with pytest.raises(ValueError, match='column: dtype passed twice'):
         t.column('x::N', dtype='T')
+    with pytest.raises(ValueError, match="column: 'a::b::c' must be 'name::dtype'"):
+        t.column('a::b::c')
 
 
 def sqlite_db(path):

@@ -128,7 +128,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         fields = {
             'column': ('name', 'dtype'), 'formulaColumn': ('name', 'sql_formula'),
             'aliasColumn': ('name', 'relation_path'), 'subQueryColumn': ('name', 'query'),
-            'compositeColumn': ('name', 'columns'),
+            'compositeColumn': ('name', 'columns'), 'pyColumn': ('name',), 'bagItemColumn': ('name',),
         }.get(name)
 
         def call(destination, *args, **kwargs):
@@ -159,6 +159,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 if name != 'compositeColumn' and '::' in str(kwargs.get('name', '')):
                     if 'dtype' in kwargs:
                         raise ValueError(f'{name}: dtype passed twice')
+                    if kwargs['name'].count('::') != 1:
+                        raise ValueError(f"{name}: {kwargs['name']!r} must be 'name::dtype'")
                     kwargs['name'], kwargs['dtype'] = kwargs['name'].split('::')
             elif len(args) > 1:
                 raise TypeError(f'{name}: at most one positional argument is allowed')
