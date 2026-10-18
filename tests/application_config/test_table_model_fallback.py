@@ -10,6 +10,7 @@ class StructuralTable:
     fullname = "app.item"
     name = "item"
     columns = {"id": SimpleNamespace(name="id")}
+    attributes: dict = {}
 
     def column(self, name):
         return self.columns[name]

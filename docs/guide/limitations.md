@@ -37,8 +37,7 @@ written through the cycle.
 
 | Declaration | Issue |
 |---|---|
-| option `hierarchical` | [#30](https://github.com/asqueel-org/asqueel/issues/30) |
-| option `auto_counter` | [#31](https://github.com/asqueel-org/asqueel/issues/31) |
+| option `auto_counter` (except on a hierarchical table) | [#31](https://github.com/asqueel-org/asqueel/issues/31) |
 | any other enabled table option | no issue yet |
 | column `default`, `default_from`, `x_generation` (except the `id` declared by `sys_fields`) | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
 | column `read_only` (except the `id` declared by `sys_fields`), `unmodifiable` | no issue yet |

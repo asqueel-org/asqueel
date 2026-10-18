@@ -231,8 +231,11 @@ def require_write_capabilities(table):
     ``table`` is a DbTableObj. Each implementation step removes what it executes.
     """
     from .contracts import UnsupportedFeatureError
-    executed = {'sys_fields'}
+    executed = {'sys_fields', 'hierarchical'}
     enabled = {name for name, option in table.options.items() if option.attributes.get('enabled', True)}
+    if 'hierarchical' in enabled:
+        # trigger_hierarchical_before assigns _row_count; no setRowCounter.
+        executed.add('auto_counter')
     pending = [f'option {name}' for name in enabled if name not in executed]
     if table.attributes.get('x_expanded_legacy'):
         pending.append('legacy expansion')

@@ -101,12 +101,23 @@ the write cycle, see [Current status](limitations.md).
   [#32](https://github.com/asqueel-org/asqueel/issues/32)). Other options on
   the same table still refuse the write.
 - **`sysFields(hierarchical=...)`** (A1.15): `options().hierarchical`
-  expands, but a table with it cannot be written
-  ([#30](https://github.com/asqueel-org/asqueel/issues/30); model JSON:
-  [#18](https://github.com/asqueel-org/asqueel/issues/18)). Workaround:
-  application hooks on `parent_id`.
+  expands and the table is written as legacy develop: the `parent_id` field
+  triggers `trigger_hierarchical_before`/`trigger_hierarchical_after` call
+  the table's `hierarchicalHandler`, which materializes `hierarchical_<field>`,
+  `_parent_h_<field>` and `hierarchical_pkey`, copies the `copyFromParent`
+  columns (`_virtual_node`), numbers siblings in `_row_count`/`_h_count` when
+  `auto_counter` is declared, and rewrites the subtree after a rename or a
+  move. A move under the node itself or a descendant raises
+  `BusinessLogicException`; an update without `old_record` raises
+  `RecordException`; deleting a node deletes its subtree. `child_count`,
+  `hlevel` and `root_id` are read for every node. Differences: no
+  `subtable`; `linked_to` and `depth` raise `UnsupportedFeatureError` when
+  the model is built; `getHierarchicalData`, `hierarchicalSearch`,
+  `pathFromPkey`, `getAncestors`, `fixRowCount` are absent (model JSON:
+  [#18](https://github.com/asqueel-org/asqueel/issues/18)).
 - **`sysFields(counter=)`, `sysFields_counter`** (A1.16):
-  `options().auto_counter` expands, but a table with it cannot be written
+  `options().auto_counter` expands, but a table with it cannot be written,
+  except a hierarchical table, where `trigger_hierarchical_before` assigns it
   ([#31](https://github.com/asqueel-org/asqueel/issues/31)). Workaround: set
   the value in `trigger_onInserting`.
 - **Table and package mixins** (`tableMixin`, `packageMixin`, `_plugins`,

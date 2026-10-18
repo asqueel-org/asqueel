@@ -1,0 +1,9 @@
+✓ Phase 2 completata: le tabelle gerarchiche si leggono e si scrivono come in legacy develop (#30). Il commit è `bb08624` sul branch `plan/write-cycle`.
+
+- **Test:** i contract test della fase passano tutti, 29, di cui 13 su PostgreSQL. La suite completa dà 4943 passed, 42 skipped e 32 xfailed, gli stessi xfail di prima. ruff e mypy sono puliti.
+- **Due test fuori dal piano riallineati:**
+  - `tests/test_wf_phase21_delivery.py` controllava ancora la vecchia pin `asqueel-migration>=0.2.2`, ora `>=0.2.3`.
+  - In `tests/application_config/test_table_model_fallback.py` il model finto `StructuralTable` ha ora `attributes = {}`. Serve perché `SqlTable.__init__` legge `model.attributes`.
+
+  Le due modifiche sono registrate nella nota `> Review:` della fase.
+- **Codice rimosso:** `_linked_hierarchy` e il blocco della variante `hdepth` in `model_expansion.py` non venivano più eseguiti, perché `linked_to` e `depth` ora sollevano un errore. Sono stati tolti; la scelta è in `notes.md`.

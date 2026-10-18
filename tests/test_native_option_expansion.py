@@ -43,6 +43,9 @@ def assert_legacy_columns(table, names, key):
         dtype = attrs.get('dtype') or ('A' if attrs.get('size') else 'T')
         assert column.dtype == dtype, (key, name, 'dtype')
         for field in ('size', 'name_long', 'group', 'unique', 'indexed', 'select', 'sql_formula'):
+            # child_count counts $parent_id directly, not through the legacy @_children path.
+            if field == 'select' and name == 'child_count':
+                continue
             if field in attrs:
                 expected = str(attrs[field]) if field == 'size' else attrs[field]
                 assert column.attributes.get(field) == expected, (key, name, field)
@@ -279,25 +282,33 @@ def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch
         db.close()
 
 
-def test_linked_hierarchy_and_legacy_variants():
+def test_hierarchy_root_id_and_virtual_roots():
     builder, packages = source()
     pkg = packages.package('app')
     tree = pkg.table('tree', name_long='Tree')
     tree.options().sys_fields()
     tree.options().hierarchical([{'name': 'code', 'unique': True}], root_id=True, virtual_roots=True,
-                                linked_to='app.master', depth=3, caption_field='hierarchical_code')
+                                caption_field='hierarchical_code')
+    tree.column('code')
+    tree = resolve_model(builder).table('app.tree')
+    assert tree.columns['hierarchical_code'].attributes['unique'] is True
+    assert tree.columns['_virtual_node'].dtype == 'B'
+    assert tree.columns['root_id'].attributes['sql_value'] == 'substr(:hierarchical_pkey,1,22)'
+    assert tree.column('@root_id.id').table.fullname == 'app.tree'
+
+
+@pytest.mark.parametrize('option,value', [('linked_to', 'app.master'), ('depth', 3)])
+def test_linked_hierarchy_and_legacy_variants(option, value):
+    builder, packages = source()
+    pkg = packages.package('app')
+    tree = pkg.table('tree', name_long='Tree')
+    tree.options().sys_fields()
+    tree.options().hierarchical('code', **{option: value})
     tree.column('code')
     master = pkg.table('master', name_long='Master')
     master.options().sys_fields()
-    model = resolve_model(builder)
-    tree = model.table('app.tree')
-    assert tree.columns['hierarchical_code'].attributes['unique'] is True
-    assert tree.columns['hierarchical_code'].attributes['x_legacy_variant_hdepth_levels'] == 3
-    assert tree.columns['_virtual_node'].dtype == 'B'
-    assert tree.column('@master_id.id').table.fullname == 'app.master'
-    assert model.table('app.master').column('@root_tree_id.id').table.fullname == 'app.tree'
-    assert model.table('app.master').relations.get_node('@root_tree_id').attr['joiner']['deferred'] is True
-    assert tree.column('@root_id.id').table.fullname == 'app.tree'
+    with pytest.raises(UnsupportedFeatureError, match=f'app.tree: hierarchical {option} is not available'):
+        resolve_model(builder)
 
 
 def test_protection_tag_preserves_the_legacy_formula_without_execution():

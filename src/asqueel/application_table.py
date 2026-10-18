@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from copy import deepcopy
 
 from .contracts import UnsupportedFeatureError
+from .hierarchical import HierarchicalHandler
 from .table_crud import CrudMixin
 from .table_triggers import TriggersMixin
 
@@ -188,6 +189,8 @@ class SqlTable(CrudMixin, TriggersMixin):
     def __init__(self, db, model):
         self.model = model
         self.fullname = model.fullname
+        if model.attributes.get('x_legacy_hierarchical'):
+            self.hierarchicalHandler = HierarchicalHandler(self)
 
     @property
     def db(self):

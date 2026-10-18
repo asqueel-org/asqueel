@@ -1,0 +1,96 @@
+"""Hierarchical tables, as GenroPy HierarchicalHandler (develop 95da66ee64).
+
+Reference gnr/sql/gnrsqltable_proxy/hierarchical.py trigger_before and
+trigger_after. The legacy ``subtable='*'`` has no asqueel counterpart and is
+dropped.
+"""
+from __future__ import annotations
+
+_BASE36 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+
+def encode36(number, nChars=1):  # wf:phase-2:new
+    """Legacy gnr/core/gnrstring.py encode36: '' when ``number`` needs more than ``nChars``."""
+    result = []
+    while number >= 1:
+        result.insert(0, _BASE36[number % 36])
+        number //= 36
+    if len(result) > nChars:
+        return ''
+    return ''.join(result).rjust(nChars, _BASE36[0])
+
+
+def _changed(fields, record, old_record):
+    return any(record.get(name) != old_record.get(name) for name in fields)
+
+
+class HierarchicalHandler:  # wf:phase-2:new
+    """Paths, counters and subtree rewrites of a table declared hierarchical."""
+
+    def __init__(self, tblobj):
+        self.tblobj = tblobj
+
+    def trigger_before(self, record, old_record=None):  # wf:phase-2:new
+        tblobj = self.tblobj
+        pkeyfield = tblobj.model.pkey
+        parent_id = record.get('parent_id')
+        parent_record = None
+        if parent_id:
+            rows = tblobj.query(where=f'${pkeyfield}=:pid', pid=parent_id,
+                                excludeLogicalDeleted=False, excludeDraft=False).fetch()
+            parent_record = rows[0] if rows else None
+        if parent_record and old_record is not None and _changed(('parent_id',), record, old_record) \
+                and record[pkeyfield] in parent_record['hierarchical_pkey'].split('/'):
+            raise tblobj.exception('business_logic', msg='A node cannot be moved under itself or one of its descendants')
+        has_counter = '_row_count' in tblobj.model.columns
+        if has_counter and old_record is None and record.get('_row_count') is None:
+            # Assigned before the paths: '_row_count' can be a hierarchical field.
+            where, params = ('$parent_id =:p_id', {'p_id': parent_id}) if parent_id else ('$parent_id IS NULL', {})
+            rows = tblobj.query(columns='$_row_count', where=where, sqlparams=params,
+                                order_by='$_row_count desc', limit=1).fetch()
+            record['_row_count'] = ((rows[0]['_row_count'] if rows else None) or 0) + 1
+        for fld in tblobj.model.attributes['x_legacy_hierarchical'].split(','):
+            parent_h_fld = '_parent_h_%s' % fld
+            h_fld = 'hierarchical_%s' % fld
+            v = record.get(pkeyfield if fld == 'pkey' else fld)
+            record[parent_h_fld] = parent_record[h_fld] if parent_record else None
+            record[h_fld] = '%s/%s' % (parent_record[h_fld], v) if parent_record else v
+        if parent_record:
+            for field, colobj in tblobj.model.columns.items():
+                if colobj.attributes.get('x_legacy_copyFromParent'):
+                    record[field] = parent_record[field]
+        if not has_counter:
+            return
+        record['_parent_h_count'] = parent_record['_h_count'] if parent_record else None
+        if old_record is None or _changed(('_row_count', '_parent_h_count'), record, old_record):
+            record['_h_count'] = '%s%s' % (record.get('_parent_h_count') or '', encode36(record['_row_count'], 2))
+
+    def trigger_after(self, record, old_record=None):  # wf:phase-2:new
+        tblobj = self.tblobj
+        if old_record is None:
+            raise tblobj.exception('standard', msg='Updating a hierarchical record requires old_record')
+        hfields = tblobj.model.attributes['x_legacy_hierarchical'].split(',')
+        changed_hfields = [fld for fld in hfields
+                           if record.get('hierarchical_%s' % fld) != old_record.get('hierarchical_%s' % fld)]
+        order_by = None
+        changed_counter = False
+        if '_row_count' in record:
+            order_by = '$_row_count'
+            changed_counter = _changed(('_row_count', '_parent_h_count'), record, old_record)
+        if not (changed_hfields or changed_counter):
+            return
+        columns = ','.join(f'${name}' for name in tblobj.model.columns)
+        fetch = tblobj.query(columns=columns, where='$parent_id=:curr_id', addPkeyColumn=False, for_update=True,
+                             curr_id=record[tblobj.model.pkey], order_by=order_by, bagFields=True,
+                             excludeLogicalDeleted=False, excludeDraft=False).fetch()
+        for k, row in enumerate(fetch):
+            row = dict(row)
+            new_row = dict(row)
+            for fld in changed_hfields:
+                new_row['_parent_h_%s' % fld] = record['hierarchical_%s' % fld]
+            if changed_counter:
+                if new_row.get('_row_count') is None:
+                    new_row['_row_count'] = k + 1
+                new_row['_parent_h_count'] = record['_h_count']
+                new_row['_h_count'] = '%s%s' % (new_row['_parent_h_count'] or '', encode36(new_row['_row_count'], 2))
+            tblobj.update(new_row, row)
