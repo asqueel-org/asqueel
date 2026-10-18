@@ -13,7 +13,7 @@ def source():
     customer.column('id', 'L')
     invoice = pkg.table('invoice', pkey='id')
     invoice.column('id', 'L')
-    invoice.column('customer_id', 'L').relation('app.customer.id', inverse='invoices')
+    invoice.column('customer_id', 'L').relation('app.customer.id', relation_name='invoices')
     invoice.column('year', 'L')
     invoice.column('total', 'N')
     return b, customer, invoice

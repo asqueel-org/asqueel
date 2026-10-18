@@ -44,7 +44,7 @@ class GoldenRecipe(SqlBuilder):
             name="author_id", dtype="L", notnull=True,
         )
         author_id.relation(to="public.author.id", foreign_key=True,
-                           on_delete="CASCADE", back_reference="recipes",
+                           on_delete="CASCADE", relation_name="recipes",
                            one_name="Author", many_name="Recipes")
         constraints = recipe.constraints()
         constraints.constraint(
@@ -133,7 +133,7 @@ def test_output_passes_structure_validator():
 
 def test_semantic_plane_never_reaches_the_json():
     flat = json.dumps(_render())
-    for banned in ("name_long", "one_name", "many_name", "back_reference",
+    for banned in ("name_long", "one_name", "many_name", "relation_name",
                    "x_gui", "caption_field"):
         assert banned not in flat, banned
 

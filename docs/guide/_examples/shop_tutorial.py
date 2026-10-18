@@ -35,7 +35,7 @@ class Shop(SqlDatabaseConfig):
         columns = invoice.columns()
         columns.column("id", dtype="L")
         columns.column("customer_id", dtype="L").relation(
-            "sales.customer.id", foreign_key=True, x_name="customer", inverse="invoices",
+            "sales.customer.id", foreign_key=True, x_name="customer", relation_name="invoices",
         )
         columns.column("total", dtype="N", size="12,2", notnull=True)
         columns.column("note", dtype="T")
@@ -53,7 +53,7 @@ class Shop(SqlDatabaseConfig):
         columns = tables.table("line", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("invoice_id", dtype="L").relation(
-            "sales.invoice.id", foreign_key=True, x_name="invoice", inverse="lines",
+            "sales.invoice.id", foreign_key=True, x_name="invoice", relation_name="lines",
         )
         columns.column("amount", dtype="N", size="12,2")
 # model-end

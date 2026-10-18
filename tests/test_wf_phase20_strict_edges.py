@@ -146,7 +146,7 @@ def test_nonphysical_relations_reject_physical_fk_options():
     # wf:contract: but reject explicit physical FK actions/deferral flags instead
     # wf:contract: of accepting configuration that the projection drops.
     semantic = _relation_model(
-        back_reference="sources", one_name="Target", many_name="Sources",
+        relation_name="sources", one_name="Target", many_name="Sources",
         one_one=True, case_insensitive=True,
     )
     semantic.validate_model()

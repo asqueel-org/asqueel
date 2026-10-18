@@ -28,12 +28,12 @@ def api_token(pkg):
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.column('token', size='64', unique=True, indexed=True, name_long='!!Token')
     tbl.column('description', name_long='!!Description')
-    tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', inverse='api_tokens', foreign_key=True)
+    tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', relation_name='api_tokens', foreign_key=True)
     tbl.column('is_active', dtype='B', default=True, name_long='!!Active')
     tbl.column('expires_ts', dtype='DHZ', name_long='!!Expires')
     tbl.column('activated_ts', dtype='DHZ', name_long='!!Activated')
     tbl.column('last_used_ts', dtype='DHZ', name_long='!!Last Used')
-    tbl.column('created_by', size='22', group='_', name_long='!!Created By').weak_relation('adm.user.id', inverse='api_tokens', on_delete='set_null')
+    tbl.column('created_by', size='22', group='_', name_long='!!Created By').weak_relation('adm.user.id', relation_name='api_tokens', on_delete='set_null')
     tbl.column('notes', dtype='T', name_long='!!Notes')
     tbl.column('token_hint', size='8', name_long='!!Token Hint')
     tbl.formulaColumn('all_tags', select=dict(table='adm.api_token_tag', columns='@tag_id.authorization_tag', where='$api_token_id=#THIS.id'), dtype='A', name_long='!!Tags')
@@ -45,8 +45,8 @@ def api_token(pkg):
 def api_token_tag(pkg):
     tbl = pkg.table('api_token_tag', pkey='id', name_long='!!API Token Tag', name_plural='!!API Token Tags')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('api_token_id', size='22', group='_', name_long='!!API Token').relation('api_token.id', inverse='tags', on_delete='cascade', foreign_key=True)
-    tbl.column('tag_id', size='22', group='_', name_long='!!Tag').relation('htag.id', inverse='api_tokens', on_delete='cascade', foreign_key=True)
+    tbl.column('api_token_id', size='22', group='_', name_long='!!API Token').relation('api_token.id', relation_name='tags', on_delete='cascade', foreign_key=True)
+    tbl.column('tag_id', size='22', group='_', name_long='!!Tag').relation('htag.id', relation_name='api_tokens', on_delete='cascade', foreign_key=True)
     tbl.aliasColumn('tag_code', '@tag_id.authorization_tag')
     tbl.aliasColumn('tag_description', '@tag_id.description')
 
@@ -169,8 +169,8 @@ def group_helpdoc(pkg):
     tbl = pkg.table('group_helpdoc', pkey='id', name_long='!![en]Help document for group', name_plural='!![en]Help documents for group', caption_field='')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.options().auto_counter('group_code')
-    tbl.column('group_code', size=':15', group='_', name_long='Group').relation('group.code', inverse='helpdocs', on_delete='raise', foreign_key=True)
-    tbl.column('helpdoc_id', size='22', group='_', name_long='Help document').relation('helpdoc.id', inverse='connected_groups', on_delete='cascade', foreign_key=True)
+    tbl.column('group_code', size=':15', group='_', name_long='Group').relation('group.code', relation_name='helpdocs', on_delete='raise', foreign_key=True)
+    tbl.column('helpdoc_id', size='22', group='_', name_long='Help document').relation('helpdoc.id', relation_name='connected_groups', on_delete='cascade', foreign_key=True)
     tbl.aliasColumn('url', '@helpdoc_id.url', name_long='Url', static=True)
 
 
@@ -208,12 +208,12 @@ def htmltemplate(pkg):
     tbl.column('name', name_long='!!Name', validate_notnull=True)
     tbl.column('username', name_long='!!Username')
     tbl.column('version', name_long='!!Version')
-    tbl.column('type_code', size=':15', name_long='Type').relation('letterhead_type.code', inverse='letterheads', on_delete='raise', foreign_key=True)
+    tbl.column('type_code', size=':15', name_long='Type').relation('letterhead_type.code', relation_name='letterheads', on_delete='raise', foreign_key=True)
     tbl.column('data', dtype='X', name_long='!!Data', x_legacy__sendback=True)
     tbl.column('center_height', dtype='I', name_long='!!Center height')
     tbl.column('center_width', dtype='I', name_long='!!Center width')
-    tbl.column('based_on', size='22', group='_', name_long='!!Based on').relation('htmltemplate.id', inverse='children', one_one=True, on_delete='raise', deferred=True, foreign_key=True)
-    tbl.column('next_letterhead_id', size='22', group='_', name_long='!!Next letterhead').relation('htmltemplate.id', inverse='previous', one_one=True, on_delete='raise', deferred=True, foreign_key=True)
+    tbl.column('based_on', size='22', group='_', name_long='!!Based on').relation('htmltemplate.id', relation_name='children', one_one=True, on_delete='raise', deferred=True, foreign_key=True)
+    tbl.column('next_letterhead_id', size='22', group='_', name_long='!!Next letterhead').relation('htmltemplate.id', relation_name='previous', one_one=True, on_delete='raise', deferred=True, foreign_key=True)
 
 
 # projects/gnrcore/packages/adm/model/htmltemplate_atc.py
@@ -270,7 +270,7 @@ def menu(pkg):
     tbl.column('tags', name_long='!!Tags')
     tbl.column('summary', name_long='!!Summary')
     tbl.column('ts_import', dtype='DH')
-    tbl.column('page_id', size='22').relation('menu_page.id', inverse='links', foreign_key=True)
+    tbl.column('page_id', size='22').relation('menu_page.id', relation_name='links', foreign_key=True)
     tbl.aliasColumn('page_label', relation_path='@page_id.label')
     tbl.aliasColumn('page_filepath', relation_path='@page_id.filepath')
     tbl.aliasColumn('page_tbl', relation_path='@page_id.tbl')
@@ -300,7 +300,7 @@ def notification(pkg):
     tbl.column('tag_rule', name_long='!!Tag rule')
     tbl.column('group_code', name_long='!!Group code')
     tbl.column('all_users', 'B', name_long='!!For all users')
-    tbl.column('letterhead_id', size='22', group='_', name_long='!!Letterhead').relation('htmltemplate.id', inverse='notifications', foreign_key=True)
+    tbl.column('letterhead_id', size='22', group='_', name_long='!!Letterhead').relation('htmltemplate.id', relation_name='notifications', foreign_key=True)
     tbl.column('linked_query', dtype='X', name_long='!![en]Linked query', x_legacy__sendback=True)
     tbl.column('dynamic_list', 'B', default=True, name_long='!!Dynamic list', name_short='!!Dynamic')
     tbl.column('start_date', 'D', name_long='!!Start date')
@@ -357,7 +357,7 @@ def served_page(pkg):
     tbl.options().enabled_when(preference='adm.dev.connection_log_enabled')
     tbl.column('page_id', size='22', name_long='!!Page id')
     tbl.column('pagename', name_long='!!Page name')
-    tbl.column('connection_id', size='22', group='_').relation('connection.id', inverse='pages', on_delete='cascade', foreign_key=True)
+    tbl.column('connection_id', size='22', group='_').relation('connection.id', relation_name='pages', on_delete='cascade', foreign_key=True)
     tbl.column('start_ts', 'DH', name_long='!!Start ts')
     tbl.column('end_ts', 'DH', name_long='!!End ts')
     tbl.column('end_reason', size=':12', name_long='!!End Reason')
@@ -380,7 +380,7 @@ def tblinfo(pkg):
     tbl = pkg.table('tblinfo', pkey='tblid', name_long='!!Table Info', name_plural='!!Table info')
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('tblid', size=':50', name_long='!!Table')
-    tbl.column('pkgid', size=':50', name_long='!!Package').weak_relation('pkginfo.pkgid', inverse='tables')
+    tbl.column('pkgid', size=':50', name_long='!!Package').weak_relation('pkginfo.pkgid', relation_name='tables')
     tbl.column('description', size=':50', name_long='!!Description')
 
 
@@ -394,7 +394,7 @@ def tblinfo_item(pkg):
     tbl.column('description', size=':50', name_long='!!Description', x_legacy__sysfield=True)
     tbl.column('item_type', size=':5', name_long='!!Type', validate_values='QTREE:Quick tree,FTREE:Full tree')
     tbl.column('data', dtype='X', name_long='!!Data', x_legacy__sendback=True)
-    tbl.column('tblid', size=':50').relation('tblinfo.tblid', inverse='items', on_delete='cascade', foreign_key=True)
+    tbl.column('tblid', size=':50').relation('tblinfo.tblid', relation_name='items', on_delete='cascade', foreign_key=True)
 
 
 # projects/gnrcore/packages/adm/model/user.py
@@ -421,8 +421,8 @@ def user(pkg):
     tbl.column('sms_login', dtype='B', name_long='!!Sms login')
     tbl.column('sms_number', name_long='!!Sms Number')
     tbl.column('photo', dtype='P', name_long='!![en]Photo')
-    tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', inverse='users', foreign_key=True)
-    tbl.column('xgroup', size=':10', name_long='!!Deployment group', batch_assign_tags='_DEV_').relation('adm.xgroup.code', inverse='users', on_delete='set_null', foreign_key=True)
+    tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', relation_name='users', foreign_key=True)
+    tbl.column('xgroup', size=':10', name_long='!!Deployment group', batch_assign_tags='_DEV_').relation('adm.xgroup.code', relation_name='users', on_delete='set_null', foreign_key=True)
     tbl.column('custom_menu', dtype='X', name_long='!!Custom menu')
     tbl.column('custom_fields', dtype='X', name_long='!!Custom fields')
     tbl.column('avatar_secret_2fa', dtype='T', name_long='!![en]Secret 2fa')
@@ -443,8 +443,8 @@ def user(pkg):
 def user_access_group(pkg):
     tbl = pkg.table('user_access_group', pkey='id', name_long='!!User access', name_plural='!!User access')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('user_id', size='22', group='_', name_long='!!User').relation('user.id', inverse='access_groups', on_delete='cascade', foreign_key=True)
-    tbl.column('access_group_code', size=':10', group='_', name_long='!!Access group').relation('access_group.code', inverse='access_users', on_delete='cascade', foreign_key=True)
+    tbl.column('user_id', size='22', group='_', name_long='!!User').relation('user.id', relation_name='access_groups', on_delete='cascade', foreign_key=True)
+    tbl.column('access_group_code', size=':10', group='_', name_long='!!Access group').relation('access_group.code', relation_name='access_users', on_delete='cascade', foreign_key=True)
 
 
 # projects/gnrcore/packages/adm/model/user_config.py
@@ -453,10 +453,10 @@ def user_config(pkg):
     tbl = pkg.table('user_config', pkey='ruleid', name_long='!!User config', name_plural='!!User config')
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('ruleid', size=':80')
-    tbl.column('user_group', size=':15', name_long='!!Group').relation('group.code', inverse='custom_info', foreign_key=True)
-    tbl.column('username', size=':32', group='_', name_long='!!User').weak_relation('user.username', inverse='custom_info', on_delete='cascade')
-    tbl.column('pkgid', size=':50', name_long='!!Pkg').relation('pkginfo.pkgid', inverse='rules', foreign_key=True)
-    tbl.column('tblid', size=':50', name_long='!!Tbl').relation('tblinfo.tblid', inverse='rules', foreign_key=True)
+    tbl.column('user_group', size=':15', name_long='!!Group').relation('group.code', relation_name='custom_info', foreign_key=True)
+    tbl.column('username', size=':32', group='_', name_long='!!User').weak_relation('user.username', relation_name='custom_info', on_delete='cascade')
+    tbl.column('pkgid', size=':50', name_long='!!Pkg').relation('pkginfo.pkgid', relation_name='rules', foreign_key=True)
+    tbl.column('tblid', size=':50', name_long='!!Tbl').relation('tblinfo.tblid', relation_name='rules', foreign_key=True)
     tbl.column('data', dtype='X', name_long='!!Data', x_legacy__sendback=True)
     tbl.formulaColumn('calc_pkgid', "CASE WHEN $pkgid IS NOT NULL THEN $pkgid\n                                               WHEN $tblid IS NOT NULL THEN split_part($tblid,'.',1)\n                                               ELSE NULL END", dtype='A')
     tbl.formulaColumn('rank', 'CAST(($tblid IS NOT NULL) AS int)*8+\n                                    CAST(($pkgid IS NOT NULL) AS int)*2+\n                                    CAST(($username IS NOT NULL) AS int)*4+\n                                    CAST(($user_group IS NOT NULL) AS int)*1', dtype='L')
@@ -467,8 +467,8 @@ def user_config(pkg):
 def user_group(pkg):
     tbl = pkg.table('user_group', pkey='id', name_long='!![en]User groups', name_plural='!![en]User groups')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('user_id', size='22', group='_', name_long='User').relation('user.id', inverse='extra_groups', on_delete='cascade', foreign_key=True)
-    tbl.column('group_code', size=':15', group='_', name_long='Group').relation('group.code', inverse='user_groups', on_delete='cascade', foreign_key=True)
+    tbl.column('user_id', size='22', group='_', name_long='User').relation('user.id', relation_name='extra_groups', on_delete='cascade', foreign_key=True)
+    tbl.column('group_code', size=':15', group='_', name_long='Group').relation('group.code', relation_name='user_groups', on_delete='cascade', foreign_key=True)
 
 
 # projects/gnrcore/packages/adm/model/user_notification.py
@@ -476,8 +476,8 @@ def user_group(pkg):
 def user_notification(pkg):
     tbl = pkg.table('user_notification', pkey='id', name_long='User notification', name_plural='!!User notifications')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('user_id', size='22', group='_', name_long='!!User').relation('user.id', inverse='user_notifications', on_delete='cascade', on_duplicate='ignore', foreign_key=True)
-    tbl.column('notification_id', size='22', group='_', name_long='!!Notification').relation('notification.id', inverse='notification_users', on_delete='cascade', on_duplicate='ignore', foreign_key=True)
+    tbl.column('user_id', size='22', group='_', name_long='!!User').relation('user.id', relation_name='user_notifications', on_delete='cascade', on_duplicate='ignore', foreign_key=True)
+    tbl.column('notification_id', size='22', group='_', name_long='!!Notification').relation('notification.id', relation_name='notification_users', on_delete='cascade', on_duplicate='ignore', foreign_key=True)
     tbl.column('confirmed', dtype='B', name_long='!!Confirmed')
     tbl.column('notification', dtype='X', name_long='Custom Notification')
 
@@ -487,7 +487,7 @@ def user_notification(pkg):
 def user_setting(pkg):
     tbl = pkg.table('user_setting', pkey='identifier', pkey_columns='user_id,setting_code', name_long='User setting', name_plural='User setting', caption_field='')
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
-    tbl.column('user_id', size='22', group='_', name_long='User', notnull=True).relation('adm.user.id', inverse='settings', on_delete='cascade', foreign_key=True)
+    tbl.column('user_id', size='22', group='_', name_long='User', notnull=True).relation('adm.user.id', relation_name='settings', on_delete='cascade', foreign_key=True)
     tbl.column('setting_code', size=':20', name_long='Setting code', notnull=True)
     tbl.column('setting_data', dtype='X', name_long='Setting data')
     tbl.column('identifier', size=':42', name_long='Setting identifier')
@@ -498,9 +498,9 @@ def user_setting(pkg):
 def user_tag(pkg):
     tbl = pkg.table('user_tag', pkey='id', name_long='!!User tag', name_plural='!!User tags')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', inverse='tags', on_delete='cascade', foreign_key=True)
-    tbl.column('user_id', size='22', group='_', name_long='!!User', x_legacy__sendback=True).relation('user.id', on_delete='cascade', inverse='tags', foreign_key=True)
-    tbl.column('tag_id', size='22', group='_', name_long='!!Tag').relation('htag.id', on_delete='cascade', inverse='users', foreign_key=True)
+    tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', relation_name='tags', on_delete='cascade', foreign_key=True)
+    tbl.column('user_id', size='22', group='_', name_long='!!User', x_legacy__sendback=True).relation('user.id', on_delete='cascade', relation_name='tags', foreign_key=True)
+    tbl.column('tag_id', size='22', group='_', name_long='!!Tag').relation('htag.id', on_delete='cascade', relation_name='users', foreign_key=True)
     tbl.aliasColumn('user', relation_path='@user_id.username')
     tbl.aliasColumn('fullname', relation_path='@user_id.fullname')
     tbl.aliasColumn('email', relation_path='@user_id.email')
@@ -522,8 +522,8 @@ def userobject(pkg):
     tbl.column('identifier', size=':120', indexed=True, sql_value="COALESCE(:tbl,:pkg,'')||:objtype||:code|| CASE WHEN :private THEN :userid ELSE '' END", unique=True)
     tbl.column('code', size=':40', name_long='!![en]Code', indexed=True, validate_notnull=True)
     tbl.column('objtype', size=':20', name_long='!![en]Object Type', indexed=True)
-    tbl.column('pkg', size=':50', name_long='!![en]Package', default_from='@tbl.pkgid').weak_relation('pkginfo.pkgid', inverse='objects')
-    tbl.column('tbl', size=':50', name_long='!![en]Table').weak_relation('tblinfo.tblid', inverse='objects')
+    tbl.column('pkg', size=':50', name_long='!![en]Package', default_from='@tbl.pkgid').weak_relation('pkginfo.pkgid', relation_name='objects')
+    tbl.column('tbl', size=':50', name_long='!![en]Table').weak_relation('tblinfo.tblid', relation_name='objects')
     tbl.column('userid', size=':50', name_long='!![en]User ID', indexed=True)
     tbl.column('description', size=':50', name_long='!![en]Description', indexed=True)
     tbl.column('notes', 'T', name_long='!![en]Notes')

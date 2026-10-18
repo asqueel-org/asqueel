@@ -10,7 +10,7 @@ def batch_log(pkg):
     tbl = pkg.table('batch_log', pkey='id', name_long='!!Batch log', name_plural='!!Batch logs', caption_field='log_caption')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.column('batch_title', name_long='!!Batch title')
-    tbl.column('page_id', size='22', group='_', name_long='!!Page').weak_relation('adm.served_page.page_id', inverse='batches', on_delete='raise')
+    tbl.column('page_id', size='22', group='_', name_long='!!Page').weak_relation('adm.served_page.page_id', relation_name='batches', on_delete='raise')
     tbl.column('start_ts', dtype='DH', name_long='!!Start ts')
     tbl.column('end_ts', dtype='DH', name_long='!!End ts')
     tbl.column('notes', name_long='!!Notes')
@@ -92,10 +92,10 @@ def external_token(pkg):
     tbl.column('allowed_host', name_long='!!Allowed host')
     tbl.column('page_path', name_long='!!Page path')
     tbl.column('method', name_long='!!Method')
-    tbl.column('assigned_user_id', size='22', group='_', name_long='Assigned user id').weak_relation('adm.user.id', inverse='assigned_tokens', on_delete='cascade')
+    tbl.column('assigned_user_id', size='22', group='_', name_long='Assigned user id').weak_relation('adm.user.id', relation_name='assigned_tokens', on_delete='cascade')
     tbl.column('parameters', dtype='X', name_long='!!Parameters')
     tbl.column('exec_user', size=':32', name_long='!!Execute as user').weak_relation('adm.user.username')
-    tbl.column('userobject_id', size='22', group='_', name_long='Userobject').relation('adm.userobject.id', inverse='tokens', on_delete='cascade', foreign_key=True)
+    tbl.column('userobject_id', size='22', group='_', name_long='Userobject').relation('adm.userobject.id', relation_name='tokens', on_delete='cascade', foreign_key=True)
     tbl.pyColumn('external_url', method='pyColumn_external_url')
 
 
@@ -104,7 +104,7 @@ def external_token(pkg):
 def external_token_use(pkg):
     tbl = pkg.table('external_token_use', pkey='id', name_long='!!External token usage', name_plural='!!External token usages')
     tbl.column('id', size='22', name_long='!!id')
-    tbl.column('external_token_id', size='22', name_long='!!External token id').relation('external_token.id', inverse='usages', on_delete='cascade', foreign_key=True)
+    tbl.column('external_token_id', size='22', name_long='!!External token id').relation('external_token.id', relation_name='usages', on_delete='cascade', foreign_key=True)
     tbl.column('datetime', 'DH', name_long='!!Date and Time')
     tbl.column('host', name_long='!!Host')
 
@@ -152,7 +152,7 @@ def shorturl(pkg):
     tbl = pkg.table('shorturl', pkey='codekey', pkey_columns='$domain,$key', name_long='Shorturl', name_plural='Shorturl', caption_field='shorturl')
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('codekey', size=':100', name_long='Codekey')
-    tbl.column('service_identifier', size=':60', group='_', name_long='Service').relation('service.service_identifier', inverse='urls', on_delete='raise', foreign_key=True)
+    tbl.column('service_identifier', size=':60', group='_', name_long='Service').relation('service.service_identifier', relation_name='urls', on_delete='raise', foreign_key=True)
     tbl.column('longurl', name_long='Long url')
     tbl.column('shorturl', name_long='Short url', name_short='Short')
     tbl.column('domain', name_long='Domain')
@@ -201,7 +201,7 @@ def task_execution(pkg):
     tbl = pkg.table('task_execution', pkey='id', name_long='!!Task execution', name_plural='!!Task executions')
     tbl.options().retention(field='__ins_ts', days=180)
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('task_id', size='22', name_long='!!Task ID').relation('sys.task.id', inverse='executions', on_delete='cascade', foreign_key=True)
+    tbl.column('task_id', size='22', name_long='!!Task ID').relation('sys.task.id', relation_name='executions', on_delete='cascade', foreign_key=True)
     tbl.column('result', 'X', name_long='!!result')
     tbl.column('logbag', 'X', name_long='!!Logbag')
     tbl.column('errorbag', 'X', name_long='!!Errors')
@@ -228,7 +228,7 @@ def task_execution(pkg):
 def task_result(pkg):
     tbl = pkg.table('task_result', pkey='id', name_long='!!Task log')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('task_id', size='22', name_long='!!Task ID').relation('sys.task.id', inverse='logs', foreign_key=True)
+    tbl.column('task_id', size='22', name_long='!!Task ID').relation('sys.task.id', relation_name='logs', foreign_key=True)
     tbl.column('result', 'X', name_long='!!result')
     tbl.column('result_time', dtype='DH', name_long='!!Result Time')
     tbl.column('start_time', dtype='DH', name_long='!!Start Time')

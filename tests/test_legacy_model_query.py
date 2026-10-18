@@ -60,3 +60,16 @@ def test_falsy_limit_and_offset_emit_no_clause_on_postgres(db_pg):  # noqa: F811
     assert 'LIMIT' not in query.compiled.sql and 'OFFSET' not in query.compiled.sql
     assert query.fetch() == every
     db_pg.rollback()
+
+
+def test_relation_name_names_the_inverse_relation():
+    b, pkg = source()
+    invoice = pkg.table('invoice', pkey='id')
+    invoice.column('id', 'L')
+    invoice.column('customer_id', 'L').relation('customer.id', relation_name='invoices')
+    pkg.table('customer', pkey='id').column('id', 'L')
+    model = resolve_model(b)
+    assert model.table('sales.customer').relations.get_node('@invoices').attr['joiner']['mode'] == 'M'
+    forward = model.table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
+    assert forward['relation_name'] == 'invoices'
+    assert forward['private_relation'] is False

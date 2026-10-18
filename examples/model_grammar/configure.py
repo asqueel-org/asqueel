@@ -53,7 +53,7 @@ def source(*, current_state=None):
     customer.options().partition('state', field='state', value=state)
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     customer.column('state', size=':5').relation(
-        'invc.state.code', foreign_key=True, inverse='clients',
+        'invc.state.code', foreign_key=True, relation_name='clients',
         on_delete='raise', on_update_sql='CASCADE')
     customer.column('bank_account').encryption(mode='R')
 
@@ -75,7 +75,7 @@ def source(*, current_state=None):
     invoice.options().partition('customer_state', field='customer_state', value=state)
     invoice.column('inv_number', size='10', unique=True)
     invoice.column('customer_id', size='22').relation(
-        'invc.customer.id', foreign_key=True, inverse='invoices',
+        'invc.customer.id', foreign_key=True, relation_name='invoices',
         on_delete='raise', on_update_sql='CASCADE')
     # Legacy defaultValues supplies workdate during writes, outside this example.
     invoice.column('date', dtype='D', validate_notnull=True)
@@ -93,7 +93,7 @@ def source(*, current_state=None):
     row.options().sys_fields(user_upd=False)
     row.options().auto_counter('invoice_id')
     row.column('invoice_id', size='22').relation(
-        'invc.invoice.id', foreign_key=True, inverse='rows',
+        'invc.invoice.id', foreign_key=True, relation_name='rows',
         on_delete='cascade', on_update_sql='CASCADE')
     row.column('product_id', size='22').relation(
         'invc.product.id', foreign_key=True, on_delete='raise', on_update_sql='CASCADE')

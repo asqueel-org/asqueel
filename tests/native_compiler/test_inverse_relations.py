@@ -20,7 +20,7 @@ def db(request, monkeypatch):
     pkg = config.source.db('inverses', implementation=request.param).packages().package('app')
     owner = pkg.table('owner', pkey='id')
     owner.column('id', dtype='L')
-    owner.column('parent_id', dtype='L').relation('app.owner.id', inverse='children')
+    owner.column('parent_id', dtype='L').relation('app.owner.id', relation_name='children')
     owner.formulaColumn('child_count', select=dict(
         table='app.owner', columns='COUNT(*)', where='@children.parent_id=#THIS.id'))
     owner.formulaColumn('filtered_count', select=dict(
@@ -29,8 +29,8 @@ def db(request, monkeypatch):
     owner.aliasColumn('child_alias', '@children.id')
     line = pkg.table('line', pkey='id')
     line.column('id', dtype='L')
-    line.column('owner_id', dtype='L').relation('app.owner.id', back_reference='lines')
-    line.column('other_id', dtype='L').relation('app.owner.id', inverse='other_lines')
+    line.column('owner_id', dtype='L').relation('app.owner.id', relation_name='lines')
+    line.column('other_id', dtype='L').relation('app.owner.id', relation_name='other_lines')
     line.column('amount', dtype='N')
     line.formulaColumn('scaled', '$amount * :factor', var_factor=3)
     with build_database(config) as database:

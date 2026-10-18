@@ -24,7 +24,7 @@ def _action(value):
 
 
 def _joiner(table, column, target, attrs):
-    inverse = attrs.get('inverse') or attrs.get('back_reference')
+    inverse = attrs.get('relation_name')
     many = f'{table.fullname}.{column.name}'
     result = dict(
         many_relation=many, one_relation=target,

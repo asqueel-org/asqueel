@@ -18,7 +18,7 @@ def db(request, no_io):
     pkg = config.source.db('phase3', implementation=request.param).packages().package('app')
     declare(pkg)
     owner = pkg.table('owner')
-    owner.column('parent_id', dtype='L').relation('app.owner.id', inverse='children')
+    owner.column('parent_id', dtype='L').relation('app.owner.id', relation_name='children')
     owner.formulaColumn('many_op', '@children.sum($id)')
     owner.subQueryColumn('xml_method', mode='xml', query='rows')
     owner.formulaColumn('list_columns', select=dict(table='app.line', columns=['MAX($amount)'],

@@ -32,7 +32,7 @@ def source(backend, order_by='$id'):
     vat.column('rate', dtype='N')
     invoice = pkg.table('invoice', pkey='id', order_by=order_by)
     invoice.column('id', dtype='L')
-    invoice.column('customer_id', dtype='L').relation('app.customer.id', inverse='invoices')
+    invoice.column('customer_id', dtype='L').relation('app.customer.id', relation_name='invoices')
     invoice.column('code')
     invoice.column('total', dtype='N')
     invoice.column('qty', dtype='L')

@@ -154,10 +154,10 @@ def test_all_errors_reported_together():
     assert "ghost" in msg and "dtypo" in msg and "nope" in msg
 
 
-def test_duplicate_back_reference_on_same_target():
+def test_duplicate_relation_name_on_same_target():
     # wf:contract: two foreign_key relations from different columns whose
-    # wf:contract: back_reference collide on the same target table are a
-    # wf:contract: validation error naming the duplicated back_reference.
+    # wf:contract: relation_name collide on the same target table are a
+    # wf:contract: validation error naming the duplicated relation_name.
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         target = tables.table(name="target", pkey="x")
@@ -166,9 +166,9 @@ def test_duplicate_back_reference_on_same_target():
         columns = t.columns()
         columns.column(name="a", dtype="serial")
         c1 = columns.column(name="one", dtype="L")
-        c1.relation(to="s.target.x", foreign_key=True, back_reference="rows")
+        c1.relation(to="s.target.x", foreign_key=True, relation_name="rows")
         c2 = columns.column(name="two", dtype="L")
-        c2.relation(to="s.target.x", foreign_key=True, back_reference="rows")
+        c2.relation(to="s.target.x", foreign_key=True, relation_name="rows")
 
     msg = _errors(main)
     assert "rows" in msg

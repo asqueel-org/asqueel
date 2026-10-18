@@ -134,8 +134,6 @@ def resolve_source_references(builder):
             attrs = relation.attr
             if attrs.get('name'):
                 attrs['x_name'] = attrs['name']
-            if attrs.get('inverse'):
-                attrs['back_reference'] = attrs['inverse']
             target = attrs['to'].split('.')
             if len(target) == 2 and target[0] not in catalog.packages and (namespace, target[0]) in catalog.tables:
                 attrs['to'] = namespace + '.' + attrs['to']

@@ -406,13 +406,12 @@ reports every conflicting relation together.
 | deferrable | `bool` | `False` | physical | make the foreign key DEFERRABLE. Without `initially_deferred` it is initially immediate. |
 | initially_deferred | `bool` | `False` | physical | start a deferrable foreign key deferred. |
 | indexed | `bool` | `True` | physical | the supporting index of the foreign key. On by default (GenroPy parity, D3); `False` states that the columns are deliberately left unindexed. |
-| back_reference | `str \| None` | `None` | semantic | navigable path of the many side. |
 | one_name | `str \| None` | `None` | semantic | human label of the one side. |
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
 | one_one | `bool` | `False` | semantic | the relation is 1:1. |
 | case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
 | name | `str \| None` | `None` | physical |  |
-| inverse | `str \| None` | `None` | physical |  |
+| relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`), as in GenroPy. |
 | on_delete_sql | `str \| None` | `None` | physical |  |
 | on_update_sql | `str \| None` | `None` | physical |  |
 | on_duplicate | `str \| bool \| None` | `None` | physical |  |
@@ -608,7 +607,7 @@ rule-specific type checks. Translation never executes these rules.
 | --- | --- | --- | --- | --- |
 | to | `str` | *required* | physical |  |
 | name | `str \| None` | `None` | physical |  |
-| inverse | `str \| None` | `None` | physical |  |
+| relation_name | `str \| None` | `None` | physical |  |
 | indexed | `bool` | `True` | physical |  |
 | one_one | `bool` | `False` | physical |  |
 | on_delete | `str \| None` | `None` | physical |  |

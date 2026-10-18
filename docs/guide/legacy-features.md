@@ -240,6 +240,7 @@ the write cycle, see [Current status](limitations.md).
 - `relation()` to `'pkg.tbl.col'` or `'tbl.col'`, also to another package
   (A4.1).
 - `one_name`, `many_name`, `one_group`, `many_group`, `many_order_by` (A4.5).
+- `relation_name=` names the inverse relation `@<relation_name>` (A4.3).
 - To-one path `@fkey_col.col` in columns, where, order_by (A4.7).
 - Multi-hop path `@a.@b.c` (A4.8).
 - Relation on a composite key (A4.10).
@@ -251,9 +252,6 @@ the write cycle, see [Current status](limitations.md).
   `relation(to, foreign_key=, case_insensitive=)`; inside a package
   `foreign_key` defaults to `True`; `weak_relation` creates no FK; `mode=` is
   refused. Reason: `relation` creates the FK and `weak_relation` does not.
-- **`relation(relation_name=...)`** (A4.3): the inverse name is `inverse=`;
-  `relation_name=` is accepted and ignored. Reason: `inverse` corresponds to
-  the legacy `relation_name`; the silent discard: not recorded.
 - **Default inverse name and `one_one='*'`** (A4.4): the default name is
   `pkg_tbl_col`; `one_one` is a boolean and `'*'` is refused. Reason:
   `one_one=True` declares at most one; the `'*'` default: not recorded.

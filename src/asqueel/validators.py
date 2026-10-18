@@ -68,7 +68,7 @@ class SqlModelValidator:
             self._check_structural_keys(table)
         for path, node in self._relations:
             self._check_relation(path, node)
-        self._check_back_references()
+        self._check_relation_names()
         if self.errors:
             raise SqlModelValidationError(self.errors)
         return builder
@@ -364,20 +364,20 @@ class SqlModelValidator:
                 f"({', '.join(target_columns)})",
             )
 
-    def _check_back_references(self) -> None:
+    def _check_relation_names(self) -> None:  # wf:phase-1:new
         seen: dict[tuple, str] = {}
         for path, node in self._relations:
-            back_reference = node.get_attr("back_reference")
-            if not back_reference:
+            relation_name = node.get_attr("relation_name")
+            if not relation_name:
                 continue
             resolved = self._resolved.get(path)
             if resolved is None:
                 continue
-            key = (resolved[0], back_reference)
+            key = (resolved[0], relation_name)
             if key in seen:
                 self._error(
                     path,
-                    f"back_reference '{back_reference}' on "
+                    f"relation_name '{relation_name}' on "
                     f"'{'.'.join(resolved[0])}' is already used by "
                     f"{self._readable(seen[key])}",
                 )

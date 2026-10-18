@@ -354,7 +354,7 @@ NULL values. A WHERE condition on the target can still exclude that row.
 
 Relations can be chained, using `@customer_id.@country_id.name` or
 `@customer_id.country_id.name` when those relations exist. Ordinary inverse paths
-declared with `inverse` or `back_reference` also use LEFT JOIN: the unique key
+declared with `relation_name` also use LEFT JOIN: the unique key
 is on their source side, and the target can contain several matching rows.
 The same path reuses its join across projections, filters and ordering.
 
@@ -406,7 +406,7 @@ except Exception:
 
 On the tutorial data, invoice 10 has `line_count` 2 and `amount` 125.00;
 invoice 11 has no lines, so `line_count` is 0 and `amount` is NULL. The
-relation name is the `inverse` declared on the relation (`lines` on
+relation name is the `relation_name` declared on the relation (`lines` on
 `line.invoice_id`). Each aggregate compiles to a correlated subquery, so the
 related rows never multiply the outer rows.
 

@@ -182,7 +182,7 @@ def test_mounted_grammar_uses_its_own_defaults_and_same_generic_walk():
 def test_two_links_to_same_table_remain_distinct_and_collision_is_rejected():
     source, _, _ = recipe()
     invoice = source.source.get_node('db.packages.invc.tables.invoice')
-    invoice.column('other_customer_id', dtype='L').relation('invc.customer.id', inverse='other_invoices')
+    invoice.column('other_customer_id', dtype='L').relation('invc.customer.id', relation_name='other_invoices')
     model = source.render(mode='objects_tree')
     table = model.table('invc.invoice')
     assert table.column('@customer_id.id') is table.column('@other_customer_id.id')
@@ -190,7 +190,7 @@ def test_two_links_to_same_table_remain_distinct_and_collision_is_rejected():
     second = table.relations.get_node('@other_customer_id')
     assert first.resolver is not second.resolver
     assert first.attr['joiner']['many_relation'] != second.attr['joiner']['many_relation']
-    invoice.column('collision_id', dtype='L').relation('invc.customer.id', inverse='invoices')
+    invoice.column('collision_id', dtype='L').relation('invc.customer.id', relation_name='invoices')
     with pytest.raises(ValueError, match='Duplicate|already used'):
         source.render(mode='objects_tree')
 

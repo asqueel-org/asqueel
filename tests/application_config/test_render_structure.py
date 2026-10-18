@@ -20,7 +20,7 @@ def recipe():
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     invoice = sales.table('invoice', pkey='id', sqlname='invoices')
     invoice.column('id', dtype='L')
-    invoice.column('customer_id', dtype='L').relation('invc.customer.id', inverse='invoices')
+    invoice.column('customer_id', dtype='L').relation('invc.customer.id', relation_name='invoices')
     invoice.column('user_id', dtype='L').relation('adm.user.id')
     adm.table('user', pkey='id').column('id', dtype='L')
     return source, root, customer

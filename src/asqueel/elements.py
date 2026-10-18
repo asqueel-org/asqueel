@@ -437,11 +437,10 @@ class ColumnElements:
                  on_update: FK_ACTION | str | None = None,
                  deferred: bool = False, deferrable: bool = False,
                  initially_deferred: bool = False, indexed: bool = True,
-                 back_reference: str | None = None,
                  one_name: str | None = None,
                  many_name: str | None = None,
                  one_one: bool = False, case_insensitive: bool = False,
-                 name: str | None = None, inverse: str | None = None,
+                 name: str | None = None, relation_name: str | None = None,
                  on_delete_sql: str | None = None, on_update_sql: str | None = None,
                  on_duplicate: str | bool | None = None, constraint_name: str | None = None,
                  one_group: str | None = None, many_group: str | None = None,
@@ -466,7 +465,8 @@ class ColumnElements:
             indexed: the supporting index of the foreign key. On by
                 default (GenroPy parity, D3); ``False`` states that the
                 columns are deliberately left unindexed.
-            back_reference: semantic; navigable path of the many side.
+            relation_name: semantic; name of the inverse relation on the target
+                (``@<relation_name>``), as in GenroPy.
             one_name: semantic; human label of the one side.
             many_name: semantic; human label of the many side.
             one_one: semantic; the relation is 1:1.

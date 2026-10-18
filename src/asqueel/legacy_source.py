@@ -102,7 +102,7 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
     for package, table, column, rel in pending_relations:
         data = dict(rel.attr)
         kwargs = {'to': _target(package, data['related_column']),
-                  'inverse': data.get('relation_name'), 'one_one': bool(data.get('one_one')),
+                  'relation_name': data.get('relation_name'), 'one_one': bool(data.get('one_one')),
                   **{f'x_legacy_{key}': value for key, value in data.items()}}
         for source_key, dest in (('onDelete', 'on_delete'), ('onDelete_sql', 'on_delete_sql'),
                                 ('onUpdate_sql', 'on_update_sql'), ('onDuplicate', 'on_duplicate')):
