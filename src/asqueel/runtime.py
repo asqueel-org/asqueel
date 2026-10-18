@@ -152,6 +152,10 @@ class Database:
         self._check_open()
         self.environment.currentEnv = values
 
+    @property
+    def currentUser(self):
+        return self.currentEnv.get('user')
+
     def updateEnv(self, _excludeNoneValues=False, **values):
         self.currentEnv.update({key: value for key, value in values.items()
                                 if not _excludeNoneValues or value is not None})

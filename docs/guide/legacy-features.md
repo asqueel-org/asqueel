@@ -93,9 +93,13 @@ the write cycle, see [Current status](limitations.md).
   are refused; `ext_*` raises as an attribute outside the grammar. No issue yet.
   Workaround: declare the generated columns by hand.
 - **`sysFields(tbl, ...)`** (A1.14): `options().sys_fields(...)` expands the
-  columns, but a table with it cannot be written
-  ([#29](https://github.com/asqueel-org/asqueel/issues/29)). Workaround:
-  declare the columns by hand and set them in hooks.
+  columns and the table is written as legacy: the 22-character `id` is
+  generated, `__ins_ts`/`__mod_ts` are set by `trigger_setTSNow` (aware UTC
+  for `DHZ`), `__ins_user`/`__mod_user` by `trigger_setCurrentUser` from
+  `db.currentUser` (the `user` of `currentEnv`). Differences: no
+  `__full_mod_ts` copy, no `_notUserChange` check (`batchUpdate`,
+  [#32](https://github.com/asqueel-org/asqueel/issues/32)). Other options on
+  the same table still refuse the write.
 - **`sysFields(hierarchical=...)`** (A1.15): `options().hierarchical`
   expands, but a table with it cannot be written
   ([#30](https://github.com/asqueel-org/asqueel/issues/30); model JSON:

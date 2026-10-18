@@ -231,16 +231,21 @@ def require_write_capabilities(table):
     ``table`` is a DbTableObj. Each implementation step removes what it executes.
     """
     from .contracts import UnsupportedFeatureError
-    pending = [f'option {name}' for name, option in table.options.items()
-               if option.attributes.get('enabled', True)]
+    executed = {'sys_fields'}
+    enabled = {name for name, option in table.options.items() if option.attributes.get('enabled', True)}
+    pending = [f'option {name}' for name in enabled if name not in executed]
     if table.attributes.get('x_expanded_legacy'):
         pending.append('legacy expansion')
     for name, column in table.columns.items():
         pending.extend(f'{name}.{child.tag}' for child in column.values() if child.tag != 'relation')
         attributes = column.attributes
+        # checkPkey generates the sys_fields key.
+        sys_key = ('sys_fields' in enabled and name == 'id'
+                   and attributes.get('x_generation') == {'type': 'uuid', 'algorithm': 'legacy22'})
         pending.extend(f'{name}.{key}' for key in ('default', 'default_from', 'x_generation')
-                       if attributes.get(key) is not None)
-        pending.extend(f'{name}.{key}' for key in ('read_only', 'unmodifiable') if attributes.get(key))
+                       if attributes.get(key) is not None and not (sys_key and key == 'x_generation'))
+        pending.extend(f'{name}.{key}' for key in ('read_only', 'unmodifiable')
+                       if attributes.get(key) and not (sys_key and key == 'read_only'))
     if pending:
         raise UnsupportedFeatureError(
             f'{table.fullname}: write execution of {", ".join(pending)} is not available in this release')

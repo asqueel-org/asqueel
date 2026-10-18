@@ -81,7 +81,7 @@ def test_hierarchical_counter_keeps_numeric_base_and_text_derivatives(model):
     assert counter.attributes['name_long'] == '!![en]Counter'
     assert counter.attributes['group'] == 'zzz'
     # The hierarchical branch does not install the ordinary setRowCounter hook.
-    assert 'x_legacy_onInserting' not in counter.attributes
+    assert 'onInserting' not in counter.attributes
     assert 'x_legacy__counter_fkey' not in counter.attributes
     for name in ('hierarchical__row_count', '_parent_h__row_count', '_h_count', '_parent_h_count'):
         column = table.column(name)

@@ -37,12 +37,11 @@ written through the cycle.
 
 | Declaration | Issue |
 |---|---|
-| option `sys_fields` | [#29](https://github.com/asqueel-org/asqueel/issues/29) |
 | option `hierarchical` | [#30](https://github.com/asqueel-org/asqueel/issues/30) |
 | option `auto_counter` | [#31](https://github.com/asqueel-org/asqueel/issues/31) |
 | any other enabled table option | no issue yet |
-| column `default`, `default_from`, `x_generation` | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
-| column `read_only`, `unmodifiable` | no issue yet |
+| column `default`, `default_from`, `x_generation` (except the `id` declared by `sys_fields`) | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
+| column `read_only` (except the `id` declared by `sys_fields`), `unmodifiable` | no issue yet |
 | a column child other than its relation | no issue yet |
 | a table expanded from a legacy source (`x_expanded_legacy`) | no issue yet |
 

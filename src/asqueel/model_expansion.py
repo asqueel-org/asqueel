@@ -15,9 +15,13 @@ from .contracts import UnsupportedFeatureError
 from .model_source import generate_attributes, options
 
 
+_TRIGGER_KEYS = ('onInserting', 'onUpdating', 'onUpdated', 'onInserted', 'onDeleted')
+
+
 def _legacy(**attributes):
-    # Use the same flat namespace as the offline legacy adapter.
-    return {f'x_legacy_{key}': value for key, value in attributes.items()}
+    # Use the same flat namespace as the offline legacy adapter; column
+    # triggers keep their grammar names.
+    return {key if key in _TRIGGER_KEYS else f'x_legacy_{key}': value for key, value in attributes.items()}
 
 
 class _TableExpansion:

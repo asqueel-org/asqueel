@@ -46,7 +46,9 @@ def assert_legacy_columns(table, names, key):
             if field in attrs:
                 expected = str(attrs[field]) if field == 'size' else attrs[field]
                 assert column.attributes.get(field) == expected, (key, name, field)
-        for field in ('onInserting', 'onUpdating', '_sysfield', '_sendback', 'counter', '_counter_fkey'):
+        for field in ('onInserting', 'onUpdating'):
+            assert column.attributes.get(field) == attrs.get(field), (key, name, field)
+        for field in ('_sysfield', '_sendback', 'counter', '_counter_fkey'):
             assert column.attributes.get('x_legacy_' + field) == attrs.get(field), (key, name, field)
 
 
@@ -403,7 +405,7 @@ def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
     table.options().record_hash()
     db = build_database(builder)
     try:
-        assert db.table('app.item').column('__rec_md5').attributes['x_legacy_onInserting'] == 'setRecordMd5'
+        assert db.table('app.item').column('__rec_md5').attributes['onInserting'] == 'setRecordMd5'
         assert db.table('app.item').model['options']['audit'].attributes['mode'] == 'full'
     finally:
         db.close()

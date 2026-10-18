@@ -6,6 +6,8 @@ write cycle in db_write.py calls them in the GenroPy order.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from .errors import EXCEPTIONS
 from .model import _parse_row_policies
 
@@ -45,6 +47,17 @@ class TriggersMixin:
 
     def trigger_releaseCounters(self, record=None):
         """Release counter values after the DELETE."""
+
+    def trigger_setTSNow(self, record, fldname, **kwargs):
+        """sys_fields timestamp: aware UTC for a ``DHZ`` column, naive local otherwise."""
+        if self.model.columns[fldname].dtype == 'DHZ':
+            record[fldname] = datetime.now(timezone.utc)
+        else:
+            record[fldname] = datetime.now()
+
+    def trigger_setCurrentUser(self, record, fldname, **kwargs):
+        """sys_fields user: the ``user`` of the current environment."""
+        record[fldname] = self.db.currentUser
 
     @property
     def draftField(self):
