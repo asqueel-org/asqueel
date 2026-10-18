@@ -155,7 +155,7 @@ def test_undeclared_bare_attribute_is_rejected_on_db():
         model.source.db(name="d", dbnmae="typo")
 
 
-@pytest.mark.parametrize("extra", ["x_widget", "group_b_address", "name_full", "cell_format"])
+@pytest.mark.parametrize("extra", ["x_widget", "group_b_address", "cell_format"])
 def test_extra_attributes_are_rejected_naming_attribute_and_element(extra):
     model = _mount()
     schema = model.source.db(name="d").schemas().schema(name="p")

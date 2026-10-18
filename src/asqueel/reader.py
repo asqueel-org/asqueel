@@ -46,7 +46,7 @@ from asqueel_migration.structures import COL_JSON_KEYS
 
 from .builder import SqlBuilder
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
-from .common import SQL_ACTION_NAMES
+from .common import SQL_ACTION_NAMES, SQL_COLUMN_KEYS
 from .common import split_names as _names
 
 #: Table attribute keys the grammar can express.
@@ -217,6 +217,9 @@ class SqlModelReader:
         )
         if column_name in pkey:
             attributes.pop("notnull", None)
+        for key, json_key in SQL_COLUMN_KEYS.items():
+            if json_key in attributes:
+                attributes[key] = attributes.pop(json_key)
         return self._mount(
             f"{path}.columns.{column_name}", table_node, "column",
             name=column_name, **attributes,

@@ -60,7 +60,7 @@ def invoice_source():
 
 def test_legacy_loader_refuses_the_first_attribute_outside_the_grammar():
     profile = json.loads((SOURCE / 'adapter-profile.json').read_text())
-    with pytest.raises(ValueError, match="sys: legacy attribute 'name_full' is outside the asqueel grammar"):
+    with pytest.raises(ValueError, match="sys: legacy attribute '_syspackage' is outside the asqueel grammar"):
         from_expanded_legacy_xml((SOURCE / 'source.xml').read_text(), **profile)
 
 
