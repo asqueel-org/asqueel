@@ -43,6 +43,8 @@ def test_the_1296th_sibling_is_an_explicit_error(db):
     assert last['_h_count'] == 'ZZ'
     with pytest.raises(BusinessLogicException, match='at most 1295 siblings under one parent'):
         insert(table, 'overflow')
+    db.rollback()
+    insert(table, 'last', _row_count=1295)
     with pytest.raises(BusinessLogicException, match='at most 1295 siblings under one parent'):
         insert(table, 'explicit', _row_count=1296)
 
