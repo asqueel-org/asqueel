@@ -188,6 +188,21 @@ or a `formulaColumn_<x>` method raises `UnsupportedFeatureError` when the model 
 built; the environment keys `sql_comment`, `sql_details` and
 `env_<table>_condition_*` raise it at execution.
 
+These legacy features are absent from this release and raise
+`UnsupportedFeatureError` with the message `<feature> is not available in this
+release`, prefixed with the table or column path where one exists:
+
+- table attributes `variant`, `mixin`, `ext_<pkg>`;
+- column attributes `localized`, `variant`, `ext_<pkg>`;
+- the element `joinColumn`;
+- on a model table and on a table: `rowcaption`, `newrecord_caption`,
+  `starColumns`, `getRelation`, `getJoiner`, `relations_one`,
+  `relations_many`, `manyRelationsList`, `relationExplorer`
+  (`rowcaption` and `newrecord_caption` stay accepted as table attributes);
+- on the database: `tableMixin`, `packageMixin`;
+- on a query: `setJoinCondition`;
+- query keywords `jc_<name>` (join condition keyword).
+
 A custom adapter must declare and test its own supported behavior. See
 [adapters](adapters.md) for the boundaries; adding a capability name does not
 implement the capability or certify another database backend.

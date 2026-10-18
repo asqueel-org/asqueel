@@ -289,6 +289,18 @@ class DbTableObj(DbModelObj):
         return column
 
 
+
+def _missing_feature(name):  # wf:phase-3:new
+    def refuse(self):
+        from .contracts import UnsupportedFeatureError
+        raise UnsupportedFeatureError(f'{self.fullname}: {name} is not available in this release')
+    return property(refuse)
+
+
+for _name in ('rowcaption', 'newrecord_caption', 'starColumns', 'getRelation', 'getJoiner',
+              'relations_one', 'relations_many', 'manyRelationsList', 'relationExplorer'):
+    setattr(DbTableObj, _name, _missing_feature(_name))
+
 class DbColumnObj(DbModelObj):
     @property
     def fullname(self):

@@ -68,6 +68,10 @@ def _reference(name):
 class SqlQuery:
     """Detached query intent; every terminal compiles in the current environment."""
 
+    @property
+    def setJoinCondition(self):
+        raise UnsupportedFeatureError('setJoinCondition is not available in this release')
+
     def __init__(self, table, options, params, keyword_bindings=()):
         self.table = table
         self.db = table.db
@@ -242,6 +246,10 @@ class SqlTable(CrudMixin, TriggersMixin):
         unsupported_options = _UNSUPPORTED
         select_options = select_options | {'addPkeyColumn'}
         unsupported_options = unsupported_options - {'addPkeyColumn'}
+        join_conditions = sorted(key for key in incoming if key.startswith('jc_'))
+        if join_conditions:
+            raise UnsupportedFeatureError(
+                f'join condition keyword {join_conditions[0]} is not available in this release')
         unsupported = incoming.keys() & unsupported_options
         if unsupported:
             name = sorted(unsupported)[0]

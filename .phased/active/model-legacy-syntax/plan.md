@@ -51,7 +51,10 @@ Model declarations take the legacy spelling the user decided on 2026-10-17 (deci
   - Details: grammar and joiner changes; FK projection rule for `cnd`; index signature and default name in builder, object tree and migration; pkey validation; realign the listed tests; copy `tests/phase-2/*` verbatim into `tests/`; update docs/guide/legacy-features.md.
   - Done: the plan's tests for this phase, copied into the test tree (`tests/test_model_legacy_relations.py`), pass; the Phase 1 tests still pass; full suite, ruff and mypy as in Phase 1; `grep -rn "x_auto_name" src/asqueel tests` empty
 
-- [ ] **Phase 3**: legacy model features absent from this release raise an error that names them
+- [x] **Phase 3**: legacy model features absent from this release raise an error that names them
+  > Done: table variant/mixin/ext_<pkg>, column localized/variant/ext_<pkg>, joinColumn, the nine DbTableObj accessors (SqlTable reaches them through its model delegation), tableMixin/packageMixin on Database, SqlQuery.setJoinCondition, jc_<name> query keywords all raise UnsupportedFeatureError naming the feature; contract tests 19 passed, both copies byte-identical; Phases 1-2 tests pass; suite 4987 passed, 42 skipped, 31 xfailed; ruff, mypy clean
+  > Decision: joinColumn is not a schema tag, so the node never reaches SqlBuilder.__getattr__; it is refused through a genro-builders `@container('joinColumn')` method that raises
+  > Files: src/asqueel/builder.py, src/asqueel/object_tree.py, src/asqueel/application_table.py, src/asqueel/runtime.py, tests/test_model_missing_features.py (new, copied), tests/test_closed_grammar.py, docs/guide/limitations.md
   - Pattern reference: asqueel `src/asqueel/application_table.py:34-39` (`_UNSUPPORTED` query options), `src/asqueel/object_tree.py:169-177` (`_check_table_methods`), `src/asqueel/builder.py:349-383` (`_validate_call_args`), messages as in `tests/test_specific_errors.py`
   - Files: src/asqueel/builder.py, src/asqueel/object_tree.py, src/asqueel/application_table.py, src/asqueel/application.py, src/asqueel/runtime.py, tests/test_model_missing_features.py (new, copied), tests/test_closed_grammar.py, docs/guide/limitations.md
   - Decisions:

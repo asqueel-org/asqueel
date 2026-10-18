@@ -48,6 +48,15 @@ class Database:
     connections. Use tempEnv for context selection, never automatic completion.
     """
 
+    @property
+    def tableMixin(self):
+        raise UnsupportedFeatureError('tableMixin is not available in this release')
+
+    @property
+    def packageMixin(self):
+        raise UnsupportedFeatureError('packageMixin is not available in this release')
+
+
     def __init__(self, conninfo='', *, implementation='sqlite', connect_kwargs=None, environment=None):
         self._ready = True
         self._thread_state = _ThreadState()

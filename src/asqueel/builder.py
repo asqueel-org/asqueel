@@ -15,7 +15,7 @@ from typing import cast, get_args
 
 from genro_bag import BagNode
 
-from genro_builders.builder import BuilderBase, SourceBag
+from genro_builders.builder import BuilderBase, SourceBag, container
 from genro_builders.builder.base import SOURCE_ROOT
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
@@ -123,6 +123,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     def main(self, root):
         pass
 
+    @container('joinColumn')
+    def joinColumn(self, target, *args, **kwargs):  # wf:phase-3:new
+        from .contracts import UnsupportedFeatureError
+        raise UnsupportedFeatureError('joinColumn is not available in this release')
+
     def __getattr__(self, name):
         handler = super().__getattr__(name)
         fields = {
@@ -164,6 +169,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                     kwargs['name'], kwargs['dtype'] = kwargs['name'].split('::')
             elif len(args) > 1:
                 raise TypeError(f'{name}: at most one positional argument is allowed')
+            if name in ('table', 'column'):
+                self._missing_feature_attributes(destination, name, kwargs)
             if name == 'column':
                 self._legacy_column_attributes(destination, kwargs)
             return handler(destination, *args, **kwargs)
@@ -384,18 +391,30 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                         raise ValueError(f'{node_tag}.{key}: None is not allowed')
         return super()._validate_call_args(info, node_value, attr, node_tag)
 
+    def _element_path(self, destination, attr):  # wf:phase-3:new
+        node = getattr(destination, 'parent_node', None)
+        labels = []
+        while node is not None:
+            if node.node_tag in ('table', 'package', 'schema'):
+                labels.insert(0, node.label)
+            node = node.parent_node
+        return '.'.join([*labels, str(attr.get('name'))])
+
+    def _missing_feature_attributes(self, destination, tag, attr):  # wf:phase-3:new
+        """Legacy table/column attributes of features absent from this release."""
+        absent = {'variant', 'mixin'} if tag == 'table' else {'variant', 'localized'}
+        for key in attr:
+            if key in absent or key.startswith('ext_'):
+                from .contracts import UnsupportedFeatureError
+                raise UnsupportedFeatureError(
+                    f'{self._element_path(destination, attr)}: {key} is not available in this release')
+
     def _legacy_column_attributes(self, destination, attr):  # wf:phase-1:new
         """``encrypted`` is refused; ``indexed``/``unique`` strings read as GenroPy ``str_boolean``."""
         if 'encrypted' in attr:
             from .contracts import UnsupportedFeatureError
-            node = getattr(destination, 'parent_node', None)
-            labels = []
-            while node is not None:
-                if node.node_tag in ('table', 'package', 'schema'):
-                    labels.insert(0, node.label)
-                node = node.parent_node
-            path = '.'.join([*labels, str(attr.get('name'))])
-            raise UnsupportedFeatureError(f'{path}: encrypted is not available in this release')
+            raise UnsupportedFeatureError(
+                f'{self._element_path(destination, attr)}: encrypted is not available in this release')
         for key in ('indexed', 'unique'):
             if isinstance(attr.get(key), str):
                 attr[key] = attr[key].lower() not in ('', 'n', 'no', 'f', 'false', '0')
