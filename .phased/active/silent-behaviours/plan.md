@@ -68,3 +68,6 @@ Macro 2 of `.phased/roadmap.md`: no declaration is accepted and ignored. The eas
 - Test environment: memory note asqueel-test-environment.
 - Still silent after this macro, owned by later macros: an `onDbCommitted` override (Macro 6), `join_on=` executed while `cnd=`/`between=` raise (Macro 4), the logical-delete cascade (Macro 6). The SQLite `KeyError 'TSV'` lives in asqueel-migration, another repository.
 - The worktree root holds ~150 stray SQLite files named `host=127.0.0_*.db`: some tests pass a PostgreSQL conninfo string as a SQLite file name. Not in this plan.
+
+## Quality check
+> Quality check: 2026-10-18T11:49:50Z — commit e6252e9 — review extended, QA done, findings 5 confirmed, 4 dismissed, final touch 5 corrections
