@@ -14,3 +14,9 @@
 - The 1295 bound is checked after the assignment, so it covers a computed and a given `_row_count`, on insert and update.
 - The concurrency skeleton builds its two `AsqueelDb` instances inside the test body (the helper `migrated_db` creates one db only and `option_tables_support.py` is read-only); the second db sets `lock_timeout = '10s'` and every future wait has a timeout. With the parent at position 1 the two roots get 2 and 3.
 - Closed `[!]` on a plan-defect claim about the 1296th-sibling contract test: a trigger exception leaves the connection rollback-only.
+
+## Run inspection
+- Three launches. Phase 1's executor session (opus/medium) and the first Phase 3 attempt ended while waiting for a full suite they had sent to the background: `addopts` adds `--cov`, which takes the suite to about 11 minutes, beyond the 600 s foreground limit. The launcher stopped on "no progress" both times. The foreman closed Phase 1 with /close-phase after re-running its Done; for Phase 3 the plan Notes were tightened (`--no-cov`, foreground) and the run relaunched.
+- Phase 2 closed first time (opus/high), with two tests outside its Files realigned (`> Review:`).
+- Phase 3 closed `[!]` on a plan-defect claim: the 1296th-sibling contract test assumed a connection stays usable after a trigger exception; asqueel marks it rollback-only. The foreman confirmed the premise in `runtime.py` `_write_operation`, the user chose apply, the declared edit went into both copies and the Done re-ran green (suite 4948 passed).
+- `wf:phase-2:new` and `wf:phase-3:new` markers are still in `hierarchical.py` and `table_triggers.py`, waiting for the quality-check naming review.
