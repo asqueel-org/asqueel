@@ -7,6 +7,8 @@ dropped.
 from __future__ import annotations
 
 _BASE36 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+# Two base-36 digits of _h_count per level.
+_MAX_SIBLINGS = 36 ** 2 - 1
 
 
 def encode36(number, nChars=1):  # wf:phase-2:new
@@ -34,21 +36,28 @@ class HierarchicalHandler:  # wf:phase-2:new
         tblobj = self.tblobj
         pkeyfield = tblobj.model.pkey
         parent_id = record.get('parent_id')
+        moved = old_record is not None and _changed(('parent_id',), record, old_record)
+        has_counter = '_row_count' in tblobj.model.columns
+        # doc 36 §10.2: a moved node takes the last position among its new siblings.
+        next_position = has_counter and (moved or (old_record is None and record.get('_row_count') is None))
         parent_record = None
         if parent_id:
-            rows = tblobj.query(where=f'${pkeyfield}=:pid', pid=parent_id,
+            # Locking the parent serializes max + 1 among its children.
+            rows = tblobj.query(where=f'${pkeyfield}=:pid', pid=parent_id, for_update=next_position,
                                 excludeLogicalDeleted=False, excludeDraft=False).fetch()
             parent_record = rows[0] if rows else None
-        if parent_record and old_record is not None and _changed(('parent_id',), record, old_record) \
-                and record[pkeyfield] in parent_record['hierarchical_pkey'].split('/'):
+        elif next_position:
+            self.lock_roots()
+        if parent_record and moved and record[pkeyfield] in parent_record['hierarchical_pkey'].split('/'):
             raise tblobj.exception('business_logic', msg='A node cannot be moved under itself or one of its descendants')
-        has_counter = '_row_count' in tblobj.model.columns
-        if has_counter and old_record is None and record.get('_row_count') is None:
+        if next_position:
             # Assigned before the paths: '_row_count' can be a hierarchical field.
             where, params = ('$parent_id =:p_id', {'p_id': parent_id}) if parent_id else ('$parent_id IS NULL', {})
             rows = tblobj.query(columns='$_row_count', where=where, sqlparams=params,
                                 order_by='$_row_count desc', limit=1).fetch()
             record['_row_count'] = ((rows[0]['_row_count'] if rows else None) or 0) + 1
+        if has_counter and (record.get('_row_count') or 0) > _MAX_SIBLINGS:
+            raise tblobj.exception('business_logic', msg=f'at most {_MAX_SIBLINGS} siblings under one parent')
         for fld in tblobj.model.attributes['x_legacy_hierarchical'].split(','):
             parent_h_fld = '_parent_h_%s' % fld
             h_fld = 'hierarchical_%s' % fld
@@ -64,6 +73,13 @@ class HierarchicalHandler:  # wf:phase-2:new
         record['_parent_h_count'] = parent_record['_h_count'] if parent_record else None
         if old_record is None or _changed(('_row_count', '_parent_h_count'), record, old_record):
             record['_h_count'] = '%s%s' % (record.get('_parent_h_count') or '', encode36(record['_row_count'], 2))
+
+    def lock_roots(self):  # wf:phase-3:new
+        """Serialize max + 1 among the roots; SQLite writes are already serialized."""
+        db = self.tblobj.db
+        compiled = db.write_compiler.lock_table(self.tblobj.model, db.environment.snapshot(), mode='SHARE ROW EXCLUSIVE')
+        if compiled is not None:
+            db.execute(compiled)
 
     def trigger_after(self, record, old_record=None):  # wf:phase-2:new
         tblobj = self.tblobj

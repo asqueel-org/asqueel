@@ -110,7 +110,14 @@ the write cycle, see [Current status](limitations.md).
   move. A move under the node itself or a descendant raises
   `BusinessLogicException`; an update without `old_record` raises
   `RecordException`; deleting a node deletes its subtree. `child_count`,
-  `hlevel` and `root_id` are read for every node. Differences: no
+  `hlevel` and `root_id` are read for every node. Three behaviours go
+  beyond legacy: a node moved to another parent takes the last
+  `_row_count` among its new siblings; a `_row_count` above 1295 (two
+  base-36 digits of `_h_count`), computed or given, raises
+  `BusinessLogicException` where legacy wrote an empty `_h_count`; max + 1
+  runs after reading the parent `for_update`, or, for a root on PostgreSQL,
+  after `LOCK ... IN SHARE ROW EXCLUSIVE MODE`, so concurrent inserts get
+  distinct positions. Differences: no
   `subtable`; `linked_to` and `depth` raise `UnsupportedFeatureError` when
   the model is built; `getHierarchicalData`, `hierarchicalSearch`,
   `pathFromPkey`, `getAncestors`, `fixRowCount` are absent (model JSON:

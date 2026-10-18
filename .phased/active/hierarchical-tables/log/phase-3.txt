@@ -1,0 +1,7 @@
+⚠ Phase 3 ha problemi: è chiusa `[!]` con un plan-defect claim sul contract test `test_the_1296th_sibling_is_an_explicit_error`.
+
+- **Causa:** il test assume che la connection resti usabile dopo una `BusinessLogicException` sollevata da un trigger. Non è così: `_write_operation` in `src/asqueel/runtime.py:281-287` mette la connection in stato rollback-only. Quindi il secondo `insert` riceve `TransactionStateError`.
+- **Correzione proposta:** aggiungere `db.rollback()` e un nuovo `insert(table, 'last', _row_count=1295)` fra i due `raises`. Con questa modifica, provata su una copia temporanea poi rimossa, il test passa su SQLite e PostgreSQL. Il contract non è stato modificato.
+- **Stato del codice:** i tre comportamenti sono in `hierarchical.py`, e il nuovo metodo `lock_roots` esegue il lock della tabella sulle radici. Gli altri due test passano, compreso il corpo del test di concorrenza che ho scritto. ruff e mypy sono puliti. Dopo la modifica ho fatto girare solo i file di test hierarchical, sys_fields e option-expansion (83 passed, 1 xfailed, i 2 fallimenti attesi). La full suite non l'ho rilanciata.
+
+Il commit è `681a030`, con le note della fase in `notes.md`. La baseline della full suite è durata 597 s, appena sotto il limite di 600 s dei comandi in foreground.
