@@ -1,0 +1,10 @@
+✓ Phase 4 completata: ora la configurazione di asqueel carica una cartella di package nel layout legacy.
+
+- `package(name, path=<cartella>)` legge `main.py` e i file `model/*.py`. Il loader nuovo è in `src/asqueel/package_layout.py` e viene chiamato da `_owned_handler` in `configuration.py`.
+- Verifiche eseguite in questa sessione:
+  - i 5 contract test della fase passano;
+  - la suite completa dà 4992 passed, 42 skipped, 31 xfailed;
+  - ruff e mypy del venv sono puliti.
+- Commit `6131dd7`.
+- Il mypy dell'hook di commit segnala 3 errori di import di `asqueel_migration`. Sono solo avvisi: il mypy del venv non li trova.
+- Non resta nessuna fase pendente nel plan. Il passo successivo è `/quality-check`, poi `/finalize-workflow`.

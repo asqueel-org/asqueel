@@ -67,7 +67,9 @@ Model declarations take the legacy spelling the user decided on 2026-10-17 (deci
   - Details: add the refusals; copy `tests/phase-3/*` verbatim into `tests/`; realign test_closed_grammar.py; list the features in docs/guide/limitations.md.
   - Done: the plan's tests for this phase, copied into the test tree (`tests/test_model_missing_features.py`), pass; Phases 1-2 tests still pass; full suite, ruff and mypy as in Phase 1
 
-- [ ] **Phase 4**: package folder in the legacy layout, loaded by the asqueel configuration
+- [x] **Phase 4**: package folder in the legacy layout, loaded by the asqueel configuration
+  > Done: `package(name, path=<folder>)` loads `main.py` (`Package.config_attributes()` under element attributes, `custom_type_<dtype>()` as package types) and `model/*.py` in alphabetical order (`Table.config_db(pkg)`, runtime class `type(<name>, (Table, SqlTable), {})` as `x_table_class`); `config_db_<pkg>`/`config_db_custom` raise UnsupportedFeatureError; contract tests 5 passed, both copies byte-identical; Phases 1-3 tests pass; suite 4992 passed, 42 skipped, 31 xfailed; ruff, mypy clean; docs/grammar.md regenerated
+  > Files: src/asqueel/package_layout.py (new), src/asqueel/configuration.py, src/asqueel/model_elements.py, tests/test_model_package_layout.py (new, copied), docs/grammar.md, docs/guide/legacy-features.md, docs/guide/configuration.md
   - Pattern reference: asqueel `src/asqueel/configuration.py:176-245` (`configuration_source`, `_compose_source`), `src/asqueel/object_tree.py:157-170` (table class from `x_table_class`), `src/asqueel/model_source.py:115-134` (`resolve_source_types`); legacy `gnrpy/gnr/sql/gnrsqlmodel/model.py:107-160` (`_doObjMixinConfig`, alphabetical table order) and `gnrsqlmodel/columns.py:116-133` (`custom_type_<dtype>`)
   - Files: src/asqueel/model_elements.py, src/asqueel/configuration.py, src/asqueel/package_layout.py (new), src/asqueel/model_source.py, src/asqueel/object_tree.py, src/asqueel/application_table.py, tests/test_model_package_layout.py (new, copied), docs/guide/legacy-features.md, docs/guide/configuration.md if it exists, else the guide page that documents recipes
   - Decisions:

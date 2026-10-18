@@ -13,6 +13,7 @@ from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
 from genro_bag import Bag, BagNode, BagResolver
 
 from .builder import SqlBuilder
+from .package_layout import load_package_layouts
 
 _MISSING = object()
 
@@ -105,6 +106,7 @@ def _owned_handler(source, parents=None):
             with handler.builder.contribution(f'layer[{index}]'):
                 _compose_source(handler.builder, handler.builder.source, layer.builder.source)
         _normalize_connection_options(handler)
+        load_package_layouts(handler.builder)
         _validate_source_shape(handler.builder)
         return handler
 

@@ -16,3 +16,11 @@
 - A package `relation` with `cnd` defaults `foreign_key` to False; an explicit `foreign_key=True` beside `cnd` is not refused (the plan does not say).
 - `pkey='a,b'` raises only on package tables: schema-level tables read from a database (`projection.py`) carry a comma pkey.
 - Blocker: the cnd contract test calls `migration_plan()` on `:memory:`, refused by design; see the plan-defect claim.
+
+## Phase 4
+
+- The loader runs in `configuration._owned_handler`, after layer composition and before the shape validation: the layout becomes ordinary source declarations, so every renderer sees it. `path` is popped from the package node once loaded, so a second preparation of the same source does not load the folder twice.
+- `custom_type_<dtype>()` results are written as `pkg.options().type(<dtype>, **result)`: `resolve_source_types` applies them unchanged, and keys outside `type()` (`dtype`, `size`, `name_long`, `name_short`) raise as grammar errors.
+- `config_attributes()` keys are set with `setdefault` on the package node: element attributes win.
+- Modules are executed with `importlib.util.spec_from_file_location`, not registered in `sys.modules` and without touching `sys.path`.
+- `object_tree.py`, `model_source.py`, `application_table.py` from the plan's Files needed no change: `x_table_class` already carries the runtime class and `_check_table_methods`.

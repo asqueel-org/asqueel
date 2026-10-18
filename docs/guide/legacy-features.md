@@ -80,14 +80,24 @@ the write cycle, see [Current status](limitations.md).
 - **`compositeColumn()`** (A1.12): declared in the `composites` collection
   with `unique=`; SELECT and `record()` fail when it is the pkey. Reason: open
   defect ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
-- **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a recipe
-  `main(self, root)` with one function per table; overrides through
-  `builder.contribution`. Reason: the legacy adapter is not implemented.
+- **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a package
+  folder in the legacy layout loads with `package(name, path=<folder>)`:
+  `main.py` holds class `Package` (`config_attributes()` gives package
+  attributes, under the ones written on the element), `model/<table>.py` holds
+  class `Table` whose `config_db(self, pkg)` declares through the grammar;
+  tables load in alphabetical order of their modules, and the runtime table is
+  `Table` combined with `SqlTable`, its triggers running in the write cycle.
+  `config_db_<pkg>` and `config_db_custom` raise `UnsupportedFeatureError`.
+  Recipe packages (`main(self, root)`) sit beside layout packages in one
+  database. Reason: customization is application-level; the layout is
+  provisional (decision of 18 October 2026).
 - **`name_long`, `name_short`, `name_full`** (A1.22): there are no setters.
   Reason: not recorded.
-- **Package custom types `custom_type_<dtype>`** (A1.26): declared with
-  `options().type(name, dtype, size, ...)`; an unknown dtype raises
-  `ValueError`. Reason: a declaration replaces the hook.
+- **Package custom types `custom_type_<dtype>`** (A1.26): in a layout package,
+  `Package.custom_type_<dtype>()` returns the column defaults for
+  `dtype='<dtype>'`, accepted keys as `options().type()`; a recipe package
+  declares `options().type(name, dtype, size, ...)`. Explicit column attributes
+  win; an unknown dtype raises `ValueError`.
 
 ### Not available yet
 

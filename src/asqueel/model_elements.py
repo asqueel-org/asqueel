@@ -38,7 +38,7 @@ class ModelElements:
     def package(self, name: str, sqlschema: str | None = None,
                 sqlprefix: bool | str = True, name_long: str | None = None,
                 name_short: str | None = None, name_full: str | None = None,
-                comment: str | None = None):
+                comment: str | None = None, path: str | None = None):
         """Logical table namespace with an explicit physical placement.
 
         Args:
@@ -49,6 +49,8 @@ class ModelElements:
             name_long: semantic; human label.
             name_short: semantic; short label.
             comment: semantic; package description.
+            path: folder in the legacy layout (``main.py`` with class ``Package``,
+                ``model/<table>.py`` with class ``Table``) whose tables the package loads.
         """
         ...
 

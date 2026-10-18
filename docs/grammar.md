@@ -494,6 +494,7 @@ Logical table namespace with an explicit physical placement.
 | name_short | `str \| None` | `None` | semantic | short label. |
 | name_full | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | semantic | package description. |
+| path | `str \| None` | `None` | physical | folder in the legacy layout (`main.py` with class `Package`, `model/<table>.py` with class `Table`) whose tables the package loads. |
 
 ### `options`
 

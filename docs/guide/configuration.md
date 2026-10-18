@@ -161,6 +161,22 @@ Configure `x_table_class=YourTableSubclass` to attach before/after insert, updat
 and deletion hooks. See [table hooks](hooks.md) for the complete example, locking
 semantics and transaction rules.
 
+## Load a package folder in the legacy layout
+
+`package(name, path=<folder>)` loads a folder holding `main.py` (class
+`Package`) and `model/<table>.py` (class `Table`). Each `Table.config_db(self, pkg)`
+declares its table on `pkg` with the normal grammar; `Package.config_attributes()`
+and `Package.custom_type_<dtype>()` give package attributes and column types.
+The `Table` class is the runtime table, so its triggers run like those of an
+`x_table_class`. Layout and recipe packages coexist in one database. The layout
+is provisional; see [legacy features](legacy-features.md).
+
+```python
+packages = root.packages()
+packages.package('sales', path='/path/to/sales')
+crm = packages.package('crm')
+```
+
 ## Ownership and advanced integration
 
 A database shares its model and table handles between threads. Connections and
