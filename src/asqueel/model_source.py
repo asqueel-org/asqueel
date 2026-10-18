@@ -38,7 +38,7 @@ def options(node):
     return {child.label: Option(child.node_tag, attributes(child)) for child in container.value or ()}
 
 
-def generate_attributes(builder, node, attributes):  # wf:phase-3:new
+def generate_attributes(builder, node, attributes):
     """Write attributes for ``node``; those outside its grammar are recorded as generated.
 
     The domain validator accepts a key outside the grammar only when it is

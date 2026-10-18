@@ -109,13 +109,13 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         return node.fullpath or node.label
 
     @cached_property
-    def table_options(self):  # wf:phase-3:new
+    def table_options(self):
         """Option tags of :class:`BehaviorOptionElements` and of its subclasses mixed into this builder."""
         return frozenset(name for cls in type(self).__mro__
                          if issubclass(cls, BehaviorOptionElements) and not issubclass(cls, BuilderBase)
                          for name in vars(cls) if self._schema.get_node(name) is not None)
 
-    def option_levels(self, tag):  # wf:phase-3:new
+    def option_levels(self, tag):
         """The owners an option may be declared on; None when ``tag`` is not an option."""
         return {'table'} if tag in self.table_options else OPTION_LEVELS.get(tag)
 

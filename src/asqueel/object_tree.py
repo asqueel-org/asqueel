@@ -166,7 +166,7 @@ class DbTableObj(DbModelObj):
         self.dbtable = table_class(self.db, self)
         self._relation_tree = None
 
-    def _check_table_methods(self, table_class):  # wf:phase-3:new
+    def _check_table_methods(self, table_class):
         """Refuse legacy package triggers (``trigger_on<Event>_<pkg>``) and ``formulaColumn_<x>`` methods."""
         from .contracts import UnsupportedFeatureError
         from .table_triggers import TriggersMixin

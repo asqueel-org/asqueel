@@ -119,7 +119,7 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
     return builder
 
 
-def _grammar(builder, tag, path, attributes, consumed):  # wf:phase-3:new
+def _grammar(builder, tag, path, attributes, consumed):
     """The legacy attributes element ``tag`` declares; raise on the first one neither declared nor consumed."""
     declared = builder._get_schema_info(tag).get('declared_names') or set()
     for key in attributes:

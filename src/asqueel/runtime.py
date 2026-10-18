@@ -396,7 +396,7 @@ class Database:
         if state['failed'] or state['completion_failed']:
             raise TransactionStateError('Connection is rollback-only; call rollback before reuse')
 
-    def _check_environment_keys(self) -> None:  # wf:phase-3:new
+    def _check_environment_keys(self) -> None:
         """Refuse the legacy environment keys whose effect this release does not have."""
         for key in self.environment.currentEnv:
             if key in ('sql_comment', 'sql_details') or re.fullmatch(r'env_\w+_condition_\w+', key):
