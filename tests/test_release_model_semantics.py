@@ -56,7 +56,7 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
         validate_value('alice', {'nodup': True})
     t.column('opaque', 'T', validate_lne=8)
     assert resolve_model(b).table('sales.item').columns['opaque'].validations == {'lne': 8}
-    with pytest.raises(UnsupportedFeatureError, match='write execution'):
+    with pytest.raises(UnsupportedFeatureError, match='write execution of b.validation is not available in this release'):
         require_write_capabilities(m.table('sales.item'))
 
 

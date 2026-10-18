@@ -142,7 +142,7 @@ def test_symbolic_formula_is_resolved_in_where(db):
 
 
 def test_embedded_input_does_not_hide_unused_keyword(db):
-    with pytest.raises(UnsupportedFeatureError, match='unused keyword'):
+    with pytest.raises(UnsupportedFeatureError, match="query keyword 'unused' is neither a query option nor a parameter"):
         db.table('sales.invoice').query(columns='$id', where='$total>:threshold',
                                        threshold='$id', unused='$id').compiled
 

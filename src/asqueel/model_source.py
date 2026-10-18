@@ -243,4 +243,4 @@ def require_write_capabilities(table):
         pending.extend(f'{name}.{key}' for key in ('read_only', 'unmodifiable') if attributes.get(key))
     if pending:
         raise UnsupportedFeatureError(
-            f'{table.fullname}: write execution for these declarations is not implemented: {", ".join(pending)}')
+            f'{table.fullname}: write execution of {", ".join(pending)} is not available in this release')

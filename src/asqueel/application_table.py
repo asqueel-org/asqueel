@@ -84,8 +84,9 @@ class SqlQuery:
                          **_copy(self._options if options is None else options))
         unused = set(self._keyword_bindings) - set(query.input_parameters)
         if unused:
+            name = sorted(unused)[0]
             raise UnsupportedFeatureError(
-                f'Unknown query options or unused keyword bindings: {sorted(unused)}; '
+                f'query keyword {name!r} is neither a query option nor a parameter of the query; '
                 'use sqlparams for explicit parameter mappings')
         return query
 
@@ -126,7 +127,7 @@ class SqlQuery:
         return self._compile(self.db.compiler.plan_select, options)
 
     def selection(self, *args, **kwargs):
-        raise UnsupportedFeatureError('Selection and Bag output are outside this application profile')
+        raise UnsupportedFeatureError('selection(): Selection and Bag output are not available in this release')
 
     def count(self):
         result = self.db.execute(self._compile(self.db.compiler.count))
@@ -240,7 +241,8 @@ class SqlTable(CrudMixin, TriggersMixin):
         unsupported_options = unsupported_options - {'addPkeyColumn'}
         unsupported = incoming.keys() & unsupported_options
         if unsupported:
-            raise UnsupportedFeatureError(f'Unsupported query options: {sorted(unsupported)}')
+            name = sorted(unsupported)[0]
+            raise UnsupportedFeatureError(f'query option {name!r} is not available in this release')
         options = {'columns': columns, 'where': where}
         options.update({key: incoming.pop(key) for key in list(incoming) if key in select_options})
         bindings = _bindings(sqlparams, incoming)

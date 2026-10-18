@@ -51,6 +51,39 @@ def _column_storage(column, *, path, packaged):
     return dtype, kwargs
 
 
+def _constraint_index_feature(item):
+    """The first introspected property of a constraint-owned index the builder cannot declare."""
+    checks = [
+        ('storage options', item.get('options')),
+        ('a tablespace', item.get('tablespace')),
+        ('included columns', len(item.get('columns', ())) != item.get('key_count')),
+        (f'method {item.get("method")}', item.get('method') != 'btree'),
+        ('non-default operator classes', item.get('default_opclasses') is False),
+        ('non-default collations', item.get('default_collations') is False),
+        ('non-default ordering', any(v != 0 for v in item.get('ordering', ()))),
+        ('NOT VALID', item.get('valid') is False),
+        ('NULLS NOT DISTINCT', item.get('nulls_not_distinct')),
+    ]
+    return next((name for name, present in checks if present), None)
+
+
+def _index_feature(item):
+    """The first introspected property of an index the builder cannot declare."""
+    columns = item['columns']
+    checks = [
+        ('expression columns', not all(columns)),
+        ('included columns', len(columns) != item['key_count']),
+        ('NULLS FIRST/LAST ordering', any(v not in (0, 3) for v in item['ordering'])),
+        ('non-default operator classes', not item['default_opclasses']),
+        ('non-default collations', not item['default_collations']),
+        ('NOT VALID', not item['valid']),
+        ('NULLS NOT DISTINCT', item['nulls_not_distinct']),
+        ('storage options', item['options']),
+        ('a tablespace', item['tablespace']),
+    ]
+    return next((name for name, present in checks if present), None)
+
+
 def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rename=False) -> SqlBuilder:
     """Project supported physical semantics, rejecting anything lossy.
 
@@ -105,9 +138,14 @@ def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rena
                         if kind in {'p', 'u', 'f'} and not allow_constraint_rename:
                             raise UnsupportedFeatureError(
                                 f'{table.key}: imported constraint names require allow_constraint_rename=True')
-                        if (kind in {'p', 'u'} and constraint.get('deferrable')
-                                or 'NULLS NOT DISTINCT' in constraint.get('definition', '')):
-                            raise UnsupportedFeatureError(f'{table.key}: advanced unique/primary constraint')
+                        if kind in {'p', 'u'} and constraint.get('deferrable'):
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{constraint["name"]}: DEFERRABLE primary/unique constraint '
+                                'is not available in this release')
+                        if 'NULLS NOT DISTINCT' in constraint.get('definition', ''):
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{constraint["name"]}: NULLS NOT DISTINCT constraint '
+                                'is not available in this release')
                         if not constraint.get('validated', True):
                             raise UnsupportedFeatureError(f'{table.key}: NOT VALID constraint')
                         if kind == 'f' and constraint['name'] not in table.relations:
@@ -135,25 +173,21 @@ def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rena
                 idx_node = None
                 for item in indexes:
                     if item.get('primary') or item.get('constraint_owned'):
-                        if (item.get('options') or item.get('tablespace')
-                                or len(item.get('columns', ())) != item.get('key_count')
-                                or item.get('method') != 'btree'
-                                or item.get('default_opclasses') is False
-                                or item.get('default_collations') is False
-                                or any(v != 0 for v in item.get('ordering', ()))
-                                or item.get('valid') is False or item.get('nulls_not_distinct')):
-                            raise UnsupportedFeatureError(f'{table.key}.{item["name"]}: advanced constraint index')
+                        feature = _constraint_index_feature(item)
+                        if feature:
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{item["name"]}: constraint index with {feature} '
+                                'is not available in this release')
                         continue
                     if idx_node is None:
                         idx_node = node.indexes()
                     if 'definition' in item:
                         columns = item['columns']
                         ordering = list(item['ordering'])
-                        if (not all(columns) or len(columns) != item['key_count']
-                                or any(v not in (0, 3) for v in ordering)
-                                or not item['default_opclasses'] or not item['default_collations'] or not item['valid']
-                                or item['nulls_not_distinct'] or item['options'] or item['tablespace']):
-                            raise UnsupportedFeatureError(f'{table.key}.{item["name"]}: advanced index semantics')
+                        feature = _index_feature(item)
+                        if feature:
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{item["name"]}: index with {feature} is not available in this release')
                         data = {'columns': {n: 'DESC' if o == 3 else None
                                             for n, o in zip(columns, ordering)},
                                 'unique': item['unique'], 'method': None if item['method'] == 'btree' else item['method'],

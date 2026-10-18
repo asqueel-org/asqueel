@@ -147,7 +147,7 @@ def test_physical_name_and_quoted_result_alias(db):
     ({'columns': '$missing'}, ValueError, 'Unknown column'),
     ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
     ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
-    ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, "query keyword 'unused' is neither"),
 ])
 def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
     with pytest.raises(error, match=message):

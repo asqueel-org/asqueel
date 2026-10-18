@@ -136,7 +136,7 @@ def test_cycles_and_method_errors_remain_explicit(db):
 
 def test_many_operations_inside_owner_and_related_formulas_have_no_handlers(db):
     for columns in ('$many_op', '@parent_id.many_op'):
-        with pytest.raises(UnsupportedFeatureError, match='many_sum not yet supported'):
+        with pytest.raises(UnsupportedFeatureError, match='many_sum is not available in this release'):
             db.table('app.owner').query(columns).compiled
 
 

@@ -259,4 +259,4 @@ class SqlDbAdapter:
 
     def mask_field_sql(self, field, mode='2-4', placeholder='*'):
         """Legacy mask_field_sql: modes 'email', 'creditcard', 'phone' or 'N-M'."""
-        raise UnsupportedFeatureError(f'{self.dialect}: mask_field_sql is not implemented')
+        raise UnsupportedFeatureError(f'{self.dialect}: mask_field_sql is not available in this release')

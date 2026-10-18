@@ -232,12 +232,12 @@ the write cycle, see [Current status](limitations.md).
   when the model is built, naming the method; the others are not read. No
   issue yet. Workaround: declare explicit `formulaColumn`s.
 - **`#ENV(name[,fallback])` and `#PREF(path[,default])`** (A3.18): refused
-  with the message "Hierarchical macro expansion is not connected yet", which
-  does not name the macro. No issue yet. Workaround: `:env_name` and `var_*`.
-- **`#BAG` / `#BAGCOLS` in columns** (A3.19): refused with the same message.
+  with `UnsupportedFeatureError` naming the macro ("macro #ENV is not
+  available in this release"). No issue yet. Workaround: `:env_name` and `var_*`.
+- **`#BAG` / `#BAGCOLS` in columns** (A3.19): refused the same way, naming the macro.
   No issue yet. Workaround: `bagItemColumn` or decoding in the application.
 - **Dialect macros `#TSQUERY`, `#TSRANK`, `#TSHEADLINE`, `#VECQUERY`,
-  `#VECRANK`** (A3.20): refused with the same message. No issue yet.
+  `#VECRANK`** (A3.20): refused the same way, naming the macro. No issue yet.
   Workaround: explicit full-text SQL in `sql_formula` or in the `where`.
 
 ## 4 Relations

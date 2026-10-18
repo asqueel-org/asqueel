@@ -49,3 +49,8 @@ A full run at 569b88f with the `_` gate instrumented: keys accepted through it, 
 - Build: tests that used a free extra only as a carrier moved to declared attributes (`comment`, `name_short`); resolver carriers moved to `default`/`onDeleted`, the object-typed ones (a `str` parameter refuses a resolver).
 - Found: genro_builders drops an element override in a second-level subclass (`class C(MountedModel)` sees the base `schema`, not `MountedModel.schema`); it was hidden by the open `**extra`. `tests/native_composition/test_composition.py` redeclares the element on the class that uses it. Follow-up for genro-builders.
 - Open (user, 2026-10-18), for the roadmap: how a customization mounts its option grammar, nested subbuilder or mixin.
+
+## Phase 4
+- Gate (user, 2026-10-18): approved. Common phrase `<feature>: ... is not available in this release`, the one Phase 3 introduced (`object_tree.py`, `runtime.py`). Options are named one at a time. `_many_aggregates.py` and `tests/native_model/test_postgres.py` join the phase: the Done grep covers all `src/asqueel` and the test matches the old phrase.
+- Build: projection refusals name the first blocking property through `_constraint_index_feature`/`_index_feature`; `formulaColumn` names `subqueries=` or `handler=`; the many path names the relation; `aggr` with `join_on`/`cnd`/`between` names the key; macros are named as written.
+- Build: `docs/guide/legacy-features.md` A3.18-A3.20 no longer quote the old macro message. `docs/design/*` keep the old phrases: they record history.

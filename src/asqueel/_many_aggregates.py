@@ -19,7 +19,7 @@ def aggregate_columns(arguments, path):
         function, text = call.groups()
         function = function.lower()
         if function not in ('count', 'sum', 'avg', 'min', 'max', 'join', 'to_json', 'to_xml'):
-            raise UnsupportedFeatureError(f'aggr: {function} not yet supported')
+            raise UnsupportedFeatureError(f'aggr: {function}() is not available in this release')
         outer_name = parts[1].strip() if len(parts) == 2 else None
         if len(parts) > 2:
             raise ValueError('An aggregate result requires at most one AS')

@@ -42,7 +42,7 @@ def test_all_declared_relations_against_frozen_legacy(db, name):
     query = db.table(request['table']).query(request['columns'], **request['options'])
     if joiner['mode'] != 'O' and not joiner.get('one_one'):
         # Includes the two legacy KeyError limits: neither is repaired or compiled.
-        with pytest.raises(UnsupportedFeatureError, match='many relation not yet supported'):
+        with pytest.raises(UnsupportedFeatureError, match='a path through the many relation .* is not available in this release'):
             query.compiled
     else:
         actual = query.compiled
@@ -80,7 +80,7 @@ def test_recognition_and_getattr_without_handlers(db, monkeypatch, expression, o
 
     monkeypatch.setattr(_TreeContext, '__getattr__', missing, raising=False)
     assert {name for name in vars(_TreeContext) if name.startswith('many_')} == {'many_aggr'}
-    with pytest.raises(UnsupportedFeatureError, match=f'many_{operation} not yet supported'):
+    with pytest.raises(UnsupportedFeatureError, match=f'many_{operation} is not available in this release'):
         db.compiler.plan_select('invc.customer', columns=expression,
                                 exclude_draft=False, exclude_logical_deleted=False,
                                 ignore_partition=True)
@@ -93,14 +93,14 @@ def test_many_operations_recognized_in_clauses(db, clause):
     options = dict(columns='$id', exclude_draft=False, exclude_logical_deleted=False,
                    ignore_partition=True)
     options[clause] = '@invoices.sum($total)'
-    with pytest.raises(UnsupportedFeatureError, match='many_sum not yet supported'):
+    with pytest.raises(UnsupportedFeatureError, match='many_sum is not available in this release'):
         db.compiler.plan_select('invc.customer', **options)
 
 
 def test_nested_to_one_then_many_and_symbolic_input(db):
-    with pytest.raises(UnsupportedFeatureError, match='many_sum not yet supported'):
+    with pytest.raises(UnsupportedFeatureError, match='many_sum is not available in this release'):
         db.compiler.plan_select('invc.invoice', '@customer_id.@invoices.sum($total)')
-    with pytest.raises(UnsupportedFeatureError, match='many_sum not yet supported'):
+    with pytest.raises(UnsupportedFeatureError, match='many_sum is not available in this release'):
         db.compiler.plan_select('invc.customer', '$id', where='$id=:other',
                                 sqlparams={'other': '@invoices.sum($total)'},
                                 exclude_draft=False, exclude_logical_deleted=False,
@@ -114,7 +114,7 @@ def test_recognizer_requires_closing_parenthesis(db):
 
 def test_many_traversal_does_not_allocate_join(db):
     context = db.compiler._context('invc.customer')
-    with pytest.raises(UnsupportedFeatureError, match='many relation not yet supported'):
+    with pytest.raises(UnsupportedFeatureError, match='a path through the many relation @invoices is not available'):
         context.get_field_alias('@invoices.total')
     assert not context.cpl.joins
     assert list(context.aliases.values()) == ['t0']

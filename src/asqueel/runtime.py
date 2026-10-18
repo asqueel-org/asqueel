@@ -120,7 +120,7 @@ class Database:
     def _check_store(self) -> None:
         store = self.environment.currentEnv.get('storename')
         if store and store != '_main_db':
-            raise UnsupportedFeatureError('Database stores are not implemented in this profile')
+            raise UnsupportedFeatureError(f'environment key storename={store!r}: database stores are not available in this release')
 
     @property
     def _connection_state(self) -> _ConnectionState:

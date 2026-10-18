@@ -124,8 +124,9 @@ class _TreeContext:
         if column is not None:
             return column
         if name in table.virtual_columns or name in table.composites:
+            kind = 'virtual column' if name in table.virtual_columns else 'compositeColumn'
             raise UnsupportedFeatureError(
-                f'{table.fullname}.{name}: virtual/composite columns are not connected yet')
+                f'{table.fullname}.{name}: {kind} in place of a physical column is not available in this release')
         raise ValueError(f'Unknown column {table.fullname}.{name}')
 
     def field(self, table, alias, name):
@@ -174,8 +175,12 @@ class _TreeContext:
                         f'{column.fullname}: legacy XML subQueryColumn requires a query mapping')
                 definition = (None, _subquery_definition(attrs.get('query'), column.fullname), None, {})
             elif column.tag == 'formulaColumn':
-                if attrs.get('subqueries') or attrs.get('handler') is not None:
-                    raise UnsupportedFeatureError(f'{column.fullname}: use existing select_* declarations')
+                for key, present in (('subqueries', bool(attrs.get('subqueries'))),
+                                     ('handler', attrs.get('handler') is not None)):
+                    if present:
+                        raise UnsupportedFeatureError(
+                            f'{column.fullname}: formulaColumn {key}= is not available in this release; '
+                            'use select_* declarations')
                 if attrs.get('sql_formula') is True:
                     name = 'sql_formula_' + column.name
                     method = getattr(table.dbtable, name, None)
@@ -186,7 +191,7 @@ class _TreeContext:
                         raise ValueError(f'{column.fullname}: {name}(attr) must return nonempty SQL')
                 definition = _formula_definition(attrs, column.fullname)
             else:
-                raise UnsupportedFeatureError(f'{column.fullname}: {column.tag} is not connected yet')
+                raise UnsupportedFeatureError(f'{column.fullname}: {column.tag} is not available in this release')
             self.formula_definitions[key] = definition, attrs
         return self.formula_definitions[key]
 
@@ -244,13 +249,14 @@ class _TreeContext:
                     raise ValueError(f'Conflicting subquery options: {old}, {new}')
                 options[new] = options.pop(old)
         for name, value in [('subtable', '*'), ('addPkeyColumn', False), ('ignoreTableOrderBy', True)]:
-            if name in options and options.pop(name) != value:
-                raise UnsupportedFeatureError(f'Unsupported subquery option: {name}')
+            if name in options and (given := options.pop(name)) != value:
+                raise UnsupportedFeatureError(
+                    f'subquery option {name}={given!r} is not available in this release')
         known = {'table', 'where', 'columns', 'sqlparams', 'cast', 'order_by',
                  'limit', 'offset', 'distinct', 'group_by', 'having', 'bagFields',
                  'exclude_draft', 'exclude_logical_deleted', 'ignore_partition'}
-        if options.keys() - known:
-            raise UnsupportedFeatureError(f'Unsupported subquery options: {sorted(options.keys() - known)}')
+        for name in sorted(options.keys() - known):
+            raise UnsupportedFeatureError(f'subquery option {name!r} is not available in this release')
         if exists and 'cast' in options:
             raise UnsupportedFeatureError('Cast applies to scalar subqueries, not EXISTS')
         table = self.model.table(options.pop('table'))
@@ -310,7 +316,8 @@ class _TreeContext:
         """_getRelationAlias, retaining allocation order and physical path keys."""
         joiner = node.attr['joiner']
         if self._is_many(joiner):
-            raise UnsupportedFeatureError(f'{node.label}: many relation not yet supported')
+            raise UnsupportedFeatureError(
+                f'{node.label}: a path through the many relation {node.label} is not available in this release')
         newpath = path + [joiner['many_relation'].split('.', 1)[-1]]
         key = tuple(newpath + [basealias])
         if key in self.aliases:
@@ -380,7 +387,7 @@ class _TreeContext:
         if handler is None:
             label = getattr(relation, 'label', None) or relation.name
             raise UnsupportedFeatureError(
-                f'{label}.{operation}(...): many_{operation} not yet supported')
+                f'{label}.{operation}(...): many_{operation} is not available in this release')
         return handler(relation, arguments, **context)
 
     def expand_many_operations(self, expression, *, curr=None, projection=False):
@@ -407,7 +414,8 @@ class _TreeContext:
                 else:
                     many = self._is_many(node.attr['joiner'])
                 if many and index != len(segments) - 1:
-                    raise UnsupportedFeatureError(f'{name}: many relation not yet supported')
+                    raise UnsupportedFeatureError(
+                        f'{match[1]}: a path through the many relation {name} is not available in this release')
                 if index != len(segments) - 1:
                     curr = curr[name]
             else:
@@ -534,8 +542,10 @@ class _TreeContext:
         joiner = relation.attr['joiner']
         if not self._is_many(joiner):
             raise UnsupportedFeatureError('aggr requires a relation towards many')
-        if joiner.get('join_on') or joiner.get('cnd') or joiner.get('between'):
-            raise UnsupportedFeatureError('Many aggregates with custom join conditions are not connected yet')
+        for key in ('join_on', 'cnd', 'between'):
+            if joiner.get(key):
+                raise UnsupportedFeatureError(
+                    f'{relation.label}: aggr on a relation with {key}= is not available in this release')
         target = self.model.table(joiner['many_relation'])
         owner = self.model.table(joiner['one_relation'])
         remote = joiner['many_relation'].split('.')[-1]
@@ -578,8 +588,9 @@ class _TreeContext:
 
     @staticmethod
     def _check_macros(expression):
-        if re.search(r'#[A-Za-z_]\w*', expression or ''):
-            raise UnsupportedFeatureError('Hierarchical macro expansion is not connected yet')
+        macro = re.search(r'#[A-Za-z_]\w*', expression or '')
+        if macro:
+            raise UnsupportedFeatureError(f'macro {macro[0]} is not available in this release')
 
     def result_column(self, field, name):
         if field in self._many_columns:
@@ -738,7 +749,8 @@ class _TreeContext:
             if column == '*':
                 expanded.extend(self.star_columns(bagFields=bagFields))
             elif column.startswith('*'):
-                raise UnsupportedFeatureError('Wildcard prefixes/paths are not connected; use * or explicit columns')
+                raise UnsupportedFeatureError(
+                    f'column wildcard {column!r} is not available in this release; use * or explicit columns')
             elif column:
                 expanded.append(column)
         return ','.join(expanded)
@@ -885,7 +897,8 @@ class QueryCompiler:
         if options:
             if 'aggregateRows' in options:
                 raise UnsupportedFeatureError('aggregateRows has been removed; use explicit SQL aggregates')
-            raise UnsupportedFeatureError(f'Unsupported query options: {sorted(options)}')
+            name = sorted(options)[0]
+            raise UnsupportedFeatureError(f'query option {name!r} is not available in this release')
 
     def compile_plan(self, plan):
         if plan.dialect != self.adapter.dialect:

@@ -79,7 +79,7 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
      "CREATE TABLE {schema}.child(tenant integer NOT NULL,parent_id integer,"
      "FOREIGN KEY(tenant,parent_id) REFERENCES {schema}.parent(tenant,id) "
      "ON DELETE SET NULL(parent_id))", 'column subset'),
-    ('CREATE TABLE {schema}.t(id integer UNIQUE WITH(fillfactor=70))', 'advanced constraint index'),
+    ('CREATE TABLE {schema}.t(id integer UNIQUE WITH(fillfactor=70))', 'constraint index with storage options'),
     ('CREATE TABLE {schema}.t(id integer); ALTER TABLE {schema}.t ENABLE ROW LEVEL SECURITY', 'import warnings'),
 ])
 def test_unsupported_catalog_semantics_cannot_become_a_partial_migration(ddl, error):
