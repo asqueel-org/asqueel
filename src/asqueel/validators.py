@@ -374,7 +374,7 @@ class SqlModelValidator:
                 f"({', '.join(target_columns)})",
             )
 
-    def _check_relation_names(self) -> None:  # wf:phase-1:new
+    def _check_relation_names(self) -> None:
         seen: dict[tuple, str] = {}
         for path, node in self._relations:
             relation_name = node.get_attr("relation_name")
