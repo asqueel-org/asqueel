@@ -59,7 +59,7 @@ A table declared with `options().sys_fields()` and `options().hierarchical(...)`
 
 ## Notes
 - Precondition of the run: asqueel-migration 0.2.3 published and installed in `venv/`. Its commit is 2c2f1b2 on branch `claude/modest-wilbur-f657a3` of the asqueel-migration repository; the user merges, tags and publishes it. Before that, every SQLite migration of a hierarchical table fails with `unsupported 'fk_deferrable'`.
-- Run the full suite (about 8 minutes) as a foreground Bash call with `timeout: 600000`, never `run_in_background`: the Phase 1 executor session ended while waiting for a background suite, leaving its work uncommitted.
+- Run the full suite, the baseline included, as `venv/bin/python -m pytest -q -p no:cacheprovider --no-cov` in a foreground Bash call with `timeout: 600000`, never `run_in_background`. With the `--cov` of pyproject's `addopts` it takes about 11 minutes, beyond the 600 s foreground limit; without it about 6.5. The executor sessions of Phase 1 and of the first Phase 3 attempt ended while waiting for a background suite.
 - Contract tests import `tests.option_tables_support`, a Phase 1 file reused by Phases 2-3; it is read-only from Phase 2 on.
 - Moved to Macro 7: `text_pattern_ops` on the `hierarchical_pkey` index (no operator class in the index grammar, the migration, or the projection).
 - Out of this plan (doc 36): LIKE escaping (the core generates no LIKE on paths here), the subtree/ancestors/root API (to be designed with virtualRelation), `getHierarchicalData`, `hierarchicalSearch`, `pathFromPkey`, `getAncestors`, `fixRowCount` (application-level), linked_to, depth.
