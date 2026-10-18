@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from asqueel import build_database
+from asqueel import SqlEnvironment, build_database
 from tests.native_compiler.test_subquery_columns import source
 from tests.native_formulas.conftest import SQL_TYPES
 from tests.native_support import postgres_dsn
@@ -28,7 +28,7 @@ def db(request, tmp_path_factory):
             else {'database': str(tmp_path_factory.mktemp('sq_columns') / 'test.db')}
         ),
     )
-    with build_database(config) as db:
+    with build_database(config, environment=SqlEnvironment({'current_owner': 99})) as db:
         quote = db.adapter.adaptSqlName
         try:
             if backend == 'postgres':

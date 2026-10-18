@@ -9,7 +9,7 @@ from .option_elements import NAMED_OPTIONS
 REQUIRED = {
     'relative_index': ('relation',),
     'audit': ('mode',), 'system_records': ('records',),
-    'release': ('handlers',), 'partition': ('field',),
+    'release': ('handlers',),
     'retention': ('field', 'days'),
     'enabled_when': ('preference',), 'attachments': ('master',),
 }

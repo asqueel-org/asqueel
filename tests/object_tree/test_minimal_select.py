@@ -182,10 +182,11 @@ def test_implicit_behaviour_and_explicit_bypass(feature):
     elif feature == 'deleted':
         table.options().sys_fields(id=False, ldel=True)
     elif feature == 'partition':
-        table.options().partition('customer', field='customer_id', value=12)
+        table.attr['partition_customer_id'] = 'customer'
     else:
         table.attr['order_by'] = '$total DESC'
     with bind(source) as db:
+        db.currentEnv.update(current_customer=12)
         table = db.table('sales.invoice')
         default = table.query(columns='$id').compiled
         if feature == 'order':

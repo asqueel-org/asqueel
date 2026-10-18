@@ -120,7 +120,7 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
     class Config(SqlDatabaseConfig):
         def main(self, root):
             db = root.db('demo', implementation='postgres', conninfo=dsn)
-            tables = db.schemas().schema('s', x_sql_schema=schema).tables()
+            tables = db.schemas().schema('s', sqlname=schema).tables()
             parent = tables.table('parent', pkey='pk')
             columns = parent.columns()
             columns.column('x', dtype='I')

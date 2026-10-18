@@ -20,7 +20,7 @@ def shop(execution_shop):  # noqa: F811
     config = SqlDatabaseConfig()
     physical = execution.db.model.table('sales.invoice')
     pkg = config.source.db('macros', implementation=execution.backend).packages().package('sales', sqlschema=physical.sqlschema)
-    table = pkg.table('invoice', sqlname=physical.sqlname, pkey='id', x_logical_deletion_field='__del_ts')
+    table = pkg.table('invoice', sqlname=physical.sqlname, pkey='id', logicalDeletionField='__del_ts')
     table.column('id', dtype='L')
     table.column('total', dtype='N')
     table.column('__del_ts', dtype='DH')

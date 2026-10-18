@@ -72,12 +72,12 @@ def customer_recipe(tables):
     table = tables.table('customer', pkey='id')
     columns = table.columns()
     columns.column('id', dtype='I')
-    columns.column('label', dtype='T', x_sql_name='display_name',
+    columns.column('label', dtype='T', sqlname='display_name',
                    x_identity='customer-label')
 
 
 def invoice_recipe(tables):
-    table = tables.table('invoice', pkey='id', x_sql_name='documents')
+    table = tables.table('invoice', pkey='id', sqlname='documents')
     columns = table.columns()
     columns.column('id', dtype='I')
     columns.column('customer_id', dtype='I').relation('sales.customer.id')
@@ -85,7 +85,7 @@ def invoice_recipe(tables):
 
 class ModularModel(SqlBuilder):
     def main(self, root):
-        schema = root.db('demo').schemas().schema('sales', x_sql_schema='public')
+        schema = root.db('demo').schemas().schema('sales', sqlname='public')
         tables = schema.tables()
         customer_recipe(tables)
         invoice_recipe(tables)

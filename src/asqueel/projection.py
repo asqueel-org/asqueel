@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from .builder import SqlBuilder
+from .common import sql_column_attributes
 from .contracts import ResolvedModel, UnsupportedFeatureError
 from .object_tree import DbModel
 
@@ -29,7 +30,7 @@ def _package_storage(dtype, attributes):
     return dtype
 
 
-def _column_storage(column, *, path, packaged):
+def _column_storage(column, *, path, packaged, implementation=None):
     metadata = column.attributes
     if metadata.get('identity_kind') or metadata.get('generated'):
         raise UnsupportedFeatureError(f'{path}: identity/generated DDL')
@@ -40,12 +41,11 @@ def _column_storage(column, *, path, packaged):
     raw = metadata.get('raw_type', '')
     if raw in {'smallint', 'real'} or (raw.startswith(('time', 'timestamp')) and '(' in raw):
         raise UnsupportedFeatureError(f'{path}: lossy type projection {raw}')
-    kwargs = {k: metadata[k] for k in (
-        'size', 'notnull', 'unique', 'indexed', 'sqldefault',
-        'extra_sql', 'generated_expression', 'comment',
-    ) if metadata.get(k) is not None}
+    kwargs = {k: metadata[k] for k in ('size', 'notnull', 'unique', 'indexed', 'comment')
+              if metadata.get(k) is not None}
+    kwargs.update(sql_column_attributes(metadata, implementation))
     if metadata.get('default') is not None and metadata.get('raw_type'):
-        kwargs['sqldefault'] = metadata['default']
+        kwargs['sql_default'] = metadata['default']
     dtype = (_package_storage(column.dtype, kwargs)
              if packaged else column.dtype)
     return dtype, kwargs

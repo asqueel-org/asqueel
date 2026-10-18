@@ -211,7 +211,7 @@ class SqlTable(CrudMixin, TriggersMixin):
     def sql_formula___protecting_reasons(self, attr):
         """Legacy sysFields formula; this describes reasons, not write checks."""
         attributes = self.model.attributes
-        protection = attributes.get('protectionColumn', attributes.get('x_legacy_protectionColumn'))
+        protection = attributes.get('protectionColumn')
         return self._sql_reasons('__protected_by_', protection)
 
     def sql_formula___invalid_reasons(self, attr):

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from .common import split_names
+from .common import split_names, sql_attribute_declared
 
 #: Physical types whose value the database assigns on insert.
 _GENERATED_KEY_DTYPES = frozenset({'serial', 'serial4'})
@@ -217,9 +217,9 @@ class WriteCompiler:
         for name, column in table.columns.items():
             attributes = column.attributes
             missing = data.get(name) is None
-            if attributes.get('sql_value') is not None or attributes.get('generated_expression'):
+            if attributes.get('sql_value') is not None or sql_attribute_declared(attributes, 'generatedExpression'):
                 names.append(name)
-            elif missing and (attributes.get('sqldefault') is not None
+            elif missing and (sql_attribute_declared(attributes, 'default')
                               or attributes.get('dtype') in _GENERATED_KEY_DTYPES):
                 names.append(name)
         return names
@@ -227,7 +227,8 @@ class WriteCompiler:
     @staticmethod
     def _update_returning(table):
         return [name for name, column in table.columns.items()
-                if column.attributes.get('sql_value') is not None or column.attributes.get('generated_expression')]
+                if column.attributes.get('sql_value') is not None
+                or sql_attribute_declared(column.attributes, 'generatedExpression')]
 
     def _returning(self, table, names, capability):
         if not names or capability not in self.adapter.capabilities:

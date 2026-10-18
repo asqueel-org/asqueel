@@ -46,7 +46,6 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
     ('audit', {'mode': 'lazy'}),
     ('system_records', {'records': {'a': {'title': 'A'}}}),
     ('protection', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
-    ('partition', {'name': 'org', 'field': 'org_id', 'value': 'organization'}),
     ('retention', {'field': 'created', 'days': 30}),
     ('broadcast', {}), ('archive', {}),
     ('enabled_when', {'preference': 'enabled'}),
@@ -88,9 +87,6 @@ def test_merge_disable_reenable_and_reset_keep_explicit_source_values():
 def test_named_options_are_independent_and_broadcast_accepts_positional_columns():
     b, _, table = source()
     opts = table.options()
-    one = opts.partition('one', field='one_id', value='one')
-    two = opts.partition('two', field='two_id', value='two')
-    assert one is not two
     assert opts.numbering('first') is not opts.numbering('second')
     assert opts.broadcast('a', 'b').get_attr('columns') == ['a', 'b']
     b.validate_source()
@@ -199,12 +195,11 @@ def test_legacy_options_reject_provider_bindings(tag, kwargs):
 
 
 def test_existing_resolvers_survive_build_clone_and_composition_without_running(monkeypatch):
-    from genro_bag import BagResolver
     from genro_bag.resolvers import BagCbResolver, EnvResolver
     def forbidden(*args, **kwargs):
         pytest.fail('Resolvers must stay deferred while building the source')
     monkeypatch.setattr(EnvResolver, 'load', forbidden)
-    b = complete_example(current_state=forbidden)
+    b = complete_example()
     # Exercise a calculated configuration value, not a per-write default.
     b.source.get_node('db.packages.invc.tables.invoice').column(
         'date', default=BagCbResolver(forbidden))
@@ -212,12 +207,11 @@ def test_existing_resolvers_survive_build_clone_and_composition_without_running(
         assert builder.validate_source() == []
         invoice = builder.source.get_node('db.packages.invc.tables.invoice')
         assert isinstance(invoice.value.get_node('columns.date').get_attr('default'), BagCbResolver)
-        assert isinstance(invoice.value.get_node('options.partition_customer_state').get_attr('value'), BagResolver)
         assert isinstance(builder.source.get_node('db.connection').get_attr('password'), EnvResolver)
     # Ordinary Python callbacks must be wrapped in the existing resolver.
     with pytest.raises(ValueError, match='BagResolver'):
-        b.source.get_node('db.packages.invc.tables.customer').options().partition(
-            'invalid', field='state', value=forbidden)
+        b.source.get_node('db.packages.invc.tables.customer').options().numbering(
+            'invalid', parameters={'value': forbidden})
 
 
 def test_encryption_rejects_provider_in_calls_and_imported_source():

@@ -8,7 +8,6 @@ import runpy
 
 import pytest
 from genro_bag import Bag
-from genro_bag.resolvers import EnvResolver
 
 from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.configuration import build_database
@@ -101,8 +100,8 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
     assert resolved.column('@_children.id').table.fullname == key
     assert resolved.relations.get_node('@parent_id').attr['joiner']['deferred'] is True
     assert resolved.attributes['group_zzz'] == '!![en]System'
-    assert resolved.attributes['x_legacy_logicalDeletionField'] == '__del_ts'
-    assert resolved.attributes['x_legacy_lastTS'] == '__mod_ts'
+    assert resolved.attributes['logicalDeletionField'] == '__del_ts'
+    assert resolved.attributes['lastTS'] == '__mod_ts'
     assert resolved.attributes['order_by'] == ('$_h_sortcol' if counter else '$hierarchical_' + fields[0])
     assert physical(resolve_model(builder)) == physical(model)
 
@@ -186,13 +185,11 @@ def test_record_hash_matches_user_legacy_declaration():
 
 
 def test_declarative_options_are_preserved_without_new_columns_or_runtime_effects(monkeypatch):
-    monkeypatch.setenv('INVC_STATE', 'MI')
     builder, packages = source()
     table = packages.package('invc').table('customer', pkey='id')
     table.column('id', dtype='L')
     table.column('state')
     opts = table.options()
-    opts.partition('state', field='state', value=EnvResolver('INVC_STATE'))
     opts.retention(field='id', days=60)
     opts.broadcast('state')
     opts.archive()
@@ -203,8 +200,7 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
     try:
         item = db.table('invc.customer')
         assert set(item.columns) == {'id', 'state'}
-        assert set(item.model.options) == {'partition_state', 'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id', 'protection'}
-        assert item.model.options['partition_state'].attributes['value'] == 'MI'
+        assert set(item.model.options) == {'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id', 'protection'}
         assert item.model.options['protection'].attributes['rules'] == ['protect_validate']
         assert item.model.options['numbering_id'].attributes['parameters']['format'] == '$YYYY$NNNNN'
         assert item.model.options['retention'].attributes['days'] == 60

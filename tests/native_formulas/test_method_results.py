@@ -43,7 +43,7 @@ def rule_db(request, tmp_path):
         {'dsn': postgres_dsn()} if backend == 'postgres'
         else {'database': str(tmp_path / 'rules.db')}))
     table = root.packages().package('app', sqlschema=schema, sqlprefix=False).table(
-        'item', pkey='id', x_table_class=Item, x_legacy_protectionColumn='gate')
+        'item', pkey='id', x_table_class=Item, protectionColumn='gate')
     for name, dtype in [('id', 'L'), ('amount', 'N'), ('gate', 'T'), ('flag', 'B')]:
         table.column(name, dtype=dtype)
     table.formulaColumn('adjusted', sql_formula=True, dtype='N')

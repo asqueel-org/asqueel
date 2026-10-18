@@ -1,13 +1,12 @@
 """Grammar review using real test_invoice_pg models, not the full 75-table port.
 
 Only selected declarations are shown; object rendering is not performed.
-current_state is an optional callback supplying a configuration value at render.
 """
-from genro_bag.resolvers import BagCbResolver, EnvResolver
+from genro_bag.resolvers import EnvResolver
 from asqueel import SqlDatabaseConfig
 
 
-def source(*, current_state=None):
+def source():
     config = SqlDatabaseConfig()
     db = config.source.db('test_invoice_pg', implementation='postgres')
     db.connection('main', database='test_invoice_pg',
@@ -44,12 +43,10 @@ def source(*, current_state=None):
         counter.column(name, size=size)
 
     customer = invc.table('customer', pkey='id', name_long='Cliente',
-                         name_short='Cli.', name_plural='Clienti', caption_field='account_name')
+                         name_short='Cli.', name_plural='Clienti', caption_field='account_name',
+                         partition_state='invc_state')
     customer.options().sys_fields(id={'type': 'uuid'}, draft=True,
                                   user_upd=False)
-    state = (BagCbResolver(current_state) if current_state is not None
-             else EnvResolver('INVC_STATE'))
-    customer.options().partition('state', field='state', value=state)
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     customer.column('state', size=':5').relation(
         'invc.state.code', foreign_key=True, relation_name='clients',
@@ -66,12 +63,12 @@ def source(*, current_state=None):
     product_type.column('description', size=':50')
 
     invoice = invc.table('invoice', pkey='id', name_long='Fattura',
-                        name_short='Fatt.', name_plural='Fatture', caption_field='inv_number')
+                        name_short='Fatt.', name_plural='Fatture', caption_field='inv_number',
+                        partition_customer_state='invc_state')
     invoice.options().sys_fields(user_upd=False)
     invoice.options().numbering('inv_number', parameters={
         'format': '$K$YY/$NNNNNN', 'code': 'A', 'period': 'YY',
         'date_field': 'date', 'showOnLoad': True, 'recycle': True})
-    invoice.options().partition('customer_state', field='customer_state', value=state)
     invoice.column('inv_number', size='10', unique=True)
     invoice.column('customer_id', size='22').relation(
         'invc.customer.id', foreign_key=True, relation_name='invoices',

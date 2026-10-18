@@ -5,11 +5,11 @@ from collections.abc import Mapping
 from dataclasses import fields, is_dataclass
 import json
 
-from .contracts import Column, Relation, Table, ResolvedModel, RowPolicies, PartitionScope
+from .contracts import Column, Relation, Table, ResolvedModel, RowPolicies
 from .model_sections import Schema, Package, Option, Declaration
 
 _TYPES = {cls.__name__: cls for cls in (
-    Column, Relation, Table, ResolvedModel, RowPolicies, PartitionScope,
+    Column, Relation, Table, ResolvedModel, RowPolicies,
     Schema, Package, Option, Declaration)}
 
 

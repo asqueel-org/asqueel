@@ -44,7 +44,7 @@ concurrent inserts; use a `serial` column or your own `newPkeyValue()` there.
 
 On PostgreSQL, the INSERT reads back with RETURNING the columns whose value the
 database decides (`sql_value`, generated columns, omitted columns declaring
-`sqldefault`) and writes them into the record. A database default the model does
+`sql_default`) and writes them into the record. A database default the model does
 not declare is applied but not read back: read the row again to see it. SQLite has no RETURNING in the write
 cycle. There is no `returning=` argument.
 

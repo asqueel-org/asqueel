@@ -72,11 +72,18 @@ def _register_relation(model, table, column, attrs):
     if len(target) == 2 and target[0] not in model.namespaces:
         target.insert(0, table.pkg.name)
     if len(target) == 2:
-        target.append(model.table('.'.join(target)).pkey)
+        target_table = model.table('.'.join(target))
+        if target_table is None:
+            raise ValueError(f'Unknown package/schema {target[0]!r}')
+        target.append(target_table.pkey)
     if len(target) != 3 or not target[2]:
         raise ValueError(f'Invalid relation target: {attrs["to"]!r}')
     remote = model.table('.'.join(target[:2]))
+    if remote is None:
+        raise ValueError(f'Unknown package/schema {target[0]!r}')
     remote_column = remote.column(target[2])
+    if remote_column is None:
+        raise ValueError(f'Unknown column {remote.fullname}.{target[2]}')
     # A virtual scalar is already a key expression. Resolving an alias here
     # would cache a partial relation tree while registration is still running.
     local_fields = ((column.name,) if virtual and column.tag != 'compositeColumn'

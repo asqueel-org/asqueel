@@ -4,7 +4,7 @@ Reference: fa35e5ad compiledQuery/getFieldAlias/_findRelationAlias/
 _getRelationAlias. The agreed exception is many-side traversal: no exploding
 rows or implicit DISTINCT. Many aggregates use correlated scalar SELECTs.
 """
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
 import re
@@ -107,7 +107,6 @@ class _TreeContext:
         self.formula_definitions = parent.formula_definitions if parent else {}
         self.formula_bindings = {}
         self.period_parameters = {}
-        self.policy_parameter_index = 0
         self.references = FieldReferences()
         self._many_columns = {}
         self.aliases = {self.sql_fullname(table): self.basealias}
@@ -259,7 +258,7 @@ class _TreeContext:
             raise UnsupportedFeatureError(f'subquery option {name!r} is not available in this release')
         if exists and 'cast' in options:
             raise UnsupportedFeatureError('Cast applies to scalar subqueries, not EXISTS')
-        table = self.model.table(options.pop('table'))
+        table = self._known_table(options.pop('table'))
         where = options.pop('where')
         where = _THIS.sub(lambda m: self.get_field_alias(m[1], owner, alias), where)
         cast = options.pop('cast', None)
@@ -573,7 +572,7 @@ class _TreeContext:
             alias, curr = self._find_relation_alias(prefix, curr, alias, [])
         relation, curr, alias, conditions = self._many_base_relation(relation, curr, alias)
         if getattr(relation, 'tag', None) == 'virtualRelation':
-            target = self.model.table(relation.attributes['table'])
+            target = self._known_table(relation.attributes['table'])
             where = ' AND '.join(f'({item})' for item in conditions)
         else:
             target, where = self._many_joiner_condition(relation)
@@ -583,7 +582,7 @@ class _TreeContext:
         if aggregate in ('join', 'to_json', 'to_xml'):
             # Row order belongs to the correlated SELECT, not the outer query.
             options['order_by'] = (order_by if order_by is not None else
-                                   target.attributes.get('order_by') or target.attributes.get('x_legacy_order_by'))
+                                   target.attributes.get('order_by'))
         return self.subquery(options, curr, alias, self.bindings, aggregate=aggregate)
 
     @staticmethod
@@ -640,7 +639,7 @@ class _TreeContext:
             group_by = None
         # Child SELECTs use ignoreTableOrderBy=True, as in legacy queryCompile.
         if self.parent is None and not aggregate and order_by is None:
-            order_by = self.table.attributes.get('order_by') or self.table.attributes.get('x_legacy_order_by')
+            order_by = self.table.attributes.get('order_by')
         if self.table.pkey:
             self.references.paths['pkey'] = self.table.pkey
         columns = columns if isinstance(columns, str) else ','.join(columns)
@@ -792,69 +791,38 @@ class _TreeContext:
             return f' ({field} BETWEEN {lower} AND {upper}) '
         return f' {field} >= {lower} ' if lower is not None else f' {field} <= {upper} '
 
-    def policy_binding(self, value):
-        name = f'__policy_{self.policy_parameter_index}'
-        self.policy_parameter_index += 1
-        return ':' + self.bindings.add(name, value)
+    def _known_table(self, name):  # wf:phase-1:new
+        table = self.model.table(name)
+        if table is None:
+            raise ValueError(f'Unknown package/schema {name.split(".")[0]!r}')
+        return table
 
     def policy_field(self, field, *, allow_alias=False, dtype=None):
         column = self.table.column(field)
+        if column is None:
+            raise ValueError(f'Unknown column {self.table.fullname}.{field.removeprefix("$")}')
         if column.tag != 'column' or (not allow_alias and field.removeprefix('$') in self.table.virtual_columns):
             raise ValueError(f'{self.table.fullname}: policy field {field!r} must be a physical column')
         if dtype and column.dtype != dtype:
             raise ValueError(f'{self.table.fullname}: draft field must have boolean type')
         return field if field.startswith(('$', '@')) else '$' + field
 
-    @staticmethod
-    def scalar(value):
-        if isinstance(value, Collection) and not isinstance(value, (str, bytes)):
-            raise ValueError('Partition values must be scalars, not nested collections')
-        return value
-
-    def partition_conditions(self, policies, ignore_partition):
+    def partition_conditions(self, ignore_partition):
+        """Legacy getPartitionCondition, without the ``__allowed_partition`` fallback."""
         if ignore_partition:
             return []
-        conditions = []
-        # Retain the pre-existing explicit x_partition contract separately from
-        # native options; never infer current_/allowed_ keys for native values.
-        for scope in policies.partitions:
-            field = self.policy_field(scope.field)
-            keys = [scope.current] + ([scope.allowed] if scope.allowed is not None else [])
-            self.environment_keys.update(keys)
-            has_current = scope.current in self.snapshot
-            has_allowed = scope.allowed is not None and scope.allowed in self.snapshot
-            if not has_current and not has_allowed:
-                raise ValueError(f'Missing partition context for {scope.field}')
-            if has_current:
-                value = self.scalar(self.snapshot[scope.current])
-                conditions.append(f'{field} IS NULL' if value is None else f'{field} = {self.policy_binding(value)}')
-            if has_allowed:
-                values = self.snapshot[scope.allowed]
-                if not isinstance(values, Collection) or isinstance(values, (str, bytes, Mapping)):
-                    raise ValueError(f'Allowed partition values for {scope.field} must be a collection')
-                values = tuple(self.scalar(v) for v in values)
-                if not values:
-                    conditions.append('FALSE')
-                    continue
-                terms = []
-                nonnull = [v for v in values if v is not None]
-                if nonnull:
-                    terms.append(f'{field} IN ({", ".join(self.policy_binding(v) for v in nonnull)})')
-                if scope.include_null or None in values:
-                    terms.append(f'{field} IS NULL')
-                conditions.append('(' + ' OR '.join(terms) + ')')
-        for option in self.table.options.values():
-            attrs = option.attributes
-            if option.tag != 'partition' or not attrs.get('enabled', True):
-                continue
-            value = self.scalar(attrs.get('value'))
-            if value is None:
-                if attrs.get('required', False):
-                    raise ValueError(f'{self.table.fullname}: missing required partition {attrs["name"]}')
-                continue
-            field = self.policy_field(attrs['field'], allow_alias=True)
-            conditions.append(f'{field} = {self.policy_binding(value)}')
-        return conditions
+        field = next((key[len('partition_'):] for key in self.table.attributes
+                      if key.startswith('partition_')), None)
+        if field is None:
+            return []
+        path = self.table.attributes['partition_' + field]
+        current, allowed = f'current_{path}', f'allowed_{path}'
+        self.environment_keys.update((current, allowed))
+        if self.snapshot.get(current):
+            return [f'${field} = :env_{current}']
+        if self.snapshot.get(allowed):
+            return [f'${field} IS NULL OR ${field} IN :env_{allowed}']
+        return []
 
     def select_policies(self, columns, where, *, exclude_draft,
                         exclude_logical_deleted, ignore_partition, aggregate):
@@ -866,7 +834,7 @@ class _TreeContext:
             raise ValueError('exclude_logical_deleted must be True, False or mark')
         policies = _parse_row_policies(self.table.attributes)
         conditions = [where] if where else []
-        conditions.extend(self.partition_conditions(policies, ignore_partition))
+        conditions.extend(self.partition_conditions(ignore_partition))
         if policies.logical_deletion_field:
             field = self.policy_field(policies.logical_deletion_field)
             if exclude_logical_deleted is True:
@@ -889,7 +857,10 @@ class QueryCompiler:
         self.environment = environment if environment is not None else SqlEnvironment()
 
     def _context(self, table, params=None) -> _TreeContext:
-        return _TreeContext(self.model, self.model.table(table), params, self.adapter,
+        found = self.model.table(table)
+        if found is None:
+            raise ValueError(f'Unknown package/schema {table.split(".")[0]!r}')
+        return _TreeContext(self.model, found, params, self.adapter,
                             self.environment.snapshot())
 
     @staticmethod

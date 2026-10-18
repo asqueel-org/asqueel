@@ -22,7 +22,7 @@ def recipe(implementation, conninfo=None, path=None, schema: str | None = 'main'
     item.column('id', size=':22')
     item.column('name')
     item.column('label', sqlname='label_sql')
-    item.column('state', sqldefault="'new'")
+    item.column('state', sql_default="'new'")
     item.column('code', sql_value="upper(:name)")
     item.formulaColumn('double_name', sql_formula="$name || $name")
     serial = pkg.table('ticket', pkey='id')

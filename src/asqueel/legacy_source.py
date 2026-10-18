@@ -13,9 +13,6 @@ from .common import in_attribute_family
 from .configuration import SqlDatabaseConfig
 
 
-#: The four legacy table attributes the core reads by name, as ``x_legacy_<key>``.
-_LEGACY_TABLE_READS = ('draftField', 'logicalDeletionField', 'order_by', 'protectionColumn')
-
 
 def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_aliases=None):
     """Build an asqueel source from an expanded legacy source.
@@ -44,8 +41,7 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
             raw = dict(original.attr)
             path = f'{package.label}.{original.label}'
             t = pkg.table(original.label,
-                          **_grammar(builder, 'table', path, raw, ('tag', 'fullname', 'pkg', *_LEGACY_TABLE_READS)),
-                          **{f'x_legacy_{key}': raw[key] for key in _LEGACY_TABLE_READS if key in raw},
+                          **_grammar(builder, 'table', path, raw, ('tag', 'fullname', 'pkg')),
                           x_expanded_legacy=True)
             for column in original.value.get_item('columns') or ():
                 data = dict(column.attr)

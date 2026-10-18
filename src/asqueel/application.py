@@ -61,7 +61,10 @@ class SqlDatabase(WriteMixin, Database):
     def table(self, name: str) -> SqlTable:
         """Return the registered operational table, preserving object identity."""
         self._check_open()
-        table: SqlTable = self.model.table(name).dbtable
+        found = self.model.table(name)
+        if found is None:
+            raise ValueError(f'Unknown package/schema {name.split(".")[0]!r}')
+        table: SqlTable = found.dbtable
         return table
 
     def package(self, name: str):

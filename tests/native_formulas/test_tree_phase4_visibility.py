@@ -25,8 +25,8 @@ def test_native_default_visibility_and_explicit_overrides(native_db, key):
     table = db.tree.model.table(key)
     quote = db.adapter.adaptSqlName
     target = f'{quote(table.sqlschema)}.{quote(table.sqlname)}'
-    draft = table.attributes.get('x_legacy_draftField')
-    deleted = table.attributes.get('x_legacy_logicalDeletionField')
+    draft = table.attributes.get('draftField')
+    deleted = table.attributes.get('logicalDeletionField')
     tombstone = datetime(2026, 1, 1, tzinfo=timezone.utc)
     try:
         db.execute(f'DELETE FROM {target}')

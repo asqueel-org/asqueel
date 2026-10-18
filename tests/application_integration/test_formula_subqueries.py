@@ -39,7 +39,7 @@ def formula_database(request):
                         tables = database.packages().package(
                             'app', sqlschema=schema, sqlprefix=False).tables()
                     else:
-                        tables = database.schemas().schema('app', x_sql_schema=schema).tables()
+                        tables = database.schemas().schema('app', sqlname=schema).tables()
                     invoice = tables.table('invoice', pkey='id')
                     columns = invoice.columns()
                     columns.column('id', dtype='I')
@@ -67,8 +67,8 @@ def formula_database(request):
                         table='app.line', columns="'#THIS.id'", where='$invoice_id=#THIS.id /* #THIS.missing */',
                         limit=1))
                     line = tables.table('line', pkey='id',
-                                        x_partition={'field': 'organization', 'current': 'organization'},
-                                        x_draft_field='draft', x_logical_deletion_field='deleted_at')
+                                        partition_organization='organization',
+                                        draftField='draft', logicalDeletionField='deleted_at')
                     columns = line.columns()
                     for name, dtype in [('id', 'I'), ('invoice_id', 'I'), ('amount', 'N'),
                                         ('organization', 'I'), ('draft', 'B'), ('deleted_at', 'DHZ')]:

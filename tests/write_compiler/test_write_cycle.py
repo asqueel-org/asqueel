@@ -69,7 +69,7 @@ def recipe(implementation, conninfo=None, path=None, schema=None):
     parent = pkg.table('parent', pkey='id', x_table_class=Parent)
     parent.column('id', size=':22')
     parent.column('name', onInserting='upper', onUpdating='upper')
-    parent.column('state', sqldefault="'new'")
+    parent.column('state', sql_default="'new'")
     child = pkg.table('child', pkey='id', x_table_class=Child)
     child.column('id', size=':22')
     child.column('parent_id', size=':22').relation('sales.parent.id', onDelete='cascade', onUpdate='cascade')

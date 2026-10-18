@@ -26,6 +26,29 @@ the write cycle, see [Current status](limitations.md).
 
 - `validate_*` attributes (A1.8).
 - `columns` and `relations` of a table (A1.21).
+- **`lastTS`, `logicalDeletionField`, `draftField`, `protectionColumn`** (A1.3):
+  table attributes; the table and the model table expose `lastTS`,
+  `logicalDeletionField` and `draftField` (empty string when absent).
+- **`partition_<field>='path'`** (A1.4): env `current_<path>` filters
+  `$<field> = :env_current_<path>`; else env `allowed_<path>` filters
+  `$<field> IS NULL OR $<field> IN :env_allowed_<path>`; else no filter. The first
+  `partition_*` attribute counts. The fallback on an `__allowed_partition`
+  column is not ported. Partitions do not apply to writes
+  ([#15](https://github.com/asqueel-org/asqueel/issues/15)).
+- **`column()` attributes** (A1.5): `indexed` and `unique` accept the legacy
+  true strings (`'y'`, `'true'`, ...), read as `str_boolean`.
+- **`format`, `print_width`** (A1.9): column metadata, readable in
+  `column.attributes` and as `column.print_width`.
+- **`model.table('pkg.tbl')`, `tblobj.column(name)`** (A1.19): an unknown
+  package returns `None`; an unknown table of a known package raises
+  `ValueError`; an unknown column returns `None`.
+- **`pkeys`** (A1.20): the list of the key columns, the compositeColumn
+  members when `pkey` names one.
+- **`name_long`, `name_short`, `name_full`, `name_plural`** (A1.22): the
+  legacy fallbacks; `name_full` is an attribute of package, table and column.
+- **`sql_default`, `sql_generatedExpression`, `sql_extra`** (A1.27): column
+  attributes, with a variant per dialect (`sql_pg_default`,
+  `sql_sqlite_extra`, ...) that wins on its dialect.
 
 ### Works differently
 
@@ -37,27 +60,13 @@ the write cycle, see [Current status](limitations.md).
   not recorded.
 - **`table(name, pkey=, ..., **kwargs)`** (A1.2): only declared parameters are
   accepted; any other keyword raises, naming the attribute and the element
-  (`lastTS`, `logicalDeletionField`, `draftField`, `hierarchical`, `xtd`,
-  `multi_tenant`, `group_<name>` and free `x_*` keys are refused). Reason: no
+  (`hierarchical`, `xtd`, `multi_tenant`, `group_<name>` and free `x_*` keys
+  are refused). Reason: no
   attribute outside the grammar is accepted in this release (decision of
   17 October 2026).
-- **`lastTS`, `logicalDeletionField`, `draftField`** (A1.3): declared as
-  `x_draft_field` and `x_logical_deletion_field`; `lastTS` exists only as
-  `x_legacy_lastTS` from `sys_fields`, with no `lastTS` property. Reason: row
-  policies are declared in the model; the read filter ignores the deletion
-  timestamp ([#16](https://github.com/asqueel-org/asqueel/issues/16)).
-- **`partition_<field>='path'`** (A1.4): declared with
-  `options().partition(name, field=, value=)`; a legacy `partition_x`
-  attribute raises. Reason: partitions are declared row
-  policies; they do not apply to writes
-  ([#15](https://github.com/asqueel-org/asqueel/issues/15)).
-- **`column()` attributes** (A1.5): same attributes and dtype default;
-  `indexed` and `unique` must be booleans, `indexed='y'` is refused. Reason:
-  not recorded for the refused string.
-- **UI attributes** (`format`, `values`, `print_width`, `encrypted`,
-  `cell_*`, `template_*`, `batch_*`, ...) (A1.9): refused as unknown
-  attributes; `values` becomes `validate_values`, `encrypted` becomes the
-  `encryption` child. Reason: UI attributes are outside this release's
+- **UI attributes** (`values`, `cell_*`, `template_*`, `batch_*`, ...) (A1.9):
+  refused as unknown attributes; `values` becomes `validate_values`.
+  `encrypted` raises `UnsupportedFeatureError` naming it. Reason: UI attributes are outside this release's
   grammar; free `x_ui_*` keys are refused too.
 - **`colgroup()`** (A1.11): available; `colgroup_label`,
   `colgroup_name_long` and `group_<name>` raise as attributes outside the
@@ -71,15 +80,10 @@ the write cycle, see [Current status](limitations.md).
 - **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a recipe
   `main(self, root)` with one function per table; overrides through
   `builder.contribution`. Reason: the legacy adapter is not implemented.
-- **`model.table('pkg.tbl')`, `model.column()`, `tblobj.column(name)`**
-  (A1.19): an unknown package or column raises `ValueError` instead of
-  returning `None`. Reason: not recorded.
-- **`pkey` / `pkeys`** (A1.20): `pkey` returns the logical pkey; `pkey='a,b'`
-  is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23)); the
-  `pkeys` property does not exist. Reason: not recorded for `pkeys`.
-- **`name_long`, `name_short`, `name_full`** (A1.22): `name_long` falls back
-  to the name; `name_full` raises as an attribute outside the grammar; there
-  are no setters. Reason: not recorded.
+- **`pkey`** (A1.20): `pkey` returns the logical pkey; `pkey='a,b'`
+  is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23)).
+- **`name_long`, `name_short`, `name_full`** (A1.22): there are no setters.
+  Reason: not recorded.
 - **Package custom types `custom_type_<dtype>`** (A1.26): declared with
   `options().type(name, dtype, size, ...)`; an unknown dtype raises
   `ValueError`. Reason: a declaration replaces the hook.
@@ -664,8 +668,6 @@ the write cycle, see [Current status](limitations.md).
 
 ## New in asqueel
 
-- **`column(sqldefault=, extra_sql=, generated_expression=)`** (A1.27):
-  database-side defaults, extra DDL and generated columns.
 - **`SqlRecord.refresh()`** (A2.24): discards the result and reads again in
   the current environment.
 - **`parameters=` and `expression=`** (A3.5): `parameters` is a mapping in
@@ -680,7 +682,7 @@ the write cycle, see [Current status](limitations.md).
 - **Relation inherited by an `aliasColumn`** (A4.21): `@alias.col` works
   without `.relation()` on the alias.
 - **RETURNING of database-decided values** (A5.16): values from `sql_value`,
-  generated expressions, omitted `sqldefault` and serial columns are written
+  generated expressions, omitted `sql_default` and serial columns are written
   into the record before the after-triggers, on PostgreSQL and SQLite; on a
   dialect without the capability RETURNING is dropped without error
   ([#21](https://github.com/asqueel-org/asqueel/issues/21)).

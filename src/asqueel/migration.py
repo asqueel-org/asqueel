@@ -47,7 +47,7 @@ from .catalog import SqlModelCatalog
 from .configuration import connection_settings
 from .errors import MigrationError
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
-from .common import SQL_ACTIONS
+from .common import SQL_ACTIONS, SQL_COLUMN_KEYS, sql_column_attributes
 from .common import split_names as _names
 from .projection import to_physical_builder
 from .validators import SqlModelValidator
@@ -136,6 +136,9 @@ class SqlMigrationRenderer:
             key: node.get_attr(key) for key in COL_JSON_KEYS
             if node.get_attr(key) is not None
         }
+        implementation = self._catalog.database.get_attr("implementation") if self._catalog.database else None
+        attributes.update({SQL_COLUMN_KEYS[key]: value for key, value
+                           in sql_column_attributes(node.attr, implementation).items()})
         if "dtype" not in attributes:
             attributes["dtype"] = "A" if attributes.get("size") else "T"
         if column_name in pkey_columns:

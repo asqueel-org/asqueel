@@ -122,7 +122,7 @@ def test_sqlite_lock_blocks_other_writer_without_changing_rows(db, already_open,
 def test_record_uses_legacy_visibility_and_omits_static_virtuals(tmp_path):
     source = recipe(tmp_path / 'visibility.sqlite')
     table = source.source['db.packages.app.tables.item']
-    table.attr.update(x_draft_field='draft', x_logical_deletion_field='deleted')
+    table.attr.update(draftField='draft', logicalDeletionField='deleted')
     table.column('draft', dtype='B')
     table.column('deleted', dtype='T')
     with AsqueelDb(source) as db:

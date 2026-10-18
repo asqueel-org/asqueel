@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Literal
 from genro_builders.builder import element
 
-NAMED_OPTIONS = {'partition': 'name', 'numbering': 'field'}
+NAMED_OPTIONS = {'numbering': 'field'}
 
 
 class BehaviorOptionElements:
@@ -68,12 +68,6 @@ class BehaviorOptionElements:
     @element(parent_tags='options', sub_tags='', node_label='release')
     def release(self, *, handlers: dict | None = None, enabled: bool = True):
         """Declare version-to-handler references; no transformations run at build time."""
-        ...
-
-    @element(parent_tags='options', sub_tags='')
-    def partition(self, name: str, *, field: str | None = None, value: object = None,
-                  required: bool = False, enabled: bool = True):
-        """Declare a logical partition with a value or an existing lazy resolver."""
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='retention')

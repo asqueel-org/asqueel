@@ -68,7 +68,7 @@ def test_legacy_loader_builds_the_grammar_copy_of_the_oracle():
     builder = invoice_source()
     builder.validate_source()
     table = builder.source['db.packages.invc.tables.invoice']
-    assert table.get_attr('x_legacy_logicalDeletionField') == '__del_ts'
+    assert table.get_attr('logicalDeletionField') == '__del_ts'
     assert 'lastTS' not in table.attr
 
 

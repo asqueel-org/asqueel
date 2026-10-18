@@ -31,7 +31,7 @@ def test_syscode_is_opt_in_and_does_not_expand_the_source():
     assert resolved.pkey == 'id'
     assert resolved.get('options') is None or 'system_records' not in resolved['options']
     assert not {'__protected_by_syscode', '__invalid_by_duplicate_sysrecord'} & resolved.columns.keys()
-    assert not {'default', 'sqldefault', 'x_generation', 'onInserting'} & code.attributes.keys()
+    assert not {'default', 'sql_default', 'x_generation', 'onInserting'} & code.attributes.keys()
     physical = SqlMigrationRenderer(to_physical_builder(first)).render()
     attrs = physical['root']['schemas']['adm']['tables']['adm_htag']['columns']['__syscode']['attributes']
     assert attrs['unique'] is True

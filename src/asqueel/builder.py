@@ -76,7 +76,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         'connection': 'name', 'weak_relation': 'to', 'virtualRelation': 'name',
         'hierarchical': 'columns',
         'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
-        'partition': 'name', 'numbering': 'field', 'broadcast': 'columns',
+        'numbering': 'field', 'broadcast': 'columns',
     }
     _singletons = frozenset({'schemas', 'packages', 'extensions', 'tables',
                             'columns', 'virtual_columns', 'composites',
@@ -164,6 +164,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                     kwargs['name'], kwargs['dtype'] = kwargs['name'].split('::')
             elif len(args) > 1:
                 raise TypeError(f'{name}: at most one positional argument is allowed')
+            if name == 'column':
+                self._legacy_column_attributes(destination, kwargs)
             return handler(destination, *args, **kwargs)
 
         return call
@@ -381,6 +383,26 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                     if annotation is not object and type(None) not in get_args(annotation):
                         raise ValueError(f'{node_tag}.{key}: None is not allowed')
         return super()._validate_call_args(info, node_value, attr, node_tag)
+
+    def _legacy_column_attributes(self, destination, attr):  # wf:phase-1:new
+        """``encrypted`` is refused; ``indexed``/``unique`` strings read as GenroPy ``str_boolean``."""
+        if 'encrypted' in attr:
+            from .contracts import UnsupportedFeatureError
+            node = getattr(destination, 'parent_node', None)
+            labels = []
+            while node is not None:
+                if node.node_tag in ('table', 'package', 'schema'):
+                    labels.insert(0, node.label)
+                node = node.parent_node
+            path = '.'.join([*labels, str(attr.get('name'))])
+            raise UnsupportedFeatureError(f'{path}: encrypted is not available in this release')
+        for key in ('indexed', 'unique'):
+            if isinstance(attr.get(key), str):
+                attr[key] = attr[key].lower() not in ('', 'n', 'no', 'f', 'false', '0')
+        for key in attr:
+            dialect = next((d for d in ('sql_pg_', 'sql_sqlite_') if key.startswith(d)), None)
+            if dialect and key[len(dialect):] not in ('default', 'generatedExpression', 'extra'):
+                raise ValueError(f"Element 'column' does not accept '{key}'")
 
     def set_child(self, build_where, node_tag, node_value=None, node_label=None,
                   node_position=None, **attr):

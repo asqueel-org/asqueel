@@ -1,26 +1,24 @@
-"""Native options feed SELECT through the existing policy/binding machinery."""
+"""The legacy partition_<field> table attribute feeds SELECT through the environment."""
 import pytest
-from genro_bag.resolvers import EnvResolver
 
 from asqueel import SqlDatabaseConfig, build_database
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
+from asqueel.environment import SqlEnvironment
+
+STATE = SqlEnvironment({'current_state': 'NSW'})
 
 
-def source(backend='postgres', *, value='NSW', required=False, enabled=True):
+def source(backend='postgres'):
     config = SqlDatabaseConfig()
     pkg = config.source.db('options', implementation=backend).packages().package('sales')
-    customer = pkg.table('customer')
+    customer = pkg.table('customer', partition_state='state')
     customer.options().sys_fields(draft=True)
     customer.column('state')
-    customer.options().partition('state', field='state', value=value,
-                                 required=required, enabled=enabled)
-    invoice = pkg.table('invoice')
+    invoice = pkg.table('invoice', partition_state='state')
     invoice.options().sys_fields()
     invoice.column('customer_id').relation('sales.customer.id')
     invoice.aliasColumn('state', '@customer_id.state')
-    invoice.options().partition('state', field='state', value=value,
-                                required=required, enabled=enabled)
     invoice.formulaColumn('all_customers', select=dict(table='sales.customer',
         columns='COUNT(*)', where='TRUE'), dtype='L')
     invoice.formulaColumn('visible_customers', select=dict(table='sales.customer',
@@ -32,7 +30,7 @@ def source(backend='postgres', *, value='NSW', required=False, enabled=True):
 @pytest.fixture(params=['postgres', 'sqlite'])
 def backend(request, monkeypatch):
     def forbidden(*args, **kwargs):
-        pytest.fail('Compiling native options attempted database I/O')
+        pytest.fail('Compiling partitions attempted database I/O')
     for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
@@ -40,7 +38,7 @@ def backend(request, monkeypatch):
 
 
 def test_partition_alias_reuses_join_without_filtering_joined_table(backend):
-    db = build_database(source(backend))
+    db = build_database(source(backend), environment=STATE)
     query = db.table('sales.invoice').query('$id,$state', order_by='$state').compiled
     assert query.sql.count('LEFT JOIN') == 1
     assert '"__is_draft" IS NOT TRUE' not in query.sql
@@ -48,39 +46,17 @@ def test_partition_alias_reuses_join_without_filtering_joined_table(backend):
     assert list(query.params.values()) == ['NSW']
 
 
-@pytest.mark.parametrize('value', [0, False, '', 'NSW'])
-def test_present_scalar_is_bound_even_when_falsy(backend, value):
-    query = build_database(source(backend, value=value)).table('sales.customer').query('$id').compiled
-    assert list(query.params.values()) == [value]
+@pytest.mark.parametrize('value', [0, False, '', None])
+def test_falsy_environment_values_do_not_filter(backend, value):
+    environment = SqlEnvironment({'current_state': value, 'allowed_state': value})
+    query = build_database(source(backend), environment=environment).table('sales.customer').query('$id').compiled
+    assert not query.params
 
 
-def test_optional_missing_and_disabled_partitions_do_not_filter(backend):
-    for config in (source(backend, value=None), source(backend, required=True, enabled=False)):
-        query = build_database(config).table('sales.customer').query('$id').compiled
-        assert not query.params
-
-
-def test_required_missing_is_explicit_and_can_be_bypassed(backend):
-    table = build_database(source(backend, value=None, required=True)).table('sales.customer')
-    with pytest.raises(ValueError, match='missing required partition'):
-        table.query('$id').compiled
+def test_partition_is_bypassed_explicitly(backend):
+    table = build_database(source(backend), environment=STATE).table('sales.customer')
+    assert list(table.query('$id').compiled.params.values()) == ['NSW']
     assert not table.query('$id', ignorePartition=True).compiled.params
-
-
-@pytest.mark.parametrize('value', [['NSW', 'VIC'], {'current': 'NSW'}])
-def test_collection_partition_has_no_implicit_allowed_values_semantics(backend, value):
-    table = build_database(source(backend, value=value)).table('sales.customer')
-    with pytest.raises(ValueError, match='Partition values must be scalars'):
-        table.query('$id').compiled
-
-
-def test_existing_resolver_is_evaluated_by_render_not_compiler(backend, monkeypatch):
-    monkeypatch.setenv('ASQUEEL_TEST_STATE', 'NSW')
-    config = source(backend, value=EnvResolver('ASQUEEL_TEST_STATE'))
-    db = build_database(config)
-    monkeypatch.setenv('ASQUEEL_TEST_STATE', 'VIC')
-    assert list(db.table('sales.customer').query('$id').compiled.params.values()) == ['NSW']
-    assert list(build_database(config).table('sales.customer').query('$id').compiled.params.values()) == ['VIC']
 
 
 def test_names_alone_do_not_create_filters(backend):
@@ -94,7 +70,8 @@ def test_names_alone_do_not_create_filters(backend):
 
 def test_partition_value_never_becomes_sql_text(backend):
     value = "NSW'); DELETE FROM customer; --"
-    table = build_database(source(backend, value=value)).table('sales.customer')
+    environment = SqlEnvironment({'current_state': value})
+    table = build_database(source(backend), environment=environment).table('sales.customer')
     query = table.query('$id').compiled
     assert value not in query.sql
     assert list(query.params.values()) == [value]

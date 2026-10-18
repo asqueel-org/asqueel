@@ -37,8 +37,8 @@ class ModelElements:
     @element(parent_tags='packages', sub_tags='tables[:1], options[:1]')
     def package(self, name: str, sqlschema: str | None = None,
                 sqlprefix: bool | str = True, name_long: str | None = None,
-                name_short: str | None = None, comment: str | None = None,
-                x_sql_schema: str | None = None):
+                name_short: str | None = None, name_full: str | None = None,
+                comment: str | None = None):
         """Logical table namespace with an explicit physical placement.
 
         Args:

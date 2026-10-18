@@ -3,7 +3,7 @@
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, SqlEnvironment, build_database
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
@@ -14,13 +14,12 @@ def source(backend='postgres'):
     owner = pkg.table('owner', pkey='id')
     owner.column('id', dtype='L')
     owner.column('parent_id', dtype='L').relation('app.owner.id')
-    item = pkg.table('item', pkey='id')
+    item = pkg.table('item', pkey='id', partition_owner_id='owner')
     item.column('id', dtype='L')
     item.column('owner_id', dtype='L').relation('app.owner.id')
     item.column('amount', dtype='N')
     item.column('label')
     item.options().sys_fields(id=False, draft=True)
-    item.options().partition('scope', field='owner_id', value=99)
     scalar = dict(table='app.item', columns='MAX($amount)', where='$owner_id=#THIS.id')
     owner.subQueryColumn('maximum', query=scalar, dtype='N')
     owner.subQueryColumn('other_mode', query=scalar, mode='sum', dtype='N')
@@ -111,5 +110,5 @@ def db(request, monkeypatch):
     for driver in [PostgresAdapter, SqliteAdapter]:
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
-    with build_database(source(request.param)) as db:
+    with build_database(source(request.param), environment=SqlEnvironment({'current_owner': 99})) as db:
         yield db

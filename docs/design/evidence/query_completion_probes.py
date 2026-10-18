@@ -66,7 +66,7 @@ def postgres_recipe(dsn, schema):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
             declare_tables(root.db('probe', conninfo=dsn).schemas().schema(
-                'sales', x_sql_schema=schema))
+                'sales', sqlname=schema))
     return Recipe
 
 

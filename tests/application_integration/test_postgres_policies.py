@@ -25,20 +25,19 @@ def policy_database():
                 deleted_at timestamptz, label text
             )''').format(sql.Identifier(schema)))
             observer.execute(sql.SQL('''INSERT INTO {}.item VALUES
-                (1, 0, NULL, NULL, 'zero'), (2, 1, false, NULL, 'one'),
-                (3, 0, true, NULL, 'draft'),
-                (4, 0, false, '2026-01-01T00:00:00Z', 'deleted'),
+                (1, 10, NULL, NULL, 'ten'), (2, 11, false, NULL, 'eleven'),
+                (3, 10, true, NULL, 'draft'),
+                (4, 10, false, '2026-01-01T00:00:00Z', 'deleted'),
                 (5, NULL, false, NULL, 'shared')''').format(sql.Identifier(schema)))
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
                     columns = root.db('policy', implementation='postgres', conninfo=dsn).schemas().schema(
-                        'app', x_sql_schema=schema,
+                        'app', sqlname=schema,
                     ).tables().table(
                         'item', pkey='id',
-                        x_partition={'field': 'organization', 'current': 'organization',
-                                     'allowed': 'allowed_organizations'},
-                        x_draft_field='draft', x_logical_deletion_field='deleted_at',
+                        partition_organization='organization',
+                        draftField='draft', logicalDeletionField='deleted_at',
                     ).columns()
                     for name, dtype in [('id', 'I'), ('organization', 'I'), ('draft', 'B'),
                                         ('deleted_at', 'DHZ'), ('label', 'T')]:
@@ -54,22 +53,20 @@ def test_application_partition_draft_deletion_and_scoped_writes(policy_database)
     db, observer, schema = policy_database
     item = db.table('app.item')
     query = item.query(order_by='$id')
-    with pytest.raises(ValueError):
-        query.fetch()
-    assert db.outcome == 'not_started'
-    with db.temp_env(organization=0):
+    assert [r['id'] for r in query.fetch()] == [1, 2, 5]
+    with db.temp_env(current_organization=10):
         assert [r['id'] for r in query.fetch()] == [1]
         marked = item.query(order_by='$id', exclude_draft=False,
                             exclude_logical_deleted='mark').fetch()
         assert [r['id'] for r in marked] == [1, 3, 4]
         assert marked[2]['_isdeleted'] == datetime(2026, 1, 1, tzinfo=timezone.utc)
-    with db.temp_env(organization=0, allowed_organizations=[]):
-        assert query.fetch() == []
-    with db.temp_env(allowed_organizations=[0]):
+    with db.temp_env(current_organization=10, allowed_organization=[]):
+        assert [r['id'] for r in query.fetch()] == [1]
+    with db.temp_env(allowed_organization=[10]):
         assert [r['id'] for r in query.fetch()] == [1, 5]
     db.rollback()
-    with db.temp_env(organization=0), completed(db):
-        item.insert({'id': 6, 'organization': 0, 'label': 'new'})
+    with db.temp_env(current_organization=10), completed(db):
+        item.insert({'id': 6, 'organization': 10, 'label': 'new'})
         assert item.query(where='$id=2').sql_update({'label': 'forbidden'}) == 0
         tombstone = datetime(2026, 9, 29, tzinfo=timezone.utc)
         assert item.update({'id': 6, 'deleted_at': tombstone})['deleted_at'] == tombstone
@@ -79,17 +76,17 @@ def test_application_partition_draft_deletion_and_scoped_writes(policy_database)
     persisted = observer.execute(sql.SQL(
         'SELECT organization, deleted_at, label FROM {}.item WHERE id=6'
     ).format(sql.Identifier(schema))).fetchone()
-    assert persisted == (0, None, 'new')
+    assert persisted == (10, None, 'new')
     assert observer.execute(sql.SQL('SELECT label FROM {}.item WHERE id=2')
-                            .format(sql.Identifier(schema))).fetchone() == ('one',)
+                            .format(sql.Identifier(schema))).fetchone() == ('eleven',)
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: insert does not fill the partition field from the environment')
 def test_application_insert_fills_the_partition_field(policy_database):
     db, observer, schema = policy_database
     item = db.table('app.item')
-    with db.temp_env(organization=0), completed(db):
-        assert item.insert({'id': 6, 'label': 'new'})['organization'] == 0
+    with db.temp_env(current_organization=10), completed(db):
+        assert item.insert({'id': 6, 'label': 'new'})['organization'] == 10
     persisted = observer.execute(sql.SQL('SELECT organization FROM {}.item WHERE id=6')
                                  .format(sql.Identifier(schema))).fetchone()
-    assert persisted == (0,)
+    assert persisted == (10,)

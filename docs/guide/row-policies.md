@@ -9,24 +9,13 @@ The supported policies are logical partition scopes, draft visibility, and
 logical deletion. Logical partition scopes add query predicates; they do not
 create PostgreSQL partitions or route queries to other databases.
 
-## Native package options
+## Table attributes
 
-`sys_fields(draft=True)` supplies the draft marker; enabled logical deletion
-supplies its marker too. SELECT uses these render declarations, never guesses
-policy from a column name. Read flags override these filters as shown below.
-
-`partition(name, field=..., value=..., required=False)` currently supports one
-scalar current value. A present value becomes a bound equality; `None` adds no
-filter unless `required=True`, which raises an error. `ignorePartition=True`
-bypasses it. Zero, False and the empty string are present values. Disabled
-options do not filter. Collections are rejected; allowed sets remain undecided
-for this native option. An alias such as invoice.customer_state uses the
-existing relation path and JOIN.
-
-Existing resolvers resolve the value during source-to-model render. The compiler
-uses that model value; it does not invent environment keys or re-evaluate the
-resolver. Native partition write lifecycle is outside this increment. The older
-`x_partition` contract below retains its separate environment and write semantics.
+`draftField`, `logicalDeletionField` and `partition_<field>` are table
+attributes, as in GenroPy. `sys_fields(draft=True)` supplies `draftField`;
+enabled logical deletion supplies `logicalDeletionField`. SELECT uses these
+declarations, never guesses policy from a column name. Read flags override
+these filters as shown below.
 
 Filters apply to the SELECT root, not automatically to joined tables. Formula
 subqueries retain legacy defaults (include drafts/deleted rows, ignore partition)
@@ -44,14 +33,9 @@ class Documents(SqlDatabaseConfig):
             "app",
         ).tables().table(
             "document", pkey="id",
-            x_partition={
-                "field": "organization_id",
-                "current": "organization",
-                "allowed": "allowed_organizations",
-                "include_null": True,
-            },
-            x_draft_field="draft",
-            x_logical_deletion_field="deleted_at",
+            partition_organization_id="organization",
+            draftField="draft",
+            logicalDeletionField="deleted_at",
         )
         columns = table.columns()
         columns.column("id", dtype="I")
@@ -71,13 +55,10 @@ must be a local physical nullable column, distinct from the draft field, and
 cannot be part of the primary key. A non-NULL logical-deletion value means the
 record is deleted; the value does not have to be boolean.
 
-Partition fields must resolve to physical columns. Their `current` and `allowed`
-entries name [environment keys](environment.md), not data values. `allowed` is
-optional; `include_null` defaults to `True`.
-
-Use `x_partitions=[{...}, {...}]` for multiple dimensions. Do not combine
-`x_partition` and `x_partitions`. Each dimension has its own field and environment
-keys; their predicates are combined with AND.
+`partition_<field>='<path>'` partitions the table on the column `<field>`. The
+value `<path>` names two [environment keys](environment.md): `current_<path>`
+and `allowed_<path>`. Only the first `partition_*` attribute of a table counts,
+as in GenroPy.
 
 Inspection does not infer policies from suggestive database column names. Add
 application policies explicitly to an imported model. See [importing](importing.md).
@@ -89,7 +70,7 @@ shared environment:
 
 ```python
 # db comes from a recipe declaring the app.document policy above.
-with db.temp_env(organization=0):
+with db.temp_env(current_organization=10):
     try:
         documents = db.table('app.document').query(columns='$id, $title', order_by='$id').fetch()
         db.commit()
@@ -99,9 +80,8 @@ with db.temp_env(organization=0):
 
 ```
 
-This SELECT restricts `organization_id` to `0`, includes only rows whose draft
+This SELECT restricts `organization_id` to `10`, includes only rows whose draft
 field is not true, and includes only rows whose deletion marker is NULL.
-`0` is a valid current value; it is not treated as missing.
 
 Policy conditions and your explicit `where` are individually parenthesized and
 joined with AND. A user condition containing OR therefore cannot escape the
@@ -109,49 +89,26 @@ partition restriction through operator precedence.
 
 ## Partition semantics
 
-Presence is determined by whether an environment key exists, rather than the
-truth value of its contents.
+The partition filter follows GenroPy `getPartitionCondition`. Values are read
+by their truth value, as in GenroPy.
 
-| Context for one dimension | Resulting restriction |
+| Environment | Resulting restriction |
 |---|---|
-| Current key present with a non-NULL scalar | Field equals that value. `0`, `False`, and `''` remain valid values. |
-| Current key present with `None` | Field IS NULL. |
-| Allowed key present with an empty collection | FALSE: no rows match. |
-| Allowed key present with nonempty values | Field belongs to those values; NULL handling is described below. |
-| Both current and allowed keys present | Both restrictions apply: their intersection. |
-| Neither key present | Compilation raises `ValueError`. |
-
-Values must be appropriate for the database column's type. Allowed values must
-be a collection of scalars, such as a list or tuple. A string, mapping, scalar
-`None`, or nested collection is not an allowed-values collection.
-
-For a nonempty allowed collection, `include_null=True` also admits NULL rows.
-With `include_null=False`, NULL rows are admitted only when the collection
-explicitly contains `None`. An empty collection always matches no rows,
-regardless of `include_null`.
+| `current_<path>` true | `$<field> = :env_current_<path>`. |
+| `current_<path>` false or absent, `allowed_<path>` true | `$<field> IS NULL OR $<field> IN :env_allowed_<path>`. |
+| Neither true | No restriction. `0`, `False`, `''`, `None` and an empty collection add no filter. |
 
 ```python
-with db.temp_env(allowed_organizations=[10, 20]):
-    # With include_null=True: organization_id IN (10, 20) OR organization_id IS NULL.
+with db.temp_env(allowed_organization=[10, 20]):
+    # organization_id IS NULL OR organization_id IN (10, 20).
     query = db.table('app.document').query(columns='$id')
     print(query.sqltext)
-
-with db.temp_env(organization=10, allowed_organizations=[20]):
-    # The current value is outside the allowed set, so the SELECT matches no rows.
-    query = db.table('app.document').query(columns='$id')
-    print(query.sqltext)
-
-with db.temp_env(allowed_organizations=[]):
-    query = db.table('app.document').query(columns='$id')
-    print(query.sqltext)  # Matches no rows.
 ```
 
-These examples assume that `db.environment` has no default current organization. Temporary
-scopes overlay existing values; they do not remove an inherited current key.
-Assigning `None` requests NULL rows rather than removing the key.
+The GenroPy fallback on an `__allowed_partition` column of the related table is
+not available in this release.
 
-`ignore_partition=True` explicitly bypasses partition predicates and their
-required context:
+`ignore_partition=True` explicitly bypasses partition predicates:
 
 ```python
 query = db.table('app.document').query(columns='$id', ignore_partition=True)
@@ -160,20 +117,6 @@ print(query.sqltext)
 
 It does not disable draft or logical-deletion filtering. Writes do not read
 partitions, so the option has no write counterpart.
-
-### Relational partition fields
-
-A partition may use a declared to-one path, for example `@organization.region`.
-SELECT resolves the relation and applies the root table's partition condition
-to the reached field. The relation must have a recognized unique target key.
-
-This does not automatically apply the target table's own draft, deletion, or
-partition policies. A missing target yields NULL; it can therefore match a
-NULL-accepting scope.
-
-Writes on a table with a relational partition are rejected unless
-`ignore_partition=True` is explicitly supplied. The compiler does not silently
-substitute an unguarded write for a relational guard.
 
 ## Draft visibility
 

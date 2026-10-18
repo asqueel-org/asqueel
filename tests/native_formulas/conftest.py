@@ -13,7 +13,7 @@ import psycopg
 from psycopg import sql
 from psycopg.conninfo import make_conninfo
 
-from asqueel import build_database
+from asqueel import SqlEnvironment, build_database
 from examples.test_invoice_pg import source
 from tests.native_support import postgres_dsn
 
@@ -26,11 +26,7 @@ SQL_TYPES = {'N': 'NUMERIC', 'R': 'REAL', 'I': 'INTEGER', 'L': 'BIGINT',
 
 def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
     # Generic legacy formula tests run without a current partition. Dedicated
-    # partition fixtures resolve their value while rendering the native source.
-    if state is None:
-        monkeypatch.delenv('INVC_STATE', raising=False)
-    else:
-        monkeypatch.setenv('INVC_STATE', state)
+    # partition fixtures set current_invc_state in the environment.
     config = source()
     root = config.source['db']
     root.attr['implementation'] = backend
@@ -39,7 +35,7 @@ def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
         else {'database': str(tmp_path / 'formulas.db')}))
     # Preserve physical schema names too: authored SQL in the legacy model
     # refers directly to invc.invc_invoice_note. Isolation is per database.
-    db = build_database(config)
+    db = build_database(config, environment=SqlEnvironment({'current_invc_state': state}) if state else None)
     schemas = sorted({t.sqlschema for t in db.model.tables.values()})
     try:
         if backend == 'postgres':

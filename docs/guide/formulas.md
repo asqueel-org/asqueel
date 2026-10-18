@@ -35,7 +35,7 @@ class Accounting(SqlDatabaseConfig):
         tables = root.db('accounting').schemas().schema('app').tables()
         invoice = tables.table('invoice', pkey='id')
         invoice.columns().column('id', dtype='I')
-        columns = tables.table('line', pkey='id', x_draft_field='draft').columns()
+        columns = tables.table('line', pkey='id', draftField='draft').columns()
         columns.column('id', dtype='I')
         columns.column('invoice_id', dtype='I').relation(
             'app.invoice.id', foreign_key=True, x_name='invoice')

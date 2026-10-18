@@ -159,7 +159,7 @@ class _TableExpansion:
                 ('ldel', 'logicalDeletionField', '__del_ts'), ('upd', 'lastTS', '__mod_ts'),
                 ('draft', 'draftField', '__is_draft')):
             if spec[flag] is not False:
-                self.table_default(**_legacy(**{key: value}))
+                self.table_default(**{key: value})
         pkey = self.table.get_attr('pkey')
         if pkey:
             self.formula('__record_pointer', f" '{self.key}.' || ${pkey} ", group=group,

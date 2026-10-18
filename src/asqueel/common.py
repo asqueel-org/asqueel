@@ -19,6 +19,31 @@ SQL_ACTIONS = {"cascade": "CASCADE", "restrict": "RESTRICT", "no action": None,
 SQL_ACTION_NAMES = {"CASCADE": "cascade", "RESTRICT": "restrict", "NO ACTION": "no action",
                     "SET NULL": "setnull", "SET DEFAULT": "setdefault"}
 
+#: Column ``sql_<name>`` attributes -> the asqueel-migration JSON key they project to.
+SQL_COLUMN_KEYS = {"sql_default": "sqldefault", "sql_extra": "extra_sql",
+                   "sql_generatedExpression": "generated_expression"}
+
+#: Dialect codes of the ``sql_<dialect>_<name>`` column attributes.
+SQL_DIALECTS = ("pg", "sqlite")
+
+
+def sql_column_attributes(attributes, implementation):  # wf:phase-1:new
+    """The ``sql_*`` column attributes on ``implementation``; ``sql_<dialect>_<name>`` wins on its dialect."""
+    engine = (implementation or "sqlite").partition(":")[0]
+    dialect = "pg" if engine.startswith("postgres") else engine
+    result = {}
+    for key in SQL_COLUMN_KEYS:
+        value = attributes.get(f"sql_{dialect}_{key[4:]}", attributes.get(key))
+        if value is not None:
+            result[key] = value
+    return result
+
+
+def sql_attribute_declared(attributes, name):  # wf:phase-1:new
+    """Whether ``sql_<name>`` is declared on any dialect."""
+    return any(attributes.get(f"sql_{prefix}{name}") is not None
+               for prefix in ("", *(f"{dialect}_" for dialect in SQL_DIALECTS)))
+
 
 def split_names(value) -> list[str]:
     """Column names out of a comma-joined string, a dict or a sequence."""

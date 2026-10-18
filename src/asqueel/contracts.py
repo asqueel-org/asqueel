@@ -43,16 +43,7 @@ class EnvironmentBinding:
 
 
 @dataclass(frozen=True)
-class PartitionScope:
-    field: str
-    current: str
-    allowed: str | None = None
-    include_null: bool = True
-
-
-@dataclass(frozen=True)
 class RowPolicies:
-    partitions: tuple[PartitionScope, ...] = ()
     draft_field: str | None = None
     logical_deletion_field: str | None = None
 

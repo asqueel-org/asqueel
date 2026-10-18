@@ -9,7 +9,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from .errors import EXCEPTIONS
-from .model import _parse_row_policies
 
 
 class TriggersMixin:
@@ -64,14 +63,6 @@ class TriggersMixin:
 
     def trigger_hierarchical_after(self, record, fldname, old_record=None, **kwargs):
         self.hierarchicalHandler.trigger_after(record, old_record=old_record)
-
-    @property
-    def draftField(self):
-        return _parse_row_policies(self.model.attributes).draft_field
-
-    @property
-    def logicalDeletionField(self):
-        return _parse_row_policies(self.model.attributes).logical_deletion_field
 
     def exception(self, exception, record=None, msg=None, **kwargs):
         """The exception named ``exception`` (or that class), ready to raise."""

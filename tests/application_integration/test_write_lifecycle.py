@@ -43,7 +43,7 @@ def database(request, tmp_path):
             db = root.db(implementation='postgres', conninfo=dsn) if dsn else root.db()
             if not dsn:
                 db.connection(name=str(tmp_path / 'lifecycle.db'), implementation='sqlite')
-            tables = db.schemas().schema('app', x_sql_schema=physical_schema).tables()
+            tables = db.schemas().schema('app', sqlname=physical_schema).tables()
             for name in ('item', 'audit'):
                 t = tables.table(name, pkey='id', **({'x_table_class': Logic} if name == 'item' else {})).columns()
                 t.column('id', dtype='I')

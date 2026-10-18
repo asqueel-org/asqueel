@@ -69,7 +69,7 @@ a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-o
 
 - The commands modify the caller's record in place and return it. Values the
   database decides (`sql_value`, generated columns, omitted columns declaring
-  `sqldefault`) are read back with RETURNING on PostgreSQL. SQLite has no RETURNING
+  `sql_default`) are read back with RETURNING on PostgreSQL. SQLite has no RETURNING
   in the write cycle. There is no `returning=` argument.
 - Keys of the mapping that are not physical columns (alias, formula, `@path`,
   unknown names) do not become SQL columns. They raise no error.
@@ -178,8 +178,10 @@ runtime objects raise `DatabaseClosedError` or `TransactionStateError`.
 The model grammar is closed. An attribute an element does not declare raises
 when it is written, naming the attribute and the element, for example
 `Element 'table' does not accept 'multi_tenant'`; free `x_*` keys and legacy UI
-attributes (`group_*`, `cell_*`, `template_*`, `name_full`, ...) are refused the
-same way. The legacy loader `from_expanded_legacy_xml` raises on the first legacy
+attributes (`group_*`, `cell_*`, `template_*`, ...) are refused the
+same way. The column attribute `encrypted` raises `UnsupportedFeatureError`
+naming it. The partition filter of `partition_<field>` does not port the GenroPy
+fallback on an `__allowed_partition` column. The legacy loader `from_expanded_legacy_xml` raises on the first legacy
 attribute it does not map. `subtable()` and `options().tenant()` are not part of
 the grammar. A table class defining a package trigger (`trigger_onInserted_<pkg>`)
 or a `formulaColumn_<x>` method raises `UnsupportedFeatureError` when the model is

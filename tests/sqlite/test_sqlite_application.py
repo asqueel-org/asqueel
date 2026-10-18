@@ -166,7 +166,7 @@ def partitioned(path):
             db = root.db()
             db.connection(name=str(path), implementation='sqlite')
             table = db.schemas().schema('app').tables().table(
-                'item', pkey='id', x_partition={'field': 'organization', 'current': 'organization'})
+                'item', pkey='id', partition_organization='organization')
             columns = table.columns()
             for name in ('id', 'organization', 'quantity'):
                 columns.column(name, dtype='I')
@@ -180,16 +180,16 @@ def partitioned(path):
 def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
     db = partitioned(tmp_path / 'policies.db')
     try:
-        with db.tempEnv(organization=10):
+        with db.tempEnv(current_organization=10):
             db.table('app.item').sql_insert({'id': 1, 'organization': 10, 'quantity': 3})
             db.commit()
             assert [dict(row) for row in db.table('app.item').query(columns='$id, $doubled').fetch()] == [{'id': 1, 'doubled': 6}]
             db.commit()
-        with db.tempEnv(organization=20):
+        with db.tempEnv(current_organization=20):
             assert db.table('app.item').query(where='$id = :id', id=1).sql_update({'quantity': 9}) == 0
             assert db.table('app.item').query(where='$id = :id', id=1).sql_delete() == 0
             db.commit()
-        with db.tempEnv(organization=10):
+        with db.tempEnv(current_organization=10):
             assert [dict(row) for row in db.table('app.item').query(columns='$quantity').fetch()] == [{'quantity': 3}]
             db.commit()
     finally:
@@ -203,7 +203,7 @@ def test_raw_insert_refuses_and_fills_the_partition(tmp_path):
         with pytest.raises(ValueError, match='partition'):
             db.table('app.item').sql_insert({'id': 1, 'quantity': 3})
         db.rollback()
-        with db.tempEnv(organization=10):
+        with db.tempEnv(current_organization=10):
             db.table('app.item').sql_insert({'id': 1, 'quantity': 3})
             db.commit()
             assert [dict(row) for row in db.table('app.item').query(columns='$id, $organization').fetch()] == [{'id': 1, 'organization': 10}]

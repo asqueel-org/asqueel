@@ -12,8 +12,8 @@ def package():
 
 
 @pytest.mark.parametrize('key', [
-    'multi_tenant', 'default_subtable', 'ext_mypkg', 'partition_state', 'totalizer_total',
-    'hierarchical_caption_field', 'group_b_address', 'x_foo', 'name_full',
+    'multi_tenant', 'default_subtable', 'ext_mypkg', 'totalizer_total',
+    'hierarchical_caption_field', 'group_b_address', 'x_foo',
 ])
 def test_table_attribute_outside_the_grammar_names_attribute_and_element(key):
     _, pkg = package()

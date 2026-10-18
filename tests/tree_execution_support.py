@@ -15,7 +15,7 @@ def shop(execution_shop):  # noqa: F811
     customer = package.table('customer', pkey='id')
     customer.column('id', dtype='L')
     customer.column('name', dtype='T', notnull=True)
-    invoice = package.table('invoice', pkey='id', x_logical_deletion_field='__del_ts')
+    invoice = package.table('invoice', pkey='id', logicalDeletionField='__del_ts')
     invoice.column('id', dtype='L')
     invoice.column('customer_id', dtype='L').relation('sales.customer.id')
     invoice.column('total', dtype='N', size='12,2', notnull=True)

@@ -94,7 +94,6 @@ A physical database schema, separate from logical packages.
 | sqlname | `str \| None` | `None` | physical |  |
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
-| x_sql_schema | `str \| None` | `None` | physical |  |
 
 ### `tables`
 
@@ -115,7 +114,7 @@ A table.
 - Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1], options[:1], colgroup, virtualRelation
 - Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes, options, colgroup, virtualRelation
 - Projection flags: none declared
-- Extra keys: not accepted
+- Extra keys: `partition_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -126,6 +125,7 @@ A table.
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_plural | `str \| None` | `None` | semantic | human label, plural form. |
 | name_short | `str \| None` | `None` | semantic | short human label. |
+| name_full | `str \| None` | `None` | physical |  |
 | rowcaption | `str \| None` | `None` | physical |  |
 | newrecord_caption | `str \| None` | `None` | physical |  |
 | order_by | `str \| None` | `None` | physical |  |
@@ -136,16 +136,11 @@ A table.
 | pkey_columns | `str \| None` | `None` | semantic | legacy comma-separated source fields for a single textual primary key; not SQL primary-key members. |
 | pkey_columns_joiner | `str \| None` | `None` | semantic | legacy separator for that textual key. Absent or empty, the legacy uses underscore. Declaration only. |
 | deletable | `bool` | `True` | physical | False refuses every delete of the table's records, as in GenroPy. |
-| x_sql_name | `str \| None` | `None` | physical |  |
+| lastTS | `str \| None` | `None` | physical | the column holding the last modification timestamp. |
+| logicalDeletionField | `str \| None` | `None` | physical | the column marking a row as logically deleted; queries exclude those rows. |
+| draftField | `str \| None` | `None` | physical | the boolean column marking a draft row; queries exclude drafts. |
+| protectionColumn | `str \| None` | `None` | physical | the column whose value protects a row. |
 | x_table_class | `type \| None` | `None` | physical |  |
-| x_partition | `dict \| None` | `None` | physical |  |
-| x_partitions | `list \| tuple \| None` | `None` | physical |  |
-| x_draft_field | `str \| None` | `None` | physical |  |
-| x_logical_deletion_field | `str \| None` | `None` | physical |  |
-| x_legacy_draftField | `str \| None` | `None` | physical |  |
-| x_legacy_logicalDeletionField | `str \| None` | `None` | physical |  |
-| x_legacy_order_by | `str \| None` | `None` | physical |  |
-| x_legacy_protectionColumn | `str \| None` | `None` | physical |  |
 | x_expanded_legacy | `bool \| None` | `None` | physical |  |
 | x_logical_pkey | `str \| None` | `None` | physical |  |
 
@@ -216,7 +211,7 @@ A physical column — the only element that projects as a column.
 - Contains: relation, validation[:1], encryption[:1], dynamic_fields[:1]
 - Child addressing: ordered internal labels for relation, validation, encryption, dynamic_fields
 - Projection flags: `projects_column`, `projects_relation`
-- Extra keys: `validate_*`
+- Extra keys: `validate_*`, `sql_pg_*`, `sql_sqlite_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -224,14 +219,17 @@ A physical column — the only element that projects as a column.
 | dtype | `DTYPE \| str \| None` | `None` | physical | asqueel normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
 | size | `str \| None` | `None` | physical | `'n'` or `'min:max'` character size. |
 | notnull | `bool` | `False` | physical | NOT NULL. Pkey members get it from their pkey membership, not from this flag. |
-| unique | `bool` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. |
-| indexed | `bool` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a foreign key is always indexed. |
-| sqldefault | `str \| None` | `None` | physical | SQL DEFAULT expression. |
-| extra_sql | `str \| None` | `None` | physical | verbatim tail of the column definition. |
-| generated_expression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. |
+| unique | `bool \| str` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. A string is read as in GenroPy: `n`, `no`, `f`, `false`, `0` are false. |
+| indexed | `bool \| str` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a foreign key is always indexed. A string is read as `unique`. |
+| sql_default | `str \| None` | `None` | physical | SQL DEFAULT expression. |
+| sql_extra | `str \| None` | `None` | physical | verbatim tail of the column definition. |
+| sql_generatedExpression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra: the same for one dialect (`pg`, `sqlite`); they win on it. |
 | comment | `str \| None` | `None` | physical | the column comment. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | human label, short form. |
+| name_full | `str \| None` | `None` | semantic | human label, full form. |
+| format | `str \| None` | `None` | semantic | display format. |
+| print_width | `int \| None` | `None` | semantic | print width. |
 | group | `str \| None` | `None` | semantic | field-group key. onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted: field triggers, as in GenroPy: a method name, called as `trigger_<name>(record, fldname=, tblname=)` on the table or on `trigger_table`, or a callable `f(record, fldname)`. They run at every write, in column declaration order. |
 | sqlname | `str \| None` | `None` | physical |  |
 | default | `object` | `None` | physical |  |
@@ -246,7 +244,6 @@ A physical column — the only element that projects as a column.
 | onUpdated | `object` | `None` | physical |  |
 | onDeleted | `object` | `None` | physical |  |
 | trigger_table | `str \| None` | `None` | physical |  |
-| x_sql_name | `str \| None` | `None` | physical |  |
 | x_identity | `str \| None` | `None` | physical |  |
 | x_generation | `dict \| None` | `None` | physical |  |
 
@@ -495,8 +492,8 @@ Logical table namespace with an explicit physical placement.
 | sqlprefix | `bool \| str` | `True` | physical | True uses the package name, False omits the prefix. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | short label. |
+| name_full | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | semantic | package description. |
-| x_sql_schema | `str \| None` | `None` | physical |  |
 
 ### `options`
 
@@ -853,23 +850,6 @@ Declare version-to-handler references; no transformations run at build time.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | handlers | `dict \| None` | `None` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `partition`
-
-Declare a logical partition with a value or an existing lazy resolver.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| name | `str` | *required* | semantic |  |
-| field | `str \| None` | `None` | semantic |  |
-| value | `object` | `None` | semantic |  |
-| required | `bool` | `False` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `retention`

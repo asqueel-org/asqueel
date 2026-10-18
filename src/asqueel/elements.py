@@ -129,7 +129,7 @@ class SchemaElements:
     @element(parent_tags="schemas", sub_tags="tables[:1], options[:1]")
     def schema(self, name: str, comment: str | None = None,
                sqlname: str | None = None, name_long: str | None = None,
-               name_short: str | None = None, x_sql_schema: str | None = None):
+               name_short: str | None = None):
         """A physical database schema, separate from logical packages.
 
         Args:
@@ -159,26 +159,25 @@ class TableElements:
             "columns[:1], virtual_columns[:1], composites[:1], "
             "constraints[:1], indexes[:1], options[:1], colgroup, virtualRelation"
         ),
+        _meta={"attribute_families": ["partition_"]},
     )
     def table(self, name: str, pkey: str | None = None,
               comment: str | None = None,
               caption_field: str | None = None,
               name_long: str | None = None,
               name_plural: str | None = None,
-              name_short: str | None = None, rowcaption: str | None = None,
+              name_short: str | None = None, name_full: str | None = None,
+              rowcaption: str | None = None,
               newrecord_caption: str | None = None, order_by: str | None = None,
               lookup: bool = False, tabletype: str | None = None,
               sqlname: str | None = None, sqlschema: str | None = None,
               pkey_columns: str | None = None,
               pkey_columns_joiner: str | None = None, deletable: bool = True,
-              x_sql_name: str | None = None, x_table_class: type | None = None,
-              x_partition: dict | None = None, x_partitions: list | tuple | None = None,
-              x_draft_field: str | None = None, x_logical_deletion_field: str | None = None,
-              x_legacy_draftField: str | None = None,
-              x_legacy_logicalDeletionField: str | None = None,
-              x_legacy_order_by: str | None = None,
-              x_legacy_protectionColumn: str | None = None,
-              x_expanded_legacy: bool | None = None, x_logical_pkey: str | None = None):
+              lastTS: str | None = None, logicalDeletionField: str | None = None,
+              draftField: str | None = None, protectionColumn: str | None = None,
+              x_table_class: type | None = None,
+              x_expanded_legacy: bool | None = None, x_logical_pkey: str | None = None,
+              **extra):
         """A table.
 
         Args:
@@ -195,6 +194,14 @@ class TableElements:
             pkey_columns_joiner: semantic; legacy separator for that textual key.
                 Absent or empty, the legacy uses underscore. Declaration only.
             deletable: False refuses every delete of the table's records, as in GenroPy.
+            lastTS: the column holding the last modification timestamp.
+            logicalDeletionField: the column marking a row as logically deleted;
+                queries exclude those rows.
+            draftField: the boolean column marking a draft row; queries exclude drafts.
+            protectionColumn: the column whose value protects a row.
+            partition_<field>: ``'<path>'`` partitions the table on ``<field>``, as in
+                GenroPy: env ``current_<path>`` filters on it, else env
+                ``allowed_<path>`` filters on its values or NULL. The first counts.
         """
         ...
 
@@ -250,23 +257,24 @@ class TableElements:
 
     @element(parent_tags="columns", sub_tags="relation, validation[:1], encryption[:1], dynamic_fields[:1]",
              _meta={"projects_column": True, "projects_relation": True,
-                    "attribute_families": ["validate_"]})
+                    "attribute_families": ["validate_", "sql_pg_", "sql_sqlite_"]})
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
-               notnull: bool = False, unique: bool = False,
-               indexed: bool = False, sqldefault: str | None = None,
-               extra_sql: str | None = None,
-               generated_expression: str | None = None,
+               notnull: bool = False, unique: bool | str = False,
+               indexed: bool | str = False, sql_default: str | None = None,
+               sql_extra: str | None = None,
+               sql_generatedExpression: str | None = None,
                comment: str | None = None,
                name_long: str | None = None,
-               name_short: str | None = None,
+               name_short: str | None = None, name_full: str | None = None,
+               format: str | None = None, print_width: int | None = None,
                group: str | None = None, sqlname: str | None = None,
                default: object = None,
                default_from: str | None = None, sql_value: str | None = None,
                read_only: bool = False, unmodifiable: bool = False,
                onInserting: object = None, onUpdating: object = None, onDeleting: object = None,
                onInserted: object = None, onUpdated: object = None, onDeleted: object = None,
-               trigger_table: str | None = None, x_sql_name: str | None = None,
+               trigger_table: str | None = None,
                x_identity: str | None = None, x_generation: dict | None = None,
                **extra):
         """A physical column — the only element that projects as a column.
@@ -279,16 +287,23 @@ class TableElements:
             notnull: NOT NULL. Pkey members get it from their pkey
                 membership, not from this flag.
             unique: single-column UNIQUE. A redundant one on a
-                single-column pkey is dropped by the renderer.
+                single-column pkey is dropped by the renderer. A string is
+                read as in GenroPy: ``n``, ``no``, ``f``, ``false``, ``0`` are false.
             indexed: sugar — the renderer materializes a real index item
                 (``structure-1.0`` has no ``indexed`` column attribute).
-                A column carrying a foreign key is always indexed.
-            sqldefault: SQL DEFAULT expression.
-            extra_sql: verbatim tail of the column definition.
-            generated_expression: GENERATED ALWAYS AS expression.
+                A column carrying a foreign key is always indexed. A string
+                is read as ``unique``.
+            sql_default: SQL DEFAULT expression.
+            sql_extra: verbatim tail of the column definition.
+            sql_generatedExpression: GENERATED ALWAYS AS expression.
+            sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra:
+                the same for one dialect (``pg``, ``sqlite``); they win on it.
             comment: physical; the column comment.
             name_long: semantic; human label.
             name_short: semantic; human label, short form.
+            name_full: semantic; human label, full form.
+            format: semantic; display format.
+            print_width: semantic; print width.
             group: semantic; field-group key.
             onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted:
                 field triggers, as in GenroPy: a method name, called as

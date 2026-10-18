@@ -7,9 +7,7 @@ from typing import Any, Mapping
 
 from genro_toolbox import extract_kwargs
 
-from .contracts import (
-    PartitionScope, RowPolicies, UnsupportedFeatureError,
-)
+from .contracts import RowPolicies, UnsupportedFeatureError
 
 
 def column_ui(path: str, identity: str,
@@ -95,38 +93,9 @@ def _policy_field(value, label: str) -> str:
 
 
 def _parse_row_policies(attributes: Mapping[str, Any]) -> RowPolicies:
-    if 'x_partition' in attributes and 'x_partitions' in attributes:
-        raise ValueError('x_partition and x_partitions are mutually exclusive')
-    definitions = []
-    if 'x_partition' in attributes:
-        definitions = [attributes['x_partition']]
-    elif 'x_partitions' in attributes:
-        definitions = attributes['x_partitions']
-        if not isinstance(definitions, (list, tuple)) or not definitions:
-            raise ValueError('x_partitions must be a nonempty list of partition mappings')
-    partitions = []
-    for definition in definitions:
-        if not isinstance(definition, Mapping):
-            raise ValueError('Each partition must be a mapping')
-        unknown = definition.keys() - {'field', 'current', 'allowed', 'include_null'}
-        if unknown:
-            raise ValueError(f'Unknown partition options: {sorted(unknown)}')
-        if not {'field', 'current'} <= definition.keys():
-            raise ValueError('Partition requires field and current environment key')
-        partitions.append(PartitionScope(
-            _policy_field(definition['field'], 'partition field'), definition['current'],
-            definition.get('allowed'), definition.get('include_null', True),
-        ))
-    markers = {}
-    for key, native, target in [
-            ('x_draft_field', 'x_legacy_draftField', 'draft_field'),
-            ('x_logical_deletion_field', 'x_legacy_logicalDeletionField', 'logical_deletion_field')]:
-        declared = [_policy_field(attributes[k], k) for k in (key, native) if k in attributes]
-        if len(set(declared)) > 1:
-            raise ValueError(f'Conflicting row policy markers: {key}, {native}')
-        if declared:
-            markers[target] = declared[0]
-    return RowPolicies(tuple(partitions), **markers)
+    return RowPolicies(**{target: _policy_field(attributes[key], key) for key, target in (
+        ('draftField', 'draft_field'), ('logicalDeletionField', 'logical_deletion_field'))
+        if attributes.get(key)})
 
 
 def resolve_model(builder):

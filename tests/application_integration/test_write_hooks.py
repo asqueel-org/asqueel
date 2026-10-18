@@ -65,11 +65,11 @@ def hooked_database():
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
                     tables = root.db('hooks', implementation='postgres', conninfo=dsn).schemas().schema(
-                        'app', x_sql_schema=schema).tables()
+                        'app', sqlname=schema).tables()
                     item = tables.table(
                         'item', pkey='pk', x_table_class=HookedItem,
-                        x_partition={'field': 'org', 'current': 'org'},
-                        x_draft_field='draft', x_logical_deletion_field='deleted_at')
+                        partition_org='org',
+                        draftField='draft', logicalDeletionField='deleted_at')
                     columns = item.columns()
                     for name, dtype in [('org', 'I'), ('id', 'I'), ('name', 'T'),
                                         ('draft', 'B'), ('deleted_at', 'DHZ')]:
@@ -79,7 +79,7 @@ def hooked_database():
                     audit.column('id', dtype='serial')
                     audit.column('event', dtype='T')
 
-            with build_database(Recipe) as db, db.temp_env(org=0):
+            with build_database(Recipe) as db, db.temp_env(current_org=0):
                 db.table('app.item').events = []
                 yield db, observer, schema
         finally:

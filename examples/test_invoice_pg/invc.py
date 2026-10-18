@@ -2,14 +2,13 @@
 
 No GenroPy imports or expanded legacy fixtures are needed.
 """
-from genro_bag.resolvers import EnvResolver
 
 
 # projects/test_invoice/packages/invc/model/customer.py
 # SHA256: f3f76a6c57c6682502afabe328b5e18d9ff418efabdb56e36b7623c2ce5c45b4
 def customer(pkg):
-    tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name')
-    tbl.options().partition('state', field='state', value=EnvResolver('INVC_STATE'))
+    tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name',
+                    partition_state='invc_state')
     tbl.options().sys_fields(draft=True, user_upd=False, group_name='!![en]System')
     tbl.column('account_name', name_long='!!Account name', name_short='Account name', validate_notnull=True, validate_len='2:40', group='001')
     tbl.column('street_address', name_long='!!Street Address', name_short='St.Address', group='b_address.01')
@@ -72,8 +71,8 @@ def discount_tier(pkg):
 # projects/test_invoice/packages/invc/model/invoice.py
 # SHA256: 71f1ef0b6ad9cc20ddc37383ae08744e94b83fcf4a594204ef11d4947b6fbd8b
 def invoice(pkg):
-    tbl = pkg.table('invoice', pkey='id', name_long='!!Invoice', name_plural='!!Invoice', caption_field='inv_number')
-    tbl.options().partition('customer_state', field='customer_state', value=EnvResolver('INVC_STATE'))
+    tbl = pkg.table('invoice', pkey='id', name_long='!!Invoice', name_plural='!!Invoice', caption_field='inv_number',
+                    partition_customer_state='invc_state')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.column('inv_number', size='10', name_long='!!Invoice number', name_short='Inv N', unique=True)
     tbl.column('customer_id', size='22', group='_', name_long='!!Customer').relation('customer.id', relation_name='invoices', onDelete='raise', many_group='z_relations.01', foreign_key=True)

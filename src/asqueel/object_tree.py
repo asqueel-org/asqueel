@@ -82,15 +82,19 @@ class DbModelObj:
 
     @property
     def sqlname(self):
-        return self.attributes.get('sqlname') or self.attributes.get('x_sql_name') or self.name
-
-    @property
-    def name_long(self):
-        return self.attributes.get('name_long') or self.name
+        return self.attributes.get('sqlname') or self.name
 
     @property
     def name_short(self):
-        return self.attributes.get('name_short') or self.name_long
+        return self.attributes.get('name_short') or self.attributes.get('name_long') or self.name
+
+    @property
+    def name_long(self):
+        return self.attributes.get('name_long') or self.name_short
+
+    @property
+    def name_full(self):  # wf:phase-1:new
+        return self.attributes.get('name_full') or self.name_long
 
     def getAttr(self, name=None, dflt=None):
         return self.attributes.get(name, dflt) if name else self.attributes
@@ -145,7 +149,7 @@ class DbPackageObj(DbModelObj):
     @property
     def sqlschema(self):
         default = 'main' if self._model.implementation.partition(':')[0] == 'sqlite' else 'public'
-        return (self.attributes.get('sqlschema') or self.attributes.get('x_sql_schema')
+        return (self.attributes.get('sqlschema')
                 or ((self.attributes.get('sqlname') or self.name) if self.tag == 'schema' else default))
 
     def tableSqlName(self, table):
@@ -221,7 +225,31 @@ class DbTableObj(DbModelObj):
 
     @property
     def sqlname(self):
-        return self.attributes.get('sqlname') or self.attributes.get('x_sql_name') or self.pkg.tableSqlName(self)
+        return self.attributes.get('sqlname') or self.pkg.tableSqlName(self)
+
+    @property
+    def pkeys(self):  # wf:phase-1:new
+        pkey = self.pkey
+        if not pkey:
+            return []
+        composite = self.composites.get(pkey)
+        return split_names(composite.attributes['columns']) if composite is not None else [pkey]
+
+    @property
+    def lastTS(self):  # wf:phase-1:new
+        return self.attributes.get('lastTS') or ''
+
+    @property
+    def logicalDeletionField(self):  # wf:phase-1:new
+        return self.attributes.get('logicalDeletionField') or ''
+
+    @property
+    def draftField(self):  # wf:phase-1:new
+        return self.attributes.get('draftField') or ''
+
+    @property
+    def name_plural(self):  # wf:phase-1:new
+        return self.attributes.get('name_plural') or self.name_long
 
     def newRelationResolver(self, cacheTime=0):
         from .object_tree_relations import RelationTreeResolver
@@ -247,7 +275,7 @@ class DbTableObj(DbModelObj):
             return self._model.table(target).column(rest, _seen=_seen)
         column = self.columns.get(name) or self.virtual_columns.get(name) or self.composites.get(name)
         if column is None:
-            raise ValueError(f'Unknown column {self.fullname}.{name}')
+            return None
         if column.tag == 'aliasColumn':
             seen = set() if _seen is None else set(_seen)
             key = self.fullname, name
@@ -255,6 +283,8 @@ class DbTableObj(DbModelObj):
                 raise ValueError(f'Cyclic alias: {self.fullname}.{name}')
             seen.add(key)
             original = self.column(column.attributes['relation_path'], _seen=seen)
+            if original is None:
+                raise ValueError(f'Unknown column {self.fullname}.{column.attributes["relation_path"]}')
             return AliasColumnWrapper(original, column)
         return column
 
@@ -267,6 +297,10 @@ class DbColumnObj(DbModelObj):
     @property
     def dtype(self):
         return self.attributes.get('dtype') or ('A' if self.attributes.get('size') else 'T')
+
+    @property
+    def print_width(self):  # wf:phase-1:new
+        return self.attributes.get('print_width')
 
     @property
     def validations(self):
@@ -386,13 +420,14 @@ class DbModel:
         if pkg is None:
             raise ValueError(f'table() requires package.table: {name!r}')
         namespace = self.namespaces.get(pkg)
-        if namespace is None:
-            raise ValueError(f'Unknown package/schema {pkg!r}')
-        return namespace.table(name)
+        return namespace.table(name) if namespace is not None else None
 
     def column(self, name):
         pkg, table, column = name.split('.', 2)
-        return self.table(table, pkg).column(column)
+        found = self.table(table, pkg)
+        if found is None:
+            raise ValueError(f'Unknown package/schema {pkg!r}')
+        return found.column(column)
 
     def physical_columns(self, table, name):
         """Expand already-declared composite keys, preserving their identity."""

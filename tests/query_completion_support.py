@@ -52,7 +52,7 @@ def declare_tables(schema_node):
     customer.virtual_columns().formulaColumn('selected_invoices', dtype='L', select=dict(
         table='sales.invoice', columns='COUNT(*)',
         where='$customer_id = #THIS.id AND $id IN :ids'))
-    invoice = tables.table('invoice', pkey='id', x_logical_deletion_field='__del_ts')
+    invoice = tables.table('invoice', pkey='id', logicalDeletionField='__del_ts')
     columns = invoice.columns()
     columns.column('id', dtype='L')
     columns.column('customer_id', dtype='L').relation(
@@ -126,7 +126,7 @@ def shop(request, tmp_path):
     class PostgresRecipe(SqlDatabaseConfig):
         def main(self, root):
             declare_tables(root.db('shop', implementation='postgres', conninfo=dsn).schemas().schema(
-                'sales', x_sql_schema=schema))
+                'sales', sqlname=schema))
 
     db = AsqueelDb(PostgresRecipe)
     try:

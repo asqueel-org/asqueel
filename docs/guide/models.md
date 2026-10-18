@@ -42,7 +42,7 @@ def invoice_table(tables):
 class SalesModel(SqlDatabaseConfig):
     def main(self, root):
         tables = root.db('sales_app').schemas().schema(
-            'sales', x_sql_schema='public',
+            'sales', sqlname='public',
         ).tables()
         customer_table(tables)
         invoice_table(tables)
