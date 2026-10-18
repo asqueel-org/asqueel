@@ -15,7 +15,7 @@ from .contracts import UnsupportedFeatureError
 from .model_source import generate_attributes, options
 
 
-_TRIGGER_KEYS = ('onInserting', 'onUpdating', 'onUpdated', 'onInserted', 'onDeleted')
+_TRIGGER_KEYS = ('onInserting', 'onUpdating', 'onUpdated', 'onInserted', 'onDeleting', 'onDeleted')
 
 
 def _legacy(**attributes):
@@ -253,6 +253,10 @@ class _TableExpansion:
         columns = split_names(columns) if isinstance(columns, str) else columns
         fields = []
         counter = self.spec('auto_counter')
+        if counter and counter.get('field', '_row_count') != '_row_count':
+            # The legacy hierarchical counter is always _row_count.
+            raise UnsupportedFeatureError(
+                f"{self.key}: hierarchical auto_counter field {counter['field']!r} is not available in this release")
         for item in columns:
             name = item['name'] if isinstance(item, Mapping) else item
             if name == 'pkey':

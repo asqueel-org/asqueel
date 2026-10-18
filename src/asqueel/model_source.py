@@ -232,7 +232,7 @@ def require_write_capabilities(table):
     """
     from .contracts import UnsupportedFeatureError
     executed = {'sys_fields', 'hierarchical'}
-    enabled = {name for name, option in table.options.items() if option.attributes.get('enabled', True)}
+    enabled = [name for name, option in table.options.items() if option.attributes.get('enabled', True)]
     if 'hierarchical' in enabled:
         # trigger_hierarchical_before assigns _row_count; no setRowCounter.
         executed.add('auto_counter')

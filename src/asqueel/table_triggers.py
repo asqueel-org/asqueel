@@ -59,10 +59,10 @@ class TriggersMixin:
         """sys_fields user: the ``user`` of the current environment."""
         record[fldname] = self.db.currentUser
 
-    def trigger_hierarchical_before(self, record, fldname, old_record=None, **kwargs):  # wf:phase-2:new
+    def trigger_hierarchical_before(self, record, fldname, old_record=None, **kwargs):
         self.hierarchicalHandler.trigger_before(record, old_record=old_record)
 
-    def trigger_hierarchical_after(self, record, fldname, old_record=None, **kwargs):  # wf:phase-2:new
+    def trigger_hierarchical_after(self, record, fldname, old_record=None, **kwargs):
         self.hierarchicalHandler.trigger_after(record, old_record=old_record)
 
     @property
