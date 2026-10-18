@@ -77,3 +77,6 @@ A table declared with `options().sys_fields()` and `options().hierarchical(...)`
 | Phase 2 | high | opus |
 | Phase 3 | medium | opus |
 | Repair | high | opus |
+
+## Quality check
+> Quality check: 2026-10-18T18:04:42Z — commit 332533d — review extended, QA none, findings 6 confirmed, 1 dismissed, final touch 6 corrections
