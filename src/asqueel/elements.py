@@ -424,7 +424,7 @@ class TableElements:
     @element(parent_tags="constraints", sub_tags="")
     def constraint(self, name: str, constraint_type: CONSTRAINT_TYPE,
                    columns: str | None = None,
-                   check_clause: str | None = None, x_auto_name: bool | None = None):
+                   check_clause: str | None = None):
         """A table constraint.
 
         Args:
@@ -437,16 +437,17 @@ class TableElements:
         ...
 
     @element(parent_tags="indexes", sub_tags="")
-    def index(self, name: str | None = None, columns: object | None = None,
-              unique: bool = False, method: str | None = None,
+    def index(self, columns: object | None = None, name: str | None = None,
+              unique: bool | None = None, method: str | None = None,
               where: str | None = None, tablespace: str | None = None,
-              with_options: dict | None = None, x_auto_name: bool | None = None):
+              with_options: dict | None = None):
         """A table index.
 
         Args:
-            name: the index name.
-            columns: comma-joined names, or a ``{name: None | 'DESC'}``
-                dict when per-column ordering matters.
+            columns: comma-joined names, a list or tuple of names, or a
+                ``{name: None | 'DESC'}`` dict when per-column ordering matters.
+            name: the index name; ``<table>_<columns joined by _>_key``
+                when absent, as in GenroPy.
             unique: a UNIQUE index.
             method: access method (``btree``, ``gin``, …).
             where: partial-index predicate.
@@ -467,13 +468,14 @@ class ColumnElements:
                  initially_deferred: bool = False, indexed: bool = True,
                  one_name: str | None = None,
                  many_name: str | None = None,
-                 one_one: bool = False, case_insensitive: bool = False,
+                 one_one: bool | Literal['*'] = False, case_insensitive: bool = False,
                  name: str | None = None, relation_name: str | None = None,
                  onDuplicate: str | bool | None = None, constraint_name: str | None = None,
                  one_group: str | None = None, many_group: str | None = None,
                  many_order_by: str | None = None, eager_one: bool | None = None,
                  eager_many: bool | None = None, external_relation: bool | None = None,
                  resolver_kwargs: dict | None = None, join_on: str | None = None,
+                 cnd: str | None = None, between: str | None = None,
                  x_weak: bool | None = None, x_canonical: bool | None = None,
                  x_name: str | None = None):
         """A relation on a column. Navigable by default, physical on demand.
@@ -508,7 +510,15 @@ class ColumnElements:
                 (``@<relation_name>``), as in GenroPy.
             one_name: semantic; human label of the one side.
             many_name: semantic; human label of the many side.
-            one_one: semantic; the relation is 1:1.
+            one_one: semantic; the relation is 1:1. ``'*'`` without
+                ``relation_name`` names the inverse after the many table and
+                makes it public, as in GenroPy.
             case_insensitive: semantic; join case-insensitively.
+            join_on: semantic; the ON condition in place of the key
+                equality. Wins over ``cnd``.
+            cnd: semantic; the ON condition in place of the key equality.
+                The relation projects no foreign key (GenroPy ``mode='custom'``).
+            between: semantic; ``'value;low;high'``, a range condition in
+                place of the key equality.
         """
         ...

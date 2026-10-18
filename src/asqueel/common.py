@@ -56,6 +56,11 @@ def split_names(value) -> list[str]:
     return [name.strip() for name in str(value).split(",") if name.strip()]
 
 
+def default_index_name(table, columns) -> str:  # wf:phase-2:new
+    """GenroPy's index name when none is given: ``<table>_<columns joined by _>_key``."""
+    return f"{table}_{'_'.join(split_names(columns))}_key"
+
+
 def in_attribute_family(builder, tag, key):
     """Whether ``key`` belongs to an attribute family (``var_*``) element ``tag`` declares in its ``_meta``."""
     families = (builder._get_schema_info(tag).get('_meta') or {}).get('attribute_families', ())

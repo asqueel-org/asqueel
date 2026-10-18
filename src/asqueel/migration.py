@@ -47,6 +47,7 @@ from .catalog import SqlModelCatalog
 from .configuration import connection_settings
 from .errors import MigrationError
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
+from .common import default_index_name
 from .common import SQL_ACTIONS, SQL_COLUMN_KEYS, sql_column_attributes
 from .common import split_names as _names
 from .projection import to_physical_builder
@@ -218,7 +219,7 @@ class SqlMigrationRenderer:
             else:
                 constraint = new_constraint_item(
                     schema_name, table_name, _names(node.get_attr("columns")),
-                    "UNIQUE", constraint_name=None if node.get_attr("x_auto_name") else node.get_attr("name"),
+                    "UNIQUE", constraint_name=node.get_attr("name"),
                 )
             item["constraints"][constraint["entity_name"]] = constraint
         for node in table["composites"].values():
@@ -241,7 +242,9 @@ class SqlMigrationRenderer:
                     attributes[key] = node.get_attr(key)
             index = new_index_item(
                 schema_name, table_name, list(columns),
-                attributes=attributes, index_name=None if node.get_attr("x_auto_name") else node.get_attr("name"),
+                attributes=attributes,
+                index_name=(None if node.get_attr("name") == default_index_name(table_name, columns)
+                            else node.get_attr("name")),
             )
             item["indexes"][index["entity_name"]] = index
 

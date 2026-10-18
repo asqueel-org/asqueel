@@ -6,7 +6,7 @@ descriptor graph, formula analysis, connection or compiler is involved.
 from collections.abc import Mapping
 
 from .builder import SqlBuilder
-from .common import INDEX_OPTIONS, split_names
+from .common import INDEX_OPTIONS, default_index_name, split_names
 from .contracts import UnsupportedFeatureError
 from .projection import _column_storage
 
@@ -39,7 +39,9 @@ def _indexes(model, table, node):
             raise UnsupportedFeatureError(f'{table.fullname}: partial index with remapped columns')
         if container is None:
             container = node.indexes()
-        container.index(index.name, x_auto_name=generated or attrs.get('x_auto_name', False), **data)
+        # The GenroPy default name leaves the physical name to the migrator, as legacy.
+        name = None if index.name == default_index_name(table.name, names) else index.name
+        container.index(name=name, **data)
 
 
 def _constraints(model, table, node):
@@ -54,7 +56,7 @@ def _constraints(model, table, node):
             data['columns'] = _mapped(model, table, data['columns'])
         if data.get('check_clause') and any(c.sqlname != c.name for c in table.columns.values()):
             raise UnsupportedFeatureError(f'{table.fullname}: CHECK with remapped columns')
-        container.constraint(constraint.name, x_auto_name=attrs.get('x_auto_name', False), **data)
+        container.constraint(constraint.name, **data)
 
 
 def project_tree(model) -> SqlBuilder:

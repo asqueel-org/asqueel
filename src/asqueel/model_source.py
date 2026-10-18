@@ -142,6 +142,9 @@ def resolve_source_references(builder):
     catalog = SqlModelCatalog(builder)
     for (namespace, table_name), entry in catalog.tables.items():
         pkey = entry['node'].get_attr('pkey')
+        if (namespace in catalog.packages and isinstance(pkey, str) and ',' in pkey
+                and pkey not in entry['composites']):
+            raise ValueError(f"{namespace}.{table_name}: pkey {pkey!r} is not a column or a compositeColumn")
         if pkey in entry['composites']:
             entry['node'].attr['x_logical_pkey'] = pkey
             entry['node'].attr['pkey'] = entry['composites'][pkey].get_attr('columns')

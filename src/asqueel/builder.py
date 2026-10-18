@@ -20,7 +20,7 @@ from genro_builders.builder.base import SOURCE_ROOT
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
 from .catalog import _VIRTUAL_COLUMN_TAGS
-from .common import in_attribute_family
+from .common import default_index_name, in_attribute_family
 from .semantic_elements import SemanticElements
 from .option_elements import BehaviorOptionElements, NAMED_OPTIONS
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
@@ -74,7 +74,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         'type': 'name',
         'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
         'connection': 'name', 'weak_relation': 'to', 'virtualRelation': 'name',
-        'hierarchical': 'columns',
+        'hierarchical': 'columns', 'index': 'columns',
         'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
         'numbering': 'field', 'broadcast': 'columns',
     }
@@ -425,21 +425,20 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             if not attr['foreign_key']:
                 attr['x_weak'] = True
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
-            attr.setdefault('foreign_key', True)
+            attr.setdefault('foreign_key', not attr.get('cnd'))
             attr['x_canonical'] = True
         if node_tag == 'virtualRelation':
             node_label = f'{node_tag}_{attr["name"]}'
             existing = build_where.node(node_label)
             if existing is not None:
                 return self._compose_attributes(existing, attr)
-        if node_tag == 'index' and attr.get('name') is None:
-            if self._package_ancestor(parent) is None and not attr.get('x_auto_name'):
-                raise ValueError('index: name is required outside a package')
-            import hashlib
-            import json
-            key = json.dumps(attr.get('columns'), sort_keys=False)
-            attr['name'] = 'index_' + hashlib.sha256(key.encode()).hexdigest()[:12]
-            attr['x_auto_name'] = True
+        if node_tag == 'index':
+            columns = attr.get('columns')
+            if isinstance(columns, (list, tuple)):
+                attr['columns'] = columns = ','.join(columns)
+            if attr.get('name') is None:
+                table = parent if parent.node_tag == 'table' else parent.parent_node
+                attr['name'] = default_index_name(table.label, columns)
         if node_tag in ('validation', 'encryption'):
             existing = build_where.node(node_tag)
             if existing is not None:

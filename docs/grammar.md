@@ -381,7 +381,6 @@ A table constraint.
 | constraint_type | `CONSTRAINT_TYPE` | *required* | physical | `'UNIQUE'` (needs `columns`) or `'CHECK'` (needs `check_clause`). |
 | columns | `str \| None` | `None` | physical | comma-joined physical column names. |
 | check_clause | `str \| None` | `None` | physical | the CHECK expression. |
-| x_auto_name | `bool \| None` | `None` | physical |  |
 
 ### `index`
 
@@ -394,14 +393,13 @@ A table index.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| name | `str \| None` | `None` | physical | the index name. |
-| columns | `object \| None` | `None` | physical | comma-joined names, or a `{name: None \| 'DESC'}` dict when per-column ordering matters. |
-| unique | `bool` | `False` | physical | a UNIQUE index. |
+| columns | `object \| None` | `None` | physical | comma-joined names, a list or tuple of names, or a `{name: None \| 'DESC'}` dict when per-column ordering matters. |
+| name | `str \| None` | `None` | physical | the index name; `<table>_<columns joined by _>_key` when absent, as in GenroPy. |
+| unique | `bool \| None` | `None` | physical | a UNIQUE index. |
 | method | `str \| None` | `None` | physical | access method (`btree`, `gin`, …). |
 | where | `str \| None` | `None` | physical | partial-index predicate. |
 | tablespace | `str \| None` | `None` | physical | target tablespace. |
 | with_options | `dict \| None` | `None` | physical | storage parameters. |
-| x_auto_name | `bool \| None` | `None` | physical |  |
 
 ### `relation`
 
@@ -430,7 +428,7 @@ reports every conflicting relation together.
 | indexed | `bool` | `True` | physical | the supporting index of the foreign key. On by default (GenroPy parity, D3); `False` states that the columns are deliberately left unindexed. |
 | one_name | `str \| None` | `None` | semantic | human label of the one side. |
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
-| one_one | `bool` | `False` | semantic | the relation is 1:1. |
+| one_one | `bool \| Literal['*']` | `False` | semantic | the relation is 1:1. `'*'` without `relation_name` names the inverse after the many table and makes it public, as in GenroPy. |
 | case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
 | name | `str \| None` | `None` | physical |  |
 | relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`), as in GenroPy. |
@@ -443,7 +441,9 @@ reports every conflicting relation together.
 | eager_many | `bool \| None` | `None` | physical |  |
 | external_relation | `bool \| None` | `None` | physical |  |
 | resolver_kwargs | `dict \| None` | `None` | physical |  |
-| join_on | `str \| None` | `None` | physical |  |
+| join_on | `str \| None` | `None` | semantic | the ON condition in place of the key equality. Wins over `cnd`. |
+| cnd | `str \| None` | `None` | semantic | the ON condition in place of the key equality. The relation projects no foreign key (GenroPy `mode='custom'`). |
+| between | `str \| None` | `None` | semantic | `'value;low;high'`, a range condition in place of the key equality. |
 | x_weak | `bool \| None` | `None` | physical |  |
 | x_canonical | `bool \| None` | `None` | physical |  |
 | x_name | `str \| None` | `None` | physical |  |

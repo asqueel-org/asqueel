@@ -27,6 +27,6 @@ def config_db(tables):
     )
     indexes = table.indexes()
     indexes.index(
-        "ix_invoice_row_invoice_line", columns="invoice_id,line_no",
+        name="ix_invoice_row_invoice_line", columns="invoice_id,line_no",
     )
     return table

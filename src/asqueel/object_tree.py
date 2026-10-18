@@ -13,7 +13,7 @@ from typing import Any
 from genro_bag import Bag
 from genro_toolbox import extract_kwargs
 
-from .common import split_names
+from .common import default_index_name, split_names
 
 
 @dataclass(frozen=True)
@@ -190,7 +190,7 @@ class DbTableObj(DbModelObj):
                 self._column_index(column.name, unique=bool(column.attributes.get('unique')))
 
     def _column_index(self, column, **attributes):
-        name = f'{self.name}_{column.replace(",", "_")}_key'
+        name = default_index_name(self.name, column)
         if name not in self.indexes:
             fragment = _Fragment(name, 'index', dict(columns=column, **attributes), ())
             self.indexes.children[name] = DbIndexObj(fragment, model=self._model, parent=self.indexes)

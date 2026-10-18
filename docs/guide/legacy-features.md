@@ -44,6 +44,12 @@ the write cycle, see [Current status](limitations.md).
   `ValueError`; an unknown column returns `None`.
 - **`pkeys`** (A1.20): the list of the key columns, the compositeColumn
   members when `pkey` names one.
+- **`index(columns, name, unique)`** (A1.13): columns first, a string, list
+  or tuple; the default name is `<table>_<columns joined by _>_key`. An index
+  with that default name gets the migrator's generated SQL name, as in GenroPy;
+  `method`, `where`, `tablespace`, `with_options` are keyword attributes.
+- **Composite `pkey`** (A1.20): `pkey=<compositeColumn name>`, with `pkeys`
+  its member list; `pkey='a,b'` raises `ValueError` at model build.
 - **`name_long`, `name_short`, `name_full`, `name_plural`** (A1.22): the
   legacy fallbacks; `name_full` is an attribute of package, table and column.
 - **`sql_default`, `sql_generatedExpression`, `sql_extra`** (A1.27): column
@@ -74,14 +80,9 @@ the write cycle, see [Current status](limitations.md).
 - **`compositeColumn()`** (A1.12): declared in the `composites` collection
   with `unique=`; SELECT and `record()` fail when it is the pkey. Reason: open
   defect ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
-- **`index()`** (A1.13): `index(name, columns, unique, method, where, ...)`:
-  the first positional argument is the name, and `columns` is required.
-  Reason: not recorded for the argument order.
 - **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a recipe
   `main(self, root)` with one function per table; overrides through
   `builder.contribution`. Reason: the legacy adapter is not implemented.
-- **`pkey`** (A1.20): `pkey` returns the logical pkey; `pkey='a,b'`
-  is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23)).
 - **`name_long`, `name_short`, `name_full`** (A1.22): there are no setters.
   Reason: not recorded.
 - **Package custom types `custom_type_<dtype>`** (A1.26): declared with
@@ -280,6 +281,14 @@ the write cycle, see [Current status](limitations.md).
 - Multi-hop path `@a.@b.c` (A4.8).
 - Relation on a composite key (A4.10).
 - The `relations` Bag of table and model (A4.15).
+- **`one_one`** (A4.4): `True` or `'*'`. `'*'` without `relation_name` names
+  the inverse after the many table and makes it public; otherwise the default
+  inverse name is `pkg_tbl_col`, private without `relation_name`.
+- **Join conditions `cnd`, `join_on`, `between`** (A4.12): each replaces the
+  key equality in the ON clause; `join_on` wins over `cnd`;
+  `between='value;low;high'` builds the range condition. A relation with `cnd`
+  projects no FOREIGN KEY (GenroPy `mode='custom'`); `aggr` refuses these
+  relations.
 
 ### Works differently
 
@@ -287,9 +296,6 @@ the write cycle, see [Current status](limitations.md).
   `relation(to, foreign_key=, case_insensitive=)`; inside a package
   `foreign_key` defaults to `True`; `weak_relation` creates no FK; `mode=` is
   refused. Reason: `relation` creates the FK and `weak_relation` does not.
-- **Default inverse name and `one_one='*'`** (A4.4): the default name is
-  `pkg_tbl_col`; `one_one` is a boolean and `'*'` is refused. Reason:
-  `one_one=True` declares at most one; the `'*'` default: not recorded.
 - **SQL action abbreviations** (A4.6): `onDelete_sql`/`onUpdate_sql` take the
   full names only (`cascade`, `restrict`, `no action`, `setnull`,
   `setdefault`); `'C'`, `'SN'` and the other abbreviations raise. Reason:
@@ -298,10 +304,6 @@ the write cycle, see [Current status](limitations.md).
   `UnsupportedFeatureError`; with `one_one=True` it becomes a LEFT JOIN.
   Reason: no to-many JOIN, no multiplied rows, no implicit DISTINCT; `aggr`
   replaces it (decision of 16 October 2026).
-- **Join conditions `cnd`, `join_on`, `between`** (A4.12): executed in the
-  to-one join; `join_on` is accepted, `cnd` and `between` are refused; `aggr`
-  refuses these relations. Reason: arbitrary conditions belong to
-  `virtualRelation`; accepting `join_on`: not recorded.
 - **`aliasTable` / `table_alias`** (A4.18): removed from the grammar;
   `virtualRelation(relation=...)` works only inside `aggr`. Reason:
   `virtualRelation` is to-many only (decision of 13 October 2026); a

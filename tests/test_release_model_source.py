@@ -28,7 +28,7 @@ def test_direct_table_declarations_keep_internal_namespaces_and_standard_labels(
     table.column('id', dtype='L')
     table.column('account_name', dtype='T')
     table.formulaColumn('upper_name', sql_formula='upper($account_name)')
-    table.index('name_idx', columns='account_name')
+    table.index(name='name_idx', columns='account_name')
     builder.validate_model()
     path = 'db.packages.invc.tables.customer'
     assert builder.source[path + '.columns.account_name'].get_attr('dtype') == 'T'

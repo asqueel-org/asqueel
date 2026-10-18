@@ -55,8 +55,8 @@ def test_index_orders_and_repeated_structural_members_are_loud():
         "uq_pair", constraint_type="UNIQUE", columns="id,id",
     )
     indexes = table.indexes()
-    indexes.index("ix_pair", columns="id,id")
-    indexes.index("ix_order", columns={"id": "SIDEWAYS"})
+    indexes.index(name="ix_pair", columns="id,id")
+    indexes.index(name="ix_order", columns={"id": "SIDEWAYS"})
 
     with pytest.raises(SqlModelValidationError) as caught:
         model.validate_model()

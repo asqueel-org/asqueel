@@ -52,11 +52,10 @@ def test_constraint_and_index_names_do_not_share_the_column_namespace():
     assert item["constraints"] and item["indexes"]
 
 
-def test_index_requires_a_name_and_columns():
+def test_index_name_defaults_as_legacy_and_columns_are_required():
     model, table, _columns = _table()
     indexes = table.indexes()
-    with pytest.raises((TypeError, ValueError), match="name"):
-        indexes.index(columns="id")
+    assert indexes.index(columns="id").get_attr("name") == f"{table.get_attr('name')}_id_key"
     indexes.index(name="empty")
     with pytest.raises(SqlModelValidationError, match="columns"):
         model.validate_model()

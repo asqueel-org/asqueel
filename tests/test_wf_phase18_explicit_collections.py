@@ -41,7 +41,7 @@ class _ExplicitRecipe(SqlBuilder):
             columns="id,author_id",
         )
         recipe_indexes = recipe.indexes()
-        recipe_indexes.index("ix_recipe_author", columns="author_id")
+        recipe_indexes.index(name="ix_recipe_author", columns="author_id")
 
         extensions = db.extensions()
         extensions.extension("pg_trgm")

@@ -22,6 +22,6 @@ def config_db(tables):
     )
     indexes = table.indexes()
     indexes.index(
-        "ix_invoice_customer_date", columns="customer_id,invoice_date",
+        name="ix_invoice_customer_date", columns="customer_id,invoice_date",
     )
     return table

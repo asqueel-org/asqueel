@@ -35,7 +35,7 @@ def invoice_table(tables):
     virtuals.formulaColumn(
         'double_total', dtype='N', sql_formula='$total * 2',
     )
-    table.indexes().index('invoice_total', columns={'total': 'DESC'})
+    table.indexes().index(name='invoice_total', columns={'total': 'DESC'})
     return table
 
 

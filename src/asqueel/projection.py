@@ -165,8 +165,7 @@ def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rena
                             raise UnsupportedFeatureError(f'{table.key}: CHECK with remapped columns')
                     if constraints_node is None:
                         constraints_node = node.constraints()
-                    constraints_node.constraint(constraint.get('name') or f'unique_{index}',
-                                                x_auto_name=constraint.get('x_auto_name', False), **data)
+                    constraints_node.constraint(constraint.get('name') or f'unique_{index}', **data)
                 indexes = table.attributes.get('indexes', ())
                 idx_node = None
                 for item in indexes:
@@ -198,7 +197,7 @@ def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rena
                                            if isinstance(names, Mapping) else mapped(names.split(',')))
                         if data.get('where') and any(c.physical_name != c.name for c in table.columns.values()):
                             raise UnsupportedFeatureError(f'{table.key}: partial index with remapped columns')
-                    idx_node.index(item['name'], x_auto_name=item.get('x_auto_name', False), **data)
+                    idx_node.index(name=item['name'], **data)
             def composite(table, names):
                 key = (table.key, names)
                 if key not in composite_keys:

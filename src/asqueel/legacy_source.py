@@ -92,7 +92,7 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
                 _grammar(builder, 'virtualRelation', f'{path}.{alias.label}', alias.attr, ('tag', 'relation_path'))
                 t.virtualRelation(alias.label.lstrip('@'), relation=alias.attr['relation_path'])
             for idx in original.value.get_item('indexes') or ():
-                t.index(idx.label, **_grammar(builder, 'index', f'{path}.{idx.label}', idx.attr, ('tag',)))
+                t.index(name=idx.label, **_grammar(builder, 'index', f'{path}.{idx.label}', idx.attr, ('tag',)))
             unknown = set(original.value.keys()) - {'columns', 'virtual_columns', 'indexes', 'table_aliases'}
             if unknown:
                 raise ValueError(f'{path}: sections outside the asqueel grammar {sorted(unknown)}')
@@ -101,7 +101,8 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
         kwargs = {'to': _target(package, data['related_column']),
                   **_grammar(builder, 'relation', f'{column.fullpath}.relation', data,
                              ('tag', 'related_column', 'mode'))}
-        kwargs['one_one'] = bool(kwargs.get('one_one'))
+        if kwargs.get('one_one') != '*':
+            kwargs['one_one'] = bool(kwargs.get('one_one'))
         if isinstance(kwargs.get('onDuplicate'), bool):
             kwargs['onDuplicate'] = 'copy' if kwargs['onDuplicate'] else 'ignore'
         if data.get('mode') == 'foreignkey':

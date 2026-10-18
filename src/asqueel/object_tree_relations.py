@@ -35,14 +35,16 @@ def _joiner(table, column, target, attrs):
         onUpdate=_action(attrs.get('onUpdate')),
         onUpdate_sql=_action(attrs.get('onUpdate_sql') or 'cascade'),
         onDuplicate=attrs.get('onDuplicate'), deferred=attrs.get('deferred'),
-        private_relation=not bool(relation_name), case_insensitive=attrs.get('case_insensitive', False),
+        private_relation=not relation_name and attrs.get('one_one') != '*',
+        case_insensitive=attrs.get('case_insensitive', False),
         one_group=attrs.get('one_group'), many_group=attrs.get('many_group'),
     )
     # These legacy attributes remain opaque data; their execution is not added.
     for key in ('eager_one', 'eager_many', 'external_relation',
                 'storefield', 'between', 'cnd', 'join_on', 'virtual'):
         result[key] = attrs.get(key)
-    return result, relation_name or many.replace('.', '_')
+    default_name = table.name if attrs.get('one_one') == '*' else many.replace('.', '_')
+    return result, relation_name or default_name
 
 
 def build_relations(model):
