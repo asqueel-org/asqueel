@@ -17,7 +17,7 @@ step below on both databases.
 
 | Area | Available | Boundary |
 |---|---|---|
-| Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and BEGIN IMMEDIATE. PostgreSQL-specific SQL is not translated. |
+| Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and deferred transactions; `for_update` takes the database write lock. PostgreSQL-specific SQL is not translated. |
 | Tables | `db.migrate()` creates and alters the declared tables; it needs `asqueel[migration]`. | Without the extra, create tables with your own DDL, as in the [quickstart](quickstart.md). |
 | Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; `record()` for exactly one row, `for_update=True` for a locked read. | No streaming cursor: rows are materialized Toolbox `NamedList` rows. |
 | Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `relation_name` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |

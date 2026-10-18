@@ -448,10 +448,10 @@ the write cycle, see [Current status](limitations.md).
 - **`db.closeConnection()`** (A6.21): rollback and close of every connection
   of the thread; refused inside a write; the first cleanup error is re-raised
   after closing the others. Reason: not recorded for the error propagation.
-- **SQLite transactions and locks** (A6.27): `BEGIN IMMEDIATE` at the first
-  statement, reads included; `for_update` takes the database write lock.
-  Reason: `for_update` on SQLite takes the write lock of the database
-  (decision of 2026-10-16).
+- **`for_update` on SQLite** (A6.27): it takes the database write lock; the
+  legacy emits no lock on SQLite. Transactions are deferred as legacy: reads
+  open none. Reason: `for_update` locks as on PostgreSQL (decision of
+  2026-10-15).
 
 ### Not available yet
 
@@ -569,6 +569,14 @@ the write cycle, see [Current status](limitations.md).
 - Collections after `IN :param` (A8.3).
 - `REGEXP` / `~*` and the regexp function on SQLite (A8.4).
 - `IS TRUE` / `IS FALSE` on SQLite (A8.6).
+- **Value types on SQLite** (A8.9): columns declared `date`, `time`,
+  `timestamp`, `numeric` and `boolean`/`bool` return `datetime.date`,
+  `datetime.time`, `datetime.datetime`, `Decimal` and `bool`;
+  `datetime.time` parameters are passed as ISO strings. In the legacy a
+  `boolean` column returns an integer, because only `bool` has a converter.
+- **SQLite transactions** (A8.10): the driver opens a deferred `BEGIN`
+  before the first INSERT, UPDATE or DELETE; reads open no transaction and
+  hold no lock.
 
 ### Works differently
 
@@ -587,13 +595,11 @@ the write cycle, see [Current status](limitations.md).
   default schema `main`, the folder must exist. Reason: same layout as the
   migration adapter; the file name change: not recorded.
 - **SQLite connection opening** (A8.8): `PRAGMA foreign_keys = ON`; only
-  `timeout` and `cached_statements`; SQLite 3.35 required. Reason: FKs are on
-  by decision of 2026-10-16; the timeout default: not recorded.
-- **Value types on SQLite** (A8.9): dates and Decimal are written as strings;
-  no read converters. Reason: not recorded.
-- **Transaction and `for_update` on SQLite** (A8.10): `BEGIN IMMEDIATE` at the
-  start of every unit of work, reads included; `for_update` runs a no-op
-  UPDATE. Reason: it protects the hook cycle with a database lock.
+  `timeout` (default 20 seconds, as legacy) and `cached_statements`; SQLite
+  3.35 required. Reason: FKs are on by decision of 2026-10-16.
+- **`for_update` on SQLite** (A8.10): `BEGIN IMMEDIATE` when no transaction
+  is open, a no-op UPDATE inside an open one; the legacy emits no lock.
+  Reason: `for_update` locks as on PostgreSQL (decision of 2026-10-15).
 - **Bulk insert (`insertMany`, `executemany`)** (A8.14): `sql_insert` with a
   list runs one executemany per group of records with the same columns,
   without RETURNING and without generating the pkey. Reason: `insertMany`

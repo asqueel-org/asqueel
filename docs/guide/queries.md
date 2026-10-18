@@ -552,7 +552,7 @@ rollback. A cached reader does not acquire a new lock in another transaction;
 use a fresh reader or refresh it. PostgreSQL rejects locking incompatible SELECT
 forms, including aggregate projections.
 
-On SQLite the driver starts `BEGIN IMMEDIATE` if no transaction is open. If a
+On SQLite a locked read starts `BEGIN IMMEDIATE` if no transaction is open. If a
 transaction is already open, a zero-row self-update acquires the write
 reservation before SELECT, without changing rows or switching connections.
 

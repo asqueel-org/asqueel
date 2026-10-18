@@ -20,7 +20,8 @@ class Recipe(SqlDatabaseConfig):
 
 Use an absolute filename for repeatable CLI and Python access. `connection.name`
 is the database file; host, port, user and password are not applicable. Optional
-`connection.options` supports `timeout` and `cached_statements` from `sqlite3`.
+`connection.options` supports `timeout` (default 20 seconds) and
+`cached_statements` from `sqlite3`.
 
 Logical schemas are attached files, matching the existing migration adapter:
 `example.db` is the main file and schema `app` uses `example_app.db`. Physical
@@ -42,18 +43,20 @@ can create missing files, but it does not create the declared tables.
 
 ## Transactions and concurrency
 
-Every SQLite unit of work begins with `BEGIN IMMEDIATE`, including one starting
-with a read. This reserves write access before a read/modify/write hook cycle;
-`for_update=True` therefore uses connection-level locking, not PostgreSQL row
-locks. Other Asqueel connections targeting the same files may block or time out
-until explicit completion. Finish a unit of work promptly and do not leave a
-read pending while starting another named connection's work.
+Transactions are deferred, as in the legacy: the driver opens `BEGIN` before
+the first INSERT, UPDATE or DELETE. Reads open no transaction and hold no lock,
+so they block no other connection. The first write takes the database write
+reservation; other connections can still read, and their writes wait until
+explicit completion or until the timeout. `for_update=True` takes the write
+reservation at the read: `BEGIN IMMEDIATE` when no transaction is open, a
+zero-row self-update inside an open one. It is connection-level locking, not
+PostgreSQL row locks.
 
 The underlying semantics are documented by SQLite for
 [transactions](https://www.sqlite.org/lang_transaction.html) and
 [attached databases](https://sqlite.org/lang_attach.html). This first profile
-prioritizes a protected hook cycle over concurrent Asqueel readers. No lock
-upgrade, retry or savepoint policy is hidden in the driver.
+protects a read/modify/write hook cycle only when it reads with `for_update`.
+No lock upgrade, retry or savepoint policy is hidden in the driver.
 
 ## Supported scope and differences
 
@@ -64,10 +67,12 @@ and normal compiler/policy checks.
 
 PostgreSQL-specific expressions such as `ILIKE`, `ANY`, array operations and
 PostgreSQL casts are not translated into SQLite equivalents. Use expressions
-valid for the configured backend. SQLite's native returned types are preserved:
-booleans may be integers, dates are ISO strings, and NUMERIC values do not carry
-PostgreSQL's decimal precision guarantees. Decimal parameters are passed as
-strings for SQLite affinity handling.
+valid for the configured backend. Values come back converted to the dtype, as in
+the legacy: columns declared `date`, `time`, `timestamp`, `numeric` and
+`boolean` return `date`, `time`, `datetime`, `Decimal` and `bool`. NUMERIC
+values do not carry PostgreSQL's decimal precision guarantees. Decimal
+parameters are passed as strings for SQLite affinity handling; dates and times
+as ISO strings.
 
 The migration adapter's limitations still apply, including unsupported foreign
 key DDL and table alterations. SQLite cannot enforce foreign keys across attached

@@ -5,7 +5,7 @@ Attached schemas and connection-level write locking.
 from __future__ import annotations
 
 from contextlib import closing
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
 import re
@@ -45,7 +45,12 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         allowed = {'timeout', 'cached_statements'}
         if set(kwargs) - allowed:
             raise ValueError(f'Unsupported SQLite options: {sorted(set(kwargs) - allowed)}')
-        connection = sqlite3.connect(name, isolation_level=None, **kwargs)
+        kwargs.setdefault('timeout', 20.0)
+        self._register_converters()
+        # The driver's own legacy transaction control, as gnrsqlite: a deferred
+        # BEGIN before the first INSERT/UPDATE/DELETE; reads open no transaction.
+        connection = sqlite3.connect(name, isolation_level='DEFERRED',
+                                     detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES, **kwargs)
         try:
             # gnrsqlite registers this function for its ~* -> REGEXP translation.
             connection.create_function('regexp', 2, self._regexp)
@@ -64,6 +69,20 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         return connection
 
     @staticmethod
+    def _register_converters():
+        """Legacy gnrsqlite converters, keyed by the declared types of the migration DDL.
+
+        The sqlite3 registry is process-wide, as in the legacy.
+        """
+        # Only the date part, also when a datetime string reached a date column.
+        sqlite3.register_converter('date', lambda value: date.fromisoformat(value.decode()[:10]))
+        sqlite3.register_converter('time', lambda value: time.fromisoformat(value.decode()))
+        sqlite3.register_converter('timestamp', lambda value: datetime.fromisoformat(value.decode()))
+        sqlite3.register_converter('numeric', lambda value: Decimal(value.decode()))
+        for name in ('boolean', 'bool'):
+            sqlite3.register_converter(name, lambda value: bool(int(value)))
+
+    @staticmethod
     def _regexp(expression, item):
         return re.compile(expression, re.U).match(item) is not None
 
@@ -72,14 +91,16 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         return closing(connection.cursor())
 
     def _begin(self, connection, query):
-        """Explicit transaction boundary; a locked query takes the write reservation."""
+        """A locked query takes the write reservation; the driver begins the others."""
+        if not query.for_update:
+            return
         if not connection.in_transaction:
             connection.execute('BEGIN IMMEDIATE')
-        elif query.for_update:
-            if not query.lock_table or not query.lock_column:
-                raise ValueError('A locked SQLite query requires a physical table and column')
-            # Acquire the write reservation without changing rows or ending the transaction.
-            connection.execute(f'UPDATE {query.lock_table} SET {query.lock_column}={query.lock_column} WHERE 0')
+            return
+        if not query.lock_table or not query.lock_column:
+            raise ValueError('A locked SQLite query requires a physical table and column')
+        # Acquire the write reservation without changing rows or ending the transaction.
+        connection.execute(f'UPDATE {query.lock_table} SET {query.lock_column}={query.lock_column} WHERE 0')
 
     def execute(self, connection, query):
         self.validate(query)
@@ -97,7 +118,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
     @staticmethod
     def _value(value):
-        if isinstance(value, (date, datetime)):
+        if isinstance(value, (date, datetime, time)):
             return value.isoformat()
         if isinstance(value, Decimal):
             return str(value)

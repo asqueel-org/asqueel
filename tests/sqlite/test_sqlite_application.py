@@ -147,12 +147,11 @@ def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypat
         db.close()
 
 
-def test_another_named_connection_times_out_without_losing_first_transaction(database):
+def test_another_named_connection_reads_committed_state_without_losing_first_transaction(database):
     db, path = database
     db.table('app.item').sql_insert({'id': 1, 'name': 'pending'})
     with db.tempEnv(connectionName='other'):
-        with pytest.raises(sqlite3.OperationalError, match='locked'):
-            db.table('app.item').query().fetch()
+        assert db.table('app.item').query().fetch() == []
     assert db.outcome == 'active'
     db.commit()
     assert observed(path) == [(1, 'pending')]
