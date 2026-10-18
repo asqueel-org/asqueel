@@ -13,7 +13,7 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Requires of earlier work: the adapter owns connection and type conversion.
 - Open decisions: none beyond decisioni.md.
 
-## Macro 3 (current): hierarchical tables — detailed in active/hierarchical-tables/plan.md
+## Macro 3 (done): hierarchical tables — done/hierarchical-tables/plan.md
 - Objective: hierarchical tables work for reads (macros) and writes (tree-maintaining triggers), declared with `options().hierarchical(...)`, result very close to the legacy; triggers in a mixin or proxy; consider the algorithm improvements of `docs/design/36-hierarchical-analysis.md` if not risky.
 - Starts from: Macro 2 landed.
 - Ends at: a hierarchical table is readable and writable on both dialects (#30 closed).
