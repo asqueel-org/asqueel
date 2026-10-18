@@ -24,3 +24,9 @@
 - `config_attributes()` keys are set with `setdefault` on the package node: element attributes win.
 - Modules are executed with `importlib.util.spec_from_file_location`, not registered in `sys.modules` and without touching `sys.path`.
 - `object_tree.py`, `model_source.py`, `application_table.py` from the plan's Files needed no change: `x_table_class` already carries the runtime class and `_check_table_methods`.
+## Run inspection
+- Phase 1 closed [!] on a plan-defect claim: SQLite generated columns are not read back by asqueel-migration 0.2.3 (`PRAGMA table_info`), and the Done grep matched the contract test itself. The foreman applied the fix on the user's answer.
+- The foreman's first apply committed only the test copies and wrote `green` while the plan still showed [!]; the launcher started a repair, which the foreman stopped on the user's answer before it changed anything. The plan was closed by hand (6ebd670) and the run relaunched from Phase 2.
+- Phase 2 closed [!] on a plan-defect claim: a contract test migrated an in-memory SQLite database, which `migration_plan()` refuses (decision A7.3). Applied on the user's answer (94a7ef7).
+- Phases 3 and 4 closed on the first attempt. Final suite 4992 passed, 42 skipped, 31 xfailed (one strict xfail, asqueel#15, left with x_partition in Phase 1).
+- Both plan defects were in contract tests written at planning time; no code defect reached a repair.
