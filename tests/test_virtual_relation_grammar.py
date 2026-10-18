@@ -60,9 +60,9 @@ def test_retired_or_unknown_virtual_relation_arguments_are_rejected(key, value):
         customer.virtualRelation('bad', relation='@invoices', **{key: value})
     node = customer.virtualRelation('imported', relation='@invoices')
     node.attr[key] = value
-    with pytest.raises(ValueError, match=f"unknown attribute '{key}' on <virtualRelation>"):
+    with pytest.raises(ValueError, match=f"Element 'virtualRelation' does not accept '{key}'"):
         b.validate_source()
-    with pytest.raises(ValueError, match=f"unknown attribute '{key}' on <virtualRelation>"):
+    with pytest.raises(ValueError, match=f"Element 'virtualRelation' does not accept '{key}'"):
         resolve_model(b)
 
 

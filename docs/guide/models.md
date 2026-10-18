@@ -18,7 +18,7 @@ def customer_table(tables):
     columns.column(
         'name', dtype='T', notnull=True,
         x_identity='customer-name',
-        x_ui_label='Customer name',
+        name_long='Customer name',
     )
     return table
 
@@ -80,18 +80,20 @@ The source-to-migration projection uses these same objects.
 
 ## Keep descriptive attributes on the column
 
-Labels and other flat attributes stay on their model node:
+Labels and the other attributes the grammar declares stay on their model node:
 
 ```python
 column = model.table('sales.customer').column('name')
-label = column.attributes.get('x_ui_label')
+label = column.attributes.get('name_long')
 dtype = column.dtype
 ```
 
 Use source contributions to override declarations before rendering. The removed
 `resolve_model(..., ui=...)` overlay and separate column `.config` wrapper are
-not part of the live model. Namespaced flat attributes remain available in
+not part of the live model. Declared attributes remain available in
 `attributes`; validation attributes are exposed separately by `validations`.
+An attribute the element does not declare raises, naming the attribute and the
+element: free extras such as `x_ui_label` are outside this release's grammar.
 
 ## Declare relations and formulas
 
@@ -143,14 +145,13 @@ legacy model's target-and-override behavior:
 ```python
 # Add inside invoice_table(), before returning; reuse its virtuals handle.
 virtuals.aliasColumn(
-    'customer_name', relation_path='@customer_id.name', name_long='Customer',
-    x_ui_label='Customer name',
+    'customer_name', relation_path='@customer_id.name', name_long='Customer name',
 )
 ```
 
 Read the alias as `$customer_name` in projections, filters, ordering or another
 formula. Its dtype and descriptive metadata are inherited from the destination;
-non-None local attributes and UI overrides take precedence. Its own identity is
+non-None local attributes take precedence. Its own identity is
 preserved in result metadata. The target may itself be an alias or a formula.
 For multiple relations, both legacy `@customer_id.@country_id.name` and
 `@customer_id.country_id.name` are accepted. Local `name`/`$name` alias targets are also

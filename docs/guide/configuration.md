@@ -29,7 +29,7 @@ class Shop(SqlDatabaseConfig):
         )
         columns = table.columns()
         columns.column("id", dtype="L")
-        columns.column("name", dtype="T", x_ui_label='Name')
+        columns.column("name", dtype="T", name_long='Name')
 
 
 db = AsqueelDb(Shop)

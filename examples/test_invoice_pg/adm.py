@@ -186,7 +186,7 @@ def helpdoc(pkg):
 # projects/gnrcore/packages/adm/model/htag.py
 # SHA256: cc1c146c9c1315b878a216e630cd1881cad9bf1dec99f0f08755e66d53827270
 def htag(pkg):
-    tbl = pkg.table('htag', pkey='id', name_long='!!Tag', rowcaption='$code,$description', caption_field='hierarchical_description', newrecord_caption='!!New tag', hierarchical_caption_field='description')
+    tbl = pkg.table('htag', pkey='id', name_long='!!Tag', rowcaption='$code,$description', caption_field='hierarchical_description', newrecord_caption='!!New tag')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System', syscode=True)
     tbl.options().hierarchical('code,description')
     tbl.options().auto_counter()
@@ -202,13 +202,13 @@ def htag(pkg):
 # projects/gnrcore/packages/adm/model/htmltemplate.py
 # SHA256: ec0430136127531ea582daddc4f263746f6269a54802fdc6240cc6a7f207eaf1
 def htmltemplate(pkg):
-    tbl = pkg.table('htmltemplate', pkey='id', name_long='!!Letterhead', name_plural='!!Letterheads', rowcaption='name', x_legacy_noTestForMerge=True)
+    tbl = pkg.table('htmltemplate', pkey='id', name_long='!!Letterhead', name_plural='!!Letterheads', rowcaption='name')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.column('name', name_long='!!Name', validate_notnull=True)
     tbl.column('username', name_long='!!Username')
     tbl.column('version', name_long='!!Version')
     tbl.column('type_code', size=':15', name_long='Type').relation('letterhead_type.code', relation_name='letterheads', onDelete='raise', foreign_key=True)
-    tbl.column('data', dtype='X', name_long='!!Data', x_legacy__sendback=True)
+    tbl.column('data', dtype='X', name_long='!!Data')
     tbl.column('center_height', dtype='I', name_long='!!Center height')
     tbl.column('center_width', dtype='I', name_long='!!Center width')
     tbl.column('based_on', size='22', group='_', name_long='!!Based on').relation('htmltemplate.id', relation_name='children', one_one=True, onDelete='raise', deferred=True, foreign_key=True)
@@ -228,7 +228,7 @@ def htmltemplate_atc(pkg):
 def install_checklist(pkg):
     tbl = pkg.table('install_checklist', pkey='__syscode', name_long='!!Install checklist', name_plural='!!Install checklist', caption_field='description')
     tbl.options().sys_fields(id=False, ins=False, upd=False, user_upd=False, group_name='!![en]System')
-    tbl.column('__syscode', size=':20', unique=True, indexed=True, x_legacy__sysfield=True, name_long='!![en]Internal code')
+    tbl.column('__syscode', size=':20', unique=True, indexed=True, name_long='!![en]Internal code')
     tbl.column('name', name_long='!!Name')
     tbl.column('description', name_long='!!Description')
     tbl.column('pkg', size=':20', name_long='!!Package')
@@ -300,7 +300,7 @@ def notification(pkg):
     tbl.column('group_code', name_long='!!Group code')
     tbl.column('all_users', 'B', name_long='!!For all users')
     tbl.column('letterhead_id', size='22', group='_', name_long='!!Letterhead').relation('htmltemplate.id', relation_name='notifications', foreign_key=True)
-    tbl.column('linked_query', dtype='X', name_long='!![en]Linked query', x_legacy__sendback=True)
+    tbl.column('linked_query', dtype='X', name_long='!![en]Linked query')
     tbl.column('dynamic_list', 'B', default=True, name_long='!!Dynamic list', name_short='!!Dynamic')
     tbl.column('start_date', 'D', name_long='!!Start date')
     tbl.column('end_date', 'D', name_long='!!End date')
@@ -324,7 +324,7 @@ def preference(pkg):
     tbl = pkg.table('preference', pkey='code', name_long='!!Preference', name_plural='!!Preference')
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size='12', name_long='!!Code')
-    tbl.column('data', 'X', name_long='!!Data', x_legacy__sendback=True)
+    tbl.column('data', 'X', name_long='!!Data')
 
 
 # projects/gnrcore/packages/adm/model/record_tag.py
@@ -388,11 +388,11 @@ def tblinfo(pkg):
 def tblinfo_item(pkg):
     tbl = pkg.table('tblinfo_item', pkey='info_key', pkey_columns='tblid,item_type,code', name_long='!!Tblinfo item', pkey_columns_joiner='/', name_plural='!!Tblinfo items', caption_field='description')
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
-    tbl.column('info_key', size=':50', read_only=True, name_long='!!Info key', indexed=True, x_legacy__sysfield=True)
-    tbl.column('code', size=':50', name_long='!!Code', x_legacy__sysfield=True)
-    tbl.column('description', size=':50', name_long='!!Description', x_legacy__sysfield=True)
+    tbl.column('info_key', size=':50', read_only=True, name_long='!!Info key', indexed=True)
+    tbl.column('code', size=':50', name_long='!!Code')
+    tbl.column('description', size=':50', name_long='!!Description')
     tbl.column('item_type', size=':5', name_long='!!Type', validate_values='QTREE:Quick tree,FTREE:Full tree')
-    tbl.column('data', dtype='X', name_long='!!Data', x_legacy__sendback=True)
+    tbl.column('data', dtype='X', name_long='!!Data')
     tbl.column('tblid', size=':50').relation('tblinfo.tblid', relation_name='items', onDelete='cascade', foreign_key=True)
 
 
@@ -403,14 +403,14 @@ def user(pkg):
     tbl.options().sys_fields(ins=True, upd=True, user_upd=False, group_name='!![en]System')
     tbl.options().record_hash()
     tbl.column('id', size='22', group='_', read_only=True, name_long='Id')
-    tbl.column('username', size=':32', name_long='!!Username', unique=True, x_legacy__sendback=True, indexed=True, validate_notnull=True, validate_notnull_error='!!Mandatory field')
+    tbl.column('username', size=':32', name_long='!!Username', unique=True, indexed=True, validate_notnull=True, validate_notnull_error='!!Mandatory field')
     tbl.column('email', name_long='Email', validate_notnull=True, validate_notnull_error='!!Mandatory field')
     tbl.column('mobile', name_long='Mobile')
     tbl.column('firstname', name_long='!!First name', validate_notnull=True, validate_case='c', validate_notnull_error='!!Mandatory field')
     tbl.column('lastname', name_long='!!Last name', validate_notnull=True, validate_case='c', validate_notnull_error='!!Mandatory field')
     tbl.column('registration_date', 'D', name_long='!!Registration Date')
     tbl.column('auth_tags', name_long='!!Authorization Tags')
-    tbl.column('status', name_long='!!Status', size=':4', validate_values='invt:Invited,new:New,wait:Waiting,conf:Confirmed,bann:Banned', x_legacy__sendback=True)
+    tbl.column('status', name_long='!!Status', size=':4', validate_values='invt:Invited,new:New,wait:Waiting,conf:Confirmed,bann:Banned')
     tbl.column('md5pwd', name_long='!!PasswordMD5', size=':65')
     tbl.column('locale', name_long='!![it]Default locale', size=':12')
     tbl.column('language', size=':2', name_long='!![it]Language').weak_relation('adm.language.code')
@@ -421,7 +421,7 @@ def user(pkg):
     tbl.column('sms_number', name_long='!!Sms Number')
     tbl.column('photo', dtype='P', name_long='!![en]Photo')
     tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', relation_name='users', foreign_key=True)
-    tbl.column('xgroup', size=':10', name_long='!!Deployment group', batch_assign_tags='_DEV_').relation('adm.xgroup.code', relation_name='users', onDelete='setnull', foreign_key=True)
+    tbl.column('xgroup', size=':10', name_long='!!Deployment group').relation('adm.xgroup.code', relation_name='users', onDelete='setnull', foreign_key=True)
     tbl.column('custom_menu', dtype='X', name_long='!!Custom menu')
     tbl.column('custom_fields', dtype='X', name_long='!!Custom fields')
     tbl.column('avatar_secret_2fa', dtype='T', name_long='!![en]Secret 2fa')
@@ -456,7 +456,7 @@ def user_config(pkg):
     tbl.column('username', size=':32', group='_', name_long='!!User').weak_relation('user.username', relation_name='custom_info', onDelete='cascade')
     tbl.column('pkgid', size=':50', name_long='!!Pkg').relation('pkginfo.pkgid', relation_name='rules', foreign_key=True)
     tbl.column('tblid', size=':50', name_long='!!Tbl').relation('tblinfo.tblid', relation_name='rules', foreign_key=True)
-    tbl.column('data', dtype='X', name_long='!!Data', x_legacy__sendback=True)
+    tbl.column('data', dtype='X', name_long='!!Data')
     tbl.formulaColumn('calc_pkgid', "CASE WHEN $pkgid IS NOT NULL THEN $pkgid\n                                               WHEN $tblid IS NOT NULL THEN split_part($tblid,'.',1)\n                                               ELSE NULL END", dtype='A')
     tbl.formulaColumn('rank', 'CAST(($tblid IS NOT NULL) AS int)*8+\n                                    CAST(($pkgid IS NOT NULL) AS int)*2+\n                                    CAST(($username IS NOT NULL) AS int)*4+\n                                    CAST(($user_group IS NOT NULL) AS int)*1', dtype='L')
 
@@ -498,7 +498,7 @@ def user_tag(pkg):
     tbl = pkg.table('user_tag', pkey='id', name_long='!!User tag', name_plural='!!User tags')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.column('group_code', size=':15', name_long='!!Group').relation('group.code', relation_name='tags', onDelete='cascade', foreign_key=True)
-    tbl.column('user_id', size='22', group='_', name_long='!!User', x_legacy__sendback=True).relation('user.id', onDelete='cascade', relation_name='tags', foreign_key=True)
+    tbl.column('user_id', size='22', group='_', name_long='!!User').relation('user.id', onDelete='cascade', relation_name='tags', foreign_key=True)
     tbl.column('tag_id', size='22', group='_', name_long='!!Tag').relation('htag.id', onDelete='cascade', relation_name='users', foreign_key=True)
     tbl.aliasColumn('user', relation_path='@user_id.username')
     tbl.aliasColumn('fullname', relation_path='@user_id.fullname')

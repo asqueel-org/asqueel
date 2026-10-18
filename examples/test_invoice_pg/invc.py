@@ -8,7 +8,7 @@ from genro_bag.resolvers import EnvResolver
 # projects/test_invoice/packages/invc/model/customer.py
 # SHA256: f3f76a6c57c6682502afabe328b5e18d9ff418efabdb56e36b7623c2ce5c45b4
 def customer(pkg):
-    tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name', group_b_address='Address', group_c_contacts='Contacts', group_d_billing='Billing', group_e_activity='Invoice activity', group_y_other='Other', group_z_relations='Relations')
+    tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name')
     tbl.options().partition('state', field='state', value=EnvResolver('INVC_STATE'))
     tbl.options().sys_fields(draft=True, user_upd=False, group_name='!![en]System')
     tbl.column('account_name', name_long='!!Account name', name_short='Account name', validate_notnull=True, validate_len='2:40', group='001')
@@ -45,10 +45,6 @@ def customer(pkg):
     tbl.formulaColumn('invoice_numbers', sql_formula="array_to_string(ARRAY(#inv_nums), ', ')", select_inv_nums=dict(table='invc.invoice', columns='$inv_number', where='$customer_id=#THIS.id', order_by='$date DESC', limit=5), dtype='T', name_long='Invoice Numbers', group='e_activity.05')
     tbl.formulaColumn('avg_invoice_value', sql_formula='$invoiced_total / NULLIF($n_invoices, 0)', dtype='N', name_long='Avg Invoice Value', group='e_activity.03')
     tbl.formulaColumn('has_activity', sql_formula='$has_invoices OR EXISTS(SELECT 1 FROM invc.invc_invoice_note AS n INNER JOIN invc.invc_invoice AS i ON n.invoice_id = i.id WHERE i.customer_id = #THIS.id)', dtype='B', name_long='Has Activity', group='e_activity.07')
-    tbl.subtable('residential', condition="$customer_type_code = 'RES'")
-    tbl.subtable('commercial', condition="$customer_type_code = 'COM'")
-    tbl.subtable('government', condition="$customer_type_code = 'GOV'")
-    tbl.subtable('trade', condition="$customer_type_code = 'TRD'")
     tbl.formulaColumn('is_confirmed', sql_formula='$__is_draft IS NOT TRUE', dtype='B', name_long='Is Confirmed', group='006')
 
 
@@ -147,7 +143,7 @@ def invoice_row(pkg):
     tbl.column('vat', dtype='money', name_long='VAT', name_short='VAT')
     tbl.column('vat_rate', dtype='perc', name_long='!![it]Vat rate')
     tbl.aliasColumn('customer_name', relation_path='@invoice_id.@customer_id.account_name', name_long='Customer name')
-    tbl.aliasColumn('customer_id', relation_path='@invoice_id.customer_id', name_long='Customer id', x_legacy_relation_related_column='customer.id', x_legacy_relation_relation_name='invoice_rows_by_customer', x_legacy_relation_many_group='z_relations.02')
+    tbl.aliasColumn('customer_id', relation_path='@invoice_id.customer_id', name_long='Customer id')
     tbl.aliasColumn('product_name', relation_path='@product_id.description', name_long='Product Name')
     tbl.aliasColumn('customer_state', relation_path='@invoice_id.@customer_id.@state.name', name_long='Customer State')
     tbl.formulaColumn('line_total', sql_formula='$quantity * $unit_price', dtype='N', name_long='Line Total')
@@ -186,11 +182,11 @@ def payment_type(pkg):
 def postcode(pkg):
     tbl = pkg.table('postcode', name_long='Postcode', name_plural='Postcodes', pkey='id', caption_field='postcode', lookup=False)
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('postcode', size=':10', name_long='postcode', legacy_name='postcode', unique=False, indexed=True)
-    tbl.column('suburb', size=':100', name_long='suburb', legacy_name='suburb')
-    tbl.column('state', size=':5', name_long='state', legacy_name='state').relation('state.code', relation_name='postcodes', foreign_key=True)
-    tbl.column('lat', name_long='lat', legacy_name='lat')
-    tbl.column('lon', name_long='lon', legacy_name='lon')
+    tbl.column('postcode', size=':10', name_long='postcode', unique=False, indexed=True)
+    tbl.column('suburb', size=':100', name_long='suburb')
+    tbl.column('state', size=':5', name_long='state').relation('state.code', relation_name='postcodes', foreign_key=True)
+    tbl.column('lat', name_long='lat')
+    tbl.column('lon', name_long='lon')
 
 
 # projects/test_invoice/packages/invc/model/price_year.py
@@ -236,7 +232,7 @@ def product(pkg):
     tbl.column('image_url', dtype='P', name_long='!!Image url', name_short='Img')
     tbl.column('details', dtype='X', name_long='!!Details')
     tbl.column('details').dynamic_fields(source='product_type_id')
-    tbl.formulaColumn('picture', 'image_url', dtype='P', name_long='!!Picture', name_short='Img', cell_format='auto:.5')
+    tbl.formulaColumn('picture', 'image_url', dtype='P', name_long='!!Picture', name_short='Img')
     tbl.formulaColumn('total_sold', select=dict(table='invc.invoice_row', columns='SUM($quantity)', where='$product_id=#THIS.id'), dtype='N', name_long='Total Sold')
     tbl.formulaColumn('price_range', sql_formula="CASE WHEN $unit_price > 500 THEN 'Premium' WHEN $unit_price > 100 THEN 'Mid' ELSE 'Budget' END", dtype='A', name_long='Price Range')
     tbl.formulaColumn('code_and_desc', sql_formula="$code || ' - ' || $description", dtype='T', name_long='Code and Description')

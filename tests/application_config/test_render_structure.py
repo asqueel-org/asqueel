@@ -35,7 +35,7 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
         calls.append('len')
         return '3:40'
     source, root, customer = recipe()
-    column = customer.column('label', comment=EnvResolver('INVOICE_COLOR'),
+    column = customer.column('label', default=EnvResolver('INVOICE_COLOR'),
                              validate_len=BagCbResolver(length))
     # Unselected administrative connections must not be evaluated as model nodes.
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Unused connection read')))
@@ -47,14 +47,14 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
     db = source.render()
     try:
         handle = db.table('invc.customer').column('label')
-        assert handle.attributes['comment'] == 'blue'
+        assert handle.attributes['default'] == 'blue'
         assert handle.validations == {'len': '3:40'}
         assert calls
         count = len(calls)
         monkeypatch.setenv('INVOICE_COLOR', 'red')
-        column.attr['comment'] = 'green'
-        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['comment'] = 'yellow'
-        assert handle.attributes['comment'] == 'blue'
+        column.attr['default'] = 'green'
+        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['default'] = 'yellow'
+        assert handle.attributes['default'] == 'blue'
         assert handle.dtype == 'T'
         assert handle.attributes.get('missing') is None
         assert handle.validations == {'len': '3:40'}
@@ -76,11 +76,11 @@ def test_callback_cache_semantics_are_owned_by_existing_resolver():
         calls.append(1)
         return 'fixed'
     resolver = BagCbResolver(value, cache_time=-1)
-    customer.column('value', name_long=resolver, name_short=resolver)
+    customer.column('value', default=resolver, onDeleted=resolver)
     db = build_database(source)
     try:
         col = db.table('invc.customer').column('value')
-        assert col.attributes['name_long'] == col.attributes['name_short'] == 'fixed'
+        assert col.attributes['default'] == col.attributes['onDeleted'] == 'fixed'
         assert calls == [1]  # one shared resolver with its own permanent cache
     finally:
         db.close()

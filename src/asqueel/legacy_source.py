@@ -9,118 +9,123 @@ from __future__ import annotations
 from copy import deepcopy
 from genro_bag import Bag
 
+from .common import in_attribute_family
 from .configuration import SqlDatabaseConfig
 
 
+#: The four legacy table attributes the core reads by name, as ``x_legacy_<key>``.
+_LEGACY_TABLE_READS = ('draftField', 'logicalDeletionField', 'order_by', 'protectionColumn')
+
+
 def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_aliases=None):
+    """Build an asqueel source from an expanded legacy source.
+
+    Each legacy attribute is either consumed by this loader (structure, the
+    kind of a virtual column) or passed to the element that declares it.
+
+    Raises:
+        ValueError: on the first legacy attribute that is neither, naming it
+            and its element.
+    """
     source = Bag.from_xml(document)
     packages = source.get_item('packages')
     if not isinstance(packages, Bag) or not len(packages):
         raise ValueError('Expected an expanded legacy source with packages')
     builder = SqlDatabaseConfig()
-    db = builder.source.db(name, x_legacy_expanded=True)
+    db = builder.source.db(name)
     pending_relations = []
     for package in packages:
-        attrs = dict(package.attr)
-        schema = attrs.get('sqlschema') or 'public'
-        pkg = db.packages().package(package.label, sqlschema=schema,
-                sqlprefix=attrs.get('sqlprefix', True), **{f'x_legacy_{key}': value for key, value in attrs.items()})
+        attrs = _grammar(builder, 'package', package.label, package.attr, ('tag',))
+        attrs.setdefault('sqlschema', 'public')
+        pkg = db.packages().package(package.label, **attrs)
         for alias_name, spec in (type_aliases or {}).get(package.label, {}).items():
-            # The captured adapter profile predates flat namespace attributes.
-            # Translate that fixture at this boundary; keep the oracle unchanged.
-            spec = dict(spec)
-            spec.update({f'x_ui_{key}': value for key, value in spec.pop('x_ui', {}).items()})
-            pkg.options().type(alias_name, **spec)
+            pkg.options().type(alias_name, **_grammar(builder, 'type', f'{package.label}.{alias_name}', spec, ()))
         for original in package.value.get_item('tables') or ():
             raw = dict(original.attr)
-            t = pkg.table(original.label, **_selected(raw, ('pkey', 'name_long', 'name_short',
-                    'name_plural', 'caption_field', 'sqlname')), **{f'x_legacy_{key}': value for key, value in raw.items()},
-                    x_expanded_legacy=True)
+            path = f'{package.label}.{original.label}'
+            t = pkg.table(original.label,
+                          **_grammar(builder, 'table', path, raw, ('tag', 'fullname', 'pkg', *_LEGACY_TABLE_READS)),
+                          **{f'x_legacy_{key}': raw[key] for key in _LEGACY_TABLE_READS if key in raw},
+                          x_expanded_legacy=True)
             for column in original.value.get_item('columns') or ():
                 data = dict(column.attr)
-                physical = _selected(data, ('dtype', 'size', 'notnull', 'unique', 'sqldefault',
-                                            'sqlname', 'extra_sql', 'generated_expression', 'default',
-                                            'name_long', 'name_short', 'group'))
+                physical = _grammar(builder, 'column', f'{path}.{column.label}', data, ('tag', 'indexed'))
                 if physical.get('size') is not None:
                     physical['size'] = str(physical['size'])
                 _normalize_physical(physical)
-                # Runtime defaults/hooks are deliberately not SQL defaults.
-                embedded = {key: value for key, value in data.items()
-                    if key.startswith('validate_')}
-                if isinstance(embedded.get('validate_notnull'), str):
-                    embedded['validate_notnull'] = bool(embedded['validate_notnull'])
-                c = t.column(column.label, **physical, **embedded, **{f'x_legacy_{key}': value for key, value in data.items()})
+                if isinstance(physical.get('validate_notnull'), str):
+                    physical['validate_notnull'] = bool(physical['validate_notnull'])
+                c = t.column(column.label, **physical)
                 if data.get('indexed') and not data.get('unique') and column.label not in (raw.get('pkey') or '').split(','):
                     _index(t, column.label, data['indexed'])
                 for rel in column.value or ():
                     if rel.label != 'relation':
-                        raise ValueError(f'{package.label}.{original.label}.{column.label}: unknown child {rel.label}')
+                        raise ValueError(f'{path}.{column.label}: unknown child {rel.label}')
                     pending_relations.append((package.label, t, c, rel))
             for column in original.value.get_item('virtual_columns') or ():
                 data = dict(column.attr)
-                common = {**{f'x_legacy_{key}': value for key, value in data.items()},
-                          **_selected(data, ('name_long', 'name_short', 'group'))}
+                label = f'{path}.{column.label}'
                 if data.get('composed_of'):
-                    common.pop('group', None)
-                if data.get('composed_of'):
-                    c = t.compositeColumn(column.label, columns=data['composed_of'],
-                                          unique=data.get('unique', False), **common)
+                    common = _grammar(builder, 'compositeColumn', label, data,
+                                      ('tag', 'virtual_column', 'composed_of', 'group'))
+                    c = t.compositeColumn(column.label, columns=data['composed_of'], **common)
                     for rel in column.value or ():
                         pending_relations.append((package.label, t, c, rel))
                 elif data.get('join_column'):
                     rel = column.value.get_node('relation')
                     if rel is None:
                         raise ValueError(f'{column.label}: join_column needs relation')
+                    _grammar(builder, 'virtualRelation', f'{label}.relation', rel.attr,
+                             ('tag', 'related_column', 'cnd'))
                     target = _target(package.label, rel.attr['related_column'])
                     t.virtualRelation(column.label, table='.'.join(target.split('.')[:2]),
-                        condition=rel.attr.get('cnd'),
-                        **{f'x_legacy_{key}': value for key, value in dict(rel.attr).items()})
-                    t.aliasColumn(column.label, relation_path='@' + column.label + '.' + target.split('.')[-1], **common)
+                                      condition=rel.attr.get('cnd'))
+                    t.aliasColumn(column.label, relation_path='@' + column.label + '.' + target.split('.')[-1],
+                                  **_grammar(builder, 'aliasColumn', label, data,
+                                             ('tag', 'virtual_column', 'join_column')))
                 elif data.get('relation_path'):
-                    t.aliasColumn(column.label, relation_path=data['relation_path'], **common)
+                    t.aliasColumn(column.label, **_grammar(builder, 'aliasColumn', label, data,
+                                                           ('tag', 'virtual_column')))
                 elif any(k in data for k in ('sql_formula', 'select', 'exists')):
-                    t.formulaColumn(column.label, **_selected(data, ('sql_formula', 'select', 'exists')),
-                                    **common)
+                    t.formulaColumn(column.label, **_grammar(builder, 'formulaColumn', label, data,
+                                                             ('tag', 'virtual_column')))
                 else:
-                    t.pyColumn(column.label, method=data.get('py_method') or 'pyColumn_' + column.label,
-                               **common)
+                    common = _grammar(builder, 'pyColumn', label, data, ('tag', 'virtual_column', 'py_method'))
+                    t.pyColumn(column.label, method=data.get('py_method') or 'pyColumn_' + column.label, **common)
             for alias in original.value.get_item('table_aliases') or ():
-                t.virtualRelation(alias.label.lstrip('@'), relation=alias.attr['relation_path'],
-                                  **{f'x_legacy_{key}': value for key, value in dict(alias.attr).items()})
-            for subtable in original.value.get_item('subtables') or ():
-                t.subtable(subtable.label, condition=subtable.attr['condition'],
-                           **{f'x_legacy_{key}': value for key, value in dict(subtable.attr).items()})
-            # Legacy table indexes are descriptive source declarations; retain them.
-            # OrmExtractor's physical contract projects column/composite indexes only.
-            if original.value.get_item('indexes'):
-                for idx in original.value['indexes']:
-                    for key, value in idx.attr.items():
-                        t.attr[f'x_legacy_index_{idx.label}_{key}'] = deepcopy(value)
-            unknown = set(original.value.keys()) - {'columns', 'virtual_columns', 'indexes', 'subtables', 'table_aliases'}
+                _grammar(builder, 'virtualRelation', f'{path}.{alias.label}', alias.attr, ('tag', 'relation_path'))
+                t.virtualRelation(alias.label.lstrip('@'), relation=alias.attr['relation_path'])
+            for idx in original.value.get_item('indexes') or ():
+                t.index(idx.label, **_grammar(builder, 'index', f'{path}.{idx.label}', idx.attr, ('tag',)))
+            unknown = set(original.value.keys()) - {'columns', 'virtual_columns', 'indexes', 'table_aliases'}
             if unknown:
-                raise ValueError(f'{package.label}.{original.label}: unhandled sections {sorted(unknown)}')
+                raise ValueError(f'{path}: sections outside the asqueel grammar {sorted(unknown)}')
     for package, table, column, rel in pending_relations:
         data = dict(rel.attr)
         kwargs = {'to': _target(package, data['related_column']),
-                  'relation_name': data.get('relation_name'), 'one_one': bool(data.get('one_one')),
-                  **{f'x_legacy_{key}': value for key, value in data.items()}}
-        for key in ('onDelete', 'onUpdate', 'onDelete_sql', 'onUpdate_sql', 'onDuplicate'):
-            if data.get(key) is not None:
-                kwargs[key] = data[key]
+                  **_grammar(builder, 'relation', f'{column.fullpath}.relation', data,
+                             ('tag', 'related_column', 'mode'))}
+        kwargs['one_one'] = bool(kwargs.get('one_one'))
         if isinstance(kwargs.get('onDuplicate'), bool):
             kwargs['onDuplicate'] = 'copy' if kwargs['onDuplicate'] else 'ignore'
         if data.get('mode') == 'foreignkey':
             kwargs['deferred'] = bool(data.get('deferred', data.get('onDelete') == 'setnull' or data.get('onDelete_sql') == 'setnull'))
             column.relation(**kwargs)
         else:
+            kwargs.pop('deferred', None)
             column.relation(foreign_key=False, x_weak=True, **kwargs)
             if column.node_tag == 'compositeColumn' and not column.get_attr('unique'):
                 _index(table, column.get_attr('columns'), True)
     return builder
 
 
-def _selected(mapping, names):
-    return {key: deepcopy(mapping[key]) for key in names if key in mapping}
+def _grammar(builder, tag, path, attributes, consumed):  # wf:phase-3:new
+    """The legacy attributes element ``tag`` declares; raise on the first one neither declared nor consumed."""
+    declared = builder._get_schema_info(tag).get('declared_names') or set()
+    for key in attributes:
+        if key not in consumed and key not in declared and not in_attribute_family(builder, tag, key):
+            raise ValueError(f'{path}: legacy attribute {key!r} is outside the asqueel grammar')
+    return {key: deepcopy(value) for key, value in attributes.items() if key not in consumed}
 
 
 def _target(package, target):

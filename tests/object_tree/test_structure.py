@@ -77,7 +77,7 @@ def test_flat_resolvers_validation_options_and_source_ownership(monkeypatch):
         calls.append(1)
         return '3:40'
     monkeypatch.setenv('TREE_COLOR', 'blue')
-    declared = customer.column('label', comment=EnvResolver('TREE_COLOR'),
+    declared = customer.column('label', default=EnvResolver('TREE_COLOR'),
                                validate_len=BagCbResolver(length, cache_time=-1))
     declared.validation(notnull=True)
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Connection evaluated')))
@@ -87,7 +87,7 @@ def test_flat_resolvers_validation_options_and_source_ownership(monkeypatch):
     table = model.table('invc.customer')
     assert calls == [1]
     assert isinstance(declared.attr['validate_len'], BagResolver)
-    assert table.column('label').attributes['comment'] == 'blue'
+    assert table.column('label').attributes['default'] == 'blue'
     assert table.column('label').validations == {'len': '3:40', 'notnull': True}
     assert table.column('__syscode').attributes['unique'] is True
     assert table.indexes['customer___syscode_key'].attributes['unique'] is True
@@ -97,7 +97,7 @@ def test_flat_resolvers_validation_options_and_source_ownership(monkeypatch):
     assert source.source.get_node('db.packages.invc.tables.customer.columns.__syscode') is None
     assert isinstance(table.virtual_columns['__record_pointer'], DbVirtualColumnObj)
     monkeypatch.setenv('TREE_COLOR', 'red')
-    assert table.column('label').attributes['comment'] == 'blue'
+    assert table.column('label').attributes['default'] == 'blue'
 
 
 def test_lazy_cycles_default_inverse_and_parentpath():

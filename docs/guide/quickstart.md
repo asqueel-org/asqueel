@@ -30,7 +30,7 @@ class Shop(SqlDatabaseConfig):
         columns = tables.table("customer", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("name", dtype="T", notnull=True,
-                       x_ui_label='Customer name')
+                       name_long='Customer name')
 
 
 db = AsqueelDb(Shop)
@@ -57,7 +57,7 @@ try:
         rows = query.fetch()
         assert [dict(row) for row in rows] == [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Grace"}]
         assert customer.record(1).output("dict")["name"] == "Ada"
-        assert customer.column("name").attributes["x_ui_label"] == "Customer name"
+        assert customer.column("name").attributes["name_long"] == "Customer name"
         print(rows)
     finally:
         db.rollback()  # Finish pending work before cleanup.

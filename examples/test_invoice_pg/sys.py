@@ -26,10 +26,10 @@ def calendar(pkg):
     tbl = pkg.table('calendar', pkey='date', name_long='!![en]Calendar', name_plural='!![en]Calendar Days', caption_field='date')
     tbl.column('date', dtype='D', name_long='!![en]Date', indexed=True, unique=True)
     tbl.formulaColumn('year_month', "to_char('YYYY-MM')", dtype='L', name_long='!![en]Month')
-    tbl.pyColumn('holiday', name_long='!![en]Holiday', x_legacy__addClass='holiday', method='pyColumn_holiday')
+    tbl.pyColumn('holiday', name_long='!![en]Holiday', method='pyColumn_holiday')
     tbl.formulaColumn('dow', 'EXTRACT(ISODOW FROM $date)', dtype='L')
-    tbl.formulaColumn('weekend', '$dow>5', dtype='B', x_legacy__addClass='weekend')
-    tbl.pyColumn('day_cal', dtype='A', group='*', method='templateColumn', template_name='day_cal', template_localized=True)
+    tbl.formulaColumn('weekend', '$dow>5', dtype='B')
+    tbl.pyColumn('day_cal', dtype='A', group='*', method='templateColumn')
 
 
 # projects/gnrcore/packages/sys/model/dataretention.py
