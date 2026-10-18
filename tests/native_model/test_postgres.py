@@ -132,7 +132,7 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
             columns.column('ax', dtype='I')
             columns.column('ay', dtype='I')
             child.composites().compositeColumn('pair', columns='ax,ay').relation(
-                's.parent', foreign_key=True, on_delete='CASCADE')
+                's.parent', foreign_key=True, onDelete_sql='cascade')
 
     db = AsqueelDb(Config)
     try:

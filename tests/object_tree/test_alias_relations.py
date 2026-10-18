@@ -23,7 +23,7 @@ def source(*, implementation='postgres', schema='public', conninfo=None, explici
     row.aliasColumn('customer_label', '@invoice_id.@customer_id.name')
     invoice = package.table('invoice', pkey='id')
     invoice.column('id', 'L')
-    invoice.column('customer_id', 'L').relation('app.customer.id', relation_name='invoices', on_delete='cascade')
+    invoice.column('customer_id', 'L').relation('app.customer.id', relation_name='invoices', onDelete='cascade')
     for name in ('customer', 'other_customer'):
         table = package.table(name, pkey='id')
         table.column('id', 'L')

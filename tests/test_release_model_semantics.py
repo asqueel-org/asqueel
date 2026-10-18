@@ -21,7 +21,7 @@ def test_custom_types_forward_fk_inference_inverse_and_application_sql_actions()
     invoice.column('id', 'L')
     invoice.column('amount', 'money')
     invoice.column('customer_id').relation('customer.id', relation_name='invoices', one_one=True,
-        on_delete='raise', on_delete_sql='set_null')
+        onDelete='raise', onDelete_sql='setnull')
     pkg.table('customer', pkey='id').column('id', 'C', size='22')
     m = resolve_model(b)
     assert m.table('sales.invoice').columns['customer_id'].dtype == 'C'

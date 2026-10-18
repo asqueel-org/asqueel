@@ -236,7 +236,7 @@ class _TableExpansion:
         col = self.add(parent, 'A', required={'size': '22'}, group='*', name_long='!![en]Parent id',
                        **_legacy(_sysfield=True, onInserting='hierarchical_before',
                                  onUpdating='hierarchical_before', onUpdated='hierarchical_after'))
-        self.relation(col, self.key + '.id', relation_name='_children', deferred=True, on_delete='cascade',
+        self.relation(col, self.key + '.id', relation_name='_children', deferred=True, onDelete='cascade',
                       one_name='!![en]Parent', many_name='!![en]Children', one_group=self.group, many_group=self.group)
         self.formula('child_count', dtype='L', group='*',
                      select=dict(table=self.key, where=f'@_children.{parent}=#THIS.id', columns='COUNT(*)'))
@@ -245,7 +245,7 @@ class _TableExpansion:
             col = self.add('root_id', 'A', required={'size': '22'}, group='*',
                            sql_value='substring(:hierarchical_pkey from 1 for 22)', **_legacy(_sysfield=True))
             self.relation(col, self.key + '.id', relation_name='_grandchildren', deferred=True,
-                          on_delete='ignore', one_name='!![en]Root', many_name='!![en]Grandchildren')
+                          onDelete='ignore', one_name='!![en]Root', many_name='!![en]Grandchildren')
         if spec['virtual_roots']:
             self.add('_virtual_node', 'B', name_long='!![en]H.Virtual node', **_legacy(copyFromParent=True))
         columns = spec.get('columns') or ()
@@ -328,7 +328,7 @@ def _attachments(owner, spec, expansions):
     owner.add('is_foreign_document', 'B', name_long='!![en][Is foreign document]', name_short='!![en]Ext')
     column = owner.add('maintable_id', 'A', required={'size': '22'}, group='*', name_long=master.table.get_attr('name'))
     owner.relation(column, master.key + '.' + pkey, relation_name='atc_attachments',
-                   on_delete='cascade', on_delete_sql='cascade', on_duplicate=False, deferred=True)
+                   onDelete='cascade', onDelete_sql='cascade', onDuplicate=False, deferred=True)
     owner.formula('adapted_url', """CASE WHEN position('\\:' in $filepath)>0 THEN '/'||$filepath
              ELSE '/_vol/' || $filepath
             END""", group='_')
@@ -351,11 +351,11 @@ def _linked_hierarchy(owner, spec, expansions):
     col = owner.add(f'{name}_{pkey}', dtype, required=required, group='_',
                     name_long=master.table.get_attr('name_long'), **_legacy(copyFromParent=True, fkeyToMaster=True))
     owner.relation(col, master.key + '.' + pkey, relation_name=owner.table.get_attr('name') + 's',
-                   on_duplicate=False, deferred=True, on_delete='cascade')
+                   onDuplicate=False, deferred=True, onDelete='cascade')
     root = master.add('root_' + owner.table.get_attr('name') + '_id', 'A', required={'size': '22'},
                       name_long=f"{owner.table.get_attr('name_long')} root",
                       **_legacy(onInserting='insertLinkedHierarchicalRoot', onUpdating='updateLinkedHierarchicalRoot'))
-    master.relation(root, owner.key + '.id', one_one=True, on_duplicate=False, on_delete_sql='set_null',
+    master.relation(root, owner.key + '.id', one_one=True, onDuplicate=False, onDelete_sql='setnull',
                     deferred=True, **_legacy(one_one='*'))
     owner.table_default(hierarchical_linked_to=master.key)
 

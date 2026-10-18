@@ -10,6 +10,15 @@ by construction instead of by copy.
 #: Index attributes that travel between the element and the JSON.
 INDEX_OPTIONS = ("unique", "method", "where", "tablespace", "with_options")
 
+#: GenroPy onDelete_sql/onUpdate_sql names (any case) -> the JSON FK action.
+SQL_ACTIONS = {"cascade": "CASCADE", "restrict": "RESTRICT", "no action": None,
+               "setnull": "SET NULL", "set null": "SET NULL",
+               "setdefault": "SET DEFAULT", "set default": "SET DEFAULT"}
+
+#: The JSON FK action -> its GenroPy onDelete_sql/onUpdate_sql name.
+SQL_ACTION_NAMES = {"CASCADE": "cascade", "RESTRICT": "restrict", "NO ACTION": "no action",
+                    "SET NULL": "setnull", "SET DEFAULT": "setdefault"}
+
 
 def split_names(value) -> list[str]:
     """Column names out of a comma-joined string, a dict or a sequence."""

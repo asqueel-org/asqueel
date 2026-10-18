@@ -39,7 +39,7 @@ def _recipe():
                 name="author_id", dtype="L", notnull=True,
             )
             author_id.relation(to="public.author.id", foreign_key=True,
-                               on_delete="CASCADE", relation_name="recipes")
+                               onDelete_sql="cascade", relation_name="recipes")
             recipe.composites().compositeColumn(
                 name="author_title", columns="author_id,title", unique=True,
             )

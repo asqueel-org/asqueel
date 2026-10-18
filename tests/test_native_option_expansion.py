@@ -377,8 +377,8 @@ def test_package_types_precede_expansion_and_legacy_setnull_defaults(objects):
     master.options().sys_fields()
     detail = pkg.table('detail', pkey='id')
     detail.column('id', dtype='L')
-    detail.column('master_id').relation('app.master.id', on_delete='set_null', on_duplicate='recursive')
-    detail.column('other_id').relation('app.master.id', on_delete='set_null', deferred=False)
+    detail.column('master_id').relation('app.master.id', onDelete='setnull', onDuplicate='recursive')
+    detail.column('other_id').relation('app.master.id', onDelete='setnull', deferred=False)
     db = build_database(builder) if objects else None
     try:
         model = db.model if db is not None else resolve_model(builder)

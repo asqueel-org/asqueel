@@ -17,6 +17,7 @@ from asqueel_migration.structures import DTYPE_CODES, json_equal
 
 from asqueel import SqlBuilder, SqlMigrationRenderer
 from asqueel import elements
+from asqueel.common import SQL_ACTIONS
 from asqueel.validators import SqlModelValidationError
 
 
@@ -44,7 +45,7 @@ class GoldenRecipe(SqlBuilder):
             name="author_id", dtype="L", notnull=True,
         )
         author_id.relation(to="public.author.id", foreign_key=True,
-                           on_delete="CASCADE", relation_name="recipes",
+                           onDelete_sql="cascade", relation_name="recipes",
                            one_name="Author", many_name="Recipes")
         constraints = recipe.constraints()
         constraints.constraint(
@@ -95,7 +96,7 @@ GOLDEN_HUMAN_JSON = {
                 "relations": [
                     {"columns": ["author_id"], "related_schema": "public",
                      "related_table": "author", "related_columns": ["id"],
-                     "on_delete": "CASCADE"},
+                     "on_delete": "CASCADE", "on_update": "CASCADE"},
                 ],
                 "constraints": [
                     {"type": "UNIQUE", "name": "uq_author_title",
@@ -242,10 +243,11 @@ def test_dtype_and_fk_action_literals_match_the_installed_contract():
     # wf:contract: the Literal aliases declared in elements.py must
     # wf:contract: accept the installed migration contract plus serial4,
     # wf:contract: an additive grammar declaration requiring migration support.
-    # wf:contract: and the fk_action enum of schemas/structure-1.0.json
+    # wf:contract: The GenroPy onDelete_sql/onUpdate_sql names map onto the
+    # wf:contract: fk_action enum of schemas/structure-1.0.json
     # wf:contract: (RESTRICT, CASCADE, SET NULL, SET DEFAULT).
     assert set(typing.get_args(elements.DTYPE)) == set(DTYPE_CODES) | {"serial4"}
-    assert set(typing.get_args(elements.FK_ACTION)) == {
+    assert set(SQL_ACTIONS.values()) - {None} == {
         "RESTRICT", "CASCADE", "SET NULL", "SET DEFAULT"}
 
 

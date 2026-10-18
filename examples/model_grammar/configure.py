@@ -54,7 +54,7 @@ def source(*, current_state=None):
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     customer.column('state', size=':5').relation(
         'invc.state.code', foreign_key=True, relation_name='clients',
-        on_delete='raise', on_update_sql='CASCADE')
+        onDelete='raise', onUpdate_sql='cascade')
     customer.column('bank_account').encryption(mode='R')
 
     product_type = invc.table('product_type', pkey='id', name_long='Tipo prodotto',
@@ -76,7 +76,7 @@ def source(*, current_state=None):
     invoice.column('inv_number', size='10', unique=True)
     invoice.column('customer_id', size='22').relation(
         'invc.customer.id', foreign_key=True, relation_name='invoices',
-        on_delete='raise', on_update_sql='CASCADE')
+        onDelete='raise', onUpdate_sql='cascade')
     # Legacy defaultValues supplies workdate during writes, outside this example.
     invoice.column('date', dtype='D', validate_notnull=True)
     invoice.column('total', dtype='money')
@@ -94,9 +94,9 @@ def source(*, current_state=None):
     row.options().auto_counter('invoice_id')
     row.column('invoice_id', size='22').relation(
         'invc.invoice.id', foreign_key=True, relation_name='rows',
-        on_delete='cascade', on_update_sql='CASCADE')
+        onDelete='cascade', onUpdate_sql='cascade')
     row.column('product_id', size='22').relation(
-        'invc.product.id', foreign_key=True, on_delete='raise', on_update_sql='CASCADE')
+        'invc.product.id', foreign_key=True, onDelete='raise', onUpdate_sql='cascade')
     row.column('quantity', dtype='I')
     row.column('unit_price', dtype='money')
     row.aliasColumn('product_name', relation_path='@product_id.description')

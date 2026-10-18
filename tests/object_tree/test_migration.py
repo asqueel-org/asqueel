@@ -132,7 +132,7 @@ def test_physical_names_composite_keys_constraints_and_extensions():
     item.column('a', dtype='L', sqlname='first')
     item.column('b', dtype='L', sqlname='second')
     item.compositeColumn('ref', columns='a,b', unique=True).relation(
-        'app.owner.key', foreign_key=True, deferred=True, on_delete_sql='cascade')
+        'app.owner.key', foreign_key=True, deferred=True, onDelete_sql='cascade')
     item.index('descending', columns={'b': 'DESC'})
     model = recipe.render(mode='objects_tree')
     result = physical(model)
@@ -164,7 +164,7 @@ def test_hierarchical_json_apply_introspect_rediff_and_evolution(pg_database, st
     with recipe.contribution('hierarchical-migration-check'):
         customer = recipe.source.get_node('db.packages.invc.tables.customer')
         customer.options().full_update()
-        customer.column('probe_product', size='22').relation('invc.product.id', on_delete_sql='set_null')
+        customer.column('probe_product', size='22').relation('invc.product.id', onDelete_sql='setnull')
         customer.column('probe_code', size=':20', unique=True)
         customer.index('probe_account', columns='account_name')
         customer.column('account_name', size=':120')

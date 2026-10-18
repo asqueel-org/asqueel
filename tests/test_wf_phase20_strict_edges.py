@@ -156,7 +156,7 @@ def test_nonphysical_relations_reject_physical_fk_options():
     assert table["relations"] == {}
 
     for option in (
-        {"on_delete": "CASCADE"},
+        {"onDelete_sql": "cascade"},
         {"deferrable": True},
         {"initially_deferred": True},
         {"indexed": False},

@@ -22,8 +22,8 @@ class SemanticElements:
 
     @element(parent_tags='column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn', sub_tags='')
     def weak_relation(self, to: str, name: str | None = None, relation_name: str | None = None,
-                      indexed: bool = True, one_one: bool = False, on_delete: str | None = None,
-                      on_update: str | None = None, on_duplicate: str | bool | None = None,
+                      indexed: bool = True, one_one: bool = False, onDelete: str | None = None,
+                      onUpdate: str | None = None, onDuplicate: str | bool | None = None,
                       one_name: str | None = None, many_name: str | None = None,
                       one_group: str | None = None, many_group: str | None = None):
         ...

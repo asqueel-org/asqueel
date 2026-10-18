@@ -17,32 +17,32 @@ def _action(value):
     if value is None:
         return None
     name, separator, message = value.partition(':')
-    name = name.lower().replace(' ', '_')
-    name = {'set_null': 'setnull', 'no_action': None}.get(name, name)
+    name = name.lower().replace(' ', '')
+    name = {'noaction': None}.get(name, name)
     # The optional ':message' of an application action is kept as written.
     return name + separator + message if name and separator else name
 
 
 def _joiner(table, column, target, attrs):
-    inverse = attrs.get('relation_name')
+    relation_name = attrs.get('relation_name')
     many = f'{table.fullname}.{column.name}'
     result = dict(
         many_relation=many, one_relation=target,
         many_rel_name=attrs.get('many_name'), one_rel_name=attrs.get('one_name') or column.attributes.get('name_long'),
         many_order_by=attrs.get('many_order_by'), one_one=attrs.get('one_one'),
-        onDelete=_action(attrs.get('x_app_on_delete')),
-        onDelete_sql=_action(attrs.get('on_delete')),
-        onUpdate=_action(attrs.get('x_app_on_update')),
-        onUpdate_sql=_action(attrs.get('on_update', 'cascade')),
-        onDuplicate=attrs.get('on_duplicate'), deferred=attrs.get('deferred'),
-        private_relation=not bool(inverse), case_insensitive=attrs.get('case_insensitive', False),
+        onDelete=_action(attrs.get('onDelete')),
+        onDelete_sql=_action(attrs.get('onDelete_sql')),
+        onUpdate=_action(attrs.get('onUpdate')),
+        onUpdate_sql=_action(attrs.get('onUpdate_sql') or 'cascade'),
+        onDuplicate=attrs.get('onDuplicate'), deferred=attrs.get('deferred'),
+        private_relation=not bool(relation_name), case_insensitive=attrs.get('case_insensitive', False),
         one_group=attrs.get('one_group'), many_group=attrs.get('many_group'),
     )
     # These legacy attributes remain opaque data; their execution is not added.
     for key in ('eager_one', 'eager_many', 'external_relation', 'ignore_tenant',
                 'storefield', 'between', 'cnd', 'join_on', 'virtual'):
         result[key] = attrs.get(key)
-    return result, inverse or many.replace('.', '_')
+    return result, relation_name or many.replace('.', '_')
 
 
 def build_relations(model):
@@ -89,13 +89,13 @@ def _register_relation(model, table, column, attrs):
         if left.attributes.get('size') != right.attributes.get('size'):
             logger.warning('Different size in relation %s -> %s', left.fullname, right.fullname)
     target_name = '.'.join(target)
-    common, inverse = _joiner(table, column, target_name, attrs)
+    common, relation_name = _joiner(table, column, target_name, attrs)
     forward = attrs.get('name') or column.name
     entries = [
         (f'{table.fullname}.@{forward}', dict(common, mode='O',
-         foreignkey=bool(attrs.get('foreign_key')), relation_name=inverse,
+         foreignkey=bool(attrs.get('foreign_key')), relation_name=relation_name,
          resolver_kwargs=deepcopy(attrs.get('resolver_kwargs') or {}))),
-        (f'{remote.fullname}.@{inverse}', dict(common, mode='M', one_rel_name=attrs.get('one_name'))),
+        (f'{remote.fullname}.@{relation_name}', dict(common, mode='M', one_rel_name=attrs.get('one_name'))),
     ]
     for path, values in entries:
         if model.relations.get_node(path) is not None:

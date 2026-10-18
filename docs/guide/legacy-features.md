@@ -241,6 +241,10 @@ the write cycle, see [Current status](limitations.md).
   (A4.1).
 - `one_name`, `many_name`, `one_group`, `many_group`, `many_order_by` (A4.5).
 - `relation_name=` names the inverse relation `@<relation_name>` (A4.3).
+- `onDelete`, `onUpdate` (Python actions `raise`, `cascade`, `setnull`,
+  `ignore`, optionally `:message`), `onDelete_sql`, `onUpdate_sql` (SQL
+  action of the foreign key; `onUpdate_sql` defaults to `cascade`),
+  `deferred` (True by default with `setnull`), `onDuplicate` (A4.6).
 - To-one path `@fkey_col.col` in columns, where, order_by (A4.7).
 - Multi-hop path `@a.@b.c` (A4.8).
 - Relation on a composite key (A4.10).
@@ -255,12 +259,10 @@ the write cycle, see [Current status](limitations.md).
 - **Default inverse name and `one_one='*'`** (A4.4): the default name is
   `pkg_tbl_col`; `one_one` is a boolean and `'*'` is refused. Reason:
   `one_one=True` declares at most one; the `'*'` default: not recorded.
-- **`onDelete`, `onUpdate`, `onDelete_sql`, `onUpdate_sql`, `deferred`**
-  (A4.6): declared as `on_delete`, `on_update`, `on_delete_sql`,
-  `on_update_sql`, `deferred`, `deferrable`, `initially_deferred`;
-  `onDelete=` is refused, `onDelete_sql=` is accepted and ignored. Reason:
-  snake_case names with the actions raise, cascade, set_null, ignore; the
-  silent discard: not recorded.
+- **SQL action abbreviations** (A4.6): `onDelete_sql`/`onUpdate_sql` take the
+  full names only (`cascade`, `restrict`, `no action`, `setnull`,
+  `setdefault`); `'C'`, `'SN'` and the other abbreviations raise. Reason:
+  planned for a later release.
 - **To-many path `@relation_name.col`** (A4.9): raises
   `UnsupportedFeatureError`; with `one_one=True` it becomes a LEFT JOIN.
   Reason: no to-many JOIN, no multiplied rows, no implicit DISTINCT; `aggr`

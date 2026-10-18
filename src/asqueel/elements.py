@@ -63,7 +63,6 @@ DTYPE = Literal[
 
 #: Referential actions a foreign key may declare. ``NO ACTION`` is absent on
 #: purpose: it is the SQL default and the migration structure strips it.
-FK_ACTION = Literal["CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT"]
 
 #: Table constraint kinds. Single-column uniqueness is the ``unique`` column
 #: attribute, not a constraint entity.
@@ -433,16 +432,15 @@ class ColumnElements:
 
     @element(parent_tags="column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn", sub_tags="")
     def relation(self, to: str, foreign_key: bool = False,
-                 on_delete: FK_ACTION | str | None = None,
-                 on_update: FK_ACTION | str | None = None,
+                 onDelete: str | None = None, onUpdate: str | None = None,
+                 onDelete_sql: str | None = None, onUpdate_sql: str | None = None,
                  deferred: bool = False, deferrable: bool = False,
                  initially_deferred: bool = False, indexed: bool = True,
                  one_name: str | None = None,
                  many_name: str | None = None,
                  one_one: bool = False, case_insensitive: bool = False,
                  name: str | None = None, relation_name: str | None = None,
-                 on_delete_sql: str | None = None, on_update_sql: str | None = None,
-                 on_duplicate: str | bool | None = None, constraint_name: str | None = None,
+                 onDuplicate: str | bool | None = None, constraint_name: str | None = None,
                  one_group: str | None = None, many_group: str | None = None,
                  **extra):
         """A relation on a column. Navigable by default, physical on demand.
@@ -456,9 +454,17 @@ class ColumnElements:
                 (target columns default to the target pkey).
             foreign_key: emit a physical FK. Only these relations project
                 into the migration JSON.
-            on_delete: referential action on delete.
-            on_update: referential action on update.
-            deferred: compatibility sugar for DEFERRABLE INITIALLY DEFERRED.
+            onDelete: semantic; Python action on delete of the target row,
+                as in GenroPy: ``raise``, ``cascade``, ``setnull``, ``ignore``,
+                optionally followed by ``:message``.
+            onUpdate: semantic; Python action on update, same values.
+            onDelete_sql: SQL action of the foreign key on delete:
+                ``cascade``, ``restrict``, ``no action``, ``setnull``,
+                ``setdefault`` (any case; ``set null``/``set default`` too).
+            onUpdate_sql: SQL action of the foreign key on update, same
+                values; ``cascade`` when absent, as in GenroPy.
+            deferred: DEFERRABLE INITIALLY DEFERRED. True by default when
+                ``onDelete`` or ``onDelete_sql`` is ``setnull``, as in GenroPy.
             deferrable: make the foreign key DEFERRABLE. Without
                 ``initially_deferred`` it is initially immediate.
             initially_deferred: start a deferrable foreign key deferred.

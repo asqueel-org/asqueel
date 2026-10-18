@@ -8,7 +8,7 @@ from .contracts import ResolvedModel, UnsupportedFeatureError
 from .object_tree import DbModel
 
 
-_ACTIONS = {'a': None, 'r': 'RESTRICT', 'c': 'CASCADE', 'n': 'SET NULL', 'd': 'SET DEFAULT'}
+_ACTIONS = {'a': 'no action', 'r': 'restrict', 'c': 'cascade', 'n': 'setnull', 'd': 'setdefault'}
 
 
 def _package_storage(dtype, attributes):
@@ -202,16 +202,14 @@ def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rena
                                       else composite(target, relation.target_columns)[0])
                         target_ref += '.' + target_col
                     kwargs = {k: declaration[k] for k in (
-                        'on_delete', 'on_update', 'deferrable', 'initially_deferred', 'deferred', 'indexed', 'constraint_name'
+                        'onDelete_sql', 'onUpdate_sql', 'deferrable', 'initially_deferred', 'deferred', 'indexed', 'constraint_name'
                     ) if k in declaration}
                     if imported:
                         if declaration.get('delete_set_columns'):
                             raise UnsupportedFeatureError(f'{table.key}.{relation.name}: column subset SET NULL/DEFAULT')
                         kwargs['indexed'] = False
-                        for field in ('on_delete', 'on_update'):
-                            action = _ACTIONS[declaration[field + '_code']]
-                            if action:
-                                kwargs[field] = action
+                        for field, code in (('onDelete_sql', 'on_delete_code'), ('onUpdate_sql', 'on_update_code')):
+                            kwargs[field] = _ACTIONS[declaration[code]]
                     if len(relation.columns) == 1:
                         owner = column_nodes[(table.key, relation.columns[0])]
                     else:

@@ -70,6 +70,7 @@ _ORACLE = {
                     "related_schema": "public",
                     "related_table": "author",
                     "related_columns": ["id"],
+                    "on_update": "CASCADE",
                 }],
                 "constraints": [{
                     "name": "uq_recipe_author",

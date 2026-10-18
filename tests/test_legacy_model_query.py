@@ -1,7 +1,7 @@
 """GenroPy model and query behaviours: name::dtype, falsy limit/offset."""
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.model import resolve_model
 from tests.native_formulas.conftest import db_pg  # noqa: F401
 
@@ -73,3 +73,51 @@ def test_relation_name_names_the_inverse_relation():
     forward = model.table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
     assert forward['relation_name'] == 'invoices'
     assert forward['private_relation'] is False
+
+
+def fk_attributes(builder, table):
+    tables = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']
+    return next(iter(tables[table]['relations'].values()))['attributes']
+
+
+def test_sql_actions_reach_the_migration_foreign_key_in_a_package():
+    b, pkg = source()
+    invoice = pkg.table('invoice', pkey='id')
+    invoice.column('id', 'L')
+    invoice.column('customer_id', 'L').relation(
+        'customer.id', onDelete='setnull', onDelete_sql='cascade', onUpdate_sql='setnull')
+    pkg.table('customer', pkey='id').column('id', 'L')
+    fk = fk_attributes(b, 'sales_invoice')
+    assert fk['on_delete'] == 'CASCADE' and fk['on_update'] == 'SET NULL'
+    assert fk['deferrable'] and fk['initially_deferred']
+    joiner = resolve_model(b).table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
+    assert (joiner['onDelete'], joiner['onDelete_sql'], joiner['onUpdate_sql']) == ('setnull', 'cascade', 'setnull')
+
+
+def test_sql_actions_reach_the_migration_foreign_key_outside_a_package():
+    class Recipe(SqlBuilder):
+        def main(self, root):
+            tables = root.db(name='d').schemas().schema(name='public').tables()
+            tables.table(name='customer', pkey='id').columns().column(name='id', dtype='L')
+            invoice = tables.table(name='invoice', pkey='id').columns()
+            invoice.column(name='id', dtype='L')
+            invoice.column(name='customer_id', dtype='L').relation(
+                'public.customer.id', foreign_key=True, onDelete_sql='SET NULL')
+    b = Recipe()
+    b.create()
+    fk = fk_attributes(b, 'invoice')
+    assert fk['on_delete'] == 'SET NULL' and fk['on_update'] == 'CASCADE'
+    # The physical layer mirrors the database: deferral is never implied.
+    assert 'deferrable' not in fk
+
+
+@pytest.mark.parametrize('key,value', [('onDelete_sql', 'set_null'), ('onUpdate_sql', 'C'),
+                                       ('onDelete', 'set_null')])
+def test_action_names_outside_the_legacy_ones_raise(key, value):
+    b, pkg = source()
+    invoice = pkg.table('invoice', pkey='id')
+    invoice.column('id', 'L')
+    invoice.column('customer_id', 'L').relation('customer.id', **{key: value})
+    pkg.table('customer', pkey='id').column('id', 'L')
+    with pytest.raises(ValueError, match=f'invalid {key} {value!r}'):
+        resolve_model(b)

@@ -18,7 +18,7 @@ from collections import Counter
 import re
 
 from .catalog import SqlModelCatalog, _VIRTUAL_COLUMN_TAGS
-from .common import split_names
+from .common import SQL_ACTIONS, split_names
 
 _META_KEY = "_meta"
 
@@ -301,10 +301,20 @@ class SqlModelValidator:
         return table_key, columns
 
     def _check_relation(self, path: str, node) -> None:
+        for action in ("onDelete", "onUpdate"):
+            # GenroPy onDelete/onUpdate: a Python action in any case, optionally 'action:message'.
+            value = node.get_attr(action)
+            if value is not None and value.partition(":")[0].lower() not in (
+                    "raise", "cascade", "setnull", "ignore"):
+                self._error(path, f"invalid {action} {value!r}")
+            # onDelete_sql/onUpdate_sql: the SQL action of the foreign key.
+            value = node.get_attr(action + "_sql")
+            if value is not None and value.lower() not in SQL_ACTIONS:
+                self._error(path, f"invalid {action}_sql {value!r}")
         if not node.get_attr("foreign_key") and not node.get_attr("x_weak"):
             physical = [
                 name for name in (
-                    "on_delete", "on_update", "deferred", "deferrable",
+                    "onDelete_sql", "onUpdate_sql", "deferred", "deferrable",
                     "initially_deferred",
                 )
                 if node.get_attr(name)

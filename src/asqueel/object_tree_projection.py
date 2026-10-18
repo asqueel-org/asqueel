@@ -116,7 +116,7 @@ def project_tree(model) -> SqlBuilder:
                     raise UnsupportedFeatureError(f'{remote_name}.{remote_column}: physical FK to virtual column')
                 target_name = remote_column if target.tag == 'compositeColumn' else target.sqlname
                 attrs = {key: declaration.attributes[key] for key in (
-                    'on_delete', 'on_update', 'deferrable', 'initially_deferred',
+                    'onDelete_sql', 'onUpdate_sql', 'deferrable', 'initially_deferred',
                     'deferred', 'indexed', 'constraint_name',
                 ) if key in declaration.attributes}
                 owner.relation(f'{remote.sqlschema}.{remote.sqlname}.{target_name}', foreign_key=True, **attrs)

@@ -47,12 +47,13 @@ from .catalog import SqlModelCatalog
 from .configuration import connection_settings
 from .errors import MigrationError
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
+from .common import SQL_ACTIONS
 from .common import split_names as _names
 from .projection import to_physical_builder
 from .validators import SqlModelValidator
 
 #: Relation attributes that reach the JSON, mapped to their contract key.
-_RELATION_ACTIONS = ("on_delete", "on_update")
+_RELATION_ACTIONS = {"onDelete_sql": "on_delete", "onUpdate_sql": "on_update"}
 
 
 class SqlMigrationRenderer:
@@ -167,9 +168,11 @@ class SqlMigrationRenderer:
                 "related_columns": target_columns,
                 "constraint_type": "FOREIGN KEY",
             }
-            for key in _RELATION_ACTIONS:
-                if node.get_attr(key):
-                    attributes[key] = node.get_attr(key)
+            for key, contract_key in _RELATION_ACTIONS.items():
+                # GenroPy onUpdate_sql defaults to cascade.
+                value = node.get_attr(key) or ("cascade" if key == "onUpdate_sql" else None)
+                if value and SQL_ACTIONS[value.lower()]:
+                    attributes[contract_key] = SQL_ACTIONS[value.lower()]
             deferred = node.get_attr("deferred")
             if node.get_attr("deferrable") or deferred:
                 attributes["deferrable"] = True

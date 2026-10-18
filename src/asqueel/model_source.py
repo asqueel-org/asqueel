@@ -120,11 +120,9 @@ def resolve_source_types(builder):
 def resolve_source_references(builder):
     """Resolve references after all option-generated structures are present."""
     from .catalog import SqlModelCatalog
-    from .common import split_names
+    from .common import SQL_ACTIONS, split_names
     resolve_source_types(builder)
     catalog = SqlModelCatalog(builder)
-    sql_actions = {'cascade': 'CASCADE', 'restrict': 'RESTRICT', 'no_action': None,
-                   'set_null': 'SET NULL', 'set_default': 'SET DEFAULT'}
     for (namespace, table_name), entry in catalog.tables.items():
         pkey = entry['node'].get_attr('pkey')
         if pkey in entry['composites']:
@@ -145,33 +143,12 @@ def resolve_source_references(builder):
                     # one-side relation unless one_group was supplied.
                     attrs['one_group'] = group
                     column.attr.update(group='_', one_group=group)
-                for action in ('on_delete', 'on_update'):
-                    value = attrs.get(action)
-                    if value is not None:
-                        # GenroPy onDelete/onUpdate: a Python action in any case, optionally
-                        # 'action:message'; the SQL action is only in the *_sql attribute.
-                        name, separator, message = value.partition(':')
-                        normalized = name.strip().lower().replace(' ', '_')
-                        normalized = {'setnull': 'set_null'}.get(normalized, normalized)
-                        if normalized not in ('raise', 'cascade', 'set_null', 'ignore'):
-                            raise ValueError(f'{path}: invalid application action {value!r}')
-                        attrs.pop(action)
-                        attrs['x_app_' + action] = normalized + separator + message
-                    sql_key = action + '_sql'
-                    sql_value = attrs.get(sql_key)
-                    if action == 'on_update' and sql_key not in attrs and attrs.get('foreign_key'):
-                        sql_value = 'cascade'
-                    if sql_value is not None:
-                        normalized_action = sql_value.lower().replace(' ', '_')
-                        if normalized_action not in sql_actions:
-                            raise ValueError(f'{path}: invalid SQL action {sql_value!r}')
-                        attrs[action] = sql_actions[normalized_action]
-                # onDuplicate is opaque legacy data (including False and recursive).
-                defaults = (attrs.get('_meta') or {}).get('signature_defaults', ())
-                if ('deferred' not in attrs or 'deferred' in defaults) and (
-                        str(attrs.get('x_app_on_delete') or '').startswith('set_null')
-                        or attrs.get('on_delete') == 'SET NULL'):
-                    attrs['deferred'] = True
+            # onDuplicate is opaque legacy data (including False and recursive).
+            defaults = (attrs.get('_meta') or {}).get('signature_defaults', ())
+            if ('deferred' not in attrs or 'deferred' in defaults) and (
+                    str(attrs.get('onDelete') or '').lower().startswith('setnull')
+                    or SQL_ACTIONS.get(str(attrs.get('onDelete_sql')).lower()) == 'SET NULL'):
+                attrs['deferred'] = True
     # Repeat for chains of inferred foreign-key columns (forward references).
     for _ in range(len(catalog.relations) + 1):
         changed = False

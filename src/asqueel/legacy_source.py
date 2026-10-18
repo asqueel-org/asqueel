@@ -104,12 +104,11 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
         kwargs = {'to': _target(package, data['related_column']),
                   'relation_name': data.get('relation_name'), 'one_one': bool(data.get('one_one')),
                   **{f'x_legacy_{key}': value for key, value in data.items()}}
-        for source_key, dest in (('onDelete', 'on_delete'), ('onDelete_sql', 'on_delete_sql'),
-                                ('onUpdate_sql', 'on_update_sql'), ('onDuplicate', 'on_duplicate')):
-            if data.get(source_key) is not None:
-                kwargs[dest] = {'setnull': 'set_null', 'setdefault': 'set_default'}.get(data[source_key], data[source_key])
-        if isinstance(kwargs.get('on_duplicate'), bool):
-            kwargs['on_duplicate'] = 'copy' if kwargs['on_duplicate'] else 'ignore'
+        for key in ('onDelete', 'onUpdate', 'onDelete_sql', 'onUpdate_sql', 'onDuplicate'):
+            if data.get(key) is not None:
+                kwargs[key] = data[key]
+        if isinstance(kwargs.get('onDuplicate'), bool):
+            kwargs['onDuplicate'] = 'copy' if kwargs['onDuplicate'] else 'ignore'
         if data.get('mode') == 'foreignkey':
             kwargs['deferred'] = bool(data.get('deferred', data.get('onDelete') == 'setnull' or data.get('onDelete_sql') == 'setnull'))
             column.relation(**kwargs)

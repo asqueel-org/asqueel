@@ -400,9 +400,11 @@ reports every conflicting relation together.
 | --- | --- | --- | --- | --- |
 | to | `str` | *required* | physical | the target, `schema.table.column` or `schema.table` (target columns default to the target pkey). |
 | foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project into the migration JSON. |
-| on_delete | `FK_ACTION \| str \| None` | `None` | physical | referential action on delete. |
-| on_update | `FK_ACTION \| str \| None` | `None` | physical | referential action on update. |
-| deferred | `bool` | `False` | physical | compatibility sugar for DEFERRABLE INITIALLY DEFERRED. |
+| onDelete | `str \| None` | `None` | semantic | Python action on delete of the target row, as in GenroPy: `raise`, `cascade`, `setnull`, `ignore`, optionally followed by `:message`. |
+| onUpdate | `str \| None` | `None` | semantic | Python action on update, same values. |
+| onDelete_sql | `str \| None` | `None` | physical | SQL action of the foreign key on delete: `cascade`, `restrict`, `no action`, `setnull`, `setdefault` (any case; `set null`/`set default` too). |
+| onUpdate_sql | `str \| None` | `None` | physical | SQL action of the foreign key on update, same values; `cascade` when absent, as in GenroPy. |
+| deferred | `bool` | `False` | physical | DEFERRABLE INITIALLY DEFERRED. True by default when `onDelete` or `onDelete_sql` is `setnull`, as in GenroPy. |
 | deferrable | `bool` | `False` | physical | make the foreign key DEFERRABLE. Without `initially_deferred` it is initially immediate. |
 | initially_deferred | `bool` | `False` | physical | start a deferrable foreign key deferred. |
 | indexed | `bool` | `True` | physical | the supporting index of the foreign key. On by default (GenroPy parity, D3); `False` states that the columns are deliberately left unindexed. |
@@ -412,9 +414,7 @@ reports every conflicting relation together.
 | case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
 | name | `str \| None` | `None` | physical |  |
 | relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`), as in GenroPy. |
-| on_delete_sql | `str \| None` | `None` | physical |  |
-| on_update_sql | `str \| None` | `None` | physical |  |
-| on_duplicate | `str \| bool \| None` | `None` | physical |  |
+| onDuplicate | `str \| bool \| None` | `None` | physical |  |
 | constraint_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
 | many_group | `str \| None` | `None` | physical |  |
@@ -610,9 +610,9 @@ rule-specific type checks. Translation never executes these rules.
 | relation_name | `str \| None` | `None` | physical |  |
 | indexed | `bool` | `True` | physical |  |
 | one_one | `bool` | `False` | physical |  |
-| on_delete | `str \| None` | `None` | physical |  |
-| on_update | `str \| None` | `None` | physical |  |
-| on_duplicate | `str \| bool \| None` | `None` | physical |  |
+| onDelete | `str \| None` | `None` | physical |  |
+| onUpdate | `str \| None` | `None` | physical |  |
+| onDuplicate | `str \| bool \| None` | `None` | physical |  |
 | one_name | `str \| None` | `None` | physical |  |
 | many_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
