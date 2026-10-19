@@ -50,7 +50,6 @@ or its physical-name mapping differs from the existing database.
 | Empty SUM is NULL | This is PostgreSQL aggregate behavior. Use an explicit `COALESCE` when zero is intended. |
 | Scalar subquery returns multiple rows | Choose an aggregate or explicit ordered `limit=1`; no implicit limit is added. |
 | Changes to a fetched row are not saved | Results are data. Pass writable fields to `table.update(...)`. |
-| An updated record reader shows old data | `SqlRecord` caches its snapshot. Call `refresh()` or construct a new reader. |
 | SELECT `*` becomes expensive or gains fields | It includes virtual columns; choose an explicit projection. |
 
 ## Transaction and lifecycle errors

@@ -66,17 +66,17 @@ def test_raw_compiled_and_empty_result_metadata(shop):
     assert [column.name for column in empty.columns] == ['code']
 
 
-def test_returning_and_record_dict_keep_their_declared_interfaces(shop):
+def test_returning_dict_and_fetch_record_named_list_keep_their_declared_interfaces(shop):
     table = shop.db.table('sales.customer')
     values = {'id': 99, 'name': 'Test'}
     result = table.insert(values)
     assert result is values and type(result) is dict
-    record = table.record(99).output('dict')
-    assert type(record) is dict and record['name'] == 'Test'
+    record = table.query(where='$id = :id', id=99).fetchRecord()
+    assert type(record) is NamedList and record['name'] == 'Test'
     record['name'] = 'copied'
-    assert table.record(99).output()['name'] == 'Test'
+    assert table.query(where='$id = :id', id=99).fetchRecord()['name'] == 'Test'
     assert table.query(where='$id = :id', id=99).sql_update({'name': 'Saved'}) == 1
-    assert table.record(99).output('dict')['name'] == 'Saved'
+    assert table.query(where='$id = :id', id=99).fetchRecord()['name'] == 'Saved'
 
 
 def test_duplicate_names_rejected_consistently(shop):

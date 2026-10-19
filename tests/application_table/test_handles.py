@@ -60,8 +60,6 @@ def db(make_db):
 
 def test_composite_selector_requires_complete_keys_and_uses_named_physical_resolution(db):
     live = db.table('app.compound')
-    with pytest.raises(ValueError, match='Incomplete primary key'):
-        live.record({'left': 0})
     with pytest.raises(KeyError, match='right'):
         live.update({'left': 0})
     db.rollback()
@@ -72,11 +70,12 @@ def test_composite_selector_requires_complete_keys_and_uses_named_physical_resol
 
 @pytest.mark.xfail(strict=True, reason='asqueel#26: a SELECT on a table whose pkey is a compositeColumn '
                                        'fails, composite columns are not connected in the read compiler')
-def test_composite_record_reads_through_the_physical_names(db):
+def test_composite_fetch_record_reads_through_the_physical_names(db):
     live = db.table('app.compound')
     db.execute("INSERT INTO app_compound (\"L\", \"right\") VALUES (0, 'x')")
-    assert live.record({'left': 0, 'right': 'x'}, mode='dict')['left'] == 0
-    assert '"t0"."L"' in live.record({'left': 0, 'right': 'x'}).query.sqltext
+    query = live.query(where="$left=0 AND $right='x'")
+    assert query.fetchRecord()['left'] == 0
+    assert '"t0"."L"' in query.sqltext
 
 
 def test_update_record_and_delete_pkey_zero_keep_explicit_selectors(db):
@@ -134,7 +133,7 @@ def test_update_hooks_receive_the_callers_old_record_and_values(make_db):
     assert values == {'id': 0, 'name': 'NEW'}
     assert seen == [('before', old_record), ('after', old_record)]
     assert seen[0][1] is old_record and seen[1][1] is old_record
-    assert db.table('app.customer').record(0).output('dict')['name'] == 'NEW'
+    assert db.table('app.customer').query(where='$id=0').fetchRecord()['name'] == 'NEW'
 
 
 @pytest.mark.parametrize('keys, error', [((), RecordNotFoundError), ((0, 0), RecordMultipleRowsError)])

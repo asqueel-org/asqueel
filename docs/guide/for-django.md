@@ -58,7 +58,7 @@ table:
 ```python
 customer = db.table('sales.customer')
 try:
-    values = customer.record(101).output('dict')
+    values = dict(customer.query(where='$id = :id', id=101).fetchRecord())
     values['name'] = 'Ada Lovelace'
     customer.update(values)
     db.commit()

@@ -178,7 +178,7 @@ from datetime import datetime, timezone
 
 try:
     document = db.table('app.document')
-    old = document.record(100, for_update=True, mode='dict')
+    old = dict(document.query(where='$id = :id', id=100, for_update=True).fetchRecord())
     document.update(dict(old, deleted_at=datetime.now(timezone.utc)), old)
     db.commit()
 except Exception:

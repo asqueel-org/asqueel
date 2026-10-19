@@ -17,9 +17,9 @@ exist. Calls below are alternatives, not one script to execute in sequence.
 | Inspect SQL | `query.sqltext` / `query.compiled` | Compiles; no I/O. |
 | Read rows | `query.fetch()` | Executes; `list[NamedList]`, mutable rows with name/position access. |
 | Read rows and metadata | `query.execute()` | Executes; `QueryResult`. |
-| Read one row now | `table.record(1, mode='dict')` | Executes; exactly one dictionary or an error. |
-| Cache one row | `reader = table.record(1)` then `reader.output('dict')` | Loads once; subsequent outputs are copies. |
-| Refresh cached row | `reader.refresh()` | Executes again; returns reader. |
+| Read one row | `query.fetchRecord()` | Executes; exactly one `NamedList` or an error; `ignoreMissing=True` returns None for no row. |
+| Read keys, dicts, groups | `query.fetchPkeys()`, `fetchAsDict()`, `fetchGrouped()`, `fetchAsBag()`, `fetchAsJson()` | Executes; legacy fetch terminals. |
+| Read in chunks | `query.iterfetch(arraysize=30)` | Executes on a server-side cursor; yields lists of rows. |
 
 ## Query options
 

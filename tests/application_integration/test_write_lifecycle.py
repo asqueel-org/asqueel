@@ -85,7 +85,7 @@ def test_update_and_delete_track_raw_without_table_hooks(database):
     table = db.table('app.item')
     table.insert({'id': 1, 'name': 'before'})
     db.commit()
-    old = table.record(1, for_update=True).output('dict')
+    old = dict(table.query(where='$id=1', for_update=True).fetchRecord())
     db.currentEnv['events'].clear()
     table.update({'id': 1, 'name': 'after'}, old_record=old)
     assert ('table-before', 'before') in db.currentEnv['events']

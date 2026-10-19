@@ -130,9 +130,10 @@ def test_full_records_old_snapshot_composite_zero_key_and_atomic_hooks(hooked_da
 
 
 @pytest.mark.xfail(strict=True, reason=COMPOSITE_READ)
-def test_record_read_with_lock_includes_the_draft_row(hooked_database):
+def test_fetch_record_with_lock_includes_the_draft_row(hooked_database):
     db, observer, schema = hooked_database
-    old = db.table('app.item').record((0, 0), for_update=True).output('dict')
+    old = db.table('app.item').query(where='$org=0 AND $id=0', for_update=True,
+                                     exclude_draft=False).fetchRecord()
     assert old['draft'] is True
 
 
@@ -184,7 +185,7 @@ def test_pre_hook_holds_postgres_row_lock(hooked_database):
 
     table.probe_lock = probe
     with completed(db):
-        old = table.record((0, 0), for_update=True).output('dict')
+        old = dict(table.query(where='$org=0 AND $id=0', for_update=True, exclude_draft=False).fetchRecord())
         table.update(dict(old, name='locked'), old_record=old)
     assert attempted == [True]
     assert persisted(observer, schema)[0] == (0, 0, 'locked')

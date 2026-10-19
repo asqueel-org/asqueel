@@ -120,7 +120,7 @@ def test_caught_hook_error_remains_rollback_only_and_cannot_commit(application):
     assert rows('audit') == [(2, 2)]
 
 
-def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(application):
+def test_query_compiles_in_terminal_environment_and_fetch_record_reads_again(application):
     db, rows = application
     with completed(db):
         db.table('app.item').insert({'id': 1, 'name': 'same'})
@@ -133,18 +133,16 @@ def test_query_compiles_in_terminal_environment_and_record_refreshes_explicitly(
         assert [dict(row) for row in query.fetch()] == [{'id': 2, 'name': 'same'}]
         with pytest.raises(EnvironmentMismatchError):
             db.execute(compiled)
-    record = db.table('app.item').record(1)
-    assert record.output('dict') == {'id': 1, 'name': 'same'}
+    record = db.table('app.item').query(where='$id=1')
+    assert dict(record.fetchRecord()) == {'id': 1, 'name': 'same'}
     db.table('app.item').update({'id': 1, 'name': 'changed'})
-    assert record.output('dict')['name'] == 'same'
-    record.refresh()
-    assert record.output('dict')['name'] == 'changed'
+    assert record.fetchRecord()['name'] == 'changed'
     db.rollback()
     assert rows('item') == [(1, 'same'), (2, 'same')]
     with pytest.raises(RecordNotFoundError):
-        db.table('app.item').record(99).output('dict')
+        db.table('app.item').query(where='$id=99').fetchRecord()
     with pytest.raises(RecordMultipleRowsError):
-        db.table('app.item').record(where='$name=:name', name='same').output('dict')
+        db.table('app.item').query(where='$name=:name', name='same').fetchRecord()
 
 
 def test_caught_hook_error_cannot_turn_context_exit_into_success(application):

@@ -112,8 +112,7 @@ that index; other rows can still have shorter value lists and return None for
 the new name until assigned. This is the legacy behavior. Structural list
 operations such as deletion or reordering do not repair the column index.
 Separate fetches have separate indices and fresh values. Local edits never
-write to the database. `record.output('dict')` continues to return a detached
-dictionary. Streaming, Selection and Python-column evaluation remain separate.
+write to the database. Selection and Python-column evaluation remain separate.
 
 | Option | Meaning and default |
 |---|---|
@@ -158,9 +157,7 @@ SQL quoted strings and comments are not a separate protected scanner domain.
 as in legacy `starColumns`. Physical XML/Bag columns (`dtype="X"`) are omitted
 unless `bagFields=True` or `for_update=True`; explicitly named columns remain available. Static virtual
 X columns are included in either mode. Unsupported static columns fail explicitly.
-Prefer explicit projections for stable result contracts. `record()` keeps
-`bagFields=True` by default, as in the legacy record compiler; passing False
-omits physical X fields only when no lock is requested.
+Prefer explicit projections for stable result contracts.
 
 ## Legacy filter macros
 
@@ -470,15 +467,17 @@ Counting grouped results is different from counting base rows: define the query
 shape before choosing its terminal. An SQL aggregate does not assemble related
 collections; those have an explicit result shape.
 
-## Fetch exactly one record
+## Fetch terminals
 
 ```python
 try:
-    customer = db.table("sales.customer")
-    reader = customer.record(1)
-    first = reader.output("dict")
-    again = reader.output("dict")  # A copy of the same cached snapshot.
-    immediate = customer.record(2, mode="dict")
+    invoice = db.table("sales.invoice")
+    query = invoice.query(columns="$id, $customer_id, $total", order_by="$id")
+    assert query.fetchPkeys() == [10, 11]
+    assert list(query.fetchAsDict()) == [10, 11]
+    assert list(query.fetchGrouped(key="customer_id", ordered=True)) == [1, 2]
+    chunks = [len(rows) for rows in query.iterfetch(arraysize=1)]
+    assert chunks == [1, 1]
     db.commit()
 except Exception:
     db.rollback()
@@ -486,23 +485,62 @@ except Exception:
 
 ```
 
-`record()` enforces exactly one match. As in legacy compiledRecordQuery, it does
-not apply query draft/deletion/partition filters by default. It raises `RecordNotFoundError`
-for no match (unless `ignoreMissing=True`) and `RecordMultipleRowsError` for several. It is not a `fetch()[0]`
-shortcut that silently ignores additional rows.
+The legacy fetch terminals are available on every query. Each `fetch*`
+terminal executes the query again and works on the rows of `fetch()`;
+`cursor`, `servercursor`, `iterfetch` and `serverfetch` read from a driver
+cursor. `key=None` means the table pkey.
 
-Supply a complete key mapping or an ordered sequence for composite primary keys.
-A scalar is accepted for a single-column key, including zero. Key values cannot
-be `None`. Alternatively, supply `where` and `sqlparams` for a unique selector.
-Record reads select the physical row; custom projections, `limit` and
-`offset` are rejected. Use `query()` for partial rows.
+- `fetchPkeys()`: the primary-key values, in query order.
+- `fetchAsDict(key=None, ordered=False, pkeyOnly=False)`: the rows keyed by
+  `key`; `ordered=True` returns an `OrderedDict`; `pkeyOnly=True` keeps the pkey
+  as the value.
+- `fetchAsJson(key=None)`: the rows as a JSON array; datetimes in ISO format,
+  every other value through `str()`.
+- `fetchAsBag(key=None)`: a `genro_bag.Bag` with one node per row, labelled by
+  `key`, sorted by it, the row as attributes.
+- `fetchGrouped(key=None, asBag=False, ordered=False)`: lists of rows grouped by
+  `key`. The groups keep the order of the fetch, as in legacy; `ordered=True`
+  returns an `OrderedDict`, `asBag=True` a Bag.
+- `cursor()`: the open driver cursor; the caller closes it.
+- `servercursor()`: a named server-side cursor on PostgreSQL; a normal cursor on
+  SQLite, as in legacy.
+- `iterfetch(arraysize=30)`: yields lists of at most `arraysize` rows, from a
+  server-side cursor.
+- `serverfetch(arraysize=30)`: `(cursor, generator)`; the generator yields the
+  same lists as `iterfetch`.
 
-`reader.refresh()` discards and reloads its snapshot in the current environment.
-A reader does not automatically refresh after a write, commit or scope change.
-`output('dict')` returns a dictionary. `output('record')` returns a Bag without
-relation resolvers and converts X values to Bags. With `ignoreMissing=True`,
-the corresponding output is empty. Selection and other record output formats
-are outside this profile.
+Cursors run inside the transaction the database already manages.
+
+## Fetch exactly one record
+
+```python
+try:
+    customer = db.table("sales.customer")
+    first = customer.query(where="$id = :id", id=1).fetchRecord()
+    assert first["name"] in ("Ada", "Ada Lovelace")
+    assert customer.query(where="$id = :id", id=99).fetchRecord(ignoreMissing=True) is None
+    lowest = customer.query(order_by="$id").fetchRecord()  # LIMIT 1
+    assert lowest["id"] == 1
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
+```
+
+`query(...).fetchRecord(ignoreMissing=False)` returns the single row of the
+query, in the format of `fetch()`. No row raises `RecordNotFoundError`, or
+returns `None` with `ignoreMissing=True`. Several rows raise
+`RecordMultipleRowsError`. When the query was given an explicit `order_by`, it
+compiles with `LIMIT 1` and returns the first row; the table default order_by
+does not count. There is no cache: every call executes the query.
+
+`fetchRecord()` applies the query filters like any other terminal. To read a
+draft, logically deleted or out-of-partition row, pass `exclude_draft=False`,
+`exclude_logical_deleted=False` or `ignore_partition=True` to `query()`.
+
+Legacy `table.record()` is not available in this release and raises
+`UnsupportedFeatureError`. Its Bag output has no replacement.
 
 ## Inspect SQL and result metadata
 
@@ -538,7 +576,7 @@ execution and parameter formatting, see [the compiler interface](compiler.md).
 
 ```python
 try:
-    row = db.table("sales.customer").record(1, for_update=True).output("dict")
+    row = db.table("sales.customer").query(where="$id = :id", id=1, for_update=True).fetchRecord()
     db.table("sales.customer").update({"id": row["id"], "name": "Ada Lovelace"})
     db.commit()
 except Exception:
@@ -548,9 +586,8 @@ except Exception:
 ```
 
 PostgreSQL locks only the base table with `FOR UPDATE OF`. Locks end at commit or
-rollback. A cached reader does not acquire a new lock in another transaction;
-use a fresh reader or refresh it. PostgreSQL rejects locking incompatible SELECT
-forms, including aggregate projections.
+rollback. PostgreSQL rejects locking incompatible SELECT forms, including
+aggregate projections.
 
 On SQLite a locked read starts `BEGIN IMMEDIATE` if no transaction is open. If a
 transaction is already open, a zero-row self-update acquires the write

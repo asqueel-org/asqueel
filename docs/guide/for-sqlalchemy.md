@@ -59,7 +59,7 @@ a flush can also happen automatically before a query or commit. In Asqueel:
 ```python
 customer = db.table('sales.customer')
 try:
-    values = customer.record(101).output('dict')
+    values = dict(customer.query(where='$id = :id', id=101).fetchRecord())
     values['name'] = 'Ada Lovelace'
     customer.update(values)  # Execute UPDATE now, inside the transaction.
     db.commit()
@@ -70,8 +70,8 @@ except Exception:
 
 Changing `values` alone schedules nothing. `update()` executes SQL and
 `commit()` completes the transaction. There is no implicit flush of other
-modified rows and no automatic persistence of related objects. A record
-reader keeps a snapshot until `refresh()`; ordinary query fetches execute again.
+modified rows and no automatic persistence of related objects. Query fetches
+execute again.
 
 An Asqueel named connection owns an independent transaction, not an identity map.
 Choosing another connection does not merge object state or coordinate commits.

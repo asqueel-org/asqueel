@@ -19,7 +19,7 @@ step below on both databases.
 |---|---|---|
 | Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and deferred transactions; `for_update` takes the database write lock. PostgreSQL-specific SQL is not translated. |
 | Tables | `db.migrate()` creates and alters the declared tables; it needs `asqueel[migration]`. | Without the extra, create tables with your own DDL, as in the [quickstart](quickstart.md). |
-| Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; `record()` for exactly one row, `for_update=True` for a locked read. | No streaming cursor: rows are materialized Toolbox `NamedList` rows. |
+| Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; the legacy fetch terminals (`fetchRecord()` for exactly one row, `fetchPkeys`, `fetchAsDict`, `fetchAsJson`, `fetchAsBag`, `fetchGrouped`, `cursor`, `servercursor`, `iterfetch`, `serverfetch`); `for_update=True` for a locked read. | Rows are Toolbox `NamedList` rows; `fetch()` materializes them, `iterfetch()` reads them in chunks. |
 | Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `relation_name` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |
 | Formulas | SQL formula columns, table formula methods, `select`/`exists` dictionaries, named subqueries, `subQueryColumn`. | Formulas are read-only. JSON/XML `subQueryColumn` modes and `aggr(to_xml(...))` need PostgreSQL; `aggr(to_json(...))` runs on both. |
 | Alias columns | `aliasColumn` through to-one paths, with inherited metadata and `originalColumn`. | Read-only: an alias key in a write mapping is skipped. |
@@ -48,7 +48,7 @@ Other operations a project may expect and that are missing or fail:
 
 | Operation | Status | Issue |
 |---|---|---|
-| SELECT and `record()` on a table whose pkey is a `compositeColumn` | fails | [#26](https://github.com/asqueel-org/asqueel/issues/26) |
+| SELECT on a table whose pkey is a `compositeColumn` | fails | [#26](https://github.com/asqueel-org/asqueel/issues/26) |
 | `recordToUpdate`: hooked update/delete of one record read with a lock | missing | [#17](https://github.com/asqueel-org/asqueel/issues/17) |
 | `batchUpdate`: hooked update of the records of a selection | missing | [#32](https://github.com/asqueel-org/asqueel/issues/32) |
 | table partitions applied to insert, update and delete | not applied, as in GenroPy | [#15](https://github.com/asqueel-org/asqueel/issues/15) |
@@ -108,9 +108,7 @@ exploded joins.
 
 Computed projection expressions need explicit aliases. Returned names must be
 unique. Pagination uses limit/offset; there is no keyset-pagination helper and
-no query or result cache. A record caches its row until `refresh()`; ordinary
-query fetches always execute again. Record reads reject custom projections,
-limit and offset so they cannot mask multiple matches.
+no query or result cache: every fetch terminal executes again.
 
 ## Policy boundaries
 
@@ -203,6 +201,7 @@ release`, prefixed with the table or column path where one exists:
   (`rowcaption` and `newrecord_caption` stay accepted as table attributes);
 - on the database: `tableMixin`, `packageMixin`;
 - on a query: `setJoinCondition`;
+- on a table: `record`, whose message adds `use query(...).fetchRecord()`;
 - query keywords `jc_<name>` (join condition keyword).
 
 A custom adapter must declare and test its own supported behavior. See

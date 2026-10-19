@@ -78,7 +78,7 @@ the write cycle, see [Current status](limitations.md).
   `colgroup_name_long` and `group_<name>` raise as attributes outside the
   grammar. Reason: not recorded for the missing attributes.
 - **`compositeColumn()`** (A1.12): declared in the `composites` collection
-  with `unique=`; SELECT and `record()` fail when it is the pkey. Reason: open
+  with `unique=`; SELECT fails when it is the pkey. Reason: open
   defect ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
 - **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a package
   folder in the legacy layout loads with `package(name, path=<folder>)`:
@@ -166,6 +166,8 @@ the write cycle, see [Current status](limitations.md).
 - `distinct`, `group_by`, `having`, `limit`, `offset` (A2.11).
 - `excludeLogicalDeleted` (also `'mark'`) and `excludeDraft` (A2.13).
 - `fetch()` (A2.16).
+- `fetchPkeys`, `fetchAsJson`, `fetchAsDict`, `fetchAsBag`, `fetchGrouped`,
+  `cursor`, `servercursor` (A2.17).
 - `count()` (A2.18).
 
 ### Works differently
@@ -189,10 +191,8 @@ the write cycle, see [Current status](limitations.md).
   the current environment; `test()` does not exist. Reason: recompilation is
   deliberate; a cache of compiled queries is under discussion
   ([#3](https://github.com/asqueel-org/asqueel/issues/3)).
-- **`record(pkey= / where=, for_update, ignoreMissing)`** (A2.21): a composite
-  pkey is a mapping or a sequence; `ignoreMissing` returns `{}`. Reason: shape
-  of the composite pkey; a `compositeColumn` pkey fails
-  ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
+- **`iterfetch`, `serverfetch`** (A2.17): the generator stops at the first
+  empty chunk; legacy also yields a trailing empty list. Reason: not recorded.
 
 ### Not available yet
 
@@ -206,21 +206,20 @@ the write cycle, see [Current status](limitations.md).
   `aliasPrefix`** (A2.15): raise `UnsupportedFeatureError`; the table
   `order_by` is applied and cannot be disabled. No issue yet. Workaround: an
   explicit `order_by` and filters in the `where`.
-- **`fetchAsDict`, `fetchAsBag`, `fetchGrouped`, `fetchPkeys`, `fetchAsJson`,
-  `cursor`, `servercursor`, `iterfetch`** (A2.17): no such methods. No issue
-  yet. Workaround: a comprehension over `fetch()`.
+- **`record(pkey= / where=, for_update, ignoreMissing)`, `record` mode and
+  `output(mode)`** (A2.21, A2.23): `record()` raises `UnsupportedFeatureError`
+  with `use query(...).fetchRecord()`; its Bag output has no replacement. No
+  issue yet. Workaround: `query(where=..., for_update=...).fetchRecord()`;
+  `ignoreMissing=True` returns None for no row.
 - **`selection()` and the `SqlSelection` API** (A2.20): raises
   `UnsupportedFeatureError`. No issue yet. Workaround: `fetch()` and
   processing in Python.
-- **`record` keyword selectors, `ignoreDuplicate`, `virtual_columns`,
-  `lazy`/`eager`** (A2.22): refused. No issue yet. Workaround: an explicit
-  `where`, and `query()` for formulas.
-- **`record` mode / `output(mode)`** (A2.23): only `'dict'` and `'record'`;
-  `'bag'` raises an error. No issue yet. Workaround: `output('record')` or
-  `output('dict')`.
+- **`ignoreDuplicate`, `virtual_columns`, `lazy`/`eager`** (A2.22): refused
+  as query options. No issue yet. Workaround: an explicit `where`, and
+  `query()` for formulas.
 - **`readColumns`, `countRecords`, `recordAs`, `cachedRecord` /
   `tableCachedData`, `db.query(table)`** (A2.25): absent. No issue yet.
-  Workaround: `query(...).fetch()` and `record(...)`.
+  Workaround: `query(...).fetch()` and `query(...).fetchRecord()`.
 - **`sqlWhereFromBag`, `whereTranslator`, `opTranslate`** (A2.26): absent. No
   issue yet. Workaround: a `where` written by the caller.
 
@@ -361,7 +360,7 @@ the write cycle, see [Current status](limitations.md).
 - **`update(record, old_record=None, pkey=None)`** (A5.2): key from
   `old_record`, then `pkey`, then `record`; composite pkey as mapping or
   sequence; no storename; extra kwargs ignored. Reason: same pkey shape as
-  `record()`; the package storename: not recorded.
+  legacy `record()`; the package storename: not recorded.
 - **`delete(record)` and `deletable`** (A5.3): a missing string key returns
   without error; an incomplete dict is re-read with a lock; the DELETE must
   remove exactly one row, otherwise `RecordNotFoundError`; `deletable` is only
@@ -414,9 +413,9 @@ the write cycle, see [Current status](limitations.md).
   with `for_update` and `update()` for each row.
 - **`recordToUpdate(pkey, ...)`** (A5.22): absent
   ([#17](https://github.com/asqueel-org/asqueel/issues/17)). Workaround:
-  `record(..., for_update=True, mode='dict')` and `update(record, old_record)`.
+  `query(..., for_update=True).fetchRecord()` and `update(record, old_record)`.
 - **`insertOrUpdate(record)`** (A5.23): absent. No issue yet. Workaround:
-  `record` with `ignoreMissing`, then `insert` or `update`.
+  `query(...).fetchRecord(ignoreMissing=True)`, then `insert` or `update`.
 - **`newrecord`, `defaultValues`, `extendDefaultValues`, `recordCopy`**
   (A5.24): absent; a column with `default` or `default_from` blocks the write
   ([#28](https://github.com/asqueel-org/asqueel/issues/28)). Workaround:
@@ -680,8 +679,6 @@ the write cycle, see [Current status](limitations.md).
 
 ## New in asqueel
 
-- **`SqlRecord.refresh()`** (A2.24): discards the result and reads again in
-  the current environment.
 - **`parameters=` and `expression=`** (A3.5): `parameters` is a mapping in
   place of `var_*`; `expression` is a synonym of `sql_formula` without public
   documentation.

@@ -143,7 +143,7 @@ def change_customer(db):
     customer = db.table("sales.customer")
     result = customer.update({"id": 1, "name": "Ada Lovelace"})
     assert result == {"id": 1, "name": "Ada Lovelace"}
-    assert customer.record(1, mode="dict")["name"] == "Ada Lovelace"
+    assert customer.query(where="$id = :id", id=1).fetchRecord()["name"] == "Ada Lovelace"
     db.commit()
 
     try:
@@ -152,7 +152,7 @@ def change_customer(db):
     except ValueError:
         db.rollback()
 
-    assert customer.record(1, mode="dict")["name"] == "Ada Lovelace"
+    assert customer.query(where="$id = :id", id=1).fetchRecord()["name"] == "Ada Lovelace"
     db.rollback()  # Complete this read-only transaction.
 
 

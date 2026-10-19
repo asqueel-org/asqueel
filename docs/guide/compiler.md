@@ -68,15 +68,10 @@ for external values and the existing escape convention.
 
 ## Record reads and locks
 
-`table.record(pkey)` is lazy; `output('dict')` returns an independent dictionary
-snapshot. `output('record')` returns a Bag without relation resolvers, with X
-fields decoded into Bags. `refresh()` reloads the snapshot.
-`ignoreMissing=True` returns an empty dict/Bag; otherwise missing or multiple
-records raise the corresponding record error.
-
-Record reads select physical columns and include X fields by default. They do
-not add static virtual columns. As in legacy `compiledRecordQuery`, they do not
-apply query draft/deletion/partition filters by default.
+`query(...).fetchRecord()` executes the query and returns its single row.
+`ignoreMissing=True` returns None for no row; otherwise missing or multiple
+rows raise the corresponding record error. It applies the query filters like
+every other terminal. Legacy `table.record()` is not available in this release.
 
 `for_update=True` acquires locks only at execution. PostgreSQL uses
 `FOR UPDATE OF t0`. SQLite uses `BEGIN IMMEDIATE` when no transaction is active;

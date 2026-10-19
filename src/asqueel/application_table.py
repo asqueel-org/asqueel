@@ -1,7 +1,7 @@
 """Live application tables and lazy query intent with the legacy fetch terminals.
 
 Application objects execute through their owning SqlDatabase. They do
-not open connections, commit, or emulate legacy Bag/selection result objects.
+not open connections, commit, or emulate legacy selection result objects.
 """
 from __future__ import annotations
 
@@ -113,21 +113,21 @@ class SqlQuery:
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
         return self.execute().rows
 
-    def cursor(self):
+    def cursor(self):  # wf:phase-1:new
         """Execute the query and return the open driver cursor; the caller closes it."""
         return self.db.cursor(self.compiled)
 
-    def servercursor(self):
+    def servercursor(self):  # wf:phase-1:new
         """A named server-side cursor on PostgreSQL; a normal cursor on SQLite (legacy gnrsqlite)."""
         return self.db.cursor(self.compiled, cursorname='asqueel_' + get_uuid())
 
-    def serverfetch(self, arraysize=30):
+    def serverfetch(self, arraysize=30):  # wf:phase-1:new
         """``(cursor, generator)``: the generator yields lists of at most ``arraysize`` rows."""
         cursor = self.servercursor()
         cursor.arraysize = arraysize
         return cursor, self._cursorGenerator(cursor)
 
-    def iterfetch(self, arraysize=30):
+    def iterfetch(self, arraysize=30):  # wf:phase-1:new
         """Yield the rows in lists of at most ``arraysize``, from a server-side cursor."""
         yield from self.serverfetch(arraysize=arraysize)[1]
 
@@ -141,18 +141,18 @@ class SqlQuery:
         finally:
             cursor.close()
 
-    def fetchPkeys(self):
+    def fetchPkeys(self):  # wf:phase-1:new
         """The primary-key values of the rows, in query order."""
         pkey = self.table.model.pkey
         return [row[pkey] for row in self.fetch()]
 
-    def fetchAsJson(self, key=None):
+    def fetchAsJson(self, key=None):  # wf:phase-1:new
         """The rows as a JSON array; datetimes in ISO format, other values through ``str``."""
         def default(value):
             return value.isoformat() if isinstance(value, datetime) else str(value)
         return json.dumps([dict(row) for row in self.fetch()], default=default)
 
-    def fetchAsDict(self, key=None, ordered=False, pkeyOnly=False):
+    def fetchAsDict(self, key=None, ordered=False, pkeyOnly=False):  # wf:phase-1:new
         """The rows keyed by ``key`` (default the pkey); ``pkeyOnly`` keeps only the pkey as value."""
         key = key or self.table.model.pkey
         factory = OrderedDict if ordered else dict
@@ -161,7 +161,7 @@ class SqlQuery:
             return factory((row[key], row[pkey]) for row in self.fetch())
         return factory((row[key], row) for row in self.fetch())
 
-    def fetchAsBag(self, key=None):
+    def fetchAsBag(self, key=None):  # wf:phase-1:new
         """A Bag with one node per row, labelled by ``key`` and sorted by it, the row as attributes."""
         key = key or self.table.model.pkey
         result = Bag()
@@ -169,7 +169,7 @@ class SqlQuery:
             result.set_item(row[key], None, _attributes=dict(row))
         return result
 
-    def fetchGrouped(self, key=None, asBag=False, ordered=False):
+    def fetchGrouped(self, key=None, asBag=False, ordered=False):  # wf:phase-1:new
         """Lists of rows grouped by ``key`` (default the pkey), in a dict, OrderedDict or Bag."""
         key = key or self.table.model.pkey
         result = Bag() if asBag else OrderedDict() if ordered else {}
@@ -306,29 +306,22 @@ class SqlTable(CrudMixin, TriggersMixin):
         bindings = _bindings(sqlparams, incoming)
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 
-    def _key_selector(self, pkey, sqlparams=None):
+    def _key_selector(self, pkey):
         names = self.model._model.physical_columns(self.model, self.model.pkey) if self.model.pkey else ()
         if not names:
             raise ValueError(f'{self.fullname} has no declared primary key')
-        if isinstance(pkey, Mapping):
-            missing = set(names) - pkey.keys()
-            if missing:
-                raise ValueError(f'Incomplete primary key: {sorted(missing)}')
-            values = [pkey[name] for name in names]
-        elif len(names) == 1:
+        if len(names) == 1:
             values = [pkey]
         elif isinstance(pkey, (tuple, list)) and len(pkey) == len(names):
             values = list(pkey)
         else:
-            raise ValueError('Composite primary keys require a complete mapping or ordered sequence')
+            raise ValueError('Composite primary keys require an ordered sequence')
         if any(value is None for value in values):
             raise ValueError('Primary-key values must not be None')
-        bindings = _bindings(sqlparams)
+        bindings = {}
         conditions = []
         for index, (name, value) in enumerate(zip(names, values)):
             parameter = f'__record_key_{index}'
-            while parameter in bindings:
-                parameter = '_' + parameter
             bindings[parameter] = _copy(value)
             conditions.append(f'{_reference(name)} = :{parameter}')
         return ' AND '.join(conditions), bindings

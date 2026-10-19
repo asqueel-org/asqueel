@@ -183,7 +183,7 @@ continue with [queries](queries.md).
 
 `update()` takes the key of the changed row from `old_record`, then `pkey`, then
 the record itself, and returns the record it received.
-`record(..., mode='dict')` immediately loads exactly one visible row. The second
+`query(...).fetchRecord()` loads exactly one visible row. The second
 update is rolled back by `db.rollback()` in the exception handler. The
 read after it confirms that the previously committed name remains.
 

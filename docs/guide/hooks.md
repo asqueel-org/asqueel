@@ -41,7 +41,7 @@ For updates, override `trigger_onUpdating(record, old_record=None)` and/or
 `trigger_onDeleting(record)` and/or `trigger_onDeleted(record)`.
 
 `old_record` is what the caller passed to `update()`; it is never read from the
-database. Read it yourself with `record(key, for_update=True, mode='dict')` when
+database. Read it yourself with `query(where=..., for_update=True).fetchRecord()` when
 the hooks need it and the row must stay locked until commit. `delete()` with a
 key string, or with a record lacking physical columns, reads the row with a lock
 before the hooks.

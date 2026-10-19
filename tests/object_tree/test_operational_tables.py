@@ -127,8 +127,6 @@ def test_query_compiles_without_execution_or_writes():
         compiled = query.compiled
         assert compiled.params == {'id': 3}
         assert 'SELECT' in compiled.sql
-        record = table.record(pkey=3)
-        assert record.query.compiled.params == {'__record_key_0': 3}
         assert db._connections == {}
     finally:
         db.close()

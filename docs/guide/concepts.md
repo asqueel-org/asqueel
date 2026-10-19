@@ -52,12 +52,11 @@ For `db.table('sales.customer').query(columns='$name').fetch()`:
 | `query.compiled` | A `CompiledQuery` containing SQL, parameters and metadata. | No |
 | `query.fetch()` | A new list of mutable `NamedList` rows. | Yes |
 | `query.execute()` | A new `QueryResult`, including rows and metadata. | Yes |
-| `table.record(1)` | A lazy exactly-one record reader. | No |
-| `record.output('dict')` | The record's cached snapshot, loading it on first use. | On first use |
+| `query.fetchRecord()` | The single row of the query, or an error. | Yes |
 | `table.insert(values)` | A `QueryResult` from an executed write. | Yes |
 
 Every query terminal executes again. Inspecting `.sqltext` does not freeze the
-next fetch. A record reader, in contrast, keeps its snapshot until `refresh()`.
+next fetch.
 A saved `CompiledQuery` is fixed and cannot silently follow a changed environment.
 
 ## Logical names are application names

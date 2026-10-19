@@ -53,7 +53,7 @@ cycle. There is no `returning=` argument.
 ```python
 try:
     customer = db.table("sales.customer")
-    old_record = customer.record(3, for_update=True, mode="dict")
+    old_record = dict(customer.query(where="$id = :id", id=3, for_update=True).fetchRecord())
     record = dict(old_record, name="Katherine Johnson")
     customer.update(record, old_record)
     db.commit()

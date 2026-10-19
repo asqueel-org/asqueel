@@ -56,7 +56,7 @@ try:
         )
         rows = query.fetch()
         assert [dict(row) for row in rows] == [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Grace"}]
-        assert customer.record(1).output("dict")["name"] == "Ada"
+        assert customer.query(where="$id = :id", id=1).fetchRecord()["name"] == "Ada"
         assert customer.column("name").attributes["name_long"] == "Customer name"
         print(rows)
     finally:
@@ -81,9 +81,8 @@ Run it with `python quickstart.py`.
   the source recipe.
 - `query.fetch()` executes and returns mutable Toolbox `NamedList` rows; use `dict(row)` for a dictionary. `query.execute()`
   returns a `QueryResult` with rows and column metadata. Every call executes again.
-- `record(key).output('dict')` loads exactly one visible record. Missing and
-  multiple matches raise explicit errors. The record caches its loaded snapshot
-  until `refresh()`.
+- `query(...).fetchRecord()` returns exactly one visible row. Missing and
+  multiple matches raise explicit errors.
 - `db.commit()` saves pending work; `db.rollback()` discards it. Both are explicit.
   `with db:` only owns closing; pending work is rolled back on close.
 

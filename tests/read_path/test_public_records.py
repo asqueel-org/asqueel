@@ -1,8 +1,7 @@
-"""Public hierarchical entries, legacy record outputs and real SQLite locks."""
+"""Public hierarchical entries, fetchRecord reads and real SQLite locks."""
 import sqlite3
 
 import pytest
-from genro_bag import Bag
 from genro_toolbox import NamedList
 
 from asqueel import AsqueelDb, SqlDatabaseConfig, build_database, RecordNotFoundError, RecordMultipleRowsError
@@ -49,40 +48,32 @@ def test_public_entries_share_one_model(entry, tmp_path):
     assert source.source.to_xml() == before
 
 
-def test_record_lazy_complete_snapshot_refresh_and_outputs(db):
+def test_fetch_record_reads_the_complete_row_at_every_call(db):
+    # The Bag output of the removed record() has no replacement in this release.
     table = db.table('app.item')
-    record = table.record(0)
+    query = table.query('$id,$name,$payload', where='$id=0')
     before = db._connection_state['execution_count']
-    data = record.output('dict')
-    assert set(data) == {'id', 'name', 'payload'}  # no static virtual columns
-    assert data['id'] == 0
-    assert isinstance(data['payload'], str)
-    bag = record.output('record')
-    assert isinstance(bag, Bag) and isinstance(bag['payload'], Bag)
-    assert bag['payload.value'] == 'hello'
-    assert bag.get_node('id').attr['dtype'] == 'L'
+    row = query.fetchRecord()
+    assert dict(row) == {'id': 0, 'name': 'first', 'payload': '<GenRoBag><value>hello</value></GenRoBag>'}
     assert db._connection_state['execution_count'] == before + 1
-    data['name'] = 'local'
-    assert record.output()['name'] == 'first'
     db.execute("UPDATE item SET name='changed' WHERE id=0")
-    assert record.output()['name'] == 'first'
-    assert record.refresh().output()['name'] == 'changed'
+    assert query.fetchRecord()['name'] == 'changed'
     assert db._connection_state['connection'].in_transaction
 
 
 def test_missing_and_duplicate_records(db):
+    # The Bag output of the removed record() has no replacement in this release.
     table = db.table('app.item')
     with pytest.raises(RecordNotFoundError):
-        table.record(99).output()
-    assert table.record(99, ignoreMissing=True).output('dict') == {}
-    assert len(table.record(99, ignoreMissing=True).output('record')) == 0
+        table.query(where='$id=99').fetchRecord()
+    assert table.query(where='$id=99').fetchRecord(ignoreMissing=True) is None
     with pytest.raises(RecordMultipleRowsError):
-        table.record(where='$id>=0', ignoreMissing=True).output()
+        table.query(where='$id>=0').fetchRecord(ignoreMissing=True)
 
 
-def test_record_and_query_locked_include_x(db):
+def test_locked_queries_include_x(db):
     table = db.table('app.item')
-    assert 'payload' in table.record(0, for_update=True, bagFields=False).output()
+    assert 'payload' in table.query('*', where='$id=0', for_update=True).fetchRecord().keys()
     rows = table.query('*', for_update=True, order_by='$id').fetch()
     assert type(rows[0]) is NamedList
     assert 'payload' in rows[0].keys()
@@ -92,7 +83,7 @@ def test_record_and_query_locked_include_x(db):
 
 
 @pytest.mark.parametrize('already_open', [False, True])
-@pytest.mark.parametrize('terminal', ['record', 'query'])
+@pytest.mark.parametrize('terminal', ['fetchRecord', 'fetch'])
 def test_sqlite_lock_blocks_other_writer_without_changing_rows(db, already_open, terminal):
     connection = db._connection_state['connection']
     trace = []
@@ -100,8 +91,8 @@ def test_sqlite_lock_blocks_other_writer_without_changing_rows(db, already_open,
     if already_open:
         connection.execute('BEGIN')
     table = db.table('app.item')
-    if terminal == 'record':
-        table.record(0, for_update=True).output()
+    if terminal == 'fetchRecord':
+        table.query('$id', where='$id=0', for_update=True).fetchRecord()
     else:
         table.query('$id', for_update=True).fetch()
     assert connection is db._connection_state['connection']
@@ -119,7 +110,7 @@ def test_sqlite_lock_blocks_other_writer_without_changing_rows(db, already_open,
         other.close()
 
 
-def test_record_uses_legacy_visibility_and_omits_static_virtuals(tmp_path):
+def test_fetch_record_reads_hidden_rows_with_the_visibility_filters_off(tmp_path):
     source = recipe(tmp_path / 'visibility.sqlite')
     table = source.source['db.packages.app.tables.item']
     table.attr.update(draftField='draft', logicalDeletionField='deleted')
@@ -130,9 +121,9 @@ def test_record_uses_legacy_visibility_and_omits_static_virtuals(tmp_path):
         db.execute("INSERT INTO item VALUES (1,'hidden',NULL,TRUE,'deleted')")
         db.commit()
         assert db.table('app.item').query('$id').fetch() == []
-        record = db.table('app.item').record(1, for_update=True).output()
+        record = db.table('app.item').query('*', where='$id=1', for_update=True, exclude_draft=False,
+                                             exclude_logical_deleted=False).fetchRecord()
         assert record['name'] == 'hidden'
-        assert 'upper_name' not in record
 
 
 def test_custom_table_class_survives_finalization(tmp_path):

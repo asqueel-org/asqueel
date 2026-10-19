@@ -146,10 +146,8 @@ takes a mapping when names are built at runtime or clash with an option. Unused 
 arguments fail rather than silently turning a misspelled option into a parameter.
 Queries compile in the environment current at the terminal call.
 
-`record(pkey)` returns a lazy exactly-one reader. `.output('dict')` returns a
-copy of its cached result; `.refresh()` reloads it in the current environment.
-`record(pkey, mode='dict')` is the immediate form. `output('record')` returns a Bag without relation resolvers. `ignoreMissing=True`
-returns an empty result. `query.count()` follows the legacy count algorithm;
+`query(...).fetchRecord()` executes and returns exactly one row.
+`ignoreMissing=True` returns None for no row. `query.count()` follows the legacy count algorithm;
 Selection remains outside this profile.
 
 Insert, update, delete, soft-delete and restore return `QueryResult`. Read the
