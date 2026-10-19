@@ -196,6 +196,19 @@ class CrudMixin:
                     row[mfld] = None
                     related.update(row, old)
 
+    def archiveRelatedRecords(self, record, archive_ts):  # wf:phase-4:new
+        """Set ``archive_ts`` on the logical-deletion field of the cascade children that have one."""
+        for joiner in self._relations_many():
+            if (joiner.get('onDelete') or 'raise').partition(':')[0].lower() != 'cascade':
+                continue
+            mpkg, mtbl, mfld = joiner['many_relation'].split('.')
+            related = self.db.table(f'{mpkg}.{mtbl}')
+            if not related.logicalDeletionField:
+                continue
+            ofld = joiner['one_relation'].split('.')[2]
+            related.query(where=f'${mfld} = :pid', pid=record[ofld], excludeDraft=False,
+                          excludeLogicalDeleted=False).update({related.logicalDeletionField: archive_ts})
+
     def updateRelated(self, record, old_record=None):
         """Apply ``onUpdate`` of the relations whose referenced key changed."""
         for joiner in self._relations_many():

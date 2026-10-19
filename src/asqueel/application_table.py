@@ -262,6 +262,43 @@ class SqlQuery:
         compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot())
         return self._rowcount(compiled)
 
+    def delete(self):  # wf:phase-4:new
+        """Delete the selected rows one by one through the write cycle; returns the rows."""
+        rows = self._rows_to_write('delete')
+        for row in rows:
+            self.table.delete(row)
+        return rows
+
+    def update(self, updater):  # wf:phase-4:new
+        """Update the selected rows one by one through the write cycle; returns their pkeys.
+
+        ``updater`` is a dict merged into each row, or a callable changing the row in place.
+        """
+        table = self.table
+        pkey = table.model.pkey
+        pkeys = []
+        for old_record in self._rows_to_write('update'):
+            record = _copy(old_record)
+            if callable(updater):
+                updater(record)
+            else:
+                record.update(updater)
+            table.update(record, old_record=old_record)
+            pkeys.append(record[pkey] if pkey in record else table.pkeyValue(record))
+        return pkeys
+
+    def _rows_to_write(self, terminal):  # wf:phase-4:new
+        """The selected rows with every physical column, locked, as dicts."""
+        options = _copy(self._options)
+        grouping = [name for name in ('group_by', 'having') if options.get(name)]
+        if grouping:
+            raise UnsupportedFeatureError(f'{", ".join(grouping)} is valid only in a SELECT, not in {terminal}')
+        options['columns'] = ','.join(_reference(name) for name in self.table.model.columns)
+        options['bagFields'] = True
+        options['for_update'] = options.get('for_update') or True
+        compiled = self._compile(self.db.compiler.select, options)
+        return [dict(row) for row in self.handleBagColumns(self._fetchall(compiled), compiled)]
+
     def _key_plan(self, table):
         """The query's SELECT with the same filters, order and limit, reduced to the key."""
         options = _copy(self._options)

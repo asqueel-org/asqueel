@@ -538,6 +538,10 @@ cursor. `key=None` means the table pkey.
 
 Cursors run inside the transaction the database already manages.
 
+A query also writes the rows it selects: `update(updater)` and `delete()`
+record by record through the triggers, `sql_update(values)` and `sql_delete()`
+in one statement without triggers. See [write the rows of a query](writes.md#write-the-rows-of-a-query).
+
 ## Fetch exactly one record
 
 ```python

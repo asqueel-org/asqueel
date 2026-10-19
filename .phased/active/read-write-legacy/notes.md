@@ -21,3 +21,8 @@
 - `insertOrUpdate` reads with `columns='*'` and `for_update=True` (which also brings the X columns), default filters on, as legacy.
 - `for_update` validation: `0`/`1` ints refused like before (`type(...) is int`).
 - Realigned: test_handles `test_hooked_delete_rejects_missing_or_multiple_records_before_hooks` → `test_hooked_delete_of_a_key_rereads_it_before_hooks` (the incomplete-dict reread it covered is removed by decision); test_write_cycle reread test now deletes by key string; test_write_compiler composite key as serialized string and SQLite lock statement.
+
+## Phase 4
+- `SqlQuery.update`/`delete` share `_rows_to_write(terminal)`: the query's options with every physical column, `bagFields=True` and `for_update` (a user mode `'NOWAIT'`/`'SKIP LOCKED'` is kept), rows as dicts after handleBagColumns. `group_by`/`having` raise naming the terminal.
+- `update` returns `record[pkey]`; on a composite-key table the composite is not a physical column, so the key comes from `pkeyValue` (the serialized composite key).
+- The cascade lives in `TableCrud.archiveRelatedRecords(record, archive_ts)` (legacy name; `onArchivingRecord` not added), called by `db_write.update` right after `_protect_draft`, the legacy `dbo_onUpdating` position. The change test is `record.get(ldf) != old_record.get(ldf)`, as legacy `fieldsChanged`.

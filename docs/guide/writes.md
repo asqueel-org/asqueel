@@ -113,6 +113,53 @@ key through an update, `ignore` (the default) does nothing.
 policy. To mark a row as deleted, write its logical-deletion column with
 `update()`.
 
+### Logical-deletion cascade
+
+An `update()` on a table with a `logicalDeletionField` that receives
+`old_record` and changes that field writes the same value into the
+logical-deletion field of the child rows. The children are those of the
+relations with `onDelete='cascade'` whose table has its own
+`logicalDeletionField`; each child is updated through its own cycle, so the
+cascade continues on its children. Setting the field archives, clearing it
+restores. Relations with `setnull` or `raise`, and children without the field,
+are untouched. The cascade runs after the `onUpdating` triggers and before the
+UPDATE. An `update()` without `old_record` does not cascade.
+
+```python
+invoice = db.table("sales.invoice")
+old = dict(invoice.query(columns="*", where="$id=:pk", pk="o1").fetchRecord())
+invoice.update({**old, "__del_ts": datetime.now()}, old_record=old)
+```
+
+## Write the rows of a query
+
+A query writes the rows it selects in two ways:
+
+- record by record, through the triggers: `query(...).update(updater)` and
+  `query(...).delete()`;
+- in bulk, one statement without triggers: `query(...).sql_update(values)`
+  and `query(...).sql_delete()` (see below).
+
+`query(...).delete()` reruns the query with every physical column, the `X`
+columns and `for_update=True`, then calls `delete(row)` for each row, and
+returns the rows. `query(...).update(updater)` reads the rows the same way;
+`updater` is a dict merged into each row or a callable `updater(row)` that
+changes the row in place; each row is then written with
+`update(row, old_record=<the row as read>)`. It returns the list of the
+updated keys. A query with `group_by` or `having` is refused.
+
+```python
+try:
+    pkeys = db.table("sales.invoice").query(
+        where="$total >= :minimum", minimum=100,
+    ).update({"note": "Reviewed"})
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
+
+```
+
 ## Write without triggers
 
 The `sql_*` commands write the statement directly, without triggers,

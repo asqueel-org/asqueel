@@ -111,7 +111,8 @@ action in both mechanisms.
 | Physical delete | `trigger_onDeleting(record)` | `trigger_onDeleted(record)` |
 
 `sql_insert`, `sql_update` and `sql_delete`, and `query(...).sql_update()` /
-`.sql_delete()`, run no hooks.
+`.sql_delete()`, run no hooks. `query(...).update()` and `.delete()` run them
+for each selected row.
 
 See [writes](writes.md) for selectors and returned values, and
 [transactions](transactions.md) for failure recovery.

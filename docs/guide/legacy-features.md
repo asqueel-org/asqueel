@@ -427,11 +427,13 @@ the write cycle, see [Current status](limitations.md).
 - **Bag value in an `X` column** (A5.15): not converted; the driver raises an
   error. No issue yet (depends on the bagfield format of genro-bag).
   Workaround: convert the Bag to text before the write.
-- **`deleteSelection` with triggers** (A5.20): absent. No issue yet.
-  Workaround: fetch with `for_update` and `delete()` for each row.
-- **`batchUpdate`** (A5.21): absent
-  ([#32](https://github.com/asqueel-org/asqueel/issues/32)). Workaround: fetch
-  with `for_update` and `update()` for each row.
+- **`deleteSelection` with triggers** (A5.20): `query(...).delete()` reads
+  the rows with `for_update`, calls `delete(row)` for each and returns the
+  rows. Reason: plan read-write legacy, Phase 4.
+- **`batchUpdate`** (A5.21): `query(...).update(updater)` with a dict or a
+  callable, through `update(row, old_record)`, returning the updated keys;
+  `_raw_update`, `autocommit`, `_wrapper`, `deferredTotalize`, `_onUpdatedCb`
+  are absent ([#32](https://github.com/asqueel-org/asqueel/issues/32)).
 - **`recordToUpdate(pkey, ...)`** (A5.22): absent
   ([#17](https://github.com/asqueel-org/asqueel/issues/17)). Workaround:
   `query(..., for_update=True).fetchRecord()` and `update(record, old_record)`.
@@ -448,8 +450,11 @@ the write cycle, see [Current status](limitations.md).
   No issue yet. Workaround: application after-triggers or database
   triggers.
 - **Logical archiving cascade `onArchivingRecord` / `archiveRelatedRecords`**
-  (A5.27): the children are not touched. No issue yet. Workaround: update the
-  children in `trigger_onUpdating`.
+  (A5.27): `update()` with `old_record` that changes the logical-deletion
+  field runs `archiveRelatedRecords` in the `dbo_onUpdating` position, as part
+  of the write cycle; `onArchivingRecord` and `restoreUnifiedRecord`
+  (`__moved_related`) are absent. Reason: the dbo concept is removed (plan
+  read-write legacy, Phase 4).
 - **`check_updatable`, `check_deletable`, `isDraft`, `islocked_write`,
   `islocked_delete`, `hasProtectionColumns`** (A5.29): absent. No issue yet.
   Workaround: catch the exceptions of `protect_*`.

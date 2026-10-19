@@ -23,7 +23,7 @@ step below on both databases.
 | Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `relation_name` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |
 | Formulas | SQL formula columns, table formula methods, `formulaColumn_<x>()` dynamic columns, `select`/`exists` dictionaries, named `select_*`/`exists_*` subqueries, compositeColumn read as a value, `subQueryColumn` with `aggr=`, `#ENV` in `sql_formula`, `#BAG`/`#BAGCOLS` in the query columns. | Formulas are read-only. JSON/XML `subQueryColumn` modes and `aggr(to_xml(...))` need PostgreSQL; `aggr(to_json(...))` runs on both. |
 | Alias columns | `aliasColumn` through to-one paths, with inherited metadata and `originalColumn`. | Read-only: an alias key in a write mapping is skipped. |
-| Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
+| Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `query(...).update()` / `.delete()` write the selected rows record by record; an update changing the logical-deletion field cascades to the children. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
 | Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
 | Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
 | Row policies | Partition, draft and logical-deletion filters on reads. | They do not apply to writes (see below). |
@@ -49,7 +49,7 @@ Other operations a project may expect and that are missing or fail:
 | Operation | Status | Issue |
 |---|---|---|
 | `recordToUpdate`: hooked update/delete of one record read with a lock | missing | [#17](https://github.com/asqueel-org/asqueel/issues/17) |
-| `batchUpdate`: hooked update of the records of a selection | missing | [#32](https://github.com/asqueel-org/asqueel/issues/32) |
+| `batchUpdate` options (`_raw_update`, `autocommit`, `_wrapper`, `deferredTotalize`, `_onUpdatedCb`); `query(...).update()` covers the dict and callable updater | missing | [#32](https://github.com/asqueel-org/asqueel/issues/32) |
 | table partitions applied to insert, update and delete | not applied, as in GenroPy | [#15](https://github.com/asqueel-org/asqueel/issues/15) |
 | `newrecord` with defaults | missing | [#28](https://github.com/asqueel-org/asqueel/issues/28) |
 
@@ -79,7 +79,8 @@ a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-o
   otherwise `RecordNotFoundError`. A missing key string returns without error.
 - A composite key is passed as its serialized string; tuples and mappings raise.
 - `delete` is always a physical DELETE. There is no soft-delete or restore
-  command: write the logical-deletion column with `update`.
+  command: write the logical-deletion column with `update`, which cascades to
+  the children as legacy.
 - `sql_insert` accepts one record or a list and assigns the missing keys; a
   list runs one `executemany` per group of records with the same columns,
   without RETURNING.

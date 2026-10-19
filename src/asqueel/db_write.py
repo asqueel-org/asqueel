@@ -42,6 +42,10 @@ class WriteMixin:
             tblobj.trigger_onUpdating(record, old_record=old_record)
             # GnrDboTable.dbo_onUpdating ran protect_draft here, before the counters.
             self._protect_draft(tblobj, record)
+            # GnrDboTable.dbo_onUpdating archived the cascade children here.
+            ldf = tblobj.logicalDeletionField
+            if ldf and old_record and record.get(ldf) != old_record.get(ldf):
+                tblobj.archiveRelatedRecords(record, record.get(ldf))
             tblobj.trigger_assignCounters(record=record, old_record=old_record)
             self._write(tblobj, record, self.write_compiler.update(
                 tblobj.model, record, self.environment.snapshot(), pkey=pkey, old_record=old_record))
