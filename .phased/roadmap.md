@@ -19,7 +19,7 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Ends at: a hierarchical table is readable and writable on both dialects (#30 closed).
 - Open decisions: settled 2026-10-18 in the plan (proxy as legacy; doc 36 §10.2 last position on move, 1296th sibling error, locked max + 1; sys_fields write #29 included; text_pattern_ops moved to Macro 7).
 
-## Macro 4 (done): model in legacy syntax — active/model-legacy-syntax/plan.md
+## Macro 4 (done): model in legacy syntax — done/model-legacy-syntax/plan.md
 - Objective: model declarations back to the legacy spelling where the user did not decide otherwise (indexed/unique strings, UI attributes, compositeColumn and composite pkey, index(), one_one, cnd/join_on/between, custom_type, name_long..., config_db, table kwargs lastTS/draftField/logicalDeletionField, partition_<field>, unknown names returning None); `options()` stays for sysFields/dbo (user decision); `sql_default`, `sql_generatedExpression`, `sql_extra` (+ `sql_pg_*`).
 - Starts from: Macro 2. Ends at: legacy model sources load unchanged within the low-level scope.
 
