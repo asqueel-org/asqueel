@@ -92,3 +92,6 @@ Legacy queries of the low-level scope run unchanged (decisioni.md, Gruppo 5 and 
 | Phase 3 | high | opus |
 | Phase 4 | medium | opus |
 | Repair | high | opus |
+
+## Quality check
+> Quality check: 2026-10-19T11:07:47Z — commit e6959d7 — review extended, QA none, findings 9 confirmed, 0 dismissed, final touch 8 corrections
