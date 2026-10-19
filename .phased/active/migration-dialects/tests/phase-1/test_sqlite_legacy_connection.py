@@ -1,5 +1,5 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
-"""Macro 7 phase 2 contract — the SQLite connection as GenroPy legacy.
+"""Macro 7 phase 1 contract — the SQLite connection as GenroPy legacy.
 
 Legacy reference: ``gnrpy/gnr/sql/adapters/gnrsqlite.py`` on ``origin/develop``
 (``connect``: the folder is created when missing; ``_attach``: each schema is

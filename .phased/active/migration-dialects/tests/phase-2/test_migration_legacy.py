@@ -1,5 +1,5 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
-"""Macro 7 phase 1 contract — the migration reads the model as GenroPy legacy.
+"""Macro 7 phase 2 contract — the migration reads the model as GenroPy legacy.
 
 Legacy reference: ``gnrsqlmigration/orm_extractor.py`` on ``origin/develop``:
 ``statement_converter`` (SQL action abbreviations), ``fill_json_relations_and_indexes``
