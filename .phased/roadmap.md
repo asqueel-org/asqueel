@@ -23,12 +23,12 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Objective: model declarations back to the legacy spelling where the user did not decide otherwise (indexed/unique strings, UI attributes, compositeColumn and composite pkey, index(), one_one, cnd/join_on/between, custom_type, name_long..., config_db, table kwargs lastTS/draftField/logicalDeletionField, partition_<field>, unknown names returning None); `options()` stays for sysFields/dbo (user decision); `sql_default`, `sql_generatedExpression`, `sql_extra` (+ `sql_pg_*`).
 - Starts from: Macro 2. Ends at: legacy model sources load unchanged within the low-level scope.
 
-## Macro 5: query
+## Macro 5 (current): query — active/query-legacy/plan.md
 - Objective: formulaColumn_<name>() table methods as legacy (dynamic columns, legacy gnrsqlmodel/table.py:405; they raise from Macro 2), formulaColumn (dtype A, sql_formula=True, select_<name>, exists_<name>, error on sql_formula with select/exists), subQueryColumn with `aggr=`, fetch and derivatives, `fetchRecord()` (legacy record() out of this release), #ENV/#BAG/#BAGCOLS, compiled/sqltext cache and test(), kwargs warning, compositeColumn as a value (#26).
 - Starts from: Macro 4. Ends at: legacy queries of the low-level scope run unchanged.
 
 ## Macro 6: read-write and transactions
-- Objective: low-level write cycle as legacy (delete reread through fetchRecord, pkey composite, insertOrUpdate, Bag in X, currentEnv/workdate/locale, connections, deferToCommit in currentEnv, db.execute returning the cursor, lock, for_update modes, setConstraintsDeferred, analyze/vacuum, onDbCommitted hook, logical-delete cascade); `query().update()`/`query().delete()` through triggers beside `sql_update`/`sql_delete`; connection API identical to legacy (close/with/acquire/outcome/EnvironmentMismatchError removed); `sql_insert(record | list)` assigning pkeys.
+- Objective: low-level write cycle as legacy (delete reread through fetchRecord, pkey composite, insertOrUpdate, Bag in X, currentEnv/workdate/locale, connections, deferToCommit in currentEnv, db.execute returning the cursor, lock, for_update modes, setConstraintsDeferred, analyze/vacuum, onDbCommitted hook, logical-delete cascade); `query().update()`/`query().delete()` through triggers beside `sql_update`/`sql_delete`; connection API identical to legacy (close/with/acquire/outcome removed; EnvironmentMismatchError already removed by Macro 5); `sql_insert(record | list)` assigning pkeys.
 - Starts from: Macro 5 (fetchRecord).
 
 ## Macro 7: migration and dialects
