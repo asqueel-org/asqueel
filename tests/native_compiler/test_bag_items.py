@@ -45,5 +45,8 @@ def no_io(monkeypatch):
 
 @pytest.fixture
 def db():
-    with build_database(source()) as database:
+    database = build_database(source())
+    try:
         yield database
+    finally:
+        database.closeConnection()

@@ -50,8 +50,7 @@ class SalesModel(SqlDatabaseConfig):
 
 builder = SalesModel()
 builder.create()
-with builder.render() as db:
-    model = db.model
+model = builder.render().model
 
 assert model.table('sales.invoice').sqlname == 'invoice'
 assert model.table('sales.invoice').sqlschema == 'public'

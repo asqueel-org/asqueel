@@ -20,7 +20,7 @@ def main():
         print(rows.sql)
         print(rows.params)
     finally:
-        db.close()
+        db.closeConnection()
 
 
 if __name__ == "__main__":

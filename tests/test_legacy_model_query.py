@@ -54,7 +54,7 @@ def test_falsy_limit_and_offset_emit_no_clause_on_sqlite(tmp_path, value):
         assert 'LIMIT' not in query.compiled.sql and 'OFFSET' not in query.compiled.sql
         assert [row['id'] for row in query.fetch()] == [1, 2, 3]
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.postgresql

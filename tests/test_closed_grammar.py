@@ -104,7 +104,7 @@ def test_legacy_environment_keys_raise_at_execution(tmp_path, key):
         with pytest.raises(UnsupportedFeatureError, match=f"environment key '{key}' is not available"):
             db.table('main.item').query().fetch()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_subtable_query_option_names_the_option(tmp_path):
@@ -113,4 +113,4 @@ def test_subtable_query_option_names_the_option(tmp_path):
         with pytest.raises(UnsupportedFeatureError, match='subtable'):
             db.table('main.item').query(subtable='*')
     finally:
-        db.close()
+        db.closeConnection()

@@ -23,7 +23,8 @@ def db():
     schema = 'bag_items_' + uuid4().hex
     root.packages().package('app', sqlschema=schema)
     root.connection('main', dsn=postgres_dsn())
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         quote = database.adapter.adaptSqlName
         target = quote(schema) + '.app_item'
         try:
@@ -40,6 +41,8 @@ def db():
             database.rollback()
             database.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
             database.commit()
+    finally:
+        database.closeConnection()
 
 
 def read(db, columns, id=1):

@@ -50,8 +50,11 @@ query = compiler.select('sales.invoice', columns='$id, $total',
                         where='$total >= :minimum', params={'minimum': 100})
 
 def read(conninfo):
-    with Database(conninfo, driver=driver) as database:
+    database = Database(conninfo, driver=driver)
+    try:
         return (database.execute(query)).rows
+    finally:
+        database.closeConnection()
 ```
 
 Per ispezionare i passaggi si usano `plan_select`, `plan_insert`, `plan_update`,

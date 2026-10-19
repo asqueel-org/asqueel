@@ -23,6 +23,9 @@ def shop(execution_shop):  # noqa: F811
     invoice.column('__del_ts', dtype='DH')
     invoice.formulaColumn('double_total', dtype='N', sql_formula='$total * 2')
     invoice.aliasColumn('client_name', relation_path='@customer_id.name')
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=execution.db.config) as tree:
+    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=execution.db.config)
+    try:
         tree.currentEnv.update(dict(execution.db.currentEnv))
         yield Shop(execution.backend, tree, execution.invoice_sql)
+    finally:
+        tree.closeConnection()

@@ -3,7 +3,6 @@ import pytest
 
 from asqueel import SqlDatabase, SqlTable, UnsupportedFeatureError
 from asqueel.configuration import _owned_handler
-from asqueel.errors import DatabaseClosedError
 from asqueel.object_tree import DbTableObj
 from examples.test_invoice_pg import source as invoice_source
 from tests.application_config.test_render_structure import recipe
@@ -82,9 +81,7 @@ def test_binding_reuses_table_column_and_relation_objects(monkeypatch):
         assert db._connection_settings()[1]['schemas'] == ['main']
         assert db._connections == {}
     finally:
-        db.close()
-    with pytest.raises(DatabaseClosedError):
-        table.query()
+        db.closeConnection()
 
 
 def test_binding_is_single_owner_and_failure_does_not_rebind():
@@ -97,7 +94,7 @@ def test_binding_is_single_owner_and_failure_does_not_rebind():
         assert table.db is db
         assert table.model.dbtable is table
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_bad_implementation_leaves_tree_unbound():
@@ -113,7 +110,7 @@ def test_bad_implementation_leaves_tree_unbound():
     config.builder.source.get_node(config.root_label).attr['implementation'] = implementation
     model.implementation = implementation
     db = SqlDatabase(model=model, config=config)
-    db.close()
+    db.closeConnection()
 
 
 def test_query_compiles_without_execution_or_writes():
@@ -129,7 +126,7 @@ def test_query_compiles_without_execution_or_writes():
         assert 'SELECT' in compiled.sql
         assert db._connections == {}
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_default_renderer_uses_the_same_hierarchy():
@@ -147,15 +144,15 @@ def test_default_renderer_uses_the_same_hierarchy():
         assert new.column('id') is new.model.columns['id']
         assert old.query(columns='$id').compiled.sql
     finally:
-        old_db.close()
-        tree_db.close()
+        old_db.closeConnection()
+        tree_db.closeConnection()
 
 
 @pytest.fixture(scope='module')
 def invoice_db():
     db = bind(invoice_source())
     yield db
-    db.close()
+    db.closeConnection()
 
 
 @pytest.mark.parametrize('key', TABLES)

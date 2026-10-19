@@ -17,7 +17,8 @@ def databases(request):
     execution = request.getfixturevalue(request.param)
     config = source()
     config.source.get_node('db').attr['implementation'] = execution.adapter.dialect
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as tree:
+    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    try:
         # The shared fixture already loads eight original CSVs. Add the two
         # composite-key tables used by the legacy composite join contracts.
         quote = execution.adapter.adaptSqlName
@@ -37,6 +38,8 @@ def databases(request):
                                       {n: row[n] or None for n in names})
         execution.commit()
         yield tree, execution
+    finally:
+        tree.closeConnection()
 
 
 COMPOSITE_DATA = Path(__file__).parent / 'data'

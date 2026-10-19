@@ -102,7 +102,7 @@ def test_concurrent_inserts_under_one_parent_get_distinct_positions():
                      for record in table.query(columns='$code,$_row_count').fetch()}
         assert positions == {'parent': 1, 'child_1': 1, 'child_2': 2, 'root_1': 2, 'root_2': 3}
     finally:
-        first.close()
-        second.close()
+        first.closeConnection()
+        second.closeConnection()
         with psycopg.connect(postgres_dsn(), autocommit=True) as conn:
             conn.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))

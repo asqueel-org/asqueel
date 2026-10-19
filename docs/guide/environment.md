@@ -43,7 +43,7 @@ try:
     assert configured_db.current_env["language"] == "en"
     assert "organization" not in configured_db.current_env
 finally:
-    configured_db.close()
+    configured_db.closeConnection()
 
 ```
 
@@ -193,10 +193,13 @@ from asqueel import PostgresCompiler, PostgresDatabase, SqlEnvironment
 # model is a resolved model; no database connection is needed for compilation.
 environment = SqlEnvironment()
 compiler = PostgresCompiler(model, environment=environment)
-with PostgresDatabase("dbname=example", environment=environment) as executor:
+executor = PostgresDatabase("dbname=example", environment=environment)
+try:
     with environment.temp_env(customer_id=1):
         compiled = compiler.select("sales.customer", where="$id=:env_customer_id")
         rows = executor.execute(compiled).rows
+finally:
+    executor.closeConnection()
 ```
 
 Independent default environments do not share values. The low-level executor's
@@ -236,10 +239,12 @@ back pending work and releases all named connections in that thread. It does not
 undo a successful commit. Preserve the original application exception if cleanup
 also fails. Repeated `request.db` access does not reset context during the request.
 
-This is an application pattern, not a new Asqueel request/session class. A nested
-helper belonging to the same request should reuse its initialized context, not
-clear it again. A request instance is owned by one synchronous worker; async
-task isolation is not supplied by this pattern. `closeConnection()` permits
-subsequent requests to reuse the DB; `close()` permanently closes that worker’s
-DB state. `clearCurrentEnv()` alone neither rolls back work nor clears pending
-connection callbacks.
+This is an application pattern. Outside a request,
+[`session(db, **env)`](transactions.md#sessions) gives the same boundary: entry
+clears the context and applies the values, exit calls `closeConnection()`. A
+nested helper belonging to the same request should reuse its initialized
+context, not clear it again. A request instance is owned by one synchronous
+worker; async task isolation is not supplied by this pattern.
+`closeConnection()` permits subsequent requests to reuse the DB.
+`clearCurrentEnv()` alone does not roll back work; it drops the pending
+deferred callbacks, which live in `currentEnv`.

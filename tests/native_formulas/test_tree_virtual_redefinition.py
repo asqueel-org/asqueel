@@ -21,7 +21,8 @@ def test_redefined_virtual_returns_the_new_definition(request, backend, grouped,
     getattr(target, first)('redefined_customer', **definitions[first], name_long='Customer')
     with config.contribution('later'):
         getattr(target, second)('redefined_customer', **definitions[second])
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as tree:
+    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    try:
         compiled = tree.table('invc.invoice').query(
             '$redefined_customer AS actual,$customer_name AS expected',
             where='$customer_id IS NOT NULL', limit=5, excludeDraft=False,
@@ -32,3 +33,5 @@ def test_redefined_virtual_returns_the_new_definition(request, backend, grouped,
         for row in rows:
             assert row['actual'] == (row['expected'] if reverse else 'from_formula')
         assert not tree._connections
+    finally:
+        tree.closeConnection()

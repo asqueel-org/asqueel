@@ -24,9 +24,12 @@ def shop(execution_shop):  # noqa: F811
     table.column('id', dtype='L')
     table.column('total', dtype='N')
     table.column('__del_ts', dtype='DH')
-    with tree_database(config) as tree:
+    tree = tree_database(config)
+    try:
         tree.currentEnv.update(workdate=date(2026, 10, 15), locale='en')
         execution.db.currentEnv.update(workdate=date(2026, 10, 15), locale='en')
         db = SimpleNamespace(compiler=tree.compiler, execute=execution.db.execute, currentEnv=tree.currentEnv)
         yield SimpleNamespace(query=tree.table('sales.invoice').query, db=db, invoice_sql=execution.invoice_sql)
         assert not tree._connections
+    finally:
+        tree.closeConnection()

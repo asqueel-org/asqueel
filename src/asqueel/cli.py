@@ -97,7 +97,7 @@ def run(options):
             return 0
         return run_migration(db, options.operation, allow_removals=options.allow_removals)
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def main(argv=None):

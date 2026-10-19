@@ -44,7 +44,7 @@ def test_parent_root_identity_and_independent_old_renderer():
         assert again.table('invc.customer').attributes['name_long'] == 'Cliente'
         assert again.table('invc.customer') is not table
     finally:
-        old.close()
+        old.closeConnection()
 
 
 def test_generic_walk_collects_fragments_then_finalize_constructs_objects(monkeypatch):

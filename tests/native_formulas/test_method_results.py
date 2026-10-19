@@ -61,7 +61,8 @@ def rule_db(request, tmp_path):
     try:
         if admin is not None:
             admin.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
-        with build_database(config) as db:
+        db = build_database(config)
+        try:
             target = f'"{schema}"."item"'
             db.execute(f'CREATE TABLE {target} (id BIGINT, amount NUMERIC, gate TEXT, flag BOOLEAN)')
             for values in [(1, 5, None, False), (2, 6, '', True), (3, None, 'locked', None)]:
@@ -72,6 +73,8 @@ def rule_db(request, tmp_path):
                 yield db
             finally:
                 db.rollback()
+        finally:
+            db.closeConnection()
     finally:
         if admin is not None:
             try:

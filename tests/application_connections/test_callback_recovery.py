@@ -79,11 +79,11 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
         assert visible() == sorted(durable + [3])
         assert trace == (['failed', 'remaining', 'fresh'] if continued else ['failed', 'fresh'])
     finally:
-        observer.close()
+        observer.closeConnection()
         try:
             db.rollback()
             if backend == 'postgres':
                 db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
                 db.commit()
         finally:
-            db.close()
+            db.closeConnection()

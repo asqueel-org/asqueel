@@ -62,7 +62,7 @@ def database(request, tmp_path):
         if dsn:
             db.execute(f'DROP SCHEMA "{physical_schema}" CASCADE')
             db.commit()
-        db.close()
+        db.closeConnection()
 
 
 def test_normal_and_raw_insertion_share_tracking_and_nested_execution(database):

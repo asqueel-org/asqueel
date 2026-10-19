@@ -42,9 +42,12 @@ def db(request, no_io):
                       where='$owner_id=#THIS.id AND $id IN :ids', sqlparams={'ids': [1, 2]}),
         select_b=dict(table='app.line', columns='COUNT(*)',
                       where='$owner_id=#THIS.id AND $id=:ids', sqlparams={'ids': 3}))
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as database:
+    database = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    try:
         database.method_calls = install(database)
         yield database
+    finally:
+        database.closeConnection()
 
 
 def test_locals_in_formula_dependency_child_siblings_and_caller_are_isolated(db):

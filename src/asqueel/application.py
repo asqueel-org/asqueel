@@ -90,7 +90,7 @@ class AsqueelDb(SqlDatabase):
     """Load a configured database by registered name, recipe, folder, file or mounted node.
 
     Construction validates the model without connecting. Use table(), commit(),
-    rollback() and close() directly on this long-lived database object.
+    rollback() and closeConnection() directly on this long-lived database object.
 
     ``grammar`` is the configuration grammar a host document mounts to declare
     Asqueel databases in its own configuration: an element carrying

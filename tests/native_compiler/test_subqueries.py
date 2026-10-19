@@ -34,8 +34,11 @@ def db():
     wrapper = pkg.table('wrapper')
     wrapper.column('id', dtype='L')
     wrapper.column('owner_id', dtype='L').relation('app.owner.id')
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def writer(db):

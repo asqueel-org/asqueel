@@ -19,7 +19,7 @@ def test_adapter_is_loaded_into_the_same_runtime():
         assert db.execute('SELECT * FROM item').rows == []
         db.commit()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('sql', ["SELECT '50% :fake' AS label, :value AS value",
@@ -31,7 +31,7 @@ def test_binding_protects_sqlite_literals_and_identifiers(sql):
         result = db.execute(sql, {'value': "O'Reilly"})
         assert "O'Reilly" in result.rows[0].values()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
@@ -47,7 +47,7 @@ def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
     rows = db.execute(compiled).rows
     assert len(rows) == 1
     assert rows[0][0] is None
-    db.close()
+    db.closeConnection()
 
 
 @pytest.mark.parametrize('sql,columns,message', [
@@ -60,9 +60,9 @@ def test_result_metadata_failures_roll_back(sql, columns, message):
     try:
         with pytest.raises(ValueError, match=message):
             db.execute(CompiledQuery(sql, columns=columns, dialect='sqlite', binding='sqlite_named'))
-        assert db.outcome == 'rolled_back'
+        assert not db._connection_state['pending']
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_native_foreign_key_failure_rolls_back_prior_work():
@@ -76,7 +76,7 @@ def test_native_foreign_key_failure_rolls_back_prior_work():
             db.execute('INSERT INTO child VALUES (1, 99)')
         assert db.execute('SELECT * FROM parent').rows == []
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_direct_prepared_query_preserves_parameters_and_metadata():
@@ -89,4 +89,4 @@ def test_direct_prepared_query_preserves_parameters_and_metadata():
     try:
         assert db.execute(query).columns == metadata
     finally:
-        db.close()
+        db.closeConnection()

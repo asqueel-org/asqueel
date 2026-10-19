@@ -30,8 +30,8 @@ def test_layering_owns_instances_and_preserves_parent_tree():
     assert first.model.table('sales.customer').pkey == 'id'
     assert first.model is not second.model
     assert first.table('sales.customer') is not second.table('sales.customer')
-    first.close()
-    second.close()
+    first.closeConnection()
+    second.closeConnection()
 
 
 def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
@@ -47,7 +47,7 @@ def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
     assert database.table('sales.customer').model is database.model.table('sales.customer')
     with pytest.raises(TypeError, match='object'):
         recipe.render(target=False)
-    database.close()
+    database.closeConnection()
 
 
 def test_scoped_configuration_defaults_and_missing_values():
@@ -58,7 +58,7 @@ def test_scoped_configuration_defaults_and_missing_values():
     assert view('missing', default=False) is False
     with pytest.raises(KeyError):
         view('missing')
-    database.close()
+    database.closeConnection()
 
 
 class MountedColumns(TableElements, ColumnElements):
@@ -102,7 +102,7 @@ def test_mounted_grammar_validation_and_signature_default():
     assert database.config.builder.source.get_item(
         'db.schemas.sales.tables.customer.columns.label?dtype') is None
     assert database.model.table('sales.customer').columns['label'].dtype == 'I'
-    database.close()
+    database.closeConnection()
 
 
 def test_repeated_render_does_not_copy_live_products_or_reuse_context():
@@ -115,7 +115,7 @@ def test_repeated_render_does_not_copy_live_products_or_reuse_context():
     assert first.table('sales.customer') is not second.table('sales.customer')
     assert recipe.materialized['objects'][0].tag == 'db'
     for database in (first, second, third):
-        database.close()
+        database.closeConnection()
 
 
 def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits():
@@ -132,7 +132,8 @@ def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits(
             source.virtual_columns().aliasColumn(
                 'label', relation_path='@target_id.label', name_long='Local')
 
-    with build_database(LogicalRecipe) as db:
+    db = build_database(LogicalRecipe)
+    try:
         alias = db.table('app.source').column('label')
         target = db.table('app.target').column('label')
         assert alias.originalColumn is target
@@ -143,6 +144,8 @@ def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits(
         assert alias.attributes.get('missing', False) is False
         assert alias.dtype == 'A'
         assert 'LEFT JOIN' in db.table('app.source').query(columns='$label').sqltext
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize(('root_impl', 'connection_impl', 'expected'), [
@@ -168,4 +171,4 @@ def test_connection_implementation_inherits_root_unless_explicit(root_impl, conn
         assert conninfo == ''
         assert options == {'dbname': 'app.db'}
     finally:
-        db.close()
+        db.closeConnection()

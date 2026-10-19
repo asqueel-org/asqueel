@@ -20,8 +20,11 @@ def db():
     ticket = pkg.table('ticket', pkey='id')
     ticket.column('id', dtype='serial')
     pkg.table('nokey').column('amount', dtype='N')
-    with SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source)) as database:
+    database = SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def model(db, name):

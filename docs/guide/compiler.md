@@ -15,12 +15,12 @@ table = root.packages().package('sales', sqlschema='main').table('invoice', pkey
 table.column('id', dtype='L')
 table.column('total', dtype='N')
 
-with source.render() as db:
-    query = db.table('sales.invoice').query(
-        '$id,$total', where='$total >= :minimum', minimum=100,
-    )
-    compiled = query.compiled
-    sql, kwargs = compiled.sql, dict(compiled.params)
+db = source.render()
+query = db.table('sales.invoice').query(
+    '$id,$total', where='$total >= :minimum', minimum=100,
+)
+compiled = query.compiled
+sql, kwargs = compiled.sql, dict(compiled.params)
 ```
 
 This example opens no connection. Compilation uses the environment current at

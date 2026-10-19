@@ -20,6 +20,9 @@ def db(request):
     executor = request.getfixturevalue('execution_db')
     config = source()
     config.source['db'].packages().package('app', sqlschema=executor.model.table('app.item').sqlschema)
-    with tree_database(config) as tree:
+    tree = tree_database(config)
+    try:
         yield TreeExecution(tree, executor, package='app')
         assert not tree._connections
+    finally:
+        tree.closeConnection()

@@ -10,9 +10,13 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from datetime import date
+import re
 from types import MappingProxyType
 from threading import local
 from typing import Any, cast
+
+
+_TRANSACTION_KEYS = re.compile(r'(to|after)_commit_defer_calls_.*|_pendingExceptions')
 
 
 def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:
@@ -95,7 +99,11 @@ class ApplicationEnvironment(SqlEnvironment):
 
     @property
     def current_env(self) -> Mapping[str, Any]:
-        return MappingProxyType(_copy_values(self.currentEnv, 'snapshot'))
+        # The deferred-call queues and pending exceptions live in currentEnv as
+        # legacy; they are transaction state, not SQL values, and are not copied.
+        values = {key: value for key, value in self.currentEnv.items()
+                  if not _TRANSACTION_KEYS.fullmatch(key)}
+        return MappingProxyType(_copy_values(values, 'snapshot'))
 
     @property
     def currentEnv(self) -> dict[str, Any]:

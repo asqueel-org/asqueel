@@ -195,9 +195,8 @@ period_invoice = period_package.table('invoice', pkey='id')
 period_invoice.column('id', dtype='L')
 period_invoice.column('issued', dtype='D')
 
-with build_database(period_config) as period_db, period_db.tempEnv(
-    workdate=date(2026, 10, 14), locale="it"
-):
+period_db = build_database(period_config)
+with period_db.tempEnv(workdate=date(2026, 10, 14), locale="it"):
     compiled = period_db.table("sales.invoice").query(
         columns="$id", where="#PERIOD($issued, period)", period="mese scorso",
     ).compiled

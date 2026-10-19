@@ -64,10 +64,13 @@ def db_sqlite(request):
 def bound_tree(executor):
     config = source()
     config.source.get_node('db').attr['implementation'] = executor.adapter.dialect
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as tree:
+    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    try:
         tree.currentEnv.update(dict(executor.currentEnv))
         yield Results(tree, executor)
         assert tree._connections == {}
+    finally:
+        tree.closeConnection()
 
 
 def parameters():

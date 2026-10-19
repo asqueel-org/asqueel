@@ -118,7 +118,7 @@ def shop(request, tmp_path):
             yield Shop('sqlite', db, 'sales.invoice')
         finally:
             db.rollback()
-            db.close()
+            db.closeConnection()
         return
     schema = 'query_completion_' + uuid4().hex
     dsn = postgres_dsn()
@@ -140,7 +140,7 @@ def shop(request, tmp_path):
         db.rollback()
         db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         db.commit()
-        db.close()
+        db.closeConnection()
 
 
 def amount(value):

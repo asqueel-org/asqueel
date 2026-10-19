@@ -88,10 +88,13 @@ def test_to_one_prefix_then_json(model, connection):
 
 
 def test_json_without_base_order_does_not_add_a_fallback(backend, connection):
-    with build_database(source(backend, order_by=None)) as model:
+    model = build_database(source(backend, order_by=None))
+    try:
         q = query(model, '@invoices.aggr(to_json($id) AS invoices)')
         assert 'ORDER BY' not in q.compiled.sql
         names, rows = execute(connection, q)
+    finally:
+        model.closeConnection()
     assert names == ['invoices']
     assert sorted(row['id'] for row in json_value(rows[0][0])) == [1, 2, 3, 4]
 

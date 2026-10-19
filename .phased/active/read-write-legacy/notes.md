@@ -1,0 +1,7 @@
+
+## Phase 1
+- Snapshots: ApplicationEnvironment.current_env deep-copies currentEnv for every compile/execute; the deferred Bags hold callbacks (bound methods) that deepcopy can copy or fail on, so environment.py excludes `to|after_commit_defer_calls_*` and `_pendingExceptions` from snapshots. environment.py was not in the phase Files.
+- Read-only environments: a Database built with `environment=SqlEnvironment(...)` has a MappingProxy currentEnv. `_pop_transaction_key` pops only from a dict; nothing can be queued there, so rollback/commit stay working. deferToCommit on such a database fails (no mutable env), as updateEnv already did.
+- Hosting: the same database taken through two owners in one call (test_names_with_a_colon_belong_to_an_application) would open a nested session. `_take` enters session(db) only when the database has no open session on the thread; the other owner records the take without a session and its release leaves it alone.
+- `_finish`: the `outcome` field is gone; an uncertain commit is a local flag that still clears the deferred queues. The not-pending branch resets `failed` unconditionally (the old `outcome != 'unknown'` guard was unreachable behind `_check_connection_usable`).
+- Realignment deleted tests whose subject no longer exists: test_tree_terminals.py::test_closed_query_fails_before_driver; test_python_errors.py::test_db_context_preserves_hook_exception_when_cleanup_also_fails[rollback|close], ::test_successful_db_context_still_reports_cleanup_failure.

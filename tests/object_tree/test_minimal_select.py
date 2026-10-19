@@ -49,9 +49,12 @@ def bind(source):
 @pytest.fixture(params=['postgres', 'sqlite'])
 def db(request):
     source, _ = recipe(request.param)
-    with bind(source) as database:
+    database = bind(source)
+    try:
         database.currentEnv.update(workdate=date(2026, 10, 14))
         yield database
+    finally:
+        database.closeConnection()
 
 
 def assert_bindings(query):
@@ -81,7 +84,6 @@ def test_legacy_physical_expression_where_order_limit(db):
         ('code', 'L', 'sales.invoice.id'), ('amount', None, None), ('category', None, None)]
     assert compiled.columns[0].ui == {}
     assert_bindings(compiled)
-    assert db.outcome == 'not_started'
     assert db._connections == {}
 
 
@@ -188,7 +190,8 @@ def test_implicit_behaviour_and_explicit_bypass(feature):
         table.attr['partition_customer_id'] = 'customer'
     else:
         table.attr['order_by'] = '$total DESC'
-    with bind(source) as db:
+    db = bind(source)
+    try:
         db.currentEnv.update(current_customer=12)
         table = db.table('sales.invoice')
         default = table.query(columns='$id').compiled
@@ -201,14 +204,20 @@ def test_implicit_behaviour_and_explicit_bypass(feature):
         query = table.query(columns='$id', excludeDraft=False, excludeLogicalDeleted=False,
                             ignorePartition=True, order_by='$id').compiled
         assert 'WHERE' not in query.sql
+    finally:
+        db.closeConnection()
 
 
 @pytest.fixture(scope='module', params=['postgres', 'sqlite'])
 def invoice_databases(request):
     source = invoice_source()
     source.source.get_node('db').attr['implementation'] = request.param
-    with bind(source) as tree, source.render() as previous:
+    tree, previous = bind(source), source.render()
+    try:
         yield tree, previous
+    finally:
+        tree.closeConnection()
+        previous.closeConnection()
 
 
 @pytest.mark.parametrize('name', TABLES)
@@ -243,7 +252,8 @@ def test_quoted_physical_names_and_live_object_identity(implementation):
     source, table = recipe(implementation)
     table.attr['sqlname'] = 'Invoice Records'
     table.column('logical_name', sqlname='db"name')
-    with bind(source) as db:
+    db = bind(source)
+    try:
         table = db.table('sales.invoice')
         compiled = table.query(columns='$logical_name AS "Value"').compiled
         assert '"main"."Invoice Records"' in compiled.sql
@@ -253,6 +263,8 @@ def test_quoted_physical_names_and_live_object_identity(implementation):
         column.attributes['sqlname'] = 'renamed'
         assert '"t0"."renamed"' in table.query(columns='$logical_name').compiled.sql
         assert table.column('logical_name') is column
+    finally:
+        db.closeConnection()
 
 
 def test_empty_collection_and_legacy_params(db):

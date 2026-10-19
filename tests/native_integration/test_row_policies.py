@@ -55,7 +55,8 @@ def test_scopes_defaults_mark_and_environment_reuse(policy_database):
     compiler = PostgresCompiler(model, environment=env)
 
     def scenario():
-        with PostgresDatabase(dsn, environment=env) as db:
+        db = PostgresDatabase(dsn, environment=env)
+        try:
             assert [r['id'] for r in db.execute(compiler.select('app.item', order_by='$id')).rows] == [1, 2, 5]
             with env.temp_env(current_organization=10):
                 query = compiler.select('app.item', order_by='$id')
@@ -80,6 +81,8 @@ def test_scopes_defaults_mark_and_environment_reuse(policy_database):
             with env.temp_env(current_organization=None):
                 assert len(db.execute(compiler.select('app.item')).rows) == 3
             assert len((db.execute(compiler.select('app.item', ignore_partition=True))).rows) == 3
+        finally:
+            db.closeConnection()
     scenario()
 
 
@@ -90,7 +93,8 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
     writer, table = WriteCompiler(PostgresAdapter(None)), model.table('app.item')
 
     def scenario():
-        with PostgresDatabase(dsn, environment=env) as db:
+        db = PostgresDatabase(dsn, environment=env)
+        try:
             with env.temp_env(current_organization=10):
                 db.execute(writer.insert(table, {'id': 6, 'label': 'new', 'organization': 10}, env.snapshot()))
                 changed = db.execute(writer.update(table, {'id': 3, 'label': 'editable draft'}, env.snapshot()))
@@ -108,6 +112,8 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
 
             assert [read_scope(10), read_scope(11)] == [[1], [2]]
             assert not env.current_env
+        finally:
+            db.closeConnection()
     scenario()
 
 
@@ -117,7 +123,8 @@ def test_writes_fill_and_guard_the_partition(policy_database):
     env = SqlEnvironment()
     compiler = PostgresCompiler(model, environment=env)
     writer, table = WriteCompiler(PostgresAdapter(None)), model.table('app.item')
-    with PostgresDatabase(dsn, environment=env) as db:
+    db = PostgresDatabase(dsn, environment=env)
+    try:
         with env.temp_env(current_organization=10):
             db.execute(writer.insert(table, {'id': 6, 'label': 'new'}, env.snapshot()))
             stored = db.execute(compiler.select('app.item', '$organization', where='$id = 6', ignore_partition=True))
@@ -125,3 +132,5 @@ def test_writes_fill_and_guard_the_partition(policy_database):
             with pytest.raises(ValueError):
                 writer.insert(table, {'id': 7, 'organization': 11}, env.snapshot())
             assert db.execute(writer.update(table, {'id': 2, 'label': 'forbidden'}, env.snapshot())).rowcount == 0
+    finally:
+        db.closeConnection()

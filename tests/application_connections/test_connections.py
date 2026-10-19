@@ -7,7 +7,7 @@ import pytest
 from asqueel.contracts import CompiledQuery, QueryResult
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
-from asqueel.runtime import DatabaseClosedError, TransactionStateError
+from asqueel.runtime import TransactionStateError
 from asqueel.runtime import Database
 
 
@@ -66,7 +66,7 @@ def test_creation_and_empty_context_have_no_io():
         assert active is db
     db.commit()
     db.rollback()
-    db.close()
+    db.closeConnection()
     assert not driver.calls
 
 
@@ -79,11 +79,9 @@ def test_ambient_operations_share_connection_and_wait_for_commit():
     assert driver.persisted == []
     db.commit()
     assert driver.persisted == ['parent', 'child']
-    assert db.outcome == 'committed'
     db.execute(CompiledQuery('next'))
-    db.close()
+    db.closeConnection()
     assert driver.persisted == ['parent', 'child']
-    assert db.outcome == 'rolled_back'
     assert driver.calls[-2:] == ['rollback', 'close']
 
 
@@ -99,8 +97,7 @@ def test_context_commits_atomically_or_rolls_back_on_python_error():
             db.execute(CompiledQuery('third'))
             raise RuntimeError('hook failed')
     assert driver.persisted == ['first', 'second']
-    assert db.outcome == 'rolled_back'
-    db.close()
+    db.closeConnection()
 
 
 def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
@@ -109,14 +106,13 @@ def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
     db.execute(CompiledQuery('parent'))
     with pytest.raises(LookupError):
         db.execute(CompiledQuery('fail'))
-    assert db.outcome == 'rolled_back'
     assert driver.calls[-1] == 'rollback'
     assert driver.persisted == []
     db.execute(CompiledQuery('recovered'))
     db.commit()
     assert driver.persisted == ['recovered']
     assert driver.calls.count('connect') == 1
-    db.close()
+    db.closeConnection()
 
 
 @pytest.mark.parametrize('with_sql', [False, True])
@@ -133,7 +129,7 @@ def test_mark_failed_prevents_silent_context_success(with_sql):
     with completed(db):
         db.execute(CompiledQuery('healthy'))
     assert driver.persisted == ['healthy']
-    db.close()
+    db.closeConnection()
 
 
 def test_mark_failed_without_sql_requires_manual_rollback():
@@ -148,7 +144,7 @@ def test_mark_failed_without_sql_requires_manual_rollback():
     db.rollback()
     db.execute(CompiledQuery('ok'))
     db.commit()
-    db.close()
+    db.closeConnection()
 
 
 def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
@@ -161,7 +157,7 @@ def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
     db.rollback()
     assert driver.persisted == ['pending']
     assert driver.calls.count('commit') == 1
-    db.close()
+    db.closeConnection()
 
 
 def test_guards_run_before_connect_and_environment_is_read_at_execution():
@@ -176,10 +172,10 @@ def test_guards_run_before_connect_and_environment_is_read_at_execution():
         db.execute(query)
     assert driver.executed_params == [{'env_company': 2}]
     db.rollback()
-    db.close()
+    db.closeConnection()
 
 
-def test_connection_record_ownership_and_closed_database_state():
+def test_connection_record_ownership_and_repeated_close_connection():
     db = Database(implementation=FAKE)
     driver = db.adapter
     state = db._connection_state
@@ -192,11 +188,9 @@ def test_connection_record_ownership_and_closed_database_state():
                           lambda: db._close_connection(state)):
             with pytest.raises(TransactionStateError, match='constructing thread'):
                 executor.submit(operation).result()
+    db.closeConnection()
+    db.closeConnection()
     assert not driver.calls
-    db.close()
-    db.close()
-    with pytest.raises(DatabaseClosedError):
-        db.execute(CompiledQuery('closed'))
 
 
 @pytest.mark.parametrize('operation', ['commit', 'rollback'])
@@ -210,29 +204,31 @@ def test_control_failure_preserves_original_and_attempts_close(operation):
     with pytest.raises(OSError) as caught:
         getattr(db, operation)()
     assert caught.value is error
-    assert db.outcome == 'unknown'
     assert driver.calls[-1] == 'close'
-    db.close()
+    db.closeConnection()
 
 
-def test_close_marks_closed_even_when_rollback_cleanup_fails():
+def test_close_connection_closes_the_driver_connection_even_when_rollback_fails():
     db = Database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('pending'))
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(OSError):
-        db.close()
+        db.closeConnection()
     assert driver.calls[-1] == 'close'
-    assert db.outcome == 'unknown'
-    with pytest.raises(DatabaseClosedError):
-        db.execute(CompiledQuery('closed'))
+    driver.rollback_error = None
+    db.execute(CompiledQuery('reopened'))
+    db.commit()
+    assert driver.persisted == ['reopened']
+    assert driver.calls.count('connect') == 2
+    db.closeConnection()
 
 
 def test_driver_callback_cannot_reenter_connection_completion():
     db = Database(implementation=FAKE)
     driver = db.adapter
     def callback():
-        for operation in (db.commit, db.rollback, db.close,
+        for operation in (db.commit, db.rollback, db.closeConnection,
                           lambda: db.execute(CompiledQuery('recursive'))):
             with pytest.raises(TransactionStateError, match='executing'):
                 operation()
@@ -240,7 +236,7 @@ def test_driver_callback_cannot_reenter_connection_completion():
     db.execute(CompiledQuery('outer'))
     db.commit()
     assert driver.persisted == ['outer']
-    db.close()
+    db.closeConnection()
 
 
 def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
@@ -251,9 +247,8 @@ def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
         db.execute(CompiledQuery('fail'))
     db.commit()
     assert driver.persisted == []
-    assert db.outcome == 'rolled_back'
     assert driver.calls[-1] == 'rollback'
-    db.close()
+    db.closeConnection()
 
 
 def test_failed_connection_is_not_cached_and_can_be_retried():
@@ -270,7 +265,7 @@ def test_failed_connection_is_not_cached_and_can_be_retried():
     db.execute(CompiledQuery('recovered'))
     db.commit()
     assert driver.persisted == ['recovered']
-    db.close()
+    db.closeConnection()
 
 
 def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
@@ -279,7 +274,6 @@ def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(LookupError):
         db.execute(CompiledQuery('fail'))
-    assert db.outcome == 'unknown'
     with pytest.raises(TransactionStateError, match='rollback-only'):
         db.execute(CompiledQuery('unsafe retry'))
     driver.rollback_error = None
@@ -287,4 +281,4 @@ def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
     db.execute(CompiledQuery('recovered'))
     db.commit()
     assert driver.persisted == ['recovered']
-    db.close()
+    db.closeConnection()

@@ -24,7 +24,7 @@ def db(request):
         yield database
     finally:
         database.rollback()
-        database.close()
+        database.closeConnection()
 
 
 def value(db, expression, params=None):
@@ -76,7 +76,7 @@ def test_age_at_date_runs_on_postgres():
             assert value(db, db.adapter.ageAtDate("DATE '2026-01-01'", timeUnit='year')) == 1
     finally:
         db.rollback()
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize(('field', 'mode', 'placeholder', 'expected'), [
@@ -112,9 +112,12 @@ def test_table_formula_reaches_the_adapter(tmp_path):
     customer.column('id', dtype='L')
     customer.column('email')
     customer.formulaColumn('masked_email', sql_formula=True)
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         database.execute('CREATE TABLE "app_customer" ("id" BIGINT, "email" TEXT)')
         database.execute("INSERT INTO \"app_customer\" VALUES (1, 'ada@example.com')")
         rows = database.table('app.customer').query('$masked_email').fetch()
         assert [row['masked_email'] for row in rows] == ['ad*@example.com']
         database.rollback()
+    finally:
+        database.closeConnection()

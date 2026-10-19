@@ -108,7 +108,7 @@ def database(request):
         if created:
             db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
             db.commit()
-        db.close()
+        db.closeConnection()
 
 
 def test_inherited_relation_fetch_and_reuse_on_both_dialects(database):

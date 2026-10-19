@@ -87,9 +87,12 @@ def model(backend):
         for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
-        with build_database(config) as database:
+        database = build_database(config)
+        try:
             yield database
             assert database._connections == {}
+        finally:
+            database.closeConnection()
 
 
 @pytest.fixture

@@ -64,7 +64,7 @@ def make_db(request, tmp_path):
                     db.execute(f'DROP SCHEMA "{schema}" CASCADE')
                     db.commit()
             finally:
-                db.close()
+                db.closeConnection()
 
 
 def rows(table):

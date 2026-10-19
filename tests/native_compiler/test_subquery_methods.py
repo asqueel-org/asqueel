@@ -104,9 +104,12 @@ def db(request, monkeypatch):
         monkeypatch.setattr(driver, 'execute', forbidden)
     config = SqlDatabaseConfig()
     declare(config.source.db('methods', implementation=request.param).packages().package('app'))
-    with build_database(config) as db:
+    db = build_database(config)
+    try:
         db.method_calls = install(db)
         yield db
+    finally:
+        db.closeConnection()
 
 
 class TestLegacySubqueryMethodContract:

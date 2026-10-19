@@ -100,7 +100,8 @@ def db(request, tmp_path):
     else:
         schema = 'wcy_' + uuid4().hex[:8]
         source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
-    with SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source)) as database:
+    database = SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    try:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')
         for statement in DDL:
@@ -114,6 +115,8 @@ def db(request, tmp_path):
             if prefix:
                 database.execute(f'DROP SCHEMA {prefix[:-1]} CASCADE')
                 database.commit()
+    finally:
+        database.closeConnection()
 
 
 def events(db):

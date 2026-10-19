@@ -143,9 +143,10 @@ authorization.
 implementation. Table operations and `db.execute()` use the current thread's
 selected named connection until explicit commit or rollback. Connections open
 lazily and are retained for reuse. `execute()` never commits automatically;
-there is no public transaction object or connection context manager.
-Closing the DB rolls back pending work and releases the current thread's
-connections. Each worker must close its own connections.
+there is no public transaction object. `db.closeConnection()` rolls back
+pending work and closes the current thread's connections; the database stays
+usable. `session(db)` is the unit of work outside a request and calls
+`closeConnection()` at exit. Each worker must close its own connections.
 
 An SQL execution error automatically rolls back the selected named connection.
 A Python error in the write lifecycle marks the affected connection rollback-only:
@@ -181,8 +182,8 @@ not the original source-file decomposition.
 
 Native features outside the declared profile generally raise
 `UnsupportedFeatureError`; malformed arguments and mismatched adapters can raise
-`ValueError` or `TypeError`. Driver errors propagate unchanged. Closed or incorrectly used
-runtime objects raise `DatabaseClosedError` or `TransactionStateError`.
+`ValueError` or `TypeError`. Driver errors propagate unchanged. Incorrectly used
+runtime objects raise `TransactionStateError`.
 
 The model grammar is closed. An attribute an element does not declare raises
 when it is written, naming the attribute and the element, for example

@@ -70,9 +70,12 @@ def test_to_one_prefix_then_many_join(model, connection):
 
 def test_no_table_order_does_not_invent_a_fallback(backend, connection):
     config = source(backend, order_by=None)
-    with build_database(config) as model:
+    model = build_database(config)
+    try:
         q = query(model, "@invoices.aggr(join($code, ',', '-') AS codes)")
         assert 'ORDER BY' not in q.compiled.sql
         names, rows = execute(connection, q)
+    finally:
+        model.closeConnection()
     assert names == ['codes']
     assert sorted(rows[0][0].split(',')) == ['-', '-', 'xx', 'zz']

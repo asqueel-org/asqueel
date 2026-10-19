@@ -47,9 +47,12 @@ def direct_model(backend):
         for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
-        with build_database(direct_source(backend)) as database:
+        database = build_database(direct_source(backend))
+        try:
             yield database
             assert database._connections == {}
+        finally:
+            database.closeConnection()
 
 
 @pytest.mark.parametrize('aggregate', [
@@ -67,10 +70,13 @@ def test_direct_and_ordinary_relations_have_same_results(direct_model, connectio
 def test_no_declared_relation_or_fk_is_needed(backend, connection):
     config = direct_source(backend)
     config.source.get_node('db.packages.app.tables.invoice.columns.customer_id').value.pop_node('relation_0')
-    with build_database(config) as db:
+    db = build_database(config)
+    try:
         assert db.model.table('app.customer').relations.get_node('@invoices') is None
         q = db.table('app.customer').query('$id,@direct.aggr(count() AS n, sum($total) AS amount)', order_by='$id')
         assert execute(connection, q)[1] == [(1, 4, 100), (2, 0, None), (3, 1, 7)]
+    finally:
+        db.closeConnection()
 
 
 def test_authored_condition_is_the_entire_correlation(direct_model, connection):

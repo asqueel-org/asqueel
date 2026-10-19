@@ -54,7 +54,8 @@ def test_legacy_task_formula_select_dictionaries_compile_unchanged():
             for name, attributes in declarations.items():
                 virtuals.formulaColumn(name, **attributes)
 
-    with build_database(Recipe) as db:
+    db = build_database(Recipe)
+    try:
         for name, attributes in declarations.items():
             column = db.table('sys.task').column(name)
             assert dict(column.attributes['select']) == attributes['select']
@@ -62,3 +63,5 @@ def test_legacy_task_formula_select_dictionaries_compile_unchanged():
             assert '#THIS' not in query.sql
             assert 'SELECT' in query.sql
             assert 'LIMIT 1' in query.sql if 'limit' in attributes['select'] else 'LIMIT 1' not in query.sql
+    finally:
+        db.closeConnection()

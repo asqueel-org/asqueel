@@ -65,13 +65,6 @@ def test_many_operations_fail_before_execution(shop, terminal, monkeypatch):  # 
         getattr(query, terminal)()
 
 
-def test_closed_query_fails_before_driver(shop):  # noqa: F811
-    query = shop.query(columns='$id')
-    shop.db.close()
-    for terminal in (query.fetch, query.count, query.execute):
-        with pytest.raises(RuntimeError, match='closed'):
-            terminal()
-
 
 def test_fetch_shares_transaction_and_each_terminal_executes_once(shop, monkeypatch):  # noqa: F811
     shop.db.execute(f'INSERT INTO {shop.invoice_sql} (id, customer_id, total) '

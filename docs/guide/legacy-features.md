@@ -456,6 +456,11 @@ the write cycle, see [Current status](limitations.md).
 - `connectionName` in the environment, `currentConnectionName`,
   `usingMainConnection`, `'_main_connection'` (A6.5).
 - `:env_*` parameters and argument preparation in `execute` (A6.19).
+- `deferToCommit` / `deferAfterCommit` (A6.12): same blocks, deduplication and
+  returned kwargs; the queues live in `currentEnv` under the GenroPy keys
+  `to_commit_defer_calls__main_db_<connectionName>` and
+  `after_commit_defer_calls__main_db_<connectionName>`, so `clearCurrentEnv()`
+  drops them.
 
 ### Works differently
 
@@ -479,18 +484,15 @@ the write cycle, see [Current status](limitations.md).
   a GenroPy defect on rollback and deferred callbacks is corrected (decision
   of 2026-10-16).
 - **Automatic rollback on SQL error** (A6.10): rollback and re-raise; if the
-  rollback fails the connection is discarded and `outcome` is `unknown`.
-  Reason: documented recovery contract.
+  rollback fails the connection is discarded and stays rollback-only until
+  `rollback()`. Reason: documented recovery contract.
 - **Python error in a trigger or write hook** (A6.11): the connection becomes
   rollback-only; commit is refused until `rollback()`. Reason: decision of
   2026-10-15 (provisional).
-- **`deferToCommit` / `deferAfterCommit`** (A6.12): same blocks,
-  deduplication and returned kwargs; the queues live in the connection state,
-  so `clearCurrentEnv` and `acquire()` do not clear them. Reason: queues per
-  thread and name; moving them out of `currentEnv`: not recorded.
 - **`deferredRaise(exception)`** (A6.13): `TypeError` for a non-exception;
-  `DeferredCommitError` and a rollback-only connection at commit. Reason: a
-  GenroPy defect is corrected (decision of 2026-10-16).
+  the exception is kept in `currentEnv['_pendingExceptions']`, as in GenroPy;
+  at commit, `DeferredCommitError`, a rollback-only connection and an emptied
+  list. Reason: a GenroPy defect is corrected (decision of 2026-10-16).
 - **`db.execute(sql, sqlargs, ...)`** (A6.17): `execute(query, sqlargs)` takes
   an SQL string or a `CompiledQuery` and returns a `QueryResult`; `cursor`,
   `cursorname`, `dbtable`, `storename` raise `TypeError`; `executemany` is
@@ -500,7 +502,7 @@ the write cycle, see [Current status](limitations.md).
   autocommit connection is refused. Reason: `execute()` never commits
   automatically.
 - **`db.closeConnection()`** (A6.21): rollback and close of every connection
-  of the thread; refused inside a write; the first cleanup error is re-raised
+  of the thread; the database stays usable; refused inside a write; the first cleanup error is re-raised
   after closing the others. Reason: not recorded for the error propagation.
 - **`for_update` on SQLite** (A6.27): it takes the database write lock; the
   legacy emits no lock on SQLite. Transactions are deferred as legacy: reads
@@ -705,11 +707,10 @@ the write cycle, see [Current status](limitations.md).
   ([#21](https://github.com/asqueel-org/asqueel/issues/21)).
 - **`query(...).sql_update(values)`** (A5.19): one
   `UPDATE ... WHERE pk IN (SELECT ...)`; `group_by` and `having` are refused.
-- **`db.close()`, `with db:`, `acquire()`** (A6.22): close for the current
-  thread, a context manager, and environment reset at the first acquire of a
-  thread.
-- **`db.outcome`** (A6.23): `not_started`, `active`, `committed`,
-  `rolled_back`, `unknown`.
+- **`session(db, **env)`**: the unit of work outside a request, as a GenroPy
+  page request; entry clears `currentEnv` and applies `env`, exit calls
+  `closeConnection()`, also when the body raises; a nested session on the same
+  thread raises `TransactionStateError`.
 - **`asqueel db plan`, `asqueel db apply [--allow-removals]`, `asqueel check`**
   (A7.4): migration and model check from the command line.
 - **Table and column `comment` in the migration** (A7.23).

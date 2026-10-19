@@ -30,14 +30,18 @@ def test_disabled_sys_fields_does_not_activate_read_markers(backend):
     table = config.source['db'].packages().package('sales').table('customer', pkey='id')
     table.options().sys_fields(enabled=False)
     table.column('id')
-    with tree_database(config, environment=None) as db:
+    db = tree_database(config, environment=None)
+    try:
         assert 'WHERE' not in db.table('sales.customer').query('$id').compiled.sql
+    finally:
+        db.closeConnection()
 
 
 def test_read_options_do_not_change_source_or_model(backend):
     config = original.source(backend)
     before = config.source.to_json()
-    with tree_database(config) as db:
+    db = tree_database(config)
+    try:
         from copy import deepcopy
         attrs = {name: deepcopy(table.attributes) for name, table in db.model.tables.items()}
         relations = db.model.relations.to_xml()
@@ -49,11 +53,14 @@ def test_read_options_do_not_change_source_or_model(backend):
         assert db.model.relations.to_xml() == relations
         assert {n: t.attributes for n, t in db.model.tables.items()} == attrs
         assert not db._connections
+    finally:
+        db.closeConnection()
     assert config.source.to_json() == before
 
 
 def test_generated_markers_and_scalar_partition(backend):
-    with tree_database(original.source(backend)) as db:
+    db = tree_database(original.source(backend))
+    try:
         table = db.table('sales.customer')
         query = table.query('$id', where='$state=:state OR $state IS NULL', state='VIC').compiled
         # SQLite preparation retains the R3 legacy IS NOT TRUE -> IS NULL OR !=1.
@@ -64,10 +71,13 @@ def test_generated_markers_and_scalar_partition(backend):
         assert ') AND (' in query.sql
         included = table.query('$id', excludeDraft=False, excludeLogicalDeleted=False, ignorePartition=True).compiled
         assert 'WHERE' not in included.sql and not included.params
+    finally:
+        db.closeConnection()
 
 
 def test_child_defaults_and_overrides_keep_partition_bindings_isolated(backend):
-    with tree_database(original.source(backend)) as db:
+    db = tree_database(original.source(backend))
+    try:
         table = db.table('sales.invoice')
         default = table.query('$all_customers').compiled
         assert '__is_draft' not in default.sql
@@ -79,3 +89,5 @@ def test_child_defaults_and_overrides_keep_partition_bindings_isolated(backend):
         assert query.sql.count('env_current_state') == 2
         assert list(query.params.values()) == ['NSW']
         assert table.query('$visible_customers').compiled == query
+    finally:
+        db.closeConnection()

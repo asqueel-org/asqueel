@@ -32,7 +32,7 @@ def database(tmp_path):
     try:
         yield db, path.with_name('values_app.db')
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_values_come_back_converted_to_the_dtype(database):
@@ -52,7 +52,7 @@ def test_read_in_open_unit_of_work_does_not_block_another_writer(database):
     db, path = database
     db.table('app.item').query().fetch()
     # As legacy: the unit of work is open, the read holds no SQLite lock.
-    assert db.outcome == 'active'
+    assert db._connection_state['pending']
     assert not db._connection_state['connection'].in_transaction
     other = sqlite3.connect(path, isolation_level=None, timeout=0.05)
     try:

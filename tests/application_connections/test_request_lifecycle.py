@@ -94,7 +94,6 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
         try:
             assert second.db.currentEnv == {'user': 'bob', 'locale': 'it_IT'}
             assert second.db is db
-            assert db.outcome == 'not_started'
             assert [dict(row) for row in db.table(f'{schema}.item').query(columns='$id', order_by='$id').fetch()] == (
                 [{'id': 1}] if failure == 'after' else [])
             db.rollback()
@@ -115,4 +114,4 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
                 db.commit()
         finally:
-            db.close()
+            db.closeConnection()

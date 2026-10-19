@@ -60,7 +60,7 @@ db = AsqueelDb(source())
 try:
     migration_data = SqlMigrationRenderer(to_physical_builder(db.model)).render()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 This example requires the repository checkout. To write the JSON artifacts,

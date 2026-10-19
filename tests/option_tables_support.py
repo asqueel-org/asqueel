@@ -33,7 +33,7 @@ def migrated_db(implementation, tmp_path, declare):
         db.commit()
         yield db
     finally:
-        db.close()
+        db.closeConnection()
         if schema:
             with psycopg.connect(postgres_dsn(), autocommit=True) as conn:
                 conn.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))

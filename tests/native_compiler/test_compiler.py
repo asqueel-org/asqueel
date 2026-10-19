@@ -25,8 +25,11 @@ def db():
     invoice.formulaColumn('quad', '$double * 2', dtype='N')
     log = pkg.table('log')
     log.column('note')
-    with bind(source) as database:
+    database = bind(source)
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def writer(db):
@@ -87,7 +90,8 @@ def test_quoted_logical_names_work_in_wildcards_predicates_and_returning(name):
     table = source.source.db('quoted', implementation='postgres').packages().package('app').table('t', pkey='id')
     table.column('id', dtype='L')
     table.column(name)
-    with bind(source) as db:
+    db = bind(source)
+    try:
         reference = '$"' + name.replace('"', '""') + '"'
         selected = db.compiler.select('app.t', where=reference + ' = :value', sqlparams={'value': 'x'},
                                       order_by=reference)
@@ -98,6 +102,8 @@ def test_quoted_logical_names_work_in_wildcards_predicates_and_returning(name):
                       writer(db).update(model(db, 'app.t'), {'id': 1, name: 'x'}, {})]:
             assert query.params[name] == 'x'
             assert set(query.params) <= {'id', name, '__pkey__0'}
+    finally:
+        db.closeConnection()
 
 
 def test_returning_formula_that_requires_join_is_rejected():
@@ -109,13 +115,16 @@ def test_returning_formula_that_requires_join_is_rejected():
     invoice.column('id')
     invoice.column('customer_id').relation('app.customer.id')
     invoice.formulaColumn('display', '@customer_id.id')
-    with bind(source) as db:
+    db = bind(source)
+    try:
         table = model(db, 'app.invoice')
         for query in [writer(db).insert(table, {'id': 1}, {}),
                       writer(db).update(table, {'id': 1}, {}),
                       writer(db).delete(table, {'id': 1}, {})]:
             assert 'display' not in query.sql
             assert 'JOIN' not in query.sql
+    finally:
+        db.closeConnection()
 
 
 def test_result_source_preserves_stable_identity_across_alias_and_physical_names():
@@ -126,7 +135,8 @@ def test_result_source_preserves_stable_identity_across_alias_and_physical_names
     customer.column('name', sqlname='renamed_name', x_identity='stable:customer:name')
     invoice = pkg.table('invoice', pkey='customer_id')
     invoice.column('customer_id').relation('app.customer.id')
-    with bind(source) as db:
+    db = bind(source)
+    try:
         direct = db.compiler.select('app.customer', '$name AS display')
         related = db.compiler.select('app.invoice', '@customer_id.name AS display')
         for query in (direct, related):
@@ -134,3 +144,5 @@ def test_result_source_preserves_stable_identity_across_alias_and_physical_names
             assert query.columns[0].name == 'display'
             assert query.columns[0].ui == {}
         assert db.compiler.select('app.invoice').columns[0].source == 'app.invoice.customer_id'
+    finally:
+        db.closeConnection()

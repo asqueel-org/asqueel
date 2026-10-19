@@ -28,8 +28,11 @@ def db():
     invoice.aliasColumn('country_name', '@customer_id.@country_id.name', x_identity='stable-country')
     invoice.aliasColumn('via_alias', '@customer_id.country')
     invoice.aliasColumn('twice', '@customer_id.double')
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def test_wildcard_excludes_dynamic_aliases_and_dml_defaults_stay_physical(db):

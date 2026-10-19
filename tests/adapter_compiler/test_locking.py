@@ -15,8 +15,11 @@ def db():
     invoice = pkg.table('invoice', pkey='id')
     invoice.column('id')
     invoice.column('customer_id').relation('app.customer.id')
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 @pytest.mark.parametrize('operation', ['insert', 'update', 'delete'])

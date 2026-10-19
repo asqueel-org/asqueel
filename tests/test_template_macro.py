@@ -50,8 +50,11 @@ def connection(backend):
 
 @pytest.fixture(scope='module')
 def model(backend):
-    with build_database(source(backend)) as database:
+    database = build_database(source(backend))
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def rows(connection, query):

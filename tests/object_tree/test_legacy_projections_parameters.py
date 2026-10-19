@@ -161,41 +161,49 @@ def test_original_local_comparisons_partition_sqlite_rows():
     source, table = minimal.recipe('sqlite')
     table.column('quantity', dtype='N')
     table.column('unit_price', dtype='N')
-    with minimal.bind(source) as database, sqlite3.connect(':memory:') as conn:
-        conn.execute('CREATE TABLE sales_invoice (id INTEGER, quantity NUMERIC, unit_price NUMERIC)')
-        conn.executemany('INSERT INTO sales_invoice VALUES (?,?,?)',
-                         [(1, 2, 1), (2, 2, 2), (3, 1, 3), (4, 10, 4)])
-        counts = []
-        for operator in ['>', '<=']:
-            compiled = database.table('sales.invoice').query(
-                columns='$id', where=f'$quantity {operator} :threshold',
-                sqlparams={'threshold': '$unit_price'}).compiled
-            counts.append(len(conn.execute(compiled.sql, dict(compiled.params)).fetchall()))
-        assert counts == [2, 2]
-        assert sum(counts) == 4
+    database = minimal.bind(source)
+    try:
+        with sqlite3.connect(':memory:') as conn:
+            conn.execute('CREATE TABLE sales_invoice (id INTEGER, quantity NUMERIC, unit_price NUMERIC)')
+            conn.executemany('INSERT INTO sales_invoice VALUES (?,?,?)',
+                             [(1, 2, 1), (2, 2, 2), (3, 1, 3), (4, 10, 4)])
+            counts = []
+            for operator in ['>', '<=']:
+                compiled = database.table('sales.invoice').query(
+                    columns='$id', where=f'$quantity {operator} :threshold',
+                    sqlparams={'threshold': '$unit_price'}).compiled
+                counts.append(len(conn.execute(compiled.sql, dict(compiled.params)).fetchall()))
+            assert counts == [2, 2]
+            assert sum(counts) == 4
+    finally:
+        database.closeConnection()
 
 
 def test_authored_projection_names_are_obtained_from_sqlite_cursor():
     source, _ = minimal.recipe('sqlite')
-    with minimal.bind(source) as database, sqlite3.connect(':memory:') as conn:
-        conn.execute('CREATE TABLE sales_invoice (id INTEGER, total NUMERIC)')
-        conn.execute('INSERT INTO sales_invoice VALUES (1, 4)')
-        for columns, expected_values in [
-            ('CAST($total AS NUMERIC)', [4]),
-            ('CAST($id AS NUMERIC),CAST($total AS NUMERIC)', [1, 4]),
-            ('$id AS CamelCase,$total', [1, 4]),
-            ('$id AS "code",$total AS code', [1, 4]),
-        ]:
-            compiled = database.table('sales.invoice').query(columns=columns).compiled
-            cursor = conn.execute(compiled.sql, dict(compiled.params))
-            names = [item[0] for item in cursor.description]
-            row = cursor.fetchone()
-            assert list(row) == expected_values
-            if compiled.columns:
-                assert [c.name for c in compiled.columns] == names
-            # Duplicate names are legal at this compile-only boundary. Existing
-            # fetch's uniqueness check is outside R2 and is not changed here.
-            if len(set(names)) == len(names):
+    database = minimal.bind(source)
+    try:
+        with sqlite3.connect(':memory:') as conn:
+            conn.execute('CREATE TABLE sales_invoice (id INTEGER, total NUMERIC)')
+            conn.execute('INSERT INTO sales_invoice VALUES (1, 4)')
+            for columns, expected_values in [
+                ('CAST($total AS NUMERIC)', [4]),
+                ('CAST($id AS NUMERIC),CAST($total AS NUMERIC)', [1, 4]),
+                ('$id AS CamelCase,$total', [1, 4]),
+                ('$id AS "code",$total AS code', [1, 4]),
+            ]:
+                compiled = database.table('sales.invoice').query(columns=columns).compiled
                 cursor = conn.execute(compiled.sql, dict(compiled.params))
-                result = query_result(compiled.columns, names, cursor)
-                assert list(result.rows[0]) == expected_values
+                names = [item[0] for item in cursor.description]
+                row = cursor.fetchone()
+                assert list(row) == expected_values
+                if compiled.columns:
+                    assert [c.name for c in compiled.columns] == names
+                # Duplicate names are legal at this compile-only boundary. Existing
+                # fetch's uniqueness check is outside R2 and is not changed here.
+                if len(set(names)) == len(names):
+                    cursor = conn.execute(compiled.sql, dict(compiled.params))
+                    result = query_result(compiled.columns, names, cursor)
+                    assert list(result.rows[0]) == expected_values
+    finally:
+        database.closeConnection()

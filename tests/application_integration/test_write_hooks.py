@@ -79,9 +79,13 @@ def hooked_database():
                     audit.column('id', dtype='serial')
                     audit.column('event', dtype='T')
 
-            with build_database(Recipe) as db, db.temp_env(current_org=0):
-                db.table('app.item').events = []
-                yield db, observer, schema
+            db = build_database(Recipe)
+            try:
+                with db.temp_env(current_org=0):
+                    db.table('app.item').events = []
+                    yield db, observer, schema
+            finally:
+                db.closeConnection()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

@@ -35,9 +35,12 @@ environment = SqlEnvironment()
 compiler = PostgresCompiler(model, environment=environment)
 
 def invoices(conninfo, organization):
-    with PostgresDatabase(conninfo, environment=environment) as db:
+    db = PostgresDatabase(conninfo, environment=environment)
+    try:
         with db.temp_env(organization=organization):
             return db.execute(compiler.select('sales.invoice'))
+    finally:
+        db.closeConnection()
 ```
 
 L'ambiente usa scope contestuali; il runtime opera sul thread chiamante. Il compiler

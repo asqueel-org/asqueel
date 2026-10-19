@@ -64,7 +64,7 @@ def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
             yield db
     finally:
         db.rollback()
-        db.close()
+        db.closeConnection()
 
 
 def pg_database(tmp_path_factory, *, state=None):

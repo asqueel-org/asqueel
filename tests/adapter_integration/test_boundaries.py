@@ -61,10 +61,13 @@ def test_incompatible_statement_is_rejected_before_connection(field, value, monk
     monkeypatch.setattr(PostgresAdapter, 'connect', connect)
 
     def scenario():
-        with Database(implementation='postgres') as db:
+        db = Database(implementation='postgres')
+        try:
             query = CompiledQuery('SELECT 1', **{field: value})
             with pytest.raises(ValueError):
                 db.execute(query)
+        finally:
+            db.closeConnection()
     scenario()
 
 

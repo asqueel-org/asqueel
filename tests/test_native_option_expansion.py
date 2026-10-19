@@ -133,7 +133,7 @@ def test_attachments_expand_base_options_before_cross_table_link(reverse):
         assert attachment.column('fileurl').attributes['method'] == 'filepath_endpoint_url'
         assert attachment.column('__ins_ts').attributes['indexed'] is True
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_attachment_implicit_options_are_owned_and_default_user_upd_is_preserved():
@@ -207,7 +207,7 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
         with pytest.raises(UnsupportedFeatureError):
             item.insert({'id': 1})
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#18: the hierarchical DbModel has no JSON round trip')
@@ -220,7 +220,7 @@ def test_declarative_options_survive_a_json_round_trip():
     try:
         assert model_from_json(model_to_json(db.model)) == db.model
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('name,kwargs', [
@@ -275,7 +275,7 @@ def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch
         assert db.table('invc.product_type').column('hierarchical_description').dtype == 'T'
         assert config.source.to_json() == before
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_hierarchy_root_id_and_virtual_roots():
@@ -350,7 +350,7 @@ def test_sysfield_generation_does_not_treat_signature_defaults_as_explicit_overr
         assert db.table('app.item').column('__syscode').attributes['name_long'] == 'Code'
         assert db.table('app.item').column('__ins_ts').attributes['indexed'] is True
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('name,kwargs', [('system_records', {'records': {'x': {}}}), ('release', {'handlers': {'1': 'upgrade'}})])
@@ -397,7 +397,7 @@ def test_package_types_precede_expansion_and_legacy_setnull_defaults(objects):
         assert model.table('app.detail').relations.get_node('@other_id').attr['joiner']['deferred'] is False
     finally:
         if db is not None:
-            db.close()
+            db.closeConnection()
 
 
 def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
@@ -415,7 +415,7 @@ def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
         assert db.table('app.item').column('__rec_md5').attributes['onInserting'] == 'setRecordMd5'
         assert db.table('app.item').model['options']['audit'].attributes['mode'] == 'full'
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def physical(model):

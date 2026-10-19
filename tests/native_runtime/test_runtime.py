@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from asqueel.contracts import CompiledQuery, ResultColumn
-from asqueel.runtime import DatabaseClosedError, PostgresDatabase, TransactionStateError
+from asqueel.runtime import PostgresDatabase, TransactionStateError
 
 
 class FakeConnection:
@@ -72,24 +72,27 @@ def test_shared_execute_retains_connection_until_explicit_completion(fake):
     db.commit()
     db.execute(CompiledQuery('second'))
     db.rollback()
-    db.close()
+    db.closeConnection()
     names = [name for name, _ in fake]
     assert names.count('connect') == names.count('commit') == names.count('rollback') == names.count('close') == 1
     assert {thread for _, thread in fake} == {threading.get_ident()}
 
 
 def test_sql_error_rolls_back_and_explicit_retry_reuses_connection(fake):
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         db.execute(CompiledQuery('first'))
         with pytest.raises(ValueError, match='statement failed'):
             db.execute(CompiledQuery('error'))
-        assert db.outcome == 'rolled_back'
+        assert [name for name, _ in fake][-1] == 'rollback'
         db.execute(CompiledQuery('recovered'))
         db.commit()
+    finally:
+        db.closeConnection()
     assert [name for name, _ in fake].count('connect') == 1
 
 
-def test_close_discards_pending_work_and_closes_only_current_thread(fake):
+def test_close_connection_discards_pending_work_and_closes_only_current_thread(fake):
     db = PostgresDatabase()
     db.execute(CompiledQuery('select'))
     def worker():
@@ -97,41 +100,48 @@ def test_close_discards_pending_work_and_closes_only_current_thread(fake):
             db.execute(CompiledQuery('worker'))
             db.commit()
         finally:
-            db.close()
+            db.closeConnection()
     with ThreadPoolExecutor(max_workers=1) as pool:
         pool.submit(worker).result()
     db.execute(CompiledQuery('still open'))
-    db.close()
+    db.closeConnection()
     assert [name for name, _ in fake][-2:] == ['rollback', 'close']
-    with pytest.raises(DatabaseClosedError):
-        db.execute(CompiledQuery('closed'))
+    count = len(fake)
+    assert db.execute(CompiledQuery('reopened')).rowcount == 1
+    db.closeConnection()
+    assert [name for name, _ in fake][count] == 'connect'
 
 
 def test_failed_open_allows_another_attempt(fake, monkeypatch):
     import psycopg
     original = psycopg.connect
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         monkeypatch.setattr(psycopg, 'connect', lambda *a, **kw: (_ for _ in ()).throw(OSError('open failed')))
         with pytest.raises(OSError, match='open failed'):
             db.execute(CompiledQuery('select'))
         monkeypatch.setattr(psycopg, 'connect', original)
         assert db.execute(CompiledQuery('select')).rowcount == 1
         db.commit()
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('operation', ['commit', 'rollback'])
-def test_completion_failure_discards_connection_and_marks_unknown(fake, monkeypatch, operation):
+def test_completion_failure_discards_connection(fake, monkeypatch, operation):
     failure = OSError(f'{operation} failed')
     def fail(self):
         raise failure
     monkeypatch.setattr(FakeConnection, operation, fail)
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         db.execute(CompiledQuery('select'))
         with pytest.raises(OSError) as caught:
             getattr(db, operation)()
         assert caught.value is failure
-        assert db.outcome == 'unknown'
         assert fake[-1][0] == 'close'
+    finally:
+        db.closeConnection()
 
 
 def test_commit_error_is_not_masked_by_cleanup_failure(fake, monkeypatch):
@@ -142,16 +152,18 @@ def test_commit_error_is_not_masked_by_cleanup_failure(fake, monkeypatch):
         raise RuntimeError('close failed')
     monkeypatch.setattr(FakeConnection, 'commit', fail_commit)
     monkeypatch.setattr(FakeConnection, 'close', fail_close)
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         db.execute(CompiledQuery('select'))
         with pytest.raises(OSError) as caught:
             db.commit()
         assert caught.value is failure
-        assert db.outcome == 'unknown'
         assert 'cleanup' in failure.__notes__[0]
+    finally:
+        db.closeConnection()
 
 
-def test_close_error_after_successful_commit_preserves_outcome(fake, monkeypatch):
+def test_close_error_after_successful_commit_keeps_the_commit(fake, monkeypatch):
     def fail(self):
         raise OSError('close failed')
     db = PostgresDatabase()
@@ -159,23 +171,31 @@ def test_close_error_after_successful_commit_preserves_outcome(fake, monkeypatch
     db.commit()
     monkeypatch.setattr(FakeConnection, 'close', fail)
     with pytest.raises(OSError, match='close failed'):
-        db.close()
-    assert db.outcome == 'committed'
+        db.closeConnection()
+    names = [name for name, _ in fake]
+    assert 'commit' in names
+    assert 'rollback' not in names
 
 
 @pytest.mark.parametrize('columns', [(ResultColumn('wrong'),), (ResultColumn('value'), ResultColumn('extra'))])
 def test_mismatched_metadata_rolls_back_before_fetch(fake, columns):
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         with pytest.raises(ValueError, match='Compiled result columns'):
             db.execute(CompiledQuery('select', columns=columns))
-        assert db.outcome == 'rolled_back'
+        assert [name for name, _ in fake][-1] == 'rollback'
+    finally:
+        db.closeConnection()
     assert 'fetch' not in [name for name, _ in fake]
 
 
 def test_supplied_metadata_is_preserved(fake):
     column = ResultColumn('value', 'I', 'sample.value', {'label': 'The value'})
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         result = db.execute(CompiledQuery('select', columns=(column,)))
+    finally:
+        db.closeConnection()
     assert result.columns[0] is column
     assert [dict(row) for row in result.rows] == [{'value': 42}]
 
@@ -186,9 +206,12 @@ def test_metadata_without_result_set_fails(fake, monkeypatch):
         original(self, sql, params)
         self.description = None
     monkeypatch.setattr(FakeConnection, 'execute', no_result)
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         with pytest.raises(ValueError, match='without a result set'):
             db.execute(CompiledQuery('update', columns=(ResultColumn('value'),)))
+    finally:
+        db.closeConnection()
     assert [name for name, _ in fake][-2:] == ['rollback', 'close']
 
 
@@ -199,13 +222,17 @@ def test_autocommit_rejected():
 
 def test_driver_cannot_reenter_execute_or_finish_active_statement(fake, monkeypatch):
     original = FakeConnection.execute
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         def callback(self, sql, params):
             original(self, sql, params)
-            for operation in (lambda: db.execute(CompiledQuery('recursive')), db.commit, db.rollback, db.close):
+            for operation in (lambda: db.execute(CompiledQuery('recursive')), db.commit, db.rollback,
+                              db.closeConnection):
                 with pytest.raises(TransactionStateError, match='executing'):
                     operation()
         monkeypatch.setattr(FakeConnection, 'execute', callback)
         assert db.execute(CompiledQuery('select')).rowcount == 1
         db.commit()
+    finally:
+        db.closeConnection()
     assert 'recursive' not in [name for name, _ in fake]

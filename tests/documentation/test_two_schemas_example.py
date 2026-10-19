@@ -13,7 +13,8 @@ def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
     monkeypatch.setattr(psycopg, 'connect', forbidden)
     monkeypatch.setenv('PGPORT', '5432')
     monkeypatch.setenv('PGDATABASE', 'example_test')
-    with build_database(DatabaseConfiguration) as db:
+    db = build_database(DatabaseConfiguration)
+    try:
         for name in ('identity.user', 'identity.access', 'sales.customer',
                      'sales.product', 'sales.invoice', 'sales.invoice_row'):
             assert db.table(name).model.pkey == 'id'
@@ -39,3 +40,5 @@ def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
         ).compiled
         assert 'JOIN "sales"."product"' in product.sql
         assert 'JOIN "sales"."invoice"' in product.sql
+    finally:
+        db.closeConnection()

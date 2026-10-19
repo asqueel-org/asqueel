@@ -61,7 +61,8 @@ def test_child_period_formula_ranges_and_this_keep_scopes(no_io):
     item = pkg.table('item')
     item.column('owner_id', dtype='L')
     item.column('issued', dtype='D')
-    with tree_database(config) as db:
+    db = tree_database(config)
+    try:
         db.currentEnv.update(workdate=date(2026, 10, 14), locale='it')
         query = db.table('app.owner').query('$within,$a,$b', where='$id=:s2_period_from', s2_period_from=11)
         compiled = query.compiled
@@ -72,6 +73,8 @@ def test_child_period_formula_ranges_and_this_keep_scopes(no_io):
         assert '#THIS' not in compiled.sql and '#PERIOD' not in compiled.sql and '#IN_RANGE' not in compiled.sql
         assert compiled.input_parameters == ('s2_period_from',)
         assert query.compiled == compiled
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('macro', ['#PREF(company)', '#TSQUERY($total,:search)'])

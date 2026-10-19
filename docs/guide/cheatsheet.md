@@ -71,11 +71,14 @@ try:
             raise
 
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
 Use `db.commit()` / `db.rollback()` for explicit completion.
+`db.closeConnection()` rolls back what was not committed; the database stays
+usable. Outside a request, `with session(db, **env):` clears the context at
+entry and calls `closeConnection()` at exit.
 Even reads open transactions. Nested tempEnv scopes are supported; savepoints are not. A database can be shared
 between threads; each worker must release its own connections.
 

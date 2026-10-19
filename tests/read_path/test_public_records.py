@@ -31,20 +31,23 @@ def db(tmp_path):
     try:
         yield db
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('entry', [AsqueelDb, build_database, lambda s: s.render()])
 def test_public_entries_share_one_model(entry, tmp_path):
     source = recipe(tmp_path / 'unused.sqlite')
     before = source.source.to_xml()
-    with entry(source) as db:
+    db = entry(source)
+    try:
         assert type(db.model) is DbModel
         table = db.table('app.item')
         assert table is db.model.table('app.item').dbtable
         assert table.columns['id'] is table.model.columns['id']
         assert table.query('$id').compiled.sql
         assert not db._connections
+    finally:
+        db.closeConnection()
     assert source.source.to_xml() == before
 
 
@@ -116,7 +119,8 @@ def test_fetch_record_reads_hidden_rows_with_the_visibility_filters_off(tmp_path
     table.attr.update(draftField='draft', logicalDeletionField='deleted')
     table.column('draft', dtype='B')
     table.column('deleted', dtype='T')
-    with AsqueelDb(source) as db:
+    db = AsqueelDb(source)
+    try:
         db.execute('CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, payload TEXT, draft BOOL, deleted TEXT)')
         db.execute("INSERT INTO item VALUES (1,'hidden',NULL,TRUE,'deleted')")
         db.commit()
@@ -124,6 +128,8 @@ def test_fetch_record_reads_hidden_rows_with_the_visibility_filters_off(tmp_path
         record = db.table('app.item').query('*', where='$id=1', for_update=True, exclude_draft=False,
                                              exclude_logical_deleted=False).fetchRecord()
         assert record['name'] == 'hidden'
+    finally:
+        db.closeConnection()
 
 
 def test_custom_table_class_survives_finalization(tmp_path):
@@ -135,10 +141,13 @@ def test_custom_table_class_survives_finalization(tmp_path):
 
     source = recipe(tmp_path / 'custom.sqlite')
     source.source['db.packages.app.tables.item'].attr['x_table_class'] = Item
-    with AsqueelDb(source) as db:
+    db = AsqueelDb(source)
+    try:
         assert isinstance(db.table('app.item'), Item)
         assert db.table('app.item').describe() == 'app.item'
         assert db.table('app.item') is db.model.table('app.item').dbtable
+    finally:
+        db.closeConnection()
 
 
 def test_model_only_render_does_not_resolve_connection_secrets():

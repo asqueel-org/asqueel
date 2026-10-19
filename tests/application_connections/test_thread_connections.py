@@ -53,7 +53,7 @@ def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
     assert driver.calls.count('connect') == driver.calls.count('close') == 4
     assert db.currentEnv == {'options': []}
     assert db.currentTrigger is None
-    db.close()
+    db.closeConnection()
 
 
 def test_named_environment_changes_selection_without_completion():
@@ -69,7 +69,7 @@ def test_named_environment_changes_selection_without_completion():
     assert driver.persisted == ['main']
     with db.tempEnv(connectionName='other'):
         db.rollback()
-    db.close()
+    db.closeConnection()
 
 
 def test_internal_connection_rejects_cross_thread_use():
@@ -79,7 +79,7 @@ def test_internal_connection_rejects_cross_thread_use():
         for operation in (lambda: db._commit_connection(state), lambda: db._rollback_connection(state)):
             with pytest.raises(TransactionStateError, match='constructing thread'):
                 pool.submit(operation).result()
-    db.close()
+    db.closeConnection()
 
 
 def test_explicit_commit_preserves_deferred_hook_and_pending_work():
@@ -92,17 +92,17 @@ def test_explicit_commit_preserves_deferred_hook_and_pending_work():
     db.commit()
     assert driver.persisted == ['before', 'inside', 'hook']
     assert driver.calls.count('connect') == 1
-    db.close()
+    db.closeConnection()
 
 
-def test_new_thread_does_not_inherit_closed_state_or_environment():
+def test_new_thread_does_not_inherit_environment():
     db = AsqueelDb(Recipe)
     def worker():
         assert db.currentEnv == {}
         db.updateEnv(user='previous')
-        db.close()
+        db.closeConnection()
     for _ in range(2):
         with ThreadPoolExecutor(max_workers=1) as pool:
             pool.submit(worker).result()
     assert db.currentEnv == {}
-    db.close()
+    db.closeConnection()

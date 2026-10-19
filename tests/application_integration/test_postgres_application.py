@@ -55,7 +55,7 @@ def application():
         try:
             yield db, rows
         finally:
-            db.close()
+            db.closeConnection()
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
@@ -76,17 +76,15 @@ def test_manual_unit_of_work_is_shared_and_invisible_until_explicit_commit(appli
     db.commit()
     assert rows('item') == [(1, 'first'), (2, 'second')]
     assert rows('audit') == [(1, 1), (2, 2)]
-    assert db.outcome == 'committed'
 
 
-def test_manual_rollback_and_close_discard_cross_table_writes(application):
+def test_manual_rollback_and_close_connection_discard_cross_table_writes(application):
     db, rows = application
     db.table('app.item').insert({'id': 1, 'name': 'rollback'})
     db.rollback()
     assert rows('item') == rows('audit') == []
     db.table('app.item').insert({'id': 2, 'name': 'close'})
-    db.close()
-    assert db.outcome == 'rolled_back'
+    db.closeConnection()
     assert rows('item') == rows('audit') == []
 
 
@@ -151,7 +149,6 @@ def test_caught_hook_error_cannot_turn_context_exit_into_success(application):
             with pytest.raises(ValueError, match='post-insert hook'):
                 db.table('app.item').insert({'id': 2, 'name': 'fail'})
     assert rows('item') == rows('audit') == []
-    assert db.outcome == 'rolled_back'
 
 
 def test_database_constraint_failure_rolls_back_previous_operations(application):
@@ -161,7 +158,6 @@ def test_database_constraint_failure_rolls_back_previous_operations(application)
             db.table('app.item').insert({'id': 1, 'name': 'first'})
             db.table('app.item').insert({'id': 1, 'name': 'duplicate'})
     assert rows('item') == rows('audit') == []
-    assert db.outcome == 'rolled_back'
 
 
 def test_named_connections_have_independent_visibility_and_physical_identity(application):
@@ -194,7 +190,6 @@ def test_sql_error_in_named_connection_rolls_back_hooks_and_allows_reuse(applica
         db.table('app.item').insert({'id': 20, 'name': 'must disappear'})
         with pytest.raises(psycopg.errors.UniqueViolation):
             db.table('app.item').insert({'id': 20, 'name': 'duplicate'})
-        assert db.outcome == 'rolled_back'
         assert db.table('app.item').query().fetch() == []
         db.table('app.item').insert({'id': 30, 'name': 'recovered'})
         db.commit()

@@ -66,7 +66,7 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
         assert db.model.table('invc.invoice').sqlname == 'invoices'
         assert 'archive' not in db.model.obj.attributes
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_callback_cache_semantics_are_owned_by_existing_resolver():
@@ -83,7 +83,7 @@ def test_callback_cache_semantics_are_owned_by_existing_resolver():
         assert col.attributes['default'] == col.attributes['onDeleted'] == 'fixed'
         assert calls == [1]  # one shared resolver with its own permanent cache
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_render_defaults_follow_composition_and_failure_publishes_nothing():
@@ -98,7 +98,7 @@ def test_render_defaults_follow_composition_and_failure_publishes_nothing():
         assert db.table('invc.customer').column('account_name').attributes['comment'] == 'red'
         assert 'name_long' not in table.attr
     finally:
-        db.close()
+        db.closeConnection()
     broken, _, customer = recipe()
     customer.column('missing_id', dtype='L').relation('missing.table.id')
     with pytest.raises(ValueError):

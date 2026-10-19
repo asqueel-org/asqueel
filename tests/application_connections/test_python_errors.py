@@ -12,7 +12,8 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
             self.db.execute(CompiledQuery('fail'))
 
     item_class = type('Item', (SqlTable,), {hook: fail})
-    with database(item_class) as db:
+    db = database(item_class)
+    try:
         events = []
         db.execute(CompiledQuery('earlier A'))
         db.deferAfterCommit(lambda: events.append('A committed'))
@@ -35,6 +36,8 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
         db.rollback()
         assert db.adapter.persisted == ['independent C', 'recovered B']
         assert events == []
+    finally:
+        db.closeConnection()
 
 
 def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
@@ -47,7 +50,8 @@ def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
     def sql_failure():
         raise original
 
-    with database(Item) as db:
+    db = database(Item)
+    try:
         db.adapter.callback = sql_failure
         with pytest.raises(LookupError) as caught:
             db.execute(CompiledQuery('first attempt'))
@@ -62,34 +66,6 @@ def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
         db.execute(CompiledQuery('recovered'))
         db.commit()
         assert db.adapter.persisted == ['recovered']
+    finally:
+        db.closeConnection()
 
-
-@pytest.mark.parametrize('cleanup', ['rollback', 'close'])
-def test_db_context_preserves_hook_exception_when_cleanup_also_fails(cleanup):
-    original = ValueError('original hook failure')
-    cleanup_error = OSError('cleanup failed')
-
-    class Item(SqlTable):
-        def trigger_onInserted(self, record):
-            raise original
-
-    db = database(Item)
-    setattr(db.adapter, cleanup + '_error', cleanup_error)
-    with pytest.raises(ValueError) as caught:
-        with db:
-            db.table('app.item').insert({'id': 1})
-    assert caught.value is original
-    assert caught.value.__cause__ is cleanup_error
-    assert any('cleanup' in note.lower() for note in caught.value.__notes__)
-    assert db.adapter.persisted == []
-    assert db.adapter.calls[-1] == 'close'
-    assert db._closed
-
-
-def test_successful_db_context_still_reports_cleanup_failure():
-    db = database()
-    db.adapter.rollback_error = OSError('cleanup failed')
-    with pytest.raises(OSError, match='cleanup failed'):
-        with db:
-            db.execute(CompiledQuery('pending'))
-    assert db._closed

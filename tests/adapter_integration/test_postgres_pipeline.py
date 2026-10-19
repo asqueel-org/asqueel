@@ -24,7 +24,8 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
     writer = WriteCompiler(adapter)
 
     def scenario():
-        with Database(implementation='postgres', connect_kwargs=params) as db:
+        db = Database(implementation='postgres', connect_kwargs=params)
+        try:
             db.execute(writer.insert(model.table('crm.customer'), {'id': 1, 'name': "L'impresa 50%"},
                                      db.environment.snapshot()))
             # Literal SQL reaches psycopg as written: the author doubles its %.
@@ -38,6 +39,8 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
             rows = (db.execute(prepared)).rows
             assert [dict(row) for row in rows] == [{'name': "L'impresa 50%", 'percent': '50%'}]
             assert db.execute(CompiledQuery('SELECT 1 AS ok'))
+        finally:
+            db.closeConnection()
     scenario()
     imported = PostgresCatalogProvider().inspect(connection, [schema])
     assert not imported.warnings

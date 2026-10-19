@@ -110,5 +110,8 @@ def db(request, monkeypatch):
     for driver in [PostgresAdapter, SqliteAdapter]:
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
-    with build_database(source(request.param), environment=SqlEnvironment({'current_owner': 99})) as db:
+    db = build_database(source(request.param), environment=SqlEnvironment({'current_owner': 99}))
+    try:
         yield db
+    finally:
+        db.closeConnection()

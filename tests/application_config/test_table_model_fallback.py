@@ -43,7 +43,7 @@ def test_database_table_exposes_model_members_without_connecting():
         assert table.model is db.model.table('app.item')
         assert driver.calls == []
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_operational_members_take_precedence(table):

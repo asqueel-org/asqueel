@@ -50,7 +50,7 @@ def make_db(tmp_path):
     yield make
     for database in opened:
         database.rollback()
-        database.close()
+        database.closeConnection()
 
 
 @pytest.fixture

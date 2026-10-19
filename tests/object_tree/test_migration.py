@@ -49,7 +49,7 @@ def test_whole_json_is_identical_to_both_references_and_current_renderer(tree, s
     try:
         assert structure == physical(old.model)
     finally:
-        old.close()
+        old.closeConnection()
     counts = {}
     for package, schema in structure['root']['schemas'].items():
         tables = list(schema['tables'].values())
@@ -113,7 +113,7 @@ def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
         assert changed['root']['schemas']['invc']['tables']['invc_customer']['columns']['account_name']['attributes']['size'] == '0:121'
         assert baseline == SAVED
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_physical_names_composite_keys_constraints_and_extensions():
@@ -148,7 +148,7 @@ def test_physical_names_composite_keys_constraints_and_extensions():
     try:
         assert result == physical(old.model)
     finally:
-        old.close()
+        old.closeConnection()
 
 
 @pytest.mark.postgresql

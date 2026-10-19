@@ -43,8 +43,11 @@ def policy_database():
                                         ('deleted_at', 'DHZ'), ('label', 'T')]:
                         columns.column(name, dtype=dtype)
 
-            with build_database(Recipe) as db:
+            db = build_database(Recipe)
+            try:
                 yield db, observer, schema
+            finally:
+                db.closeConnection()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

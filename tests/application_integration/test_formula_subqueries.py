@@ -81,8 +81,11 @@ def formula_database(request):
                                                                     x_name='invoice')
                     receipt.virtual_columns().aliasColumn('invoice_total', relation_path='@invoice_id.total')
 
-            with build_database(Recipe) as db:
+            db = build_database(Recipe)
+            try:
                 yield db
+            finally:
+                db.closeConnection()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

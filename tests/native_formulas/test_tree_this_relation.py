@@ -23,7 +23,8 @@ def test_this_relation_in_sql_formula_returns_related_value(
     config.source['db'].attr['implementation'] = executor.adapter.dialect
     invoice = config.source['db'].packages().package('invc').table('invoice')
     invoice.formulaColumn('this_customer', '#THIS.@customer_id.account_name', dtype='T')
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as tree:
+    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    try:
         tree.currentEnv.update(dict(executor.currentEnv))
         compiled = tree.table(table).query(
             f'{direct} AS customer_name,{formula} AS this_customer',
@@ -39,3 +40,5 @@ def test_this_relation_in_sql_formula_returns_related_value(
         for row in rows:
             assert row['this_customer'] == row['customer_name']
         assert not tree._connections
+    finally:
+        tree.closeConnection()

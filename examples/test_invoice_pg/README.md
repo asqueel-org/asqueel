@@ -14,7 +14,7 @@ db = build_database(source())
 try:
     structure = SqlMigrationRenderer(to_physical_builder(db.model)).render()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 `INVC_STATE` è letto dal resolver esistente durante il render per il valore di

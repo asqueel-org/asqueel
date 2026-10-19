@@ -37,8 +37,11 @@ def database(source):
 
 @pytest.fixture
 def db():
-    with database(config()) as opened:
+    opened = database(config())
+    try:
         yield opened
+    finally:
+        opened.closeConnection()
 
 
 def compile_customer(db, columns, **options):
@@ -57,10 +60,13 @@ def test_formula_column_subqueries_and_handler(key, value):
 
 
 def test_py_column():
-    with database(config(pyColumn={'py_method': 'compute'})) as db:
+    db = database(config(pyColumn={'py_method': 'compute'}))
+    try:
         with pytest.raises(UnsupportedFeatureError,
                            match='app.customer.computed: pyColumn is not available in this release'):
             compile_customer(db, '$computed')
+    finally:
+        db.closeConnection()
 
 
 def test_path_through_a_many_relation(db):
@@ -90,10 +96,13 @@ def test_aggregate_on_a_relation_with_a_custom_join(key):
     source = config()
     model = source.render(mode='objects_tree')
     model.relations.get_node('app.customer.@invoices').attr[key] = '$total>0'
-    with SqlDatabase(model=model, config=_owned_handler(source)) as opened:
+    opened = SqlDatabase(model=model, config=_owned_handler(source))
+    try:
         with pytest.raises(UnsupportedFeatureError,
                            match=f'@invoices: aggr on a relation with {key}= is not available'):
             compile_customer(opened, '@invoices.aggr(sum($total))')
+    finally:
+        opened.closeConnection()
 
 
 @pytest.mark.parametrize('macro', ['#PREF', '#TSQUERY'])
@@ -116,16 +125,22 @@ def test_column_wildcard(db):
 
 @pytest.mark.parametrize('option, value', [('subtable', 'open'), ('addPkeyColumn', True), ('ignoreTableOrderBy', False)])
 def test_subquery_option_with_a_value_other_than_the_legacy_default(option, value):
-    with database(config({option: value})) as db:
+    db = database(config({option: value}))
+    try:
         with pytest.raises(UnsupportedFeatureError,
                            match=f'subquery option {option}={value!r} is not available in this release'):
             compile_customer(db, '$sub')
+    finally:
+        db.closeConnection()
 
 
 def test_unknown_subquery_option():
-    with database(config({'locale': 'it'})) as db:
+    db = database(config({'locale': 'it'}))
+    try:
         with pytest.raises(UnsupportedFeatureError, match="subquery option 'locale' is not available in this release"):
             compile_customer(db, '$sub')
+    finally:
+        db.closeConnection()
 
 
 def test_compiler_query_option(db):
@@ -173,7 +188,7 @@ def test_storename_in_the_environment(tmp_path):
                            match="environment key storename='branch': database stores are not available"):
             db.table('main.item').query().fetch()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('item, feature', [

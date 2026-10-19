@@ -32,7 +32,7 @@ except Exception:
     db.rollback()
     raise
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 SQLite units of work use `BEGIN IMMEDIATE`; finish each transaction before using

@@ -20,12 +20,11 @@ def test_named_transactions_commit_independently_and_reuse_connections():
         db.execute(CompiledQuery('other_again'))
         db.rollback()
     assert db.currentConnectionName == '_main_connection'
-    assert db.outcome == 'active'
     db.rollback()
     assert driver.persisted == ['other']
     assert driver.calls.count('connect') == 2
     assert driver.calls.count('close') == 0
-    db.close()
+    db.closeConnection()
     assert driver.calls.count('close') == 2
 
 
@@ -37,12 +36,11 @@ def test_sql_error_rolls_back_current_name_and_allows_retry():
         db.execute(CompiledQuery('discard'))
         with pytest.raises(LookupError):
             db.execute(CompiledQuery('fail'))
-        assert db.outcome == 'rolled_back'
         db.execute(CompiledQuery('recovered'))
         db.commit()
     db.commit()
     assert driver.persisted == ['recovered', 'main']
-    db.close()
+    db.closeConnection()
 
 
 def test_legacy_environment_scope_preserves_unrelated_changes():
@@ -74,7 +72,7 @@ def test_legacy_environment_scope_preserves_unrelated_changes():
     db.locale = 'it_IT'
     compiled = db.table('app.item').query(columns=':env_workdate AS day, :env_locale AS lang').compiled
     assert compiled.params == {'env_workdate': date(2024, 1, 2), 'env_locale': 'it_IT'}
-    db.close()
+    db.closeConnection()
 
 
 def test_store_switch_is_explicitly_unsupported_not_silently_same_database():
@@ -85,10 +83,10 @@ def test_store_switch_is_explicitly_unsupported_not_silently_same_database():
         with pytest.raises(UnsupportedFeatureError):
             db.execute(CompiledQuery('wrong_store'))
     assert not driver.calls
-    db.close()
+    db.closeConnection()
 
 
-def test_close_cleans_every_named_connection_after_one_failure():
+def test_close_connection_cleans_every_named_connection_after_one_failure():
     db = build_database(Recipe)
     driver = db.adapter
     db.execute(CompiledQuery('first'))
@@ -96,9 +94,9 @@ def test_close_cleans_every_named_connection_after_one_failure():
         db.execute(CompiledQuery('second'))
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(OSError):
-        db.close()
+        db.closeConnection()
     assert driver.calls.count('rollback') == driver.calls.count('close') == 2
-    db.close()
+    db.closeConnection()
 
 
 def test_repeated_commits_never_replay_prior_writes():
@@ -112,7 +110,7 @@ def test_repeated_commits_never_replay_prior_writes():
     assert driver.persisted == ['first', 'second']
     assert driver.calls.count('connect') == 1
     assert driver.calls.count('commit') == 2
-    db.close()
+    db.closeConnection()
 
 
 def test_rollback_failure_preserves_sql_error_and_requires_explicit_recovery():
@@ -123,7 +121,6 @@ def test_rollback_failure_preserves_sql_error_and_requires_explicit_recovery():
     with pytest.raises(LookupError) as error:
         db.execute(CompiledQuery('fail'))
     assert isinstance(error.value.__cause__, OSError)
-    assert db.outcome == 'unknown'
     assert driver.calls[-1] == 'close'
     with pytest.raises(TransactionStateError):
         db.execute(CompiledQuery('not yet'))
@@ -131,7 +128,7 @@ def test_rollback_failure_preserves_sql_error_and_requires_explicit_recovery():
     db.rollback()
     db.execute(CompiledQuery('recovered'))
     db.commit()
-    db.close()
+    db.closeConnection()
 
 
 def test_close_connection_releases_all_names_and_database_can_reopen():
@@ -147,7 +144,7 @@ def test_close_connection_releases_all_names_and_database_can_reopen():
     db.commit()
     assert driver.persisted == ['reopened']
     assert driver.calls.count('connect') == 3
-    db.close()
+    db.closeConnection()
 
 
 def test_default_workdate_binding_is_read_again_at_execution():
@@ -159,7 +156,7 @@ def test_default_workdate_binding_is_read_again_at_execution():
     db.execute(query)
     assert driver.executed_params[-1]['env_workdate'] == date(2000, 1, 1)
     db.rollback()
-    db.close()
+    db.closeConnection()
 
 
 def test_direct_environment_assignment_shares_identity_like_legacy():
@@ -173,4 +170,4 @@ def test_direct_environment_assignment_shares_identity_like_legacy():
         db.clearCurrentEnv()
         db.updateEnv(user='c')
     assert db.currentEnv == {'user': 'c'}
-    db.close()
+    db.closeConnection()

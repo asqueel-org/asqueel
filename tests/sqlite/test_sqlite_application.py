@@ -39,7 +39,7 @@ def database(tmp_path):
     try:
         yield db, path
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def observed(path):
@@ -89,7 +89,6 @@ def test_parameters_environment_percent_literals_and_sql_error(database):
     with pytest.raises(sqlite3.IntegrityError):
         db.execute('INSERT INTO app.item VALUES (:id, :name)', {'id': 1, 'name': 'duplicate'})
     assert observed(path) == []
-    assert db.outcome == 'rolled_back'
     db.table('app.item').sql_insert({'id': 2, 'name': 'retry'})
     db.commit()
 
@@ -124,7 +123,7 @@ def test_sqlite_cli_reuses_existing_migrator_and_file_layout(tmp_path):
         assert observed(path) == [(1, 'migrated')]
         assert db.migration_plan().empty
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypatch):
@@ -144,7 +143,7 @@ def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypat
         assert (tmp_path / 'example_contacts.db').exists()
         assert (tmp_path / 'example_sales.db').exists()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_another_named_connection_reads_committed_state_without_losing_first_transaction(database):
@@ -152,7 +151,7 @@ def test_another_named_connection_reads_committed_state_without_losing_first_tra
     db.table('app.item').sql_insert({'id': 1, 'name': 'pending'})
     with db.tempEnv(connectionName='other'):
         assert db.table('app.item').query().fetch() == []
-    assert db.outcome == 'active'
+    assert db._connection_state['pending']
     db.commit()
     assert observed(path) == [(1, 'pending')]
     with db.tempEnv(connectionName='other'):
@@ -193,7 +192,7 @@ def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
             assert [dict(row) for row in db.table('app.item').query(columns='$quantity').fetch()] == [{'quantity': 3}]
             db.commit()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: sql_insert neither refuses nor fills the partition field')
@@ -209,4 +208,4 @@ def test_raw_insert_refuses_and_fills_the_partition(tmp_path):
             assert [dict(row) for row in db.table('app.item').query(columns='$id, $organization').fetch()] == [{'id': 1, 'organization': 10}]
             db.commit()
     finally:
-        db.close()
+        db.closeConnection()

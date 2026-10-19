@@ -17,8 +17,11 @@ def db():
     invoice.column('customer_id').relation('app.customer.id')
     invoice.column('amount', dtype='N')
     invoice.formulaColumn('double', '$amount * 2', dtype='N')
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def writer(db):

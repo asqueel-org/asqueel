@@ -62,11 +62,14 @@ def test_alias_formula_redefinition(grouped, layered, reverse, dialect):
     config.validate_model()
     model = config.render(mode='objects_tree')
     assert model.table('app.cast').virtual_columns['value'].tag == second
-    with SqlDatabase(model=model, config=_owned_handler(config)) as db:
+    db = SqlDatabase(model=model, config=_owned_handler(config))
+    try:
         compiled = db.table('app.cast').query('$value').compiled
         assert compiled.sql.count('LEFT JOIN') == int(reverse)
         assert ("'from_formula'" in compiled.sql) is not reverse
         assert not db._connections
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('grouped', [False, True])

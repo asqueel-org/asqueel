@@ -11,8 +11,8 @@ migration commands and a Python console with `db` available. The older root
 connection attributes shown below remain supported.
 
 `AsqueelDb("gestionale")` loads a registered configuration and returns a
-persistent database object. Use `db.commit()`, `db.rollback()` and `db.close()`
-explicitly. The previous `build_database(...)` function remains available as a
+persistent database object. Use `db.commit()`, `db.rollback()` and
+`db.closeConnection()` explicitly. The previous `build_database(...)` function remains available as a
 compatibility factory returning an `AsqueelDb` instance.
 
 ## Construct a database or render a recipe
@@ -35,13 +35,13 @@ class Shop(SqlDatabaseConfig):
 db = AsqueelDb(Shop)
 assert db.table("sales.customer").model is db.model.table("sales.customer")
 assert db.table("sales.customer").attributes["name_long"] == "Customers"
-db.close()
+db.closeConnection()
 
 recipe = Shop()
 recipe.create()
 db = recipe.render()
 print(db.table("sales.customer").query(columns="$id, $name").sqltext)
-db.close()
+db.closeConnection()
 ```
 
 The default renderer is an object renderer. `render()` returns a database, not
@@ -77,7 +77,7 @@ try:
     assert db.config("conninfo") == "host=localhost dbname=shop_test"
     assert db.table("sales.customer").config("pkey") == "id"
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -95,7 +95,7 @@ try:
     assert customer.column("name").config("dtype") == "T"
     assert customer.config("optional_hint", default=False) is False
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -136,7 +136,7 @@ try:
         raise
 
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 

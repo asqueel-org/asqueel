@@ -1,5 +1,21 @@
 # Release notes
 
+## Unreleased
+
+- Connection lifecycle as in GenroPy. `session(db, **env)` is the unit of work
+  outside a request: entry clears `currentEnv` and applies `env`, exit calls
+  `closeConnection()`, also when the body raises. `closeConnection()` rolls
+  back what was not committed and closes every named connection of the
+  thread; the database stays usable.
+- Removed in favour of `session(db)` and `closeConnection()`: `close()`,
+  `with db:` (also `with build_database(...) as db:`), `acquire()`, the
+  `outcome` property and the error class raised by a closed database.
+- `deferToCommit` and `deferAfterCommit` queues live in `currentEnv`, under the
+  GenroPy keys; `clearCurrentEnv()` drops them. `deferredRaise` keeps its
+  exceptions in `currentEnv['_pendingExceptions']`.
+- `AsqueelDbMixin` enters `session(db)` at the first take of a database during
+  a call and leaves it in `release_databases()`.
+
 ## 0.6.0
 
 This release completes the structural path from native package configuration to
@@ -62,9 +78,9 @@ Released on PyPI and tagged `v0.5.1`.
   configuration. See "Migrate from Python" in the migrations guide.
 - `asqueel db plan/apply` use the same methods. Changed behaviour: `db apply`
   now exits 1, naming the skipped changes, instead of 0 with a warning.
-- Databases per call. `AsqueelDb.acquire()` takes a database for the current
-  call: the first take on a thread clears `currentEnv`, and `closeConnection()`
-  ends the take. `AsqueelDbMixin` gives a server and its applications databases
+- Databases per call. `AsqueelDb.acquire` took a database for the current
+  call: the first take on a thread cleared `currentEnv`, and `closeConnection()`
+  ended the take. It was removed later in favour of `session(db)`. `AsqueelDbMixin` gives a server and its applications databases
   by name (`set_asqueel_db`, `db`, `get_db` with `app:db` names) and closes the
   ones taken through an owner (`release_databases`). See "Own databases in a
   server and its applications" in the configuration grammars guide.

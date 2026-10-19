@@ -57,7 +57,7 @@ try:
     # Compiles without connecting. Physical tables must exist before fetch().
     print(db.table('app.invoice').query(columns='$id, $total, $has_lines').sqltext)
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -96,10 +96,10 @@ line.formulaColumn('adjusted', '$amount * :factor', var_factor=2, dtype='N')
 line.formulaColumn('combined', '$adjusted + :factor', var_factor=5, dtype='N')
 line.aliasColumn('display_amount', '$combined')
 
-with build_database(config) as db:
-    compiled = db.table('sales.line').query('$id, $display_amount').compiled
-    sql, kwargs = compiled.sql, dict(compiled.params)
-    assert sorted(kwargs.values()) == [2, 5]
+db = build_database(config)
+compiled = db.table('sales.line').query('$id, $display_amount').compiled
+sql, kwargs = compiled.sql, dict(compiled.params)
+assert sorted(kwargs.values()) == [2, 5]
 ```
 
 The two `factor` values belong to different formulas. A referenced formula uses

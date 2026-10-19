@@ -139,9 +139,12 @@ def test_driver_options_do_not_prevent_building_the_existing_runtime_profile():
     builder, db = recipe('sqlite')
     db.connection('main', database=':memory:').options().driver(timeout=1.5)
     db.schemas().schema('public').tables().table('t', pkey='id').column('id', dtype='L')
-    with build_database(builder) as database:
+    database = build_database(builder)
+    try:
         assert not database._connections
         assert database._connection_settings()[1]['timeout'] == 1.5
+    finally:
+        database.closeConnection()
 
 
 def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
@@ -157,10 +160,13 @@ def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
         connection.commit()
         connection.close()
         db.connection(name, database=str(path)).options().driver(timeout=1)
-    with build_database(builder) as database:
+    database = build_database(builder)
+    try:
         assert [dict(row) for row in database.execute('SELECT value FROM marker').rows] == [{'value': 'main'}]
         database.commit()
         with database.tempEnv(connectionName='reporting'):
             assert [dict(row) for row in database.execute('SELECT value FROM marker').rows] == [{'value': 'reporting'}]
             database.commit()
         assert [dict(row) for row in database.execute('SELECT value FROM marker').rows] == [{'value': 'main'}]
+    finally:
+        database.closeConnection()

@@ -33,8 +33,11 @@ def db(request, monkeypatch):
     line.column('other_id', dtype='L').relation('app.owner.id', relation_name='other_lines')
     line.column('amount', dtype='N')
     line.formulaColumn('scaled', '$amount * :factor', var_factor=3)
-    with build_database(config) as database:
+    database = build_database(config)
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def test_inverse_does_not_enable_joined_dml(db):

@@ -31,8 +31,11 @@ def test_unsupported_static_is_not_silently_dropped(table):
 
 @pytest.fixture
 def bagdb():
-    with tree_database(source()) as db:
+    db = tree_database(source())
+    try:
         yield db
+    finally:
+        db.closeConnection()
 
 
 def test_bag_dependency_alias_relation_and_scope(bagdb):
@@ -82,9 +85,12 @@ def test_bag_compilation_scopes_are_thread_local(bagdb):
 
 
 def test_bag_sqlite_explicitly_unsupported():
-    with tree_database(source('sqlite')) as db:
+    db = tree_database(source('sqlite'))
+    try:
         with pytest.raises(UnsupportedFeatureError, match='XPath'):
             db.table('app.item').query('$weight').compiled
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('implementation', ['postgres', 'sqlite'])
@@ -95,7 +101,8 @@ def test_locked_star_includes_x_fields_as_legacy(implementation, bag_fields):
 
     source, table = recipe(implementation)
     table.column('payload', dtype='X')
-    with bind(source) as db:
+    db = bind(source)
+    try:
         query = db.table('sales.invoice').query('*', for_update=True, bagFields=bag_fields)
         assert 'payload' in [column.name for column in query.compiled.columns]
         ordinary = db.table('sales.invoice').query('*').compiled
@@ -103,3 +110,5 @@ def test_locked_star_includes_x_fields_as_legacy(implementation, bag_fields):
         explicit = db.table('sales.invoice').query('$id', for_update=True).compiled
         assert [column.name for column in explicit.columns] == ['id']
         assert db._connections == {}
+    finally:
+        db.closeConnection()

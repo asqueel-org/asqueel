@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from asqueel import (
-    DatabaseClosedError, SqlDatabaseConfig, SqlTable, TransactionStateError,
+    SqlDatabaseConfig, SqlTable, TransactionStateError,
     UnsupportedFeatureError, build_database,
 )
 from tests.application_connections.test_connections import FAKE, SqlDbAdapter
@@ -26,18 +26,13 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
     with db.tempEnv(company=0):
         assert db.current_env == {'company': 0}
     assert db.current_env == {}
-    assert db.outcome == 'not_started'
     assert not hasattr(db, 'transaction')
     with completed(db):
         pass
     assert driver.calls == []
-    with db:
-        db.table('app.item').query().fetch()
+    db.table('app.item').query().fetch()
+    db.closeConnection()
     assert driver.calls[-2:] == ['rollback', 'close']
-    assert db.outcome == 'rolled_back'
-    db.close()
-    with pytest.raises(DatabaseClosedError):
-        db.table('app.item')
 
 
 def test_database_and_handles_can_be_used_by_another_thread():
@@ -49,13 +44,13 @@ def test_database_and_handles_can_be_used_by_another_thread():
     def worker():
         assert db.table('app.item') is table
         query.fetch()
-        db.close()
+        db.closeConnection()
 
     with ThreadPoolExecutor(max_workers=1) as pool:
         pool.submit(worker).result()
     assert driver.calls[-2:] == ['rollback', 'close']
     table.query().fetch()
-    db.close()
+    db.closeConnection()
     assert driver.calls.count('connect') == 2
 
 
@@ -113,4 +108,4 @@ def test_rollback_only_session_rejects_write_before_calling_hooks():
     with pytest.raises(ValueError, match='domain validation'):
         db.table('app.item').insert({'id': 3})
     assert calls == [1, 3]
-    db.close()
+    db.closeConnection()

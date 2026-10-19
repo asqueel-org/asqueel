@@ -55,9 +55,12 @@ def database(request, monkeypatch):
     monkeypatch.setattr(SqlDatabase, 'execute', forbidden)
     config = source()
     config.source.get_node('db').attr['implementation'] = request.param
-    with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as db:
+    db = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    try:
         db.currentEnv['workdate'] = date(2026, 2, 1)
         yield db
+    finally:
+        db.closeConnection()
 
 
 def contract_parameters():

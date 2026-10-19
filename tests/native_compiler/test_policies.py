@@ -27,16 +27,20 @@ def item(db):
 
 
 def test_dml_partition_guards_autofill_and_no_draft_or_deleted_filters():
-    with database() as db:
+    db = database()
+    try:
         for query in (writer(db).update(item(db), {'id': 1, 'draft': False}, {}),
                       writer(db).delete(item(db), {'id': 1}, {})):
             assert ' IS NOT TRUE' not in query.sql and '"deleted_at" IS NULL' not in query.sql
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: partition autofill and guard on write')
 def test_dml_partition_guards_and_autofill():
     snapshot = {'current_organization': 0, 'allowed_organization': [0]}
-    with database() as db:
+    db = database()
+    try:
         values = {'id': 1}
         inserted = writer(db).insert(item(db), values, snapshot)
         assert values == {'id': 1}
@@ -48,24 +52,32 @@ def test_dml_partition_guards_and_autofill():
         for query in (writer(db).update(item(db), {'id': 1, 'draft': False}, snapshot),
                       writer(db).delete(item(db), {'id': 1}, snapshot)):
             assert '"organization" = ' in query.sql
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: allowed-only partition refuses inserts outside the allowed values')
 def test_allowed_only_insert_requires_value_and_empty_allowed_refuses_insert():
-    with database() as db:
+    db = database()
+    try:
         with pytest.raises(ValueError, match='requires partition value'):
             writer(db).insert(item(db), {'id': 1}, {'allowed_organization': [1]})
         writer(db).insert(item(db), {'id': 1, 'organization': 1}, {'allowed_organization': [1]})
         with pytest.raises(ValueError, match='outside'):
             writer(db).insert(item(db), {'organization': None}, {'allowed_organization': []})
+    finally:
+        db.closeConnection()
 
 
 def test_soft_delete_and_restore_are_explicit_guarded_updates_with_quoted_marker():
-    with database() as db:
+    db = database()
+    try:
         timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
         deleted = writer(db).update(item(db), {'id': 1, 'deleted_at': timestamp}, {})
         restored = writer(db).update(item(db), {'id': 1, 'deleted_at': None}, {})
         assert deleted.sql.startswith('UPDATE ') and timestamp in deleted.params.values()
         assert restored.sql.startswith('UPDATE ') and None in restored.params.values()
         assert writer(db).delete(item(db), {'id': 1}, {}).sql.startswith('DELETE ')
+    finally:
+        db.closeConnection()
 

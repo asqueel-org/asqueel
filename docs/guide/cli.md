@@ -154,8 +154,8 @@ db.commit()
 ```
 
 Use `db.rollback()` to discard pending changes or recover after a failed domain
-operation. Leaving the console, including `exit()`/EOF, closes the database and
-rolls back uncommitted work. It never commits implicitly on exit. Console code
+operation. Leaving the console, including `exit()`/EOF, calls `db.closeConnection()`:
+it rolls back uncommitted work and closes the connections. It never commits implicitly on exit. Console code
 has normal Python access to the database object and its configuration; no
 persistent console history file is installed by this command.
 
@@ -166,10 +166,11 @@ from asqueel import AsqueelDb
 
 db = AsqueelDb("gestionale")
 rows = db.table("sales.customer").query().fetch()
-db.close()
+db.closeConnection()
 ```
 
-Call `db.close()` when finished; it rolls back pending work. This constructor
+Call `db.closeConnection()` when finished; it rolls back pending work and
+closes the connections. This constructor
 loads the SQL configuration directly; it does not instantiate a Genropy
 application or load GUI/services.
 

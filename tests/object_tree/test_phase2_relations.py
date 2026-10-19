@@ -28,8 +28,11 @@ def db(request):
         patch.setattr(SqlDatabase, 'execute', forbidden)
         config = source()
         config.source.get_node('db').attr['implementation'] = request.param
-        with SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)) as database:
+        database = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+        try:
             yield database
+        finally:
+            database.closeConnection()
 
 
 @pytest.mark.parametrize('name', [c['request']['name'] for c in ORACLE['cases']
@@ -167,7 +170,8 @@ def test_on_references_and_parent_qualification(db, name):
     # Fixture-only declaration, before resolving any per-table view. The compiler
     # must read it through the registry, not reconstruct it from the source.
     before = model.relations.to_xml()
-    with SqlDatabase(model=model, config=_owned_handler(config)) as database:
+    database = SqlDatabase(model=model, config=_owned_handler(config))
+    try:
         request, expected = case['request'], case['expected']
         query = database.table(request['table']).query(
             request['columns'], sqlparams=request['params'], **request['options'])
@@ -176,3 +180,5 @@ def test_on_references_and_parent_qualification(db, name):
         assert dict(actual.params) == {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
         assert query.compiled == actual
         assert model.relations.to_xml() == before
+    finally:
+        database.closeConnection()

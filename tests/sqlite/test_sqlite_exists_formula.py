@@ -31,4 +31,4 @@ def test_an_exists_formula_runs_on_sqlite(tmp_path):
         assert [(row['id'], bool(row['has_lines'])) for row in rows] == [(1, True), (2, False)]
         db.rollback()
     finally:
-        db.close()
+        db.closeConnection()

@@ -28,7 +28,8 @@ def db(request, tmp_path_factory):
             else {'database': str(tmp_path_factory.mktemp('sq_columns') / 'test.db')}
         ),
     )
-    with build_database(config, environment=SqlEnvironment({'current_owner': 99})) as db:
+    db = build_database(config, environment=SqlEnvironment({'current_owner': 99}))
+    try:
         quote = db.adapter.adaptSqlName
         try:
             if backend == 'postgres':
@@ -70,6 +71,8 @@ def db(request, tmp_path_factory):
             if backend == 'postgres':
                 db.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
                 db.commit()
+    finally:
+        db.closeConnection()
 
 
 def read(db, columns, id=1, **kwargs):

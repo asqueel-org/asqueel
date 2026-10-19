@@ -64,7 +64,7 @@ try:
         db.execute(CompiledQuery(f'DROP SCHEMA "{schema_name}" CASCADE'))
         db.commit()
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -84,7 +84,8 @@ Run it with `python quickstart.py`.
 - `query(...).fetchRecord()` returns exactly one visible row. Missing and
   multiple matches raise explicit errors.
 - `db.commit()` saves pending work; `db.rollback()` discards it. Both are explicit.
-  `with db:` only owns closing; pending work is rolled back on close.
+  `db.closeConnection()` rolls back pending work and closes the connections;
+  the database stays usable. `with session(db):` calls it at exit.
 
 Pass external values through `params` or write value mappings. SQL fragments,
 including formulas and WHERE expressions, are trusted application code.

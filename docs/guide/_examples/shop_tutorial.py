@@ -183,10 +183,14 @@ def run_flow(db):
 def run(dsn=None):
     if dsn is None:
         with TemporaryDirectory() as folder:
-            with open_sqlite_shop(Path(folder) / "shop.db") as db:
+            db = open_sqlite_shop(Path(folder) / "shop.db")
+            try:
                 return run_flow(db)
+            finally:
+                db.closeConnection()
     schema = "genro_tutorial_" + uuid4().hex
-    with open_shop(dsn, schema) as db:
+    db = open_shop(dsn, schema)
+    try:
         try:
             return run_flow(db)
         finally:
@@ -194,6 +198,8 @@ def run(dsn=None):
             # schema is generated above from uuid4().hex, never supplied by a user.
             db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
             db.commit()
+    finally:
+        db.closeConnection()
 
 
 if __name__ == "__main__":

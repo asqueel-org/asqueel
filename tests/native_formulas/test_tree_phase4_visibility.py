@@ -14,9 +14,12 @@ def native_db(execution_db):  # noqa: F811
     executor = execution_db
     config = source()
     config.source['db'].attr['implementation'] = executor.adapter.dialect
-    with tree_database(config) as tree:
+    tree = tree_database(config)
+    try:
         yield TreeExecution(tree, executor)
         assert not tree._connections
+    finally:
+        tree.closeConnection()
 
 
 @pytest.mark.parametrize('key', KEYS)

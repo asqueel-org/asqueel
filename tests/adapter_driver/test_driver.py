@@ -57,12 +57,15 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
 def test_generic_runtime_injected_driver_affinity_and_original_errors():
     def scenario():
-        with Database(implementation=FAKE) as db:
+        db = Database(implementation=FAKE)
+        try:
             driver = db.adapter
             result = db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
             assert result.rows == [{'answer': 42}]
             with pytest.raises(LookupError, match='original driver error'):
                 db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
+        finally:
+            db.closeConnection()
         assert [name for name, _ in driver.calls] == [
             'connect', 'execute', 'execute', 'rollback', 'close']
         assert len({thread for _, thread in driver.calls}) == 1
@@ -72,7 +75,8 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
 
 def test_runtime_rejects_profile_before_connect_or_execute():
     def scenario():
-        with Database(implementation=FAKE) as db:
+        db = Database(implementation=FAKE)
+        try:
             driver = db.adapter
             with pytest.raises(ValueError, match='profile'):
                 db.execute(CompiledQuery('SELECT 1'))
@@ -81,13 +85,18 @@ def test_runtime_rejects_profile_before_connect_or_execute():
                 with pytest.raises(ValueError, match='profile'):
                     tx.execute(CompiledQuery('SELECT 1'))
                 assert not driver.calls
+        finally:
+            db.closeConnection()
         assert not driver.calls
     scenario()
 
 
 def test_postgres_facade_uses_the_postgres_adapter():
-    with PostgresDatabase() as db:
+    db = PostgresDatabase()
+    try:
         assert type(db.adapter) is PostgresAdapter
+    finally:
+        db.closeConnection()
 
 
 def test_offline_formatting_and_injected_runtime_do_not_import_psycopg():
@@ -114,10 +123,12 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def rollback(self, conn): pass
     def close(self, conn): pass
 def main():
-    with Database(implementation='fake:__main__') as db:
+    db = Database(implementation='fake:__main__')
+    try:
         db.execute(CompiledQuery('x', dialect='fake', binding='fake'))
-    with PostgresDatabase():
-        pass
+    finally:
+        db.closeConnection()
+    PostgresDatabase().closeConnection()
 main()
 '''
     result = subprocess.run([sys.executable, '-c', script], cwd=Path(__file__).parents[2],

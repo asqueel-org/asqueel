@@ -70,8 +70,8 @@ def test_mounted_and_standalone_build_the_same_database(tmp_path):
         assert SqlMigrationRenderer(to_physical_builder(mounted.model)).render() == SqlMigrationRenderer(to_physical_builder(recipe.model)).render()
         assert connection_settings(mounted.config) == connection_settings(recipe.config)
     finally:
-        mounted.close()
-        recipe.close()
+        mounted.closeConnection()
+        recipe.closeConnection()
 
 
 def test_replay_keeps_a_rich_recipe_unchanged(monkeypatch):
@@ -84,8 +84,8 @@ def test_replay_keeps_a_rich_recipe_unchanged(monkeypatch):
         assert SqlMigrationRenderer(to_physical_builder(replayed.model)).render() == SqlMigrationRenderer(to_physical_builder(original.model)).render()
         assert connection_settings(replayed.config) == connection_settings(original.config)
     finally:
-        replayed.close()
-        original.close()
+        replayed.closeConnection()
+        original.closeConnection()
 
 
 def test_mounted_database_writes_and_reads_on_sqlite(tmp_path):
@@ -100,7 +100,7 @@ def test_mounted_database_writes_and_reads_on_sqlite(tmp_path):
         db.commit()
         assert [dict(row) for row in db.table('chat.message').query(columns='$id, $text').fetch()] == [{'id': 1, 'text': 'ciao'}]
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_a_second_db_under_the_same_host_node_is_refused(tmp_path):

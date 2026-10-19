@@ -22,8 +22,10 @@ def database(request, tmp_path):
     table.column('ilike_label', dtype='T')
     db = (config.render() if request.param == 'native' else
           SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)))
-    with db:
+    try:
         yield db
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('operator', ['ILIKE', 'ilike', 'IlIkE', 'NOT ILIKE'])

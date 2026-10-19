@@ -18,9 +18,12 @@ def test_registry_loads_recipe_from_another_directory_without_secrets(tmp_path, 
     monkeypatch.setenv('PGPORT', '5432')
     assert main(['register', 'demo', str(EXAMPLE)]) == 0
     monkeypatch.chdir(tmp_path)
-    with build_database('demo') as db:
+    db = build_database('demo')
+    try:
         assert len(db.model.tables) == 6
         assert connection_settings(db.config)[2]['password'] == 'do-not-store-this'
+    finally:
+        db.closeConnection()
     assert main(['check', 'demo']) == 0
     assert main(['list']) == 0
     card = tmp_path / 'home/databases/demo.json'
@@ -55,13 +58,19 @@ def test_connection_resolvers_and_override_layer_use_the_same_read_stack(monkeyp
     monkeypatch.setenv('ASQUEEL_TEST_NAME', 'physical')
     monkeypatch.setenv('ASQUEEL_TEST_PORT', '55584')
     monkeypatch.setenv('ASQUEEL_TEST_PASSWORD', 'secret')
-    with build_database(Recipe) as db:
+    db = build_database(Recipe)
+    try:
         _, dsn, kwargs = connection_settings(db.config)
         assert dsn == ''
         assert kwargs == {'dbname': 'physical', 'port': 55584, 'password': 'secret'}
-    with build_database(Overlay, parents=[Recipe]) as db:
+    finally:
+        db.closeConnection()
+    db = build_database(Overlay, parents=[Recipe])
+    try:
         assert connection_settings(db.config)[2] == {
             'dbname': 'deployment', 'port': 55584, 'password': 'secret'}
+    finally:
+        db.closeConnection()
 
 
 def test_mixed_connection_forms_are_rejected():
@@ -88,18 +97,20 @@ def test_check_is_offline_and_does_not_expose_invalid_secret(tmp_path, monkeypat
     assert 'secret-sentinel' not in output.out + output.err
 
 
-def test_shell_closes_database_on_system_exit(monkeypatch):
+def test_shell_closes_the_connections_on_system_exit(monkeypatch):
     observed = []
     monkeypatch.setenv('PGPORT', '5432')
 
     def interact(**kwargs):
-        observed.append(kwargs['local']['db'])
+        db = kwargs['local']['db']
+        db._connection_state
+        observed.append(db)
         raise SystemExit(0)
 
     monkeypatch.setattr('asqueel.cli.code.interact', interact)
     with pytest.raises(SystemExit):
         main(['shell', str(EXAMPLE)])
-    assert observed[0]._closed
+    assert not observed[0]._connections
 
 
 def test_module_entry_point_uses_registration_from_any_working_directory(tmp_path, monkeypatch):
@@ -157,8 +168,7 @@ def test_asqueel_db_is_a_real_persistent_class_with_owned_handles(tmp_path, monk
         assert db.table('sales.invoice').rows_query(7).compiled.params == {'invoice_id': 7}
         assert not db._connections
     finally:
-        db.close()
-    assert db._closed
+        db.closeConnection()
 
 
 def test_asqueel_db_supports_subclassing_and_compatibility_factory(monkeypatch):
@@ -177,5 +187,5 @@ def test_asqueel_db_supports_subclassing_and_compatibility_factory(monkeypatch):
         assert db.table('sales.customer') is not legacy.table('sales.customer')
         assert legacy.table('sales.customer').db is legacy
     finally:
-        db.close()
-        legacy.close()
+        db.closeConnection()
+        legacy.closeConnection()

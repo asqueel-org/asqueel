@@ -151,4 +151,4 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
             db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
             db.commit()
         finally:
-            db.close()
+            db.closeConnection()

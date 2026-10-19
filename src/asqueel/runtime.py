@@ -6,12 +6,14 @@ from dataclasses import replace
 from importlib import import_module
 import re
 from threading import Thread, current_thread, local
-from typing import Any, TypedDict
+from typing import Any, Iterator, TypedDict
 from uuid import uuid4
+
+from genro_bag import Bag
 
 from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError, not_available, refused_property
 from .environment import ApplicationEnvironment, environment_arguments
-from .errors import DatabaseClosedError, DeferredCommitError, TransactionStateError
+from .errors import DeferredCommitError, TransactionStateError
 from .triggers import TriggerStack
 
 
@@ -25,21 +27,16 @@ class _ConnectionState(TypedDict):
     connection_name: str
     failed: bool
     executing: bool
-    closed: bool
     execution_error: BaseException | None
     execution_count: int
     write_depth: int
-    deferred: dict[str, dict[str, dict[tuple[int, str], tuple[Any, tuple, dict]]]]
-    pending_exceptions: list[BaseException]
-    outcome: str
 
 
 class _ThreadState(local):
     def __init__(self) -> None:
         self.connections: dict[str, _ConnectionState] = {}
         self.trigger_stack = TriggerStack()
-        self.closed = False
-        self.acquired = False
+        self.session_open = False
 
 
 class Database:
@@ -91,8 +88,6 @@ class Database:
     def _check_open(self) -> None:
         if not self._ready:
             raise TransactionStateError('Database object graph is not ready')
-        if self._closed:
-            raise DatabaseClosedError('Database is closed')
 
     @property
     def _connections(self) -> dict[str, _ConnectionState]:
@@ -110,14 +105,6 @@ class Database:
 
     def _writing(self) -> bool:
         return any(state['write_depth'] for state in self._connections.values())
-
-    @property
-    def _closed(self):
-        return self._thread_state.closed
-
-    @_closed.setter
-    def _closed(self, value):
-        self._thread_state.closed = value
 
     @property
     def currentConnectionName(self) -> str:
@@ -144,9 +131,8 @@ class Database:
             self._connections[name] = dict(
                 owner=current_thread(), connection=None, pending=False,
                 committing=False, completion_failed=False, connection_name=name,
-                failed=False, executing=False, closed=False, execution_error=None,
-                execution_count=0, write_depth=0, deferred={'before': {}, 'after': {}},
-                pending_exceptions=[], outcome='not_started',
+                failed=False, executing=False, execution_error=None,
+                execution_count=0, write_depth=0,
             )
         return self._connections[name]
 
@@ -176,19 +162,6 @@ class Database:
     def clearCurrentEnv(self):
         self.currentEnv = {}
 
-    def acquire(self):
-        """Take this database for the current call and return it.
-
-        The first take on a thread clears ``currentEnv``, so a call never sees
-        the context of the previous call on the same thread; ``closeConnection``
-        ends the take, and the next one belongs to the next call.
-        """
-        self._check_open()
-        if not self._thread_state.acquired:
-            self.clearCurrentEnv()
-            self._thread_state.acquired = True
-        return self
-
     @property
     def workdate(self):
         self._check_open()
@@ -215,13 +188,6 @@ class Database:
 
     def tempEnv(self, **values: Any):
         return self.temp_env(**values)
-
-    @property
-    def outcome(self) -> str:
-        """Most recent named connection transaction outcome, including uncertain commit."""
-        name = self.environment.currentEnv.get('connectionName') or '_main_connection'
-        state = self._connections.get(name)
-        return state['outcome'] if state is not None else 'not_started'
 
     def execute(self, query: CompiledQuery | str, sqlargs=None) -> QueryResult:
         """Execute a compiled statement in this DB's shared unit of work."""
@@ -264,12 +230,12 @@ class Database:
     def deferToCommit(self, callback, *args, **kwargs):
         """Run a callback before committing the selected named connection."""
         self._check_open()
-        return self._defer(self._connection_state, 'before', callback, *args, **kwargs)
+        return self._defer(self._connection_state, 'to_commit_defer_calls', callback, *args, **kwargs)
 
     def deferAfterCommit(self, callback, *args, **kwargs):
         """Run a callback after committing the selected named connection."""
         self._check_open()
-        return self._defer(self._connection_state, 'after', callback, *args, **kwargs)
+        return self._defer(self._connection_state, 'after_commit_defer_calls', callback, *args, **kwargs)
 
     def deferredRaise(self, exception):
         """Make the selected named connection fail at its next commit."""
@@ -310,7 +276,10 @@ class Database:
             state['write_depth'] -= 1
 
     def closeConnection(self) -> None:
-        """Release the current thread's named connections, keeping it usable."""
+        """Roll back and close every named connection of the current thread, as legacy.
+
+        The database stays usable: the next statement opens a new connection.
+        """
         self._check_open()
         if self._writing():
             raise TransactionStateError('Cannot close connections inside a table write or hook')
@@ -320,7 +289,6 @@ class Database:
             self._close_connections()
         finally:
             self._connections.clear()
-            self._thread_state.acquired = False
 
     def _close_connections(self) -> None:
         error = None
@@ -335,20 +303,9 @@ class Database:
         if error is not None:
             raise error
 
-    def close(self) -> None:
-        """Close this thread's DB state; other threads remain usable."""
-        if self._writing():
-            raise TransactionStateError('Cannot close the database inside a table write or hook')
-        if self._closed:
-            return
-        # Preflight all scopes before closing anything; then clean every named
-        # connection even when one driver rollback/close fails.
-        for state in self._connections.values():
-            self._check_connection_completion(state)
-        try:
-            self._close_connections()
-        finally:
-            self._closed = True
+    def _deferred_key(self, state: _ConnectionState, queue: str) -> str:  # wf:phase-1:new
+        """The currentEnv key of a deferred queue, as legacy ``f'{queue}_{connectionKey()}'``."""
+        return f"{queue}__main_db_{state['connection_name']}"
 
     def _defer(self, state: _ConnectionState, queue: str, callback, *args, **kwargs):
         self._check_connection_usable(state)
@@ -356,8 +313,11 @@ class Database:
         deferred_id = kwargs.pop('_deferredId', None)
         if not deferred_id:
             deferred_id = uuid4().hex
-        entries = state['deferred'][queue].setdefault(block, {})
-        key = (id(callback), str(deferred_id))
+        blocks = self.environment.currentEnv.setdefault(self._deferred_key(state, queue), Bag())
+        if block not in blocks:
+            blocks[block] = Bag()
+        entries = blocks[block]
+        key = f'{id(callback)}/{deferred_id}'
         if key not in entries:
             entries[key] = (callback, args, kwargs)
             return kwargs
@@ -367,7 +327,7 @@ class Database:
         self._check_connection_usable(state)
         if not isinstance(exception, BaseException):
             raise TypeError('deferred_raise requires an exception instance')
-        state['pending_exceptions'].append(exception)
+        self.environment.currentEnv.setdefault('_pendingExceptions', []).append(exception)
 
     def _invoke_deferred(self, state: _ConnectionState, queue: str) -> None:
         context: dict[str, Any] = {'onCommittingStep': True}
@@ -377,13 +337,13 @@ class Database:
             self._drain_deferred(state, queue)
 
     def _drain_deferred(self, state: _ConnectionState, queue: str) -> None:
-        blocks = state['deferred'][queue]
+        blocks = self.environment.currentEnv.get(self._deferred_key(state, queue))
         while blocks:
             # GenroPy Bag.sort('#k:a'): labels in lowercase, stable on ties.
-            block_name = min(blocks, key=str.lower)
+            block_name = min(blocks.keys(), key=str.lower)
             entries = blocks[block_name]
             while entries:
-                key = next(iter(entries))
+                key = next(iter(entries.keys()))
                 callback, args, kwargs = entries.pop(key)
                 callback(*args, **kwargs)
                 self._check_connection_usable(state)
@@ -391,22 +351,25 @@ class Database:
                     entries.pop(key, None)
             blocks.pop(block_name, None)
 
+    def _pop_transaction_key(self, key: str) -> Any:  # wf:phase-1:new
+        """Pop a deferred queue or the pending exceptions from currentEnv.
+
+        The read-only snapshot of a ``SqlEnvironment`` holds none of them.
+        """
+        current = self.environment.currentEnv
+        return current.pop(key, None) if isinstance(current, dict) else None
+
     def _clear_deferred(self, state: _ConnectionState) -> None:
-        state['deferred']['before'].clear()
-        state['deferred']['after'].clear()
-        state['pending_exceptions'].clear()
+        self._pop_transaction_key(self._deferred_key(state, 'to_commit_defer_calls'))
+        self._pop_transaction_key(self._deferred_key(state, 'after_commit_defer_calls'))
+        self._pop_transaction_key('_pendingExceptions')
 
     def _check_connection_owner(self, state: _ConnectionState) -> None:
         if current_thread() is not state['owner']:
             raise TransactionStateError('Connection operations must run on the constructing thread')
 
-    def _check_connection_open(self, state: _ConnectionState) -> None:
-        self._check_connection_owner(state)
-        if state['closed']:
-            raise DatabaseClosedError('Connection is closed')
-
     def _check_connection_available(self, state: _ConnectionState) -> None:
-        self._check_connection_open(state)
+        self._check_connection_owner(state)
         if state['executing']:
             raise TransactionStateError('Connection is already executing an operation')
 
@@ -445,7 +408,6 @@ class Database:
                     raise ValueError('autocommit is incompatible with explicit transactions')
                 state['connection'] = adapter.connect(conninfo, **connect_kwargs)
             state['pending'] = True
-            state['outcome'] = 'active'
             if cursor:
                 return adapter.open_cursor(state['connection'], query, cursorname)
             result: QueryResult = (adapter.executemany(state['connection'], query, many) if many is not None
@@ -466,7 +428,7 @@ class Database:
 
     def _mark_connection_failed(self, state: _ConnectionState) -> None:
         """Mark a failed domain operation even when no SQL has run yet."""
-        self._check_connection_open(state)
+        self._check_connection_owner(state)
         state['failed'] = True
 
     def _discard_connection(self, state: _ConnectionState) -> None:
@@ -476,19 +438,18 @@ class Database:
 
     def _finish(self, state: _ConnectionState, commit: bool) -> None:
         if not state['pending']:
-            if state['outcome'] != 'unknown':
-                state['failed'] = False
+            state['failed'] = False
             if not commit:
                 self._clear_deferred(state)
             return
         state['executing'] = True
+        uncertain = False
         try:
             operation = self.adapter.commit if commit else self.adapter.rollback
             operation(state['connection'])
-            state['outcome'] = 'committed' if commit else 'rolled_back'
             state['failed'] = False
         except BaseException as error:
-            state['outcome'] = 'unknown'
+            uncertain = True
             state['failed'] = True
             try:
                 self._discard_connection(state)
@@ -498,7 +459,7 @@ class Database:
         finally:
             state['pending'] = False
             state['executing'] = False
-            if not commit or state['outcome'] == 'unknown':
+            if not commit or uncertain:
                 self._clear_deferred(state)
 
     def _commit_pending(self, state: _ConnectionState) -> None:
@@ -509,18 +470,18 @@ class Database:
         try:
             while state['pending']:
                 try:
-                    self._invoke_deferred(state, 'before')
+                    self._invoke_deferred(state, 'to_commit_defer_calls')
                     self._check_connection_usable(state)
-                    if state['pending_exceptions']:
-                        messages = '\n'.join(str(error) for error in state['pending_exceptions'])
+                    pending_exceptions = self._pop_transaction_key('_pendingExceptions')
+                    if pending_exceptions:
+                        messages = '\n'.join(str(error) for error in pending_exceptions)
                         raise DeferredCommitError(messages)
                 except BaseException:
                     state['failed'] = True
                     raise
-                state['pending_exceptions'].clear()
                 self._finish(state, True)
                 try:
-                    self._invoke_deferred(state, 'after')
+                    self._invoke_deferred(state, 'after_commit_defer_calls')
                 except BaseException:
                     # The preceding transaction is committed and cannot be undone.
                     # A callback may have opened a new transaction: retain its
@@ -546,9 +507,6 @@ class Database:
         state['failed'] = False
 
     def _close_connection(self, state: _ConnectionState) -> None:
-        self._check_connection_owner(state)
-        if state['closed']:
-            return
         self._check_connection_completion(state)
         error: BaseException | None = None
         state['executing'] = True
@@ -567,23 +525,8 @@ class Database:
                     error.add_note(f'Connection cleanup also failed: {type(failure).__name__}')
         finally:
             state['executing'] = False
-            state['closed'] = True
         if error is not None:
             raise error
-
-    def __enter__(self) -> Database:
-        self._check_open()
-        return self
-
-    def __exit__(self, exc_type: Any, error: Any, traceback: Any) -> None:
-        try:
-            self.close()
-        except BaseException as cleanup_error:
-            if error is None:
-                raise
-            error.add_note(f'Database cleanup failed: {type(cleanup_error).__name__}')
-            raise error from cleanup_error
-
 
 class PostgresDatabase(Database):
     """The shared, explicitly completed runtime on the PostgreSQL adapter."""
@@ -591,3 +534,23 @@ class PostgresDatabase(Database):
     def __init__(self, conninfo='', *, connect_kwargs=None, environment=None):
         super().__init__(conninfo, implementation='postgres', connect_kwargs=connect_kwargs,
                          environment=environment)
+
+
+@contextmanager
+def session(db: Database, **env: Any) -> Iterator[Database]:  # wf:phase-1:new
+    """The unit of work outside a request, as a legacy page request.
+
+    Entry clears ``currentEnv`` and applies ``env``; exit, also when the body
+    raises, calls ``closeConnection()``, which rolls back what was not
+    committed. One session at a time per database and thread.
+    """
+    if db._thread_state.session_open:
+        raise TransactionStateError('a session is already open on this thread for this database')
+    db.clearCurrentEnv()
+    db.updateEnv(**env)
+    db._thread_state.session_open = True
+    try:
+        yield db
+    finally:
+        db._thread_state.session_open = False
+        db.closeConnection()

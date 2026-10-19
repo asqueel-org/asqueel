@@ -42,8 +42,11 @@ def bind(source):
 
 @pytest.fixture(params=['postgres', 'sqlite'])
 def db(request):
-    with bind(recipe(request.param)) as database:
+    database = bind(recipe(request.param))
+    try:
         yield database
+    finally:
+        database.closeConnection()
 
 
 def writer(db):
@@ -130,9 +133,12 @@ def test_delete_uses_sql_names_in_where(db):
     # Legacy adapter.delete used model names in the WHERE (genropy#1691).
     source = recipe(db.adapter.dialect)
     source.source['db'].packages().package('sales').table('item').column('id', sqlname='item_key')
-    with bind(source) as other:
+    other = bind(source)
+    try:
         compiled = writer(other).delete(model(other, 'sales.item'), {'id': 'a'}, {})
         assert 'WHERE "item_key"=' in compiled.sql
+    finally:
+        other.closeConnection()
 
 
 def test_lock_table_uses_nowait(db):
@@ -162,7 +168,8 @@ def live(request, tmp_path):
     else:
         schema = 'wc_' + uuid4().hex[:8]
         source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
-    with bind(source) as database:
+    database = bind(source)
+    try:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')
         for statement in CREATE:
@@ -175,6 +182,8 @@ def live(request, tmp_path):
             if prefix:
                 database.execute(f'DROP SCHEMA {prefix[:-1]} CASCADE')
                 database.commit()
+    finally:
+        database.closeConnection()
 
 
 def rows(db, sql):

@@ -12,7 +12,7 @@ try:
     assert result.rows == [{'value': 42}]
     db.commit()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 Direct SQL is trusted application code. Bind data through named parameters;
@@ -41,7 +41,7 @@ try:
     rows = db.execute('SELECT :value AS value', {'value': 42}).rows
     db.commit()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 There is no `transaction()` API. Unlike the former low-level runtime, `execute()`

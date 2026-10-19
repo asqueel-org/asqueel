@@ -34,7 +34,7 @@ def test_locale_fallback_without_validation(monkeypatch, configured, system, exp
             assert db.locale == expected
         assert db.environment.snapshot()['locale'] == expected
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
@@ -63,7 +63,7 @@ def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
         db.workdate = 'application-business-date'
         assert db.workdate == 'application-business-date'
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_nested_scopes_restore_context_after_error_and_reused_query_reads_the_outer_scope():
@@ -90,7 +90,7 @@ def test_nested_scopes_restore_context_after_error_and_reused_query_reads_the_ou
             db.locale = 'changed'  # Legacy preserves changes to newly introduced keys.
         assert db.locale == 'changed'
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_dates_and_locales_are_isolated_between_live_threads():
@@ -107,7 +107,7 @@ def test_dates_and_locales_are_isolated_between_live_threads():
                 assert (db.workdate, db.locale) == (day, language + '-temporary')
             return db.workdate, db.locale
         finally:
-            db.close()
+            db.closeConnection()
 
     try:
         with ThreadPoolExecutor(max_workers=2) as pool:
@@ -117,7 +117,7 @@ def test_dates_and_locales_are_isolated_between_live_threads():
             assert b.result() == (date(2024, 3, 1), 'bob')
         assert (db.workdate, db.locale) == (date(2024, 1, 1), 'main')
     finally:
-        db.close()
+        db.closeConnection()
 
 
 @pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
@@ -140,4 +140,4 @@ def test_context_binding_on_real_database(backend):
             db.rollback()
         assert db.currentEnv == {}
     finally:
-        db.close()
+        db.closeConnection()

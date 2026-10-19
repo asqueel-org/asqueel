@@ -60,8 +60,11 @@ def alias_database():
                     virtual.aliasColumn('country_chain', relation_path='@customer_id.country_name')
                     virtual.aliasColumn('loud_customer', relation_path='@customer_id.loud_name')
 
-            with build_database(Recipe) as db:
+            db = build_database(Recipe)
+            try:
                 yield db
+            finally:
+                db.closeConnection()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

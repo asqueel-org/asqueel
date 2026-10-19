@@ -19,10 +19,13 @@ def bind(executor, state=None):
             patch.setenv('INVC_STATE', state)
         config = source()
         config.source['db'].attr['implementation'] = executor.adapter.dialect
-        with tree_database(config) as tree:
+        tree = tree_database(config)
+        try:
             tree.currentEnv.update(dict(executor.currentEnv))
             yield TreeExecution(tree, executor)
             assert not tree._connections
+        finally:
+            tree.closeConnection()
 
 
 @pytest.fixture(scope='module')

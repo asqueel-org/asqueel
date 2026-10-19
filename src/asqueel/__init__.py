@@ -33,8 +33,8 @@ from .model_codec import model_to_json, model_from_json
 from .model import resolve_model
 from .projection import to_physical_builder
 from .runtime import (
-    DatabaseClosedError, Database, PostgresDatabase,
-    TransactionStateError,
+    Database, PostgresDatabase,
+    TransactionStateError, session,
 )
 from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
@@ -50,7 +50,7 @@ __all__ = [
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
     "Column", "CompiledQuery", "QueryResult", "Relation", "ResolvedModel",
     "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",
-    "PostgresDatabase", "DatabaseClosedError",
+    "PostgresDatabase", "session",
     "TransactionStateError", "resolve_model", "ImportResult", "inspect_postgres",
     "to_physical_builder",
     "QueryCompiler", "Database",

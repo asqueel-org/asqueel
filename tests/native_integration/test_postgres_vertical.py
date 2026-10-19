@@ -80,7 +80,8 @@ def test_native_model_compiler_runtime_and_import(native_database):
     write = writer()
 
     def scenario():
-        with PostgresDatabase(connect_kwargs=params) as db:
+        db = PostgresDatabase(connect_kwargs=params)
+        try:
             with completed(db) as tx:
                 tx.execute(write.insert(model.table('crm.customer'), {
                     'id': 1, 'name': "L'impresa 50%",
@@ -118,6 +119,8 @@ def test_native_model_compiler_runtime_and_import(native_database):
             deleted = db.execute(write.delete(model.table('crm.invoice'), {'id': 12}, {}))
             assert deleted.rowcount == 1
             db.commit()
+        finally:
+            db.closeConnection()
     scenario()
     imported = inspect_postgres(connection, [schema], ui={
         f'{schema}.crm_customer.display name': {'label': 'Cliente'},
@@ -143,7 +146,8 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
     params, schema, connection = native_database
     model = resolve_model(recipe(schema))
     compiler, customer = PostgresCompiler(model), model.table('crm.customer')
-    with PostgresDatabase(connect_kwargs=params) as db:
+    db = PostgresDatabase(connect_kwargs=params)
+    try:
         with pytest.raises(RuntimeError, match='abort transaction'):
             with completed(db) as tx:
                 tx.execute(writer().insert(customer, {'id': 9, 'name': 'Aborted'}, {}))
@@ -152,6 +156,8 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
         db.execute(writer().insert(customer, {'id': 10, 'name': 'Committed'}, {}))
         assert [dict(row) for row in db.execute(compiler.select('crm.customer', columns='$id')).rows] == [{'id': 10}]
         db.commit()
+    finally:
+        db.closeConnection()
     assert connection.execute(sql.SQL('SELECT id FROM {}.crm_customer').format(
         sql.Identifier(schema))).fetchall() == [(10,)]
 
@@ -160,7 +166,8 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
     params, schema, _ = native_database
     model = resolve_model(recipe(schema))
     compiler, customer = PostgresCompiler(model), model.table('crm.customer')
-    with PostgresDatabase(connect_kwargs=params) as first, PostgresDatabase(connect_kwargs=params) as second:
+    first, second = PostgresDatabase(connect_kwargs=params), PostgresDatabase(connect_kwargs=params)
+    try:
         with pytest.raises(RuntimeError, match='abort first'):
             with completed(first) as tx:
                 tx.execute(writer().insert(customer, {'id': 31, 'name': 'Abort'}, {}))
@@ -168,3 +175,6 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
                 second.commit()
                 raise RuntimeError('abort first')
         assert [dict(row) for row in first.execute(compiler.select('crm.customer', columns='$id')).rows] == [{'id': 32}]
+    finally:
+        first.closeConnection()
+        second.closeConnection()

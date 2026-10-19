@@ -25,7 +25,8 @@ def db(request, tmp_path_factory):
             else {'database': str(tmp_path_factory.mktemp('sq_methods') / 'test.db')}
         ),
     )
-    with build_database(config) as db:
+    db = build_database(config)
+    try:
         install(db)
         quote = db.adapter.adaptSqlName
         try:
@@ -49,6 +50,8 @@ def db(request, tmp_path_factory):
             if backend == 'postgres':
                 db.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
                 db.commit()
+    finally:
+        db.closeConnection()
 
 
 def test_values_nested_scope_and_query_reuse(db):

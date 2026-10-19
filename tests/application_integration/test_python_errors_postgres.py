@@ -17,8 +17,15 @@ pytestmark = pytest.mark.postgresql
 def test_python_failure_matrix_keeps_current_native_rollback_contract():
     oracle = runpy.run_path(str(Path(__file__).resolve().parents[2]
                                / 'docs/design/evidence/python_error_oracle.py'))
-    factory, _ = oracle['native_factory'](postgres_dsn())
-    cases = oracle['scenarios'](factory, postgres_dsn())
+    native, _ = oracle['native_factory'](postgres_dsn())
+
+    class Native(native):
+        def close(self):
+            # The recorded oracle releases with close(); the database releases
+            # with closeConnection(), which rolls back and closes as legacy.
+            self.db.closeConnection()
+
+    cases = oracle['scenarios'](Native, postgres_dsn())
     initial = {'items': [(10, 'original')], 'audit': []}
     assert len(cases) == 16
     for operation, hooks in oracle['HOOKS'].items():
