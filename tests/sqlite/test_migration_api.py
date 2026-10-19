@@ -20,7 +20,7 @@ def recipe(path, name_dtype='T'):
 
 
 def item_columns(path):
-    connection = sqlite3.connect(path.parent / f'{path.stem}_app.db')
+    connection = sqlite3.connect(path.parent / 'app.db')
     try:
         return [(row[1], row[2]) for row in connection.execute('PRAGMA table_info(item)')]
     finally:

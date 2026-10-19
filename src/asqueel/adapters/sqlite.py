@@ -7,6 +7,7 @@ from __future__ import annotations
 from contextlib import closing
 from datetime import date, datetime, time
 from decimal import Decimal
+import os
 from pathlib import Path
 import re
 import sqlite3
@@ -34,7 +35,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         'default_values', 'for_update',
     })
 
-    def connect(self, conninfo='', *, dbname=None, schemas=(), **kwargs):
+    def connect(self, conninfo='', *, dbname=None, schemas=(), foreignKeys=True, **kwargs):
         if sqlite3.sqlite_version_info < (3, 35, 0):
             raise RuntimeError('SQLite 3.35 or later is required for RETURNING')
         if conninfo and dbname:
@@ -47,6 +48,9 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             raise ValueError(f'Unsupported SQLite options: {sorted(set(kwargs) - allowed)}')
         kwargs.setdefault('timeout', 20.0)
         self._register_converters()
+        if name != ':memory:' and not os.path.exists(name):
+            # Legacy gnrsqlite.connect creates the folder of a missing database file.
+            os.makedirs(os.path.dirname(os.path.abspath(name)), exist_ok=True)
         # The driver's own legacy transaction control, as gnrsqlite: a deferred
         # BEGIN before the first INSERT/UPDATE/DELETE; reads open no transaction.
         connection = sqlite3.connect(name, isolation_level='DEFERRED',
@@ -54,14 +58,14 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         try:
             # gnrsqlite registers this function for its ~* -> REGEXP translation.
             connection.create_function('regexp', 2, self._regexp)
-            connection.execute('PRAGMA foreign_keys = ON')
+            connection.execute(f"PRAGMA foreign_keys = {'ON' if foreignKeys else 'OFF'}")
             for schema in schemas:
                 if schema == 'main':
                     continue
                 if not isinstance(schema, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', schema) or schema == 'temp':
                     raise ValueError('SQLite attached schema names must be simple identifiers other than temp')
-                # Same file layout as asqueel_migration.SqliteDatabase.schema_files().
-                path = ':memory:' if name == ':memory:' else str(Path(name).with_name(f'{Path(name).stem}_{schema}.db'))
+                # Legacy gnrsqlite._attach; same layout as SqliteDatabase.schema_files() of asqueel-migration 0.3.
+                path = ':memory:' if name == ':memory:' else str(Path(name).with_name(f'{schema}.db'))
                 connection.execute(f'ATTACH DATABASE ? AS "{schema}"', (path,))
         except BaseException:
             connection.close()
@@ -91,13 +95,17 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         self.dbroot.execute('PRAGMA defer_foreign_keys = ON').close()
 
     def vacuum(self, table='', full=False):
-        """``VACUUM`` then ``ANALYZE [table]`` on a separate connection to the same file.
+        """``VACUUM`` on ``main`` and on every attached schema, then ``ANALYZE [table]``.
 
-        ``VACUUM`` always rebuilds the file on SQLite, so ``full`` adds nothing.
+        Runs on a separate connection to the same files. ``VACUUM`` always
+        rebuilds the file on SQLite, so ``full`` adds nothing.
         """
         conninfo, connect_kwargs = self.dbroot._connection_settings()
         with closing(self.connect(conninfo, **connect_kwargs)) as connection:
             connection.execute('VACUUM')
+            for schema in connect_kwargs.get('schemas', ()):
+                if schema != 'main':
+                    connection.execute(f'VACUUM "{schema}"')
             connection.execute(f'ANALYZE {table}'.rstrip())
 
     def _begin(self, connection, query):

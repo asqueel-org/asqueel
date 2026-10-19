@@ -350,7 +350,7 @@ def _connection_settings(config, prefix):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
     options = dict(read('options') or {})
     fields = ('connect_timeout', 'application_name', 'sslmode', 'sslrootcert',
-              'options', 'timeout', 'cached_statements')
+              'options', 'timeout', 'cached_statements', 'foreignKeys')
     driver_options = {field: value for field in fields
                       if (value := read(f'options.driver.{field}')) is not None}
     if driver_options:
@@ -389,7 +389,7 @@ def _connection_settings(config, prefix):
         if any(read(key) is not None
                for key in ('host', 'port', 'user', 'password')):
             raise ValueError('SQLite uses a filename, not host/user/password/port')
-        if set(options) - {'dbname', 'timeout', 'cached_statements'}:
+        if set(options) - {'dbname', 'timeout', 'cached_statements', 'foreignKeys'}:
             raise ValueError('Unsupported SQLite connection options')
         return implementation, '', options
     for name in ('host', 'port', 'user', 'password'):

@@ -24,6 +24,8 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     })
 
     def connect(self, conninfo: str, **kwargs: Any) -> Any:
+        if 'foreignKeys' in kwargs:
+            raise ValueError('foreignKeys is a SQLite connection option, not available on PostgreSQL')
         # psycopg is the PostgreSQL extra: imported only when connecting.
         import psycopg
 

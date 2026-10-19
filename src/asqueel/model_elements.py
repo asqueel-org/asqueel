@@ -70,7 +70,8 @@ class ModelElements:
     def driver(self, connect_timeout: int | None = None,
                application_name: str | None = None, sslmode: str | None = None,
                sslrootcert: str | None = None, options: str | None = None,
-               timeout: float | int | None = None, cached_statements: int | None = None):
+               timeout: float | int | None = None, cached_statements: int | None = None,
+               foreignKeys: bool | None = None):
         """Driver options, checked against the connection's configured dialect."""
         ...
 

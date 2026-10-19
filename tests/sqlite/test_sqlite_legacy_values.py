@@ -24,13 +24,13 @@ def recipe(path):
 def database(tmp_path):
     path = tmp_path / 'values.db'
     db = AsqueelDb(recipe(path))
-    # Declared types as asqueel-migration's SQLite writer emits them.
+    # Declared types as asqueel-migration's SQLite writer emits them (legacy revTypesDict).
     db.execute('CREATE TABLE app.item (id integer PRIMARY KEY, day date, '
-               'moment timestamp without time zone, stamp timestamp with time zone, '
+               'moment timestamp, stamp timestamp with time zone, '
                'hour time, amount numeric(10,2), flag boolean)')
     db.commit()
     try:
-        yield db, path.with_name('values_app.db')
+        yield db, path.with_name('app.db')
     finally:
         db.closeConnection()
 

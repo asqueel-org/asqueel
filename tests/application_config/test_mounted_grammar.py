@@ -89,8 +89,9 @@ def test_replay_keeps_a_rich_recipe_unchanged(monkeypatch):
 
 
 def test_mounted_database_writes_and_reads_on_sqlite(tmp_path):
-    path = tmp_path / 'chat.db'
-    connection = sqlite3.connect(tmp_path / 'chat_chat.db')
+    # Schema chat is the file chat.db next to the main file, as legacy.
+    path = tmp_path / 'archive.db'
+    connection = sqlite3.connect(tmp_path / 'chat.db')
     connection.execute('create table message(id integer primary key, text text)')
     connection.commit()
     connection.close()

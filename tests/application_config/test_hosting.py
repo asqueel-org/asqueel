@@ -55,7 +55,7 @@ def host(tmp_path):
     chat = App(server, 'chat')
     plain = App(server, 'plain')
     for owner, name in ((server, 'default'), (server, 'alfadb'), (chat, 'default'), (chat, 'alfadb')):
-        db = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}.db'))
+        db = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}' / 'main.db'))
         db.migrate()
         db.execute('INSERT INTO app.item (id, owner) VALUES (:id, :owner)',
                    {'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
@@ -155,7 +155,7 @@ def test_a_host_must_name_itself():
 
 def test_release_closes_the_others_and_then_reports_a_failure(host, tmp_path):
     server, chat, _ = host
-    extra = chat.set_asqueel_db('extra', recipe(tmp_path / 'extra.db'))
+    extra = chat.set_asqueel_db('extra', recipe(tmp_path / 'extra' / 'main.db'))
     first, second = chat.get_db('chat:extra'), chat.get_db('chat:alfadb')
     owner_of(second)
 

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- SQLite schema files change name, as in GenroPy: each attached schema is
+  `<schema>.db` in the folder of the main file, no longer `<stem>_<schema>.db`.
+  An existing SQLite database needs its schema files renamed. A missing main
+  file gets its folder created.
+- SQLite connection option `foreignKeys` (default `True`): `False` runs
+  `PRAGMA foreign_keys = OFF`. PostgreSQL refuses it.
+- `vacuum()` on SQLite runs `VACUUM` on every attached schema, not only `main`.
+- SQLite DDL declares the legacy type names (`character varying`, `character`,
+  `timestamp`, `time`); requires asqueel-migration 0.3.
 - Connection lifecycle as in GenroPy. `session(db, **env)` is the unit of work
   outside a request: entry clears `currentEnv` and applies `env`, exit calls
   `closeConnection()`, also when the body raises. `closeConnection()` rolls

@@ -43,7 +43,7 @@ def database(tmp_path):
 
 
 def observed(path):
-    with sqlite3.connect(path.with_name('sample_app.db')) as connection:
+    with sqlite3.connect(path.with_name('app.db')) as connection:
         return connection.execute('SELECT id, name FROM item ORDER BY id').fetchall()
 
 
@@ -140,8 +140,8 @@ def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypat
         ).fetch()
         assert [dict(row) for row in rows] == [{'id': 10, 'customer': 'Ada', 'description': 'Example'}]
         db.commit()
-        assert (tmp_path / 'example_contacts.db').exists()
-        assert (tmp_path / 'example_sales.db').exists()
+        assert (tmp_path / 'contacts.db').exists()
+        assert (tmp_path / 'sales.db').exists()
     finally:
         db.closeConnection()
 

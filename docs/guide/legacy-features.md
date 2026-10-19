@@ -657,6 +657,16 @@ the write cycle, see [Current status](limitations.md).
 - **SQLite transactions** (A8.10): the driver opens a deferred `BEGIN`
   before the first INSERT, UPDATE or DELETE; reads open no transaction and
   hold no lock.
+- **SQLite schemas as attached files** (A8.7): each schema is the file
+  `<schema>.db` in the folder of the main file; default schema `main`; a
+  missing main file gets its folder created. Legacy: `gnrsqlite.connect`
+  (`gnrpy/gnr/sql/adapters/gnrsqlite.py:70-93`) and `_attach` (:98-109).
+- **SQL types of dtypes** (A8.22): DDL from asqueel-migration with the legacy
+  type names, on SQLite as `gnrsqlite.revTypesDict` (:50-54): `A` →
+  `character varying`, `C` → `character`, `DH` → `timestamp`, `H` → `time`;
+  `X`, `Z`, `P` and `A` or `C` without size become `T` in package models, as
+  legacy `convert_colattr`. A SQLite database created with the earlier names
+  (`varchar`, `char`, `timestamp without time zone`) reads back the same dtypes.
 
 ### Works differently
 
@@ -671,12 +681,12 @@ the write cycle, see [Current status](limitations.md).
   [#19](https://github.com/asqueel-org/asqueel/issues/19).
 - **ILIKE on SQLite** (A8.5): only the operator is replaced, outside strings,
   quoted identifiers and comments. Reason: not recorded.
-- **SQLite schemas as attached files** (A8.7): `<name>_<schema>.db` files,
-  default schema `main`, the folder must exist. Reason: same layout as the
-  migration adapter; the file name change: not recorded.
-- **SQLite connection opening** (A8.8): `PRAGMA foreign_keys = ON`; only
-  `timeout` (default 20 seconds, as legacy) and `cached_statements`; SQLite
-  3.35 required. Reason: FKs are on by decision of 2026-10-16.
+- **SQLite connection opening** (A8.8): `PRAGMA foreign_keys = ON`, or
+  `PRAGMA foreign_keys = OFF` with the connection option `foreignKeys=False`;
+  the other options are `timeout` (default 20 seconds, as legacy) and
+  `cached_statements`; SQLite 3.35 required. Legacy `gnrsqlite.connect`
+  (`gnrpy/gnr/sql/adapters/gnrsqlite.py:70-93`) runs neither pragma. Reason:
+  FKs are on by decision of 2026-10-16; `foreignKeys` switches them off.
 - **`for_update` on SQLite** (A8.10): `BEGIN IMMEDIATE` when no transaction
   is open, a no-op UPDATE inside an open one; the legacy emits no lock.
   Reason: `for_update` locks as on PostgreSQL (decision of 2026-10-15).
@@ -692,9 +702,6 @@ the write cycle, see [Current status](limitations.md).
 - **LIMIT and OFFSET per dialect** (A8.21): `LIMIT 0` is emitted; on SQLite
   OFFSET without LIMIT adds the maximum LIMIT. Reason: the legacy truthiness
   of `limit=0` is not imported; SQLite OFFSET: not recorded.
-- **SQL types of dtypes** (A8.22): DDL from asqueel-migration with the legacy
-  PostgreSQL types; `X`, `Z`, `P` and `A` without size become `T` in package
-  models. Reason: not recorded.
 
 ### Not available yet
 

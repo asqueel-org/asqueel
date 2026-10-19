@@ -21,10 +21,17 @@ class Recipe(SqlDatabaseConfig):
 Use an absolute filename for repeatable CLI and Python access. `connection.name`
 is the database file; host, port, user and password are not applicable. Optional
 `connection.options` supports `timeout` (default 20 seconds) and
-`cached_statements` from `sqlite3`.
+`cached_statements` from `sqlite3`, and `foreignKeys` (default `True`).
 
-Logical schemas are attached files, matching the existing migration adapter:
-`example.db` is the main file and schema `app` uses `example_app.db`. Physical
+Each connection runs `PRAGMA foreign_keys = ON`. `foreignKeys=False` runs
+`PRAGMA foreign_keys = OFF` instead: SQLite then checks no foreign key on that
+connection. Declare it as `connection(options={'foreignKeys': False})` or as
+`connection.options().driver(foreignKeys=False)`. PostgreSQL refuses the option.
+
+Logical schemas are attached files, as in GenroPy: each schema is the file
+`<schema>.db` in the folder of the main file. `example.db` is the main file and
+schema `app` uses `app.db` in the same folder. When the main file is missing,
+its folder is created. Physical
 schema overrides are honored. Attached schema names currently require simple
 identifiers; `temp` is reserved. `:memory:` is supported for isolated tests, but
 each named/thread connection has a separate in-memory database.
@@ -38,8 +45,12 @@ asqueel shell --config /path/to/configure.py
 
 These commands delegate DDL to `asqueel-migration.SqliteDatabase`; Asqueel does
 not add another migration engine. CLI migration requires persistent files.
-The configured parent directory must exist. Opening a SQLite runtime connection
-can create missing files, but it does not create the declared tables.
+Opening a SQLite runtime connection creates missing files and their folder, but
+it does not create the declared tables.
+
+`db.vacuum(table='')` runs `VACUUM` on `main` and on every attached schema,
+then `ANALYZE [table]`, on a separate connection. `full` adds nothing on
+SQLite, because `VACUUM` always rebuilds the file.
 
 ## Transactions and concurrency
 

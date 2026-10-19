@@ -536,6 +536,7 @@ Driver options, checked against the connection's configured dialect.
 | options | `str \| None` | `None` | physical |  |
 | timeout | `float \| int \| None` | `None` | physical |  |
 | cached_statements | `int \| None` | `None` | physical |  |
+| foreignKeys | `bool \| None` | `None` | physical |  |
 
 ### `requires`
 

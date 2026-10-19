@@ -220,7 +220,7 @@ for the read-only PostgreSQL catalog API.
 
 `dtype="serial"` retains its existing 64-bit BIGSERIAL meaning. The additive
 `dtype="serial4"` declaration requests a 32-bit PostgreSQL SERIAL key. Native
-migration requires `asqueel-migration>=0.2.2,<0.3`, now required by the core's
+migration requires `asqueel-migration>=0.3.0,<0.4`, required by the core's
 `migration` and `dev` extras. Published migration 0.2.2 includes `serial4` support.
 
 With the updated migration engine, a populated SERIAL4 column declared as

@@ -325,7 +325,9 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError('Use driver() or legacy connection options, not both')
             implementation = owner.get_attr('implementation') or owner.parent_node.get_attr('implementation') or 'sqlite'
             dialect = implementation.partition(':')[0]
-            allowed = ({'timeout', 'cached_statements'} if dialect == 'sqlite' else
+            if 'foreignKeys' in attributes and dialect != 'sqlite':
+                raise ValueError('driver: foreignKeys is a SQLite connection option, not available on PostgreSQL')
+            allowed = ({'timeout', 'cached_statements', 'foreignKeys'} if dialect == 'sqlite' else
                        {'connect_timeout', 'application_name', 'sslmode', 'sslrootcert', 'options'})
             unknown = attributes.keys() - allowed - {'_meta'}
             if unknown:

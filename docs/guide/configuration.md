@@ -203,7 +203,11 @@ Use `database` for the physical database and `name` for the logical connection.
 Additional connections may target other databases of the same dialect. Select
 one through `db.tempEnv(connectionName="reporting")`; `main` must be declared.
 For PostgreSQL, `dsn` is an alternative to the individual connection fields.
-Driver options belong to `connection.options().driver(...)`.
+Driver options belong to `connection.options().driver(...)`. On SQLite they are
+`timeout`, `cached_statements` and `foreignKeys` (default `True`; `False` runs
+`PRAGMA foreign_keys = OFF`, see the [SQLite guide](sqlite.md)). On PostgreSQL
+they are `connect_timeout`, `application_name`, `sslmode`, `sslrootcert` and
+`options`; `foreignKeys` is refused there.
 
 For compatibility, declarations without `database` or `dsn` still interpret
 `name` as the physical database name and allow an explicit connection backend

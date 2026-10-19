@@ -1,0 +1,11 @@
+✓ Phase 1 completata: SQLite come legacy. Lo SQLite di asqueel ora apre ogni schema come `<schema>.db` nella cartella del file principale e crea la cartella se manca. L'opzione di connessione `foreignKeys` esiste ed è rifiutata su PostgreSQL. `vacuum()` copre tutti gli schemi. Il pin è `asqueel-migration>=0.3.0,<0.4`.
+
+- **Baseline rossa prima delle modifiche:** 8 test falliti e 6 errori, tutti `no such table`. È la condizione prevista dalle Notes del piano, e questa fase la risolve.
+- **Done verificato in questa conversazione:** 8/8 test di contratto passati. Suite completa: 5221 passed, 27 xfailed. `ruff` e `mypy src` puliti. Il grep `stem}_` non trova nulla.
+- **Modifiche fuori dalla lista `Files:` del piano:**
+  - `model_elements.py` e `builder.py`, che servono per aggiungere `foreignKeys` all'elemento `driver`.
+  - `docs/grammar.md`, rigenerato dagli elementi.
+  - `docs/guide/migrations.md`, che citava il vecchio pin.
+  - Quattro test riallineati, perché ogni file di schema ora sta nella cartella del file principale: `test_hosting.py`, `test_mounted_grammar.py`, `test_wf_phase21_delivery.py` e `test_sqlite_legacy_values.py`.
+
+Le motivazioni sono in `notes.md` sotto `## Phase 1`, e il commit è `bfd48a5`. Prossima fase eleggibile: Phase 2.
