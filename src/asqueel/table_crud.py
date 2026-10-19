@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from genro_toolbox.uid import get_uuid
 
-from .common import split_names
+from .common import split_names, sql_attribute_declared
 from .write_compiler import toTypedJSON
 
 _INTEGER_DTYPES = frozenset({'L', 'I', 'R'})
@@ -57,7 +57,7 @@ class CrudMixin:
                 return
         self.db.delete(self, record, **kwargs)
 
-    def insertOrUpdate(self, record):  # wf:phase-3:new
+    def insertOrUpdate(self, record):
         """Insert ``record`` when its key has no row, else update it with that row as old_record."""
         pkey = record.get(self.model.pkey)
         old_record = None
@@ -69,7 +69,7 @@ class CrudMixin:
             return self.insert(record)
         return self.update(record, old_record=dict(old_record))
 
-    def lock(self, mode='ACCESS EXCLUSIVE', nowait=False):  # wf:phase-3:new
+    def lock(self, mode='ACCESS EXCLUSIVE', nowait=False):
         """Lock the table in the current transaction; on SQLite, take the write reservation."""
         db = self.db
         db.execute(db.write_compiler.lock_table(self.model, db.environment.snapshot(),
@@ -94,14 +94,24 @@ class CrudMixin:
         return self.db.write_compiler.pkeys(self.model)
 
     def checkPkey(self, record):
-        """Assign a generated key when the key is None or ''; True if assigned."""
+        """Assign a generated key when the key is None or ''; True if the key was missing.
+
+        A key the database generates (``sql_default``) is left to the database.
+        """
         pkey = self.model.pkey
         if record.get(pkey) not in (None, ''):
             return False
+        if self._pkey_from_database():
+            return True
         value = self.newPkeyValue(record=record)
         if value is not None:
             record[pkey] = value
         return True
+
+    def _pkey_from_database(self):
+        """Whether the pkey column declares ``sql_default``: the database assigns it."""
+        column = self.model.columns.get(self.model.pkey)
+        return column is not None and sql_attribute_declared(column.attributes, 'default')
 
     def newPkeyValue(self, record=None):
         """Override to generate keys; the default follows ``pkeyValue``."""
@@ -196,7 +206,7 @@ class CrudMixin:
                     row[mfld] = None
                     related.update(row, old)
 
-    def archiveRelatedRecords(self, record, archive_ts):  # wf:phase-4:new
+    def archiveRelatedRecords(self, record, archive_ts):
         """Set ``archive_ts`` on the logical-deletion field of the cascade children that have one."""
         for joiner in self._relations_many():
             if (joiner.get('onDelete') or 'raise').partition(':')[0].lower() != 'cascade':

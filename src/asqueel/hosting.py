@@ -49,7 +49,7 @@ class AsqueelDbMixin:
         return self._asqueel_dbs
 
     @property
-    def _sessions(self) -> list[tuple[AsqueelDb, AbstractContextManager | None]]:  # wf:phase-1:new
+    def _sessions(self) -> list[tuple[AsqueelDb, AbstractContextManager | None]]:
         """The sessions opened through this owner on the current thread, in order."""
         if not hasattr(self._asqueel_taken, 'sessions'):
             self._asqueel_taken.sessions = []

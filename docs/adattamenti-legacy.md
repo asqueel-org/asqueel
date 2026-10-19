@@ -126,10 +126,9 @@ senza `group_by` il legacy la aggiunge comunque e produce SQL non valido
 esclude anche in quel caso.
 
 Nel legacy `table.insert(record)` restituisce il record passato, che il ciclo
-può modificare. Asqueel copia i valori in ingresso e restituisce `QueryResult`;
-i valori SQL restituiti vengono riportati sul record interno prima dell'hook
-successivo. L'integrazione deve decidere esplicitamente come adattare il risultato
-e le mutazioni osservabili dal chiamante.
+può modificare. Asqueel fa lo stesso: restituisce il record passato, modificato
+dal ciclo, e vi riporta i valori decisi dal database (RETURNING) prima dei
+trigger successivi.
 
 Con hook di update/delete personalizzati, Asqueel legge e blocca un singolo
 record; per l'update costruisce il record completo e passa una copia di

@@ -72,9 +72,11 @@ SQL exception is preserved and the connection stays rollback-only until
 Callbacks belong to the selected thread/name. As in GenroPy, the queues live in
 `db.currentEnv`, under `to_commit_defer_calls__main_db_<connectionName>` and
 `after_commit_defer_calls__main_db_<connectionName>`; `clearCurrentEnv()` drops
-them. `deferredRaise` appends to `currentEnv['_pendingExceptions']`, which is
-shared by every connection name: the next commit, on any name, raises them and
-empties the list. `_deferredBlock` groups callbacks;
+them. `deferredRaise` appends to
+`_pendingExceptions__main_db_<connectionName>`: legacy keeps one global
+`currentEnv['_pendingExceptions']`, asqueel keeps one list per named
+connection, like the deferred queues. The next commit of that name raises them
+and empties the list; a rollback of that name empties it. `_deferredBlock` groups callbacks;
 `_deferredId` controls deduplication within that grouping. Callbacks run with
 `onCommittingStep=True` and their connection selected. They can execute SQL,
 including through table methods, but cannot recursively commit, roll back or

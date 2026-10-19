@@ -37,7 +37,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
         return connection.cursor(cursorname or '', row_factory=tuple_row)
 
-    def vacuum(self, table='', full=False):  # wf:phase-2:new
+    def vacuum(self, table='', full=False):
         """Legacy vacuum: ``VACUUM [FULL] ANALYZE [table]`` on a separate autocommit connection."""
         import psycopg
 

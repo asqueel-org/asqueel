@@ -86,11 +86,11 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def _regexp(expression, item):
         return re.compile(expression, re.U).match(item) is not None
 
-    def setConstraintsDeferred(self):  # wf:phase-2:new
+    def setConstraintsDeferred(self):
         """The foreign keys of the current transaction are checked at commit."""
         self.dbroot.execute('PRAGMA defer_foreign_keys = ON').close()
 
-    def vacuum(self, table='', full=False):  # wf:phase-2:new
+    def vacuum(self, table='', full=False):
         """``VACUUM`` then ``ANALYZE [table]`` on a separate connection to the same file.
 
         ``VACUUM`` always rebuilds the file on SQLite, so ``full`` adds nothing.

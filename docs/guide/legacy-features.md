@@ -505,9 +505,12 @@ the write cycle, see [Current status](limitations.md).
   rollback-only; commit is refused until `rollback()`. Reason: decision of
   2026-10-15 (provisional).
 - **`deferredRaise(exception)`** (A6.13): `TypeError` for a non-exception;
-  the exception is kept in `currentEnv['_pendingExceptions']`, as in GenroPy;
-  at commit, `DeferredCommitError`, a rollback-only connection and an emptied
-  list. Reason: a GenroPy defect is corrected (decision of 2026-10-16).
+  the exception is kept in `currentEnv['_pendingExceptions__main_db_<connectionName>']`.
+  GenroPy keeps one global `_pendingExceptions`; asqueel keeps one per named
+  connection, like the deferred queues, so a commit or rollback of another
+  name neither raises nor drops it. At commit, `DeferredCommitError`, a
+  rollback-only connection and an emptied list. Reason: a GenroPy defect is
+  corrected (decision of 2026-10-16).
 - **`db.execute(sql, sqlargs, cursor, cursorname, autocommit, dbtable, storename,
   _adaptArguments)`** (A6.17): the legacy signature; it returns the open
   cursor, whose rows are read by name. `sql` may also be a `CompiledQuery`.
@@ -534,7 +537,9 @@ the write cycle, see [Current status](limitations.md).
 - **`analyze()` / `vacuum(table='', full=False)`** (A6.29, A8.18): `analyze()`
   runs `ANALYZE` in the current transaction. `vacuum` runs on a separate
   connection: `VACUUM [FULL] ANALYZE [table]` on PostgreSQL, `VACUUM` then
-  `ANALYZE [table]` on SQLite. Reason: legacy emits `VACUUM ANALYZE` on SQLite,
+  `ANALYZE [table]` on SQLite. With pending work on the thread, `vacuum`
+  raises `TransactionStateError`: the separate connection would wait for the
+  locks of that work. Reason: legacy emits `VACUUM ANALYZE` on SQLite,
   which SQLite rejects (GenroPy defect corrected).
 
 ### Not available yet

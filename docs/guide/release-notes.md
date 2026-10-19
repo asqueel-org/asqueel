@@ -12,7 +12,8 @@
   `outcome` property and the error class raised by a closed database.
 - `deferToCommit` and `deferAfterCommit` queues live in `currentEnv`, under the
   GenroPy keys; `clearCurrentEnv()` drops them. `deferredRaise` keeps its
-  exceptions in `currentEnv['_pendingExceptions']`.
+  exceptions in `currentEnv['_pendingExceptions__main_db_<connectionName>']`,
+  one list per named connection (GenroPy keeps one global `_pendingExceptions`).
 - `AsqueelDbMixin` enters `session(db)` at the first take of a database during
   a call and leaves it in `release_databases()`.
 

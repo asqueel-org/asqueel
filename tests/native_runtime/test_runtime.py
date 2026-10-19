@@ -72,6 +72,8 @@ def test_shared_execute_retains_connection_until_explicit_completion(fake):
     db.commit()
     db.execute(CompiledQuery('second'))
     db.rollback()
+    # The fake connection is also its cursor: closeConnection would close an open cursor too.
+    del result
     db.closeConnection()
     names = [name for name, _ in fake]
     assert names.count('connect') == names.count('commit') == names.count('rollback') == names.count('close') == 1

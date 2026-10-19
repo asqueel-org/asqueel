@@ -22,13 +22,24 @@ _GENERATED_KEY_DTYPES = frozenset({'serial', 'serial4'})
 #: PostgreSQL table lock modes accepted by ``lock_table``.
 LOCK_MODES = frozenset({'ACCESS SHARE', 'ROW SHARE', 'ROW EXCLUSIVE', 'SHARE UPDATE EXCLUSIVE', 'SHARE',
                         'SHARE ROW EXCLUSIVE', 'EXCLUSIVE', 'ACCESS EXCLUSIVE'})
-_TYPED_TEXT = re.compile(r'^(.*)::(DH|D|H|N)$', re.DOTALL)
+#: Legacy GnrClassCatalog parsers of the typed texts a composite key can hold,
+#: by suffix and its aliases (gnrclasses.py standardClasses).
+_TYPED_TEXT_PARSERS = {
+    **dict.fromkeys(('L', 'I', 'LONG', 'LONGINT', 'INT', 'INTEGER'), int),
+    **dict.fromkeys(('R', 'F', 'REAL', 'FLOAT'), float),
+    **dict.fromkeys(('N', 'NUMERIC', 'DECIMAL'), Decimal),
+    **dict.fromkeys(('B', 'BOOL', 'BOOLEAN'), lambda text: text.upper() in ('Y', 'TRUE', 'YES', '1')),
+    **dict.fromkeys(('D', 'DATE'), datetime.date.fromisoformat),
+    **dict.fromkeys(('DH', 'DHZ', 'DATETIME', 'DT'), datetime.datetime.fromisoformat),
+    **dict.fromkeys(('H', 'HZ', 'TIME'), datetime.time.fromisoformat),
+}
+_TYPED_TEXT = re.compile(r'^(.*)::(' + '|'.join(_TYPED_TEXT_PARSERS) + r')$', re.DOTALL)
 
 
-class JSONTypedEncoder(json.JSONEncoder):  # wf:phase-3:new
+class JSONTypedEncoder(json.JSONEncoder):
     """Legacy gnrstring.JSONTypedEncoder: temporal and decimal values as typed text."""
 
-    def default(self, o):  # wf:phase-3:new
+    def default(self, o):
         if isinstance(o, datetime.time):
             return f'{o}::H'
         if isinstance(o, Decimal):
@@ -40,12 +51,12 @@ class JSONTypedEncoder(json.JSONEncoder):  # wf:phase-3:new
         return super().default(o)
 
 
-def toTypedJSON(values):  # wf:phase-3:new
+def toTypedJSON(values):
     """The serialized composite key: legacy toTypedJSON."""
     return json.dumps(values, cls=JSONTypedEncoder)
 
 
-def fromTypedJSON(text):  # wf:phase-3:new
+def fromTypedJSON(text):
     """Legacy fromTypedJSON on a serialized key: a list whose typed texts become values."""
     values = json.loads(text)
     if not isinstance(values, list):
@@ -53,18 +64,12 @@ def fromTypedJSON(text):  # wf:phase-3:new
     return [_from_typed_text(value) for value in values]
 
 
-def _from_typed_text(value):  # wf:phase-3:new
+def _from_typed_text(value):
     match = _TYPED_TEXT.match(value) if isinstance(value, str) else None
     if match is None:
         return value
     text, dtype = match.groups()
-    if dtype == 'D':
-        return datetime.date.fromisoformat(text)
-    if dtype == 'DH':
-        return datetime.datetime.fromisoformat(text)
-    if dtype == 'H':
-        return datetime.time.fromisoformat(text)
-    return Decimal(text)
+    return _TYPED_TEXT_PARSERS[dtype](text)
 
 
 class WriteCompiler:
@@ -245,7 +250,7 @@ class WriteCompiler:
     #  Helpers
     # ------------------------------------------------------------------
 
-    def key_values(self, table, pkey):  # wf:phase-3:new
+    def key_values(self, table, pkey):
         """The physical key values of ``pkey``; a composite key is its serialized string."""
         keys = self.pkeys(table)
         if len(keys) == 1:
@@ -254,7 +259,9 @@ class WriteCompiler:
         if values is None or len(values) != len(keys):
             raise ValueError(f'{table.fullname}: a composite key is the serialized string of its '
                              f'{len(keys)} members, as toTypedJSON writes it (e.g. \'[1, 2]\'), not {pkey!r}')
-        return values
+        # The compositeColumn read on SQLite holds a boolean member as the number 1 or 0.
+        return [bool(value) if table.columns[name].dtype == 'B' and type(value) is int else value
+                for name, value in zip(keys, values)]
 
     def _key_where(self, table, keys, values, params):
         quote = self.adapter.adaptSqlName

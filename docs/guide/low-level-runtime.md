@@ -72,7 +72,8 @@ provided.
 - `db.vacuum(table='', full=False)` reclaims storage on a separate connection:
   `VACUUM [FULL] ANALYZE [table]` on PostgreSQL; `VACUUM` then
   `ANALYZE [table]` on SQLite, where `full` adds nothing. `table` is the SQL
-  table name. Do not vacuum a table the current transaction has touched.
+  table name. With pending work on any named connection of the thread,
+  `vacuum` raises `TransactionStateError`: commit or roll back first.
 - `db.setConstraintsDeferred()` defers the deferrable constraints until the
   commit of the current transaction (`SET CONSTRAINTS ALL DEFERRED` on
   PostgreSQL, `PRAGMA defer_foreign_keys = ON` on SQLite).

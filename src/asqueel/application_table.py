@@ -18,7 +18,6 @@ from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
 from .hierarchical import HierarchicalHandler
-from .common import sql_attribute_declared
 from .table_crud import _INTEGER_DTYPES, CrudMixin
 from .table_triggers import TriggersMixin
 
@@ -134,7 +133,7 @@ class SqlQuery:
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
         return self.handleBagColumns(self._fetchall(self.compiled), self.compiled)
 
-    def _fetchall(self, compiled):  # wf:phase-2:new
+    def _fetchall(self, compiled):
         cursor = self.db.execute(compiled)
         rows = cursor.fetchall()
         cursor.close()
@@ -249,7 +248,7 @@ class SqlQuery:
         compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot())
         return self._rowcount(compiled)
 
-    def _rowcount(self, compiled):  # wf:phase-2:new
+    def _rowcount(self, compiled):
         cursor = self.db.execute(compiled)
         rowcount: int = cursor.rowcount
         cursor.close()
@@ -262,14 +261,17 @@ class SqlQuery:
         compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot())
         return self._rowcount(compiled)
 
-    def delete(self):  # wf:phase-4:new
+    def delete(self):
         """Delete the selected rows one by one through the write cycle; returns the rows."""
+        table = self.table
+        pkey = table.model.pkey
         rows = self._rows_to_write('delete')
         for row in rows:
-            self.table.delete(row)
+            # A key string is reread: a row already removed by a cascade is skipped.
+            table.delete(str(row[pkey]) if pkey in row else table.pkeyValue(row))
         return rows
 
-    def update(self, updater):  # wf:phase-4:new
+    def update(self, updater):
         """Update the selected rows one by one through the write cycle; returns their pkeys.
 
         ``updater`` is a dict merged into each row, or a callable changing the row in place.
@@ -287,7 +289,7 @@ class SqlQuery:
             pkeys.append(record[pkey] if pkey in record else table.pkeyValue(record))
         return pkeys
 
-    def _rows_to_write(self, terminal):  # wf:phase-4:new
+    def _rows_to_write(self, terminal):
         """The selected rows with every physical column, locked, as dicts."""
         options = _copy(self._options)
         grouping = [name for name in ('group_by', 'having') if options.get(name)]
@@ -448,13 +450,13 @@ class SqlTable(CrudMixin, TriggersMixin):
             record.update(dict(rows[0]))
         return record
 
-    def _assign_keys(self, records):  # wf:phase-3:new
+    def _assign_keys(self, records):
         pkey = self.model.pkey
         if not pkey:
             return
-        column = self.model.columns.get(pkey)
-        if column is not None and sql_attribute_declared(column.attributes, 'default'):
+        if self._pkey_from_database():
             return
+        column = self.model.columns.get(pkey)
         integer = column is not None and column.dtype in _INTEGER_DTYPES
         next_integer = None
         for record in records:

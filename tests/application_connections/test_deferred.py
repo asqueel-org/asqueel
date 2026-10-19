@@ -125,7 +125,7 @@ def test_commit_selects_current_name_and_callbacks_restore_environment():
         db.closeConnection()
 
 
-def test_named_queues_are_independent_and_pending_exceptions_are_shared():
+def test_named_queues_and_pending_exceptions_are_independent():
     db = database()
     try:
         events = []
@@ -138,17 +138,18 @@ def test_named_queues_are_independent_and_pending_exceptions_are_shared():
             db.commit()
         assert events == ['other', 'other after']
         assert db.adapter.persisted == ['other']
-        # As legacy, pending exceptions live in currentEnv, not per connection:
-        # the next commit of any name raises them and clears them.
+        # Legacy keeps one global _pendingExceptions; here, as the deferred
+        # queues, they belong to their named connection.
         db.deferredRaise(ValueError('main error'))
         with db.tempEnv(connectionName='other'):
             db.execute(CompiledQuery('other again'))
-            with pytest.raises(DeferredCommitError, match='main error'):
-                db.commit()
-            db.rollback()
-        db.commit()
+            db.commit()
+        assert db.adapter.persisted == ['other', 'other again']
+        with pytest.raises(DeferredCommitError, match='main error'):
+            db.commit()
+        db.rollback()
         assert events == ['other', 'other after', 'main']
-        assert db.adapter.persisted == ['other', 'main']
+        assert db.adapter.persisted == ['other', 'other again']
     finally:
         db.closeConnection()
 
@@ -244,9 +245,7 @@ def test_queue_contracts_match_recorded_original_legacy_oracle():
     evidence = Path(__file__).resolve().parents[2] / 'docs/design/evidence'
     oracle = runpy.run_path(str(evidence / 'deferred_queue_oracle.py'))
     expected = json.loads((evidence / 'deferred_queue_oracle.json').read_text())['legacy']['results']
-    db = Database(implementation=FAKE)
-    db.defer = db.deferToCommit
-    db.drain = lambda: db._invoke_deferred(db._connection_state, 'to_commit_defer_calls')
+    db = oracle['native_backend']()
     assert oracle['scenarios'](db) == expected
     db.closeConnection()
 

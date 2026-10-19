@@ -8,6 +8,7 @@ import re
 from threading import Thread, current_thread, local
 from typing import Any, Iterator, TypedDict
 from uuid import uuid4
+from weakref import WeakSet
 
 from genro_bag import Bag
 from genro_toolbox import NamedList
@@ -31,6 +32,7 @@ class _ConnectionState(TypedDict):
     execution_error: BaseException | None
     execution_count: int
     write_depth: int
+    cursors: WeakSet[SqlCursor]
 
 
 class _ThreadState(local):
@@ -133,7 +135,7 @@ class Database:
                 owner=current_thread(), connection=None, pending=False,
                 committing=False, completion_failed=False, connection_name=name,
                 failed=False, executing=False, execution_error=None,
-                execution_count=0, write_depth=0,
+                execution_count=0, write_depth=0, cursors=WeakSet(),
             )
         return self._connections[name]
 
@@ -264,25 +266,31 @@ class Database:
         self._commit_connection(self._connection_state)
         self.onDbCommitted()
 
-    def onDbCommitted(self) -> None:  # wf:phase-2:new
+    def onDbCommitted(self) -> None:
         """Called once at the end of every commit, as legacy; subclasses override it."""
 
-    def setLocale(self) -> None:  # wf:phase-2:new
+    def setLocale(self) -> None:
         """Hand the environment locale to the adapter, as legacy."""
         locale = self.currentEnv.get('locale')
         if locale:
             self.adapter.setLocale(locale)
 
-    def setConstraintsDeferred(self) -> None:  # wf:phase-2:new
+    def setConstraintsDeferred(self) -> None:
         """Defer the deferrable constraints until the commit of the current transaction."""
         self.adapter.setConstraintsDeferred()
 
-    def analyze(self) -> None:  # wf:phase-2:new
+    def analyze(self) -> None:
         """Update the planner statistics, in the current transaction."""
         self.adapter.analyze()
 
-    def vacuum(self, table: str = '', full: bool = False) -> None:  # wf:phase-2:new
-        """Reclaim storage of the database or of ``table`` (its SQL name), on a separate connection."""
+    def vacuum(self, table: str = '', full: bool = False) -> None:
+        """Reclaim storage of the database or of ``table`` (its SQL name), on a separate connection.
+
+        The work pending on this thread would hold the locks the separate connection waits for.
+        """
+        self._check_open()
+        if any(state['pending'] for state in self._connections.values()):
+            raise TransactionStateError('vacuum requires no pending work on this thread; commit or rollback first')
         self.adapter.vacuum(table=table, full=full)
 
     def rollback(self) -> None:
@@ -337,8 +345,13 @@ class Database:
         if error is not None:
             raise error
 
-    def _deferred_key(self, state: _ConnectionState, queue: str) -> str:  # wf:phase-1:new
-        """The currentEnv key of a deferred queue, as legacy ``f'{queue}_{connectionKey()}'``."""
+    def _deferred_key(self, state: _ConnectionState, queue: str) -> str:
+        """The currentEnv key of a deferred queue or of the pending exceptions of ``state``.
+
+        Legacy keys the queues ``f'{queue}_{connectionKey()}'`` and keeps one
+        global ``_pendingExceptions``; here the pending exceptions are per named
+        connection too.
+        """
         return f"{queue}__main_db_{state['connection_name']}"
 
     def _defer(self, state: _ConnectionState, queue: str, callback, *args, **kwargs):
@@ -361,7 +374,7 @@ class Database:
         self._check_connection_usable(state)
         if not isinstance(exception, BaseException):
             raise TypeError('deferred_raise requires an exception instance')
-        self.environment.currentEnv.setdefault('_pendingExceptions', []).append(exception)
+        self.environment.currentEnv.setdefault(self._deferred_key(state, '_pendingExceptions'), []).append(exception)
 
     def _invoke_deferred(self, state: _ConnectionState, queue: str) -> None:
         context: dict[str, Any] = {'onCommittingStep': True}
@@ -385,7 +398,7 @@ class Database:
                     entries.pop(key, None)
             blocks.pop(block_name, None)
 
-    def _pop_transaction_key(self, key: str) -> Any:  # wf:phase-1:new
+    def _pop_transaction_key(self, key: str) -> Any:
         """Pop a deferred queue or the pending exceptions from currentEnv.
 
         The read-only snapshot of a ``SqlEnvironment`` holds none of them.
@@ -396,7 +409,7 @@ class Database:
     def _clear_deferred(self, state: _ConnectionState) -> None:
         self._pop_transaction_key(self._deferred_key(state, 'to_commit_defer_calls'))
         self._pop_transaction_key(self._deferred_key(state, 'after_commit_defer_calls'))
-        self._pop_transaction_key('_pendingExceptions')
+        self._pop_transaction_key(self._deferred_key(state, '_pendingExceptions'))
 
     def _check_connection_owner(self, state: _ConnectionState) -> None:
         if current_thread() is not state['owner']:
@@ -444,14 +457,16 @@ class Database:
             state['pending'] = True
             cursor = (adapter.executemany(state['connection'], query, many) if many is not None
                       else adapter.execute(state['connection'], query, cursorname))
-            return SqlCursor(self, state, cursor, query.columns)
+            result = SqlCursor(self, state, cursor, query.columns)
+            state['cursors'].add(result)
+            return result
         except BaseException as error:
             self._execution_failed(state, error)
             raise
         finally:
             state['executing'] = False
 
-    def _execution_failed(self, state: _ConnectionState, error: BaseException) -> None:  # wf:phase-2:new
+    def _execution_failed(self, state: _ConnectionState, error: BaseException) -> None:
         """The automatic rollback after an error raised by execute or by a fetch."""
         state['execution_error'] = error
         state['completion_failed'] = state['committing']
@@ -468,6 +483,10 @@ class Database:
         state['failed'] = True
 
     def _discard_connection(self, state: _ConnectionState) -> None:
+        # A cursor still referenced keeps its statement alive; on SQLite it keeps the file locked.
+        # The record is weak: a cursor nobody references is released by the driver.
+        for cursor in tuple(state['cursors']):
+            cursor.close()
         connection, state['connection'] = state['connection'], None
         if connection is not None:
             self.adapter.close(connection)
@@ -508,7 +527,7 @@ class Database:
                 try:
                     self._invoke_deferred(state, 'to_commit_defer_calls')
                     self._check_connection_usable(state)
-                    pending_exceptions = self._pop_transaction_key('_pendingExceptions')
+                    pending_exceptions = self._pop_transaction_key(self._deferred_key(state, '_pendingExceptions'))
                     if pending_exceptions:
                         messages = '\n'.join(str(error) for error in pending_exceptions)
                         raise DeferredCommitError(messages)
@@ -564,7 +583,7 @@ class Database:
         if error is not None:
             raise error
 
-class SqlCursor:  # wf:phase-2:new
+class SqlCursor:
     """The open cursor returned by ``db.execute``: rows read by name, as the legacy dict cursor.
 
     A driver error raised by a fetch rolls the connection back, as one raised by execute.
@@ -573,6 +592,7 @@ class SqlCursor:  # wf:phase-2:new
     def __init__(self, db: Database, state: _ConnectionState, cursor, columns=()):
         self._db = db
         self._state = state
+        self._connection = state['connection']
         self._cursor = cursor
         self._index: dict[str, int] = {}
         if cursor.description is None:
@@ -606,12 +626,17 @@ class SqlCursor:  # wf:phase-2:new
 
     def close(self) -> None:
         self._cursor.close()
+        self._state['cursors'].discard(self)
 
     def _fetch(self, method, *args):
         try:
             return method(*args)
         except BaseException as error:
-            self._db._execution_failed(self._state, error)
+            # Roll back only the transaction this cursor belongs to, not one opened after it.
+            state = self._state
+            if (self._db._connections.get(state['connection_name']) is state
+                    and state['connection'] is self._connection):
+                self._db._execution_failed(state, error)
             raise
 
     def fetchone(self) -> NamedList | None:
@@ -639,13 +664,15 @@ class PostgresDatabase(Database):
 
 
 @contextmanager
-def session(db: Database, **env: Any) -> Iterator[Database]:  # wf:phase-1:new
+def session(db: Database, **env: Any) -> Iterator[Database]:
     """The unit of work outside a request, as a legacy page request.
 
     Entry clears ``currentEnv`` and applies ``env``; exit, also when the body
     raises, calls ``closeConnection()``, which rolls back what was not
     committed. One session at a time per database and thread.
     """
+    if not isinstance(db.environment, ApplicationEnvironment):
+        raise TransactionStateError('session(db) requires a writable environment')
     if db._thread_state.session_open:
         raise TransactionStateError('a session is already open on this thread for this database')
     db.clearCurrentEnv()
@@ -653,6 +680,12 @@ def session(db: Database, **env: Any) -> Iterator[Database]:  # wf:phase-1:new
     db._thread_state.session_open = True
     try:
         yield db
-    finally:
+    except BaseException as error:
         db._thread_state.session_open = False
-        db.closeConnection()
+        try:
+            db.closeConnection()
+        except BaseException as cleanup:
+            error.add_note(f'Connection cleanup failed: {type(cleanup).__name__}')
+        raise
+    db._thread_state.session_open = False
+    db.closeConnection()

@@ -16,7 +16,7 @@ from threading import local
 from typing import Any, cast
 
 
-_TRANSACTION_KEYS = re.compile(r'(to|after)_commit_defer_calls_.*|_pendingExceptions')
+_TRANSACTION_KEYS = re.compile(r'((to|after)_commit_defer_calls|_pendingExceptions)_.*')
 
 
 def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:

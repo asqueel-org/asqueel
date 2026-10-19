@@ -213,14 +213,14 @@ class SqlDbAdapter:
     def close(self, connection) -> None:
         connection.close()
 
-    def setLocale(self, locale):  # wf:phase-2:new
+    def setLocale(self, locale):
         """Legacy setLocale: no effect on the connection."""
 
-    def setConstraintsDeferred(self):  # wf:phase-2:new
+    def setConstraintsDeferred(self):
         """Defer the deferrable constraints of the current transaction."""
         self.dbroot.execute('SET CONSTRAINTS ALL DEFERRED').close()
 
-    def analyze(self):  # wf:phase-2:new
+    def analyze(self):
         """Legacy analyze: ANALYZE in the current transaction."""
         self.dbroot.execute('ANALYZE').close()
 

@@ -80,11 +80,10 @@ class HierarchicalHandler:
             record['_h_count'] = '%s%s' % (record['_parent_h_count'] or '', encode36(current['_row_count'], 2))
 
     def lock_roots(self):
-        """Serialize max + 1 among the roots; SQLite writes are already serialized."""
+        """Serialize max + 1 among the roots."""
         db = self.tblobj.db
-        compiled = db.write_compiler.lock_table(self.tblobj.model, db.environment.snapshot(), mode='SHARE ROW EXCLUSIVE')
-        if compiled is not None:
-            db.execute(compiled).close()
+        db.execute(db.write_compiler.lock_table(self.tblobj.model, db.environment.snapshot(),
+                                                mode='SHARE ROW EXCLUSIVE')).close()
 
     def trigger_after(self, record, old_record=None):
         tblobj = self.tblobj

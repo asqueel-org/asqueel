@@ -33,7 +33,7 @@ from .model_codec import model_to_json, model_from_json
 from .model import resolve_model
 from .projection import to_physical_builder
 from .runtime import (
-    Database, PostgresDatabase,
+    Database, PostgresDatabase, SqlCursor,
     TransactionStateError, session,
 )
 from .errors import DeferredCommitError, MigrationError
@@ -50,7 +50,7 @@ __all__ = [
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
     "Column", "CompiledQuery", "Relation", "ResolvedModel",
     "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",
-    "PostgresDatabase", "session",
+    "PostgresDatabase", "SqlCursor", "session",
     "TransactionStateError", "resolve_model", "ImportResult", "inspect_postgres",
     "to_physical_builder",
     "QueryCompiler", "Database",

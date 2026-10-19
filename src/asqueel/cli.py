@@ -91,8 +91,8 @@ def run(options):
         if options.command == 'shell':
             code.interact(
                 banner='Asqueel Python console: db is ready. Use db.commit() or db.rollback().\n'
-                       'Leaving the console rolls back pending work and closes the database.',
-                local={'db': db}, exitmsg='Database closed on console exit.',
+                       'Leaving the console rolls back pending work and releases the connection.',
+                local={'db': db}, exitmsg='Connection released on console exit.',
             )
             return 0
         return run_migration(db, options.operation, allow_removals=options.allow_removals)

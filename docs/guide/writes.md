@@ -184,7 +184,7 @@ except Exception:
 - `sql_insert(record)` accepts one record or a list. A missing key is
   assigned first, as `checkPkey` does; in a list each further integer key is
   the next integer. A key the database generates (`serial`, `sql_default`) is
-  not assigned. A list runs one `executemany` per group of consecutive records
+  not assigned, by `sql_insert` as by `insert`. A list runs one `executemany` per group of consecutive records
   with the same columns, without RETURNING.
 - `sql_update(record, old_record=None, pkey=None)` takes the key like `update`.
 - `sql_delete(record)` deletes by the record's key and does not check the row count.

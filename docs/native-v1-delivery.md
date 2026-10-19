@@ -21,7 +21,7 @@ il collaudo iniziale; il rapporto adapter contiene le verifiche successive.
 
 | Area | API e risultato |
 |---|---|
-| Contratti | `ResolvedModel`, `Table`, `Column`, `Relation`, `CompiledQuery`, `QueryResult`; separazione fra identità logica, nome fisico e metadati. |
+| Contratti | `ResolvedModel`, `Table`, `Column`, `Relation`, `CompiledQuery`, il cursore restituito da `db.execute` (`SqlCursor`); separazione fra identità logica, nome fisico e metadati. |
 | Risoluzione | `resolve_model(builder, ui=...)`: naming schema/prefisso/override, provenienza, metadati UI inline/paralleli e formule semplici. |
 | Import | `inspect_postgres(connection, schemas, ui=...)`: cataloghi PostgreSQL espliciti, PK/FK composite, tipi normalizzati, default, indici e report dei limiti. |
 | Compiler | `PostgresCompiler`: SELECT, parametri nominati, alias, filtri, ordine, limit/offset, relazioni to-one, formule, CRUD e RETURNING. |
