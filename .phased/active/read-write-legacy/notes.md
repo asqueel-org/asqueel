@@ -26,3 +26,10 @@
 - `SqlQuery.update`/`delete` share `_rows_to_write(terminal)`: the query's options with every physical column, `bagFields=True` and `for_update` (a user mode `'NOWAIT'`/`'SKIP LOCKED'` is kept), rows as dicts after handleBagColumns. `group_by`/`having` raise naming the terminal.
 - `update` returns `record[pkey]`; on a composite-key table the composite is not a physical column, so the key comes from `pkeyValue` (the serialized composite key).
 - The cascade lives in `TableCrud.archiveRelatedRecords(record, archive_ts)` (legacy name; `onArchivingRecord` not added), called by `db_write.update` right after `_protect_draft`, the legacy `dbo_onUpdating` position. The change test is `record.get(ldf) != old_record.get(ldf)`, as legacy `fieldsChanged`.
+
+## Run inspection
+- Phases 1-3 closed on the first session each (46m51s, 37m05s, 25m01s); no failure, no repair, no foreman consult.
+- Phase 4 took three launches. The first two sessions (1m54s, 13m09s) started the full suite with `run_in_background`, wrote that they would resume on its notification, and ended: a headless `-p` session ends with its turn, the background suite died with it, and the launcher stopped on "no progress" (`run-end stopped 3/4`) with the phase still `[ ]` and the work uncommitted.
+- First stop: the 2-minute leftover was discarded on the user's ok. Second stop: the leftover (contract tests 14/14 green) was committed as `wf(phase 4): partial` (222db0e) and Phase 4 got a run note (c94a255): full suite in the foreground, never in background. The third session verified and closed in 7m58s.
+- Skill defect for the wf-lessons ledger: `/execute-phase-agent` lets a headless executor background the suite and wait for a notification that cannot arrive; the launcher reports it only as "no progress".
+- Final suite at the Phase 4 close: 5194 passed, 42 skipped, 27 xfailed; ruff and mypy clean.
