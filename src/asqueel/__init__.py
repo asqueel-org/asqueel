@@ -24,7 +24,7 @@ from .compiler import PostgresCompiler, QueryCompiler
 from .catalog_provider import CatalogProvider, PostgresCatalogProvider
 from .contracts import (
     Column, CompiledQuery, QueryResult, Relation, ResolvedModel, ResultColumn,
-    Table, UnsupportedFeatureError, EnvironmentMismatchError, RowPolicies,
+    Table, UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
 )
 from .environment import SqlEnvironment
 from .importers import ImportResult, inspect_postgres
@@ -55,7 +55,7 @@ __all__ = [
     "to_physical_builder",
     "QueryCompiler", "Database",
     "CatalogProvider", "PostgresCatalogProvider",
-    "SqlEnvironment", "EnvironmentMismatchError", "RowPolicies",
+    "SqlEnvironment", "UnusedQueryParameterWarning", "RowPolicies",
     "TriggerStack", "TriggerStackItem",
     "DeferredCommitError", "MigrationError",
 ]

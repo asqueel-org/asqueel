@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError
+from asqueel import AsqueelDb, SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError, UnusedQueryParameterWarning
 from asqueel.adapters.base import SqlDbAdapter
 from asqueel.configuration import _owned_handler
 from asqueel.projection import _constraint_index_feature, _index_feature
@@ -140,8 +140,8 @@ def test_query_option(db, option):
 
 
 def test_unused_query_keyword(db):
-    with pytest.raises(UnsupportedFeatureError,
-                       match="query keyword 'amount' is neither a query option nor a parameter of the query"):
+    with pytest.warns(UnusedQueryParameterWarning,
+                      match="query keyword 'amount' is not used by the query; its parameters are: "):
         compile_customer(db, '$id', amount=3)
 
 

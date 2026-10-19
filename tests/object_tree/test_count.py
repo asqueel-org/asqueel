@@ -69,7 +69,7 @@ def test_count_environment_and_preparation_are_local(database, monkeypatch):  # 
         with database.temp_env(minimum=minimum):
             result = query._compile(compiler.count)
             assert result.params['env_minimum'] == minimum
-            assert result.environment.values['minimum'] == minimum
+            assert 'minimum' in result.environment_keys
             assert len(calls) == 1
             assert 'ORDER BY' not in result.sql
             calls.clear()

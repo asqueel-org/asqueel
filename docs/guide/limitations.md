@@ -171,8 +171,7 @@ not the original source-file decomposition.
 
 Native features outside the declared profile generally raise
 `UnsupportedFeatureError`; malformed arguments and mismatched adapters can raise
-`ValueError` or `TypeError`. Driver errors propagate unchanged. Environment reuse
-mismatches raise `EnvironmentMismatchError`, while closed or incorrectly used
+`ValueError` or `TypeError`. Driver errors propagate unchanged. Closed or incorrectly used
 runtime objects raise `DatabaseClosedError` or `TransactionStateError`.
 
 The model grammar is closed. An attribute an element does not declare raises
@@ -199,9 +198,12 @@ release`, prefixed with the table or column path where one exists:
   `starColumns`, `getRelation`, `getJoiner`, `relations_one`,
   `relations_many`, `manyRelationsList`, `relationExplorer`
   (`rowcaption` and `newrecord_caption` stay accepted as table attributes);
-- on the database: `tableMixin`, `packageMixin`;
+- on the database: `tableMixin`, `packageMixin`, `db.query`, `db.whereTranslator`;
 - on a query: `setJoinCondition`;
 - on a table: `record`, whose message adds `use query(...).fetchRecord()`;
+  `readColumns`, `countRecords`, `recordAs`, `cachedRecord`, `sqlWhereFromBag`,
+  `whereTranslator`;
+- `query(columns=None)` and `query(columns='')`;
 - query keywords `jc_<name>` (join condition keyword).
 
 A custom adapter must declare and test its own supported behavior. See

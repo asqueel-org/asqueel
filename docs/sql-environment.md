@@ -69,14 +69,10 @@ ambiente indipendente. `db.environment` espone l'istanza; `db.current_env`,
 `db.currentEnv`, `db.temp_env(...)` e `db.tempEnv(...)` delegano gli stessi contratti.
 
 Il compiler deve ricevere la stessa istanza quando compila usando valori
-contestuali. Un `CompiledQuery.environment` presente descrive i valori dai quali
-la compilazione dipende: il runtime confronta la snapshot corrente prima di
-aprire una connessione o, dentro una transazione, prima di inviare lo statement
-al driver. Una discrepanza produce `EnvironmentMismatchError`: ricompilare nel
-contesto corretto. Non viene modificato silenziosamente il binding già compilato.
-Il vincolo conserva una copia privata: `EnvironmentBinding.values` restituisce
-una snapshot scollegata, quindi modificarne contenitori annidati non cambia
-i valori usati dalla verifica.
+contestuali. `CompiledQuery.environment_keys` elenca le chiavi dell'ambiente lette
+dai parametri `:env_*`: il runtime le rilegge dalla snapshot corrente a ogni
+esecuzione, prima di inviare lo statement al driver, come l'execute legacy.
+Il testo SQL resta quello della prima compilazione.
 
 `PsycopgDriver.prepare` conserva il vincolo ambiente dello `SqlStatement` nel
 `CompiledQuery`. Le query prive di vincolo ambiente conservano il comportamento
@@ -90,8 +86,8 @@ dalla chiave `language` dello snapshot; un parametro esplicito
 `params={'env_language': ...}` ha precedenza. Una chiave mancante genera errore,
 mentre una chiave presente con None produce un parametro SQL NULL. I parametri
 espliciti non introducono dipendenze dall'ambiente. Le
-[policy di riga](row-policies.md) consumano lo stesso snapshot e registrano
-anche l'assenza delle chiavi che hanno determinato la scelta del filtro.
+[policy di riga](row-policies.md) consumano lo stesso snapshot alla prima
+compilazione.
 
 ## Verifiche
 

@@ -6,13 +6,12 @@ Backend modules override what differs.
 """
 from __future__ import annotations
 
-from datetime import date
 import re
 
 from genro_toolbox import NamedList
 
-from ..contracts import (CompiledQuery, EnvironmentBinding, QueryResult, ResultColumn,
-                         UnsupportedFeatureError)
+from ..contracts import CompiledQuery, QueryResult, ResultColumn, UnsupportedFeatureError
+from ..environment import environment_arguments
 
 
 SQL_PARAMS = re.compile(r'(?<!:):(?!:)(\S\w*)(\W|$)')
@@ -22,9 +21,7 @@ ENV_PARAMS = re.compile(r':env_(\S\w*)(\W|$)')
 def prepare_arguments(sql, sqlargs, snapshot):
     """The value preparation from legacy execute, without connection/store lifecycle."""
     keys = {key for key, _ in ENV_PARAMS.findall(sql)}
-    params = {'env_' + key: snapshot.get(key) for key in keys}
-    if 'env_workdate' in params:
-        params['env_workdate'] = params['env_workdate'] or date.today()
+    params = environment_arguments(keys, snapshot)
     if snapshot.get('storename'):
         params['env_storename'] = snapshot['storename']
     keys = {key for key in keys if 'env_' + key not in (sqlargs or {})}
@@ -174,11 +171,8 @@ class SqlDbAdapter:
             params.setdefault(name, None)
         sql, params = self.prepareSqlText(sql, params)
         sql = sql.replace(chr(1), ':')
-        binding = (EnvironmentBinding(tuple(sorted(keys)),
-                                      {key: snapshot[key] for key in keys if key in snapshot})
-                   if keys else None)
         return CompiledQuery(sql, params, dialect=self.dialect, binding=self.binding,
-                             environment=binding, input_parameters=tuple(sorted(used)))
+                             environment_keys=tuple(sorted(keys)), input_parameters=tuple(sorted(used)))
 
     def prepareSqlText(self, sql, kwargs):
         """Legacy prepareSqlText: backend syntax and parameters; returns (sql, kwargs)."""

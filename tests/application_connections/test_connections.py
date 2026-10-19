@@ -4,7 +4,7 @@ import threading
 
 import pytest
 
-from asqueel.contracts import CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult
+from asqueel.contracts import CompiledQuery, QueryResult
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import DatabaseClosedError, TransactionStateError
@@ -19,6 +19,7 @@ class SqlDbAdapter(PostgresAdapter):
     def __init__(self, dbroot):
         super().__init__(dbroot)
         self.calls = []
+        self.executed_params = []
         self.persisted = []
         self.commit_error = None
         self.rollback_error = None
@@ -31,6 +32,7 @@ class SqlDbAdapter(PostgresAdapter):
 
     def execute(self, connection, query):
         self.calls.append(query.sql)
+        self.executed_params.append(dict(query.params))
         if self.callback:
             self.callback()
         if query.sql == 'fail':
@@ -162,18 +164,17 @@ def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
     db.close()
 
 
-def test_guards_run_before_connect_and_reject_stale_context():
+def test_guards_run_before_connect_and_environment_is_read_at_execution():
     environment = SqlEnvironment({'company': 1})
     db = Database(implementation=FAKE, environment=environment)
     driver = db.adapter
     with pytest.raises(ValueError, match='profile'):
         db.execute(CompiledQuery('wrong', dialect='other'))
-    query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
-    with environment.temp_env(company=2):
-        with pytest.raises(EnvironmentMismatchError):
-            db.execute(query)
     assert not driver.calls
-    db.execute(query)
+    query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
+    with environment.temp_env(company=2):
+        db.execute(query)
+    assert driver.executed_params == [{'env_company': 2}]
     db.rollback()
     db.close()
 

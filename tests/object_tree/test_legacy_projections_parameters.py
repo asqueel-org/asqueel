@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import pytest
 
 from asqueel._legacy_sql import embed_field_parameters
-from asqueel.contracts import UnsupportedFeatureError
+from asqueel.contracts import UnusedQueryParameterWarning
 from asqueel.adapters.base import query_result
 from tests.object_tree import test_minimal_select as minimal
 
@@ -142,7 +142,7 @@ def test_symbolic_formula_is_resolved_in_where(db):
 
 
 def test_embedded_input_does_not_hide_unused_keyword(db):
-    with pytest.raises(UnsupportedFeatureError, match="query keyword 'unused' is neither a query option nor a parameter"):
+    with pytest.warns(UnusedQueryParameterWarning, match="query keyword 'unused' is not used by the query; its parameters are: threshold"):
         db.table('sales.invoice').query(columns='$id', where='$total>:threshold',
                                        threshold='$id', unused='$id').compiled
 
@@ -151,7 +151,7 @@ def test_explicit_environment_parameter_remains_a_caller_input(db):
     compiled = db.table('sales.invoice').query(columns='$id', where='$total>:env_value',
                                               env_value='$id').compiled
     assert compiled.input_parameters == ('env_value',)
-    assert compiled.environment is None
+    assert compiled.environment_keys == ()
     assert compiled.params == {'env_value': '$id'}
 
 

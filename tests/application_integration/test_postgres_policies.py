@@ -54,16 +54,17 @@ def test_application_partition_draft_deletion_and_scoped_writes(policy_database)
     item = db.table('app.item')
     query = item.query(order_by='$id')
     assert [r['id'] for r in query.fetch()] == [1, 2, 5]
+    # The SQL text is the one of the first compilation: each scope builds its own query.
     with db.temp_env(current_organization=10):
-        assert [r['id'] for r in query.fetch()] == [1]
+        assert [r['id'] for r in item.query(order_by='$id').fetch()] == [1]
         marked = item.query(order_by='$id', exclude_draft=False,
                             exclude_logical_deleted='mark').fetch()
         assert [r['id'] for r in marked] == [1, 3, 4]
         assert marked[2]['_isdeleted'] == datetime(2026, 1, 1, tzinfo=timezone.utc)
     with db.temp_env(current_organization=10, allowed_organization=[]):
-        assert [r['id'] for r in query.fetch()] == [1]
+        assert [r['id'] for r in item.query(order_by='$id').fetch()] == [1]
     with db.temp_env(allowed_organization=[10]):
-        assert [r['id'] for r in query.fetch()] == [1, 5]
+        assert [r['id'] for r in item.query(order_by='$id').fetch()] == [1, 5]
     db.rollback()
     with db.temp_env(current_organization=10), completed(db):
         item.insert({'id': 6, 'organization': 10, 'label': 'new'})

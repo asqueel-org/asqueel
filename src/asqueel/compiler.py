@@ -10,7 +10,7 @@ from dataclasses import replace
 import re
 
 from ._legacy_sql import FieldReferences, embed_field_parameters, projection_columns, split_sql, _bag_item_path, _in_range
-from .contracts import EnvironmentBinding, ResultColumn, UnsupportedFeatureError
+from .contracts import ResultColumn, UnsupportedFeatureError
 from .environment import SqlEnvironment
 from .object_tree import DbModel
 from .model import column_ui, _formula_definition, _formula_parameters, _subquery_definition, _parse_row_policies
@@ -728,10 +728,7 @@ class _TreeContext:
                 if parameter in self.input_origins:
                     self.consumed_inputs.add(parameter)
         self.cpl.params = self.params
-        if self.environment_keys:
-            keys = tuple(sorted(self.environment_keys))
-            self.cpl.environment = EnvironmentBinding(
-                keys, {k: self.snapshot[k] for k in keys if k in self.snapshot})
+        self.cpl.environment_keys = tuple(sorted(self.environment_keys))
         self.cpl.input_parameters = tuple(sorted(self.consumed_inputs))
         self.cpl.local_parameters = tuple(sorted(self.bindings.state['generated']))
         return self.cpl
@@ -875,11 +872,10 @@ class QueryCompiler:
         if plan.dialect != self.adapter.dialect:
             raise ValueError('Query plan belongs to a different adapter dialect')
         sql = plan.get_sqltext(self.adapter)
-        snapshot = plan.environment.values if plan.environment else {}
-        query = self.adapter.prepare_sql(sql, plan.params, snapshot)
-        environment_inputs = {'env_' + key for key in plan.environment.keys} if plan.environment else set()
+        query = self.adapter.prepare_sql(sql, plan.params, self.environment.snapshot())
+        environment_inputs = {'env_' + key for key in plan.environment_keys}
         used_inputs = (set(query.input_parameters) - environment_inputs - set(plan.local_parameters)) | set(plan.input_parameters)
-        return replace(query, columns=plan.result_columns, environment=plan.environment,
+        return replace(query, columns=plan.result_columns, environment_keys=plan.environment_keys,
                        for_update=plan.for_update, lock_table=plan.maintable, lock_column=plan.lock_column,
                        input_parameters=tuple(sorted(used_inputs)))
 

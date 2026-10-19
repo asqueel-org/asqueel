@@ -65,15 +65,14 @@ def test_bag_model_untouched_and_effective_declaration_reloaded(bagdb):
     assert list(query.compiled.params.values()) == ['/GenRoBag/specs/weight/text()']
     assert column.attributes == before
     column.attributes['itempath'] = 'specs.price'
-    assert list(query.compiled.params.values()) == ['/GenRoBag/specs/price/text()']
+    assert list(table.query('$weight').compiled.params.values()) == ['/GenRoBag/specs/price/text()']
     assert 'sql_formula' not in column.attributes
 
 
 def test_bag_compilation_scopes_are_thread_local(bagdb):
-    query = bagdb.table('app.item').query('$total', where='$id=:env_id')
     def compile_for(id):
         with bagdb.tempEnv(id=id):
-            result = query.compiled
+            result = bagdb.table('app.item').query('$total', where='$id=:env_id').compiled
             return result.params['env_id'], result.sql
     with ThreadPoolExecutor(max_workers=2) as pool:
         first, second = pool.map(compile_for, [1, 2])

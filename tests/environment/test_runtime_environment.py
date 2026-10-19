@@ -1,11 +1,8 @@
 from tests.unit_of_work import completed
 import threading
 
-import pytest
 
-from asqueel.contracts import (
-    CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult,
-)
+from asqueel.contracts import CompiledQuery, QueryResult
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import PostgresDatabase, Database
@@ -34,6 +31,7 @@ class SqlDbAdapter(PostgresAdapter):
     def execute(self, connection, query):
         self.record('execute')
         result = dict(self.environment.snapshot())
+        result.update(query.params)
         # A nested adapter scope restores the caller context on normal exit.
         with self.environment.temp_env(driver_local=True):
             assert self.environment.current_env['driver_local']
@@ -49,28 +47,19 @@ class SqlDbAdapter(PostgresAdapter):
         self.record('close')
 
 
-def test_driver_preparation_preserves_environment_binding():
-    binding = EnvironmentBinding(('company',), {'company': 1})
+def test_driver_preparation_collects_environment_keys():
     query = PostgresAdapter(None).prepare_sql('SELECT :env_company', {}, {'company': 1})
-    assert query.environment.keys == binding.keys
-    assert query.environment.values == binding.values
+    assert query.environment_keys == ('company',)
+    assert query.params == {'env_company': 1}
 
 
-def test_stale_environment_rejected_before_connect_and_before_transaction_dispatch():
+def test_reused_query_reads_the_environment_of_every_execution():
     env = SqlEnvironment({'company': 1})
-    query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
+    query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
     with Database(implementation=FAKE, environment=env) as db:
-        driver = db.adapter
         with db.temp_env(company=2):
-            with pytest.raises(EnvironmentMismatchError):
-                db.execute(query)
-        assert not driver.calls
-        with completed(db) as tx:
-            with env.temp_env(company=2):
-                with pytest.raises(EnvironmentMismatchError):
-                    tx.execute(query)
-            assert not driver.calls
-            assert tx.execute(query).rows == [{'company': 1}]
+            assert db.execute(query).rows[0]['env_company'] == 2
+        assert db.execute(query).rows[0]['env_company'] == 1
 
 
 def test_runtime_aliases_use_current_context_on_the_calling_thread():
@@ -96,11 +85,10 @@ def test_separate_sync_databases_share_explicit_environment_without_leaking_scop
     with Database(implementation=FAKE, environment=env) as first, Database(implementation=FAKE, environment=env) as second:
         with first.temp_env(company=1):
             assert second.current_env == {'company': 1}
-            first_query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
-            assert first.execute(first_query).rows == [{'company': 1}]
+            first_query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
+            assert first.execute(first_query).rows == [{'company': 1, 'env_company': 1}]
         with second.temp_env(company=2):
-            with pytest.raises(EnvironmentMismatchError):
-                second.execute(first_query)
+            assert second.execute(first_query).rows[0]['env_company'] == 2
             assert second.execute(CompiledQuery('select')).rows == [{'company': 2}]
         assert env.current_env == {'company': 0}
 
@@ -111,32 +99,3 @@ def test_runtime_default_environments_are_independent():
         with first.temp_env(company=1):
             assert first.current_env == {'company': 1}
             assert second.current_env == {}
-
-
-def test_environment_binding_keeps_private_snapshot_despite_nested_mutations():
-    source = {'allowed': [1], 'settings': {'mode': ['visible']}}
-    binding = EnvironmentBinding(('allowed', 'settings'), source)
-    source['allowed'].append(2)
-    snapshot = binding.values
-    with pytest.raises(TypeError):
-        snapshot['allowed'] = [3]
-    snapshot['allowed'].append(4)
-    snapshot['settings']['mode'].append('hidden')
-    expected = {'allowed': [1], 'settings': {'mode': ['visible']}}
-    assert binding.values == expected
-    binding.validate(expected)
-    with pytest.raises(EnvironmentMismatchError):
-        binding.validate(source)
-    with pytest.raises(EnvironmentMismatchError):
-        binding.validate(snapshot)
-
-
-def test_environment_binding_distinguishes_missing_key_from_none():
-    absent = EnvironmentBinding(('optional',), {})
-    absent.validate({})
-    with pytest.raises(EnvironmentMismatchError):
-        absent.validate({'optional': None})
-    present = EnvironmentBinding(('optional',), {'optional': None})
-    present.validate({'optional': None})
-    with pytest.raises(EnvironmentMismatchError):
-        present.validate({})

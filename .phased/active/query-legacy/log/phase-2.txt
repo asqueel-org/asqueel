@@ -1,0 +1,11 @@
+✓ Phase 2 completata: la query si compila una volta sola, l'ambiente si legge a ogni esecuzione e le keyword inutilizzate producono un warning. È tutto nel commit `3614007` sul branch `plan/write-cycle`, con il tree pulito.
+
+- **Verifica del criterio Done:**
+  - 34 contract test passano su SQLite e PostgreSQL.
+  - Anche i test della Phase 1 passano.
+  - Il grep di `EnvironmentMismatchError` ed `EnvironmentBinding` è vuoto.
+  - Suite completa: 5066 passed, 42 skipped, 31 xfailed. Ruff e mypy su `src` sono puliti.
+- **Test riallineati fuori dall'elenco del piano:** 9 file di test riusavano una query dopo un cambio di ambiente e si aspettavano una nuova compilazione. Ora quei test costruiscono una query nuova nello scope nuovo. Serve quando cambia il testo SQL, per esempio per i filtri di partizione o le date di `#PERIOD`. I file sono elencati in `notes.md` sotto `## Phase 2`.
+- **Posizione di `environment_arguments`:** sta in `src/asqueel/environment.py`. Un test di confine già esistente vieta a `runtime.py` di importare `adapters`.
+
+Il hook del commit ha segnalato 3 errori di import mypy su `asqueel_migration`. Sono solo indicativi e c'erano già prima di questa fase.

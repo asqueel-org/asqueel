@@ -91,12 +91,16 @@ def test_reasons_and_method_dependencies_have_legacy_values(rule_db):
 
 
 def test_method_alias_filter_order_and_new_environment(rule_db):
-    query = rule_db.table('app.item').query(
-        '$id,$adjusted_alias,:factor AS external', where='$adjusted>:minimum',
-        order_by='$adjusted DESC', factor=99, minimum=11)
+    def build():
+        return rule_db.table('app.item').query(
+            '$id,$adjusted_alias,:factor AS external', where='$adjusted>:minimum',
+            order_by='$adjusted DESC', factor=99, minimum=11)
+    query = build()
     assert [dict(row) for row in query.fetch()] == [dict(id=2, adjusted_alias=Decimal(12), external=99)]
+    # The query keeps its first compilation; the new environment needs a new query.
     with rule_db.tempEnv(multiplier=3):
-        assert [dict(row) for row in query.fetch()] == [dict(id=2, adjusted_alias=Decimal(18), external=99),
+        assert [dict(row) for row in query.fetch()] == [dict(id=2, adjusted_alias=Decimal(12), external=99)]
+        assert [dict(row) for row in build().fetch()] == [dict(id=2, adjusted_alias=Decimal(18), external=99),
                                  dict(id=1, adjusted_alias=Decimal(15), external=99)]
     assert [dict(row) for row in query.fetch()] == [dict(id=2, adjusted_alias=Decimal(12), external=99)]
 

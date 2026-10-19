@@ -187,10 +187,6 @@ the write cycle, see [Current status](limitations.md).
 - **`ignorePartition` and the partition filter** (A2.14): `0` and `False` are
   valid values, an empty allowed set returns no rows, a missing context raises
   an error. Reason: agreed difference, described in [For Genropy users](legacy.md).
-- **`compiled`, `sqltext`, `test()`** (A2.19): recompiled at every access in
-  the current environment; `test()` does not exist. Reason: recompilation is
-  deliberate; a cache of compiled queries is under discussion
-  ([#3](https://github.com/asqueel-org/asqueel/issues/3)).
 - **`iterfetch`, `serverfetch`** (A2.17): the generator stops at the first
   empty chunk; legacy also yields a trailing empty list. Reason: not recorded.
 
@@ -702,9 +698,6 @@ the write cycle, see [Current status](limitations.md).
   thread.
 - **`db.outcome`** (A6.23): `not_started`, `active`, `committed`,
   `rolled_back`, `unknown`.
-- **Environment check of compiled queries (`EnvironmentMismatchError`)**
-  (A6.24): a compiled query is refused if the environment values it used
-  have changed.
 - **`asqueel db plan`, `asqueel db apply [--allow-removals]`, `asqueel check`**
   (A7.4): migration and model check from the command line.
 - **Table and column `comment` in the migration** (A7.23).

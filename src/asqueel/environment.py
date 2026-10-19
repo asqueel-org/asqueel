@@ -9,6 +9,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
+from datetime import date
 from types import MappingProxyType
 from threading import local
 from typing import Any, cast
@@ -23,6 +24,14 @@ def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:
             'values must support deepcopy'
         ) from error
 
+
+
+def environment_arguments(keys, snapshot):  # wf:phase-2:new
+    """The :env_* values of ``keys`` in ``snapshot``, read at every execution as legacy execute."""
+    params = {'env_' + key: snapshot.get(key) for key in keys}
+    if 'env_workdate' in params:
+        params['env_workdate'] = params['env_workdate'] or date.today()
+    return params
 
 class SqlEnvironment:
     """An isolated context variable holding the current SQL environment.

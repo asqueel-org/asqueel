@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError
+from asqueel import SqlDatabase, SqlDatabaseConfig, UnusedQueryParameterWarning
 from asqueel.configuration import _owned_handler
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
@@ -95,9 +95,8 @@ def test_reuse_keeps_legacy_binding_names_and_detached_inputs(db):
     with db.tempEnv(workdate=date(2026, 10, 15)):
         second = query.compiled
     third = query.compiled
-    assert first.sql == second.sql == third.sql
-    assert first.params == third.params
-    assert second.params['env_workdate'] == date(2026, 10, 15)
+    assert first is second is third
+    assert 'workdate' in first.environment_keys
     # The legacy postgres3 allocator overwrites ids_0; SQLite uses ids0/ids1.
     # Preserve this observed contract, rather than silently add a new allocator.
     pg = db.adapter.dialect == 'postgres'
@@ -147,12 +146,16 @@ def test_physical_name_and_quoted_result_alias(db):
     ({'columns': '$missing'}, ValueError, 'Unknown column'),
     ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
     ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
-    ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, "query keyword 'unused' is neither"),
 ])
 def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
     with pytest.raises(error, match=message):
         db.table('sales.invoice').query(**kwargs).compiled
     assert db._connections == {}
+
+
+def test_unused_keyword_warns_and_the_query_compiles(db):
+    with pytest.warns(UnusedQueryParameterWarning, match="query keyword 'unused' is not used by the query"):
+        db.table('sales.invoice').query(columns='$id', unused=3).compiled
 
 
 def test_no_model_conversion_and_no_sql_state_on_objects(db, monkeypatch):

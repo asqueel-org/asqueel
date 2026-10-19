@@ -26,23 +26,25 @@ def test_period_uses_existing_decoder(db, period, dates, operator):
     assert query.params['period'] == period
     assert [v for k,v in query.params.items() if k != 'period'] == dates
     assert query.input_parameters == ('period',)
-    assert query.environment.keys == ('locale', 'workdate')
+    assert query.environment_keys == ('locale', 'workdate')
 
 
 def test_period_repeat_collision_and_environment_refresh(db):
     db.currentEnv['locale'] = 'it'
-    query = db.table('sales.invoice').query('$id',
-        where='(#PERIOD($issued,period) OR #PERIOD($issued,:period)) AND $id=:period_from',
-        period='oggi', period_from=41)
+    def build():
+        return db.table('sales.invoice').query('$id',
+            where='(#PERIOD($issued,period) OR #PERIOD($issued,:period)) AND $id=:period_from',
+            period='oggi', period_from=41)
+    query = build()
     first = query.compiled
     with db.tempEnv(workdate=date(2026, 10, 15)):
-        second = query.compiled
+        second = build().compiled
     assert first.params['period_from'] == second.params['period_from'] == 41
     assert date(2026, 10, 14) in first.params.values()
     assert date(2026, 10, 15) in second.params.values()
     assert first.sql == second.sql
     assert first.input_parameters == ('period', 'period_from')
-    assert query.compiled == first
+    assert query.compiled is first
     assert len([v for v in first.params.values() if isinstance(v, date)]) == 1
 
 

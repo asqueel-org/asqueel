@@ -150,16 +150,15 @@ def test_close_connection_releases_all_names_and_database_can_reopen():
     db.close()
 
 
-def test_default_workdate_binding_and_stale_snapshot_rejection():
-    from asqueel import EnvironmentMismatchError
+def test_default_workdate_binding_is_read_again_at_execution():
     db = build_database(Recipe)
     driver = db.adapter
     query = db.table('app.item').query(columns=':env_workdate AS day').compiled
     assert query.params['env_workdate'] == date.today()
     db.workdate = date(2000, 1, 1)
-    with pytest.raises(EnvironmentMismatchError):
-        db.execute(query)
-    assert not driver.calls
+    db.execute(query)
+    assert driver.executed_params[-1]['env_workdate'] == date(2000, 1, 1)
+    db.rollback()
     db.close()
 
 

@@ -76,11 +76,10 @@ def test_environment_defaults_explicit_override_and_snapshot(driver):
     snapshot = {'workdate': date(2026, 10, 14)}
     query = driver.prepare_sql('SELECT :env_workdate,:env_missing', {}, snapshot)
     assert query.params == {'env_workdate': snapshot['workdate'], 'env_missing': None}
-    assert query.environment.keys == ('missing', 'workdate')
-    assert query.environment.values == snapshot
+    assert query.environment_keys == ('missing', 'workdate')
     explicit = driver.prepare_sql('SELECT :env_workdate', {'env_workdate': None}, snapshot)
     assert explicit.params == {'env_workdate': None}
-    assert explicit.environment is None
+    assert explicit.environment_keys == ()
 
 
 @pytest.mark.parametrize('driver', [PostgresAdapter(None), SqliteAdapter(None)], ids=['postgres', 'sqlite'])
@@ -119,7 +118,7 @@ def test_missing_bindings_respect_escapes_collections_and_environment_override(d
     suffix = '_' if driver.dialect == 'postgres' else ''
     assert query.params == {'missing': None, 'env_binding_probe': None,
                             f'ids{suffix}0': 1, f'ids{suffix}1': 2}
-    assert query.environment is None
+    assert query.environment_keys == ()
     assert params == {'ids': [1, 2], 'env_binding_probe': None}
 
 

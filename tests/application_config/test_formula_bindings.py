@@ -1,6 +1,6 @@
 import pytest
 
-from asqueel import SqlDatabaseConfig, UnsupportedFeatureError, build_database
+from asqueel import SqlDatabaseConfig, UnusedQueryParameterWarning, build_database
 
 
 def recipe(local=None):
@@ -30,7 +30,7 @@ def test_query_keyword_consumed_only_in_child_scope_is_recognized():
 
 def test_local_parameter_shadow_does_not_consume_unused_caller_keyword():
     with build_database(recipe({'floor': 7})) as db:
-        with pytest.raises(UnsupportedFeatureError, match="query keyword 'floor' is neither a query option nor a parameter"):
+        with pytest.warns(UnusedQueryParameterWarning, match="query keyword 'floor' is not used by the query"):
             db.table('app.invoice').query(columns='$total', floor=5).compiled
         compiled = db.table('app.invoice').query(columns='$total', sqlparams={'floor': 5}).compiled
         assert compiled.params['floor'] == 5

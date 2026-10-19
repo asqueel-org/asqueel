@@ -53,8 +53,8 @@ manualmente, né rende il runtime async-safe.
 
 Il compiler standalone può condividere un `SqlEnvironment` con il runtime.
 Il DB applicativo usa `ApplicationEnvironment` per `currentEnv`, workdate e
-locale. Le dipendenze ambientali di una query compilata vengono verificate
-prima dell'esecuzione; una query non più valida solleva `EnvironmentMismatchError`.
+locale. I parametri `:env_*` di una query compilata sono riletti dall'ambiente
+corrente a ogni esecuzione.
 
 Il driver implementa `SyncDriver`. La facciata PostgreSQL ammette il profilo
 `postgresql/psycopg_named`; per altri profili usare `Database` con il driver

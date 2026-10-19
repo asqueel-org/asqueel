@@ -132,40 +132,29 @@ Custom values used in snapshots must support `deepcopy`. The mutable application
 mapping and its temporary scopes belong to the calling thread. Each thread gets
 its own mapping; do not pass that mutable mapping to another thread or async task.
 
-## Distinguish a lazy query from a compiled statement
+## Reuse a query in another environment
 
 ```python
-from asqueel import EnvironmentMismatchError
-
 query = db.table("sales.customer").query(
     columns="$id, $name", where="$id=:env_customer_id",
 )
 with db.temp_env(customer_id=1):
-    compiled = query.compiled
-
+    first = query.fetch()   # compiles once, reads customer_id=1
 with db.temp_env(customer_id=2):
-    try:
-        db.execute(compiled)
-    except EnvironmentMismatchError:
-        pass  # Rejected before execution: it captured customer_id=1.
-    try:
-        rows = query.fetch()  # Fresh compilation now uses customer_id=2.
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-
+    second = query.fetch()  # same SQL text, reads customer_id=2
+db.rollback()
 ```
 
-Compilation captures values; a saved `CompiledQuery` does not automatically
-rebind. By contrast, every terminal call on `SqlQuery` recompiles. Inspecting
-`query.sqltext` or `query.compiled` does not change the behavior of its next fetch.
+As in legacy, a query compiles once, on first use, and keeps its compiled form
+(A2.19): `query.compiled`, `query.sqltext` and `query.sqlparams` always return the
+same compilation. The `:env_*` parameters are not frozen in it: every execution
+reads them again from the current environment, also for a saved `CompiledQuery`
+passed to `db.execute`. What the environment changes in the SQL text itself
+(partition guards, `#PERIOD` dates) stays the one of the first compilation:
+build a new query in the new scope to change it.
 
-Only relevant context keys are recorded. Unrelated keys do not invalidate a
-statement. Partition guards record relevant absent keys too: adding an allowed
-set can change the intended restriction. Returning to the same values and key
-presence permits reuse. Explicit parameter values do not by themselves create
-environment dependencies.
+Explicit parameter values (`env_customer_id=5` passed to the query) are caller
+inputs: they are not read from the environment.
 
 `ignore_partition=True` removes partition dependencies but does not remove any
 other `:env_*` dependency. Direct psycopg execution does not perform Asqueel's

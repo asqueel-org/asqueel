@@ -28,9 +28,8 @@ def test_resolve_distinct_fields_once_across_clauses(db, monkeypatch):
     assert calls == {'total': 1, 'id': 2}  # legacy seeds pkey before discovering explicit id
     assert compiled.sql.count('COALESCE("t0"."total",0)') == 100
     assert compiled.params == {'amount': 3}
-    again = query.compiled
-    assert again == compiled
-    assert calls == {'total': 2, 'id': 4}
+    assert query.compiled is compiled
+    assert calls == {'total': 1, 'id': 2}  # compiled once, then cached
 
 
 def test_field_resolution_does_not_use_previous_expression_scanner(db, monkeypatch):
@@ -161,5 +160,5 @@ def test_r3_prepares_values_and_unicode_without_recompiling_fields(db):
 def test_r3_missing_environment_value_is_none_as_in_legacy(db):
     compiled = db.table('sales.invoice').query(columns='$id', where='$id=:env_absent').compiled
     assert compiled.params == {'env_absent': None}
-    assert compiled.environment.keys == ('absent',)
+    assert compiled.environment_keys == ('absent',)
     assert not compiled.input_parameters

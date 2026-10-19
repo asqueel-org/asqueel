@@ -7,7 +7,7 @@ from psycopg import sql
 import pytest
 
 from asqueel import (
-    EnvironmentMismatchError, PostgresCompiler, PostgresDatabase,
+    PostgresCompiler, PostgresDatabase,
     SqlBuilder, SqlEnvironment, resolve_model,
 )
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
@@ -68,8 +68,8 @@ def test_scopes_defaults_mark_and_environment_reuse(policy_database):
                 assert marked.rows[0]['_isdeleted'] is None
                 assert marked.rows[2]['_isdeleted'] == datetime(2026, 1, 1, tzinfo=timezone.utc)
             with env.temp_env(current_organization=11):
-                with pytest.raises(EnvironmentMismatchError):
-                    db.execute(query)
+                fresh = compiler.select('app.item', order_by='$id')
+                assert db.execute(query).rows == db.execute(fresh).rows
             with env.temp_env(allowed_organization=[]):
                 assert len(db.execute(compiler.select('app.item')).rows) == 3
             with env.temp_env(allowed_organization=[10]):

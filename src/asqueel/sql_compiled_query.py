@@ -6,7 +6,7 @@ they never participate in SQL assembly. There is no connection or model here.
 """
 from dataclasses import dataclass, field
 
-from .contracts import EnvironmentBinding, ResultColumn
+from .contracts import ResultColumn
 
 
 @dataclass
@@ -29,7 +29,7 @@ class SqlCompiledQuery:
     params: dict = field(default_factory=dict)
     result_columns: tuple[ResultColumn, ...] = ()
     dialect: str = 'postgres'
-    environment: EnvironmentBinding | None = None
+    environment_keys: tuple[str, ...] = ()
     input_parameters: tuple[str, ...] = ()
     local_parameters: tuple[str, ...] = ()
 

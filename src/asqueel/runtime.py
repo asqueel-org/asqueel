@@ -2,14 +2,15 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import replace
 from importlib import import_module
 import re
 from threading import Thread, current_thread, local
 from typing import Any, TypedDict
 from uuid import uuid4
 
-from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError, not_available
-from .environment import ApplicationEnvironment
+from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError, not_available, refused_property
+from .environment import ApplicationEnvironment, environment_arguments
 from .errors import DatabaseClosedError, DeferredCommitError, TransactionStateError
 from .triggers import TriggerStack
 
@@ -55,6 +56,9 @@ class Database:
     @property
     def packageMixin(self):
         raise not_available('packageMixin')
+
+    query = refused_property('db.query')
+    whereTranslator = refused_property('db.whereTranslator')
 
 
     def __init__(self, conninfo='', *, implementation='sqlite', connect_kwargs=None, environment=None):
@@ -428,8 +432,9 @@ class Database:
         self._check_environment_keys()
         adapter = self.adapter
         adapter.validate(query)
-        if query.environment is not None:
-            query.environment.validate(self.environment.snapshot())
+        if query.environment_keys:
+            query = replace(query, params={**query.params, **environment_arguments(
+                query.environment_keys, self.environment.snapshot())})
         state['execution_count'] += 1
         state['executing'] = True
         state['execution_error'] = None

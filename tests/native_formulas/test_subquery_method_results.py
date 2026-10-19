@@ -55,12 +55,9 @@ def test_values_nested_scope_and_query_reuse(db):
     columns = '$scalar,$alias,$named,$present,$nested,$from_formula,$collection_None,:factor AS caller'
     if db.adapter.dialect == 'sqlite':
         columns = columns.replace('$present,', '')
-    query = db.table('app.owner').query(
-        columns,
-        where='$id=:id',
-        id=1,
-        factor=19,
-    )
+    def build():
+        return db.table('app.owner').query(columns, where='$id=:id', id=1, factor=19)
+    query = build()
     expected = dict(
         scalar=140,
         alias=140,
@@ -74,8 +71,10 @@ def test_values_nested_scope_and_query_reuse(db):
     if db.adapter.dialect == 'sqlite':
         expected.pop('present', None)
     assert [dict(row) for row in query.fetch()] == [expected]
+    # The query keeps its first compilation; the new environment needs a new query.
     with db.tempEnv(factor=23):
-        assert [dict(row) for row in query.fetch()] == [
+        assert [dict(row) for row in query.fetch()] == [expected]
+        assert [dict(row) for row in build().fetch()] == [
             {
                 **expected,
                 'scalar': 460,

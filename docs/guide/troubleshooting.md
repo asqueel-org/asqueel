@@ -58,7 +58,7 @@ or its physical-name mapping differs from the existing database.
 |---|---|
 | Writes disappear after leaving `with db:` | Closing rolls back pending work. Use `db.commit()` / `db.rollback()` or explicit `db.commit()`. |
 | Connection is rollback-only | A table/shared write hook failed or rollback failed. Roll back explicitly; ordinary SQL execution errors already trigger automatic rollback. |
-| `EnvironmentMismatchError` | A saved compiled statement captured different context. Recompile within the intended scope or use a lazy query terminal there. |
+| `UnusedQueryParameterWarning` | A query keyword is not used by the query (often a misspelled parameter name). The query still runs; the warning names the keyword and the parameters the query uses. |
 | `RecordNotFoundError` | No visible record matched, or a hooked write failed to identify its row. Review the selector and scope. |
 | `RecordMultipleRowsError` | A record read or hooked update/delete matched more than one row. Fix the selector; do not hide matches with a limit. |
 | Thread ownership error | Share the DB, not its internal connection records or driver connections. Each worker must release its own connections. |

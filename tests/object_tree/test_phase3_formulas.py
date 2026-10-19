@@ -48,18 +48,20 @@ def db(request, no_io):
 
 
 def test_locals_in_formula_dependency_child_siblings_and_caller_are_isolated(db):
-    query = db.table('app.owner').query('$scalar,$named,$nested,$from_formula,$composed',
-                                       where='$id=:factor AND $id<>:f1_factor',
-                                       factor=19, f1_factor=101)
+    def build():
+        return db.table('app.owner').query('$scalar,$named,$nested,$from_formula,$composed',
+                                           where='$id=:factor AND $id<>:f1_factor',
+                                           factor=19, f1_factor=101)
+    query = build()
     first = query.compiled
     assert sorted(first.params.values()) == [3, 3, 5, 5, 7, 7, 7, 7, 11, 19, 101]
     assert first.input_parameters == ('f1_factor', 'factor')
     assert first.params['f1_factor'] == 101
     assert '"t0_t0"' in first.sql and '"t0_t1_t0"' in first.sql
-    assert query.compiled == first
+    assert query.compiled is first
     with db.tempEnv(factor=23):
-        assert sorted(query.compiled.params.values()) == [3, 3, 5, 5, 19, 23, 23, 23, 23, 23, 101]
-    assert query.compiled == first
+        assert sorted(build().compiled.params.values()) == [3, 3, 5, 5, 19, 23, 23, 23, 23, 23, 101]
+    assert build().compiled == first
 
 
 def test_this_relation_belongs_to_outer_context(db):
@@ -110,7 +112,7 @@ def test_method_mapping_and_model_are_not_mutated_or_cached_between_compiles(db,
     assert list(query.compiled.params.values()) == [7, 7]
     assert table.saved_query == before
     table.saved_query['sqlparams']['factor'] = 29
-    assert list(query.compiled.params.values()) == [29, 29]
+    assert list(table.query('$scalar,$alias').compiled.params.values()) == [29, 29]
     assert table.model.virtual_columns['scalar'].attributes == attrs
     # Same existing RuntimeModel boundary: effective declarations are read
     # afresh on the next compile; no overlay API is added by this test.

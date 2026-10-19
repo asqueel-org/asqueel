@@ -6,7 +6,7 @@ from threading import Barrier
 
 import pytest
 
-from asqueel import AsqueelDb, EnvironmentMismatchError, SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.application_config.test_application import Recipe
 from tests.native_support import postgres_dsn
 
@@ -54,8 +54,9 @@ def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
         query = db.table('app.item').query(columns=':env_workdate AS day').compiled
         Clock.today_value = date(2026, 10, 1)
         assert db.workdate == Clock.today_value
-        with pytest.raises(EnvironmentMismatchError):
-            db.execute(query)
+        db.execute(query)
+        assert db.adapter.executed_params[-1]['env_workdate'] == Clock.today_value
+        db.rollback()
         for empty in (None, '', False, 0):
             db.workdate = empty
             assert db.workdate == Clock.today_value
@@ -65,7 +66,7 @@ def test_workdate_defaults_are_dynamic_and_values_are_not_coerced(monkeypatch):
         db.close()
 
 
-def test_nested_scopes_restore_context_after_error_and_reject_stale_query():
+def test_nested_scopes_restore_context_after_error_and_reused_query_reads_the_outer_scope():
     db = AsqueelDb(Recipe)
     db.workdate, db.locale = date(2024, 1, 1), 'outer'
     try:
@@ -78,8 +79,9 @@ def test_nested_scopes_restore_context_after_error_and_reject_stale_query():
                 assert (db.workdate, db.locale) == (date(2024, 2, 1), 'middle')
                 raise RuntimeError('cancel')
         assert (db.workdate, db.locale) == (date(2024, 1, 1), 'outer')
-        with pytest.raises(EnvironmentMismatchError):
-            db.execute(query)
+        db.execute(query)
+        assert db.adapter.executed_params[-1] == {'env_workdate': date(2024, 1, 1), 'env_locale': 'outer'}
+        db.rollback()
         db.clearCurrentEnv()
         with db.tempEnv(workdate=date(2024, 4, 1), locale='temporary'):
             pass

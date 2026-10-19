@@ -6,6 +6,7 @@ not open connections, commit, or emulate legacy selection result objects.
 from __future__ import annotations
 
 import json
+import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
@@ -15,7 +16,7 @@ from genro_bag import Bag
 from genro_toolbox import NamedList
 from genro_toolbox.uid import get_uuid
 
-from .contracts import UnsupportedFeatureError, not_available
+from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
 from .hierarchical import HierarchicalHandler
 from .table_crud import CrudMixin
 from .table_triggers import TriggersMixin
@@ -73,7 +74,7 @@ def _reference(name):
 
 
 class SqlQuery:
-    """Detached query intent; every terminal compiles in the current environment."""
+    """Query intent compiled once, on first use; :env_* values are read at every execution."""
 
     @property
     def setJoinCondition(self):
@@ -85,26 +86,36 @@ class SqlQuery:
         self._options = _copy(dict(options))
         self._params = _copy(dict(params))
         self._keyword_bindings = tuple(keyword_bindings)
+        self._compiled = None
 
     @property
     def compiled(self):
-        return self._compile(self.db.compiler.select)
+        """The compiled query, built on first access and kept: its SQL text is the one of that compilation."""
+        if self._compiled is None:
+            self._compiled = self._compile(self.db.compiler.select)
+        return self._compiled
 
     def _compile(self, terminal, options=None):
         self.db._check_open()
         query = terminal(self.table.fullname, sqlparams=_copy(self._params),
                          **_copy(self._options if options is None else options))
-        unused = set(self._keyword_bindings) - set(query.input_parameters)
-        if unused:
-            name = sorted(unused)[0]
-            raise UnsupportedFeatureError(
-                f'query keyword {name!r} is neither a query option nor a parameter of the query; '
-                'use sqlparams for explicit parameter mappings')
+        for name in sorted(set(self._keyword_bindings) - set(query.input_parameters)):
+            warnings.warn(UnusedQueryParameterWarning(
+                f"query keyword {name!r} is not used by the query; "
+                f"its parameters are: {', '.join(query.input_parameters)}"), stacklevel=2)
         return query
 
     @property
     def sqltext(self):
         return self.compiled.sql
+
+    @property
+    def sqlparams(self):  # wf:phase-2:new
+        return self.compiled.params
+
+    def test(self):  # wf:phase-2:new
+        """``(sqltext, sqlparams)`` of the compiled query, as legacy."""
+        return self.sqltext, self.sqlparams
 
     def execute(self):
         return self.db.execute(self.compiled)
@@ -282,8 +293,17 @@ class SqlTable(CrudMixin, TriggersMixin):
                        for name, column in columns if name.startswith(prefix))
         return self.db.adapter.string_join(reasons, ',') if reasons else 'NULL'
 
+    readColumns = refused_property('readColumns')
+    countRecords = refused_property('countRecords')
+    recordAs = refused_property('recordAs')
+    cachedRecord = refused_property('cachedRecord')
+    sqlWhereFromBag = refused_property('sqlWhereFromBag')
+    whereTranslator = refused_property('whereTranslator')
+
     def query(self, columns='*', where=None, sqlparams=None, **options_or_bindings):
         self.db._check_open()
+        if columns is None or columns == '':
+            raise not_available(f'columns={columns!r}')
         incoming = dict(options_or_bindings)
         for alias, native in _ALIASES.items():
             if alias in incoming:
@@ -303,6 +323,8 @@ class SqlTable(CrudMixin, TriggersMixin):
             raise UnsupportedFeatureError(f'query option {name!r} is not available in this release')
         options = {'columns': columns, 'where': where}
         options.update({key: incoming.pop(key) for key in list(incoming) if key in select_options})
+        if options.get('for_update') and (options.get('distinct') or options.get('group_by')):
+            raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
         bindings = _bindings(sqlparams, incoming)
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 

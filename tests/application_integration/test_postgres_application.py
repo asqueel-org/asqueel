@@ -8,7 +8,6 @@ import pytest
 
 from asqueel import SqlDatabaseConfig, SqlTable, TransactionStateError, build_database
 from asqueel.application_table import RecordMultipleRowsError, RecordNotFoundError
-from asqueel.contracts import EnvironmentMismatchError
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -131,8 +130,7 @@ def test_query_compiles_in_terminal_environment_and_fetch_record_reads_again(app
         assert [dict(row) for row in query.fetch()] == [{'id': 1, 'name': 'same'}]
     with db.temp_env(item=2):
         assert [dict(row) for row in query.fetch()] == [{'id': 2, 'name': 'same'}]
-        with pytest.raises(EnvironmentMismatchError):
-            db.execute(compiled)
+        assert [dict(row) for row in db.execute(compiled).rows] == [{'id': 2, 'name': 'same'}]
     record = db.table('app.item').query(where='$id=1')
     assert dict(record.fetchRecord()) == {'id': 1, 'name': 'same'}
     db.table('app.item').update({'id': 1, 'name': 'changed'})

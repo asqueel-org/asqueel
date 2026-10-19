@@ -22,29 +22,15 @@ def not_available(subject):
     return UnsupportedFeatureError(f'{subject} is not available in this release')
 
 
-class EnvironmentMismatchError(ValueError):
-    """A context-bound query cannot be reused in a different environment."""
+def refused_property(subject):  # wf:phase-2:new
+    """A property whose read raises the error of a legacy feature absent from this release."""
+    def refuse(self):
+        raise not_available(subject)
+    return property(refuse)
 
 
-@dataclass(frozen=True, init=False)
-class EnvironmentBinding:
-    keys: tuple[str, ...]
-    _values: Mapping[str, Any] = field(repr=False)
-
-    def __init__(self, keys: tuple[str, ...], values: Mapping[str, Any]):
-        object.__setattr__(self, 'keys', tuple(keys))
-        object.__setattr__(self, '_values', MappingProxyType(deepcopy(dict(values))))
-
-    @property
-    def values(self) -> Mapping[str, Any]:
-        """A detached snapshot; nested edits cannot change the bound context."""
-        return MappingProxyType(deepcopy(dict(self._values)))
-
-    def validate(self, current: Mapping[str, Any]) -> None:
-        actual = {key: current[key] for key in self.keys if key in current}
-        if actual != dict(self._values):
-            raise EnvironmentMismatchError(
-                'Query environment changed; compile again in the current scope')
+class UnusedQueryParameterWarning(UserWarning):  # wf:phase-2:new
+    """A query keyword that the compiled query does not use; the query still runs."""
 
 
 @dataclass(frozen=True)
@@ -194,7 +180,8 @@ class CompiledQuery:
     # Existing positional constructors remain PostgreSQL/psycopg statements.
     dialect: str = 'postgres'
     binding: str = 'psycopg_named'
-    environment: EnvironmentBinding | None = None
+    # Environment keys read into the :env_* parameters at every execution.
+    environment_keys: tuple[str, ...] = ()
     # Original caller parameter names consumed before scoped SQL renaming.
     input_parameters: tuple[str, ...] = ()
     for_update: bool = False
