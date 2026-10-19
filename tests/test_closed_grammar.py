@@ -88,7 +88,7 @@ def database(tmp_path, table_class=None):
     return AsqueelDb(Config)
 
 
-@pytest.mark.parametrize('method', ['trigger_onInserted_mypkg', 'formulaColumn_foo'])
+@pytest.mark.parametrize('method', ['trigger_onInserted_mypkg'])
 def test_table_class_with_a_legacy_method_names_it(tmp_path, method):
     table_class = type('Item', (SqlTable,), {method: lambda self, *args, **kwargs: None})
     with pytest.raises(UnsupportedFeatureError, match=f"table method '{method}' is not available"):

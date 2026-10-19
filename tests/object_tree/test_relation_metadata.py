@@ -42,8 +42,8 @@ def test_physical_and_related_nodes_publish_effective_dtype(attributes, dtype):
     assert source.source.to_json() == source_before
 
 
-@pytest.mark.parametrize('attributes,dtype', [({}, 'T'), ({'dtype': 'L'}, 'L')])
-def test_virtual_relation_publishes_its_own_effective_dtype(attributes, dtype):
+@pytest.mark.parametrize('attributes,dtype,effective', [({}, 'T', 'A'), ({'dtype': 'L'}, 'L', 'L')])
+def test_virtual_relation_publishes_its_own_effective_dtype(attributes, dtype, effective):
     source = SqlDatabaseConfig()
     pkg = source.source.db().packages().package('app')
     pkg.table('target', pkey='id').column('id', dtype=dtype)
@@ -56,7 +56,7 @@ def test_virtual_relation_publishes_its_own_effective_dtype(attributes, dtype):
     table = source.render(mode='objects_tree').table('app.item')
     node = table.relations.get_node('@computed_ref')
 
-    assert node.attr['dtype'] == dtype
+    assert node.attr['dtype'] == effective
     assert node.attr['name_long'] == 'Computed reference'
     assert node.resolver.parentpath[0] is table.virtual_columns['computed_ref']
     assert node.value.get_node('id').attr['dtype'] == dtype

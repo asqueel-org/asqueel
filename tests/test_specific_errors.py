@@ -45,18 +45,15 @@ def compile_customer(db, columns, **options):
     return db.table('app.customer').query(columns, **options).compiled
 
 
-def test_composite_column_in_place_of_a_physical_column(db):
-    with pytest.raises(UnsupportedFeatureError,
-                       match='app.customer.identity: compositeColumn in place of a physical column is not available'):
-        compile_customer(db, '$id', where='$identity IS NULL')
+def test_composite_column_compiles_to_the_legacy_string(db):
+    sql = db.table('app.customer').query('$id', where='$identity IS NULL').sqltext
+    assert """'[' || "t0"."id" ||', '|| '"' || "t0"."code" || '"' || ']'""" in ' '.join(sql.split())
 
 
 @pytest.mark.parametrize('key, value', [('subqueries', {'s': {'table': 'app.invoice'}}), ('handler', 'compute')])
 def test_formula_column_subqueries_and_handler(key, value):
-    with database(config(formulaColumn={'sql_formula': '$id', key: value})) as db:
-        with pytest.raises(UnsupportedFeatureError,
-                           match=f'app.customer.computed: formulaColumn {key}= is not available in this release'):
-            compile_customer(db, '$computed')
+    with pytest.raises(ValueError, match=f"Element 'formulaColumn' does not accept '{key}'"):
+        config(formulaColumn={'sql_formula': '$id', key: value})
 
 
 def test_py_column():

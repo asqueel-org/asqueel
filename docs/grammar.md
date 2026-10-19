@@ -278,20 +278,16 @@ A virtual column defined by SQL. Never physical.
 - Contains: relation
 - Child addressing: ordered internal labels for relation
 - Projection flags: none declared
-- Extra keys: `var_*`, `select_*`
+- Extra keys: `var_*`, `select_*`, `exists_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
 | sql_formula | `str \| bool \| None` | `None` | physical | an expression over the row's own columns. |
-| expression | `str \| None` | `None` | physical |  |
-| parameters | `dict \| None` | `None` | physical |  |
-| subqueries | `dict \| None` | `None` | physical |  |
-| handler | `str \| None` | `None` | physical |  |
 | static | `bool` | `False` | physical |  |
 | select | `dict \| str \| None` | `None` | physical | a scalar sub-select. |
 | exists | `dict \| str \| None` | `None` | physical | an EXISTS predicate. |
-| dtype | `str \| None` | `None` | physical | the resulting type code. |
+| dtype | `str \| None` | `None` | physical | the resulting type code; `A` when omitted. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |

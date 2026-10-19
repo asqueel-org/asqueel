@@ -68,8 +68,6 @@ def test_composite_selector_requires_complete_keys_and_uses_named_physical_resol
     assert db.execute('SELECT * FROM app_compound').rows == []
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#26: a SELECT on a table whose pkey is a compositeColumn '
-                                       'fails, composite columns are not connected in the read compiler')
 def test_composite_fetch_record_reads_through_the_physical_names(db):
     live = db.table('app.compound')
     db.execute("INSERT INTO app_compound (\"L\", \"right\") VALUES (0, 'x')")

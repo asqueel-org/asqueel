@@ -96,7 +96,7 @@ def source():
     row.column('quantity', dtype='I')
     row.column('unit_price', dtype='money')
     row.aliasColumn('product_name', relation_path='@product_id.description')
-    row.formulaColumn('line_total', expression='$quantity * $unit_price', dtype='N')
+    row.formulaColumn('line_total', sql_formula='$quantity * $unit_price', dtype='N')
     row.virtualRelation('customer', relation='@invoice_id.@customer_id')
 
     config.validate_source()

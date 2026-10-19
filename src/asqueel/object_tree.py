@@ -171,12 +171,12 @@ class DbTableObj(DbModelObj):
         self._relation_tree = None
 
     def _check_table_methods(self, table_class):
-        """Refuse legacy package triggers (``trigger_on<Event>_<pkg>``) and ``formulaColumn_<x>`` methods."""
+        """Refuse legacy package triggers (``trigger_on<Event>_<pkg>``)."""
         from .contracts import UnsupportedFeatureError
         from .table_triggers import TriggersMixin
         hooks = [name for name in vars(TriggersMixin) if name.startswith('trigger_on')]
         for name in dir(table_class):
-            if name.startswith('formulaColumn_') or any(name.startswith(hook + '_') for hook in hooks):
+            if any(name.startswith(hook + '_') for hook in hooks):
                 raise UnsupportedFeatureError(
                     f'{self.fullname}: table method {name!r} is not available in this release')
 
@@ -210,6 +210,29 @@ class DbTableObj(DbModelObj):
     @property
     def composites(self):
         return self.get('composites', {})
+
+    @property
+    def dynamic_columns(self):  # wf:phase-3:new
+        """Legacy dynamic_columns: ``formulaColumn_<x>()`` results, their attributes cached per environment."""
+        methods = [name for name in dir(self.dbtable) if name.startswith('formulaColumn_')]
+        if not methods:
+            return {}
+        key = '_virtual_columns_' + self.fullname.replace('.', '_')
+        env = self.db.currentEnv
+        if key not in env:
+            declarations = {}
+            for method in methods:
+                declared = getattr(self.dbtable, method)()
+                for attributes in declared if isinstance(declared, list) else [declared]:
+                    attributes = dict(attributes)
+                    name = attributes.pop('name')
+                    if name in self.columns or name in self.virtual_columns or name in self.composites:
+                        raise ValueError(f'{self.fullname}.{name}: {method}() redefines a declared column')
+                    declarations[name] = attributes
+            env[key] = declarations
+        return {name.lower(): DbVirtualColumnObj(_Fragment(name, 'formulaColumn', attributes, ()),
+                                                 model=self._model, parent=self.virtual_columns)
+                for name, attributes in env[key].items()}
 
     @property
     def indexes(self):
@@ -273,7 +296,8 @@ class DbTableObj(DbModelObj):
             joiner = node.attr['joiner']
             target = joiner['one_relation'] if joiner['mode'] == 'O' else joiner['many_relation']
             return self._model.table(target).column(rest, _seen=_seen)
-        column = self.columns.get(name) or self.virtual_columns.get(name) or self.composites.get(name)
+        column = (self.columns.get(name) or self.virtual_columns.get(name) or self.composites.get(name)
+                  or self.dynamic_columns.get(name.lower()))
         if column is None:
             return None
         if column.tag == 'aliasColumn':
@@ -331,6 +355,8 @@ class DbVirtualColumnObj(DbColumnObj):
     def dtype(self):
         if self.tag == 'compositeColumn':
             return self.attributes.get('dtype') or 'JS'
+        if self.tag == 'formulaColumn':
+            return self.attributes.get('dtype') or 'A'
         return super().dtype
 
     def afterChildrenCreation(self):

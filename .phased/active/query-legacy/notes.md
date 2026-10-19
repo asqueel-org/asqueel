@@ -15,3 +15,9 @@
 - `refused_property(subject)` in `contracts.py` serves both the table refusals and `db.query`/`db.whereTranslator` (on `runtime.Database`).
 - Tests outside the plan's list realigned by the same rule (a reused query no longer recompiles): test_postgres_policies, test_count, test_legacy_resolution, test_minimal_select, test_phase3_formulas, test_phase4_macros, test_phase4_star_bag, native_formulas/test_method_results and test_subquery_method_results; a scope that changes the SQL text (partition guards, #PERIOD dates, method formulas) builds a new query.
 - Fake adapter of tests/application_connections/test_connections.py records `executed_params` so the env-at-execution realignments can assert the values sent.
+
+## Phase 3
+- `currentEnv['_virtual_columns_<pkg>_<tbl>']` holds the attribute dicts returned by the `formulaColumn_<x>()` methods, not column objects: environment snapshots deepcopy `currentEnv`, and the model objects do not support deepcopy. `DbTableObj.dynamic_columns` builds the column objects from the cached dicts at every access.
+- The compiler reaches a compositeColumn through the virtual column lookup of `get_field_alias` (declared virtual, then composite, then dynamic) and compiles it as a formula with `composite_formula`; the "compositeColumn in place of a physical column" refusal left `physical_column` because it became unreachable. `DbTableObj.column()` also falls back to the dynamic columns, so result metadata resolves their dtype.
+- The 'A' default lives in `DbVirtualColumnObj.dtype` for the formulaColumn tag, so declared and dynamic formula columns share it; the signature keeps `dtype=None`.
+- Realigned outside the plan's list by the same rule: examples/model_grammar/configure.py (`expression=` → `sql_formula=`), tests/object_tree/test_relation_metadata.py (a formulaColumn without dtype now publishes 'A').

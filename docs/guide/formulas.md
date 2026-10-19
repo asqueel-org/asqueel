@@ -13,13 +13,14 @@ reached through a relation or an alias.
 | Expose a related column with inherited metadata | `aliasColumn(relation_path='@customer_id.name', ...)` | `$customer_name` |
 | Calculate one value from another table | `formulaColumn(select={...}, ...)` | `$line_total` |
 | Test whether matching rows exist | `formulaColumn(exists={...}, dtype='B', ...)` | `$has_lines` |
-| Combine several scalar subqueries | `sql_formula` plus `select_<name>` definitions | A single formula column |
+| Combine several subqueries | `sql_formula` plus `select_<name>`/`exists_<name>` definitions | A single formula column |
+| Declare formulas from Python at query time | `formulaColumn_<x>()` table methods | Each returned `name` |
 | Collect related rows on PostgreSQL | `subQueryColumn(query={...}, mode='json')` or `mode='xml'` | A JSON array or XML text |
 
 These are query-time expressions, not stored/generated database columns. They
 are read-only in application writes and excluded from physical schema projection.
-Set the dtype for expressions explicitly; arbitrary SQL does not infer it. An
-alias inherits its target dtype and descriptive metadata, as described in [models](models.md).
+Without `dtype` a formulaColumn has type `A`, as in GenroPy; arbitrary SQL does
+not infer it. An alias inherits its target dtype and descriptive metadata, as described in [models](models.md).
 
 For a first working example, use the [invoice tutorial](tutorial.md). This page
 then expands the correlation and visibility rules you need for larger formulas.
@@ -81,8 +82,7 @@ are required; use `where='TRUE'` deliberately for an uncorrelated query.
 
 Native package declarations now compile SQL expressions, dependencies on other
 SQL formulas, ordinary forward/inverse relation paths and aliases through the existing compiler.
-`var_*` supplies local bound values; the existing `parameters` mapping is also
-accepted, with duplicate declarations rejected. For example:
+`var_*` supplies local bound values. For example:
 
 ```python
 from asqueel import SqlDatabaseConfig, build_database
@@ -153,9 +153,41 @@ formulas; they do not enforce write protections or implement diagnostics.
 Standalone compilers without application tables cannot evaluate table methods.
 RuntimeModel overlays are still pending.
 
+## Formula columns supplied by formulaColumn_<x>() methods
+
+As in GenroPy, every table method whose name starts with `formulaColumn_` is
+called without arguments and returns a dict, or a list of dicts, with `name`
+and the attributes of a formulaColumn:
+
+```python
+class Customer(SqlTable):
+    def formulaColumn_labels(self):
+        factor = self.db.currentEnv.get('factor', 1)
+        return [dict(name='code_twice', sql_formula='$code || $code', dtype='T'),
+                dict(name='scaled', sql_formula=f'$year * {factor}', dtype='L')]
+```
+
+The methods run when a query needs the table's virtual columns, after the
+declared ones. Their result is cached in the current environment under
+`currentEnv['_virtual_columns_<pkg>_<tbl>']`: a `tempEnv` evaluates them again
+and drops them on exit. A table class without such methods leaves the
+environment untouched. A returned name equal to a declared column raises
+`ValueError`.
+
+## Read a compositeColumn as a value
+
+A compositeColumn selected or compared as a value compiles to the GenroPy
+formula: its members joined into a string such as `'["A", 2026]'`. A/C/T
+members are quoted, L/F/R/B members are written raw, other dtypes are quoted
+with `::<dtype>` (`"2026-01-01::D"`). The value is that string, not decoded;
+its dtype is `JS`. A table whose pkey is a compositeColumn selects and filters
+it through the same formula: `where='$identity=:key', key='["B", 2025]'`.
+
 ## Combine named subqueries
 
-Use `select_<name>` and `#<name>` in a formula expression:
+Use `select_<name>` or `exists_<name>` and `#<name>` in a formula expression.
+`#<name>` of an `exists_<name>` becomes `EXISTS (<subquery>)`; a `select_<n>`
+and an `exists_<n>` cannot share a name:
 
 ```python
 # virtuals is the invoice's virtual_columns collection.
@@ -176,8 +208,9 @@ do not multiply rows in the outer query. Cyclic formula/alias dependencies raise
 an error. Declared named subqueries must actually appear in SQL code: references
 inside strings or comments do not count and are never expanded.
 
-You must choose one of `sql_formula`, `select` or `exists` for a column. Use named
-subqueries to combine scalar results in an explicit SQL formula. Ambiguous
+You must choose one of `sql_formula`, `select` or `exists` for a column;
+`sql_formula` together with `select` or `exists` raises `ValueError`. Use named
+subqueries to combine results in an explicit SQL formula. Ambiguous
 combinations are rejected rather than silently selecting one definition.
 
 ## Scope and policy defaults

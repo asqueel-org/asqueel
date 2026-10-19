@@ -86,10 +86,6 @@ def hooked_database():
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
-COMPOSITE_READ = ('asqueel#26: a SELECT on a table whose pkey is a compositeColumn fails, '
-                  'the read compiler does not resolve the composite (compiler.py:63-66, 570-571)')
-
-
 def stored(id=0, name='original', draft=True):
     """The row of partition 0 as the fixture stores it, passed by the caller as old_record."""
     return {'org': 0, 'id': id, 'name': name, 'draft': draft, 'deleted_at': None}
@@ -129,7 +125,6 @@ def test_full_records_old_snapshot_composite_zero_key_and_atomic_hooks(hooked_da
     assert audit_events(observer, schema)[-2:] == [('deleting',), ('deleted',)]
 
 
-@pytest.mark.xfail(strict=True, reason=COMPOSITE_READ)
 def test_fetch_record_with_lock_includes_the_draft_row(hooked_database):
     db, observer, schema = hooked_database
     old = db.table('app.item').query(where='$org=0 AND $id=0', for_update=True,
@@ -169,7 +164,6 @@ def test_exactly_one_locked_record_before_any_hook(hooked_database, operation):
     assert audit_events(observer, schema) == []
 
 
-@pytest.mark.xfail(strict=True, reason=COMPOSITE_READ)
 def test_pre_hook_holds_postgres_row_lock(hooked_database):
     db, observer, schema = hooked_database
     table = db.table('app.item')
@@ -205,7 +199,6 @@ def test_soft_delete_restore_call_update_hooks_with_deleted_record_visible(hooke
     assert audit_events(observer, schema) == [('updating',), ('updated',)] * 2
 
 
-@pytest.mark.xfail(strict=True, reason=COMPOSITE_READ)
 def test_logically_deleted_record_is_hidden_until_restored(hooked_database):
     db, observer, schema = hooked_database
     table = db.table('app.item')

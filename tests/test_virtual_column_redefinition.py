@@ -149,15 +149,14 @@ def test_inherited_attributes_survive_composition_of_an_already_redefined_source
     base, table = recipe()
     table.aliasColumn('value', '@person_id.name')
     overlay, table = recipe()
-    table.formulaColumn('value', **DEFINITIONS['formulaColumn'], static=True,
-                        parameters={'threshold': 7})
+    table.formulaColumn('value', **DEFINITIONS['formulaColumn'], static=True, var_threshold=7)
     table.aliasColumn('value', '@person_id.name')
     config = _owned_handler(overlay, [base]).builder
     config.validate_model()
     column = config.render(mode='objects_tree').table('app.cast').virtual_columns['value']
     assert column.attributes['static'] is True
     assert column.attributes['select_rows'] == DEFINITIONS['formulaColumn']['select_rows']
-    assert column.attributes['parameters'] == {'threshold': 7}
+    assert column.attributes['var_threshold'] == 7
     assert 'sql_formula' not in column.attributes
 
 

@@ -1,0 +1,6 @@
+✓ Phase 3 completata: formulaColumn come nel legacy, colonne dinamiche da `formulaColumn_<name>()`, compositeColumn letta come valore (#26).
+
+- **Test:** i 18 test di contratto passano su SQLite e PostgreSQL. La suite completa dà 5087 passed, 42 skipped, 27 xfailed. I 4 strict xfail di #26 sono stati tolti e ora passano.
+- **Lint:** ruff e mypy puliti. `docs/grammar.md` coincide con quello che genera `grammar_doc`.
+- **Commit:** `da3a33e`, un solo commit con codice, test, docs e note del piano.
+- **Scelta aggiunta:** in `currentEnv` vanno i dict di attributi restituiti dai metodi, non gli oggetti colonna. Le snapshot dell'environment fanno deepcopy, e gli oggetti colonna non lo supportano. La motivazione è in `notes.md` sotto `## Phase 3`.

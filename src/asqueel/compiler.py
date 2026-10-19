@@ -13,6 +13,7 @@ from ._legacy_sql import FieldReferences, embed_field_parameters, projection_col
 from .contracts import ResultColumn, UnsupportedFeatureError
 from .environment import SqlEnvironment
 from .object_tree import DbModel
+from .common import split_names
 from .model import column_ui, _formula_definition, _formula_parameters, _subquery_definition, _parse_row_policies
 from ._sql_bindings import SqlBindings
 from ._many_aggregates import aggregate_columns
@@ -122,10 +123,9 @@ class _TreeContext:
         column = table.columns.get(name)
         if column is not None:
             return column
-        if name in table.virtual_columns or name in table.composites:
-            kind = 'virtual column' if name in table.virtual_columns else 'compositeColumn'
+        if name in table.virtual_columns:
             raise UnsupportedFeatureError(
-                f'{table.fullname}.{name}: {kind} in place of a physical column is not available in this release')
+                f'{table.fullname}.{name}: virtual column in place of a physical column is not available in this release')
         raise ValueError(f'Unknown column {table.fullname}.{name}')
 
     def field(self, table, alias, name):
@@ -144,7 +144,8 @@ class _TreeContext:
             basealias, curr = self._find_relation_alias(
                 list(pathlist), curr, basealias, [], parent)
         table = self.model.table(curr.tbl_name, pkg=curr.pkg_name)
-        column = table.virtual_columns.get(name)
+        column = (table.virtual_columns.get(name) or table.composites.get(name)
+                  or table.dynamic_columns.get(name.lower()))
         if column is None:
             return self.field(table, basealias, name)
         key = (table.fullname, name)
@@ -173,13 +174,10 @@ class _TreeContext:
                     raise UnsupportedFeatureError(
                         f'{column.fullname}: legacy XML subQueryColumn requires a query mapping')
                 definition = (None, _subquery_definition(attrs.get('query'), column.fullname), None, {})
+            elif column.tag == 'compositeColumn':
+                attrs = {'sql_formula': self.composite_formula(table, column)}
+                definition = _formula_definition(attrs, column.fullname)
             elif column.tag == 'formulaColumn':
-                for key, present in (('subqueries', bool(attrs.get('subqueries'))),
-                                     ('handler', attrs.get('handler') is not None)):
-                    if present:
-                        raise UnsupportedFeatureError(
-                            f'{column.fullname}: formulaColumn {key}= is not available in this release; '
-                            'use select_* declarations')
                 if attrs.get('sql_formula') is True:
                     name = 'sql_formula_' + column.name
                     method = getattr(table.dbtable, name, None)
@@ -194,6 +192,20 @@ class _TreeContext:
             self.formula_definitions[key] = definition, attrs
         return self.formula_definitions[key]
 
+    @staticmethod
+    def composite_formula(table, column):  # wf:phase-3:new
+        """Legacy _buildCompositeColumnFormula: the members as the string '["a", 1]'."""
+        chunks = []
+        for name in split_names(column.attributes['columns']):
+            dtype = table.columns[name].dtype
+            if dtype in ('A', 'C', 'T'):
+                chunks.append(f""" '"' ||  ${name} || '"' """)
+            elif dtype in ('L', 'F', 'R', 'B'):
+                chunks.append(f'${name}')
+            else:
+                chunks.append(f""" '"' ||  ${name} || '::{dtype}"' """)
+        return "'[' || " + " ||', '||".join(chunks) + " || ']' "
+
     def formula(self, table, column, curr, alias):
         (formula, select, exists, subqueries), attrs = self.formula_definition(table, column)
         key = (table.fullname, alias, column.name)
@@ -202,18 +214,19 @@ class _TreeContext:
             self.formula_bindings[key] = self.bindings.child(values, 'f') if values else self.bindings
         bindings = self.formula_bindings[key]
         if select is not None or exists is not None:
-            formula = '#default' if select is not None else 'EXISTS #default'
-            subqueries = {'default': select if select is not None else exists}
+            formula = '#default'
+            subqueries = {'default': (select, False) if select is not None else (exists, True)}
         # Bind the authored expression before inserting children: their local
         # names already belong to their own scope and must never be remangled.
         formula = expand_templates(formula, self.adapter)
         formula = self.expand_many_operations(formula, curr=curr)
         formula = bindings.substitute(formula)
-        for name, definition in subqueries.items():
+        for name, (definition, is_exists) in subqueries.items():
             aggregate = attrs.get('mode') if column.tag == 'subQueryColumn' else None
             query = self.subquery(definition, curr, alias, bindings,
-                                  exists=exists is not None, aggregate=aggregate,
+                                  exists=is_exists, aggregate=aggregate,
                                   row_alias=f'{table.fullname.replace(".", "_")}_{column.name}_{aggregate}')
+            query = f'EXISTS {query}' if is_exists else query
             formula = re.sub('#' + re.escape(name) + r'\b', lambda m: query, formula)
         # Legacy discovers formula dependencies locally, resolving against the
         # column owner rather than treating them as fields of the root table.

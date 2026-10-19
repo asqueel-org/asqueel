@@ -90,7 +90,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     # DbModelSrc.virtual_column's kind cleanup, using the native declarations.
     _virtual_definitions = {
         'aliasColumn': {'relation_path'},
-        'formulaColumn': {'sql_formula', 'expression', 'handler', 'select', 'exists'},
+        'formulaColumn': {'sql_formula', 'select', 'exists'},
         'subQueryColumn': {'query'},
         'pyColumn': {'py_method', 'method'},
         'bagItemColumn': {'bagcolumn', 'itempath'},

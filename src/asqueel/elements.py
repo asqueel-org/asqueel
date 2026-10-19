@@ -31,7 +31,7 @@ read it.
 Signatures are **closed**: every element declares its physical AND its
 enumerated semantic parameters, typed. An element with ``**extra`` accepts
 only the attribute families its ``_meta['attribute_families']`` names
-(``validate_*`` on column, ``var_*``/``select_*`` on formulaColumn), so a
+(``validate_*`` on column, ``var_*``/``select_*``/``exists_*`` on formulaColumn), so a
 typo (``dtypo=``) is a loud error naming the declared set instead of a
 silently stored attribute.
 
@@ -337,10 +337,8 @@ class TableElements:
         ...
 
     @element(parent_tags="virtual_columns", sub_tags="relation",
-             _meta={"attribute_families": ["var_", "select_"]})
-    def formulaColumn(self, name: str, sql_formula: str | bool | None = None,
-                      expression: str | None = None, parameters: dict | None = None,
-                      subqueries: dict | None = None, handler: str | None = None, static: bool = False,
+             _meta={"attribute_families": ["var_", "select_", "exists_"]})
+    def formulaColumn(self, name: str, sql_formula: str | bool | None = None, static: bool = False,
                       select: dict | str | None = None,
                       exists: dict | str | None = None,
                       dtype: str | None = None,
@@ -354,7 +352,7 @@ class TableElements:
             sql_formula: an expression over the row's own columns.
             select: a scalar sub-select.
             exists: an EXISTS predicate.
-            dtype: the resulting type code.
+            dtype: the resulting type code; ``A`` when omitted.
             name_long: semantic; human label.
             group: semantic; field-group key.
         """

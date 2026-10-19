@@ -78,8 +78,8 @@ the write cycle, see [Current status](limitations.md).
   `colgroup_name_long` and `group_<name>` raise as attributes outside the
   grammar. Reason: not recorded for the missing attributes.
 - **`compositeColumn()`** (A1.12): declared in the `composites` collection
-  with `unique=`; SELECT fails when it is the pkey. Reason: open
-  defect ([#26](https://github.com/asqueel-org/asqueel/issues/26)).
+  with `unique=`. Read as a value, and as the pkey, it is the legacy string
+  (see A3.13).
 - **`config_db`, `config_db_<pkg>`, `config_db_custom`** (A1.17): a package
   folder in the legacy layout loads with `package(name, path=<folder>)`:
   `main.py` holds class `Package` (`config_attributes()` gives package
@@ -225,22 +225,35 @@ the write cycle, see [Current status](limitations.md).
 
 - `sql_formula=True` with `sql_formula_<name>(attr)`, and the `sysFields`
   formulas `__protecting_reasons` / `__invalid_reasons` (A3.2).
-- `select=`, `exists=`, `select_<name>` with `#<name>`, cast and
-  `subquery_<name>()` (A3.3).
+- `select=`, `exists=`, `select_<name>` and `exists_<name>` with `#<name>`,
+  cast and `subquery_<name>()` (A3.3). `#<name>` of an `exists_<name>` becomes
+  `EXISTS (<subquery>)`.
 - `var_*` in formulas (A3.4).
 - `aliasColumn` with `relation_path`, its own dtype and metadata (A3.6).
 - Redefinition of a virtual column with a different kind (A3.7).
 - `static=True` and `*` (A3.9).
 - `bagItemColumn` (A3.11).
 - References in formulas: `$col`, `@rel.col`, `:param`, `:env_*` (A3.16).
+- `compositeColumn` read as a value (A3.13): the members joined into the
+  string `'["A", 2026]'`; A/C/T members are quoted, L/F/R/B members are raw,
+  other dtypes are quoted with `::<dtype>`. The value is the string, not
+  decoded. A table whose pkey is a compositeColumn selects it through the same
+  formula.
+- Dynamic columns from `formulaColumn_<x>()` table methods (A3.15): called
+  without arguments, each returns a dict or a list of dicts with `name` and the
+  formula attributes. They are evaluated when a query needs the table's virtual
+  columns and cached in `currentEnv['_virtual_columns_<pkg>_<tbl>']`. A
+  declared column with the same name raises `ValueError`.
 - `#THIS`, `#IN_RANGE`, `#PERIOD` (A3.17).
 
 ### Works differently
 
 - **`formulaColumn` (`sql_formula`, `dtype`)** (A3.1): exactly one of
-  `sql_formula`, `select`, `exists` is required; an unused `select_<name>` is
-  an error; without dtype the type is `T`. Reason: ambiguous combinations are
-  refused instead of picking one definition; the `T` default: not recorded.
+  `sql_formula`, `select`, `exists` is required; `sql_formula` with `select` or
+  `exists` raises `ValueError`; an unused `select_<name>`/`exists_<name>`, or a
+  `select_<n>` and an `exists_<n>` with the same name, is an error. Without
+  dtype the type is `A`, as in GenroPy. Reason: ambiguous combinations are
+  refused instead of picking one definition.
 - **`subQueryColumn` (`query=`, `mode=`)** (A3.10): `json` and `xml` modes run
   only on PostgreSQL; `mode='join'`, `'to_json'`, `'to_xml'` produce
   aggregations. Reason: SQLite has no equivalent for json/xml.
@@ -251,16 +264,11 @@ the write cycle, see [Current status](limitations.md).
   one. No issue yet. Workaround: rename the virtual column.
 - **`pyColumn`** (A3.12): declared; selecting it raises "pyColumn is not
   connected yet". No issue yet. Workaround: compute the value after `fetch()`.
-- **`compositeColumn` read as a value** (A3.13): selecting it raises an error
-  ([#26](https://github.com/asqueel-org/asqueel/issues/26) covers only the
-  pkey case). Workaround: select the member columns.
 - **`toolColumn`** (A3.14): absent. No issue yet. Workaround: a
   `formulaColumn` with the explicit expression.
-- **Dynamic columns: `formulaColumn_<x>()` methods, `variant=` with
-  `variantColumn_<v>()`, `sqlparams[name]={field:...}`** (A3.15): a table
-  class defining a `formulaColumn_<x>` method raises `UnsupportedFeatureError`
-  when the model is built, naming the method; the others are not read. No
-  issue yet. Workaround: declare explicit `formulaColumn`s.
+- **Dynamic columns: `variant=` with `variantColumn_<v>()`,
+  `sqlparams[name]={field:...}`** (A3.15): not read. No issue yet.
+  Workaround: declare explicit `formulaColumn`s.
 - **`#ENV(name[,fallback])` and `#PREF(path[,default])`** (A3.18): refused
   with `UnsupportedFeatureError` naming the macro ("macro #ENV is not
   available in this release"). No issue yet. Workaround: `:env_name` and `var_*`.
@@ -675,9 +683,6 @@ the write cycle, see [Current status](limitations.md).
 
 ## New in asqueel
 
-- **`parameters=` and `expression=`** (A3.5): `parameters` is a mapping in
-  place of `var_*`; `expression` is a synonym of `sql_formula` without public
-  documentation.
 - **`@rel.aggr(...)` and `@rel.order_by('...').aggr(...)`** (A4.19): count,
   sum, avg, min, max, join, to_json, to_xml over related rows, in the
   projection only; `to_xml` needs PostgreSQL.

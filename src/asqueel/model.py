@@ -39,20 +39,26 @@ def _subquery_definition(value, label):
 
 
 def _formula_definition(metadata, label):
-    if metadata.get('sql_formula') is not None and metadata.get('expression') is not None:
-        raise ValueError(f'{label}: sql_formula and expression are aliases; specify only one')
+    """Legacy formula, select or exists; named select_*/exists_* subqueries map to (definition, exists)."""
     formula = metadata.get('sql_formula')
-    if formula is None:
-        formula = metadata.get('expression')
     select, exists = metadata.get('select'), metadata.get('exists')
     if formula is True:
         raise UnsupportedFeatureError(f'{label}: SQL formula method callbacks are unsupported')
     if formula is not None and (not isinstance(formula, str) or not formula.strip()):
         raise ValueError(f'{label}: sql_formula must be a nonempty string')
+    if formula is not None and (select is not None or exists is not None):
+        raise ValueError(f'{label}: sql_formula cannot be combined with select or exists')
     if sum(value is not None for value in (formula, select, exists)) != 1:
         raise ValueError(f'{label}: specify exactly one of sql_formula, select, exists')
-    subqueries = {key[7:]: _subquery_definition(value, f'{label}.{key}')
-                  for key, value in metadata.items() if key.startswith('select_')}
+    subqueries = {}
+    for prefix in ('select_', 'exists_'):
+        for key, value in metadata.items():
+            if not key.startswith(prefix):
+                continue
+            name = key[len(prefix):]
+            if name in subqueries:
+                raise ValueError(f'{label}: select_{name} and exists_{name} share the name {name}')
+            subqueries[name] = (_subquery_definition(value, f'{label}.{key}'), prefix == 'exists_')
     if subqueries and formula is None:
         raise ValueError(f'{label}: named subqueries require sql_formula')
     for name in subqueries:
@@ -65,15 +71,9 @@ def _formula_definition(metadata, label):
 
 
 @extract_kwargs(var=True)
-def _formula_parameters(label, *, var_kwargs=None, parameters=None, **attributes):
-    """Existing var_* declarations and their parameters spelling, scoped locally."""
-    if parameters is not None and not isinstance(parameters, Mapping):
-        raise ValueError(f'{label}: formula parameters must be a mapping')
-    local = dict(parameters or {})
-    repeated = local.keys() & (var_kwargs or {}).keys()
-    if repeated:
-        raise ValueError(f'{label}: repeated formula parameters: {sorted(repeated)}')
-    local.update(var_kwargs or {})
+def _formula_parameters(label, *, var_kwargs=None, **attributes):
+    """Existing var_* declarations, scoped locally."""
+    local = dict(var_kwargs or {})
     if any(not isinstance(name, str) or not re.fullmatch(r'[A-Za-z_]\w*', name)
            for name in local):
         raise ValueError(f'{label}: formula parameters require valid names')
