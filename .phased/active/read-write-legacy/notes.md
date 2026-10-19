@@ -33,3 +33,21 @@
 - First stop: the 2-minute leftover was discarded on the user's ok. Second stop: the leftover (contract tests 14/14 green) was committed as `wf(phase 4): partial` (222db0e) and Phase 4 got a run note (c94a255): full suite in the foreground, never in background. The third session verified and closed in 7m58s.
 - Skill defect for the wf-lessons ledger: `/execute-phase-agent` lets a headless executor background the suite and wait for a notification that cannot arrive; the launcher reports it only as "no progress".
 - Final suite at the Phase 4 close: 5194 passed, 42 skipped, 27 xfailed; ruff and mypy clean.
+
+## Final touch
+Reviewed revision 3480fad (panel: one whole-diff reviewer + one transactions specialist, both opus; QA none — the plan carries no Verify steps). Naming: all 32 new names kept (user, 2026-10-19: words of our language follow the GenroPy rule, internal code the Python idiom; a team glossary will settle final names); markers removed. Correction commit a819623.
+
+| # | Finding | Root cause | Fix |
+|---|---|---|---|
+| 1 | an unread SqlCursor kept the SQLite file locked after closeConnection/session exit | cursors outlived their connection | state records open cursors (WeakSet); `_close_connection` closes them first |
+| 2 | fetch error on a stale cursor cleared the new transaction's deferred queue and pending exceptions | same | `_fetch` rolls back only when the cursor's state and driver connection are still current |
+| 3 | `_pendingExceptions` shared by every named connection | one global key against the Phase 1 decision ("of their connection") | `_pendingExceptions_<connectionKey>`; guide states the difference from legacy |
+| 4 | `query().delete()` raised RecordNotFoundError on rows already removed by a cascade | delete of a complete dict requires the row | the terminal deletes by pkey string (reread, missing → skipped), as legacy deleteSelection |
+| 5 | composite keys with I/DHZ/B members did not round-trip (read `"5::I"`, decoder knew D/DH/H/N) | decoder narrower than the composite formula | every legacy typed suffix decoded; B member 1/0 accepted |
+| 6 | vacuum with pending work: SQLite locked 20 s, PostgreSQL VACUUM FULL hung | separate connection waits on the open transaction (legacy too) | TransactionStateError when the thread has pending work |
+| 7 | insert assigned max+1 to a pkey with sql_default, sql_insert did not | rule only in sql_insert | one rule `_pkey_from_database` used by checkPkey and sql_insert |
+| 8 | session(db): cleanup error replaced the body's; read-only SqlEnvironment gave AttributeError | no handling | note on the body's error; explicit TransactionStateError |
+| 9 | stale docs and dead code (api.rst, oracles, cli banner, QueryResult in two docs, hierarchical lock_roots None check), SqlCursor not exported | Phase 1-3 leftovers | updated; SqlCursor exported; docs/adattamenti-legacy.md paragraph on insert rewritten to the current behaviour |
+| 10 | 32 `wf:phase-N:new` markers; Macro 7 note on vacuum with SQLite attach | — | markers removed; roadmap Macro 7 line extended |
+
+Checks run: full suite 5213 passed, 42 skipped, 27 xfailed (foreground); ruff clean; mypy clean; marker grep empty; contract tests phase-1/3/4 byte-identical, phase-2 differs only by its two implemented skeletons. Re-check: light review (opus, low) over a819623 — one judgment: `query().delete()` passes a text key for integer/date pkeys and no test covers it; reproduced on SQLite and PostgreSQL with dtype L and D pkeys, both delete correctly → dismissed with evidence, no residual defect. Rows on the phase road: none.
