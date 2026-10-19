@@ -134,8 +134,8 @@ def test_update_hooks_receive_the_callers_old_record_and_values(make_db):
     assert db.table('app.customer').query(where='$id=0').fetchRecord()['name'] == 'NEW'
 
 
-@pytest.mark.parametrize('keys, error', [((), RecordNotFoundError), ((0, 0), RecordMultipleRowsError)])
-def test_hooked_delete_rejects_missing_or_multiple_records_before_hooks(make_db, keys, error):
+@pytest.mark.parametrize('keys', [(), (0, 0)])
+def test_hooked_delete_of_a_key_rereads_it_before_hooks(make_db, keys):
     class Customer(SqlTable):
         def trigger_onDeleting(self, record):
             raise AssertionError('must not run')
@@ -145,8 +145,11 @@ def test_hooked_delete_rejects_missing_or_multiple_records_before_hooks(make_db,
     db.execute('CREATE TABLE app_customer (id INTEGER, name TEXT, state TEXT)')
     for key in keys:
         db.execute('INSERT INTO app_customer (id, name) VALUES (:id, :name)', {'id': key, 'name': 'a'})
-    with pytest.raises(error):
-        db.table('app.customer').delete({'id': 0})
+    if not keys:
+        assert db.table('app.customer').delete('0') is None
+        return
+    with pytest.raises(RecordMultipleRowsError):
+        db.table('app.customer').delete('0')
 
 
 def test_delete_of_a_missing_row_fails_before_the_after_hook(make_db):

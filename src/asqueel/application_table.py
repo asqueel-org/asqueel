@@ -18,7 +18,8 @@ from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
 from .hierarchical import HierarchicalHandler
-from .table_crud import CrudMixin
+from .common import sql_attribute_declared
+from .table_crud import _INTEGER_DTYPES, CrudMixin
 from .table_triggers import TriggersMixin
 
 
@@ -372,12 +373,7 @@ class SqlTable(CrudMixin, TriggersMixin):
         names = self.model._model.physical_columns(self.model, self.model.pkey) if self.model.pkey else ()
         if not names:
             raise ValueError(f'{self.fullname} has no declared primary key')
-        if len(names) == 1:
-            values = [pkey]
-        elif isinstance(pkey, (tuple, list)) and len(pkey) == len(names):
-            values = list(pkey)
-        else:
-            raise ValueError('Composite primary keys require an ordered sequence')
+        values = self.db.write_compiler.key_values(self.model, pkey)
         if any(value is None for value in values):
             raise ValueError('Primary-key values must not be None')
         bindings = {}
@@ -397,8 +393,13 @@ class SqlTable(CrudMixin, TriggersMixin):
         return getattr(self.db, 'currentTrigger', None)
 
     def sql_insert(self, record):
-        """Insert without triggers (legacy raw_insert); a list runs one executemany per column set."""
+        """Insert without triggers (legacy raw_insert); a list runs one executemany per column set.
+
+        Missing keys are assigned first (checkPkey); in a list each further
+        integer key is the next integer. A key the database generates is left out.
+        """
         writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
+        self._assign_keys(record if isinstance(record, list) else [record])
         if isinstance(record, list):
             for compiled, params in writer.insert_many(self.model, record, snapshot):
                 self.db.executemany(compiled, params).close()
@@ -409,6 +410,23 @@ class SqlTable(CrudMixin, TriggersMixin):
         if rows:
             record.update(dict(rows[0]))
         return record
+
+    def _assign_keys(self, records):  # wf:phase-3:new
+        pkey = self.model.pkey
+        if not pkey:
+            return
+        column = self.model.columns.get(pkey)
+        if column is not None and sql_attribute_declared(column.attributes, 'default'):
+            return
+        integer = column is not None and column.dtype in _INTEGER_DTYPES
+        next_integer = None
+        for record in records:
+            if integer and next_integer is not None and record.get(pkey) in (None, ''):
+                record[pkey] = next_integer
+            else:
+                self.checkPkey(record)
+            if integer and record.get(pkey) is not None:
+                next_integer = max(next_integer or 0, record[pkey] + 1)
 
     def sql_update(self, record, old_record=None, pkey=None):
         """Update without triggers (legacy raw_update); the key comes from old_record, pkey or record."""

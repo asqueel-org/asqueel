@@ -691,7 +691,9 @@ class _TreeContext:
                     ignore_partition=False, for_update=False, distinct=False,
                     group_by=None, having=None, bagFields=False, addPkeyColumn=False,
                     count=False) -> SqlCompiledQuery:
-        for name, value in [('for_update', for_update), ('bagFields', bagFields), ('addPkeyColumn', addPkeyColumn)]:
+        if for_update not in (False, True, 'NOWAIT', 'SKIP LOCKED') or type(for_update) is int:
+            raise ValueError('for_update must be True, NOWAIT or SKIP LOCKED')
+        for name, value in [('bagFields', bagFields), ('addPkeyColumn', addPkeyColumn)]:
             if type(value) is not bool:
                 raise ValueError(f'{name} must be a boolean')
         if distinct is not None and type(distinct) is not bool:

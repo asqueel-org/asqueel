@@ -13,3 +13,11 @@
 - Maintenance calls live on the adapter as legacy (`analyze`, `setConstraintsDeferred` through `dbroot.execute`; `vacuum` on its own connection from `dbroot._connection_settings()`), the database delegates. `setLocale` is one no-op in the base adapter, inherited by both.
 - Contract skeleton for the fetch error uses `fetchall()`: sqlite3 prefetches the next row, so the second row fails at the first `fetchone()`.
 - `cursorname='*'` generates `'c' + uuid4().hex` (legacy: `'c' + uuid with \W → _`).
+
+## Phase 3
+- `toTypedJSON`/`fromTypedJSON`/`JSONTypedEncoder` live in write_compiler.py: the write compiler parses keys (`key_values`), table_crud imports the encoder. Decoding converts list members ending in `::D`, `::DH`, `::H`, `::N`, as legacy typedTextDeepConverter does for these suffixes.
+- `key_values(table, pkey)` is public on WriteCompiler because `SqlTable._key_selector` uses it too (one parser for update, delete, reread, insertOrUpdate).
+- SQLite `lock()`: a zero-row `UPDATE` of the first key column; sqlite3 in DEFERRED mode opens the transaction before DML, and the UPDATE takes the RESERVED lock. It is the statement `_begin` already runs for a for_update query inside a transaction.
+- `insertOrUpdate` reads with `columns='*'` and `for_update=True` (which also brings the X columns), default filters on, as legacy.
+- `for_update` validation: `0`/`1` ints refused like before (`type(...) is int`).
+- Realigned: test_handles `test_hooked_delete_rejects_missing_or_multiple_records_before_hooks` → `test_hooked_delete_of_a_key_rereads_it_before_hooks` (the incomplete-dict reread it covered is removed by decision); test_write_cycle reread test now deletes by key string; test_write_compiler composite key as serialized string and SQLite lock statement.

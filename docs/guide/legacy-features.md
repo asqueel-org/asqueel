@@ -182,8 +182,9 @@ the write cycle, see [Current status](limitations.md).
   does not use stays a parameter and the query runs, with an
   `UnusedQueryParameterWarning` that names it and the parameters the query
   uses; `jc_*` keywords raise. Reason: it catches misspelled options.
-- **`for_update`** (A2.12): as in GenroPy, but refused together with
-  `distinct` or `group_by`. Reason: early refusal of a combination the
+- **`for_update`** (A2.12): `True`, `'NOWAIT'` or `'SKIP LOCKED'`, as in
+  GenroPy, but refused together with `distinct` or `group_by`; SQLite refuses
+  the string modes. Reason: early refusal of a combination the
   database rejects.
 - **`ignorePartition` and the partition filter** (A2.14): `0` and `False` are
   valid values, an empty allowed set returns no rows, a missing context raises
@@ -369,11 +370,11 @@ the write cycle, see [Current status](limitations.md).
   does not execute is refused before any hook. Reason: the write cycle is
   database-only; see [Current status](limitations.md) for the refusals.
 - **`update(record, old_record=None, pkey=None)`** (A5.2): key from
-  `old_record`, then `pkey`, then `record`; composite pkey as mapping or
-  sequence; no storename; extra kwargs ignored. Reason: same pkey shape as
+  `old_record`, then `pkey`, then `record`; a composite pkey is the serialized
+  string, as legacy; no storename; extra kwargs ignored. Reason: same pkey shape as
   legacy `record()`; the package storename: not recorded.
-- **`delete(record)` and `deletable`** (A5.3): a missing string key returns
-  without error; an incomplete dict is re-read with a lock; the DELETE must
+- **`delete(record)` and `deletable`** (A5.3): a string key is re-read with a
+  lock, a missing one returns without error; a dict is deleted as given; the DELETE must
   remove exactly one row, otherwise `RecordNotFoundError`; `deletable` is only
   a boolean. Reason: design decision of 2026-10-15 (provisional); `deletable`
   as a permission tag: not recorded.
@@ -397,12 +398,21 @@ the write cycle, see [Current status](limitations.md).
   `ValueError`. Reason: legacy defects corrected (decision of 2026-10-16,
   provisional).
 - **`checkPkey`, `newPkeyValue`, `pkeyValue`** (A5.13): same order of
-  strategies; composite key as JSON; UUID from `genro_toolbox`; `__syscode`
+  strategies; composite key as legacy `toTypedJSON`; UUID from `genro_toolbox`; `__syscode`
   without `sysRecord_<code>`. Reason: a time-ordered id (decision of
   16 October); `sysRecord_<code>` and the JSON format: not recorded.
+- **`insertOrUpdate(record)`**: as legacy, returning the record also after an
+  update, whose `old_record` is the row as a dict. Reason: legacy returned None
+  and passed a fetch row (legacy bugs, fixed).
+- **`lock(mode, nowait)`**: as legacy on PostgreSQL, with `NOWAIT` (legacy
+  emitted `NO WAIT`: legacy bug, fixed); on SQLite the write reservation.
+- **Bag values** (`prepareRecordData`): a Bag is written as its XML, an empty
+  Bag as NULL, as legacy.
 - **`raw_insert`, `raw_update`, `raw_delete`, `insertMany`** (A5.17):
   replaced by `sql_insert` (record or list), `sql_update`, `sql_delete`: SQL
-  only, no capability check. Reason: raw commands exist to skip triggers;
+  only, no capability check. `sql_insert` assigns the missing keys first; in a
+  list each integer key is the next one (legacy `insertMany` gave every record
+  the same value: legacy bug, fixed). Reason: raw commands exist to skip triggers;
   `insertMany` becomes `sql_insert` with a list (decision of 2026-10-15).
 - **`sql_deleteSelection(where, _pkeys)`** (A5.18): replaced by
   `query(...).sql_delete()`, one `DELETE ... WHERE pk IN (SELECT ...)`

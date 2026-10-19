@@ -76,6 +76,11 @@ the update raises `ValueError` when a relation pointing to this table declares
 `onUpdate`: the cycle needs the old key to apply it. The UPDATE does not check
 how many rows it changed.
 
+`insertOrUpdate(record)` reads the row of the record's key with
+`for_update=True` and the query's default filters. Without a row it runs
+`insert(record)`; with a row it runs `update(record, old_record=<that row>)`.
+It returns the record in both cases.
+
 The cycle runs `protect_update`, `protect_validate`, column `onUpdating`
 triggers, `trigger_onUpdating`, `protect_draft`, `trigger_assignCounters`, the
 UPDATE, then the `onUpdate` actions of the relations pointing to this table when
@@ -93,9 +98,9 @@ except Exception:
 
 ```
 
-`delete()` accepts a key string or a record. A record lacking some physical
-columns is read again, with a lock, before the cycle; a missing key string
-returns without error. The DELETE must remove exactly one row, otherwise it
+`delete()` accepts a key string or a record. A key string is read again, with a
+lock, and its row enters the cycle; a missing key string returns without error.
+A record is deleted as given, without reading it again. The DELETE must remove exactly one row, otherwise it
 raises `RecordNotFoundError`. A table declared with `deletable=False` refuses
 every delete.
 
@@ -129,9 +134,11 @@ except Exception:
 
 ```
 
-- `sql_insert(record)` accepts one record or a list. A list runs one
-  `executemany` per group of consecutive records with the same columns, without
-  RETURNING.
+- `sql_insert(record)` accepts one record or a list. A missing key is
+  assigned first, as `checkPkey` does; in a list each further integer key is
+  the next integer. A key the database generates (`serial`, `sql_default`) is
+  not assigned. A list runs one `executemany` per group of consecutive records
+  with the same columns, without RETURNING.
 - `sql_update(record, old_record=None, pkey=None)` takes the key like `update`.
 - `sql_delete(record)` deletes by the record's key and does not check the row count.
 
@@ -153,6 +160,29 @@ except Exception:
 `query(...).sql_delete()` deletes the selected rows in the same way. A query
 with `group_by` or `having` is refused. The query's parameter names and the
 value names must differ.
+
+## Composite keys
+
+A table whose `pkey` is a compositeColumn identifies a row by the serialized
+key: the JSON list of the members, with dates, timestamps, times and decimals
+as typed text (`'["a", "2026-01-01::D"]'`). `insert` assigns it to the
+compositeColumn of the record when it is None or ''. It is the same string the
+compositeColumn returns when read. `update(record, pkey=...)` and
+`delete(...)` take it as a string; a tuple or mapping raises `ValueError`.
+
+## Bag values
+
+A `genro_bag.Bag` written to a column becomes its XML (`to_xml()`); an empty
+Bag becomes NULL. A read returns the XML string; `#BAG` in the query columns
+turns it back into a Bag.
+
+## Lock a table
+
+`table.lock(mode='ACCESS EXCLUSIVE', nowait=False)` locks the table in the
+current transaction. On PostgreSQL it runs `LOCK <table> IN <mode> MODE`, with
+`NOWAIT` when asked; `mode` is one of the PostgreSQL lock modes, another value
+raises `ValueError`. On SQLite it takes the write reservation, as a
+`for_update` query does. The lock ends at commit or rollback.
 
 ## Understand the write boundary
 

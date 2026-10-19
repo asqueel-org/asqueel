@@ -206,6 +206,8 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                    for_update=False, maintable_as='t0'):
         if for_update:
             self._require('for_update')
+        if isinstance(for_update, str):
+            raise UnsupportedFeatureError(f'for_update={for_update} is not available on SQLite')
         if offset and not limit:
             limit = 9223372036854775807
         return super().compileSql(maintable, columns, distinct, joins, where, group_by,

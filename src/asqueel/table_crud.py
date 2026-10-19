@@ -7,16 +7,14 @@ the cycle itself runs in db_write.WriteMixin.
 Differences from the legacy, decided in the write-cycle plan:
 - ``updateRelated`` continues with the next relation when a key did not
   change (genropy#1686) and refuses with ``save`` (genropy#1687);
-- ``delete(dict)`` reloads with a lock only an incomplete dict;
 - generated UUIDs come from ``genro_toolbox.uid.get_uuid``.
 """
 from __future__ import annotations
 
-import json
-
 from genro_toolbox.uid import get_uuid
 
 from .common import split_names
+from .write_compiler import toTypedJSON
 
 _INTEGER_DTYPES = frozenset({'L', 'I', 'R'})
 _UUID_DTYPES = frozenset({'T', 'A', 'C'})
@@ -49,28 +47,41 @@ class CrudMixin:
         return record
 
     def delete(self, record, **kwargs):
-        """Delete a single record: a key string, or a dict.
+        """Delete a single record: a key string, or a dict taken as it is.
 
-        A missing key string returns without error. A dict lacking physical
-        columns is reloaded with a lock before the cycle.
+        A key string is reread with a lock; a missing one returns without error.
         """
         if isinstance(record, str):
-            record = self._reread(record, ignoreMissing=True)
+            record = self._reread(record)
             if record is None:
                 return
-        elif not set(self.model.columns) <= set(record):
-            keys = self.pkeys
-            key = record[keys[0]] if len(keys) == 1 else tuple(record[name] for name in keys)
-            record = self._reread(key)
         self.db.delete(self, record, **kwargs)
 
-    def _reread(self, pkey, ignoreMissing=False):
-        """The complete row of ``pkey``, locked, outside the draft/logical-delete/partition filters."""
+    def insertOrUpdate(self, record):  # wf:phase-3:new
+        """Insert ``record`` when its key has no row, else update it with that row as old_record."""
+        pkey = record.get(self.model.pkey)
+        old_record = None
+        if pkey not in (None, ''):
+            where, sqlparams = self._key_selector(pkey)
+            old_record = self.query(where=where, sqlparams=sqlparams,
+                                    for_update=True).fetchRecord(ignoreMissing=True)
+        if old_record is None:
+            return self.insert(record)
+        return self.update(record, old_record=dict(old_record))
+
+    def lock(self, mode='ACCESS EXCLUSIVE', nowait=False):  # wf:phase-3:new
+        """Lock the table in the current transaction; on SQLite, take the write reservation."""
+        db = self.db
+        db.execute(db.write_compiler.lock_table(self.model, db.environment.snapshot(),
+                                                mode=mode, nowait=nowait)).close()
+
+    def _reread(self, pkey):
+        """The complete row of ``pkey``, locked, outside the draft/logical-delete/partition filters; None if missing."""
         where, sqlparams = self._key_selector(pkey)
         columns = ','.join('$' + name for name in self.model.columns)
         row = self.query(columns=columns, where=where, sqlparams=sqlparams, for_update=True,
                          exclude_draft=False, exclude_logical_deleted=False, ignore_partition=True,
-                         bagFields=True).fetchRecord(ignoreMissing=ignoreMissing)
+                         bagFields=True).fetchRecord(ignoreMissing=True)
         return None if row is None else dict(row)
 
     # ------------------------------------------------------------------
@@ -101,7 +112,7 @@ class CrudMixin:
         model = self.model
         keys = self.pkeys
         if len(keys) > 1:
-            return json.dumps([record[name] for name in keys], default=str)
+            return toTypedJSON([record[name] for name in keys])
         column = model.columns[model.pkey]
         attributes = column.attributes
         if column.dtype in _INTEGER_DTYPES:

@@ -183,7 +183,7 @@ class CompiledQuery:
     environment_keys: tuple[str, ...] = ()
     # Original caller parameter names consumed before scoped SQL renaming.
     input_parameters: tuple[str, ...] = ()
-    for_update: bool = False
+    for_update: bool | str = False
     lock_table: str | None = None
     lock_column: str | None = None
     # (field, separateCols) of the #BAG/#BAGCOLS columns, turned into Bags after fetch.

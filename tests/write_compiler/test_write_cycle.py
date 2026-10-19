@@ -173,14 +173,14 @@ def test_delete_by_missing_key_string_returns_quietly(db):
     assert events(db) == []
 
 
-def test_delete_reloads_an_incomplete_record_and_runs_related_actions(db):
+def test_delete_of_a_key_rereads_the_record_and_runs_related_actions(db):
     table = db.table('sales.parent')
     table.insert({'id': 'p1', 'name': 'with child'})
     db.table('sales.kid').insert({'id': 'k1', 'parent_id': 'p1'})
     events(db)
-    table.delete({'id': 'p1'})
+    table.delete('p1')
     log = events(db)
-    assert log[0] == ('onDeleting', 'WITH CHILD')  # the record was reloaded
+    assert log[0] == ('onDeleting', 'WITH CHILD')  # the record was reread
     assert ('child onDeleted', 'c-p1') in log and log.index(('child onDeleted', 'c-p1')) < log.index(('onDeleted',))
     assert rows(db, 'parent') == [] and rows(db, 'child') == []
     assert rows(db, 'kid', 'id, parent_id') == [{'id': 'k1', 'parent_id': None}]

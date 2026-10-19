@@ -17,13 +17,13 @@ step below on both databases.
 
 | Area | Available | Boundary |
 |---|---|---|
-| Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and deferred transactions; `for_update` takes the database write lock. PostgreSQL-specific SQL is not translated. |
+| Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and deferred transactions; `for_update=True` and `table.lock()` take the database write lock; `for_update='NOWAIT'`/`'SKIP LOCKED'` are refused. PostgreSQL-specific SQL is not translated. |
 | Tables | `db.migrate()` creates and alters the declared tables; it needs `asqueel[migration]`. | Without the extra, create tables with your own DDL, as in the [quickstart](quickstart.md). |
 | Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; the legacy fetch terminals (`fetchRecord()` for exactly one row, `fetchPkeys`, `fetchAsDict`, `fetchAsJson`, `fetchAsBag`, `fetchGrouped`, `cursor`, `servercursor`, `iterfetch`, `serverfetch`); `for_update=True` for a locked read. | Rows are Toolbox `NamedList` rows; `fetch()` materializes them, `iterfetch()` reads them in chunks. |
 | Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `relation_name` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |
 | Formulas | SQL formula columns, table formula methods, `formulaColumn_<x>()` dynamic columns, `select`/`exists` dictionaries, named `select_*`/`exists_*` subqueries, compositeColumn read as a value, `subQueryColumn` with `aggr=`, `#ENV` in `sql_formula`, `#BAG`/`#BAGCOLS` in the query columns. | Formulas are read-only. JSON/XML `subQueryColumn` modes and `aggr(to_xml(...))` need PostgreSQL; `aggr(to_json(...))` runs on both. |
 | Alias columns | `aliasColumn` through to-one paths, with inherited metadata and `originalColumn`. | Read-only: an alias key in a write mapping is skipped. |
-| Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
+| Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
 | Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
 | Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
 | Row policies | Partition, draft and logical-deletion filters on reads. | They do not apply to writes (see below). |
@@ -77,10 +77,12 @@ a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-o
   not check the number of updated rows.
 - `delete` accepts a key string or a record. It must remove exactly one row,
   otherwise `RecordNotFoundError`. A missing key string returns without error.
+- A composite key is passed as its serialized string; tuples and mappings raise.
 - `delete` is always a physical DELETE. There is no soft-delete or restore
   command: write the logical-deletion column with `update`.
-- `sql_insert` accepts one record or a list; a list runs one `executemany` per
-  group of records with the same columns, without RETURNING.
+- `sql_insert` accepts one record or a list and assigns the missing keys; a
+  list runs one `executemany` per group of records with the same columns,
+  without RETURNING.
 - A Python error inside the cycle makes the connection rollback-only: call
   `db.rollback()` before reusing it.
 

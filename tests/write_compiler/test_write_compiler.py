@@ -122,11 +122,13 @@ def test_composite_key_uses_component_sql_names(db):
     table = model(db, 'sales.row')
     deleted = writer(db).delete(table, {'order_id': 1, 'line': 2}, {})
     assert 'WHERE "order_id"=' in deleted.sql and ' AND "line"=' in deleted.sql
-    updated = writer(db).update(table, {'qty': 3}, {}, pkey=(1, 2))
+    updated = writer(db).update(table, {'qty': 3}, {}, pkey='[1, 2]')
     assert '"qty_sql"=' in updated.sql
     assert params_of(updated)['__pkey__0'] == 1 and params_of(updated)['__pkey__1'] == 2
     with pytest.raises(ValueError, match='composite key'):
-        writer(db).update(table, {'qty': 3}, {}, pkey='1,2')
+        writer(db).update(table, {'qty': 3}, {}, pkey='[1]')
+    with pytest.raises(ValueError, match='serialized string'):
+        writer(db).update(table, {'qty': 3}, {}, pkey=(1, 2))
 
 
 def test_delete_uses_sql_names_in_where(db):
@@ -144,10 +146,11 @@ def test_delete_uses_sql_names_in_where(db):
 def test_lock_table_uses_nowait(db):
     compiled = writer(db).lock_table(model(db, 'sales.item'), {}, nowait=True)
     if db.adapter.dialect == 'sqlite':
-        assert compiled is None
+        assert compiled.sql == 'UPDATE "main"."sales_item" SET "id"="id" WHERE 0'
     else:
-        assert compiled is not None
         assert compiled.sql.endswith('IN ACCESS EXCLUSIVE MODE NOWAIT')
+    with pytest.raises(ValueError, match='lock mode'):
+        writer(db).lock_table(model(db, 'sales.item'), {}, mode='FOR SHARE')
 
 
 # ----------------------------------------------------------------------

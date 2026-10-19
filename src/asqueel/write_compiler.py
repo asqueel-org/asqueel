@@ -8,12 +8,63 @@ the adapter into the common CompiledQuery and executed by ``db.execute``.
 """
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+import datetime
+import json
+import re
+from decimal import Decimal
+
+from genro_bag import Bag
 
 from .common import split_names, sql_attribute_declared
 
 #: Physical types whose value the database assigns on insert.
 _GENERATED_KEY_DTYPES = frozenset({'serial', 'serial4'})
+#: PostgreSQL table lock modes accepted by ``lock_table``.
+LOCK_MODES = frozenset({'ACCESS SHARE', 'ROW SHARE', 'ROW EXCLUSIVE', 'SHARE UPDATE EXCLUSIVE', 'SHARE',
+                        'SHARE ROW EXCLUSIVE', 'EXCLUSIVE', 'ACCESS EXCLUSIVE'})
+_TYPED_TEXT = re.compile(r'^(.*)::(DH|D|H|N)$', re.DOTALL)
+
+
+class JSONTypedEncoder(json.JSONEncoder):  # wf:phase-3:new
+    """Legacy gnrstring.JSONTypedEncoder: temporal and decimal values as typed text."""
+
+    def default(self, o):  # wf:phase-3:new
+        if isinstance(o, datetime.time):
+            return f'{o}::H'
+        if isinstance(o, Decimal):
+            return f'{o}::N'
+        if isinstance(o, datetime.datetime):
+            return f'{o}::DH'
+        if isinstance(o, datetime.date):
+            return f'{o}::D'
+        return super().default(o)
+
+
+def toTypedJSON(values):  # wf:phase-3:new
+    """The serialized composite key: legacy toTypedJSON."""
+    return json.dumps(values, cls=JSONTypedEncoder)
+
+
+def fromTypedJSON(text):  # wf:phase-3:new
+    """Legacy fromTypedJSON on a serialized key: a list whose typed texts become values."""
+    values = json.loads(text)
+    if not isinstance(values, list):
+        raise ValueError(f'a serialized composite key is a JSON list, not {text!r}')
+    return [_from_typed_text(value) for value in values]
+
+
+def _from_typed_text(value):  # wf:phase-3:new
+    match = _TYPED_TEXT.match(value) if isinstance(value, str) else None
+    if match is None:
+        return value
+    text, dtype = match.groups()
+    if dtype == 'D':
+        return datetime.date.fromisoformat(text)
+    if dtype == 'DH':
+        return datetime.datetime.fromisoformat(text)
+    if dtype == 'H':
+        return datetime.time.fromisoformat(text)
+    return Decimal(text)
 
 
 class WriteCompiler:
@@ -48,7 +99,7 @@ class WriteCompiler:
         """prepareRecordData: the values a statement may bind.
 
         Keys starting with ``@``, the ``pkey`` key and virtual columns are
-        dropped. Other keys that are not physical columns are kept as
+        dropped. A Bag becomes its XML, an empty Bag None. Other keys that are not physical columns are kept as
         parameters but never become SQL columns, as in the legacy adapter.
         Every ``sql_value`` column absent from the record is added with None,
         so its expression is always emitted.
@@ -58,6 +109,8 @@ class WriteCompiler:
         for key, value in record.items():
             if key.startswith('@') or key == 'pkey' or key in virtual:
                 continue
+            if isinstance(value, Bag):
+                value = value.to_xml() if len(value) else None
             data[str(key)] = value
         for name, column in table.columns.items():
             if 'sql_value' in column.attributes and name not in data:
@@ -129,7 +182,7 @@ class WriteCompiler:
         if old_record:
             key_values = [old_record[name] for name in keys]
         elif pkey is not None:
-            key_values = self._key_values(table, keys, pkey)
+            key_values = self.key_values(table, pkey)
         else:
             key_values = [data[name] for name in keys]
         where = self._key_where(table, keys, key_values, data)
@@ -173,9 +226,18 @@ class WriteCompiler:
         return self.adapter.prepare_sql(f'DELETE FROM {self.sql_fullname(table)} WHERE {where}', params, snapshot)
 
     def lock_table(self, table, snapshot, mode='ACCESS EXCLUSIVE', nowait=False):
-        """lockTable; SQLite has no table lock and gets no statement."""
+        """lockTable; SQLite has no table lock and takes the write reservation instead.
+
+        The SQLite statement is the one a ``for_update`` query runs inside a
+        transaction: an UPDATE of no row, which the driver opens a transaction for.
+        """
+        if mode not in LOCK_MODES:
+            raise ValueError(f'lock mode must be one of {", ".join(sorted(LOCK_MODES))}, not {mode!r}')
         if self.adapter.dialect == 'sqlite':
-            return None
+            names = self.pkeys(table) if table.pkey else tuple(table.columns)
+            column = self.adapter.adaptSqlName(table.columns[names[0]].sqlname)
+            return self.adapter.prepare_sql(
+                f'UPDATE {self.sql_fullname(table)} SET {column}={column} WHERE 0', {}, snapshot)
         sql = f'LOCK {self.sql_fullname(table)} IN {mode} MODE{" NOWAIT" if nowait else ""}'
         return self.adapter.prepare_sql(sql, {}, snapshot)
 
@@ -183,14 +245,16 @@ class WriteCompiler:
     #  Helpers
     # ------------------------------------------------------------------
 
-    def _key_values(self, table, keys, pkey):
+    def key_values(self, table, pkey):  # wf:phase-3:new
+        """The physical key values of ``pkey``; a composite key is its serialized string."""
+        keys = self.pkeys(table)
         if len(keys) == 1:
             return [pkey]
-        if isinstance(pkey, Mapping):
-            return [pkey[name] for name in keys]
-        if isinstance(pkey, Sequence) and not isinstance(pkey, str) and len(pkey) == len(keys):
-            return list(pkey)
-        raise ValueError(f'{table.fullname}: a composite key needs a mapping or a sequence of {len(keys)} values')
+        values = fromTypedJSON(pkey) if isinstance(pkey, str) else None
+        if values is None or len(values) != len(keys):
+            raise ValueError(f'{table.fullname}: a composite key is the serialized string of its '
+                             f'{len(keys)} members, as toTypedJSON writes it (e.g. \'[1, 2]\'), not {pkey!r}')
+        return values
 
     def _key_where(self, table, keys, values, params):
         quote = self.adapter.adaptSqlName

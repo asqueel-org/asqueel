@@ -136,7 +136,7 @@ class SqlDbAdapter:
         if offset:
             result.append(f'OFFSET {offset}')
         if for_update:
-            result.append(f'FOR UPDATE OF {maintable_as}')
+            result.append(f'FOR UPDATE OF {maintable_as}' + (f' {for_update}' if isinstance(for_update, str) else ''))
         return '\n'.join(result)
 
     # ------------------------------------------------------------------
