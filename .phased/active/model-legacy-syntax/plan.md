@@ -98,3 +98,6 @@ Model declarations take the legacy spelling the user decided on 2026-10-17 (deci
 | Phase 3 | low | opus |
 | Phase 4 | high | opus |
 | Repair | high | opus |
+
+## Quality check
+> Quality check: 2026-10-19T04:27:40Z — commit 63b6665 — review extended, QA none, findings 13 confirmed, 1 dismissed, final touch 13 corrections
