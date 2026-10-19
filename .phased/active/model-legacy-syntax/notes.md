@@ -50,3 +50,9 @@ Reviewed revision: e126aec (review extended, one opus reviewer over c3c2612..e12
 
 Naming: the 18 new callables keep their names (11 legacy properties, 7 internal helpers); all wf:phase-N:new markers removed.
 Checks run: tests/test_package_layout_edges.py (new), tests/test_release_invoice_migration.py (new loader test), contract tests of the 4 phases, full suite 5001 passed / 42 skipped / 31 xfailed, ruff, mypy clean, marker sweep empty.
+
+Re-check (light, effort low, over 1b384a7 and its callers): 3 residuals, corrected on the user's answer in `wf: final touch — +3`:
+- custom_type_<dtype>() values now pass the column rules (str_boolean for indexed/unique, specific refusals for encrypted/variant/localized/ext_*); an unknown key was already refused by model validation (checked);
+- a custom_type_<dtype>() without dtype raises;
+- `_columns` walks Bag values only.
+Checks: tests/test_package_layout_edges.py (3 new cases), full suite 5004 passed / 42 skipped / 31 xfailed, ruff, mypy clean.

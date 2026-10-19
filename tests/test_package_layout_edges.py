@@ -96,3 +96,23 @@ def test_cnd_relation_refuses_an_explicit_foreign_key():
     column = pkg.table('invoice', pkey='id').column('customer_id', dtype='L')
     with pytest.raises(ValueError, match='a relation with cnd= has no foreign key'):
         column.relation('app.customer.id', cnd='$customer_id = @customer_id.id', foreign_key=True)
+
+
+@pytest.mark.parametrize('extra, check', [
+    ("indexed='y'", lambda column: column.attributes['indexed'] is True),
+    ('encrypted=True', None),
+])
+def test_custom_type_values_follow_the_column_rules(tmp_path, extra, check):
+    main = MAIN.replace("format='#,###.00')", f"format='#,###.00', {extra})")
+    source = config(tmp_path, write_package(tmp_path / 'sales', main=main, customer=CUSTOMER))
+    if check is None:
+        with pytest.raises(UnsupportedFeatureError, match='encrypted is not available in this release'):
+            AsqueelDb(source)
+    else:
+        assert check(AsqueelDb(source).model.table('sales.customer').column('balance'))
+
+
+def test_custom_type_without_dtype_raises(tmp_path):
+    main = MAIN.replace("dtype='N', ", '')
+    with pytest.raises(ValueError, match=r'custom_type_money\(\) returns no dtype'):
+        AsqueelDb(config(tmp_path, write_package(tmp_path / 'sales', main=main, customer=CUSTOMER)))

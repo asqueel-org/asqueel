@@ -9,6 +9,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+from genro_bag import Bag
+
 from .contracts import not_available
 
 
@@ -29,10 +31,10 @@ def load_package_layouts(builder):
 
 def _columns(node):
     """Every column node below ``node``."""
-    for child in node.value or ():
+    for child in node.value if isinstance(node.value, Bag) else ():
         if child.node_tag == 'column':
             yield child
-        elif child.value is not None and hasattr(child.value, '__iter__') and not isinstance(child.value, str):
+        else:
             yield from _columns(child)
 
 
@@ -73,10 +75,17 @@ def load_package_layout(pkg):
         table.attr['x_table_class'] = type(path.stem, (table_class, SqlTable), {})
     custom_types = {method.removeprefix('custom_type_'): getattr(package, method)()
                     for method in dir(package) if method.startswith('custom_type_')}
+    for dtype, defaults in custom_types.items():
+        if 'dtype' not in defaults:
+            raise ValueError(f'{name}: Package.custom_type_{dtype}() returns no dtype')
     for column in _columns(pkg):
         defaults = custom_types.get(column.get_attr('dtype'))
         if defaults is not None:
-            column.attr['dtype'] = defaults.get('dtype')
-            for key, value in defaults.items():
-                if key != 'dtype' and column.get_attr(key) is None:
-                    column.attr[key] = value
+            added = {key: value for key, value in defaults.items()
+                     if key != 'dtype' and column.get_attr(key) is None}
+            builder, where = column._resolve_builder(), column.parent_bag
+            checked = dict(added, name=column.label)
+            builder._missing_feature_attributes(where, 'column', checked)
+            builder._legacy_column_attributes(where, checked)
+            checked.pop('name')
+            column.attr.update(checked, dtype=defaults['dtype'])
