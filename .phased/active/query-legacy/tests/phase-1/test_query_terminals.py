@@ -81,7 +81,7 @@ def test_fetch_grouped_lists_rows_per_key(customers):
     assert [row['code'] for row in grouped['y']] == ['a']
     ordered = query(customers).fetchGrouped(key='grp', ordered=True)
     assert type(ordered) is OrderedDict
-    assert list(ordered) == ['x', 'y']
+    assert list(ordered) == ['y', 'x']
     bag = query(customers).fetchGrouped(key='grp', asBag=True)
     assert isinstance(bag, Bag)
     assert sorted(bag.keys()) == ['x', 'y']

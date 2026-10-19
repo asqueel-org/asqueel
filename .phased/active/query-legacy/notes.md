@@ -6,3 +6,5 @@
 - `fetchAsBag` sorts by the key only; legacy `sorted()` on `(key, None, dict)` tuples gives the same order and fails on duplicate keys.
 - The delete reread keeps the options of the removed `record()` (all physical columns, `exclude_draft=False`, `exclude_logical_deleted=False`, `ignore_partition=True`, `bagFields=True`) so its missing-row behaviour is unchanged.
 - Stopped on a plan-defect claim about `fetchGrouped(ordered=True)`: see the phase Issue.
+## Phase 1
+- Plan-defect claim confirmed by the foreman: the contract test assumed `fetchGrouped(ordered=True)` sorts the keys; legacy keeps the fetch order. Line 84 corrected to `['y', 'x']` in both copies (run stopped on the user's answer, repair launched by the relaunch).
