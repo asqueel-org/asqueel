@@ -124,7 +124,7 @@ def events(db):
 
 
 def rows(db, table, columns='id'):
-    return [dict(r) for r in db.execute(f'SELECT {columns} FROM {db.prefix}sales_{table} ORDER BY id').rows]
+    return [dict(r) for r in db.execute(f'SELECT {columns} FROM {db.prefix}sales_{table} ORDER BY id').fetchall()]
 
 
 def test_insert_runs_the_legacy_order_and_returns_the_modified_record(db):

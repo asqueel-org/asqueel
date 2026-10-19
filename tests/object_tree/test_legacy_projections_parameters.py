@@ -15,7 +15,6 @@ import pytest
 
 from asqueel._legacy_sql import embed_field_parameters
 from asqueel.contracts import UnusedQueryParameterWarning
-from asqueel.adapters.base import query_result
 from tests.object_tree import test_minimal_select as minimal
 
 
@@ -199,11 +198,5 @@ def test_authored_projection_names_are_obtained_from_sqlite_cursor():
                 assert list(row) == expected_values
                 if compiled.columns:
                     assert [c.name for c in compiled.columns] == names
-                # Duplicate names are legal at this compile-only boundary. Existing
-                # fetch's uniqueness check is outside R2 and is not changed here.
-                if len(set(names)) == len(names):
-                    cursor = conn.execute(compiled.sql, dict(compiled.params))
-                    result = query_result(compiled.columns, names, cursor)
-                    assert list(result.rows[0]) == expected_values
     finally:
         database.closeConnection()

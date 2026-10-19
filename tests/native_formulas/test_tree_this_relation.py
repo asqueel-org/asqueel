@@ -34,7 +34,7 @@ def test_this_relation_in_sql_formula_returns_related_value(
         # Legacy keys include the traversal path: through invoice_row, the
         # direct path and the formula-local path keep distinct customer aliases.
         assert compiled.sql.count('LEFT JOIN') == (1 if table == 'invc.invoice' else 3)
-        rows = executor.execute(compiled).rows
+        rows = executor.execute(compiled).fetchall()
         assert rows
         assert any(row['customer_name'] is not None for row in rows)
         for row in rows:

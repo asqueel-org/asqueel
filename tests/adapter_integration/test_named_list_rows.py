@@ -55,15 +55,16 @@ def test_raw_compiled_and_empty_result_metadata(shop):
     query = shop.query(columns='$note AS "Note value",$id AS "ID"', where='$id=11')
     for result in [query.execute(), shop.db.execute(query.compiled),
                    shop.db.execute('SELECT NULL AS "Note value", 11 AS "ID"')]:
-        row = result.rows[0]
+        names = [column[0] for column in result.description]
+        row = result.fetchall()[0]
         assert type(row) is NamedList
         assert row.keys() == ['Note value', 'ID']
         assert row[0] is None and row[1] == 11
         assert row['ID'] == 11
-        assert [column.name for column in result.columns] == row.keys()
+        assert names == row.keys()
     empty = shop.query(columns='$id AS code', where='1=0').execute()
-    assert empty.rows == []
-    assert [column.name for column in empty.columns] == ['code']
+    assert empty.fetchall() == []
+    assert [column[0] for column in empty.description] == ['code']
 
 
 def test_returning_dict_and_fetch_record_named_list_keep_their_declared_interfaces(shop):

@@ -31,7 +31,7 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
         db.execute(f'INSERT INTO "{schema}".event VALUES (:value)', {'value': value})
 
     def visible():
-        result = observer.execute(f'SELECT id FROM "{schema}".event ORDER BY id').rows
+        result = observer.execute(f'SELECT id FROM "{schema}".event ORDER BY id').fetchall()
         observer.rollback()
         return [row['id'] for row in result]
 

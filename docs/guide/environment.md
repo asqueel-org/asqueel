@@ -197,7 +197,7 @@ executor = PostgresDatabase("dbname=example", environment=environment)
 try:
     with environment.temp_env(customer_id=1):
         compiled = compiler.select("sales.customer", where="$id=:env_customer_id")
-        rows = executor.execute(compiled).rows
+        rows = executor.execute(compiled).fetchall()
 finally:
     executor.closeConnection()
 ```

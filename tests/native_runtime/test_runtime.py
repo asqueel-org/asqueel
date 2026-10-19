@@ -16,7 +16,7 @@ class FakeConnection:
     def record(self, name):
         self.calls.append((name, threading.get_ident()))
 
-    def cursor(self, **kwargs):
+    def cursor(self, *args, **kwargs):
         self.record('cursor')
         return self
 
@@ -67,7 +67,7 @@ def test_shared_execute_retains_connection_until_explicit_completion(fake):
     assert not hasattr(db, 'transaction')
     assert not hasattr(db, 'connection')
     result = db.execute(CompiledQuery('select'))
-    assert [dict(row) for row in result.rows] == [{'value': 42}]
+    assert [dict(row) for row in result.fetchall()] == [{'value': 42}]
     assert not any(name == 'commit' for name, _ in fake)
     db.commit()
     db.execute(CompiledQuery('second'))
@@ -189,15 +189,14 @@ def test_mismatched_metadata_rolls_back_before_fetch(fake, columns):
     assert 'fetch' not in [name for name, _ in fake]
 
 
-def test_supplied_metadata_is_preserved(fake):
+def test_matching_metadata_reads_the_rows_by_name(fake):
     column = ResultColumn('value', 'I', 'sample.value', {'label': 'The value'})
     db = PostgresDatabase()
     try:
-        result = db.execute(CompiledQuery('select', columns=(column,)))
+        rows = db.execute(CompiledQuery('select', columns=(column,))).fetchall()
     finally:
         db.closeConnection()
-    assert result.columns[0] is column
-    assert [dict(row) for row in result.rows] == [{'value': 42}]
+    assert [dict(row) for row in rows] == [{'value': 42}]
 
 
 def test_metadata_without_result_set_fails(fake, monkeypatch):

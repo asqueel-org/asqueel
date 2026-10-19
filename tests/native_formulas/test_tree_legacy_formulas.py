@@ -25,7 +25,7 @@ class ResultQuery:
         self.query, self.executor = query, executor
 
     def fetch(self):
-        return self.executor.execute(self.query.compiled).rows
+        return self.executor.execute(self.query.compiled).fetchall()
 
     def count(self):
         return len(self.fetch())

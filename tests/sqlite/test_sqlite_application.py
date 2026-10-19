@@ -83,7 +83,7 @@ def test_parameters_environment_percent_literals_and_sql_error(database):
     db, path = database
     with db.tempEnv(user="O'Reilly"):
         result = db.execute("SELECT :env_user AS name, '50% :literal' AS label")
-        assert [dict(row) for row in result.rows] == [{'name': "O'Reilly", 'label': '50% :literal'}]
+        assert [dict(row) for row in result.fetchall()] == [{'name': "O'Reilly", 'label': '50% :literal'}]
     db.rollback()
     db.execute('INSERT INTO app.item VALUES (:id, :name)', {'id': 1, 'name': 'ok'})
     with pytest.raises(sqlite3.IntegrityError):

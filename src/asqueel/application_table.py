@@ -14,7 +14,6 @@ from copy import deepcopy
 from datetime import datetime
 
 from genro_bag import Bag
-from genro_toolbox import NamedList
 from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
@@ -132,7 +131,13 @@ class SqlQuery:
 
     def fetch(self):
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
-        return self.handleBagColumns(self.execute().rows, self.compiled)
+        return self.handleBagColumns(self._fetchall(self.compiled), self.compiled)
+
+    def _fetchall(self, compiled):  # wf:phase-2:new
+        cursor = self.db.execute(compiled)
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
 
     def handleBagColumns(self, rows, compiled):
         """Legacy handleBagColumns: a #BAG value becomes a Bag, #BAGCOLS spreads its leaves into columns."""
@@ -148,7 +153,7 @@ class SqlQuery:
         return rows
 
     def cursor(self):
-        """Execute the query and return the open driver cursor; the caller closes it."""
+        """Execute the query and return its open cursor; the caller closes it."""
         return self.db.cursor(self.compiled)
 
     def servercursor(self):
@@ -167,12 +172,11 @@ class SqlQuery:
 
     def _cursorGenerator(self, cursor):
         """Legacy _cursorGenerator: chunks until the cursor is exhausted, the last one empty."""
-        index = {column[0]: position for position, column in enumerate(cursor.description)}
         try:
             rows = True
             while rows:
                 rows = cursor.fetchmany()
-                yield self.handleBagColumns([NamedList(index, row) for row in rows], self.compiled)
+                yield self.handleBagColumns(rows, self.compiled)
         finally:
             cursor.close()
 
@@ -226,7 +230,7 @@ class SqlQuery:
                 options = dict(_copy(self._options), limit=1)
                 self._compiled_first_row = self._compile(self.db.compiler.select, options)
             compiled = self._compiled_first_row
-            rows = self.handleBagColumns(self.db.execute(compiled).rows, compiled)
+            rows = self.handleBagColumns(self._fetchall(compiled), compiled)
         else:
             rows = self.fetch()
         if not rows:
@@ -242,14 +246,20 @@ class SqlQuery:
         table = self.table.model
         plan = self._key_plan(table)
         compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot())
-        return self.db.execute(compiled).rowcount
+        return self._rowcount(compiled)
+
+    def _rowcount(self, compiled):  # wf:phase-2:new
+        cursor = self.db.execute(compiled)
+        rowcount: int = cursor.rowcount
+        cursor.close()
+        return rowcount
 
     def sql_update(self, values):
         """UPDATE the rows this query selects with ``values``, without triggers; returns the row count."""
         table = self.table.model
         plan = self._key_plan(table)
         compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot())
-        return self.db.execute(compiled).rowcount
+        return self._rowcount(compiled)
 
     def _key_plan(self, table):
         """The query's SELECT with the same filters, order and limit, reduced to the key."""
@@ -266,11 +276,14 @@ class SqlQuery:
         raise UnsupportedFeatureError('selection(): Selection and Bag output are not available in this release')
 
     def count(self):
-        result = self.db.execute(self._compile(self.db.compiler.count))
+        cursor = self.db.execute(self._compile(self.db.compiler.count))
+        rows = cursor.fetchall()
+        name = cursor.description[0][0]
+        cursor.close()
         # Legacy count returns rows for grouped/distinct queries.
-        if len(result.rows) == 1 and result.columns[0].name == 'gnr_row_count':
-            return int(result.rows[0][0])
-        return len(result.rows)
+        if len(rows) == 1 and name == 'gnr_row_count':
+            return int(rows[0][0])
+        return len(rows)
 
 
 class SqlTable(CrudMixin, TriggersMixin):
@@ -388,18 +401,20 @@ class SqlTable(CrudMixin, TriggersMixin):
         writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
         if isinstance(record, list):
             for compiled, params in writer.insert_many(self.model, record, snapshot):
-                self.db.executemany(compiled, params)
+                self.db.executemany(compiled, params).close()
             return record
-        result = self.db.execute(writer.insert(self.model, record, snapshot))
-        if result.rows:
-            record.update(dict(result.rows[0]))
+        cursor = self.db.execute(writer.insert(self.model, record, snapshot))
+        rows = cursor.fetchall() if cursor.description is not None else []
+        cursor.close()
+        if rows:
+            record.update(dict(rows[0]))
         return record
 
     def sql_update(self, record, old_record=None, pkey=None):
         """Update without triggers (legacy raw_update); the key comes from old_record, pkey or record."""
         self.db.execute(self.db.write_compiler.update(
-            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record))
+            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record)).close()
 
     def sql_delete(self, record):
         """Delete without triggers or related actions (legacy raw_delete)."""
-        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot()))
+        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot())).close()

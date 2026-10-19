@@ -30,7 +30,7 @@ modello + richiesta asqueel
     → QueryCompiler.plan_* → QueryPlan
     → PostgresDialect.render → SqlStatement
     → PsycopgDriver.prepare → CompiledQuery
-    → Database → PsycopgDriver.execute → QueryResult
+    → Database.execute → cursore aperto
 ```
 
 Il piano risolto non contiene placeholder psycopg e non applica l'escaping
@@ -52,7 +52,7 @@ query = compiler.select('sales.invoice', columns='$id, $total',
 def read(conninfo):
     database = Database(conninfo, driver=driver)
     try:
-        return (database.execute(query)).rows
+        return database.execute(query).fetchall()
     finally:
         database.closeConnection()
 ```

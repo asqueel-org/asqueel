@@ -1,5 +1,5 @@
 """Offline binding contracts and adapter-independent runtime integration."""
-from tests.unit_of_work import completed
+from tests.unit_of_work import FakeCursor, completed
 from pathlib import Path
 import subprocess
 import sys
@@ -7,7 +7,7 @@ import threading
 
 import pytest
 
-from asqueel.contracts import CompiledQuery, QueryResult
+from asqueel.contracts import CompiledQuery
 from asqueel.adapters.base import SqlDbAdapter as SqlDbBaseAdapter
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.runtime import PostgresDatabase, Database
@@ -39,11 +39,11 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         self.record('connect')
         return object()
 
-    def execute(self, connection, query):
+    def execute(self, connection, query, cursorname=None):
         self.record('execute')
         if query.sql == 'fail':
             raise LookupError('original driver error')
-        return QueryResult([{'answer': 42}], 1, query.columns)
+        return FakeCursor([{'answer': 42}])
 
     def commit(self, connection):
         self.record('commit')
@@ -61,7 +61,7 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
         try:
             driver = db.adapter
             result = db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
-            assert result.rows == [{'answer': 42}]
+            assert [dict(row) for row in result.fetchall()] == [{'answer': 42}]
             with pytest.raises(LookupError, match='original driver error'):
                 db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
         finally:
@@ -110,7 +110,7 @@ def guarded(name, *args, **kwargs):
 builtins.__import__ = guarded
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.runtime import Database, PostgresDatabase
-from asqueel.contracts import CompiledQuery, QueryResult
+from asqueel.contracts import CompiledQuery
 query = PostgresAdapter(None).prepare_sql('SELECT :x', {'x': 3}, {})
 assert query.sql == 'SELECT %(x)s'
 from asqueel.adapters.base import SqlDbAdapter as SqlDbBaseAdapter
@@ -118,7 +118,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     dialect = 'fake'
     binding = 'fake'
     def connect(self, *args, **kwargs): return object()
-    def execute(self, conn, query): return QueryResult([], 0)
+    def execute(self, conn, query, cursorname=None): return type('Cursor', (), {'description': None})()
     def commit(self, conn): pass
     def rollback(self, conn): pass
     def close(self, conn): pass

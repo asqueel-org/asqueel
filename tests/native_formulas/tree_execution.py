@@ -14,13 +14,13 @@ class ExecutedQuery:
         return self.query.compiled
 
     def fetch(self):
-        return self.executor.execute(self.compiled).rows
+        return self.executor.execute(self.compiled).fetchall()
 
     def count(self):
         compiled = self.query._compile(self.query.db.compiler.count)
-        result = self.executor.execute(compiled)
-        rows = result.rows
-        if len(rows) == 1 and result.columns[0].name == 'gnr_row_count':
+        cursor = self.executor.execute(compiled)
+        rows = cursor.fetchall()
+        if len(rows) == 1 and cursor.description[0][0] == 'gnr_row_count':
             return int(rows[0][0])
         return len(rows)
 

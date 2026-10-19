@@ -150,7 +150,7 @@ Queries compile in the environment current at the terminal call.
 `ignoreMissing=True` returns None for no row. `query.count()` follows the legacy count algorithm;
 Selection remains outside this profile.
 
-Insert, update, delete, soft-delete and restore return `QueryResult`. Read the
+Insert and update return the record. Read the
 [transaction guide](transactions.md) before using writes: operations share the selected connection and do not commit individually.
 
 ## Add business behavior

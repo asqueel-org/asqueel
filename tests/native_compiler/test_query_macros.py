@@ -19,7 +19,7 @@ def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expecte
     query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
                        low=low, high=high, order_by='$id')
     compiled = query.compiled
-    assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+    assert [row['id'] for row in shop.db.execute(compiled).fetchall()] == expected
 
 
 @pytest.mark.parametrize('low, high, expected', [(None, None, True), (0, None, False),
@@ -35,7 +35,7 @@ def test_null_value_range_retains_sql_unknown_in_where(shop, low, high, expected
     sql = ('SELECT 1 AS found FROM '
            '(SELECT CAST(:low AS numeric) AS low_bound, '
            'CAST(:high AS numeric) AS high_bound) AS bounds WHERE ' + predicate)
-    assert bool(shop.db.execute(sql, {'low': low, 'high': high}).rows) is expected
+    assert bool(shop.db.execute(sql, {'low': low, 'high': high}).fetchall()) is expected
 
 
 @pytest.mark.parametrize('period, expected', [('2026', [14]), ('2025', []),
@@ -51,4 +51,4 @@ def test_period_bound_dates_execute_on_a_date_column(shop, period, expected):
     query = shop.query(columns='$id', where='#PERIOD(issued,:period)',
                        period=period, excludeLogicalDeleted=False, order_by='$id')
     compiled = query.compiled
-    assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+    assert [row['id'] for row in shop.db.execute(compiled).fetchall()] == expected

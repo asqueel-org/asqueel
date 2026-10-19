@@ -10,8 +10,9 @@ from typing import Any, Iterator, TypedDict
 from uuid import uuid4
 
 from genro_bag import Bag
+from genro_toolbox import NamedList
 
-from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError, not_available, refused_property
+from .contracts import CompiledQuery, UnsupportedFeatureError, not_available, refused_property
 from .environment import ApplicationEnvironment, environment_arguments
 from .errors import DeferredCommitError, TransactionStateError
 from .triggers import TriggerStack
@@ -189,26 +190,37 @@ class Database:
     def tempEnv(self, **values: Any):
         return self.temp_env(**values)
 
-    def execute(self, query: CompiledQuery | str, sqlargs=None) -> QueryResult:
-        """Execute a compiled statement in this DB's shared unit of work."""
+    def execute(self, sql: CompiledQuery | str, sqlargs=None, cursor=None, cursorname=None,
+                autocommit=False, dbtable=None, storename=None, _adaptArguments=True) -> SqlCursor:
+        """Execute a statement in this DB's unit of work and return its open cursor, as legacy.
+
+        ``cursorname`` asks for a server-side cursor (``'*'`` generates the name);
+        ``autocommit`` commits after the statement; ``dbtable`` only names the table.
+        """
         self._check_open()
-        if isinstance(query, str):
-            query = self._prepare_sql(query, sqlargs)
+        for name, refused in (('storename', storename not in (None, False)), ('cursor', cursor is not None),
+                              ('_adaptArguments', not _adaptArguments)):
+            if refused:
+                raise UnsupportedFeatureError(f'{name} is not available in this release')
+        if isinstance(sql, str):
+            sql = self._prepare_sql(sql, sqlargs)
         elif sqlargs is not None:
             raise TypeError('Parameters are already part of a CompiledQuery')
-        result: QueryResult = self._execute_on_connection(self._connection_state, query)
+        if cursorname == '*':
+            cursorname = 'c' + uuid4().hex
+        result = self._execute_on_connection(self._connection_state, sql, cursorname=cursorname)
+        if autocommit:
+            self.commit()
         return result
 
-    def executemany(self, query: CompiledQuery, params_seq) -> QueryResult:
+    def executemany(self, query: CompiledQuery, params_seq) -> SqlCursor:
         """Execute one compiled statement once per parameter mapping, as DB-API executemany."""
         self._check_open()
-        result: QueryResult = self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
-        return result
+        return self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
 
-    def cursor(self, query: CompiledQuery, cursorname=None):
+    def cursor(self, query: CompiledQuery, cursorname=None) -> SqlCursor:
         """Execute a compiled SELECT and return its open cursor; ``cursorname`` asks for a server-side cursor."""
-        self._check_open()
-        return self._execute_on_connection(self._connection_state, query, cursorname=cursorname, cursor=True)
+        return self.execute(query, cursorname=cursorname)
 
     def _prepare_sql(self, sql, sqlargs) -> CompiledQuery:
         query: CompiledQuery = self.adapter.prepare_sql(sql, sqlargs, self.environment.snapshot())
@@ -250,6 +262,28 @@ class Database:
     def commit(self) -> None:
         self._check_boundary()
         self._commit_connection(self._connection_state)
+        self.onDbCommitted()
+
+    def onDbCommitted(self) -> None:  # wf:phase-2:new
+        """Called once at the end of every commit, as legacy; subclasses override it."""
+
+    def setLocale(self) -> None:  # wf:phase-2:new
+        """Hand the environment locale to the adapter, as legacy."""
+        locale = self.currentEnv.get('locale')
+        if locale:
+            self.adapter.setLocale(locale)
+
+    def setConstraintsDeferred(self) -> None:  # wf:phase-2:new
+        """Defer the deferrable constraints until the commit of the current transaction."""
+        self.adapter.setConstraintsDeferred()
+
+    def analyze(self) -> None:  # wf:phase-2:new
+        """Update the planner statistics, in the current transaction."""
+        self.adapter.analyze()
+
+    def vacuum(self, table: str = '', full: bool = False) -> None:  # wf:phase-2:new
+        """Reclaim storage of the database or of ``table`` (its SQL name), on a separate connection."""
+        self.adapter.vacuum(table=table, full=full)
 
     def rollback(self) -> None:
         self._check_boundary()
@@ -390,7 +424,7 @@ class Database:
                 raise UnsupportedFeatureError(f'environment key {key!r} is not available in this release')
 
     def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None,
-                               cursorname=None, cursor=False) -> Any:
+                               cursorname=None) -> SqlCursor:
         self._check_connection_usable(state)
         self._check_environment_keys()
         adapter = self.adapter
@@ -408,23 +442,25 @@ class Database:
                     raise ValueError('autocommit is incompatible with explicit transactions')
                 state['connection'] = adapter.connect(conninfo, **connect_kwargs)
             state['pending'] = True
-            if cursor:
-                return adapter.open_cursor(state['connection'], query, cursorname)
-            result: QueryResult = (adapter.executemany(state['connection'], query, many) if many is not None
-                                   else adapter.execute(state['connection'], query))
-            return result
+            cursor = (adapter.executemany(state['connection'], query, many) if many is not None
+                      else adapter.execute(state['connection'], query, cursorname))
+            return SqlCursor(self, state, cursor, query.columns)
         except BaseException as error:
-            state['execution_error'] = error
-            state['completion_failed'] = state['committing']
-            try:
-                self._finish(state, False)
-            except BaseException as cleanup_error:
-                # The original execution error must remain catchable by callers.
-                error.add_note(f'Automatic rollback failed: {type(cleanup_error).__name__}')
-                raise error from cleanup_error
+            self._execution_failed(state, error)
             raise
         finally:
             state['executing'] = False
+
+    def _execution_failed(self, state: _ConnectionState, error: BaseException) -> None:  # wf:phase-2:new
+        """The automatic rollback after an error raised by execute or by a fetch."""
+        state['execution_error'] = error
+        state['completion_failed'] = state['committing']
+        try:
+            self._finish(state, False)
+        except BaseException as cleanup_error:
+            # The original execution error must remain catchable by callers.
+            error.add_note(f'Automatic rollback failed: {type(cleanup_error).__name__}')
+            raise error from cleanup_error
 
     def _mark_connection_failed(self, state: _ConnectionState) -> None:
         """Mark a failed domain operation even when no SQL has run yet."""
@@ -527,6 +563,72 @@ class Database:
             state['executing'] = False
         if error is not None:
             raise error
+
+class SqlCursor:  # wf:phase-2:new
+    """The open cursor returned by ``db.execute``: rows read by name, as the legacy dict cursor.
+
+    A driver error raised by a fetch rolls the connection back, as one raised by execute.
+    """
+
+    def __init__(self, db: Database, state: _ConnectionState, cursor, columns=()):
+        self._db = db
+        self._state = state
+        self._cursor = cursor
+        self._index: dict[str, int] = {}
+        if cursor.description is None:
+            if columns:
+                raise ValueError('Compiled result columns supplied for a statement without a result set')
+            return
+        names = [column[0] for column in cursor.description]
+        if len(set(names)) != len(names):
+            raise ValueError('Result columns must have unique names; use explicit aliases')
+        if columns and [column.name for column in columns] != names:
+            raise ValueError('Compiled result columns do not match cursor column names and order')
+        self._index = {name: position for position, name in enumerate(names)}
+
+    @property
+    def description(self):
+        return self._cursor.description
+
+    @property
+    def rowcount(self) -> int:
+        rowcount: int = self._cursor.rowcount
+        return rowcount
+
+    @property
+    def arraysize(self) -> int:
+        arraysize: int = self._cursor.arraysize
+        return arraysize
+
+    @arraysize.setter
+    def arraysize(self, value: int) -> None:
+        self._cursor.arraysize = value
+
+    def close(self) -> None:
+        self._cursor.close()
+
+    def _fetch(self, method, *args):
+        try:
+            return method(*args)
+        except BaseException as error:
+            self._db._execution_failed(self._state, error)
+            raise
+
+    def fetchone(self) -> NamedList | None:
+        row = self._fetch(self._cursor.fetchone)
+        return None if row is None else NamedList(self._index, row)
+
+    def fetchmany(self, size: int | None = None) -> list[NamedList]:
+        rows = self._fetch(self._cursor.fetchmany, *(() if size is None else (size,)))
+        return [NamedList(self._index, row) for row in rows]
+
+    def fetchall(self) -> list[NamedList]:
+        return [NamedList(self._index, row) for row in self._fetch(self._cursor.fetchall)]
+
+    def __iter__(self) -> Iterator[NamedList]:
+        while (row := self.fetchone()) is not None:
+            yield row
+
 
 class PostgresDatabase(Database):
     """The shared, explicitly completed runtime on the PostgreSQL adapter."""

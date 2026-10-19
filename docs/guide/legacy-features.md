@@ -476,9 +476,9 @@ the write cycle, see [Current status](limitations.md).
   that created it. Reason: not recorded.
 - **`db.commit()`** (A6.8): same order on the selected connection; inside a
   write or a hook, a commit on the connection in use raises
-  `TransactionStateError`, on another named connection it is allowed; no
-  `onDbCommitted`. Reason: avoids a deadlock reported in GenroPy (decision of
-  2026-10-15, provisional).
+  `TransactionStateError`, on another named connection it is allowed; then
+  `onDbCommitted()` runs once, as legacy. Reason: avoids a deadlock reported in
+  GenroPy (decision of 2026-10-15, provisional).
 - **`db.rollback()` / `rollbackAll()`** (A6.9): rollback also empties the
   deferred queues; `rollbackAll` is absent because there is one store. Reason:
   a GenroPy defect on rollback and deferred callbacks is corrected (decision
@@ -493,14 +493,17 @@ the write cycle, see [Current status](limitations.md).
   the exception is kept in `currentEnv['_pendingExceptions']`, as in GenroPy;
   at commit, `DeferredCommitError`, a rollback-only connection and an emptied
   list. Reason: a GenroPy defect is corrected (decision of 2026-10-16).
-- **`db.execute(sql, sqlargs, ...)`** (A6.17): `execute(query, sqlargs)` takes
-  an SQL string or a `CompiledQuery` and returns a `QueryResult`; `cursor`,
-  `cursorname`, `dbtable`, `storename` raise `TypeError`; `executemany` is
-  added. Reason: a single execution path; the reduced signature: not
-  recorded.
-- **`autocommit`** (A6.18): `execute` has no such parameter and an
-  autocommit connection is refused. Reason: `execute()` never commits
-  automatically.
+- **`db.execute(sql, sqlargs, cursor, cursorname, autocommit, dbtable, storename,
+  _adaptArguments)`** (A6.17): the legacy signature; it returns the open
+  cursor, whose rows are read by name. `sql` may also be a `CompiledQuery`.
+  `cursorname` opens a server-side cursor on PostgreSQL (`'*'` generates the
+  name) and is ignored on SQLite. `dbtable` is accepted. `storename`, `cursor`
+  and `_adaptArguments=False` raise `UnsupportedFeatureError`. A driver error
+  raised while fetching rolls the connection back, as one raised by execute.
+  Reason: one store in this release.
+- **`autocommit`** (A6.18): `execute(..., autocommit=True)` commits after the
+  statement, as legacy; an autocommit connection is refused. Reason: the
+  connection completes only through `commit()`.
 - **`db.closeConnection()`** (A6.21): rollback and close of every connection
   of the thread; the database stays usable; refused inside a write; the first cleanup error is re-raised
   after closing the others. Reason: not recorded for the error propagation.
@@ -508,11 +511,19 @@ the write cycle, see [Current status](limitations.md).
   legacy emits no lock on SQLite. Transactions are deferred as legacy: reads
   open none. Reason: `for_update` locks as on PostgreSQL (decision of
   2026-10-15).
+- **`setLocale()`** (A6.4): hands `currentEnv['locale']` to the adapter, whose
+  `setLocale` has no effect, as legacy. Reason: not recorded.
+- **`setConstraintsDeferred()`** (A6.28): PostgreSQL runs `SET CONSTRAINTS ALL
+  DEFERRED`; SQLite runs `PRAGMA defer_foreign_keys = ON` (legacy SQLite has no
+  foreign keys). Reason: asqueel migrates deferrable foreign keys on SQLite.
+- **`analyze()` / `vacuum(table='', full=False)`** (A6.29, A8.18): `analyze()`
+  runs `ANALYZE` in the current transaction. `vacuum` runs on a separate
+  connection: `VACUUM [FULL] ANALYZE [table]` on PostgreSQL, `VACUUM` then
+  `ANALYZE [table]` on SQLite. Reason: legacy emits `VACUUM ANALYZE` on SQLite,
+  which SQLite rejects (GenroPy defect corrected).
 
 ### Not available yet
 
-- **`setLocale()`** (A6.4): absent. No issue yet. Workaround: the locale is
-  only an environment value (`:env_locale`).
 - **`storename`, `use_store`, multiple stores, `currentStorename`,
   `connection`, `connectionKey`, `get_dbname`** (A6.7): a storename other than
   `_main_db` raises `UnsupportedFeatureError`. No issue yet. Workaround: one
@@ -520,8 +531,6 @@ the write cycle, see [Current status](limitations.md).
 - **`autoCommit`, `dbevents`, `systemDbEvent`, `GnrMissedCommitException`,
   `tblobj.dbevents` / `notifyDbUpdate`** (A6.14): absent. No issue yet.
   Workaround: `deferAfterCommit` for application notifications.
-- **`onDbCommitted()`** (A6.15): absent. No issue yet. Workaround:
-  `deferAfterCommit` registered by the caller.
 - **NOTIFY: table attribute `notify`, `db.notify`, `db.listen`** (A6.16):
   absent. No issue yet. Workaround: run NOTIFY with `db.execute`.
 - **SQL comment with the user, `sql_audit`, debugger** (A6.20): absent. No
@@ -531,11 +540,6 @@ the write cycle, see [Current status](limitations.md).
 - **`for_update` with a string mode (`'NOWAIT'`, `'SKIP LOCKED'`)** (A6.26):
   `for_update` must be a boolean. No issue yet. Workaround: boolean
   `for_update`.
-- **`setConstraintsDeferred()`** (A6.28): absent. No issue yet. Workaround:
-  `db.execute('SET CONSTRAINTS ALL DEFERRED')`.
-- **`analyze()` / `vacuum(table, full)`** (A6.29): absent. No issue yet.
-  Workaround: `db.execute('ANALYZE')`; VACUUM cannot run through
-  `db.execute`, which always opens a transaction.
 
 ## 7 Migration
 
@@ -681,8 +685,6 @@ the write cycle, see [Current status](limitations.md).
   Workaround: `db.execute('LOCK ...')`.
 - **`db.listen` / `db.notify`** (A8.17): absent. No issue yet. Workaround:
   `db.execute('NOTIFY channel, :payload')` and a dedicated psycopg connection.
-- **`db.analyze()` / `db.vacuum(table, full)`** (A8.18): absent; VACUUM fails
-  through `db.execute`. No issue yet. Workaround: `vacuumdb` or `psql`.
 - **`createDb`, `dropDb`, `dbExists`, `dump`, `restore`, `importRemoteDb`**
   (A8.19): absent. No issue yet. Workaround: `createdb`, `dropdb`, `pg_dump`,
   `pg_restore`.

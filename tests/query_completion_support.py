@@ -82,7 +82,7 @@ class Shop:
         return [row['id'] for row in self.query(**options).fetch()]
 
     def direct_ids(self, sql, params=None):
-        rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).rows
+        rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).fetchall()
         return sorted(row['id'] for row in rows)
 
 

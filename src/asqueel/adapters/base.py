@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import re
 
-from genro_toolbox import NamedList
-
-from ..contracts import CompiledQuery, QueryResult, ResultColumn, UnsupportedFeatureError
+from ..contracts import CompiledQuery, UnsupportedFeatureError
 from ..environment import environment_arguments
 
 
@@ -33,21 +31,6 @@ def prepare_arguments(sql, sqlargs, snapshot):
         if isinstance(value, str) and value.startswith((r'\$', r'\@')):
             params[key] = value[1:]
     return params, keys
-
-
-def query_result(columns, names, cursor) -> QueryResult:
-    """One column index per result set, shared by its mutable rows."""
-    if names is None:
-        if columns:
-            raise ValueError('Compiled result columns supplied for a statement without a result set')
-        return QueryResult([], cursor.rowcount, columns)
-    if len(set(names)) != len(names):
-        raise ValueError('Result columns must have unique names; use explicit aliases')
-    if columns and [column.name for column in columns] != names:
-        raise ValueError('Compiled result columns do not match cursor column names and order')
-    index = {name: position for position, name in enumerate(names)}
-    rows = [NamedList(index, row) for row in cursor.fetchall()]
-    return QueryResult(rows, cursor.rowcount, columns or tuple(ResultColumn(name) for name in names))
 
 
 #: Legacy ageAtDate time units, in seconds.
@@ -200,33 +183,26 @@ class SqlDbAdapter:
                 f'Query profile {query.dialect}/{query.binding} does not match '
                 f'adapter profile {self.dialect}/{self.binding}')
 
-    def cursor(self, connection):
-        """A cursor that closes as a context manager, as DB-API 2 psycopg cursors do."""
+    def cursor(self, connection, cursorname=None):
+        """A driver cursor; ``cursorname`` asks for a server-side cursor where the backend has one."""
         return connection.cursor()
 
     def _params(self, params):
         return dict(params)
 
-    def execute(self, connection, query: CompiledQuery) -> QueryResult:
+    def execute(self, connection, query: CompiledQuery, cursorname=None):
+        """Execute ``query`` and return the open driver cursor; the caller closes it."""
         self.validate(query)
-        with self.cursor(connection) as cursor:
-            cursor.execute(query.sql, self._params(query.params))
-            names = [column[0] for column in cursor.description] if cursor.description is not None else None
-            return query_result(query.columns, names, cursor)
-
-    def open_cursor(self, connection, query: CompiledQuery, cursorname=None):
-        """Execute ``query`` and return its open cursor; the caller closes it."""
-        self.validate(query)
-        cursor = connection.cursor()
+        cursor = self.cursor(connection, cursorname)
         cursor.execute(query.sql, self._params(query.params))
         return cursor
 
-    def executemany(self, connection, query: CompiledQuery, params_seq) -> QueryResult:
-        """One statement, one parameter mapping per execution; no result rows."""
+    def executemany(self, connection, query: CompiledQuery, params_seq):
+        """One statement, one parameter mapping per execution; returns the driver cursor."""
         self.validate(query)
-        with self.cursor(connection) as cursor:
-            cursor.executemany(query.sql, [self._params(params) for params in params_seq])
-            return QueryResult([], cursor.rowcount, ())
+        cursor = self.cursor(connection)
+        cursor.executemany(query.sql, [self._params(params) for params in params_seq])
+        return cursor
 
     def commit(self, connection) -> None:
         connection.commit()
@@ -236,6 +212,17 @@ class SqlDbAdapter:
 
     def close(self, connection) -> None:
         connection.close()
+
+    def setLocale(self, locale):  # wf:phase-2:new
+        """Legacy setLocale: no effect on the connection."""
+
+    def setConstraintsDeferred(self):  # wf:phase-2:new
+        """Defer the deferrable constraints of the current transaction."""
+        self.dbroot.execute('SET CONSTRAINTS ALL DEFERRED').close()
+
+    def analyze(self):  # wf:phase-2:new
+        """Legacy analyze: ANALYZE in the current transaction."""
+        self.dbroot.execute('ANALYZE').close()
 
     # ------------------------------------------------------------------
     #  SQL functions for table formulas, as legacy

@@ -63,9 +63,9 @@ def test_tree_select_matches_legacy_rows(databases, name):
     if name == 'star':
         # Source-order divergence recorded separately by the strict SQL xfail.
         # All names and per-name values must still equal the legacy result.
-        assert [dict(row) for row in first.rows] == [dict(row) for row in second.rows]
-        assert set(c.name for c in first.columns) == set(c.name for c in second.columns)
+        assert [dict(row) for row in first.fetchall()] == [dict(row) for row in second.fetchall()]
+        assert set(c[0] for c in first.description) == set(c[0] for c in second.description)
     else:
-        assert [list(row) for row in first.rows] == [list(row) for row in second.rows]
-        assert [c.name for c in first.columns] == [c.name for c in second.columns]
+        assert [list(row) for row in first.fetchall()] == [list(row) for row in second.fetchall()]
+        assert [c[0] for c in first.description] == [c[0] for c in second.description]
     assert tree._connections == {}

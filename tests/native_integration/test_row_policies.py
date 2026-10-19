@@ -57,30 +57,30 @@ def test_scopes_defaults_mark_and_environment_reuse(policy_database):
     def scenario():
         db = PostgresDatabase(dsn, environment=env)
         try:
-            assert [r['id'] for r in db.execute(compiler.select('app.item', order_by='$id')).rows] == [1, 2, 5]
+            assert [r['id'] for r in db.execute(compiler.select('app.item', order_by='$id')).fetchall()] == [1, 2, 5]
             with env.temp_env(current_organization=10):
                 query = compiler.select('app.item', order_by='$id')
-                assert [r['id'] for r in (db.execute(query)).rows] == [1]
+                assert [r['id'] for r in (db.execute(query)).fetchall()] == [1]
                 marked = db.execute(compiler.select(
                     'app.item', exclude_draft=False, exclude_logical_deleted='mark',
                     order_by='$id',
-                ))
-                assert [r['id'] for r in marked.rows] == [1, 3, 4]
-                assert marked.rows[0]['_isdeleted'] is None
-                assert marked.rows[2]['_isdeleted'] == datetime(2026, 1, 1, tzinfo=timezone.utc)
+                )).fetchall()
+                assert [r['id'] for r in marked] == [1, 3, 4]
+                assert marked[0]['_isdeleted'] is None
+                assert marked[2]['_isdeleted'] == datetime(2026, 1, 1, tzinfo=timezone.utc)
             with env.temp_env(current_organization=11):
                 fresh = compiler.select('app.item', order_by='$id')
-                assert db.execute(query).rows == db.execute(fresh).rows
+                assert db.execute(query).fetchall() == db.execute(fresh).fetchall()
             with env.temp_env(allowed_organization=[]):
-                assert len(db.execute(compiler.select('app.item')).rows) == 3
+                assert len(db.execute(compiler.select('app.item')).fetchall()) == 3
             with env.temp_env(allowed_organization=[10]):
-                rows = (db.execute(compiler.select('app.item', order_by='$id'))).rows
+                rows = (db.execute(compiler.select('app.item', order_by='$id'))).fetchall()
                 assert [r['id'] for r in rows] == [1, 5]
             with env.temp_env(current_organization=10, allowed_organization=[]):
-                assert [r['id'] for r in db.execute(compiler.select('app.item')).rows] == [1]
+                assert [r['id'] for r in db.execute(compiler.select('app.item')).fetchall()] == [1]
             with env.temp_env(current_organization=None):
-                assert len(db.execute(compiler.select('app.item')).rows) == 3
-            assert len((db.execute(compiler.select('app.item', ignore_partition=True))).rows) == 3
+                assert len(db.execute(compiler.select('app.item')).fetchall()) == 3
+            assert len((db.execute(compiler.select('app.item', ignore_partition=True))).fetchall()) == 3
         finally:
             db.closeConnection()
     scenario()
@@ -101,14 +101,14 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
                 assert changed.rowcount == 1
                 tombstone = datetime(2026, 9, 29, tzinfo=timezone.utc)
                 db.execute(writer.update(table, {'id': 6, 'deleted_at': tombstone}, env.snapshot()))
-                assert not (db.execute(compiler.select('app.item', where='$id = 6'))).rows
+                assert not (db.execute(compiler.select('app.item', where='$id = 6'))).fetchall()
                 db.execute(writer.update(table, {'id': 6, 'deleted_at': None}, env.snapshot()))
-                assert [r['id'] for r in db.execute(compiler.select('app.item', where='$id = 6')).rows] == [6]
+                assert [r['id'] for r in db.execute(compiler.select('app.item', where='$id = 6')).fetchall()] == [6]
                 assert db.execute(writer.delete(table, {'id': 6}, env.snapshot())).rowcount == 1
 
             def read_scope(value):
                 with env.temp_env(current_organization=value):
-                    return [r['id'] for r in (db.execute(compiler.select('app.item'))).rows]
+                    return [r['id'] for r in (db.execute(compiler.select('app.item'))).fetchall()]
 
             assert [read_scope(10), read_scope(11)] == [[1], [2]]
             assert not env.current_env
@@ -128,7 +128,7 @@ def test_writes_fill_and_guard_the_partition(policy_database):
         with env.temp_env(current_organization=10):
             db.execute(writer.insert(table, {'id': 6, 'label': 'new'}, env.snapshot()))
             stored = db.execute(compiler.select('app.item', '$organization', where='$id = 6', ignore_partition=True))
-            assert stored.rows[0]['organization'] == 10
+            assert stored.fetchall()[0]['organization'] == 10
             with pytest.raises(ValueError):
                 writer.insert(table, {'id': 7, 'organization': 11}, env.snapshot())
             assert db.execute(writer.update(table, {'id': 2, 'label': 'forbidden'}, env.snapshot())).rowcount == 0

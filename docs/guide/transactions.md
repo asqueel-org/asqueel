@@ -20,7 +20,9 @@ except Exception:
 ```
 
 Hooks and nested table writes participate in the same selected connection.
-Reads also open a transaction. `execute()` does not commit a statement for you.
+Reads also open a transaction. `execute()` commits only with `autocommit=True`.
+Every `db.commit()` ends by calling `db.onDbCommitted()`, a method without
+effect that a database subclass overrides, also when nothing was pending.
 `db.closeConnection()` rolls back pending work and never saves it.
 
 ## Select context with tempEnv

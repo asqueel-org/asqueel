@@ -24,10 +24,12 @@ def test_count_matches_legacy_rows_and_value(databases, case):
         {k:v for k,v in expected['params'].items() if k != 'jc_kwargs'},
         dialect=execution.adapter.dialect, binding=execution.adapter.binding)
     result, legacy = execution.execute(actual), execution.execute(reference)
-    assert [list(row) for row in result.rows] == [list(row) for row in legacy.rows]
-    assert [c.name for c in result.columns] == [c.name for c in legacy.columns]
-    legacy_count = (legacy.rows[0][0] if len(legacy.rows) == 1
-                    and legacy.columns[0].name == 'gnr_row_count' else len(legacy.rows))
+    names, legacy_names = [c[0] for c in result.description], [c[0] for c in legacy.description]
+    rows, legacy_rows = result.fetchall(), legacy.fetchall()
+    assert [list(row) for row in rows] == [list(row) for row in legacy_rows]
+    assert names == legacy_names
+    legacy_count = (legacy_rows[0][0] if len(legacy_rows) == 1
+                    and legacy_names[0] == 'gnr_row_count' else len(legacy_rows))
     assert databases.table(request['table']).query(request['columns'], sqlparams=request['params'],
                                                   **request['options']).count() == legacy_count
     assert not tree._connections

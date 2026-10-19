@@ -120,5 +120,5 @@ def test_direct_sql_uses_driver_binding_and_same_environment(database):
     with db.tempEnv(user="O'Reilly 50%"):
         literal = r"\:fake 50%%" if db.adapter.dialect == 'postgres' else r"\:fake 50%"
         result = db.execute(f"SELECT :env_user AS username, '{literal}' AS literal")
-        assert [dict(row) for row in result.rows] == [{'username': "O'Reilly 50%", 'literal': ':fake 50%'}]
+        assert [dict(row) for row in result.fetchall()] == [{'username': "O'Reilly 50%", 'literal': ':fake 50%'}]
         db.commit()

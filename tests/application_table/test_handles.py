@@ -65,7 +65,7 @@ def test_composite_selector_requires_complete_keys_and_uses_named_physical_resol
     db.rollback()
     db.execute("INSERT INTO app_compound (\"L\", \"right\") VALUES (0, 'x')")
     live.delete({'left': 0, 'right': 'x'})
-    assert db.execute('SELECT * FROM app_compound').rows == []
+    assert db.execute('SELECT * FROM app_compound').fetchall() == []
 
 
 def test_composite_fetch_record_reads_through_the_physical_names(db):
@@ -80,10 +80,10 @@ def test_update_record_and_delete_pkey_zero_keep_explicit_selectors(db):
     table = db.table('app.customer')
     db.execute("INSERT INTO app_customer (id, name) VALUES (0, 'Before'), (1, 'Sibling')")
     table.update({'id': 0, 'name': 'Zero'})
-    assert [dict(row) for row in db.execute('SELECT id, name FROM app_customer ORDER BY id').rows] == [
+    assert [dict(row) for row in db.execute('SELECT id, name FROM app_customer ORDER BY id').fetchall()] == [
         {'id': 0, 'name': 'Zero'}, {'id': 1, 'name': 'Sibling'}]
     table.delete({'id': 0})
-    assert [dict(row) for row in db.execute('SELECT id FROM app_customer').rows] == [{'id': 1}]
+    assert [dict(row) for row in db.execute('SELECT id FROM app_customer').fetchall()] == [{'id': 1}]
     with pytest.raises(TypeError):
         table.delete()
 

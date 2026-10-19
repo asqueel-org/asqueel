@@ -94,20 +94,20 @@ def test_native_model_compiler_runtime_and_import(native_database):
                 }, {}))
             assert db.execute(compiler.select(
                 'crm.customer', columns='$name', where='$id = :id', sqlparams={'id': 1},
-            )).rows[0]['name'] == "L'impresa 50%"
+            )).fetchall()[0]['name'] == "L'impresa 50%"
             query = compiler.select(
                 'crm.invoice', columns='$id, @customer_id.name AS customer, $double_total',
                 where='$id >= :start', sqlparams={'start': 11}, order_by='$id',
             )
             result = db.execute(query)
-            assert [(r['id'], r['customer'], r['double_total']) for r in result.rows] == [
+            assert [(r['id'], r['customer'], r['double_total']) for r in result.fetchall()] == [
                 (11, "L'impresa 50%", 20), (12, None, None),
             ]
             updated = db.execute(write.update(model.table('crm.invoice'), {'id': 11, 'total': 15}, {}))
             assert updated.rowcount == 1
             assert db.execute(compiler.select(
                 'crm.invoice', columns='$total', where='$id = :id', sqlparams={'id': 11},
-            )).rows[0]['total'] == 15
+            )).fetchall()[0]['total'] == 15
             db.commit()
             with pytest.raises(psycopg.errors.UniqueViolation):
                 with completed(db) as tx:
@@ -115,7 +115,7 @@ def test_native_model_compiler_runtime_and_import(native_database):
                     tx.execute(write.insert(model.table('crm.customer'), {'id': 1, 'name': 'Duplicate'}, {}))
             assert not (db.execute(compiler.select(
                 'crm.customer', where='$id = :id', sqlparams={'id': 2},
-            ))).rows
+            ))).fetchall()
             deleted = db.execute(write.delete(model.table('crm.invoice'), {'id': 12}, {}))
             assert deleted.rowcount == 1
             db.commit()
@@ -152,9 +152,9 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
             with completed(db) as tx:
                 tx.execute(writer().insert(customer, {'id': 9, 'name': 'Aborted'}, {}))
                 raise RuntimeError('abort transaction')
-        assert not db.execute(compiler.select('crm.customer')).rows
+        assert not db.execute(compiler.select('crm.customer')).fetchall()
         db.execute(writer().insert(customer, {'id': 10, 'name': 'Committed'}, {}))
-        assert [dict(row) for row in db.execute(compiler.select('crm.customer', columns='$id')).rows] == [{'id': 10}]
+        assert [dict(row) for row in db.execute(compiler.select('crm.customer', columns='$id')).fetchall()] == [{'id': 10}]
         db.commit()
     finally:
         db.closeConnection()
@@ -174,7 +174,7 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
                 second.execute(writer().insert(customer, {'id': 32, 'name': 'Commit'}, {}))
                 second.commit()
                 raise RuntimeError('abort first')
-        assert [dict(row) for row in first.execute(compiler.select('crm.customer', columns='$id')).rows] == [{'id': 32}]
+        assert [dict(row) for row in first.execute(compiler.select('crm.customer', columns='$id')).fetchall()] == [{'id': 32}]
     finally:
         first.closeConnection()
         second.closeConnection()

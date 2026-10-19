@@ -25,7 +25,7 @@ def test_manual_assignment_line_comment_cannot_remove_update_guard():
         model = db.table(f'adapter.{name}').model
         result = db.execute(db.write_compiler.update(model, {'id': 0}, db.environment.snapshot()))
         assert result.rowcount == 0
-        assert [tuple(row) for row in db.execute(f'SELECT id, value FROM "{name}"').rows] == [(1, 10)]
+        assert [tuple(row) for row in db.execute(f'SELECT id, value FROM "{name}"').fetchall()] == [(1, 10)]
         db.rollback()
     finally:
         db.closeConnection()

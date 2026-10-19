@@ -9,7 +9,6 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from types import MappingProxyType
 from typing import Any, Mapping
-from genro_toolbox import NamedList
 from .model_sections import FrozenMap, Schema, Package, Option, Declaration
 
 
@@ -192,10 +191,3 @@ class CompiledQuery:
 
     def __post_init__(self):
         object.__setattr__(self, "params", MappingProxyType(dict(self.params)))
-
-
-@dataclass(frozen=True)
-class QueryResult:
-    rows: list[NamedList]
-    rowcount: int
-    columns: tuple[ResultColumn, ...] = ()

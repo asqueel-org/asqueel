@@ -528,7 +528,7 @@ cursor. `key=None` means the table pkey.
 - `fetchGrouped(key=None, asBag=False, ordered=False)`: lists of rows grouped by
   `key`. The groups keep the order of the fetch, as in legacy; `ordered=True`
   returns an `OrderedDict`, `asBag=True` a Bag.
-- `cursor()`: the open driver cursor; the caller closes it.
+- `cursor()`: the open cursor, as `db.execute` returns it; the caller closes it.
 - `servercursor()`: a named server-side cursor on PostgreSQL; a normal cursor on
   SQLite, as in legacy.
 - `iterfetch(arraysize=30)`: yields lists of at most `arraysize` rows, from a
@@ -580,9 +580,10 @@ print(compiled.sql)
 print(dict(compiled.params))
 
 try:
-    result = query.execute()
-    assert result.rows[0]["id"] == 10
-    assert [column.name for column in result.columns] == ["id", "total"]
+    cursor = query.execute()
+    assert [column[0] for column in cursor.description] == ["id", "total"]
+    assert cursor.fetchall()[0]["id"] == 10
+    cursor.close()
     db.commit()
 except Exception:
     db.rollback()
@@ -590,10 +591,11 @@ except Exception:
 
 ```
 
-`QueryResult` has `rows`, `rowcount` and `columns`. Direct model projections carry
-dtype and source identity metadata. Arbitrary SQL expressions do not acquire
-inferred dtype. Results are fully materialized; pagination limits
-memory use when fetching large datasets.
+`query.execute()` returns the open cursor of `db.execute`: `description`,
+`rowcount`, `arraysize`, `fetchone()`, `fetchmany(size)`, `fetchall()`,
+iteration and `close()`. Its rows are `NamedList`, read by name or position.
+`fetch()` materializes every row; a cursor or `iterfetch` limits memory use
+when reading large datasets.
 
 `compiled.sql` is prepared for the driver, not for Python string interpolation.
 Parameters may contain sensitive application data; log selectively. For direct

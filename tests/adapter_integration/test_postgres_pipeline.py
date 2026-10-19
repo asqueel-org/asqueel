@@ -36,7 +36,7 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
             prepared = compiler.compile_plan(plan)
             assert "'50%%'" in prepared.sql
             assert '%(id)s' in prepared.sql
-            rows = (db.execute(prepared)).rows
+            rows = (db.execute(prepared)).fetchall()
             assert [dict(row) for row in rows] == [{'name': "L'impresa 50%", 'percent': '50%'}]
             assert db.execute(CompiledQuery('SELECT 1 AS ok'))
         finally:

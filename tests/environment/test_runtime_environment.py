@@ -1,8 +1,8 @@
-from tests.unit_of_work import completed
+from tests.unit_of_work import FakeCursor, completed
 import threading
 
 
-from asqueel.contracts import CompiledQuery, QueryResult
+from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import PostgresDatabase, Database
@@ -28,14 +28,14 @@ class SqlDbAdapter(PostgresAdapter):
         self.record('connect')
         return object()
 
-    def execute(self, connection, query):
+    def execute(self, connection, query, cursorname=None):
         self.record('execute')
         result = dict(self.environment.snapshot())
         result.update(query.params)
         # A nested adapter scope restores the caller context on normal exit.
         with self.environment.temp_env(driver_local=True):
             assert self.environment.current_env['driver_local']
-        return QueryResult([result], 1)
+        return FakeCursor([result])
 
     def commit(self, connection):
         self.record('commit')
@@ -59,8 +59,8 @@ def test_reused_query_reads_the_environment_of_every_execution():
     db = Database(implementation=FAKE, environment=env)
     try:
         with db.temp_env(company=2):
-            assert db.execute(query).rows[0]['env_company'] == 2
-        assert db.execute(query).rows[0]['env_company'] == 1
+            assert db.execute(query).fetchone()['env_company'] == 2
+        assert db.execute(query).fetchone()['env_company'] == 1
     finally:
         db.closeConnection()
 
@@ -75,8 +75,8 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
             assert db.currentEnv == db.current_env == {'company': 2}
             with completed(db) as tx:
                 with db.temp_env(company=3):
-                    assert tx.execute(CompiledQuery('select')).rows == [{'company': 3}]
-        assert db.execute(CompiledQuery('select')).rows == [{'company': 1}]
+                    assert [dict(row) for row in tx.execute(CompiledQuery('select')).fetchall()] == [{'company': 3}]
+        assert [dict(row) for row in db.execute(CompiledQuery('select')).fetchall()] == [{'company': 1}]
     finally:
         db.closeConnection()
     assert [(method, values['company']) for method, values, _ in driver.calls] == [
@@ -93,10 +93,10 @@ def test_separate_sync_databases_share_explicit_environment_without_leaking_scop
         with first.temp_env(company=1):
             assert second.current_env == {'company': 1}
             first_query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
-            assert first.execute(first_query).rows == [{'company': 1, 'env_company': 1}]
+            assert [dict(row) for row in first.execute(first_query).fetchall()] == [{'company': 1, 'env_company': 1}]
         with second.temp_env(company=2):
-            assert second.execute(first_query).rows[0]['env_company'] == 2
-            assert second.execute(CompiledQuery('select')).rows == [{'company': 2}]
+            assert second.execute(first_query).fetchone()['env_company'] == 2
+            assert [dict(row) for row in second.execute(CompiledQuery('select')).fetchall()] == [{'company': 2}]
         assert env.current_env == {'company': 0}
     finally:
         first.closeConnection()

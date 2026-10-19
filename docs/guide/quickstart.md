@@ -80,7 +80,7 @@ Run it with `python quickstart.py`.
   descriptor; a column's `attributes` hold its declared attributes, independently of
   the source recipe.
 - `query.fetch()` executes and returns mutable Toolbox `NamedList` rows; use `dict(row)` for a dictionary. `query.execute()`
-  returns a `QueryResult` with rows and column metadata. Every call executes again.
+  returns the open cursor; its rows are read by name. Every call executes again.
 - `query(...).fetchRecord()` returns exactly one visible row. Missing and
   multiple matches raise explicit errors.
 - `db.commit()` saves pending work; `db.rollback()` discards it. Both are explicit.

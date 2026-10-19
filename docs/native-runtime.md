@@ -59,8 +59,8 @@ corrente a ogni esecuzione.
 
 Il driver implementa `SyncDriver`. La facciata PostgreSQL ammette il profilo
 `postgresql/psycopg_named`; per altri profili usare `Database` con il driver
-appropriato o la configurazione applicativa. `QueryResult.rows` contiene
-risultati materializzati; nessun cursore lazy esce dall'esecuzione.
+appropriato o la configurazione applicativa. `execute` restituisce il cursore
+aperto, come il legacy; le righe si leggono per nome.
 
 Il runtime possiede il controllo transazionale: non inserire BEGIN/COMMIT/ROLLBACK
 nelle query applicative. I valori utente vanno nei parametri; le espressioni SQL

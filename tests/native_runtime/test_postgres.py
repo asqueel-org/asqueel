@@ -22,15 +22,15 @@ def test_real_postgres_crud_rollback_and_returning():
             result = db.execute(CompiledQuery(
                 f'INSERT INTO "{table}" VALUES (%(id)s, %(value)s) RETURNING id, value',
                 {'id': 1, 'value': "l'apostrofo"}))
-            assert [dict(row) for row in result.rows] == [{'id': 1, 'value': "l'apostrofo"}]
+            assert [dict(row) for row in result.fetchall()] == [{'id': 1, 'value': "l'apostrofo"}]
             db.commit()
             with pytest.raises(RuntimeError):
                 with completed(db) as tx:
                     tx.execute(CompiledQuery(f'UPDATE "{table}" SET value = %(v)s', {'v': 'rollback'}))
                     raise RuntimeError('abort')
             result = db.execute(CompiledQuery(f'SELECT value FROM "{table}"'))
-            assert [dict(row) for row in result.rows] == [{'value': "l'apostrofo"}]
-            assert [dict(row) for row in (db.execute(CompiledQuery(f'DELETE FROM "{table}" RETURNING id'))).rows] == [{'id': 1}]
+            assert [dict(row) for row in result.fetchall()] == [{'value': "l'apostrofo"}]
+            assert [dict(row) for row in (db.execute(CompiledQuery(f'DELETE FROM "{table}" RETURNING id'))).fetchall()] == [{'id': 1}]
         finally:
             db.execute(CompiledQuery(f'DROP TABLE "{table}"'))
             db.commit()
@@ -49,7 +49,7 @@ def test_real_postgres_metadata_mismatch_rolls_back_prior_write():
                 with completed(db) as tx:
                     tx.execute(CompiledQuery(f'INSERT INTO "{table}" VALUES (1)'))
                     tx.execute(CompiledQuery('SELECT 1 AS actual', columns=(ResultColumn('wrong'),)))
-            assert [dict(row) for row in (db.execute(CompiledQuery(f'SELECT count(*) AS n FROM "{table}"'))).rows] == [{'n': 0}]
+            assert [dict(row) for row in (db.execute(CompiledQuery(f'SELECT count(*) AS n FROM "{table}"'))).fetchall()] == [{'n': 0}]
         finally:
             db.execute(CompiledQuery(f'DROP TABLE "{table}"'))
             db.commit()

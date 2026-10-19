@@ -16,7 +16,7 @@ exist. Calls below are alternatives, not one script to execute in sequence.
 | Build a query | `table.query(columns='$id, $name')` | Lazy `SqlQuery`. |
 | Inspect SQL | `query.sqltext` / `query.compiled` | Compiles; no I/O. |
 | Read rows | `query.fetch()` | Executes; `list[NamedList]`, mutable rows with name/position access. |
-| Read rows and metadata | `query.execute()` | Executes; `QueryResult`. |
+| Read from a cursor | `query.execute()` | Executes; the open cursor, rows read by name. |
 | Read one row | `query.fetchRecord()` | Executes; exactly one `NamedList` or an error; `ignoreMissing=True` returns None for no row. |
 | Read keys, dicts, groups | `query.fetchPkeys()`, `fetchAsDict()`, `fetchGrouped()`, `fetchAsBag()`, `fetchAsJson()` | Executes; legacy fetch terminals. |
 | Read in chunks | `query.iterfetch(arraysize=30)` | Executes on a server-side cursor; yields lists of rows. |

@@ -27,7 +27,7 @@ def test_redefined_virtual_returns_the_new_definition(request, backend, grouped,
             '$redefined_customer AS actual,$customer_name AS expected',
             where='$customer_id IS NOT NULL', limit=5, excludeDraft=False,
             excludeLogicalDeleted=False, ignorePartition=True, order_by='').compiled
-        rows = executor.execute(compiled).rows
+        rows = executor.execute(compiled).fetchall()
         assert rows
         assert any(row['expected'] is not None for row in rows)
         for row in rows:

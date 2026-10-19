@@ -132,10 +132,10 @@ def test_context_binding_on_real_database(backend):
     db = AsqueelDb(Configuration)
     try:
         with db.tempEnv(workdate=date(2024, 6, 1), locale="custom'locale"):
-            row = db.execute('SELECT :env_workdate AS day, :env_locale AS lang').rows[0]
+            row = db.execute('SELECT :env_workdate AS day, :env_locale AS lang').fetchall()[0]
             assert str(row['day']) == '2024-06-01'
             assert row['lang'] == "custom'locale"
-            row = db.execute('SELECT :env_locale AS lang', {'env_locale': 'explicit'}).rows[0]
+            row = db.execute('SELECT :env_locale AS lang', {'env_locale': 'explicit'}).fetchall()[0]
             assert row['lang'] == 'explicit'
             db.rollback()
         assert db.currentEnv == {}

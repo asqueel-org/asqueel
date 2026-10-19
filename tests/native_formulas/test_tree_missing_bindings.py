@@ -23,7 +23,7 @@ def nullable(db, name):
 @pytest.mark.parametrize('params', [None, {}, {'root_fkey': None}])
 def test_missing_binding_is_null(db, params):
     original = deepcopy(params)
-    row = db.execute(f'SELECT {nullable(db, "root_fkey")} IS NULL AS missing', params).rows[0]
+    row = db.execute(f'SELECT {nullable(db, "root_fkey")} IS NULL AS missing', params).fetchall()[0]
     assert bool(row[0]) is True
     assert params == original
 
@@ -34,7 +34,7 @@ def test_explicit_binding_and_environment_are_preserved(db, value):
     with db.tempEnv(binding_probe='environment'):
         row = db.execute(
             f'SELECT :root_fkey AS supplied, {nullable(db, "missing")} IS NULL AS missing, '
-            ':env_binding_probe AS context', params).rows[0]
+            ':env_binding_probe AS context', params).fetchall()[0]
     assert row[0] == value
     assert bool(row[1]) is True
     assert row[2] == 'environment'

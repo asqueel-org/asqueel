@@ -31,19 +31,20 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             raise ValueError('autocommit is incompatible with explicit transactions')
         return psycopg.connect(conninfo, **kwargs)
 
-    def cursor(self, connection):
-        from psycopg.rows import tuple_row
-
-        return connection.cursor(row_factory=tuple_row)
-
-    def open_cursor(self, connection, query, cursorname=None):
+    def cursor(self, connection, cursorname=None):
         """A named server-side cursor when ``cursorname`` is given, else a client cursor."""
         from psycopg.rows import tuple_row
 
-        self.validate(query)
-        cursor = connection.cursor(cursorname or '', row_factory=tuple_row)
-        cursor.execute(query.sql, self._params(query.params))
-        return cursor
+        return connection.cursor(cursorname or '', row_factory=tuple_row)
+
+    def vacuum(self, table='', full=False):  # wf:phase-2:new
+        """Legacy vacuum: ``VACUUM [FULL] ANALYZE [table]`` on a separate autocommit connection."""
+        import psycopg
+
+        conninfo, connect_kwargs = self.dbroot._connection_settings()
+        sql = f"VACUUM {'FULL ' if full else ''}ANALYZE {table}".rstrip()
+        with psycopg.connect(conninfo, **{**connect_kwargs, 'autocommit': True}) as connection:
+            connection.execute(sql)
 
     def prepareSqlText(self, sql, kwargs):
         """Named arguments as psycopg ``%(name)s``; ``REGEXP`` as ``~*``."""

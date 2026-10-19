@@ -187,7 +187,7 @@ def live(request, tmp_path):
 
 
 def rows(db, sql):
-    return [dict(row) for row in db.execute(sql).rows]
+    return [dict(row) for row in db.execute(sql).fetchall()]
 
 
 def test_executed_insert_update_delete(live):
@@ -195,12 +195,13 @@ def test_executed_insert_update_delete(live):
     prefix = '' if db.adapter.dialect == 'sqlite' else model(db, 'sales.item').sqlschema
     item_sql = f'"{prefix}".sales_item' if prefix else 'sales_item'
     inserted = db.execute(compile.insert(model(db, 'sales.item'), {'id': 'a', 'name': 'ada', 'state': None}, {}))
-    assert [dict(row) for row in inserted.rows] == [{'state': 'new', 'code': 'ADA'}]
+    assert [dict(row) for row in inserted.fetchall()] == [{'state': 'new', 'code': 'ADA'}]
     db.execute(compile.update(model(db, 'sales.item'), {'id': 'a', 'label': 'L', 'name': 'bob'}, {}))
     assert rows(db, f'SELECT id, name, label_sql, state, code FROM {item_sql}') == [
         {'id': 'a', 'name': 'bob', 'label_sql': 'L', 'state': 'new', 'code': 'BOB'}]
     renamed = db.execute(compile.update(model(db, 'sales.item'), {'id': 'b', 'name': 'bob'}, {},
                                         old_record={'id': 'a'}))
+    renamed.fetchall()  # SQLite counts the rows of an UPDATE ... RETURNING once they are read.
     assert renamed.rowcount == 1
     deleted = db.execute(compile.delete(model(db, 'sales.item'), {'id': 'b'}, {}))
     assert deleted.rowcount == 1

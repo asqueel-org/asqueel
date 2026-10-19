@@ -1,10 +1,10 @@
-from tests.unit_of_work import completed
+from tests.unit_of_work import FakeCursor, completed
 from concurrent.futures import ThreadPoolExecutor
 import threading
 
 import pytest
 
-from asqueel.contracts import CompiledQuery, QueryResult
+from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
 from asqueel.runtime import TransactionStateError
@@ -30,7 +30,7 @@ class SqlDbAdapter(PostgresAdapter):
         self.calls.append('connect')
         return []
 
-    def execute(self, connection, query):
+    def execute(self, connection, query, cursorname=None):
         self.calls.append(query.sql)
         self.executed_params.append(dict(query.params))
         if self.callback:
@@ -38,7 +38,7 @@ class SqlDbAdapter(PostgresAdapter):
         if query.sql == 'fail':
             raise LookupError('statement failed')
         connection.append(query.sql)
-        return QueryResult([{'sql': query.sql}], 1)
+        return FakeCursor([dict.fromkeys(column.name for column in query.columns)] if query.columns else ())
 
     def commit(self, connection):
         self.calls.append('commit')

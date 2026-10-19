@@ -128,7 +128,7 @@ def test_query_compiles_in_terminal_environment_and_fetch_record_reads_again(app
         assert [dict(row) for row in query.fetch()] == [{'id': 1, 'name': 'same'}]
     with db.temp_env(item=2):
         assert [dict(row) for row in query.fetch()] == [{'id': 2, 'name': 'same'}]
-        assert [dict(row) for row in db.execute(compiled).rows] == [{'id': 2, 'name': 'same'}]
+        assert [dict(row) for row in db.execute(compiled).fetchall()] == [{'id': 2, 'name': 'same'}]
     record = db.table('app.item').query(where='$id=1')
     assert dict(record.fetchRecord()) == {'id': 1, 'name': 'same'}
     db.table('app.item').update({'id': 1, 'name': 'changed'})
@@ -164,7 +164,7 @@ def test_named_connections_have_independent_visibility_and_physical_identity(app
     from asqueel.contracts import CompiledQuery
     db, rows = application
     def pid():
-        return db.execute(CompiledQuery('SELECT pg_backend_pid() AS pid')).rows[0]['pid']
+        return db.execute(CompiledQuery('SELECT pg_backend_pid() AS pid')).fetchall()[0]['pid']
     main_pid = pid()
     db.table('app.item').insert({'id': 10, 'name': 'main pending'})
     with db.tempEnv(connectionName='independent'):

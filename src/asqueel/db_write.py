@@ -61,9 +61,11 @@ class WriteMixin:
             tblobj._doFieldTriggers('onDeleting', record)
             tblobj.trigger_onDeleting(record)
             tblobj.deleteRelated(record)
-            result = self.execute(self.write_compiler.delete(tblobj.model, record, self.environment.snapshot()))
-            if result.rowcount != 1:
-                raise RecordNotFoundError(f'{tblobj.fullname}: DELETE removed {result.rowcount} rows instead of 1')
+            cursor = self.execute(self.write_compiler.delete(tblobj.model, record, self.environment.snapshot()))
+            rowcount = cursor.rowcount
+            cursor.close()
+            if rowcount != 1:
+                raise RecordNotFoundError(f'{tblobj.fullname}: DELETE removed {rowcount} rows instead of 1')
             tblobj._doFieldTriggers('onDeleted', record)
             tblobj.trigger_onDeleted(record)
             tblobj.trigger_releaseCounters(record)
@@ -76,7 +78,8 @@ class WriteMixin:
             record[draft_field] = protect_draft(tblobj, record)
 
     def _write(self, tblobj, record, compiled):
-        result = self.execute(compiled)
-        if result.rows:
-            record.update(dict(result.rows[0]))
-        return result
+        cursor = self.execute(compiled)
+        rows = cursor.fetchall() if cursor.description is not None else []
+        cursor.close()
+        if rows:
+            record.update(dict(rows[0]))

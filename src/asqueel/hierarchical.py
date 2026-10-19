@@ -84,7 +84,7 @@ class HierarchicalHandler:
         db = self.tblobj.db
         compiled = db.write_compiler.lock_table(self.tblobj.model, db.environment.snapshot(), mode='SHARE ROW EXCLUSIVE')
         if compiled is not None:
-            db.execute(compiled)
+            db.execute(compiled).close()
 
     def trigger_after(self, record, old_record=None):
         tblobj = self.tblobj

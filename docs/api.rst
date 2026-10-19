@@ -42,7 +42,7 @@ Model and query contracts
    :members: resolve_model
 
 .. automodule:: asqueel.contracts
-   :members: Column, Relation, Table, ResolvedModel, RowPolicies, CompiledQuery, QueryResult, ResultColumn, EnvironmentMismatchError
+   :members: Column, Relation, Table, ResolvedModel, RowPolicies, CompiledQuery, ResultColumn, EnvironmentMismatchError
 
 Database inspection
 -------------------

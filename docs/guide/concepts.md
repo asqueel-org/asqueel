@@ -51,9 +51,9 @@ For `db.table('sales.customer').query(columns='$name').fetch()`:
 | `query.sqltext` | SQL compiled for the current environment. | No |
 | `query.compiled` | A `CompiledQuery` containing SQL, parameters and metadata. | No |
 | `query.fetch()` | A new list of mutable `NamedList` rows. | Yes |
-| `query.execute()` | A new `QueryResult`, including rows and metadata. | Yes |
+| `query.execute()` | The open cursor of the query; rows read by name. | Yes |
 | `query.fetchRecord()` | The single row of the query, or an error. | Yes |
-| `table.insert(values)` | A `QueryResult` from an executed write. | Yes |
+| `table.insert(values)` | The record, completed by the write cycle. | Yes |
 
 Every query terminal executes again. Inspecting `.sqltext` does not freeze the
 next fetch.

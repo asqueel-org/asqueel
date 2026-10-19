@@ -23,7 +23,7 @@ from .renderer import SqlRenderer
 from .compiler import PostgresCompiler, QueryCompiler
 from .catalog_provider import CatalogProvider, PostgresCatalogProvider
 from .contracts import (
-    Column, CompiledQuery, QueryResult, Relation, ResolvedModel, ResultColumn,
+    Column, CompiledQuery, Relation, ResolvedModel, ResultColumn,
     Table, UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
 )
 from .environment import SqlEnvironment
@@ -48,7 +48,7 @@ __all__ = [
     "SqlTable", "SqlQuery",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
-    "Column", "CompiledQuery", "QueryResult", "Relation", "ResolvedModel",
+    "Column", "CompiledQuery", "Relation", "ResolvedModel",
     "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",
     "PostgresDatabase", "session",
     "TransactionStateError", "resolve_model", "ImportResult", "inspect_postgres",

@@ -1,0 +1,10 @@
+✓ Fase 2 completata: `db.execute` restituisce il cursore e sono stati aggiunti `autocommit`, `onDbCommitted`, `setLocale`, `setConstraintsDeferred`, `analyze` e `vacuum`. Il commit è `6c9c091`, ed è stato fatto solo il commit, senza push.
+
+- **Verifiche:** i test della fase passano su SQLite e PostgreSQL, insieme a quelli della Fase 1 (35 su 35). La suite completa dà 5158 passed, 42 skipped, 27 xfailed. `ruff` e `mypy` sono puliti. `grep QueryResult` su `src/asqueel`, `tests` e `docs/guide` non trova nulla.
+- **Note `> Review:` nel piano, per il quality check:**
+  - Su SQLite un `UPDATE ... RETURNING` riporta `rowcount` solo dopo la lettura delle righe. Un test è stato adattato con `fetchall()`.
+  - La classe del cursore si chiama `SqlCursor`. Il nome è una proposta per la naming review e la classe non è esportata da `asqueel`.
+  - Se la connessione nominata viene chiusa e riaperta dopo l'apertura del cursore, un errore di fetch fa rollback sulla connessione nuova.
+  - `docs/adattamenti-legacy.md` e `docs/native-v1-delivery.md` citano ancora `QueryResult`.
+
+La prossima fase è la 3.

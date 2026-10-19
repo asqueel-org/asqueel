@@ -28,7 +28,7 @@ def db(request):
 
 
 def value(db, expression, params=None):
-    return db.execute(f'SELECT {expression} AS value', params or {}).rows[0]['value']
+    return db.execute(f'SELECT {expression} AS value', params or {}).fetchall()[0]['value']
 
 
 def test_string_agg_as_legacy():

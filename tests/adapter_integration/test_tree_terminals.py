@@ -72,9 +72,9 @@ def test_fetch_shares_transaction_and_each_terminal_executes_once(shop, monkeypa
     calls = []
     execute = shop.db.adapter.execute
 
-    def recording(connection, compiled):
+    def recording(connection, compiled, cursorname=None):
         calls.append((connection, compiled.sql))
-        return execute(connection, compiled)
+        return execute(connection, compiled, cursorname)
 
     monkeypatch.setattr(shop.db.adapter, 'execute', recording)
     query = shop.query(columns='$id', where='$id=16')

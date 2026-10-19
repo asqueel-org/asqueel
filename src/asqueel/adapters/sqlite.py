@@ -86,9 +86,19 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def _regexp(expression, item):
         return re.compile(expression, re.U).match(item) is not None
 
-    def cursor(self, connection):
-        # sqlite3 cursors are not context managers.
-        return closing(connection.cursor())
+    def setConstraintsDeferred(self):  # wf:phase-2:new
+        """The foreign keys of the current transaction are checked at commit."""
+        self.dbroot.execute('PRAGMA defer_foreign_keys = ON').close()
+
+    def vacuum(self, table='', full=False):  # wf:phase-2:new
+        """``VACUUM`` then ``ANALYZE [table]`` on a separate connection to the same file.
+
+        ``VACUUM`` always rebuilds the file on SQLite, so ``full`` adds nothing.
+        """
+        conninfo, connect_kwargs = self.dbroot._connection_settings()
+        with closing(self.connect(conninfo, **connect_kwargs)) as connection:
+            connection.execute('VACUUM')
+            connection.execute(f'ANALYZE {table}'.rstrip())
 
     def _begin(self, connection, query):
         """A locked query takes the write reservation; the driver begins the others."""
@@ -102,16 +112,11 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         # Acquire the write reservation without changing rows or ending the transaction.
         connection.execute(f'UPDATE {query.lock_table} SET {query.lock_column}={query.lock_column} WHERE 0')
 
-    def execute(self, connection, query):
-        self.validate(query)
-        self._begin(connection, query)
-        return super().execute(connection, query)
-
-    def open_cursor(self, connection, query, cursorname=None):
+    def execute(self, connection, query, cursorname=None):
         """SQLite has no server-side cursors: ``cursorname`` is ignored, as legacy."""
         self.validate(query)
         self._begin(connection, query)
-        return super().open_cursor(connection, query)
+        return super().execute(connection, query)
 
     def executemany(self, connection, query, params_seq):
         """One statement, one parameter mapping per execution; no result rows."""
