@@ -255,8 +255,18 @@ the write cycle, see [Current status](limitations.md).
   dtype the type is `A`, as in GenroPy. Reason: ambiguous combinations are
   refused instead of picking one definition.
 - **`subQueryColumn` (`query=`, `mode=`)** (A3.10): `json` and `xml` modes run
-  only on PostgreSQL; `mode='join'`, `'to_json'`, `'to_xml'` produce
-  aggregations. Reason: SQLite has no equivalent for json/xml.
+  only on PostgreSQL; any other `mode` raises `ValueError`. Reason: SQLite has
+  no equivalent for json/xml.
+- **`subQueryColumn(aggr=)`**: one call of the `.aggr()` grammar replaces the
+  query columns; `aggr` with `mode`, or two aggregates, raise `ValueError`.
+- **`#ENV(name[,fallback])`** (A3.18): expanded in a formulaColumn
+  `sql_formula` only, as legacy (key, fallback key, `env_<name>()` method).
+  Two corrections: single quotes in the value are doubled; no key and no
+  method raise `ValueError` instead of producing `Not found <name>`.
+  Elsewhere it raises `ValueError`.
+- **`#BAG` / `#BAGCOLS` in columns** (A3.19): expanded in the query columns
+  only; the value becomes a Bag, or its leaves become columns, after the fetch.
+  Elsewhere they raise `ValueError`.
 
 ### Not available yet
 
@@ -269,11 +279,9 @@ the write cycle, see [Current status](limitations.md).
 - **Dynamic columns: `variant=` with `variantColumn_<v>()`,
   `sqlparams[name]={field:...}`** (A3.15): not read. No issue yet.
   Workaround: declare explicit `formulaColumn`s.
-- **`#ENV(name[,fallback])` and `#PREF(path[,default])`** (A3.18): refused
-  with `UnsupportedFeatureError` naming the macro ("macro #ENV is not
-  available in this release"). No issue yet. Workaround: `:env_name` and `var_*`.
-- **`#BAG` / `#BAGCOLS` in columns** (A3.19): refused the same way, naming the macro.
-  No issue yet. Workaround: `bagItemColumn` or decoding in the application.
+- **`#PREF(path[,default])`** (A3.18): refused with `UnsupportedFeatureError`
+  naming the macro ("macro #PREF is not available in this release"). No issue
+  yet. Workaround: `:env_name` and `var_*`.
 - **Dialect macros `#TSQUERY`, `#TSRANK`, `#TSHEADLINE`, `#VECQUERY`,
   `#VECRANK`** (A3.20): refused the same way, naming the macro. No issue yet.
   Workaround: explicit full-text SQL in `sql_formula` or in the `where`.

@@ -26,6 +26,9 @@ _CALL_BOUNDARIES = re.compile(r"'[^']*'|\"[^\"]*\"|[()]")
 _THIS = re.compile(r'#THIS\.([\w\.@]+)')
 _IN_RANGE = re.compile(r"#IN_RANGE\s*\(\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*,\s*((?:\$|@|\:)?[\w\.\@]+)\s*\)\s*", re.MULTILINE)
 _PERIOD = re.compile(r"#PERIOD\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*,\s*:?(\w+)\)")
+_BAG = re.compile(r"#BAG\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*\)(\s*AS\s*(\w*))?")
+_BAGCOLS = re.compile(r"#BAGCOLS\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*\)(\s*AS\s*(\w*))?")
+_ENV = re.compile(r"#ENV\(([^,)]+)(,[^),]+)?\)")
 _COLREL = re.compile(r'([@$]\w+(?:\.\w+)*)')
 _TEMPLATE = re.compile(r'#TEMPLATE\s*\(')
 _TEMPLATE_LITERAL = re.compile(r"\s*'((?:[^']|'')*)'\s*", re.S)
@@ -170,10 +173,22 @@ class _TreeContext:
                 attrs['var_calculated_path'] = _bag_item_path(attrs['itempath'])
                 definition = _formula_definition(attrs, column.fullname)
             elif column.tag == 'subQueryColumn':
-                if attrs.get('mode') == 'xml' and isinstance(attrs.get('query'), str):
+                mode, aggr = attrs.get('mode'), attrs.get('aggr')
+                if aggr is not None and mode is not None:
+                    raise ValueError(f'{column.fullname}: subQueryColumn takes aggr and mode, not both')
+                if mode not in (None, 'json', 'xml'):
+                    raise ValueError(f"{column.fullname}: subQueryColumn mode '{mode}' is not valid; use aggr")
+                if mode == 'xml' and isinstance(attrs.get('query'), str):
                     raise UnsupportedFeatureError(
                         f'{column.fullname}: legacy XML subQueryColumn requires a query mapping')
-                definition = (None, _subquery_definition(attrs.get('query'), column.fullname), None, {})
+                query = _subquery_definition(attrs.get('query'), column.fullname)
+                if aggr is not None:
+                    aggregates = aggregate_columns(split_sql(aggr), column.fullname)
+                    if len(aggregates) != 1:
+                        raise ValueError(f'{column.fullname}: subQueryColumn aggr takes one aggregate')
+                    (columns, _, attrs['mode']), = aggregates
+                    query = dict(query, columns=columns)
+                definition = (None, query, None, {})
             elif column.tag == 'compositeColumn':
                 attrs = {'sql_formula': self.composite_formula(table, column)}
                 definition = _formula_definition(attrs, column.fullname)
@@ -213,6 +228,8 @@ class _TreeContext:
             values = _formula_parameters(column.fullname, **attrs)
             self.formula_bindings[key] = self.bindings.child(values, 'f') if values else self.bindings
         bindings = self.formula_bindings[key]
+        if column.tag == 'formulaColumn' and formula is not None:
+            formula = _ENV.sub(lambda m: self.expand_env(m, table, column), formula)
         if select is not None or exists is not None:
             formula = '#default'
             subqueries = {'default': (select, False) if select is not None else (exists, True)}
@@ -237,6 +254,25 @@ class _TreeContext:
         self._check_macros(formula)
         refs.resolve(lambda path: self.get_field_alias(path, curr, alias))
         return f'( {refs.substitute(formula, safe=True)} )'
+
+    def expand_env(self, match, table, column):  # wf:phase-4:new
+        """Legacy expandEnv: environment key, fallback key, then the env_<name>() table method."""
+        name, fallback = match[1], match[2][1:] if match[2] else None
+        for key in (name, fallback):
+            if key and key in self.snapshot:
+                return "'" + str(self.snapshot[key]).replace("'", "''") + "'"
+        owner = self._known_table(fallback) if fallback else table
+        handler = getattr(owner.dbtable, 'env_' + name, None)
+        if handler is None:
+            raise ValueError(f"{column.fullname}: #ENV({name}) finds no environment key '{name}' "
+                             f"and no method env_{name}")
+        return handler()
+
+    def expand_bag(self, match, separateCols):  # wf:phase-4:new
+        """Legacy expandBag/expandBagcols: the plain column in the SQL, the Bag built after fetch."""
+        field, alias = match[1], match[3]
+        self.cpl.evaluateBagColumns.append(((alias or field).replace('$', ''), separateCols))
+        return f'{field} AS {alias}' if alias else field
 
     def subquery(self, definition, owner, alias, bindings, *, exists=False,
                  aggregate=None, row_alias=None):
@@ -601,6 +637,10 @@ class _TreeContext:
     @staticmethod
     def _check_macros(expression):
         macro = re.search(r'#[A-Za-z_]\w*', expression or '')
+        if macro and macro[0] == '#ENV':
+            raise ValueError('#ENV is expanded only in a formulaColumn sql_formula')
+        if macro and macro[0] in ('#BAG', '#BAGCOLS'):
+            raise ValueError(f'{macro[0]} is expanded only in the query columns')
         if macro:
             raise UnsupportedFeatureError(f'macro {macro[0]} is not available in this release')
 
@@ -660,6 +700,9 @@ class _TreeContext:
             expand_templates(clause, self.adapter) if clause else clause
             for clause in (columns, where, order_by, group_by, having))
         columns = columns.replace('  ', ' ').replace('\n', '').replace(' as ', ' AS ').replace(' ,', ',')
+        if self.parent is None:
+            columns = _BAG.sub(lambda m: self.expand_bag(m, False), columns)
+            columns = _BAGCOLS.sub(lambda m: self.expand_bag(m, True), columns)
         # Recognize the agreed many-call boundary before split handles columns.
         try:
             selected = split_sql(columns)
@@ -890,7 +933,8 @@ class QueryCompiler:
         used_inputs = (set(query.input_parameters) - environment_inputs - set(plan.local_parameters)) | set(plan.input_parameters)
         return replace(query, columns=plan.result_columns, environment_keys=plan.environment_keys,
                        for_update=plan.for_update, lock_table=plan.maintable, lock_column=plan.lock_column,
-                       input_parameters=tuple(sorted(used_inputs)))
+                       input_parameters=tuple(sorted(used_inputs)),
+                       evaluateBagColumns=tuple(plan.evaluateBagColumns))
 
     def plan_select(self, table, columns='*', where=None, sqlparams=None, order_by=None,
                     limit=None, offset=None, *, exclude_draft=True,

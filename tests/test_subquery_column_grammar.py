@@ -6,7 +6,7 @@ from asqueel.configuration import _copy_recipe, _owned_handler
 from asqueel.model import resolve_model
 
 
-@pytest.mark.parametrize('mode', [None, 'json', 'xml', 'sum'])
+@pytest.mark.parametrize('mode', [None, 'json', 'xml'])
 def test_subquery_column_keeps_legacy_defaults_and_later_query_contributions(mode):
     b = SqlDatabaseConfig()
     table = b.source.db('example').packages().package('invc').table('invoice')

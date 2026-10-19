@@ -215,8 +215,32 @@ those names. This is not an automatic whole-day timestamp conversion.
 Macro contexts are intentionally limited: PERIOD is not a direct SELECT or
 ORDER BY expression; GROUP BY/HAVING do not receive general macro expansion.
 Quoted strings and comments remain unchanged. Unavailable macros report their
-name instead of being sent unexpanded to the server. ENV/PREF, BAG/BAGCOLS,
-full-text/vector macros and a custom macro registry are not implemented here.
+name instead of being sent unexpanded to the server. PREF, full-text/vector
+macros and a custom macro registry are not implemented here. `#ENV` is expanded
+in a formulaColumn `sql_formula` only (see the formulas guide); in a query
+clause it raises `ValueError`.
+
+## Bag columns: #BAG and #BAGCOLS
+
+`#BAG($col)`, `#BAG($col) AS alias` and `#BAGCOLS($col)` are expanded in the
+query columns only, as in GenroPy. The macro leaves the SQL; after the fetch:
+
+- `#BAG` turns the value into a `genro_bag.Bag` (`Bag.from_xml`); NULL gives an
+  empty Bag;
+- `#BAGCOLS` adds a column `<field>_<path>` for each leaf, with `.` in the path
+  replaced by `_`, and sets the field itself to None.
+
+```python
+# Invoice 11 of the tutorial data has a NULL note.
+rows = db.table('sales.invoice').query(columns='$id,#BAG($note) AS doc', where='$id = 11').fetch()
+assert len(rows[0]['doc']) == 0  # NULL gives an empty Bag
+rows = db.table('sales.invoice').query(columns='$id,#BAGCOLS($note)', where='$id = 11').fetch()
+assert rows[0]['note'] is None  # the leaves, if any, are note_<path> columns
+```
+
+Every fetch terminal applies it (`fetch()`, the `fetchAs*` family,
+`fetchRecord()`, `iterfetch()`, `serverfetch()`); `cursor()` returns the driver
+rows unchanged. In a WHERE, ORDER BY or formula the macros raise `ValueError`.
 Existing `:env_name`, correlated `#THIS` and named subquery references retain
 their current behavior. Native package SQL formulas and `var_*` locals are
 supported, including native select/exists/select_* and sql_formula_<name>(attr)

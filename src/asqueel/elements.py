@@ -361,7 +361,7 @@ class TableElements:
     @element(parent_tags="virtual_columns", sub_tags="relation",
              _meta={"attribute_families": ["var_"]})
     def subQueryColumn(self, name: str, query: str | dict | None = None,
-                       mode: str | None = None, dtype: str | None = None,
+                       aggr: str | None = None, mode: str | None = None, dtype: str | None = None,
                        name_long: str | None = None,
                        group: str | None = None, name_short: str | None = None,
                        comment: str | None = None, x_identity: str | None = None, **extra):
@@ -370,8 +370,9 @@ class TableElements:
         Args:
             name: the column name.
             query: the sub-query declaration; may be supplied by a later contribution.
-            mode: None, ``json``, ``xml`` or a legacy aggregate name; preserved
-                without expansion or execution by the grammar.
+            aggr: one call of the ``.aggr()`` grammar (count, sum, avg, min,
+                max, join, to_json, to_xml); it replaces the query columns.
+            mode: None, ``json`` or ``xml``, as legacy; not together with ``aggr``.
             dtype: the declared result type.
             name_long: semantic; human label.
             group: semantic; field-group key.

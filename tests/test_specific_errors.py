@@ -96,9 +96,16 @@ def test_aggregate_on_a_relation_with_a_custom_join(key):
             compile_customer(opened, '@invoices.aggr(sum($total))')
 
 
-@pytest.mark.parametrize('macro', ['#PREF', '#TSQUERY', '#ENV', '#BAG'])
+@pytest.mark.parametrize('macro', ['#PREF', '#TSQUERY'])
 def test_macro(db, macro):
     with pytest.raises(UnsupportedFeatureError, match=f'macro {macro} is not available in this release'):
+        compile_customer(db, '$id', where=f'{macro}($code)')
+
+
+@pytest.mark.parametrize(('macro', 'message'), [('#ENV', '#ENV is expanded only in a formulaColumn sql_formula'),
+                                                ('#BAG', '#BAG is expanded only in the query columns')])
+def test_macro_outside_its_clause(db, macro, message):
+    with pytest.raises(ValueError, match=message):
         compile_customer(db, '$id', where=f'{macro}($code)')
 
 

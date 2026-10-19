@@ -80,7 +80,7 @@ def test_scalar_alias_dependency_null_and_locals_match_values(db):
     row = read(db, '$maximum,$max_alias,$dependent,$twice,$triple')
     assert dict(row) == dict(maximum=30, max_alias=30, dependent=150, twice=120, triple=180)
     assert dict(read(db, '$maximum,$twice', id=3)) == dict(maximum=None, twice=None)
-    assert read(db, '$other_mode')['other_mode'] == 30
+    assert read(db, '$aggr_max')['aggr_max'] == 30
     query = db.table('app.owner').query(
         '$id,$maximum', where='$maximum>:minimum', minimum=15, order_by='$maximum DESC'
     )

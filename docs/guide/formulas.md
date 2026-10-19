@@ -268,9 +268,22 @@ compiled = db.table('invc.invoice').query(
 sql, kwargs = compiled.sql, dict(compiled.params)
 ```
 
-With `mode=None` (the default), the column is a plain scalar subquery on
-PostgreSQL and SQLite. Other modes except `json` and `xml` retain the legacy
-plain SELECT behavior; `mode='sum'` does not synthesize SUM.
+With neither `mode` nor `aggr`, the column is a plain scalar subquery on
+PostgreSQL and SQLite. `mode` accepts only `None`, `json` and `xml`, as in
+GenroPy; any other value raises `ValueError` and points to `aggr`.
+
+`aggr=` takes exactly one call of the `.aggr()` grammar (`count`, `sum`, `avg`,
+`min`, `max`, `join`, `to_json`, `to_xml`). The aggregate replaces the
+`columns` of the query; the query's `order_by` orders `join`, `to_json` and
+`to_xml`. Two aggregates, or `aggr` together with `mode`, raise `ValueError`.
+
+```python
+lines = dict(table='invc.invoice_row', where='$invoice_id=#THIS.id')
+invoice.subQueryColumn('row_total', query=lines, aggr='sum($unit_price)', dtype='N')
+invoice.subQueryColumn('row_count', query=lines, aggr='count()', dtype='L')
+invoice.subQueryColumn('row_products', query=dict(lines, order_by='$product_id'),
+                       aggr="join($product_id, ',')", dtype='T')
+```
 
 On PostgreSQL, `json` wraps the child SELECT in `jsonb_agg(row_to_json(...))`;
 `xml` uses `xmlagg(xmlelement(..., xmlforest(...)))` cast to text. This follows
@@ -286,6 +299,31 @@ them. An empty row source yields NULL in both modes, not an empty collection.
 `var_*`, local `sqlparams`, relations, aliases and nested formulas reuse the
 existing isolated scopes. `cast` on the row source of a JSON/XML aggregation
 remains unsupported.
+
+## #ENV in a formula
+
+`#ENV(name[,fallback])` is expanded in a formulaColumn `sql_formula` only, at
+compilation, as in GenroPy:
+
+- the environment key `name` becomes a quoted literal;
+- otherwise the environment key `fallback` becomes a quoted literal;
+- otherwise the method `env_<name>()` of the table `fallback` (or of the current
+  table) is called and its return value is inserted as SQL.
+
+Single quotes inside an environment value are doubled. With no key and no
+method the compilation raises `ValueError` naming the key. The value is inlined
+in the SQL text, so a query object keeps the value of its first compilation;
+use `:env_name` for a value read at every execution. `#ENV` anywhere else
+raises `ValueError`.
+
+```python
+class Customer(SqlTable):
+    def env_region(self):
+        return "'north'"
+
+customer.formulaColumn('who', sql_formula='#ENV(user)', dtype='T')
+customer.formulaColumn('region', sql_formula='#ENV(region)', dtype='T')
+```
 
 ## Subqueries supplied by table methods
 

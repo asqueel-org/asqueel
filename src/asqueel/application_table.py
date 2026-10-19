@@ -122,7 +122,20 @@ class SqlQuery:
 
     def fetch(self):
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
-        return self.execute().rows
+        return self.handleBagColumns(self.execute().rows, self.compiled)
+
+    def handleBagColumns(self, rows, compiled):  # wf:phase-4:new
+        """Legacy handleBagColumns: a #BAG value becomes a Bag, #BAGCOLS spreads its leaves into columns."""
+        for row in rows:
+            for field, separateCols in compiled.evaluateBagColumns:
+                value = Bag() if row[field] is None else Bag.from_xml(row[field])
+                if separateCols:
+                    for path, leaf in value.get_leaves():
+                        row[f'{field}_{path.replace(".", "_")}'] = leaf
+                    row[field] = None
+                else:
+                    row[field] = value
+        return rows
 
     def cursor(self):  # wf:phase-1:new
         """Execute the query and return the open driver cursor; the caller closes it."""
@@ -147,7 +160,7 @@ class SqlQuery:
         try:
             rows = cursor.fetchmany()
             while rows:
-                yield [NamedList(index, row) for row in rows]
+                yield self.handleBagColumns([NamedList(index, row) for row in rows], self.compiled)
                 rows = cursor.fetchmany()
         finally:
             cursor.close()
@@ -199,7 +212,8 @@ class SqlQuery:
         """
         if self._options.get('order_by'):
             options = dict(_copy(self._options), limit=1)
-            rows = self.db.execute(self._compile(self.db.compiler.select, options)).rows
+            compiled = self._compile(self.db.compiler.select, options)
+            rows = self.handleBagColumns(self.db.execute(compiled).rows, compiled)
         else:
             rows = self.fetch()
         if not rows:

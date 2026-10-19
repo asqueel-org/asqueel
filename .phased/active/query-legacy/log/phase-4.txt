@@ -1,0 +1,8 @@
+✓ Phase 4 completed: subQueryColumn with aggr=; #ENV, #BAG, #BAGCOLS
+
+- I 32 contract test passano su SQLite e PostgreSQL.
+- Full suite: 5118 passed, 42 skipped, 27 xfailed. `ruff` e `mypy` del venv sono puliti.
+- `docs/grammar.md` coincide con l'output di `grammar_doc`.
+- Commit `9b67a58`.
+
+`mypy` lanciato dall'hook di commit segnala 3 errori di import su `asqueel_migration`. Sono errori solo informativi e non vengono dal codice di questa fase. Non restano fasi `[ ]` nel piano.

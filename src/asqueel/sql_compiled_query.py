@@ -32,6 +32,8 @@ class SqlCompiledQuery:
     environment_keys: tuple[str, ...] = ()
     input_parameters: tuple[str, ...] = ()
     local_parameters: tuple[str, ...] = ()
+    # Legacy evaluateBagColumns: (field, separateCols) of the #BAG/#BAGCOLS columns.
+    evaluateBagColumns: list[tuple[str, bool]] = field(default_factory=list)
 
     def get_sqltext(self, adapter):
         """SqlCompiledQuery.get_sqltext: delegate only the resolved clauses."""

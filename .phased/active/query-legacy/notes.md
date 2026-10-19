@@ -21,3 +21,10 @@
 - The compiler reaches a compositeColumn through the virtual column lookup of `get_field_alias` (declared virtual, then composite, then dynamic) and compiles it as a formula with `composite_formula`; the "compositeColumn in place of a physical column" refusal left `physical_column` because it became unreachable. `DbTableObj.column()` also falls back to the dynamic columns, so result metadata resolves their dtype.
 - The 'A' default lives in `DbVirtualColumnObj.dtype` for the formulaColumn tag, so declared and dynamic formula columns share it; the signature keeps `dtype=None`.
 - Realigned outside the plan's list by the same rule: examples/model_grammar/configure.py (`expression=` → `sql_formula=`), tests/object_tree/test_relation_metadata.py (a formulaColumn without dtype now publishes 'A').
+
+## Phase 4
+- `aggr` validation and expansion live in `formula_definition` (compile time): the contract tests accept the error at declaration or compilation, and the grammar keeps only the attribute. The aggregate's function (`join`/`to_json`/`to_xml`/None) is written into the local `attrs['mode']` copy so the existing `subquery(..., aggregate=)` dispatch is reused.
+- `#BAG`/`#BAGCOLS` are expanded only in the top-level SELECT (`parent is None`): a child subquery has no post-fetch step, so there they reach `_check_macros` and raise. `cursor()`/`servercursor()` return driver rows unchanged; `iterfetch`/`serverfetch` apply the Bag handling.
+- `#ENV` reads the compiler's environment snapshot (it includes `workdate` and `locale`); the fallback table is resolved with `_known_table`, its handler on `.dbtable`.
+- The queries.md example runs against the tutorial data, which has no X column: it reads the NULL `note` of invoice 11.
+- Realigned: `test_macro` and `test_unported_macros_remain_explicit` keep #PREF/#TSQUERY; #ENV/#BAG/#BAGCOLS moved to new tests asserting the ValueError.

@@ -307,7 +307,8 @@ A virtual column defined by a sub-query. Never physical.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
 | query | `str \| dict \| None` | `None` | physical | the sub-query declaration; may be supplied by a later contribution. |
-| mode | `str \| None` | `None` | physical | None, `json`, `xml` or a legacy aggregate name; preserved without expansion or execution by the grammar. |
+| aggr | `str \| None` | `None` | physical | one call of the `.aggr()` grammar (count, sum, avg, min, max, join, to_json, to_xml); it replaces the query columns. |
+| mode | `str \| None` | `None` | physical | None, `json` or `xml`, as legacy; not together with `aggr`. |
 | dtype | `str \| None` | `None` | physical | the declared result type. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |

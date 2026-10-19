@@ -74,9 +74,15 @@ def test_child_period_formula_ranges_and_this_keep_scopes(no_io):
         assert query.compiled == compiled
 
 
-@pytest.mark.parametrize('macro', ['#ENV(company)', '#PREF(company)', '#TSQUERY($total,:search)', '#BAG($total)', '#BAGCOLS($total)'])
+@pytest.mark.parametrize('macro', ['#PREF(company)', '#TSQUERY($total,:search)'])
 def test_unported_macros_remain_explicit(db, macro):
     with pytest.raises(UnsupportedFeatureError):
+        db.table('sales.invoice').query('$id', where=macro).compiled
+
+
+@pytest.mark.parametrize('macro', ['#ENV(company)', '#BAG($total)', '#BAGCOLS($total)'])
+def test_ported_macros_in_a_where_clause_raise(db, macro):
+    with pytest.raises(ValueError, match='is expanded only in'):
         db.table('sales.invoice').query('$id', where=macro).compiled
 
 

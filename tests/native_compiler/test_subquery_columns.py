@@ -22,7 +22,7 @@ def source(backend='postgres'):
     item.options().sys_fields(id=False, draft=True)
     scalar = dict(table='app.item', columns='MAX($amount)', where='$owner_id=#THIS.id')
     owner.subQueryColumn('maximum', query=scalar, dtype='N')
-    owner.subQueryColumn('other_mode', query=scalar, mode='sum', dtype='N')
+    owner.subQueryColumn('aggr_max', query=scalar, aggr='max($amount)', dtype='N')
     owner.subQueryColumn(
         'twice',
         query=dict(table='app.item', columns='SUM($amount * :factor)', where='$owner_id=#THIS.id'),

@@ -187,6 +187,8 @@ class CompiledQuery:
     for_update: bool = False
     lock_table: str | None = None
     lock_column: str | None = None
+    # (field, separateCols) of the #BAG/#BAGCOLS columns, turned into Bags after fetch.
+    evaluateBagColumns: tuple[tuple[str, bool], ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "params", MappingProxyType(dict(self.params)))
