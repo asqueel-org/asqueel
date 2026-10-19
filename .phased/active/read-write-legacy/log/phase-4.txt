@@ -1,0 +1,9 @@
+✓ Phase 4 completata: `query(...).update()` e `query(...).delete()` passano dal write cycle, e la cancellazione logica si propaga in cascata.
+
+- **Codice:** era già nel commit partial `222db0e`. In questa sessione non ho cambiato codice.
+- **Test della fase:** 14/14 su SQLite e PostgreSQL. Insieme ai test delle Phase 1-3 fanno 71 test, tutti green.
+- **Suite completa:** 5194 passed, 42 skipped, 27 xfailed, eseguita in foreground. `ruff` e `mypy src` non segnalano errori.
+- **Commit:** `92b583c`. Contiene solo la chiusura `[x]` nel piano, con le note Done e Files.
+- **Hook di commit:** il mypy dell'hook ha segnalato 3 errori di import su `asqueel_migration`. Sono solo avvisi e non bloccano il commit.
+
+Nel piano non restano fasi da eseguire. Il passo successivo è `/quality-check`, poi `/finalize-workflow`.
