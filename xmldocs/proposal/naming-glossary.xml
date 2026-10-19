@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proposal id="proposal/naming-glossary" title="Glossario dei nomi del linguaggio asqueel" date="2026-10-19" lang="it" author="Giovanni Porcari" status="draft">
+  <problem>
+    <p>Il team deve prendere le decisioni finali sui nomi del linguaggio asqueel.</p>
+    <p>Il criterio è questo. Un nome che è una parola del nostro linguaggio segue la regola GenroPy. Il codice interno segue l'idioma Python.</p>
+    <p>La regola GenroPy ha tre punti:</p>
+    <list>
+      <item>le parole si scrivono in camelCase: <c>formulaColumn</c>, <c>onInserting</c>;</item>
+      <item><c>_</c> separa solo un namespace dal nome: <c>sql_onDelete</c>, <c>trigger_onInserting</c>, <c>name_long</c>;</item>
+      <item>una parola già singola resta singola: <c>rowcaption</c>, <c>tabletype</c>.</item>
+    </list>
+    <p>Questo documento elenca i nomi che un utente scrive o sovrascrive. Per ogni nome riporta la controparte GenroPy, quando esiste, e se il nome segue la regola. I nomi con grafia aperta rimandano a una decisione.</p>
+  </problem>
+
+  <current>
+    <section title="Legenda e fonti">
+      <p>La colonna <b>Regola</b> ha quattro valori:</p>
+      <list>
+        <item><c>sì</c>: il nome segue la regola.</item>
+        <item><c>legacy</c>: il nome non segue la regola. È la grafia GenroPy e resta invariata.</item>
+        <item><c>cambiato</c>: il nome asqueel diverge dalla grafia GenroPy, per una decisione già presa. Il nome asqueel segue la regola.</item>
+        <item><c>aperto</c>: la grafia è aperta per il team. La cella Note indica la decisione.</item>
+      </list>
+      <p>Fonti asqueel: <c>src/asqueel/__init__.py</c>, <c>docs/grammar.md</c>, <c>docs/guide/legacy-features.md</c> e le classi pubbliche. Fonte GenroPy: il ramo <c>origin/develop</c> della repo genropy al commit <c>b5364b62eb</c> del 2026-10-19. I file GenroPy citati sono sotto <c>gnrpy/gnr/</c>.</p>
+      <p><c>docs/design/112-legacy-inventory.md</c> è del 2026-10-17. È precedente alle Macro 4-6 e ha nomi superati, per esempio <c>on_delete</c> e <c>inverse=</c>. Questo glossario non lo usa per i nomi attuali.</p>
+      <fact source="sql/gnrsqlmodel/model.py:643" method="read" verified="2026-10-19">In GenroPy le dichiarazioni del modello sono metodi: <c>pkg.table()</c>, <c>tbl.column()</c>, <c>tbl.formulaColumn()</c>, <c>col.relation()</c>. In asqueel le stesse dichiarazioni sono elementi della grammar con lo stesso nome.</fact>
+    </section>
+
+    <section title="Elementi della grammar">
+      <table title="Elementi">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>db</c>, <c>connection</c></cell><cell>—</cell><cell>sì</cell><cell>configurazione</cell></row>
+        <row><cell><c>schemas</c>, <c>schema</c>, <c>extensions</c>, <c>extension</c></cell><cell>—</cell><cell>sì</cell><cell><c>extension</c> sostituisce <c>SqlMigrator(extensions=)</c></cell></row>
+        <row><cell><c>packages</c>, <c>package</c></cell><cell><c>package()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>tables</c>, <c>table</c></cell><cell><c>table()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>columns</c>, <c>column</c></cell><cell><c>column()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>virtual_columns</c></cell><cell>— (contenitore nuovo)</cell><cell>aperto</cell><cell><ref to="dn-elements"/>. In GenroPy <c>virtual_columns</c> è una property del modello e un'opzione di query.</cell></row>
+        <row><cell><c>composites</c>, <c>constraints</c>, <c>indexes</c></cell><cell>—</cell><cell>sì</cell><cell>contenitori</cell></row>
+        <row><cell><c>aliasColumn</c></cell><cell><c>aliasColumn()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>formulaColumn</c></cell><cell><c>formulaColumn()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>subQueryColumn</c></cell><cell><c>subQueryColumn()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>pyColumn</c></cell><cell><c>pyColumn()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>bagItemColumn</c></cell><cell><c>bagItemColumn()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>compositeColumn</c></cell><cell><c>compositeColumn()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>joinColumn</c></cell><cell><c>joinColumn()</c></cell><cell>sì</cell><cell>solleva sempre un errore</cell></row>
+        <row><cell><c>constraint</c>, <c>index</c></cell><cell><c>index()</c></cell><cell>sì</cell><cell><c>constraint</c> è nuovo</cell></row>
+        <row><cell><c>relation</c></cell><cell><c>relation()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>weak_relation</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>virtualRelation</c></cell><cell>—</cell><cell>sì</cell><cell>nuovo, solo dentro <c>aggr</c></cell></row>
+        <row><cell><c>colgroup</c></cell><cell><c>colgroup()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>sys_fields</c></cell><cell><c>sysFields(tbl, …)</c> (<c>app/gnrdbo.py:324</c>)</cell><cell>aperto</cell><cell><ref to="dn-elements"/>. La grafia GenroPy segue la regola, quella asqueel no.</cell></row>
+        <row><cell><c>options</c>, <c>reset</c>, <c>driver</c>, <c>requires</c>, <c>type</c></cell><cell><c>type</c> corrisponde a <c>custom_type_&lt;dtype&gt;()</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>validation</c>, <c>encryption</c></cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>hierarchical</c></cell><cell><c>sysFields(hierarchical=)</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>auto_counter</c></cell><cell><c>sysFields(counter=)</c></cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>relative_index</c></cell><cell><c>sysFields(relidx=)</c></cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>dynamic_fields</c></cell><cell><c>sysFields(df=)</c></cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>record_hash</c></cell><cell><c>sysFields(md5=)</c></cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>full_update</c></cell><cell><c>sysFields(full_upd=)</c></cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>system_records</c></cell><cell><c>sysFields(sysrecords=)</c></cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>enabled_when</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-elements"/></cell></row>
+        <row><cell><c>protection</c></cell><cell><c>sysFields(useProtectionTag=)</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>audit</c>, <c>release</c>, <c>retention</c>, <c>broadcast</c>, <c>archive</c>, <c>attachments</c>, <c>numbering</c></cell><cell>—</cell><cell>sì</cell><cell>solo dichiarati: una scrittura sulla table viene rifiutata</cell></row>
+      </table>
+    </section>
+
+    <section title="Attributi di table e package">
+      <table title="table">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>name</c>, <c>pkey</c>, <c>comment</c>, <c>sqlname</c>, <c>sqlschema</c>, <c>lookup</c>, <c>tabletype</c>, <c>rowcaption</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>name_long</c>, <c>name_short</c>, <c>name_full</c>, <c>name_plural</c></cell><cell>uguali</cell><cell>sì</cell><cell>namespace <c>name_</c></cell></row>
+        <row><cell><c>caption_field</c>, <c>newrecord_caption</c>, <c>order_by</c></cell><cell>uguali</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>pkey_columns</c>, <c>pkey_columns_joiner</c></cell><cell>uguali (<c>sql/gnrsqltable/utils.py:112</c>)</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>lastTS</c>, <c>logicalDeletionField</c>, <c>draftField</c>, <c>protectionColumn</c></cell><cell>uguali</cell><cell>sì</cell><cell>ripristinati dalla Macro 4 al posto di <c>x_draft_field</c> e simili</cell></row>
+        <row><cell><c>partition_&lt;field&gt;</c></cell><cell>uguale</cell><cell>sì</cell><cell>sostituisce <c>x_partition</c> e <c>options().partition()</c></cell></row>
+        <row><cell><c>deletable</c></cell><cell>— (non è un attributo GenroPy)</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>x_table_class</c>, <c>x_expanded_legacy</c>, <c>x_logical_pkey</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-x-attrs"/></cell></row>
+      </table>
+      <table title="package">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>name</c>, <c>sqlschema</c>, <c>sqlprefix</c>, <c>comment</c>, <c>path</c></cell><cell>uguali, tranne <c>path</c></cell><cell>sì</cell><cell><c>path</c> carica il layout GenroPy</cell></row>
+        <row><cell><c>name_long</c>, <c>name_short</c>, <c>name_full</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>config_attributes()</c>, <c>custom_type_&lt;dtype&gt;()</c>, <c>config_db(self, pkg)</c></cell><cell>uguali</cell><cell>legacy</cell><cell>metodi delle classi <c>Package</c> e <c>Table</c> del layout GenroPy</cell></row>
+      </table>
+    </section>
+
+    <section title="Attributi di column">
+      <table title="column">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>name</c>, <c>dtype</c>, <c>size</c>, <c>default</c>, <c>notnull</c>, <c>unique</c>, <c>indexed</c>, <c>sqlname</c>, <c>comment</c>, <c>group</c>, <c>format</c>, <c>unmodifiable</c></cell><cell>uguali</cell><cell>sì</cell><cell><c>'name::dtype'</c> resta valido</cell></row>
+        <row><cell><c>name_long</c>, <c>name_short</c>, <c>name_full</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>onInserting</c>, <c>onUpdating</c>, <c>onDeleting</c>, <c>onInserted</c>, <c>onUpdated</c>, <c>onDeleted</c></cell><cell>uguali</cell><cell>sì</cell><cell>il valore nomina un metodo <c>trigger_&lt;name&gt;</c></cell></row>
+        <row><cell><c>trigger_table</c>, <c>sql_value</c></cell><cell>uguali</cell><cell>sì</cell><cell>namespace</cell></row>
+        <row><cell><c>print_width</c></cell><cell>uguale (<c>sql/gnrsqlmodel/columns.py:110</c>)</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>sql_default</c></cell><cell><c>sqldefault</c></cell><cell>cambiato</cell><cell>Macro 4</cell></row>
+        <row><cell><c>sql_extra</c></cell><cell><c>extra_sql</c></cell><cell>cambiato</cell><cell>Macro 4</cell></row>
+        <row><cell><c>sql_generatedExpression</c></cell><cell><c>generated_expression</c></cell><cell>cambiato</cell><cell>Macro 4</cell></row>
+        <row><cell><c>sql_pg_*</c>, <c>sql_sqlite_*</c></cell><cell>—</cell><cell>sì</cell><cell>varianti per dialetto, Macro 4</cell></row>
+        <row><cell><c>validate_*</c></cell><cell>uguale, nel layer web</cell><cell>sì</cell><cell><c>values</c> diventa <c>validate_values</c></cell></row>
+        <row><cell><c>read_only</c></cell><cell><c>readOnly</c> (<c>app/gnrdbo.py:350</c>)</cell><cell>aperto</cell><cell><ref to="dn-read-only"/></cell></row>
+        <row><cell><c>default_from</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-default-from"/></cell></row>
+        <row><cell><c>x_identity</c>, <c>x_generation</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-x-attrs"/></cell></row>
+      </table>
+    </section>
+
+    <section title="Attributi delle colonne virtuali">
+      <table title="aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn, compositeColumn">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>relation_path</c> (aliasColumn)</cell><cell>uguale</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>sql_formula</c>, <c>select</c>, <c>exists</c>, <c>static</c>, <c>var_*</c>, <c>select_*</c>, <c>exists_*</c> (formulaColumn)</cell><cell>uguali</cell><cell>sì</cell><cell>la Macro 5 ha tolto <c>expression=</c>, <c>parameters=</c>, <c>subqueries=</c>, <c>handler=</c></cell></row>
+        <row><cell><c>query</c>, <c>mode</c> (subQueryColumn)</cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>aggr</c> (subQueryColumn)</cell><cell>— (GenroPy usa internamente <c>subquery_aggr=mode</c>)</cell><cell>sì</cell><cell>nuovo, Macro 5</cell></row>
+        <row><cell><c>py_method</c>, <c>required_columns</c> (pyColumn)</cell><cell>uguali</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>method</c> (pyColumn)</cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>bagcolumn</c>, <c>itempath</c> (bagItemColumn)</cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>columns</c>, <c>unique</c> (compositeColumn)</cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>relation</c>, <c>table</c>, <c>condition</c>, <c>ask</c> (virtualRelation)</cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+      </table>
+    </section>
+
+    <section title="Attributi di relation e weak_relation">
+      <table title="relation">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>to</c></cell><cell>primo argomento posizionale <c>related_column</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>onDelete</c>, <c>onUpdate</c>, <c>onDuplicate</c>, <c>deferred</c>, <c>between</c>, <c>cnd</c></cell><cell>uguali</cell><cell>sì</cell><cell>la Macro 2 ha ripristinato <c>onDelete</c> e <c>onUpdate</c> al posto di <c>on_delete</c> e <c>on_update</c></cell></row>
+        <row><cell><c>onDelete_sql</c>, <c>onUpdate_sql</c></cell><cell>uguali</cell><cell>legacy</cell><cell>la Macro 2 ha scartato <c>sql_onDelete</c></cell></row>
+        <row><cell><c>one_name</c>, <c>many_name</c>, <c>one_one</c>, <c>one_group</c>, <c>many_group</c>, <c>many_order_by</c>, <c>eager_one</c>, <c>eager_many</c></cell><cell>uguali</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>relation_name</c>, <c>external_relation</c>, <c>resolver_kwargs</c>, <c>join_on</c></cell><cell>uguali</cell><cell>legacy</cell><cell><c>relation_name</c> sostituisce <c>inverse=</c> e <c>back_reference=</c></cell></row>
+        <row><cell><c>name</c>, <c>indexed</c>, <c>deferrable</c></cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>foreign_key</c>, <c>case_insensitive</c></cell><cell><c>mode='foreignkey'</c>, <c>mode='insensitive'</c></cell><cell>aperto</cell><cell><ref to="dn-relation-attrs"/></cell></row>
+        <row><cell><c>initially_deferred</c>, <c>constraint_name</c></cell><cell>— (solo campi interni della migrazione)</cell><cell>aperto</cell><cell><ref to="dn-relation-attrs"/></cell></row>
+        <row><cell><c>x_weak</c>, <c>x_canonical</c>, <c>x_name</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-x-attrs"/></cell></row>
+      </table>
+    </section>
+
+    <section title="Attributi degli altri elementi">
+      <table title="index, constraint, sys_fields, hierarchical e opzioni">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>columns</c>, <c>name</c>, <c>unique</c> (index)</cell><cell>uguali (<c>sql/gnrsqlmodel/model.py:1326</c>)</cell><cell>sì</cell><cell>nome di default <c>&lt;table&gt;_&lt;cols&gt;_key</c>, Macro 4</cell></row>
+        <row><cell><c>method</c>, <c>where</c>, <c>tablespace</c> (index)</cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>with_options</c> (index); <c>constraint_type</c>, <c>check_clause</c> (constraint)</cell><cell>— (solo campi interni degli adapter)</cell><cell>aperto</cell><cell><ref to="dn-element-attrs"/></cell></row>
+        <row><cell><c>id</c>, <c>ins</c>, <c>upd</c>, <c>ldel</c>, <c>draft</c>, <c>group</c>, <c>enabled</c>, <c>syscode</c> (sys_fields)</cell><cell>argomenti di <c>sysFields</c>, tranne <c>enabled</c> e <c>syscode</c>; <c>draft</c> era <c>draftField</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>user_ins</c>, <c>user_upd</c>, <c>group_name</c> (sys_fields)</cell><cell>argomenti di <c>sysFields</c></cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>columns</c>, <c>parent</c>, <c>depth</c> (hierarchical)</cell><cell><c>depth</c> era <c>hdepth</c></cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>root_id</c>, <c>virtual_roots</c>, <c>linked_to</c> (hierarchical)</cell><cell><c>hierarchical_root_id</c>, <c>hierarchical_virtual_roots</c>, <c>hierarchical_linked_to</c></cell><cell>aperto</cell><cell><ref to="dn-element-attrs"/>. Senza il namespace <c>hierarchical_</c> il <c>_</c> separa due parole.</cell></row>
+        <row><cell><c>caption_field</c> (hierarchical)</cell><cell>uguale a <c>caption_field</c> di table</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>scope</c>, <c>field</c> (auto_counter); <c>templates</c>, <c>source</c> (dynamic_fields); <c>algorithm</c> (record_hash); <c>mode</c> (audit, encryption); <c>days</c> (retention); <c>preference</c> (enabled_when)</cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>version_field</c> (audit)</cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-element-attrs"/></cell></row>
+        <row><cell><c>name_long</c>, <c>name_short</c> e <c>col_*</c> (colgroup)</cell><cell>uguali</cell><cell>sì</cell><cell><c>colgroup_label</c> e <c>group_&lt;name&gt;</c> sollevano un errore</cell></row>
+        <row><cell><c>connect_timeout</c>, <c>application_name</c>, <c>sslmode</c>, <c>sslrootcert</c>, <c>cached_statements</c> (driver)</cell><cell>—</cell><cell>sì</cell><cell>nomi dei parametri dei driver PostgreSQL e sqlite3: fuori dal linguaggio</cell></row>
+      </table>
+    </section>
+
+    <section title="Metodi e hook di table">
+      <table title="table">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>query()</c>, <c>insert()</c>, <c>update()</c>, <c>delete()</c>, <c>insertOrUpdate()</c>, <c>lock()</c></cell><cell>uguali (<c>sql/gnrsqltable/crud.py</c>)</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>column()</c>, <c>db</c>, <c>model</c>, <c>fullname</c>, <c>pkeys</c>, <c>currentTrigger</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>checkPkey()</c>, <c>newPkeyValue()</c>, <c>pkeyValue()</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>deleteRelated()</c>, <c>updateRelated()</c>, <c>archiveRelatedRecords()</c></cell><cell>uguali</cell><cell>sì</cell><cell><c>onArchivingRecord</c> manca</cell></row>
+        <row><cell><c>sql_insert()</c>, <c>sql_update()</c>, <c>sql_delete()</c></cell><cell><c>raw_insert()</c>, <c>insertMany()</c>, <c>raw_update()</c>, <c>raw_delete()</c></cell><cell>cambiato</cell><cell>namespace <c>sql_</c></cell></row>
+        <row><cell><c>trigger_onInserting</c>, <c>trigger_onInserted</c>, <c>trigger_onUpdating</c>, <c>trigger_onUpdated</c>, <c>trigger_onDeleting</c>, <c>trigger_onDeleted</c></cell><cell>uguali (<c>sql/gnrsqltable/triggers.py:112</c>)</cell><cell>sì</cell><cell>override</cell></row>
+        <row><cell><c>protect_update</c>, <c>protect_delete</c>, <c>protect_validate</c></cell><cell>uguali</cell><cell>sì</cell><cell>override</cell></row>
+        <row><cell><c>protect_draft</c></cell><cell>uguale (<c>app/gnrdbo.py:1084</c>)</cell><cell>sì</cell><cell>override facoltativo; <c>dbo_onInserting</c> e simili sono rimossi</cell></row>
+        <row><cell><c>trigger_assignCounters</c>, <c>trigger_releaseCounters</c>, <c>trigger_setTSNow</c>, <c>trigger_setCurrentUser</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>trigger_hierarchical_before</c>, <c>trigger_hierarchical_after</c></cell><cell>uguali (<c>app/gnrdbo.py:753</c>)</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>trigger_&lt;name&gt;</c></cell><cell>uguale</cell><cell>sì</cell><cell>chiamato dagli attributi <c>onInserting</c> e simili</cell></row>
+        <row><cell><c>exception(exception, record, msg)</c></cell><cell>uguale (<c>sql/gnrsqltable/table.py:92</c>)</cell><cell>sì</cell><cell>valori: <c>'save'</c>, <c>'delete'</c>, <c>'protect_update'</c>, <c>'protect_delete'</c>, <c>'protect_validate'</c>, <c>'business_logic'</c>, <c>'standard'</c></cell></row>
+        <row><cell><c>formulaColumn_&lt;x&gt;()</c>, <c>sql_formula_&lt;name&gt;()</c>, <c>subquery_&lt;name&gt;()</c>, <c>env_&lt;name&gt;()</c>, <c>pyColumn_&lt;name&gt;()</c></cell><cell>uguali</cell><cell>sì</cell><cell>namespace</cell></row>
+        <row><cell><c>hierarchicalHandler</c></cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+      </table>
+    </section>
+
+    <section title="Opzioni e metodi di query">
+      <table title="table.query(…) e SqlQuery">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>columns</c>, <c>where</c>, <c>sqlparams</c>, <c>limit</c>, <c>offset</c>, <c>distinct</c>, <c>having</c>, <c>bagFields</c>, <c>addPkeyColumn</c></cell><cell>uguali (<c>sql/gnrsqltable/query.py:125</c>)</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>order_by</c>, <c>group_by</c>, <c>for_update</c></cell><cell>uguali</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>exclude_draft</c>, <c>exclude_logical_deleted</c>, <c>ignore_partition</c></cell><cell><c>excludeDraft</c>, <c>excludeLogicalDeleted</c>, <c>ignorePartition</c></cell><cell>aperto</cell><cell><ref to="dn-query-options"/>. Oggi asqueel accetta entrambe le grafie.</cell></row>
+        <row><cell><c>compiled</c>, <c>sqltext</c>, <c>sqlparams</c></cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>test()</c>, <c>cursor()</c>, <c>fetch()</c>, <c>servercursor()</c>, <c>serverfetch()</c>, <c>iterfetch()</c>, <c>count()</c></cell><cell>uguali (<c>sql/gnrsqldata/query.py</c>)</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>fetchPkeys()</c>, <c>fetchAsJson()</c>, <c>fetchAsDict()</c>, <c>fetchAsBag()</c>, <c>fetchGrouped()</c>, <c>handleBagColumns()</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>execute()</c></cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>fetchRecord(ignoreMissing=)</c></cell><cell><c>table.record()</c></cell><cell>sì</cell><cell>nuovo</cell></row>
+        <row><cell><c>update(updater)</c>, <c>delete()</c></cell><cell><c>table.batchUpdate()</c>, <c>table.deleteSelection()</c></cell><cell>cambiato</cell><cell>metodi della query, Macro 6</cell></row>
+        <row><cell><c>sql_update(values)</c>, <c>sql_delete()</c></cell><cell><c>table.sql_deleteSelection()</c> per <c>sql_delete</c></cell><cell>cambiato</cell><cell>Macro 6</cell></row>
+        <row><cell>macro <c>#THIS</c>, <c>#IN_RANGE</c>, <c>#PERIOD</c>, <c>#ENV</c>, <c>#BAG</c>, <c>#BAGCOLS</c></cell><cell>uguali</cell><cell>—</cell><cell>maiuscolo per convenzione delle macro</cell></row>
+      </table>
+    </section>
+
+    <section title="Database, environment e session">
+      <table title="Database">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>adapter</c>, <c>implementation</c>, <c>currentConnectionName</c>, <c>usingMainConnection()</c></cell><cell>uguali (<c>sql/gnrsql/env.py</c>)</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>currentEnv</c>, <c>currentUser</c>, <c>workdate</c>, <c>locale</c>, <c>updateEnv()</c>, <c>clearCurrentEnv()</c>, <c>tempEnv()</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>current_env</c>, <c>temp_env()</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-env-methods"/>. Sono doppioni di <c>currentEnv</c> e <c>tempEnv()</c>.</cell></row>
+        <row><cell><c>execute(sql, sqlargs, cursor, cursorname, autocommit, dbtable, storename)</c></cell><cell>uguale (<c>sql/gnrsql/execute.py:47</c>)</cell><cell>sì</cell><cell>firma ripristinata dalla Macro 6</cell></row>
+        <row><cell><c>_adaptArguments</c> (argomento di <c>execute</c>)</cell><cell>uguale</cell><cell>legacy</cell><cell></cell></row>
+        <row><cell><c>executemany()</c>, <c>cursor()</c></cell><cell>—</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>deferToCommit()</c>, <c>deferAfterCommit()</c>, <c>deferredRaise()</c></cell><cell>uguali (<c>sql/gnrsql/transactions.py</c>)</cell><cell>sì</cell><cell></cell></row>
+        <row><cell><c>commit()</c>, <c>rollback()</c>, <c>closeConnection()</c>, <c>onDbCommitted()</c></cell><cell>uguali</cell><cell>sì</cell><cell><c>onDbCommitted</c> è un override</cell></row>
+        <row><cell><c>setLocale()</c>, <c>setConstraintsDeferred()</c>, <c>analyze()</c>, <c>vacuum()</c></cell><cell>uguali</cell><cell>sì</cell><cell>Macro 6</cell></row>
+        <row><cell><c>session(db, **env)</c></cell><cell>— (corrisponde a una page request GenroPy)</cell><cell>sì</cell><cell>nome dato dall'utente il 2026-10-19</cell></row>
+        <row><cell>chiavi di environment <c>connectionName</c>, <c>storename</c>, <c>user</c>, <c>workdate</c>, <c>locale</c>, <c>currentImplementation</c>, <c>current_&lt;path&gt;</c>, <c>allowed_&lt;path&gt;</c></cell><cell>uguali</cell><cell>sì</cell><cell></cell></row>
+      </table>
+    </section>
+
+    <section title="API di integrazione">
+      <p>Questi nomi servono a chi integra asqueel in un'applicazione. Non è stato deciso se sono parole del linguaggio o API Python.</p>
+      <table title="Database, AsqueelDb, AsqueelDbMixin">
+        <row head="true"><cell>asqueel</cell><cell>GenroPy</cell><cell>Regola</cell><cell>Note</cell></row>
+        <row><cell><c>Database(conninfo, implementation, connect_kwargs, environment)</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-integration"/></cell></row>
+        <row><cell><c>AsqueelDb.migration_plan(allow_removals=)</c>, <c>migrate(allow_removals=)</c></cell><cell><c>checkDb</c>, <c>diffOrmToSql</c>, <c>syncOrmToSql</c></cell><cell>aperto</cell><cell><ref to="dn-integration"/></cell></row>
+        <row><cell><c>asqueel_owner_name</c>, <c>asqueel_owner()</c>, <c>asqueel_dbs</c>, <c>taken_databases</c>, <c>set_asqueel_db()</c>, <c>get_db()</c>, <c>release_databases()</c></cell><cell>—</cell><cell>aperto</cell><cell><ref to="dn-integration"/></cell></row>
+      </table>
+    </section>
+
+    <section title="Fuori dal glossario">
+      <list>
+        <item>Nomi di classe ed eccezioni (<c>SqlQuery</c>, <c>RecordNotFoundError</c>, <c>UnsupportedFeatureError</c>, …): CapWords, come in Python e in GenroPy.</item>
+        <item>Comandi CLI (<c>asqueel db plan</c>, <c>asqueel db apply --allow-removals</c>): convenzione delle CLI.</item>
+        <item>Helper privati e interni del compiler: idioma Python.</item>
+      </list>
+    </section>
+  </current>
+
+  <solution>
+    <p>Ogni nome aperto si decide con la regola GenroPy. Le decisioni sono elencate sotto, una per gruppo di nomi.</p>
+    <rule level="must" why="Decisione registrata: la sintassi GenroPy resta, e cambiarla richiede motivi scritti forti.">I nomi marcati <c>legacy</c> restano come in GenroPy, anche quando non seguono la regola.</rule>
+    <rule level="must">Ogni nome ha una sola grafia. Due grafie dello stesso nome non convivono.</rule>
+    <rule level="should">Un nome nuovo di asqueel che è una parola del linguaggio segue la regola: camelCase, <c>_</c> solo per un namespace.</rule>
+  </solution>
+
+  <decisions>
+    <decision id="dn-query-options" status="open">
+      <question>Quale grafia resta per le opzioni di query <c>exclude_draft</c>, <c>exclude_logical_deleted</c>, <c>ignore_partition</c>?</question>
+      <option id="dn-query-options-camel" title="Solo la grafia GenroPy"><p><c>excludeDraft</c>, <c>excludeLogicalDeleted</c>, <c>ignorePartition</c>. È la grafia GenroPy e segue la regola. Le grafie con <c>_</c> spariscono.</p></option>
+      <option id="dn-query-options-both" title="Entrambe, come oggi"><p>La grafia con <c>_</c> è quella principale. La grafia GenroPy è un alias (<c>application_table.py:37-41</c>).</p></option>
+    </decision>
+    <decision id="dn-env-methods" status="open">
+      <question>Restano i doppioni <c>current_env</c> e <c>temp_env()</c> accanto a <c>currentEnv</c> e <c>tempEnv()</c>?</question>
+      <option id="dn-env-methods-camel" title="Solo currentEnv e tempEnv"><p>Sono i nomi GenroPy e seguono la regola.</p></option>
+      <option id="dn-env-methods-both" title="Entrambe, come oggi"><p>Le due grafie stanno in <c>runtime.py:143-193</c> e in <c>environment.py</c>.</p></option>
+    </decision>
+    <decision id="dn-read-only" status="open">
+      <question>Come si scrive l'attributo di column <c>read_only</c>?</question>
+      <option id="dn-read-only-camel" title="readOnly"><p>È la grafia GenroPy (<c>app/gnrdbo.py:350</c>) e segue la regola.</p></option>
+      <option id="dn-read-only-snake" title="read_only"><p>È la grafia attuale di asqueel.</p></option>
+    </decision>
+    <decision id="dn-default-from" status="open">
+      <question>Come si scrive l'attributo di column <c>default_from</c>, che non esiste in GenroPy?</question>
+      <option id="dn-default-from-camel" title="defaultFrom"><p>Segue la regola.</p></option>
+      <option id="dn-default-from-snake" title="default_from"><p>È la grafia attuale.</p></option>
+    </decision>
+    <decision id="dn-elements" status="open">
+      <question>Gli elementi della grammar con <c>_</c> passano in camelCase? Gli elementi sono <c>sys_fields</c>, <c>weak_relation</c>, <c>virtual_columns</c>, <c>auto_counter</c>, <c>relative_index</c>, <c>dynamic_fields</c>, <c>record_hash</c>, <c>full_update</c>, <c>system_records</c>, <c>enabled_when</c>.</question>
+      <option id="dn-elements-camel" title="camelCase"><p><c>sysFields</c>, <c>weakRelation</c>, <c>virtualColumns</c>, <c>autoCounter</c>, <c>relativeIndex</c>, <c>dynamicFields</c>, <c>recordHash</c>, <c>fullUpdate</c>, <c>systemRecords</c>, <c>enabledWhen</c>. <c>sysFields</c> torna alla grafia GenroPy.</p></option>
+      <option id="dn-elements-snake" title="Come oggi"><p>Gli elementi restano con <c>_</c>.</p></option>
+    </decision>
+    <decision id="dn-element-attrs" status="open">
+      <question>Gli attributi nuovi con <c>_</c> degli altri elementi passano in camelCase? Gli attributi sono <c>with_options</c> (index), <c>constraint_type</c> e <c>check_clause</c> (constraint), <c>root_id</c>, <c>virtual_roots</c> e <c>linked_to</c> (hierarchical), <c>version_field</c> (audit).</question>
+      <option id="dn-element-attrs-camel" title="camelCase"><p><c>withOptions</c>, <c>constraintType</c>, <c>checkClause</c>, <c>rootId</c>, <c>virtualRoots</c>, <c>linkedTo</c>, <c>versionField</c>.</p></option>
+      <option id="dn-element-attrs-snake" title="Come oggi"><p>Gli attributi restano con <c>_</c>.</p></option>
+    </decision>
+    <decision id="dn-relation-attrs" status="open">
+      <question>Gli attributi nuovi di relation con <c>_</c> passano in camelCase? Gli attributi sono <c>foreign_key</c>, <c>case_insensitive</c>, <c>initially_deferred</c>, <c>constraint_name</c>. <c>foreign_key</c> e <c>case_insensitive</c> sostituiscono il <c>mode=</c> di GenroPy.</question>
+      <option id="dn-relation-attrs-camel" title="camelCase"><p><c>foreignKey</c>, <c>caseInsensitive</c>, <c>initiallyDeferred</c>, <c>constraintName</c>.</p></option>
+      <option id="dn-relation-attrs-snake" title="Come oggi"><p>Gli attributi restano con <c>_</c>.</p></option>
+    </decision>
+    <decision id="dn-x-attrs" status="open">
+      <question>Negli attributi dichiarati <c>x_*</c>, la parte dopo <c>x_</c> passa in camelCase? Gli attributi sono <c>x_identity</c>, <c>x_generation</c>, <c>x_weak</c>, <c>x_canonical</c>, <c>x_name</c>, <c>x_table_class</c>, <c>x_expanded_legacy</c>, <c>x_logical_pkey</c>. Sono attributi dichiarati nella grammar, non attributi liberi.</question>
+      <option id="dn-x-attrs-camel" title="x_ più camelCase"><p><c>x_tableClass</c>, <c>x_expandedLegacy</c>, <c>x_logicalPkey</c>. Gli altri sono già una parola singola.</p></option>
+      <option id="dn-x-attrs-snake" title="Come oggi"><p>Gli attributi restano come sono.</p></option>
+    </decision>
+    <decision id="dn-integration" status="open">
+      <question>I nomi dell'API di integrazione sono parole del linguaggio o API Python? Sono <c>connect_kwargs</c>, <c>migration_plan()</c>, <c>allow_removals</c> e i metodi di <c>AsqueelDbMixin</c>.</question>
+      <option id="dn-integration-language" title="Linguaggio: camelCase"><p><c>connectKwargs</c>, <c>migrationPlan()</c>, <c>allowRemovals</c>, <c>asqueelOwnerName</c>, <c>setAsqueelDb()</c>, <c>getDb()</c>, <c>releaseDatabases()</c>.</p></option>
+      <option id="dn-integration-python" title="API Python: come oggi"><p>I nomi restano nell'idioma Python.</p></option>
+    </decision>
+  </decisions>
+
+  <consequences>
+    <p>Ogni nome che passa in camelCase cambia in quattro posti: la grammar, il codice, i test e <c>docs/grammar.md</c>, che è generato.</p>
+    <p>Togliere una delle due grafie rompe il codice che usa quella grafia. Le due grafie esistono oggi in <c>dn-query-options</c> e <c>dn-env-methods</c>.</p>
+  </consequences>
+</proposal>
