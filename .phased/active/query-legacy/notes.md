@@ -28,3 +28,9 @@
 - `#ENV` reads the compiler's environment snapshot (it includes `workdate` and `locale`); the fallback table is resolved with `_known_table`, its handler on `.dbtable`.
 - The queries.md example runs against the tutorial data, which has no X column: it reads the NULL `note` of invoice 11.
 - Realigned: `test_macro` and `test_unported_macros_remain_explicit` keep #PREF/#TSQUERY; #ENV/#BAG/#BAGCOLS moved to new tests asserting the ValueError.
+
+## Run inspection
+- Phase 1 closed [!] on a true plan-defect claim: the contract test expected `fetchGrouped(ordered=True)` keys sorted, legacy keeps fetch order. The run was stopped on the user's answer, the foreman fixed line 84 in both copies (044c8f0), the relaunch held again on the same `> Issue:` and the user authorized the repair, which finished batch 3 (d4ea9e4).
+- Phase 1 contract test fixes a non-legacy shape: `iterfetch(arraysize=2)` expected `[2, 1]`; legacy also yields a trailing empty chunk. The contract tests do not cover `serverfetch()`, the named PostgreSQL cursor, or the datetime branch of `fetchAsJson`.
+- Phase 2 realigned 9 test files beyond the plan's list by the same rule (a reused query no longer recompiles).
+- Phases 2, 3, 4 closed on the first attempt. Final suite 5118 passed, 42 skipped, 27 xfailed (the four asqueel#26 xfails lifted in Phase 3).
