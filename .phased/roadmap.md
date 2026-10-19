@@ -32,11 +32,15 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Starts from: Macro 5 (fetchRecord).
 - Requires of earlier work (Macro 5 quality check): `session(db)` (user's name, 2026-10-19), a context manager marking a unit of work outside a request — on entry `clearCurrentEnv()` with optional initial env values, on exit `closeConnection()`, as the GenroPy page request does (`gnrwebpage.py:161`, `gnrwsgisite.py` cleanup); it is not `with db:` (A6.22). Open: explicit rollback on exit or left to the close; nested sessions. The dynamic-column cache in `currentEnv` (Macro 5) lives one session. Also: a driver error raised while reading from `cursor()`/`servercursor()` does not mark the connection failed; settle it with the automatic rollback on SQL errors.
 
-## Macro 7: migration and dialects
-- Objective: migrate() stops and explains skipped changes, final check and explicit refusals stay; SQL action abbreviations; index on relation columns; `indexed={...}` and index(); `foreignKeys=False` migration option; conversion of filled columns with backup; SQLite attach as legacy; index operator classes, first `text_pattern_ops` on `hierarchical_pkey` (moved from Macro 3); SQLite FK on by default and switchable; dtype SQL types as legacy; capability catalogue proposal (by theme, analytic capabilities); sqlglot transpilation as a documented proposal.
+## Macro 7 (current): migration and dialects — active/migration-dialects/plan.md
+- Objective: migrate() stops and explains skipped changes, final check and explicit refusals stay; SQL action abbreviations; index on relation columns; `indexed={...}` and index(); `foreignKeys=False` migration option; conversion of filled columns with backup; SQLite attach as legacy; SQLite FK on by default and switchable; dtype SQL types as legacy; capability catalogue proposal (by theme, analytic capabilities); sqlglot transpilation as a documented proposal. Index operator classes left the macro on 2026-10-19 (see Debts).
 - Starts from: Macro 6.
 - Requires of earlier work (Macro 4 quality check): SQL index names are hashed by the migrator for default-named `index()` nodes and taken from the name for explicit ones (`migration.py`, `object_tree_projection.py`); legacy never passes `index_name` (`orm_extractor.py:465`), so every legacy index is hashed. Decide this rule before building `indexed={...}` and the index projection: a database migrated from legacy sees explicitly named indexes as different. `vacuum()` on SQLite runs `VACUUM` on the main file only; with SQLite attach (this macro) decide whether attached schema files are vacuumed too (Macro 6 quality check).
 
 ## Macro 8: comparison document
 - Objective: Sphinx chapter (English) and new team page (Italian) in the agreed form: Differences → Model / Query / Read-Write → missing (temporary, removed, replaced) / different / new / same, plus "to implement" as its own branch; cards "in GenroPy you wrote / got" above, asqueel below; one label; low-level vs high-level API; proposals (sqlglot, .sql(), capability catalogue, async).
 - Starts from: Macros 2-7 landed.
+
+## Debts
+- `text_pattern_ops` on the `hierarchical_pkey` index and column collation (2026-10-19). Legacy has neither. Measured on PostgreSQL 17: with a non-C database collation a prefix `LIKE` on `hierarchical_pkey` scans the table; with collation `C` it uses the UNIQUE index. Proposed in the legacy first: genropy/genropy#1708 (collation, `unaccent='full'`), measurement on genropy/genropy#1526. asqueel follows the legacy outcome.
+
