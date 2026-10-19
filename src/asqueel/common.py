@@ -27,7 +27,7 @@ SQL_COLUMN_KEYS = {"sql_default": "sqldefault", "sql_extra": "extra_sql",
 SQL_DIALECTS = ("pg", "sqlite")
 
 
-def sql_column_attributes(attributes, implementation):  # wf:phase-1:new
+def sql_column_attributes(attributes, implementation):
     """The ``sql_*`` column attributes on ``implementation``; ``sql_<dialect>_<name>`` wins on its dialect."""
     engine = (implementation or "sqlite").partition(":")[0]
     dialect = "pg" if engine.startswith("postgres") else engine
@@ -39,7 +39,7 @@ def sql_column_attributes(attributes, implementation):  # wf:phase-1:new
     return result
 
 
-def sql_attribute_declared(attributes, name):  # wf:phase-1:new
+def sql_attribute_declared(attributes, name):
     """Whether ``sql_<name>`` is declared on any dialect."""
     return any(attributes.get(f"sql_{prefix}{name}") is not None
                for prefix in ("", *(f"{dialect}_" for dialect in SQL_DIALECTS)))
@@ -56,7 +56,7 @@ def split_names(value) -> list[str]:
     return [name.strip() for name in str(value).split(",") if name.strip()]
 
 
-def default_index_name(table, columns) -> str:  # wf:phase-2:new
+def default_index_name(table, columns) -> str:
     """GenroPy's index name when none is given: ``<table>_<columns joined by _>_key``."""
     return f"{table}_{'_'.join(split_names(columns))}_key"
 

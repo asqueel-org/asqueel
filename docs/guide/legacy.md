@@ -47,11 +47,11 @@ identity, collection cardinality, ordering and NULL/empty behavior first.
 
 ### Partition context has explicit semantics
 
-The new partition contract treats `0` and `False` as valid values. An empty
-allowed collection selects no rows. Missing required context raises an error
-unless bypass is explicitly requested. When both current and allowed values
-are present, both restrict access. The old possibility of silently omitting a
-filter is not carried forward.
+Partitions follow GenroPy: `partition_<field>='<path>'` reads
+`current_<path>`, then `allowed_<path>`, from the environment. Falsy values
+(`0`, `False`, an empty collection) and a missing key filter nothing, so a
+query without partition context sees every row. When both keys are present,
+`current_<path>` wins.
 
 These are application row scopes. They do not define a PostgreSQL physical
 partition or a logical subtable.

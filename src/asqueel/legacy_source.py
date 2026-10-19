@@ -11,6 +11,7 @@ from genro_bag import Bag
 
 from .common import in_attribute_family
 from .configuration import SqlDatabaseConfig
+from .contracts import not_available
 
 
 
@@ -116,10 +117,17 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
     return builder
 
 
+#: Legacy attributes of features absent from this release, refused by name as the grammar does.
+_ABSENT_FEATURES = {'table': ('variant', 'mixin'), 'column': ('variant', 'localized', 'encrypted')}
+
+
 def _grammar(builder, tag, path, attributes, consumed):
     """The legacy attributes element ``tag`` declares; raise on the first one neither declared nor consumed."""
     declared = builder._get_schema_info(tag).get('declared_names') or set()
+    absent = _ABSENT_FEATURES.get(tag, ())
     for key in attributes:
+        if key in absent or (absent and key.startswith('ext_')):
+            raise not_available(f'{path}: {key}')
         if key not in consumed and key not in declared and not in_attribute_family(builder, tag, key):
             raise ValueError(f'{path}: legacy attribute {key!r} is outside the asqueel grammar')
     return {key: deepcopy(value) for key, value in attributes.items() if key not in consumed}

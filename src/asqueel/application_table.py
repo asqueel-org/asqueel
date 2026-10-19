@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 
-from .contracts import UnsupportedFeatureError
+from .contracts import UnsupportedFeatureError, not_available
 from .hierarchical import HierarchicalHandler
 from .table_crud import CrudMixin
 from .table_triggers import TriggersMixin
@@ -70,7 +70,7 @@ class SqlQuery:
 
     @property
     def setJoinCondition(self):
-        raise UnsupportedFeatureError('setJoinCondition is not available in this release')
+        raise not_available('setJoinCondition')
 
     def __init__(self, table, options, params, keyword_bindings=()):
         self.table = table
@@ -248,8 +248,7 @@ class SqlTable(CrudMixin, TriggersMixin):
         unsupported_options = unsupported_options - {'addPkeyColumn'}
         join_conditions = sorted(key for key in incoming if key.startswith('jc_'))
         if join_conditions:
-            raise UnsupportedFeatureError(
-                f'join condition keyword {join_conditions[0]} is not available in this release')
+            raise not_available(f'join condition keyword {join_conditions[0]}')
         unsupported = incoming.keys() & unsupported_options
         if unsupported:
             name = sorted(unsupported)[0]

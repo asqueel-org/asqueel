@@ -17,6 +17,11 @@ class UnsupportedFeatureError(ValueError):
     """The requested feature is outside the declared native profile."""
 
 
+def not_available(subject):
+    """The error of a legacy feature absent from this release, naming what the user wrote."""
+    return UnsupportedFeatureError(f'{subject} is not available in this release')
+
+
 class EnvironmentMismatchError(ValueError):
     """A context-bound query cannot be reused in a different environment."""
 

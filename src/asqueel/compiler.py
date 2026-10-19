@@ -791,7 +791,7 @@ class _TreeContext:
             return f' ({field} BETWEEN {lower} AND {upper}) '
         return f' {field} >= {lower} ' if lower is not None else f' {field} <= {upper} '
 
-    def _known_table(self, name):  # wf:phase-1:new
+    def _known_table(self, name):
         table = self.model.table(name)
         if table is None:
             raise ValueError(f'Unknown package/schema {name.split(".")[0]!r}')

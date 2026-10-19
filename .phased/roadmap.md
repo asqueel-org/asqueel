@@ -19,7 +19,7 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Ends at: a hierarchical table is readable and writable on both dialects (#30 closed).
 - Open decisions: settled 2026-10-18 in the plan (proxy as legacy; doc 36 §10.2 last position on move, 1296th sibling error, locked max + 1; sys_fields write #29 included; text_pattern_ops moved to Macro 7).
 
-## Macro 4: model in legacy syntax
+## Macro 4 (done): model in legacy syntax — active/model-legacy-syntax/plan.md
 - Objective: model declarations back to the legacy spelling where the user did not decide otherwise (indexed/unique strings, UI attributes, compositeColumn and composite pkey, index(), one_one, cnd/join_on/between, custom_type, name_long..., config_db, table kwargs lastTS/draftField/logicalDeletionField, partition_<field>, unknown names returning None); `options()` stays for sysFields/dbo (user decision); `sql_default`, `sql_generatedExpression`, `sql_extra` (+ `sql_pg_*`).
 - Starts from: Macro 2. Ends at: legacy model sources load unchanged within the low-level scope.
 
@@ -34,6 +34,7 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 ## Macro 7: migration and dialects
 - Objective: migrate() stops and explains skipped changes, final check and explicit refusals stay; SQL action abbreviations; index on relation columns; `indexed={...}` and index(); `foreignKeys=False` migration option; conversion of filled columns with backup; SQLite attach as legacy; index operator classes, first `text_pattern_ops` on `hierarchical_pkey` (moved from Macro 3); SQLite FK on by default and switchable; dtype SQL types as legacy; capability catalogue proposal (by theme, analytic capabilities); sqlglot transpilation as a documented proposal.
 - Starts from: Macro 6.
+- Requires of earlier work (Macro 4 quality check): SQL index names are hashed by the migrator for default-named `index()` nodes and taken from the name for explicit ones (`migration.py`, `object_tree_projection.py`); legacy never passes `index_name` (`orm_extractor.py:465`), so every legacy index is hashed. Decide this rule before building `indexed={...}` and the index projection: a database migrated from legacy sees explicitly named indexes as different.
 
 ## Macro 8: comparison document
 - Objective: Sphinx chapter (English) and new team page (Italian) in the agreed form: Differences → Model / Query / Read-Write → missing (temporary, removed, replaced) / different / new / same, plus "to implement" as its own branch; cards "in GenroPy you wrote / got" above, asqueel below; one label; low-level vs high-level API; proposals (sqlglot, .sql(), capability catalogue, async).

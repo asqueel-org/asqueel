@@ -30,3 +30,23 @@
 - Phase 2 closed [!] on a plan-defect claim: a contract test migrated an in-memory SQLite database, which `migration_plan()` refuses (decision A7.3). Applied on the user's answer (94a7ef7).
 - Phases 3 and 4 closed on the first attempt. Final suite 4992 passed, 42 skipped, 31 xfailed (one strict xfail, asqueel#15, left with x_partition in Phase 1).
 - Both plan defects were in contract tests written at planning time; no code defect reached a repair.
+
+## Final touch
+Reviewed revision: e126aec (review extended, one opus reviewer over c3c2612..e126aec; QA none, the plan has no Verify: steps).
+
+| # | Finding | Root cause | Fix | Road |
+|---|---|---|---|---|
+| 1 | A layer extending a layout table dropped its Table class (triggers silently off) | x_table_class set only on tables new after config_db | Table class bound by module name; a module not declaring its table raises | final touch |
+| 2 | main.py Table, Package.config_db / config_db_* / onBuildingDbobj ignored | loader read only config_attributes and custom_type_* | each raises naming the member | final touch |
+| 3 | custom_type_<dtype> limited to dtype/size/names, error named `type` | routed through options().type() | result applied as column attributes, explicit ones win | final touch |
+| 4 | crash on a model module without tables, on Package without config_attributes | unchecked None, missing default | module/table name check; config_attributes defaults to {} | final touch |
+| 5 | guide docs contradicting partition, pkey, ext_* behaviour; PartitionScope in api.rst | not realigned | limitations, cheatsheet, environment, legacy, legacy-features, api.rst aligned; unpublished root docs (row-policies.md, native-model.md, delivery notes) left as historical records | final touch |
+| 6 | legacy XML loader gave the generic error for encrypted/localized/variant/ext_*/mixin | _grammar checked before the specific refusals | _ABSENT_FEATURES refused by name | final touch |
+| 7 | "not available in this release" built by hand at the Macro 4 sites | no helper | contracts.not_available(); Macro 4 sites use it. Macro 2 sites keep their own f-strings (same phrase, still greppable) | final touch |
+| 8 | dialect list written in three places | literals | SQL_DIALECTS and SQL_COLUMN_KEYS drive builder and elements | final touch |
+| 9 | index SQL name rule differs from legacy (hashed always) | Macro 7 concern | roadmap note under Macro 7 | roadmap |
+| 10 | relation(cnd=, foreign_key=True) projected the FK | setdefault only | explicit foreign_key=True with cnd raises | final touch |
+| 11 | pkey='a,b' still accepted on schema-level tables | — | no change: schema-level tables are the form reader.py:183-184 produces from the database; raising there breaks the reader round trip | dismissed |
+
+Naming: the 18 new callables keep their names (11 legacy properties, 7 internal helpers); all wf:phase-N:new markers removed.
+Checks run: tests/test_package_layout_edges.py (new), tests/test_release_invoice_migration.py (new loader test), contract tests of the 4 phases, full suite 5001 passed / 42 skipped / 31 xfailed, ruff, mypy clean, marker sweep empty.

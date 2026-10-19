@@ -52,6 +52,8 @@ from typing import Literal
 
 from genro_builders.builder import element
 
+from .common import SQL_DIALECTS
+
 #: asqueel normalized type codes. Mirrors
 #: ``asqueel_migration.structures.DTYPE_CODES`` plus the additive serial4
 #: declaration on older engine versions — declared locally because
@@ -257,7 +259,7 @@ class TableElements:
 
     @element(parent_tags="columns", sub_tags="relation, validation[:1], encryption[:1], dynamic_fields[:1]",
              _meta={"projects_column": True, "projects_relation": True,
-                    "attribute_families": ["validate_", "sql_pg_", "sql_sqlite_"]})
+                    "attribute_families": ["validate_", *(f"sql_{d}_" for d in SQL_DIALECTS)]})
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
                notnull: bool = False, unique: bool | str = False,

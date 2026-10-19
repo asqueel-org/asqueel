@@ -93,7 +93,7 @@ class DbModelObj:
         return self.attributes.get('name_long') or self.name_short
 
     @property
-    def name_full(self):  # wf:phase-1:new
+    def name_full(self):
         return self.attributes.get('name_full') or self.name_long
 
     def getAttr(self, name=None, dflt=None):
@@ -228,7 +228,7 @@ class DbTableObj(DbModelObj):
         return self.attributes.get('sqlname') or self.pkg.tableSqlName(self)
 
     @property
-    def pkeys(self):  # wf:phase-1:new
+    def pkeys(self):
         pkey = self.pkey
         if not pkey:
             return []
@@ -236,19 +236,19 @@ class DbTableObj(DbModelObj):
         return split_names(composite.attributes['columns']) if composite is not None else [pkey]
 
     @property
-    def lastTS(self):  # wf:phase-1:new
+    def lastTS(self):
         return self.attributes.get('lastTS') or ''
 
     @property
-    def logicalDeletionField(self):  # wf:phase-1:new
+    def logicalDeletionField(self):
         return self.attributes.get('logicalDeletionField') or ''
 
     @property
-    def draftField(self):  # wf:phase-1:new
+    def draftField(self):
         return self.attributes.get('draftField') or ''
 
     @property
-    def name_plural(self):  # wf:phase-1:new
+    def name_plural(self):
         return self.attributes.get('name_plural') or self.name_long
 
     def newRelationResolver(self, cacheTime=0):
@@ -290,10 +290,10 @@ class DbTableObj(DbModelObj):
 
 
 
-def _missing_feature(name):  # wf:phase-3:new
+def _missing_feature(name):
     def refuse(self):
-        from .contracts import UnsupportedFeatureError
-        raise UnsupportedFeatureError(f'{self.fullname}: {name} is not available in this release')
+        from .contracts import not_available
+        raise not_available(f'{self.fullname}: {name}')
     return property(refuse)
 
 
@@ -311,7 +311,7 @@ class DbColumnObj(DbModelObj):
         return self.attributes.get('dtype') or ('A' if self.attributes.get('size') else 'T')
 
     @property
-    def print_width(self):  # wf:phase-1:new
+    def print_width(self):
         return self.attributes.get('print_width')
 
     @property

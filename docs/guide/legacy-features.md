@@ -104,8 +104,8 @@ the write cycle, see [Current status](limitations.md).
 - **`column(default=)`** (A1.7): declared, but a table with it cannot be
   written ([#28](https://github.com/asqueel-org/asqueel/issues/28)).
   Workaround: set the value in `trigger_onInserting`.
-- **`localized`, `variant`, `ext_<pkg>`** (A1.10): `localized` and `variant`
-  are refused; `ext_*` raises as an attribute outside the grammar. No issue yet.
+- **`localized`, `variant`, `ext_<pkg>`** (A1.10): each raises
+  `UnsupportedFeatureError` naming the attribute. No issue yet.
   Workaround: declare the generated columns by hand.
 - **`sysFields(tbl, ...)`** (A1.14): `options().sys_fields(...)` expands the
   columns and the table is written as legacy: the 22-character `id` is

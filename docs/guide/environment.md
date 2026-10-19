@@ -54,8 +54,8 @@ different value, it remains. Changes to unrelated keys remain as well. Temporary
 values are not deep-copied. These details matter for mutable context and pending
 application state.
 
-`None` is a value, not removal of a key. For a partition, `organization=None`
-means the NULL partition; absence is different. Use `del db.currentEnv['key']`
+`None` is a value, not removal of a key; for a partition, `current_<path>=None`
+filters nothing, like absence. Use `del db.currentEnv['key']`
 or `.pop()` to remove a key. `db.updateEnv(...)` updates values; with
 `_excludeNoneValues=True` it skips only None, preserving 0 and False.
 `db.currentEnv = mapping` replaces the live dictionary, retaining its identity;

@@ -124,9 +124,9 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         pass
 
     @container('joinColumn')
-    def joinColumn(self, target, *args, **kwargs):  # wf:phase-3:new
-        from .contracts import UnsupportedFeatureError
-        raise UnsupportedFeatureError('joinColumn is not available in this release')
+    def joinColumn(self, target, *args, **kwargs):
+        from .contracts import not_available
+        raise not_available('joinColumn')
 
     def __getattr__(self, name):
         handler = super().__getattr__(name)
@@ -391,7 +391,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                         raise ValueError(f'{node_tag}.{key}: None is not allowed')
         return super()._validate_call_args(info, node_value, attr, node_tag)
 
-    def _element_path(self, destination, attr):  # wf:phase-3:new
+    def _element_path(self, destination, attr):
         node = getattr(destination, 'parent_node', None)
         labels = []
         while node is not None:
@@ -400,27 +400,26 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             node = node.parent_node
         return '.'.join([*labels, str(attr.get('name'))])
 
-    def _missing_feature_attributes(self, destination, tag, attr):  # wf:phase-3:new
+    def _missing_feature_attributes(self, destination, tag, attr):
         """Legacy table/column attributes of features absent from this release."""
         absent = {'variant', 'mixin'} if tag == 'table' else {'variant', 'localized'}
         for key in attr:
             if key in absent or key.startswith('ext_'):
-                from .contracts import UnsupportedFeatureError
-                raise UnsupportedFeatureError(
-                    f'{self._element_path(destination, attr)}: {key} is not available in this release')
+                from .contracts import not_available
+                raise not_available(f'{self._element_path(destination, attr)}: {key}')
 
-    def _legacy_column_attributes(self, destination, attr):  # wf:phase-1:new
+    def _legacy_column_attributes(self, destination, attr):
         """``encrypted`` is refused; ``indexed``/``unique`` strings read as GenroPy ``str_boolean``."""
         if 'encrypted' in attr:
-            from .contracts import UnsupportedFeatureError
-            raise UnsupportedFeatureError(
-                f'{self._element_path(destination, attr)}: encrypted is not available in this release')
+            from .contracts import not_available
+            raise not_available(f'{self._element_path(destination, attr)}: encrypted')
         for key in ('indexed', 'unique'):
             if isinstance(attr.get(key), str):
                 attr[key] = attr[key].lower() not in ('', 'n', 'no', 'f', 'false', '0')
+        from .common import SQL_COLUMN_KEYS, SQL_DIALECTS
         for key in attr:
-            dialect = next((d for d in ('sql_pg_', 'sql_sqlite_') if key.startswith(d)), None)
-            if dialect and key[len(dialect):] not in ('default', 'generatedExpression', 'extra'):
+            dialect = next((f'sql_{d}_' for d in SQL_DIALECTS if key.startswith(f'sql_{d}_')), None)
+            if dialect and f'sql_{key[len(dialect):]}' not in SQL_COLUMN_KEYS:
                 raise ValueError(f"Element 'column' does not accept '{key}'")
 
     def set_child(self, build_where, node_tag, node_value=None, node_label=None,
@@ -444,6 +443,9 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             if not attr['foreign_key']:
                 attr['x_weak'] = True
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
+            if attr.get('cnd') and attr.get('foreign_key'):
+                raise ValueError(f"relation {attr.get('to')!r}: a relation with cnd= has no foreign key; "
+                                 "remove foreign_key=True")
             attr.setdefault('foreign_key', not attr.get('cnd'))
             attr['x_canonical'] = True
         if node_tag == 'virtualRelation':

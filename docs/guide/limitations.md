@@ -61,7 +61,7 @@ a `%` in a physical name is not escaped for psycopg ([#19](https://github.com/as
 quoted logical names `$"..."` are not supported ([#20](https://github.com/asqueel-org/asqueel/issues/20));
 the write compiler does not check the adapter capabilities ([#21](https://github.com/asqueel-org/asqueel/issues/21));
 `inspect_postgres` returns a removed model type ([#22](https://github.com/asqueel-org/asqueel/issues/22));
-`pkey='a,b'` is accepted ([#23](https://github.com/asqueel-org/asqueel/issues/23));
+`pkey='a,b'` is accepted on schema-level tables, the form the database reader produces; package tables raise ([#23](https://github.com/asqueel-org/asqueel/issues/23));
 a record key named `__pkey__N` is overwritten without error ([#24](https://github.com/asqueel-org/asqueel/issues/24));
 a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-org/asqueel/issues/25)).
 
@@ -115,9 +115,11 @@ limit and offset so they cannot mask multiple matches.
 ## Policy boundaries
 
 Partition scopes are logical predicates, not PostgreSQL storage partitions.
-On reads, the current scope and allowed values are both enforced when present;
-an empty allowed collection matches no rows. Missing required scope context is
-an error. Writes do not read them: `insert` does not fill the partition column
+On reads, `partition_<field>='<path>'` filters as GenroPy: `current_<path>` in
+the environment gives `$<field> = :env_current_<path>`; otherwise
+`allowed_<path>` gives `$<field> IS NULL OR $<field> IN (...)`; otherwise no
+filter. Falsy values (`0`, `False`, an empty collection, None) filter nothing.
+Writes do not read them: `insert` does not fill the partition column
 and `update`/`delete` do not check the row's partition, as in GenroPy (#15).
 
 Draft and logical-deletion exclusions apply to SELECT according to its options.

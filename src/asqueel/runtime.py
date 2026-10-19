@@ -8,7 +8,7 @@ from threading import Thread, current_thread, local
 from typing import Any, TypedDict
 from uuid import uuid4
 
-from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError
+from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError, not_available
 from .environment import ApplicationEnvironment
 from .errors import DatabaseClosedError, DeferredCommitError, TransactionStateError
 from .triggers import TriggerStack
@@ -50,11 +50,11 @@ class Database:
 
     @property
     def tableMixin(self):
-        raise UnsupportedFeatureError('tableMixin is not available in this release')
+        raise not_available('tableMixin')
 
     @property
     def packageMixin(self):
-        raise UnsupportedFeatureError('packageMixin is not available in this release')
+        raise not_available('packageMixin')
 
 
     def __init__(self, conninfo='', *, implementation='sqlite', connect_kwargs=None, environment=None):

@@ -87,8 +87,8 @@ between threads; each worker must release its own connections.
 | DML RETURNING | All physical columns, excluding virtuals. |
 | Public SELECT draft/deletion filters | Exclude drafts and logically deleted rows. |
 | Formula subquery draft/deletion filters | Include both unless overridden in the definition. |
-| Partition handling | Enforce in outer queries and subqueries; missing required context errors. |
-| Empty allowed partition set | Match no rows. |
+| Partition handling | `current_<path>` first, then `allowed_<path>` (NULL included); missing context filters nothing. |
+| Empty allowed partition set | No filter, as GenroPy. |
 | Relation traversal | LEFT JOIN to a unique target; target policies are not automatically propagated. |
 | Scalar subquery cardinality | No implicit limit; several rows cause a server error. |
 | Query fetch reuse | Execute again. |

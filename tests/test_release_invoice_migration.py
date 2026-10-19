@@ -5,6 +5,7 @@ from xml.etree import ElementTree
 
 import pytest
 
+from asqueel.contracts import UnsupportedFeatureError
 from asqueel.legacy_source import from_expanded_legacy_xml
 from asqueel_migration import SqlMigrator
 
@@ -62,6 +63,15 @@ def test_legacy_loader_refuses_the_first_attribute_outside_the_grammar():
     profile = json.loads((SOURCE / 'adapter-profile.json').read_text())
     with pytest.raises(ValueError, match="sys: legacy attribute '_syspackage' is outside the asqueel grammar"):
         from_expanded_legacy_xml((SOURCE / 'source.xml').read_text(), **profile)
+
+
+def test_legacy_loader_names_an_absent_feature():
+    document, profile = grammar_copy()
+    root = ElementTree.fromstring(document)
+    column = next(node for node in root.iter() if node.get('tag') == 'column')
+    column.set('encrypted', 'True')
+    with pytest.raises(UnsupportedFeatureError, match=r'encrypted is not available in this release'):
+        from_expanded_legacy_xml(ElementTree.tostring(root, encoding='unicode'), **profile)
 
 
 def test_legacy_loader_builds_the_grammar_copy_of_the_oracle():
