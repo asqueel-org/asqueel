@@ -107,6 +107,12 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         self._begin(connection, query)
         return super().execute(connection, query)
 
+    def open_cursor(self, connection, query, cursorname=None):
+        """SQLite has no server-side cursors: ``cursorname`` is ignored, as legacy."""
+        self.validate(query)
+        self._begin(connection, query)
+        return super().open_cursor(connection, query)
+
     def executemany(self, connection, query, params_seq):
         """One statement, one parameter mapping per execution; no result rows."""
         self.validate(query)

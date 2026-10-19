@@ -220,6 +220,13 @@ class SqlDbAdapter:
             names = [column[0] for column in cursor.description] if cursor.description is not None else None
             return query_result(query.columns, names, cursor)
 
+    def open_cursor(self, connection, query: CompiledQuery, cursorname=None):  # wf:phase-1:new
+        """Execute ``query`` and return its open cursor; the caller closes it."""
+        self.validate(query)
+        cursor = connection.cursor()
+        cursor.execute(query.sql, self._params(query.params))
+        return cursor
+
     def executemany(self, connection, query: CompiledQuery, params_seq) -> QueryResult:
         """One statement, one parameter mapping per execution; no result rows."""
         self.validate(query)

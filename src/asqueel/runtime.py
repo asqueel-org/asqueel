@@ -223,15 +223,22 @@ class Database:
         """Execute a compiled statement in this DB's shared unit of work."""
         self._check_open()
         if isinstance(query, str):
-            return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+            query = self._prepare_sql(query, sqlargs)
         elif sqlargs is not None:
             raise TypeError('Parameters are already part of a CompiledQuery')
-        return self._execute_on_connection(self._connection_state, query)
+        result: QueryResult = self._execute_on_connection(self._connection_state, query)
+        return result
 
     def executemany(self, query: CompiledQuery, params_seq) -> QueryResult:
         """Execute one compiled statement once per parameter mapping, as DB-API executemany."""
         self._check_open()
-        return self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
+        result: QueryResult = self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
+        return result
+
+    def cursor(self, query: CompiledQuery, cursorname=None):  # wf:phase-1:new
+        """Execute a compiled SELECT and return its open cursor; ``cursorname`` asks for a server-side cursor."""
+        self._check_open()
+        return self._execute_on_connection(self._connection_state, query, cursorname=cursorname, cursor=True)
 
     def _prepare_sql(self, sql, sqlargs) -> CompiledQuery:
         query: CompiledQuery = self.adapter.prepare_sql(sql, sqlargs, self.environment.snapshot())
@@ -415,7 +422,8 @@ class Database:
             if key in ('sql_comment', 'sql_details') or re.fullmatch(r'env_\w+_condition_\w+', key):
                 raise UnsupportedFeatureError(f'environment key {key!r} is not available in this release')
 
-    def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None) -> QueryResult:
+    def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None,
+                               cursorname=None, cursor=False) -> Any:
         self._check_connection_usable(state)
         self._check_environment_keys()
         adapter = self.adapter
@@ -433,6 +441,8 @@ class Database:
                 state['connection'] = adapter.connect(conninfo, **connect_kwargs)
             state['pending'] = True
             state['outcome'] = 'active'
+            if cursor:
+                return adapter.open_cursor(state['connection'], query, cursorname)
             result: QueryResult = (adapter.executemany(state['connection'], query, many) if many is not None
                                    else adapter.execute(state['connection'], query))
             return result

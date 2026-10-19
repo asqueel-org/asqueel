@@ -1,12 +1,19 @@
-"""Live application tables, lazy query intent, and cached single-record reads.
+"""Live application tables and lazy query intent with the legacy fetch terminals.
 
 Application objects execute through their owning SqlDatabase. They do
 not open connections, commit, or emulate legacy Bag/selection result objects.
 """
 from __future__ import annotations
 
+import json
+from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
+from datetime import datetime
+
+from genro_bag import Bag
+from genro_toolbox import NamedList
+from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, not_available
 from .hierarchical import HierarchicalHandler
@@ -106,6 +113,92 @@ class SqlQuery:
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
         return self.execute().rows
 
+    def cursor(self):
+        """Execute the query and return the open driver cursor; the caller closes it."""
+        return self.db.cursor(self.compiled)
+
+    def servercursor(self):
+        """A named server-side cursor on PostgreSQL; a normal cursor on SQLite (legacy gnrsqlite)."""
+        return self.db.cursor(self.compiled, cursorname='asqueel_' + get_uuid())
+
+    def serverfetch(self, arraysize=30):
+        """``(cursor, generator)``: the generator yields lists of at most ``arraysize`` rows."""
+        cursor = self.servercursor()
+        cursor.arraysize = arraysize
+        return cursor, self._cursorGenerator(cursor)
+
+    def iterfetch(self, arraysize=30):
+        """Yield the rows in lists of at most ``arraysize``, from a server-side cursor."""
+        yield from self.serverfetch(arraysize=arraysize)[1]
+
+    def _cursorGenerator(self, cursor):  # wf:phase-1:new
+        index = {column[0]: position for position, column in enumerate(cursor.description)}
+        try:
+            rows = cursor.fetchmany()
+            while rows:
+                yield [NamedList(index, row) for row in rows]
+                rows = cursor.fetchmany()
+        finally:
+            cursor.close()
+
+    def fetchPkeys(self):
+        """The primary-key values of the rows, in query order."""
+        pkey = self.table.model.pkey
+        return [row[pkey] for row in self.fetch()]
+
+    def fetchAsJson(self, key=None):
+        """The rows as a JSON array; datetimes in ISO format, other values through ``str``."""
+        def default(value):
+            return value.isoformat() if isinstance(value, datetime) else str(value)
+        return json.dumps([dict(row) for row in self.fetch()], default=default)
+
+    def fetchAsDict(self, key=None, ordered=False, pkeyOnly=False):
+        """The rows keyed by ``key`` (default the pkey); ``pkeyOnly`` keeps only the pkey as value."""
+        key = key or self.table.model.pkey
+        factory = OrderedDict if ordered else dict
+        if pkeyOnly:
+            pkey = self.table.model.pkey
+            return factory((row[key], row[pkey]) for row in self.fetch())
+        return factory((row[key], row) for row in self.fetch())
+
+    def fetchAsBag(self, key=None):
+        """A Bag with one node per row, labelled by ``key`` and sorted by it, the row as attributes."""
+        key = key or self.table.model.pkey
+        result = Bag()
+        for row in sorted(self.fetch(), key=lambda row: row[key]):
+            result.set_item(row[key], None, _attributes=dict(row))
+        return result
+
+    def fetchGrouped(self, key=None, asBag=False, ordered=False):
+        """Lists of rows grouped by ``key`` (default the pkey), in a dict, OrderedDict or Bag."""
+        key = key or self.table.model.pkey
+        result = Bag() if asBag else OrderedDict() if ordered else {}
+        for row in self.fetch():
+            if row[key] in result:
+                result[row[key]].append(row)
+            else:
+                result[row[key]] = [row]
+        return result
+
+    def fetchRecord(self, ignoreMissing=False):  # wf:phase-1:new
+        """The single row of the query; with an explicit order_by, the first row.
+
+        No row raises RecordNotFoundError, or returns None with ``ignoreMissing``;
+        several rows raise RecordMultipleRowsError.
+        """
+        if self._options.get('order_by'):
+            options = dict(_copy(self._options), limit=1)
+            rows = self.db.execute(self._compile(self.db.compiler.select, options)).rows
+        else:
+            rows = self.fetch()
+        if not rows:
+            if ignoreMissing:
+                return None
+            raise RecordNotFoundError(f'No visible record in {self.table.fullname}')
+        if len(rows) > 1:
+            raise RecordMultipleRowsError(f'Multiple visible records in {self.table.fullname}')
+        return rows[0]
+
     def sql_delete(self):
         """DELETE the rows this query selects, without triggers; returns the row count."""
         table = self.table.model
@@ -140,51 +233,6 @@ class SqlQuery:
         if len(result.rows) == 1 and result.columns[0].name == 'gnr_row_count':
             return int(result.rows[0][0])
         return len(result.rows)
-
-
-class SqlRecord:
-    """Lazy exactly-one read; loaded data stays cached until explicit refresh."""
-
-    def __init__(self, query, *, ignoreMissing=False):
-        self.ignoreMissing = ignoreMissing
-        self.query = query
-        self.table = query.table
-        self.db = query.db
-        self._result = None
-
-    def _load(self):
-        if self._result is None:
-            rows = self.query.fetch()
-            if not rows and self.ignoreMissing:
-                self._result = {}
-                return self._result
-            if not rows:
-                raise RecordNotFoundError(f'No visible record in {self.table.fullname}')
-            if len(rows) != 1:
-                raise RecordMultipleRowsError(f'Multiple visible records in {self.table.fullname}')
-            self._result = _copy(dict(rows[0]))
-        return self._result
-
-    def output(self, mode='dict'):
-        if mode == 'dict':
-            return _copy(self._load())
-        if mode == 'record':
-            from genro_bag import Bag
-            result = Bag()
-            for name, value in _copy(self._load()).items():
-                column = self.table.model.column(name)
-                if column.dtype == 'X':
-                    value = Bag() if value is None else Bag.from_xml(value)
-                result.set_item(name, value,
-                                _attributes=dict(column.attributes, dtype=column.dtype))
-            return result
-        raise UnsupportedFeatureError(f'Unsupported record output: {mode!r}; supported: dict, record')
-
-    def refresh(self):
-        """Discard the snapshot, reload in the current environment, and return self."""
-        self._result = None
-        self._load()
-        return self
 
 
 class SqlTable(CrudMixin, TriggersMixin):
@@ -285,35 +333,8 @@ class SqlTable(CrudMixin, TriggersMixin):
             conditions.append(f'{_reference(name)} = :{parameter}')
         return ' AND '.join(conditions), bindings
 
-    def record(self, pkey=None, where=None, sqlparams=None, mode=None, *, ignoreMissing=False, **options_or_bindings):
-        self.db._check_open()
-        if 'columns' in options_or_bindings:
-            raise UnsupportedFeatureError('Record reads select the complete row; use query for custom projections')
-        if 'limit' in options_or_bindings or 'offset' in options_or_bindings:
-            raise UnsupportedFeatureError('Record reads cannot limit/offset away duplicate candidates')
-        bindings = _bindings(sqlparams)
-        if where is not None:
-            if not isinstance(where, str) or not where.strip():
-                raise ValueError('Record lookup needs a nonempty selector')
-        elif pkey is not None:
-            where, bindings = self._key_selector(pkey, bindings)
-        else:
-            raise ValueError('Record lookup requires a primary key or explicit where')
-        # Legacy compiledRecordQuery includes physical X fields by default,
-        # unlike a normal SELECT wildcard. Preserve the complete record here.
-        # compiledRecordQuery selects the record without the query visibility filters.
-        for alias, native, value in [('excludeDraft', 'exclude_draft', False),
-                                     ('excludeLogicalDeleted', 'exclude_logical_deleted', False),
-                                     ('ignorePartition', 'ignore_partition', True)]:
-            if alias not in options_or_bindings and native not in options_or_bindings:
-                options_or_bindings[native] = value
-        options_or_bindings.setdefault('bagFields', True)
-        bag_fields = options_or_bindings['bagFields'] or options_or_bindings.get('for_update', False)
-        columns = ','.join('$' + name for name, column in self.model.columns.items()
-                           if bag_fields or column.dtype != 'X')
-        result = SqlRecord(self.query(columns=columns, where=where, sqlparams=bindings, **options_or_bindings),
-                           ignoreMissing=ignoreMissing)
-        return result.output(mode) if mode is not None else result
+    def record(self, *args, **kwargs):
+        raise UnsupportedFeatureError('record is not available in this release; use query(...).fetchRecord()')
 
     @property
     def currentTrigger(self):

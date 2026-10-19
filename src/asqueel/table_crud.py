@@ -55,14 +55,23 @@ class CrudMixin:
         columns is reloaded with a lock before the cycle.
         """
         if isinstance(record, str):
-            record = self.record(pkey=record, for_update=True, ignoreMissing=True).output('dict')
-            if not record:
+            record = self._reread(record, ignoreMissing=True)
+            if record is None:
                 return
         elif not set(self.model.columns) <= set(record):
             keys = self.pkeys
             key = record[keys[0]] if len(keys) == 1 else tuple(record[name] for name in keys)
-            record = self.record(pkey=key, for_update=True).output('dict')
+            record = self._reread(key)
         self.db.delete(self, record, **kwargs)
+
+    def _reread(self, pkey, ignoreMissing=False):  # wf:phase-1:new
+        """The complete row of ``pkey``, locked, outside the draft/logical-delete/partition filters."""
+        where, sqlparams = self._key_selector(pkey)
+        columns = ','.join('$' + name for name in self.model.columns)
+        row = self.query(columns=columns, where=where, sqlparams=sqlparams, for_update=True,
+                         exclude_draft=False, exclude_logical_deleted=False, ignore_partition=True,
+                         bagFields=True).fetchRecord(ignoreMissing=ignoreMissing)
+        return None if row is None else dict(row)
 
     # ------------------------------------------------------------------
     #  Keys

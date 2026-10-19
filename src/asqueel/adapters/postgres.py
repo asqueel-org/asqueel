@@ -36,6 +36,15 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
         return connection.cursor(row_factory=tuple_row)
 
+    def open_cursor(self, connection, query, cursorname=None):
+        """A named server-side cursor when ``cursorname`` is given, else a client cursor."""
+        from psycopg.rows import tuple_row
+
+        self.validate(query)
+        cursor = connection.cursor(cursorname or '', row_factory=tuple_row)
+        cursor.execute(query.sql, self._params(query.params))
+        return cursor
+
     def prepareSqlText(self, sql, kwargs):
         """Named arguments as psycopg ``%(name)s``; ``REGEXP`` as ``~*``."""
         sql = self.adaptTupleListSet(sql, kwargs)
