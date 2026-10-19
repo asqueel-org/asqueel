@@ -212,7 +212,7 @@ class DbTableObj(DbModelObj):
         return self.get('composites', {})
 
     @property
-    def dynamic_columns(self):  # wf:phase-3:new
+    def dynamic_columns(self):
         """Legacy dynamic_columns: ``formulaColumn_<x>()`` results, their attributes cached per environment."""
         methods = [name for name in dir(self.dbtable) if name.startswith('formulaColumn_')]
         if not methods:

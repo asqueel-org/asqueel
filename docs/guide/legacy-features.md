@@ -178,17 +178,16 @@ the write cycle, see [Current status](limitations.md).
 - **`addPkeyColumn` / automatic `pkey` column** (A2.4): the `pkey` column is
   added only with `addPkeyColumn=True`. Reason: the legacy adapter adds it
   (decision of 2 October 2026).
-- **kwargs as query parameters** (A2.8): a keyword the query does not use
-  raises `UnsupportedFeatureError`, `jc_*` included. Reason: it catches
-  misspelled options.
+- **kwargs as query parameters** (A2.8): as in GenroPy, a keyword the query
+  does not use stays a parameter and the query runs, with an
+  `UnusedQueryParameterWarning` that names it and the parameters the query
+  uses; `jc_*` keywords raise. Reason: it catches misspelled options.
 - **`for_update`** (A2.12): as in GenroPy, but refused together with
   `distinct` or `group_by`. Reason: early refusal of a combination the
   database rejects.
 - **`ignorePartition` and the partition filter** (A2.14): `0` and `False` are
   valid values, an empty allowed set returns no rows, a missing context raises
   an error. Reason: agreed difference, described in [For Genropy users](legacy.md).
-- **`iterfetch`, `serverfetch`** (A2.17): the generator stops at the first
-  empty chunk; legacy also yields a trailing empty list. Reason: not recorded.
 
 ### Not available yet
 

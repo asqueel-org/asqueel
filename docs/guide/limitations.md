@@ -107,7 +107,18 @@ exploded joins.
 
 Computed projection expressions need explicit aliases. Returned names must be
 unique. Pagination uses limit/offset; there is no keyset-pagination helper and
-no query or result cache: every fetch terminal executes again.
+no result cache: every fetch terminal executes again. The query object keeps
+its first compilation, so its SQL text (an inlined `#ENV` value included) stays
+the one of that compilation, while `:env_*` parameters are read at every
+execution.
+
+The `formulaColumn_<x>()` methods of a table run once and their columns are
+kept in `currentEnv`, as legacy: they are evaluated again only after
+`clearCurrentEnv()`. GenroPy clears the environment at the start of every page
+request; this release has no request boundary of its own, so an application
+that wants fresh dynamic columns clears the environment itself. A `session(db)`
+boundary for work outside a request is planned with the environment and
+connection work of the next step.
 
 ## Policy boundaries
 

@@ -6,6 +6,7 @@ not open connections, commit, or emulate legacy selection result objects.
 from __future__ import annotations
 
 import json
+import sys
 import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -87,6 +88,7 @@ class SqlQuery:
         self._params = _copy(dict(params))
         self._keyword_bindings = tuple(keyword_bindings)
         self._compiled = None
+        self._compiled_first_row = None
 
     @property
     def compiled(self):
@@ -99,10 +101,16 @@ class SqlQuery:
         self.db._check_open()
         query = terminal(self.table.fullname, sqlparams=_copy(self._params),
                          **_copy(self._options if options is None else options))
-        for name in sorted(set(self._keyword_bindings) - set(query.input_parameters)):
-            warnings.warn(UnusedQueryParameterWarning(
-                f"query keyword {name!r} is not used by the query; "
-                f"its parameters are: {', '.join(query.input_parameters)}"), stacklevel=2)
+        unused = sorted(set(self._keyword_bindings) - set(query.input_parameters))
+        if unused:
+            # Point the warning at the caller's line, outside the asqueel package.
+            frame, stacklevel = sys._getframe(1), 2
+            while frame.f_back is not None and frame.f_globals.get('__name__', '').startswith('asqueel.'):
+                frame, stacklevel = frame.f_back, stacklevel + 1
+            for name in unused:
+                warnings.warn(UnusedQueryParameterWarning(
+                    f"query keyword {name!r} is not used by the query; "
+                    f"its parameters are: {', '.join(query.input_parameters)}"), stacklevel=stacklevel)
         return query
 
     @property
@@ -110,10 +118,12 @@ class SqlQuery:
         return self.compiled.sql
 
     @property
-    def sqlparams(self):  # wf:phase-2:new
-        return self.compiled.params
+    def sqlparams(self):
+        """The query parameters; the :env_* values are read at execution, so they are not listed."""
+        environment = {'env_' + key for key in self.compiled.environment_keys}
+        return {name: value for name, value in self.compiled.params.items() if name not in environment}
 
-    def test(self):  # wf:phase-2:new
+    def test(self):
         """``(sqltext, sqlparams)`` of the compiled query, as legacy."""
         return self.sqltext, self.sqlparams
 
@@ -124,7 +134,7 @@ class SqlQuery:
         """Execute again and return mutable Toolbox NamedList rows, without caching."""
         return self.handleBagColumns(self.execute().rows, self.compiled)
 
-    def handleBagColumns(self, rows, compiled):  # wf:phase-4:new
+    def handleBagColumns(self, rows, compiled):
         """Legacy handleBagColumns: a #BAG value becomes a Bag, #BAGCOLS spreads its leaves into columns."""
         for row in rows:
             for field, separateCols in compiled.evaluateBagColumns:
@@ -137,46 +147,47 @@ class SqlQuery:
                     row[field] = value
         return rows
 
-    def cursor(self):  # wf:phase-1:new
+    def cursor(self):
         """Execute the query and return the open driver cursor; the caller closes it."""
         return self.db.cursor(self.compiled)
 
-    def servercursor(self):  # wf:phase-1:new
+    def servercursor(self):
         """A named server-side cursor on PostgreSQL; a normal cursor on SQLite (legacy gnrsqlite)."""
         return self.db.cursor(self.compiled, cursorname='asqueel_' + get_uuid())
 
-    def serverfetch(self, arraysize=30):  # wf:phase-1:new
+    def serverfetch(self, arraysize=30):
         """``(cursor, generator)``: the generator yields lists of at most ``arraysize`` rows."""
         cursor = self.servercursor()
         cursor.arraysize = arraysize
         return cursor, self._cursorGenerator(cursor)
 
-    def iterfetch(self, arraysize=30):  # wf:phase-1:new
+    def iterfetch(self, arraysize=30):
         """Yield the rows in lists of at most ``arraysize``, from a server-side cursor."""
         yield from self.serverfetch(arraysize=arraysize)[1]
 
-    def _cursorGenerator(self, cursor):  # wf:phase-1:new
+    def _cursorGenerator(self, cursor):
+        """Legacy _cursorGenerator: chunks until the cursor is exhausted, the last one empty."""
         index = {column[0]: position for position, column in enumerate(cursor.description)}
         try:
-            rows = cursor.fetchmany()
+            rows = True
             while rows:
-                yield self.handleBagColumns([NamedList(index, row) for row in rows], self.compiled)
                 rows = cursor.fetchmany()
+                yield self.handleBagColumns([NamedList(index, row) for row in rows], self.compiled)
         finally:
             cursor.close()
 
-    def fetchPkeys(self):  # wf:phase-1:new
+    def fetchPkeys(self):
         """The primary-key values of the rows, in query order."""
         pkey = self.table.model.pkey
         return [row[pkey] for row in self.fetch()]
 
-    def fetchAsJson(self, key=None):  # wf:phase-1:new
+    def fetchAsJson(self, key=None):
         """The rows as a JSON array; datetimes in ISO format, other values through ``str``."""
         def default(value):
             return value.isoformat() if isinstance(value, datetime) else str(value)
         return json.dumps([dict(row) for row in self.fetch()], default=default)
 
-    def fetchAsDict(self, key=None, ordered=False, pkeyOnly=False):  # wf:phase-1:new
+    def fetchAsDict(self, key=None, ordered=False, pkeyOnly=False):
         """The rows keyed by ``key`` (default the pkey); ``pkeyOnly`` keeps only the pkey as value."""
         key = key or self.table.model.pkey
         factory = OrderedDict if ordered else dict
@@ -185,7 +196,7 @@ class SqlQuery:
             return factory((row[key], row[pkey]) for row in self.fetch())
         return factory((row[key], row) for row in self.fetch())
 
-    def fetchAsBag(self, key=None):  # wf:phase-1:new
+    def fetchAsBag(self, key=None):
         """A Bag with one node per row, labelled by ``key`` and sorted by it, the row as attributes."""
         key = key or self.table.model.pkey
         result = Bag()
@@ -193,7 +204,7 @@ class SqlQuery:
             result.set_item(row[key], None, _attributes=dict(row))
         return result
 
-    def fetchGrouped(self, key=None, asBag=False, ordered=False):  # wf:phase-1:new
+    def fetchGrouped(self, key=None, asBag=False, ordered=False):
         """Lists of rows grouped by ``key`` (default the pkey), in a dict, OrderedDict or Bag."""
         key = key or self.table.model.pkey
         result = Bag() if asBag else OrderedDict() if ordered else {}
@@ -204,15 +215,17 @@ class SqlQuery:
                 result[row[key]] = [row]
         return result
 
-    def fetchRecord(self, ignoreMissing=False):  # wf:phase-1:new
+    def fetchRecord(self, ignoreMissing=False):
         """The single row of the query; with an explicit order_by, the first row.
 
         No row raises RecordNotFoundError, or returns None with ``ignoreMissing``;
         several rows raise RecordMultipleRowsError.
         """
         if self._options.get('order_by'):
-            options = dict(_copy(self._options), limit=1)
-            compiled = self._compile(self.db.compiler.select, options)
+            if self._compiled_first_row is None:
+                options = dict(_copy(self._options), limit=1)
+                self._compiled_first_row = self._compile(self.db.compiler.select, options)
+            compiled = self._compiled_first_row
             rows = self.handleBagColumns(self.db.execute(compiled).rows, compiled)
         else:
             rows = self.fetch()

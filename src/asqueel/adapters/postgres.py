@@ -36,7 +36,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
         return connection.cursor(row_factory=tuple_row)
 
-    def open_cursor(self, connection, query, cursorname=None):  # wf:phase-1:new
+    def open_cursor(self, connection, query, cursorname=None):
         """A named server-side cursor when ``cursorname`` is given, else a client cursor."""
         from psycopg.rows import tuple_row
 

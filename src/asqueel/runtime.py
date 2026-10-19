@@ -239,7 +239,7 @@ class Database:
         result: QueryResult = self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
         return result
 
-    def cursor(self, query: CompiledQuery, cursorname=None):  # wf:phase-1:new
+    def cursor(self, query: CompiledQuery, cursorname=None):
         """Execute a compiled SELECT and return its open cursor; ``cursorname`` asks for a server-side cursor."""
         self._check_open()
         return self._execute_on_connection(self._connection_state, query, cursorname=cursorname, cursor=True)

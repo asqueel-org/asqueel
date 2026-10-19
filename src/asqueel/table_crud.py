@@ -64,7 +64,7 @@ class CrudMixin:
             record = self._reread(key)
         self.db.delete(self, record, **kwargs)
 
-    def _reread(self, pkey, ignoreMissing=False):  # wf:phase-1:new
+    def _reread(self, pkey, ignoreMissing=False):
         """The complete row of ``pkey``, locked, outside the draft/logical-delete/partition filters."""
         where, sqlparams = self._key_selector(pkey)
         columns = ','.join('$' + name for name in self.model.columns)

@@ -107,7 +107,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         self._begin(connection, query)
         return super().execute(connection, query)
 
-    def open_cursor(self, connection, query, cursorname=None):  # wf:phase-1:new
+    def open_cursor(self, connection, query, cursorname=None):
         """SQLite has no server-side cursors: ``cursorname`` is ignored, as legacy."""
         self.validate(query)
         self._begin(connection, query)

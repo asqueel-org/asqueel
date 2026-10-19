@@ -89,7 +89,7 @@ def test_fetch_grouped_lists_rows_per_key(customers):
 
 def test_iterfetch_yields_chunks_of_rows(customers):
     chunks = list(query(customers).iterfetch(arraysize=2))
-    assert [len(chunk) for chunk in chunks] == [2, 1]
+    assert [len(chunk) for chunk in chunks] == [2, 1, 0]
     assert [row['code'] for chunk in chunks for row in chunk] == ['a', 'b', 'c']
 
 

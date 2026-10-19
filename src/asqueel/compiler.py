@@ -37,6 +37,13 @@ _TEMPLATE_MARK = '$'
 _TEMPLATE_FIELD = re.compile(re.escape(_TEMPLATE_MARK) + r'(?:\{(\w+)\}|(' + re.escape(_TEMPLATE_MARK) + r'))?')
 
 
+def _to_text(value):
+    """Legacy gnrstring.toText without locale: None and '' as '', sequences joined with ','."""
+    if isinstance(value, (list, tuple)):
+        return ','.join(_to_text(item) for item in value)
+    return '' if value is None or value == '' else str(value)
+
+
 def _closing_parenthesis(text, start):
     depth, quote = 1, None
     for position in range(start, len(text)):
@@ -147,8 +154,9 @@ class _TreeContext:
             basealias, curr = self._find_relation_alias(
                 list(pathlist), curr, basealias, [], parent)
         table = self.model.table(curr.tbl_name, pkg=curr.pkg_name)
-        column = (table.virtual_columns.get(name) or table.composites.get(name)
-                  or table.dynamic_columns.get(name.lower()))
+        column = table.virtual_columns.get(name) or table.composites.get(name)
+        if column is None and name not in table.columns:
+            column = table.dynamic_columns.get(name.lower())
         if column is None:
             return self.field(table, basealias, name)
         key = (table.fullname, name)
@@ -208,7 +216,7 @@ class _TreeContext:
         return self.formula_definitions[key]
 
     @staticmethod
-    def composite_formula(table, column):  # wf:phase-3:new
+    def composite_formula(table, column):
         """Legacy _buildCompositeColumnFormula: the members as the string '["a", 1]'."""
         chunks = []
         for name in split_names(column.attributes['columns']):
@@ -255,12 +263,12 @@ class _TreeContext:
         refs.resolve(lambda path: self.get_field_alias(path, curr, alias))
         return f'( {refs.substitute(formula, safe=True)} )'
 
-    def expand_env(self, match, table, column):  # wf:phase-4:new
+    def expand_env(self, match, table, column):
         """Legacy expandEnv: environment key, fallback key, then the env_<name>() table method."""
         name, fallback = match[1], match[2][1:] if match[2] else None
         for key in (name, fallback):
             if key and key in self.snapshot:
-                return "'" + str(self.snapshot[key]).replace("'", "''") + "'"
+                return "'" + _to_text(self.snapshot[key]).replace("'", "''") + "'"
         owner = self._known_table(fallback) if fallback else table
         handler = getattr(owner.dbtable, 'env_' + name, None)
         if handler is None:
@@ -268,9 +276,12 @@ class _TreeContext:
                              f"and no method env_{name}")
         return handler()
 
-    def expand_bag(self, match, separateCols):  # wf:phase-4:new
+    def expand_bag(self, match, separateCols):
         """Legacy expandBag/expandBagcols: the plain column in the SQL, the Bag built after fetch."""
         field, alias = match[1], match[3]
+        if '@' in field:
+            macro = '#BAGCOLS' if separateCols else '#BAG'
+            raise ValueError(f'{macro} takes a column of the queried table, not the relation path {field}')
         self.cpl.evaluateBagColumns.append(((alias or field).replace('$', ''), separateCols))
         return f'{field} AS {alias}' if alias else field
 

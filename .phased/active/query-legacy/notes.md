@@ -34,3 +34,20 @@
 - Phase 1 contract test fixes a non-legacy shape: `iterfetch(arraysize=2)` expected `[2, 1]`; legacy also yields a trailing empty chunk. The contract tests do not cover `serverfetch()`, the named PostgreSQL cursor, or the datetime branch of `fetchAsJson`.
 - Phase 2 realigned 9 test files beyond the plan's list by the same rule (a reused query no longer recompiles).
 - Phases 2, 3, 4 closed on the first attempt. Final suite 5118 passed, 42 skipped, 27 xfailed (the four asqueel#26 xfails lifted in Phase 3).
+
+## Final touch
+Reviewed revision ee4183a (review extended, effort high; QA none: the plan carries no Verify step). Naming map: 26 markers, accept all.
+
+| Finding | Root cause | Fix | Road |
+|---|---|---|---|
+| 1 dynamic columns cached for the process | `currentEnv` has no request boundary in asqueel (GenroPy clears it per page) | kept as legacy (user, 2026-10-19); limitations.md documents `clearCurrentEnv()`; `session(db)` recorded in the roadmap for Macro 6 | decision |
+| 2 `#ENV` None/list rendered with `str()` | legacy uses `gnrstring.toText` | `_to_text` in compiler.py | final touch |
+| 3 iterfetch/serverfetch without the trailing empty chunk | generator stopped at the first empty fetch | generator as legacy; contract test `[2, 1]` → `[2, 1, 0]` in both copies, guide example and legacy-features entry | final touch |
+| 4 cursor read errors do not mark the connection failed | cursor returned outside the execution bookkeeping | recorded in the roadmap for Macro 6 (automatic rollback on SQL errors) | Macro 6 |
+| 5 unused-keyword warning located inside asqueel | fixed `stacklevel=2` with lazy compilation | stacklevel computed to the first frame outside the asqueel package | final touch |
+| 6 fetchRecord with order_by recompiles | LIMIT 1 compilation not cached | `_compiled_first_row` | final touch |
+| 7 every physical field lookup scans dir() | dynamic columns checked before physical columns | dynamic columns looked up only for names that are not physical | final touch |
+| 8 `#BAG(@rel.col)` KeyError after fetch | relation path accepted by the legacy regex | ValueError at compilation | final touch |
+| 9 `sqlparams`/`test()` show compile-time env values | compiled params carry `env_*` | `sqlparams` leaves out the `env_*` keys of `environment_keys` | final touch |
+
+Also: docs/guide/legacy-features.md A2.8 still described the raise replaced by the warning in Phase 2. New tests: tests/test_query_legacy_details.py (findings 2, 5, 6, 8, 9). Checks run: the 5 query test files (124 passed), ruff, mypy, full suite 5128 passed, 42 skipped, 27 xfailed. Marker sweep empty. Rows on the phase road: none.

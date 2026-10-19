@@ -22,14 +22,14 @@ def not_available(subject):
     return UnsupportedFeatureError(f'{subject} is not available in this release')
 
 
-def refused_property(subject):  # wf:phase-2:new
+def refused_property(subject):
     """A property whose read raises the error of a legacy feature absent from this release."""
     def refuse(self):
         raise not_available(subject)
     return property(refuse)
 
 
-class UnusedQueryParameterWarning(UserWarning):  # wf:phase-2:new
+class UnusedQueryParameterWarning(UserWarning):
     """A query keyword that the compiled query does not use; the query still runs."""
 
 

@@ -505,7 +505,7 @@ try:
     assert list(query.fetchAsDict()) == [10, 11]
     assert list(query.fetchGrouped(key="customer_id", ordered=True)) == [1, 2]
     chunks = [len(rows) for rows in query.iterfetch(arraysize=1)]
-    assert chunks == [1, 1]
+    assert chunks == [1, 1, 0]
     db.commit()
 except Exception:
     db.rollback()
@@ -533,7 +533,7 @@ cursor. `key=None` means the table pkey.
 - `servercursor()`: a named server-side cursor on PostgreSQL; a normal cursor on
   SQLite, as in legacy.
 - `iterfetch(arraysize=30)`: yields lists of at most `arraysize` rows, from a
-  server-side cursor.
+  server-side cursor; the last list is empty, as legacy.
 - `serverfetch(arraysize=30)`: `(cursor, generator)`; the generator yields the
   same lists as `iterfetch`.
 

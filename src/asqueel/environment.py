@@ -26,7 +26,7 @@ def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:
 
 
 
-def environment_arguments(keys, snapshot):  # wf:phase-2:new
+def environment_arguments(keys, snapshot):
     """The :env_* values of ``keys`` in ``snapshot``, read at every execution as legacy execute."""
     params = {'env_' + key: snapshot.get(key) for key in keys}
     if 'env_workdate' in params:
