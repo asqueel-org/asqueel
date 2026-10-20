@@ -574,6 +574,38 @@ the write cycle, see [Current status](limitations.md).
   columns, target schema (A7.15).
 - `unique` on a column and `compositeColumn(unique=True)` (A7.20).
 - Constraint and index names (`ignore_constraint_name`) (A7.22).
+- **`force`, `backup`, `verifyConversionBackups`** (A7.13):
+  `migration_plan(force=, backup=)` and `migrate(force=, backup=)`, CLI
+  `--force` and `--backup`. `force` converts a filled column and the values
+  that do not convert become NULL; `backup` implies `force` and keeps the old
+  values in `<column>__<old dtype>`; after applying, `verifyConversionBackups`
+  drops the backup columns without lost values and every kept one adds a
+  warning to the returned plan. Without them a conversion on a filled column
+  raises `MigrationError`. Legacy: `SqlMigrator(force=, backup=)`
+  (`gnrpy/gnr/sql/gnrsqlmigration/migrator.py:145-146`) and
+  `verifyConversionBackups` (`executor.py:247`).
+- **Abbreviated SQL actions** (A7.16): `onDelete_sql`/`onUpdate_sql` accept, in
+  any case, `C`/`cascade`, `R`/`restrict`, `N`/`no action`,
+  `SN`/`setnull`/`set null`, `SD`/`setdefault`/`set default`. Any other value
+  raises; legacy returns no action silently. Legacy: `statement_converter`
+  (`gnrpy/gnr/sql/gnrsqlmigration/orm_extractor.py:311-337`).
+- **Index on relation columns** (A7.17): a relation on a physical column or a
+  `compositeColumn` indexes its columns, with or without `foreign_key`, unless
+  `indexed=False`; a target other than the target pkey is indexed on the
+  target table. Pkey and unique columns get no index. Relations on virtual
+  columns index nothing. Legacy: `fill_json_relations_and_indexes`
+  (`orm_extractor.py:227-280`).
+- **`column(indexed=True)` and `indexed={options}`** (A7.18): the dict keys are
+  `unique`, `method`, `where`, `tablespace`, `sorting` (one direction per
+  column) and `with_<name>`; any other key raises. `unique` without `where`
+  makes the column unique and creates no index; with `where` it is a partial
+  unique index. A relation column with `indexed={...}` gets one index with
+  those options. Legacy: `fill_json_column_index` (`orm_extractor.py:423-468`).
+- **Migration without foreign keys** (A7.26): `migration_plan(foreignKeys=False)`,
+  `migrate(foreignKeys=False)` and CLI `--no-foreign-keys` create no foreign key
+  constraint; the relation indexes stay. It is an option of the migration, not
+  of the model. Legacy: `model.enableForeignKeys(enable=False)`
+  (`gnrpy/gnr/sql/gnrsqlmodel/model.py:471`).
 
 ### Works differently
 
@@ -597,16 +629,6 @@ the write cycle, see [Current status](limitations.md).
 - **Column type change** (A7.12): same engine on PostgreSQL; on SQLite the
   change is skipped and `migrate()` refuses. Reason: documented in
   [Migrations](migrations.md).
-- **Abbreviated SQL actions `'C'`, `'R'`, `'N'`, `'SN'`, `'SD'`, `'SETNULL'`**
-  (A7.16): refused; `cascade`, `restrict`, `no_action`, `set_null`,
-  `set_default` are accepted, case and spaces normalized. Reason: not
-  recorded.
-- **Index on relation columns** (A7.17): an FK relation gets a source index
-  unless `indexed=False`; `foreign_key=False` gets none; `weak_relation`
-  indexes source and target. Reason: not recorded for FK targets and
-  `foreign_key=False`.
-- **`column(indexed=True)` and `indexed={options}`** (A7.18): `indexed` is
-  only a boolean; options go through `index()`. Reason: not recorded.
 - **`index()` in the migration** (A7.19): projected with `unique`, `method`,
   `where`, `tablespace`, `with_options` and per-column ordering. Reason: not
   recorded.
@@ -626,12 +648,8 @@ the write cycle, see [Current status](limitations.md).
 - **Tenant schemas: `multi_tenant` tables replicated per tenant** (A7.8):
   `tenant` is not an option of the grammar and `multi_tenant` is not a table
   attribute: both raise. No issue yet. Workaround: one database per tenant.
-- **`force`, `backup`, `verifyConversionBackups`** (A7.13): absent. No issue
-  yet. Workaround: use `SqlMigrator` of asqueel-migration directly.
 - **TSV dtype: mandatory gin index** (A7.21): no automatic index. No issue
   yet. Workaround: `index(columns=..., method='gin')`.
-- **`model.enableForeignKeys(enable=False)`** (A7.26): absent. No issue yet.
-  Workaround: `weak_relation` where the FK is not needed.
 - **Direct DDL: `createDb`, `dropDb`, `createSchema`, `dropSchema`,
   `dropTable`, `dropColumn`** (A7.27): absent. No issue yet. Workaround: SQL
   executed by the application.

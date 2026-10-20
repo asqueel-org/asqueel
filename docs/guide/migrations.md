@@ -42,6 +42,45 @@ SQLite database cannot be migrated.
 
 `allow_removals=True` enables the supported removals, currently columns only.
 
+Three more options come from the GenroPy migration, with the same keywords on
+both methods:
+
+- `foreignKeys=False` creates no foreign key constraint. The indexes of the
+  relation columns stay.
+- `force=True` converts a filled column to a new type. Values that do not
+  convert become NULL. Without it, such a conversion raises `MigrationError`.
+- `backup=True` implies `force` and first copies the column into
+  `<column>__<old dtype>`. After applying, a backup column without lost values
+  is dropped; a kept one adds a warning to the returned plan.
+
+```python
+plan = db.migrate(backup=True)
+for warning in plan.warnings:
+    print(warning)   # app.event.happened: 1 value(s) not converted, kept in backup column happened__T
+```
+
+### Indexes the model implies
+
+The migration creates, as GenroPy:
+
+- an index on the columns of every relation declared on a physical column or a
+  `compositeColumn`, with or without `foreign_key`, unless the relation says
+  `indexed=False`;
+- an index on the target columns of a relation whose target is not the target
+  pkey;
+- an index for `column(indexed=True)` or `column(indexed={...})`.
+
+Pkey columns and unique columns get no index. `indexed={...}` carries the index
+options: `method`, `where`, `tablespace`, `sorting` (comma-separated, one
+direction per column), `with_<name>` (a `WITH` storage option) and `unique`.
+`unique` without `where` makes the column unique and creates no index; with
+`where` it is a partial unique index. Any other key raises.
+
+```python
+columns.column('code', dtype='T', indexed=dict(where='code IS NOT NULL', sorting='DESC',
+                                               with_fillfactor=70))
+```
+
 The [CLI](cli.md) provides `asqueel db plan NAME` and `asqueel db apply NAME`
 on top of the same methods. The lower-level API below remains available.
 
@@ -191,9 +230,9 @@ that represents it. Read-only query use of supported imported tables can continu
 independently of migration support.
 
 Imported foreign keys do not acquire new indexes implicitly: the importer
-projects the indexes present in the catalog. In native declarations,
-`foreign_key=True` normally also requests a supporting index; declare
-`indexed=False` on the relation when that is not intended.
+projects the indexes present in the catalog. In native declarations, every
+relation on a physical column requests an index on its columns, with or without
+`foreign_key`; declare `indexed=False` on the relation when that is not intended.
 
 ## Read or export migration recipes
 

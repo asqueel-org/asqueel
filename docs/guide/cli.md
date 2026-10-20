@@ -120,7 +120,11 @@ when it differs from the registry name or the recipe root name.
 Only the physical schemas represented by the projected tables are managed.
 Declare exclusive ownership of those schemas; unrelated objects inside them
 can otherwise become removal candidates. Removals are disabled by default;
-`--allow-removals` enables them for either `plan` or `apply`. Other alterations
+`--allow-removals` enables them for either `plan` or `apply`.
+`--no-foreign-keys`, `--force` and `--backup` pass the migration options
+`foreignKeys=False`, `force=True` and `backup=True` (see
+[migrations](migrations.md)); `apply --backup` prints a warning for every
+backup column that keeps lost values. Other alterations
 can still affect existing data. A clean result means no remaining commands
 under the selected removal policy and migrator capabilities, not equality
 including ignored removals. In the current migrator, removal handlers emit

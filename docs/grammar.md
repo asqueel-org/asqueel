@@ -220,7 +220,7 @@ A physical column — the only element that projects as a column.
 | size | `str \| None` | `None` | physical | `'n'` or `'min:max'` character size. |
 | notnull | `bool` | `False` | physical | NOT NULL. Pkey members get it from their pkey membership, not from this flag. |
 | unique | `bool \| str` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. A string is read as in GenroPy: `n`, `no`, `f`, `false`, `0` are false. |
-| indexed | `bool \| str` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a foreign key is always indexed. A string is read as `unique`. |
+| indexed | `bool \| str \| dict` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a relation is always indexed. A string is read as `unique`. A dict carries the index options, as legacy `fill_json_column_index`: `method`, `where`, `tablespace`, `sorting` (comma-separated, one direction per column), `with_<name>` (a `WITH` storage option) and `unique` (without `where` it makes the column unique and creates no index; with `where` a partial unique index). |
 | sql_default | `str \| None` | `None` | physical | SQL DEFAULT expression. |
 | sql_extra | `str \| None` | `None` | physical | verbatim tail of the column definition. |
 | sql_generatedExpression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra: the same for one dialect (`pg`, `sqlite`); they win on it. |
@@ -414,15 +414,15 @@ reports every conflicting relation together.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | to | `str` | *required* | physical | the target, `schema.table.column` or `schema.table` (target columns default to the target pkey). |
-| foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project into the migration JSON. |
+| foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project a foreign key into the migration JSON; every relation on a physical column indexes it. |
 | onDelete | `str \| None` | `None` | semantic | Python action on delete of the target row, as in GenroPy: `raise`, `cascade`, `setnull`, `ignore`, optionally followed by `:message`. |
 | onUpdate | `str \| None` | `None` | semantic | Python action on update, same values. |
-| onDelete_sql | `str \| None` | `None` | physical | SQL action of the foreign key on delete: `cascade`, `restrict`, `no action`, `setnull`, `setdefault` (any case; `set null`/`set default` too). |
+| onDelete_sql | `str \| None` | `None` | physical | SQL action of the foreign key on delete: `cascade`, `restrict`, `no action`, `setnull`, `setdefault` (any case; `set null`/`set default` too), or the legacy abbreviations `C`, `R`, `N`, `SN`, `SD`. |
 | onUpdate_sql | `str \| None` | `None` | physical | SQL action of the foreign key on update, same values; `cascade` when absent, as in GenroPy. |
 | deferred | `bool` | `False` | physical | DEFERRABLE INITIALLY DEFERRED. True by default when `onDelete` or `onDelete_sql` is `setnull`, as in GenroPy. |
 | deferrable | `bool` | `False` | physical | make the foreign key DEFERRABLE. Without `initially_deferred` it is initially immediate. |
 | initially_deferred | `bool` | `False` | physical | start a deferrable foreign key deferred. |
-| indexed | `bool` | `True` | physical | the supporting index of the foreign key. On by default (GenroPy parity, D3); `False` states that the columns are deliberately left unindexed. |
+| indexed | `bool` | `True` | physical | the index of the relation columns, with or without a foreign key. On by default, as legacy; `False` states that the columns are deliberately left unindexed. |
 | one_name | `str \| None` | `None` | semantic | human label of the one side. |
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
 | one_one | `bool \| Literal['*']` | `False` | semantic | the relation is 1:1. `'*'` without `relation_name` names the inverse after the many table and makes it public, as in GenroPy. |

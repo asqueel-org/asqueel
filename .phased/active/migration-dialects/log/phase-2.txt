@@ -1,0 +1,5 @@
+✓ Phase 2 completata: la migrazione ora si comporta come GenroPy legacy (abbreviazioni delle azioni SQL, indici sulle relazioni, `indexed={...}`, opzioni `foreignKeys`/`force`/`backup`). Commit `277dda4`.
+
+- **Test e lint:** i 32 contract test passano su SQLite e PostgreSQL, gli 8 della Phase 1 anche. Suite completa in foreground: 5253 passed, 27 xfailed. `ruff` e `mypy` del venv sono puliti. Il mypy dell'hook di commit segnala 4 errori `import-not-found` su `asqueel_migration`; non bloccano.
+- **Workaround da decidere:** `verifyConversionBackups()` di asqueel-migration 0.3 va in deadlock su PostgreSQL. Legge sulla connessione persistente e fa il `DROP COLUMN` su una seconda connessione, che aspetta il lock della lettura. `migrate(backup=True)` ora riapre la connessione in autocommit prima della chiamata, impostando un attributo privato della dipendenza (`migrator.db._connection`). Il difetto va corretto in asqueel-migration. È annotato come `> Review:` nel plan e in `notes.md`.
+- **Baseline:** due run iniziali si sono fermate al limite di tempo in background. Una terza run su un worktree detached a HEAD ha dato 5221 passed, quindi la baseline era verde.

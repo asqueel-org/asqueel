@@ -116,7 +116,7 @@ def test_sql_actions_reach_the_migration_foreign_key_outside_a_package():
     assert 'deferrable' not in fk
 
 
-@pytest.mark.parametrize('key,value', [('onDelete_sql', 'set_null'), ('onUpdate_sql', 'C'),
+@pytest.mark.parametrize('key,value', [('onDelete_sql', 'set_null'), ('onUpdate_sql', 'X'),
                                        ('onDelete', 'set_null')])
 def test_action_names_outside_the_legacy_ones_raise(key, value):
     b, pkg = source()

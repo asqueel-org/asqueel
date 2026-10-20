@@ -10,10 +10,15 @@ by construction instead of by copy.
 #: Index attributes that travel between the element and the JSON.
 INDEX_OPTIONS = ("unique", "method", "where", "tablespace", "with_options")
 
-#: GenroPy onDelete_sql/onUpdate_sql names (any case) -> the JSON FK action.
-SQL_ACTIONS = {"cascade": "CASCADE", "restrict": "RESTRICT", "no action": None,
-               "setnull": "SET NULL", "set null": "SET NULL",
-               "setdefault": "SET DEFAULT", "set default": "SET DEFAULT"}
+#: GenroPy onDelete_sql/onUpdate_sql names and abbreviations (any case) -> the JSON FK action,
+#: as legacy ``statement_converter``.
+SQL_ACTIONS = {"c": "CASCADE", "cascade": "CASCADE", "r": "RESTRICT", "restrict": "RESTRICT",
+               "n": None, "no action": None,
+               "sn": "SET NULL", "setnull": "SET NULL", "set null": "SET NULL",
+               "sd": "SET DEFAULT", "setdefault": "SET DEFAULT", "set default": "SET DEFAULT"}
+
+#: Keys of a column ``indexed={...}``, besides ``with_<name>``, as legacy ``fill_json_column_index``.
+INDEXED_KEYS = ("unique", "method", "where", "tablespace", "sorting")
 
 #: The JSON FK action -> its GenroPy onDelete_sql/onUpdate_sql name.
 SQL_ACTION_NAMES = {"CASCADE": "cascade", "RESTRICT": "restrict", "NO ACTION": "no action",
@@ -43,6 +48,30 @@ def sql_attribute_declared(attributes, name):
     """Whether ``sql_<name>`` is declared on any dialect."""
     return any(attributes.get(f"sql_{prefix}{name}") is not None
                for prefix in ("", *(f"{dialect}_" for dialect in SQL_DIALECTS)))
+
+
+def unknown_indexed_keys(indexed) -> list[str]:  # wf:phase-2:new
+    """The keys of an ``indexed={...}`` dict that legacy ``fill_json_column_index`` does not read."""
+    if not isinstance(indexed, dict):
+        return []
+    return sorted(key for key in indexed if key not in INDEXED_KEYS and not key.startswith("with_"))
+
+
+def indexed_attributes(columns, indexed):  # wf:phase-2:new
+    """The index attributes ``indexed=`` declares on ``columns``, as legacy ``fill_json_column_index``.
+
+    ``None`` when the declaration makes the column unique instead (``unique`` without ``where``).
+    """
+    spec = dict(indexed) if isinstance(indexed, dict) else {}
+    with_options = {key[5:]: spec.pop(key) for key in list(spec) if key.startswith("with_")}
+    sorting = spec.pop("sorting", None)
+    if spec.get("unique") and not spec.get("where"):
+        return None
+    attributes = {"columns": dict(zip(columns, sorting.split(",") if sorting else [None] * len(columns)))}
+    attributes.update((key, value) for key, value in spec.items() if value)
+    if with_options:
+        attributes["with_options"] = with_options
+    return attributes
 
 
 def split_names(value) -> list[str]:

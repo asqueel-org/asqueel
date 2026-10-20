@@ -13,7 +13,7 @@ from typing import Any
 from genro_bag import Bag
 from genro_toolbox import extract_kwargs
 
-from .common import default_index_name, split_names
+from .common import default_index_name, indexed_attributes, split_names, unknown_indexed_keys
 
 
 @dataclass(frozen=True)
@@ -186,13 +186,23 @@ class DbTableObj(DbModelObj):
             if name not in self.children:
                 self.children[name] = DbModelObj(_Fragment(name, name, {}, ()), model=self._model, parent=self)
         for column in self.columns.values():
-            if column.attributes.get('indexed') or column.attributes.get('unique'):
-                self._column_index(column.name, unique=bool(column.attributes.get('unique')))
+            indexed = column.attributes.get('indexed')
+            if column.attributes.get('unique'):
+                self._column_index(column.name, unique=True)
+            elif indexed:
+                unknown = unknown_indexed_keys(indexed)
+                if unknown:
+                    from .validators import SqlModelValidationError
+                    raise SqlModelValidationError([f"{column.fullname}: unknown indexed option(s) {', '.join(unknown)}"])
+                # legacy fill_json_column_index: unique without where is the column's own UNIQUE.
+                attributes = indexed_attributes([column.name], indexed)
+                if attributes is not None:
+                    self._column_index(column.name, **attributes)
 
     def _column_index(self, column, **attributes):
         name = default_index_name(self.name, column)
         if name not in self.indexes:
-            fragment = _Fragment(name, 'index', dict(columns=column, **attributes), ())
+            fragment = _Fragment(name, 'index', {'columns': column, **attributes}, ())
             self.indexes.children[name] = DbIndexObj(fragment, model=self._model, parent=self.indexes)
 
     @property

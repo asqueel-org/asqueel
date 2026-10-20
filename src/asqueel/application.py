@@ -101,24 +101,28 @@ class AsqueelDb(SqlDatabase):
 
     grammar = SqlDatabaseConfig
 
-    def migration_plan(self, *, allow_removals=False):
+    def migration_plan(self, *, allow_removals=False, foreignKeys=True, force=False, backup=False):
         """The DDL that would bring the live database to this model; changes nothing.
 
         Needs ``asqueel[migration]``. Returns a :class:`~asqueel.migration.MigrationPlan`.
+        ``foreignKeys``, ``force`` and ``backup`` are the legacy migration options
+        (:func:`asqueel.migration.migration_plan`).
         """
         # asqueel-migration is an optional extra: import it only when migrating.
         from .migration import migration_plan
-        return migration_plan(self, allow_removals=allow_removals)
+        return migration_plan(self, allow_removals=allow_removals, foreignKeys=foreignKeys,
+                              force=force, backup=backup)
 
-    def migrate(self, *, allow_removals=False):
+    def migrate(self, *, allow_removals=False, foreignKeys=True, force=False, backup=False):
         """Bring the live database to this model and return the applied plan.
 
         Needs ``asqueel[migration]``. Raises :class:`~asqueel.migration.MigrationError`
         before any DDL when the backend cannot apply a change, and after applying
-        when differences remain.
+        when differences remain. The options are those of :meth:`migration_plan`.
         """
         from .migration import migrate
-        return migrate(self, allow_removals=allow_removals)
+        return migrate(self, allow_removals=allow_removals, foreignKeys=foreignKeys,
+                       force=force, backup=backup)
 
     def __init__(self, source, *, parents=None, environment=None):
         from .configuration import _owned_handler

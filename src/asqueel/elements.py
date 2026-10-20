@@ -263,7 +263,7 @@ class TableElements:
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
                notnull: bool = False, unique: bool | str = False,
-               indexed: bool | str = False, sql_default: str | None = None,
+               indexed: bool | str | dict = False, sql_default: str | None = None,
                sql_extra: str | None = None,
                sql_generatedExpression: str | None = None,
                comment: str | None = None,
@@ -293,8 +293,13 @@ class TableElements:
                 read as in GenroPy: ``n``, ``no``, ``f``, ``false``, ``0`` are false.
             indexed: sugar — the renderer materializes a real index item
                 (``structure-1.0`` has no ``indexed`` column attribute).
-                A column carrying a foreign key is always indexed. A string
-                is read as ``unique``.
+                A column carrying a relation is always indexed. A string
+                is read as ``unique``. A dict carries the index options, as
+                legacy ``fill_json_column_index``: ``method``, ``where``,
+                ``tablespace``, ``sorting`` (comma-separated, one direction
+                per column), ``with_<name>`` (a ``WITH`` storage option) and
+                ``unique`` (without ``where`` it makes the column unique and
+                creates no index; with ``where`` a partial unique index).
             sql_default: SQL DEFAULT expression.
             sql_extra: verbatim tail of the column definition.
             sql_generatedExpression: GENERATED ALWAYS AS expression.
@@ -489,14 +494,16 @@ class ColumnElements:
             to: the target, ``schema.table.column`` or ``schema.table``
                 (target columns default to the target pkey).
             foreign_key: emit a physical FK. Only these relations project
-                into the migration JSON.
+                a foreign key into the migration JSON; every relation on a
+                physical column indexes it.
             onDelete: semantic; Python action on delete of the target row,
                 as in GenroPy: ``raise``, ``cascade``, ``setnull``, ``ignore``,
                 optionally followed by ``:message``.
             onUpdate: semantic; Python action on update, same values.
             onDelete_sql: SQL action of the foreign key on delete:
                 ``cascade``, ``restrict``, ``no action``, ``setnull``,
-                ``setdefault`` (any case; ``set null``/``set default`` too).
+                ``setdefault`` (any case; ``set null``/``set default`` too),
+                or the legacy abbreviations ``C``, ``R``, ``N``, ``SN``, ``SD``.
             onUpdate_sql: SQL action of the foreign key on update, same
                 values; ``cascade`` when absent, as in GenroPy.
             deferred: DEFERRABLE INITIALLY DEFERRED. True by default when
@@ -504,9 +511,9 @@ class ColumnElements:
             deferrable: make the foreign key DEFERRABLE. Without
                 ``initially_deferred`` it is initially immediate.
             initially_deferred: start a deferrable foreign key deferred.
-            indexed: the supporting index of the foreign key. On by
-                default (GenroPy parity, D3); ``False`` states that the
-                columns are deliberately left unindexed.
+            indexed: the index of the relation columns, with or without a
+                foreign key. On by default, as legacy; ``False`` states that
+                the columns are deliberately left unindexed.
             relation_name: semantic; name of the inverse relation on the target
                 (``@<relation_name>``), as in GenroPy.
             one_name: semantic; human label of the one side.

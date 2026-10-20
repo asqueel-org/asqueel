@@ -161,7 +161,6 @@ def test_nonphysical_relations_reject_physical_fk_options():
         {"onDelete_sql": "cascade"},
         {"deferrable": True},
         {"initially_deferred": True},
-        {"indexed": False},
     ):
         with pytest.raises(SqlModelValidationError, match="physical option"):
             _relation_model(**option).validate_model()

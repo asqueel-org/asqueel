@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `onDelete_sql`/`onUpdate_sql` accept the legacy abbreviations `C`, `R`, `N`,
+  `SN`, `SD`, in any case.
+- Every relation on a physical column indexes its columns, also with
+  `foreign_key=False` (`indexed=False` skips it); a relation to target columns
+  other than the target pkey also indexes them on the target table.
+- `column(indexed={...})` carries the index options: `unique`, `method`,
+  `where`, `tablespace`, `sorting`, `with_<name>`. `unique` without `where`
+  makes the column unique instead of creating an index.
+- `migration_plan()` and `migrate()` take `foreignKeys`, `force` and `backup`;
+  the CLI `db plan|apply` takes `--no-foreign-keys`, `--force`, `--backup`. A
+  conversion on a filled column without `force` raises `MigrationError`.
 - SQLite schema files change name, as in GenroPy: each attached schema is
   `<schema>.db` in the folder of the main file, no longer `<stem>_<schema>.db`.
   An existing SQLite database needs its schema files renamed. A missing main

@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections import Counter
 
 from .catalog import SqlModelCatalog, _VIRTUAL_COLUMN_TAGS
-from .common import SQL_ACTIONS, in_attribute_family, split_names
+from .common import SQL_ACTIONS, in_attribute_family, split_names, unknown_indexed_keys
 
 _META_KEY = "_meta"
 
@@ -171,6 +171,10 @@ class SqlModelValidator:
                     )
 
     def _check_indexes(self, table: dict) -> None:
+        for name, node in table["columns"].items():
+            unknown = unknown_indexed_keys(node.get_attr("indexed"))
+            if unknown:
+                self._error(self._catalog.path(node), f"column '{name}': unknown indexed option(s) {', '.join(unknown)}")
         for path, node in table["indexes"]:
             raw_columns = node.get_attr("columns")
             columns = self._names(raw_columns)
@@ -308,8 +312,6 @@ class SqlModelValidator:
                 )
                 if node.get_attr(name)
             ]
-            if "indexed" in node.attr:
-                physical.append("indexed")
             if physical:
                 self._error(
                     path,

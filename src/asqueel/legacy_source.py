@@ -9,7 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 from genro_bag import Bag
 
-from .common import in_attribute_family
+from .common import in_attribute_family, indexed_attributes, split_names
 from .configuration import SqlDatabaseConfig
 from .contracts import not_available
 
@@ -52,9 +52,15 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
                 _normalize_physical(physical)
                 if isinstance(physical.get('validate_notnull'), str):
                     physical['validate_notnull'] = bool(physical['validate_notnull'])
-                c = t.column(column.label, **physical)
+                index = None
                 if data.get('indexed') and not data.get('unique') and column.label not in (raw.get('pkey') or '').split(','):
-                    _index(t, column.label, data['indexed'])
+                    index = indexed_attributes([column.label], data['indexed'])
+                    # legacy fill_json_column_index: unique without where is the column's own UNIQUE.
+                    if index is None:
+                        physical['unique'] = True
+                c = t.column(column.label, **physical)
+                if index is not None:
+                    t.index(**index)
                 for rel in column.value or ():
                     if rel.label != 'relation':
                         raise ValueError(f'{path}.{column.label}: unknown child {rel.label}')
@@ -113,7 +119,7 @@ def from_expanded_legacy_xml(document: str, *, name: str = 'database', type_alia
             kwargs.pop('deferred', None)
             column.relation(foreign_key=False, x_weak=True, **kwargs)
             if column.node_tag == 'compositeColumn' and not column.get_attr('unique'):
-                _index(table, column.get_attr('columns'), True)
+                table.index(columns=dict.fromkeys(split_names(column.get_attr('columns'))))
     return builder
 
 
@@ -135,17 +141,6 @@ def _grammar(builder, tag, path, attributes, consumed):
 
 def _target(package, target):
     return target if len(target.split('.')) == 3 else package + '.' + target
-
-
-def _index(table, columns, spec):
-    data = {} if spec is True else dict(spec)
-    sorting = data.pop('sorting', None)
-    names = columns.split(',')
-    members = dict(zip(names, sorting.split(',') if sorting else [None] * len(names)))
-    with_options = {key[5:]: data.pop(key) for key in list(data) if key.startswith('with_')}
-    if with_options:
-        data['with_options'] = with_options
-    table.index(columns=members, **data)
 
 
 def _normalize_physical(attributes):
