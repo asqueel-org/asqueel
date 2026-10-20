@@ -271,14 +271,15 @@ def test_partition_autofill_raw_guards_and_explicit_bypass(implementation, tmp_p
             db.rollback()
 
 
-def test_generated_expression_changes_require_explicit_migration(implementation, tmp_path):
+@pytest.mark.parametrize('expression', ['value * 3', 'value +'])
+def test_generated_expression_changes_require_explicit_migration(implementation, tmp_path, expression):
     from asqueel.errors import MigrationError
     with migrated_db(implementation, tmp_path, generated) as db:
         table = db.table('app.item')
         table.insert({'value': 4})
         db.commit()
         # Change the desired model, keeping the real database and its data.
-        table.model.columns['computed'].attributes['sql_generatedExpression'] = 'value * 3'
+        table.model.columns['computed'].attributes['sql_generatedExpression'] = expression
         plan = db.migration_plan()
         assert not plan.empty and plan.skipped
         with pytest.raises(MigrationError, match='explicit migration required'):
@@ -397,3 +398,30 @@ def test_linked_root_with_database_generated_master_key(implementation, tmp_path
         db.commit()
         db.table('app.master').delete(master)
         assert db.table('app.item')._behavior_rows() == []
+
+
+@pytest.mark.parametrize('position', [-1, True, 1.5])
+def test_hierarchy_rejects_invalid_counter_values(implementation, tmp_path, position):
+    with migrated_db(implementation, tmp_path, hierarchy) as db:
+        with pytest.raises(ValueError, match='nonnegative integer'):
+            db.table('app.item').insert({'code': 'invalid', 'position': position})
+        db.rollback()
+        assert db.table('app.item')._behavior_rows() == []
+
+
+def test_allowed_only_partition_filters_sql_updates_and_deletes(implementation, tmp_path):
+    with migrated_db(implementation, tmp_path, partitioned) as db:
+        table = db.table('app.item')
+        permitted = table.insert({'organization': 1, 'value': 1})
+        global_row = table.insert({'organization': None, 'value': 2})
+        excluded = table.insert({'organization': 2, 'value': 3})
+        db.commit()
+        with db.temp_env(allowed_organization=[1]):
+            assert table.query(ignorePartition=True).sql_update({'value': 9}) == 2
+            assert table._reread(permitted['id'])['value'] == 9
+            assert table._reread(global_row['id'])['value'] == 9
+            assert table._reread(excluded['id'])['value'] == 3
+            assert table.query(ignorePartition=True).sql_delete() == 2
+            assert table._reread(excluded['id']) is not None
+        db.rollback()
+        assert len(table._behavior_rows()) == 3
