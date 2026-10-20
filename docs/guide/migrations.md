@@ -37,8 +37,9 @@ up-to-date database it returns an empty plan (`plan.empty`).
 Both methods work for every way of building an `AsqueelDb`, including a database
 declared in a host configuration (`AsqueelDb(node)`, see
 [cascading grammars](configuration-grammars.md)). The database name comes from
-the connection settings; a missing PostgreSQL database is created. An in-memory
-SQLite database cannot be migrated.
+the connection settings; a missing PostgreSQL database is created. A SQLite
+`:memory:` database is migrated through the application's existing connection,
+including introspection and the comparison after applying the migration.
 
 `allow_removals=True` enables the supported removals, currently columns only.
 
@@ -84,6 +85,92 @@ columns.column('code', dtype='T', indexed=dict(where='code IS NOT NULL', sorting
 
 The [CLI](cli.md) provides `asqueel db plan NAME` and `asqueel db apply NAME`
 on top of the same methods. The lower-level API below remains available.
+
+## Experiment in a Python console, without files
+
+Start Python in an environment containing `asqueel[migration]`. Declare a
+builder directly; no configuration file or recipe subclass is required:
+
+```python
+from asqueel import AsqueelDb, SqlDatabaseConfig
+
+model = SqlDatabaseConfig()
+root = model.source.db(implementation="sqlite")
+root.connection(name=":memory:", implementation="sqlite")
+product = root.packages().package("shop", sqlschema="shop").table("product", pkey="code")
+product.column("code", size=":10")
+product.column("name", size=":60")
+
+db = AsqueelDb(model)
+print(db.migrate().commands)
+products = db.table("shop.product")
+products.insert({"code": "TEA", "name": "Tea"})
+db.commit()
+products.query(columns="$code, $name").fetch()
+products.update({"name": "Green tea"}, pkey="TEA")
+db.commit()
+```
+
+The builder and the running model are separate snapshots. Add columns to the
+builder, explicitly reload the model, then migrate the same database:
+
+```python
+product.column("category", size=":30")
+product.column("stock", dtype="I")
+db.reload_model(model)
+print(db.migrate().commands)
+
+products = db.table("shop.product")  # Fresh handle for the new model.
+products.update({"category": "Drinks", "stock": 8}, pkey="TEA")
+db.commit()
+products.query(columns="$name, $stock").fetch()
+db.commit()
+```
+
+Even the CSV can be held in memory for a short demonstration:
+
+```python
+import csv
+from io import StringIO
+
+data = StringIO("code,name,category,stock\nCOF,Coffee,Drinks,24\nMUG,Mug,Kitchen,12\n")
+for row in csv.DictReader(data):
+    row["stock"] = int(row["stock"])
+    products.insert(row)
+db.commit()
+products.query(
+    columns="$name, $stock",
+    where="$category = :category", category="Drinks",
+    order_by="$stock DESC",
+).fetch()
+# [[name=Coffee,stock=24], [name=Green tea,stock=8]]
+
+db.closeConnection()  # Discards this in-memory database.
+```
+
+The in-memory path borrows the main SQLite connection. It never closes it
+during planning, applying or verifying a migration. Attached SQL schemas are
+also in memory. There are no database files to persist between processes:
+exiting Python, closing the connection, or constructing a different `AsqueelDb`
+creates a different database.
+
+This experimental `reload_model(source, parents=None)` API is for an exclusively
+used, single-threaded SQLite `:memory:` session with only the main connection
+open. It validates the replacement
+before swapping models, keeps the connection, and refuses changes to connection
+settings or SQL schemas. It changes the model only; `migrate()` applies the DDL.
+Obtain fresh table and query handles after reloading: old handles are invalid.
+The original builder is not watched for changes.
+
+Both in-memory migration methods and model reload require an idle session.
+Commit or roll back pending work first, including after reads, and finish any
+deferred callbacks. They refuse unfinished work rather than committing or
+discarding it. A failed DDL transaction is rolled back without closing the
+database. File-backed SQLite and PostgreSQL retain their existing migration
+paths.
+
+The complete executable example is
+[`examples/sqlite_memory.py`](../../examples/sqlite_memory.py).
 
 (native-package-models)=
 ## Native package models

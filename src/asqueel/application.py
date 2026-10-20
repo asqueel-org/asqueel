@@ -131,3 +131,36 @@ class AsqueelDb(SqlDatabase):
         config = _owned_handler(source, parents)
         model = render_model(config)
         super().__init__(model=model, config=config, environment=environment)
+
+    def reload_model(self, source, *, parents=None):
+        """Replace the model of an idle SQLite :memory: interactive database.
+
+        Does not migrate or reconnect. Call migrate() afterwards, then obtain
+        fresh tables/queries: handles from the previous model are invalidated.
+        Requires exclusive use of this database (no concurrent threads), the
+        same connection settings and the same SQL schemas.
+        """
+        from ._memory_migration import check_idle
+        from .configuration import _owned_handler, connection_settings
+        from .errors import MigrationError
+        from .object_tree_renderer import render_model
+
+        check_idle(self)
+        if len(self._connections) > 1:
+            raise MigrationError('reload_model requires a single main connection')
+        old_settings = connection_settings(self.config)
+        implementation, conninfo, kwargs = old_settings
+        if implementation != 'sqlite' or ((kwargs or {}).get('dbname') or conninfo) != ':memory:':
+            raise MigrationError('reload_model is only supported for SQLite :memory: databases')
+        config = _owned_handler(source, parents)
+        if connection_settings(config) != old_settings:
+            raise MigrationError('reload_model cannot change connection settings')
+        model = render_model(config)
+        if {t.sqlschema for t in model.tables.values()} != {t.sqlschema for t in self.model.tables.values()}:
+            raise MigrationError('reload_model cannot change SQL schemas')
+        old_model = self.model
+        model._bind_db(self)
+        self.config, self.model = config, model
+        self._compilers.clear()
+        self._write_compilers.clear()
+        old_model._operational_db = None
