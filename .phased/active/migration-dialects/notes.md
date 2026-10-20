@@ -20,3 +20,11 @@
 - Legacy facts cite genropy `origin/develop` at `5c72f3fbd7` (2026-10-19). `ADMINISTER` is declared in the enum but no adapter declares it and no code reads it; the catalogue keeps the name and leaves its scope to define.
 - `allowAlterColumn` (legacy adapter class attribute, False on SQLite) is a capability outside the enum; the catalogue lists it under ALTER COLUMN and the declaration decision proposes folding it into the enum.
 - The sqlglot proposal has one open decision (run the trial or not); the earlier SQLGlot trial is described without naming the internal design document, which is not part of the public xmldocs tree.
+
+## Run inspection
+
+- 3/3 phases closed `[x]`, no `[!]`, no repair, no budget cap tripped.
+- Phase 2 session stood still 510 minutes (2026-10-19 22:32 → 2026-10-20 07:03 local) between two tool calls, then resumed and closed; the run's Monitor watches also expired silent in that window.
+- Phase 2 baseline: two full-suite runs exceeded the 600 s Bash limit and went to background; the second hung in `test_python_errors_postgres.py` while sources were edited under it. The executor took the baseline from a clean detached worktree (5221 passed).
+- Phase 2 `migrate(backup=True)` writes `migrator.db._connection` (a private attribute of asqueel-migration) to avoid the `verifyConversionBackups()` deadlock on PostgreSQL; the fix belongs in asqueel-migration. Focus point for the quality check.
+- Phase 1 and Phase 2 touched files outside their `Files:` (`model_elements.py`, `builder.py`, `object_tree.py`, `docs/grammar.md`, realigned tests), each recorded in its notes.
