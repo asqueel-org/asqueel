@@ -37,7 +37,7 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Starts from: Macro 6.
 - Requires of earlier work (Macro 4 quality check): SQL index names are hashed by the migrator for default-named `index()` nodes and taken from the name for explicit ones (`migration.py`, `object_tree_projection.py`); legacy never passes `index_name` (`orm_extractor.py:465`), so every legacy index is hashed. Decide this rule before building `indexed={...}` and the index projection: a database migrated from legacy sees explicitly named indexes as different. `vacuum()` on SQLite runs `VACUUM` on the main file only; with SQLite attach (this macro) decide whether attached schema files are vacuumed too (Macro 6 quality check).
 
-## Macro 8: comparison document
+## Macro 8 (done): comparison document — done/differences-document/plan.md
 - Objective: Sphinx chapter (English) and new team page (Italian) in the agreed form: Differences → Model / Query / Read-Write → missing (temporary, removed, replaced) / different / new / same, plus "to implement" as its own branch; cards "in GenroPy you wrote / got" above, asqueel below; one label; low-level vs high-level API; proposals (sqlglot, .sql(), capability catalogue, async).
 - Starts from: Macros 2-7 landed.
 
