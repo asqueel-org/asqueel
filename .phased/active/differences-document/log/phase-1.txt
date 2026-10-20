@@ -1,0 +1,9 @@
+✓ Phase 1 completed: inventory re-verified and reclassified in the agreed form
+
+- I criteri Done passano:
+  - il checker dell'inventario trova 212 righe e 0 errori;
+  - la build Sphinx completa (`-E -W`) esce con 0;
+  - `src`, `tests` e `docs/review` non hanno modifiche.
+- Il commit della fase è `697010b`; prima c'è il batch parziale `4155620`.
+- La riga A7.24 (CHECK) resta, contro l'esempio del piano: il codice ha ancora il vincolo.
+- Diverse pagine della guida contraddicono il codice: la Phase 2 deve seguire il codice. Questa scelta e le altre classificazioni dubbie sono in `notes.md` e nella nota `> Review:` del piano.

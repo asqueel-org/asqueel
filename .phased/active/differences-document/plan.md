@@ -11,8 +11,10 @@ Must not break: no later macro consumes this output — Macro 8 is the last of t
 Describe asqueel against GenroPy legacy in the form the user agreed (decisioni.md, «Formato del documento», 2026-10-17): blocks Model / Query / Read-Write / Adapters, each split into Missing (labelled temporary / removed / replaced), Different, New, Same; "To implement" as a branch of its own; one card per item with the GenroPy side above and the asqueel side below. The source is the inventory, re-verified on the code as it stands after Macros 1-7. From it, an English Sphinx chapter for external users and a new Italian review page for the team.
 
 ## Work Plan
-- [>] **Phase 1**: inventory re-verified and reclassified in the agreed form  `vast`
-  > In execution since 2026-10-20T09:29:43+02:00
+- [x] **Phase 1**: inventory re-verified and reclassified in the agreed form  `vast`
+  > Done: 212 rows re-verified at fbe0b45 in the 8-column form (Stato in 7 values, Blocco by area); new rows A1.28, A2.27, A3.21-A3.25, A4.22, A5.31, A6.30-A6.31; Righe tolte A3.5, A6.22-A6.24; area 8 renamed Adapter; SqlRecord and EnvironmentMismatchError dropped from docs/api.rst. Checker 0 errors, full Sphinx -E -W green, src/tests/docs/review untouched.
+  > Files: docs/design/112-legacy-inventory.md, docs/api.rst
+  > Review: A3.15 and A3.18 split (one realised and one deferred feature each: tails A3.24, A3.25); A7.24 CHECK kept as nuovo, the code still has it (src/asqueel/elements.py:72); A1.27 reclassified diverso (legacy migrator reads sqldefault/extra_sql/generated_expression); several guide pages contradict the code (rows say 'vale il codice'), see notes.md.
   > Batches: 1 areas 1-4 | 2 areas 5-8, Righe tolte, Riepilogo, Fonti, docs/api.rst
   - Pattern reference: `.phased/done/legacy-inventory/plan.md` Phases 1-2 (how the inventory was built: legacy read with `git -C ~/Sviluppo/Genropy/genropy show 95da66ee:<path>`, one row per feature a project calls or declares, file:line citations); the current rows of `docs/design/112-legacy-inventory.md`
   - Files: `docs/design/112-legacy-inventory.md`, `docs/api.rst`
