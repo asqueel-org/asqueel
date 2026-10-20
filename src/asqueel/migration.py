@@ -67,9 +67,9 @@ class SqlMigrationRenderer:
         builder: a created :class:`~asqueel.builder.SqlBuilder`.
     """
 
-    def __init__(self, builder, *, foreign_keys=True) -> None:
+    def __init__(self, builder, *, foreignKeys=True) -> None:
         self.builder = builder
-        self.foreign_keys = foreign_keys
+        self.foreignKeys = foreignKeys
 
     def render(self) -> dict:
         """Project the model, a fresh structure each call.
@@ -92,7 +92,7 @@ class SqlMigrationRenderer:
             from .model import resolve_model
             from .projection import to_physical_builder
             return SqlMigrationRenderer(to_physical_builder(resolve_model(self.builder)),
-                                        foreign_keys=self.foreign_keys).render()
+                                        foreignKeys=self.foreignKeys).render()
         SqlModelValidator().validate(self.builder)
         self._db_name = self._catalog.db_name
         self._schemas = self._catalog.schemas
@@ -117,6 +117,7 @@ class SqlMigrationRenderer:
                 continue
             index = new_index_item(schema_name, table_name, columns,
                                    attributes={"columns": dict.fromkeys(columns)})
+            _refuse_uncovered(schema_name, table_name, columns, target["indexes"].get(index["entity_name"]), None)
             target["indexes"].setdefault(index["entity_name"], index)
         for extension_name in self._extensions:
             root["extensions"][extension_name] = new_extension_item(extension_name)
@@ -198,7 +199,7 @@ class SqlMigrationRenderer:
                 indexed.append(columns)
             if target_columns != _names(self._tables[(target_schema, target_table)]["node"].get_attr("pkey")):
                 self._target_indexes.append((target_schema, target_table, target_columns))
-            if not node.get_attr("foreign_key") or not self.foreign_keys:
+            if not node.get_attr("foreign_key") or not self.foreignKeys:
                 continue
             attributes: dict[str, object] = {
                 "related_schema": target_schema,
@@ -292,19 +293,36 @@ class SqlMigrationRenderer:
         """
         for key, attributes in auto_indexes.items():
             columns = list(key)
-            if columns == pkey_columns or (len(columns) == 1 and item['columns'][columns[0]]['attributes'].get('unique')):
+            # As legacy, a column of the pkey gets no index of its own.
+            if columns == pkey_columns or (len(columns) == 1 and (
+                    columns[0] in pkey_columns or item['columns'][columns[0]]['attributes'].get('unique'))):
                 continue
             index = new_index_item(
                 schema_name, table_name, columns,
                 attributes=attributes or {"columns": dict.fromkeys(columns)},
             )
-            existing = item["indexes"].get(index['entity_name'])
-            if existing and attributes is None and (existing['attributes'].get('where') or
-                             existing['attributes'].get('method') not in (None, 'btree')):
-                from .contracts import UnsupportedFeatureError
-                raise UnsupportedFeatureError(
-                    f'{schema_name}.{table_name}: partial/non-btree index does not cover required full index on {columns}; migration engine permits one index per column set')
+            _refuse_uncovered(schema_name, table_name, columns, item["indexes"].get(index['entity_name']),
+                              attributes and index['attributes'])
             item["indexes"].setdefault(index["entity_name"], index)
+
+
+def _refuse_uncovered(schema_name, table_name, columns, existing, attributes) -> None:
+    """Refuse an implied index that an explicit ``index()`` on the same columns would replace.
+
+    The migration engine keeps one index per column set: the explicit one wins, so
+    ``indexed={...}`` options that differ from it, or a full index a relation needs
+    under a partial or non-btree explicit one, would be lost.
+    """
+    if existing is None:
+        return
+    from .contracts import UnsupportedFeatureError
+    if attributes and {key: value for key, value in existing['attributes'].items() if key != 'index_name'} != {
+            key: value for key, value in attributes.items() if key != 'index_name'}:
+        raise UnsupportedFeatureError(
+            f'{schema_name}.{table_name}: indexed={{...}} on {columns} conflicts with the explicit index on the same columns; declare the options in one of them')
+    if existing['attributes'].get('where') or existing['attributes'].get('method') not in (None, 'btree'):
+        raise UnsupportedFeatureError(
+            f'{schema_name}.{table_name}: partial/non-btree index does not cover required full index on {columns}; migration engine permits one index per column set')
 
 
 __all__ = ["SqlMigrationRenderer"]
@@ -363,6 +381,7 @@ def migrate(db, *, allow_removals=False, foreignKeys=True, force=False, backup=F
     """
     migrator = _prepared_migrator(db, allow_removals=allow_removals, foreignKeys=foreignKeys,
                                   force=force, backup=backup)
+    kept_backups = []
     try:
         plan = _plan_of(migrator)
         if plan.skipped:
@@ -370,17 +389,24 @@ def migrate(db, *, allow_removals=False, foreignKeys=True, force=False, backup=F
         if not plan.empty:
             migrator.applyChanges()
             if backup:
-                # verifyConversionBackups reads on the migrator's own connection and drops the
-                # backup column on a second one: in a transaction the read's lock blocks the drop.
-                migrator.db.closeConnection()
-                migrator.db._connection = migrator.db.adapter.connect(autocommit=True)
-                lost = [f"{column}: {report.get('lost_values', 'unverified')} value(s) not converted, "
-                        f"kept in backup column {report['backup_column']}"
-                        for column, report in migrator.verifyConversionBackups().items()]
+                lost = []
+                for column, report in migrator.verifyConversionBackups().items():
+                    kept_backups.append(report['backup_column'])
+                    if 'error' in report:
+                        lost.append(f"{column}: conversion not verified ({report['error']}), "
+                                    f"kept in backup column {report['backup_column']}")
+                    else:
+                        lost.append(f"{column}: {report['lost_values']} value(s) not converted, "
+                                    f"kept in backup column {report['backup_column']}")
                 plan = replace(plan, warnings=plan.warnings + tuple(lost))
+    except SqlMigrationError as error:
+        raise MigrationError(str(error)) from error
     finally:
         migrator.db.closeConnection()
-    remaining = migration_plan(db, allow_removals=allow_removals, foreignKeys=foreignKeys)
+    # The removals were applied above; with a backup column kept, the only removal left
+    # would drop it, so the re-check runs without removals.
+    remaining = migration_plan(db, allow_removals=allow_removals and not kept_backups,
+                               foreignKeys=foreignKeys)
     if not remaining.empty:
         raise MigrationError('Migration applied, but differences remain:\n' + remaining.commands)
     return plan
@@ -410,7 +436,7 @@ def _prepared_migrator(db, *, allow_removals, foreignKeys, force, backup):
         raise MigrationError(f'Unsupported migration backend: {implementation}')
     if not params.get('dbname'):
         raise MigrationError('Declare connection.name (or an explicit dbname in the legacy connection settings)')
-    desired = SqlMigrationRenderer(to_physical_builder(db.model), foreign_keys=foreignKeys).render()
+    desired = SqlMigrationRenderer(to_physical_builder(db.model), foreignKeys=foreignKeys).render()
     # The physical destination is owned by connection settings, not the recipe root label.
     desired['root']['entity_name'] = params['dbname']
     schemas = sorted(desired['root']['schemas'])

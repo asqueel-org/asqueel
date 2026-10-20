@@ -46,7 +46,8 @@ Three more options come from the GenroPy migration, with the same keywords on
 both methods:
 
 - `foreignKeys=False` creates no foreign key constraint. The indexes of the
-  relation columns stay.
+  relation columns stay. Foreign keys already in the database are kept: the
+  migration does not remove relations.
 - `force=True` converts a filled column to a new type. Values that do not
   convert become NULL. Without it, such a conversion raises `MigrationError`.
 - `backup=True` implies `force` and first copies the column into
@@ -259,7 +260,7 @@ for the read-only PostgreSQL catalog API.
 
 `dtype="serial"` retains its existing 64-bit BIGSERIAL meaning. The additive
 `dtype="serial4"` declaration requests a 32-bit PostgreSQL SERIAL key. Native
-migration requires `asqueel-migration>=0.3.0,<0.4`, required by the core's
+migration requires `asqueel-migration>=0.3.1,<0.4`, required by the core's
 `migration` and `dev` extras. Published migration 0.2.2 includes `serial4` support.
 
 With the updated migration engine, a populated SERIAL4 column declared as

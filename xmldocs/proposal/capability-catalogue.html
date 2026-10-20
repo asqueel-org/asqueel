@@ -102,7 +102,7 @@ th { background: var(--panel); }
     </section>
   </section><section class="part solution"><h2>Proposed solution</h2>
     <p>Il catalogo elenca le capability per tema. Ogni dialetto dichiara l'insieme delle capability che ha. Quando una richiesta usa una capability che il dialetto non dichiara, asqueel solleva un errore che nomina la capability. L'errore arriva prima di inviare SQL al database.</p>
-    <p>Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge le capability analitiche dei temi qui sotto.</p>
+    <p>Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge una capability per ogni funzione di dialetto dei temi qui sotto.</p>
 
     <section class="section"><h3>Query</h3>
       <ul>
@@ -137,7 +137,7 @@ th { background: var(--panel); }
 
     <section class="section"><h3>Notifiche</h3>
       <ul>
-        <li><code>LISTEN</code> e <code>NOTIFY</code> di PostgreSQL. <code>db.listen</code> e <code>db.notify</code> sono rimandati e arriveranno come capability dell'adapter PostgreSQL.</li>
+        <li><code>LISTEN</code> e <code>NOTIFY</code> di PostgreSQL. GenroPy le espone come <code>listen</code> e <code>notify</code> dell'adapter (<code>_gnrbaseadapter.py:381</code>, <code>:429</code>). Nel catalogo sono una capability dell'adapter PostgreSQL.</li>
       </ul>
     </section>
 
@@ -148,7 +148,7 @@ th { background: var(--panel); }
   </section><section class="part decisions"><h2>Decisions</h2>
     <div class="box decision decision-open" id="dn-granularity"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-granularity</span></div><div class="question">Quanto è fine una capability?</div><ol class="options"><li id="dn-granularity-theme"><b>Una capability per tema</b><p>Esempio: una sola capability per tutte le varianti di <code>FOR UPDATE</code>. L'elenco è corto. Un dialetto che ha solo una parte del tema non si può descrivere.</p></li><li id="dn-granularity-feature"><b>Una capability per funzione</b><p>Esempio: <code>FOR UPDATE NOWAIT</code> e <code>FOR UPDATE SKIP LOCKED</code> sono due capability. L'errore nomina esattamente la funzione chiesta. L'elenco è lungo.</p></li></ol></div>
     <div class="box decision decision-open" id="dn-declaration"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-declaration</span></div><div class="question">Come dichiara un dialetto le sue capability?</div><ol class="options"><li id="dn-declaration-set"><b>Un insieme sulla classe dell'adapter</b><p>Come GenroPy: un attributo di classe <code>CAPABILITIES</code> con i valori di un enum. Gli attributi separati come <code>allowAlterColumn</code> entrano nell'enum.</p></li><li id="dn-declaration-config"><b>Una dichiarazione nella configurazione del dialetto</b><p>L'elenco sta in un file di configurazione del dialetto, letto all'avvio. Un dialetto nuovo si aggiunge senza scrivere una classe.</p></li></ol></div>
-    <div class="box decision decision-open" id="dn-error"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-error</span></div><div class="question">Come nomina la capability l'errore?</div><ol class="options"><li id="dn-error-class"><b>Una classe di errore dedicata</b><p>Un'eccezione con due campi: la capability e il dialetto. Il messaggio dice, per esempio, che SQLite non ha <code>FOR UPDATE</code>.</p></li><li id="dn-error-existing"><b>L'errore di funzione non supportata</b><p>Il messaggio dell'errore già usato per le funzioni non supportate nomina la capability. Nessuna classe nuova.</p></li></ol></div>
+    <div class="box decision decision-open" id="dn-error"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-error</span></div><div class="question">Come nomina la capability l'errore?</div><ol class="options"><li id="dn-error-class"><b>Una classe di errore dedicata</b><p>Un'eccezione con due campi: la capability e il dialetto. Il messaggio dice, per esempio, che SQLite non ha <code>FOR UPDATE</code>.</p></li><li id="dn-error-existing"><b>Un errore generico di funzione non supportata</b><p>Un solo errore per tutte le funzioni non supportate; il suo messaggio nomina la capability. Nessuna classe dedicata.</p></li></ol></div>
   </section><section class="part consequences"><h2>Consequences</h2>
     <p>Ogni dialetto deve dichiarare tutte le capability del catalogo che ha. Una capability dimenticata produce un rifiuto su una funzione che il dialetto avrebbe.</p>
     <p>Il catalogo serve anche alla proposta di traduzione con sqlglot: le funzioni che sqlglot non sa tradurre restano capability del dialetto.</p>

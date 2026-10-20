@@ -6,13 +6,22 @@
   `SN`, `SD`, in any case.
 - Every relation on a physical column indexes its columns, also with
   `foreign_key=False` (`indexed=False` skips it); a relation to target columns
-  other than the target pkey also indexes them on the target table.
+  other than the target pkey also indexes them on the target table. A column
+  that is part of the pkey gets no index, as legacy. The first migration after
+  the upgrade therefore adds `CREATE INDEX` commands for relations without a
+  foreign key, for non-pkey targets and for `indexed={...}` options.
+- `indexed={...}` options that differ from an explicit `index()` on the same
+  columns raise `UnsupportedFeatureError`; so does a partial or non-btree
+  explicit index on a relation target that needs a full one.
 - `column(indexed={...})` carries the index options: `unique`, `method`,
   `where`, `tablespace`, `sorting`, `with_<name>`. `unique` without `where`
   makes the column unique instead of creating an index.
 - `migration_plan()` and `migrate()` take `foreignKeys`, `force` and `backup`;
   the CLI `db plan|apply` takes `--no-foreign-keys`, `--force`, `--backup`. A
-  conversion on a filled column without `force` raises `MigrationError`.
+  conversion on a filled column without `force` raises `MigrationError`, and so
+  does an error while applying the DDL. With `backup`, a kept backup column
+  adds a warning to the returned plan and does not fail the final re-check.
+  `SqlMigrationRenderer` takes `foreignKeys`.
 - SQLite schema files change name, as in GenroPy: each attached schema is
   `<schema>.db` in the folder of the main file, no longer `<stem>_<schema>.db`.
   An existing SQLite database needs its schema files renamed. A missing main
@@ -21,7 +30,7 @@
   `PRAGMA foreign_keys = OFF`. PostgreSQL refuses it.
 - `vacuum()` on SQLite runs `VACUUM` on every attached schema, not only `main`.
 - SQLite DDL declares the legacy type names (`character varying`, `character`,
-  `timestamp`, `time`); requires asqueel-migration 0.3.
+  `timestamp`, `time`); requires asqueel-migration 0.3.1.
 - Connection lifecycle as in GenroPy. `session(db, **env)` is the unit of work
   outside a request: entry clears `currentEnv` and applies `env`, exit calls
   `closeConnection()`, also when the body raises. `closeConnection()` rolls

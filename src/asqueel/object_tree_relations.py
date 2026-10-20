@@ -10,6 +10,8 @@ import logging
 
 from genro_bag import Bag, BagResolver
 
+from .common import split_names
+
 logger = logging.getLogger(__name__)
 
 
@@ -111,11 +113,11 @@ def _register_relation(model, table, column, attrs):
             raise ValueError(f'Duplicate relation: {path}')
         model.relations.set_item(path, None, _attributes=values)
     if not virtual:
-        # checkRelationIndex: native indexed=False remains explicit.
+        # checkRelationIndex: every relation indexes its columns and a non-pkey target;
+        # relation(indexed=False) opts out. As legacy, a column of the pkey gets no index.
         for owner, fields in ((table, local_fields), (remote, remote_fields)):
-            if owner.pkey and fields == model.physical_columns(owner, owner.pkey):
-                continue
-            if len(fields) == 1 and owner.column(fields[0]).attributes.get('indexed') is False:
+            pkey_fields = tuple(field for name in split_names(owner.pkey) for field in model.physical_columns(owner, name))
+            if fields == pkey_fields or (len(fields) == 1 and fields[0] in pkey_fields):
                 continue
             if owner is table and attrs.get('indexed') is False:
                 continue

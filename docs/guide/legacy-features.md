@@ -317,10 +317,7 @@ the write cycle, see [Current status](limitations.md).
   `relation(to, foreign_key=, case_insensitive=)`; inside a package
   `foreign_key` defaults to `True`; `weak_relation` creates no FK; `mode=` is
   refused. Reason: `relation` creates the FK and `weak_relation` does not.
-- **SQL action abbreviations** (A4.6): `onDelete_sql`/`onUpdate_sql` take the
-  full names only (`cascade`, `restrict`, `no action`, `setnull`,
-  `setdefault`); `'C'`, `'SN'` and the other abbreviations raise. Reason:
-  planned for a later release.
+- **SQL action abbreviations** (A4.6): accepted as legacy, see A7.16.
 - **To-many path `@relation_name.col`** (A4.9): raises
   `UnsupportedFeatureError`; with `one_one=True` it becomes a LEFT JOIN.
   Reason: no to-many JOIN, no multiplied rows, no implicit DISTINCT; `aggr`
@@ -536,8 +533,9 @@ the write cycle, see [Current status](limitations.md).
   foreign keys). Reason: asqueel migrates deferrable foreign keys on SQLite.
 - **`analyze()` / `vacuum(table='', full=False)`** (A6.29, A8.18): `analyze()`
   runs `ANALYZE` in the current transaction. `vacuum` runs on a separate
-  connection: `VACUUM [FULL] ANALYZE [table]` on PostgreSQL, `VACUUM` then
-  `ANALYZE [table]` on SQLite. With pending work on the thread, `vacuum`
+  connection: `VACUUM [FULL] ANALYZE [table]` on PostgreSQL; on SQLite
+  `VACUUM` on `main` and on every attached schema, then `ANALYZE [table]`,
+  so the whole database is rebuilt as on PostgreSQL. With pending work on the thread, `vacuum`
   raises `TransactionStateError`: the separate connection would wait for the
   locks of that work. Reason: legacy emits `VACUUM ANALYZE` on SQLite,
   which SQLite rejects (GenroPy defect corrected).
@@ -592,7 +590,8 @@ the write cycle, see [Current status](limitations.md).
 - **Index on relation columns** (A7.17): a relation on a physical column or a
   `compositeColumn` indexes its columns, with or without `foreign_key`, unless
   `indexed=False`; a target other than the target pkey is indexed on the
-  target table. Pkey and unique columns get no index. Relations on virtual
+  target table. Pkey columns, a column that is part of the pkey and unique
+  columns get no index. Relations on virtual
   columns index nothing. Legacy: `fill_json_relations_and_indexes`
   (`orm_extractor.py:227-280`).
 - **`column(indexed=True)` and `indexed={options}`** (A7.18): the dict keys are
@@ -600,11 +599,14 @@ the write cycle, see [Current status](limitations.md).
   column) and `with_<name>`; any other key raises. `unique` without `where`
   makes the column unique and creates no index; with `where` it is a partial
   unique index. A relation column with `indexed={...}` gets one index with
-  those options. Legacy: `fill_json_column_index` (`orm_extractor.py:423-468`).
+  those options. `indexed={...}` options that differ from an explicit
+  `index()` on the same columns raise: one index per column set. Legacy:
+  `fill_json_column_index` (`orm_extractor.py:423-468`).
 - **Migration without foreign keys** (A7.26): `migration_plan(foreignKeys=False)`,
   `migrate(foreignKeys=False)` and CLI `--no-foreign-keys` create no foreign key
   constraint; the relation indexes stay. It is an option of the migration, not
-  of the model. Legacy: `model.enableForeignKeys(enable=False)`
+  of the model. Foreign keys already in the database stay: the migration does
+  not remove relations. Legacy: `model.enableForeignKeys(enable=False)`
   (`gnrpy/gnr/sql/gnrsqlmodel/model.py:471`).
 
 ### Works differently
@@ -677,7 +679,9 @@ the write cycle, see [Current status](limitations.md).
   hold no lock.
 - **SQLite schemas as attached files** (A8.7): each schema is the file
   `<schema>.db` in the folder of the main file; default schema `main`; a
-  missing main file gets its folder created. Legacy: `gnrsqlite.connect`
+  missing main file gets its folder created. Two databases in the same folder
+  therefore share the files of the schemas with the same name, as legacy;
+  give each database its own folder. Legacy: `gnrsqlite.connect`
   (`gnrpy/gnr/sql/adapters/gnrsqlite.py:70-93`) and `_attach` (:98-109).
 - **SQL types of dtypes** (A8.22): DDL from asqueel-migration with the legacy
   type names, on SQLite as `gnrsqlite.revTypesDict` (:50-54): `A` →

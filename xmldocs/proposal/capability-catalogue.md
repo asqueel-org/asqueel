@@ -42,7 +42,7 @@ Le altre differenze tra dialetti non hanno una capability. Un adapter che non im
 
 Il catalogo elenca le capability per tema. Ogni dialetto dichiara l'insieme delle capability che ha. Quando una richiesta usa una capability che il dialetto non dichiara, asqueel solleva un errore che nomina la capability. L'errore arriva prima di inviare SQL al database.
 
-Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge le capability analitiche dei temi qui sotto.
+Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge una capability per ogni funzione di dialetto dei temi qui sotto.
 
 #### Query
 
@@ -69,7 +69,7 @@ Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. A
 
 #### Notifiche
 
-- `LISTEN` e `NOTIFY` di PostgreSQL. `db.listen` e `db.notify` sono rimandati e arriveranno come capability dell'adapter PostgreSQL.
+- `LISTEN` e `NOTIFY` di PostgreSQL. GenroPy le espone come `listen` e `notify` dell'adapter (`_gnrbaseadapter.py:381`, `:429`). Nel catalogo sono una capability dell'adapter PostgreSQL.
 
 - **must** — Ogni funzione che dipende dal dialetto appartiene a una capability del catalogo.
 - **must** — Una richiesta che usa una capability non dichiarata dal dialetto solleva un errore che nomina la capability. L'errore non è mai un `KeyError` o un errore del driver.
@@ -86,7 +86,7 @@ Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. A
    2. **Una dichiarazione nella configurazione del dialetto**: L'elenco sta in un file di configurazione del dialetto, letto all'avvio. Un dialetto nuovo si aggiunge senza scrivere una classe.
 - **dn-error** `open` — Come nomina la capability l'errore?
    1. **Una classe di errore dedicata**: Un'eccezione con due campi: la capability e il dialetto. Il messaggio dice, per esempio, che SQLite non ha `FOR UPDATE`.
-   2. **L'errore di funzione non supportata**: Il messaggio dell'errore già usato per le funzioni non supportate nomina la capability. Nessuna classe nuova.
+   2. **Un errore generico di funzione non supportata**: Un solo errore per tutte le funzioni non supportate; il suo messaggio nomina la capability. Nessuna classe dedicata.
 
 ### Consequences
 

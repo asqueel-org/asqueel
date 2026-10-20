@@ -31,7 +31,9 @@ connection. Declare it as `connection(options={'foreignKeys': False})` or as
 Logical schemas are attached files, as in GenroPy: each schema is the file
 `<schema>.db` in the folder of the main file. `example.db` is the main file and
 schema `app` uses `app.db` in the same folder. When the main file is missing,
-its folder is created. Physical
+its folder is created. Two databases in the same folder share the files of the
+schemas with the same name, as in GenroPy: give each database its own folder,
+and do not name a main file after one of its schemas. Physical
 schema overrides are honored. Attached schema names currently require simple
 identifiers; `temp` is reserved. `:memory:` is supported for isolated tests, but
 each named/thread connection has a separate in-memory database.

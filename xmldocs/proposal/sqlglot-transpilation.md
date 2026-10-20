@@ -17,10 +17,6 @@ Fonte: il ramo `origin/develop` della repo genropy al commit `5c72f3fbd7` del 20
 
 - `READ` `gnrpy/gnr/sql/adapters/` · 2026-10-20 — GenroPy ha un adapter per dialetto: PostgreSQL, SQLite, MySQL, SQL Server. Ogni adapter scrive il proprio SQL per le differenze di dialetto.
 
-#### Prova precedente
-
-Una prova fatta con sqlglot 30.22.0 sul dialetto postgres ha letto SQL già compilato e ne ha visitato l'AST. Ha distinto SELECT ammesse e statement rifiutati in otto casi. La prova non ha tradotto SQL tra dialetti.
-
 ### Proposed solution
 
 asqueel compila solo SQL PostgreSQL. Per un altro dialetto, sqlglot legge l'SQL PostgreSQL e lo scrive nel dialetto di destinazione.

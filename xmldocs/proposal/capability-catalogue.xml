@@ -28,7 +28,7 @@
 
   <solution>
     <p>Il catalogo elenca le capability per tema. Ogni dialetto dichiara l'insieme delle capability che ha. Quando una richiesta usa una capability che il dialetto non dichiara, asqueel solleva un errore che nomina la capability. L'errore arriva prima di inviare SQL al database.</p>
-    <p>Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge le capability analitiche dei temi qui sotto.</p>
+    <p>Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge una capability per ogni funzione di dialetto dei temi qui sotto.</p>
 
     <section title="Query">
       <list>
@@ -63,7 +63,7 @@
 
     <section title="Notifiche">
       <list>
-        <item><c>LISTEN</c> e <c>NOTIFY</c> di PostgreSQL. <c>db.listen</c> e <c>db.notify</c> sono rimandati e arriveranno come capability dell'adapter PostgreSQL.</item>
+        <item><c>LISTEN</c> e <c>NOTIFY</c> di PostgreSQL. GenroPy le espone come <c>listen</c> e <c>notify</c> dell'adapter (<c>_gnrbaseadapter.py:381</c>, <c>:429</c>). Nel catalogo sono una capability dell'adapter PostgreSQL.</item>
       </list>
     </section>
 
@@ -87,7 +87,7 @@
     <decision id="dn-error" status="open">
       <question>Come nomina la capability l'errore?</question>
       <option id="dn-error-class" title="Una classe di errore dedicata"><p>Un'eccezione con due campi: la capability e il dialetto. Il messaggio dice, per esempio, che SQLite non ha <c>FOR UPDATE</c>.</p></option>
-      <option id="dn-error-existing" title="L'errore di funzione non supportata"><p>Il messaggio dell'errore già usato per le funzioni non supportate nomina la capability. Nessuna classe nuova.</p></option>
+      <option id="dn-error-existing" title="Un errore generico di funzione non supportata"><p>Un solo errore per tutte le funzioni non supportate; il suo messaggio nomina la capability. Nessuna classe dedicata.</p></option>
     </decision>
   </decisions>
 

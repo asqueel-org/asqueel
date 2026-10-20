@@ -86,9 +86,6 @@ th { background: var(--panel); }
       <p>Fonte: il ramo <code>origin/develop</code> della repo genropy al commit <code>5c72f3fbd7</code> del 2026-10-19.</p>
       <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">gnrpy/gnr/sql/adapters/</code><span class="muted">2026-10-20</span></div><div>GenroPy ha un adapter per dialetto: PostgreSQL, SQLite, MySQL, SQL Server. Ogni adapter scrive il proprio SQL per le differenze di dialetto.</div></div>
     </section>
-    <section class="section"><h3>Prova precedente</h3>
-      <p>Una prova fatta con sqlglot 30.22.0 sul dialetto postgres ha letto SQL già compilato e ne ha visitato l'AST. Ha distinto SELECT ammesse e statement rifiutati in otto casi. La prova non ha tradotto SQL tra dialetti.</p>
-    </section>
   </section><section class="part solution"><h2>Proposed solution</h2>
     <p>asqueel compila solo SQL PostgreSQL. Per un altro dialetto, sqlglot legge l'SQL PostgreSQL e lo scrive nel dialetto di destinazione.</p>
     <figure class="diagram"><pre class="mermaid">flowchart LR

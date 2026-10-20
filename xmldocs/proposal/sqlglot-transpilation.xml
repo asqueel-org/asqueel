@@ -10,9 +10,6 @@
       <p>Fonte: il ramo <c>origin/develop</c> della repo genropy al commit <c>5c72f3fbd7</c> del 2026-10-19.</p>
       <fact source="gnrpy/gnr/sql/adapters/" method="read" verified="2026-10-20">GenroPy ha un adapter per dialetto: PostgreSQL, SQLite, MySQL, SQL Server. Ogni adapter scrive il proprio SQL per le differenze di dialetto.</fact>
     </section>
-    <section title="Prova precedente">
-      <p>Una prova fatta con sqlglot 30.22.0 sul dialetto postgres ha letto SQL già compilato e ne ha visitato l'AST. Ha distinto SELECT ammesse e statement rifiutati in otto casi. La prova non ha tradotto SQL tra dialetti.</p>
-    </section>
   </current>
 
   <solution>

@@ -50,14 +50,14 @@ def sql_attribute_declared(attributes, name):
                for prefix in ("", *(f"{dialect}_" for dialect in SQL_DIALECTS)))
 
 
-def unknown_indexed_keys(indexed) -> list[str]:  # wf:phase-2:new
+def unknown_indexed_keys(indexed) -> list[str]:
     """The keys of an ``indexed={...}`` dict that legacy ``fill_json_column_index`` does not read."""
     if not isinstance(indexed, dict):
         return []
     return sorted(key for key in indexed if key not in INDEXED_KEYS and not key.startswith("with_"))
 
 
-def indexed_attributes(columns, indexed):  # wf:phase-2:new
+def indexed_attributes(columns, indexed):
     """The index attributes ``indexed=`` declares on ``columns``, as legacy ``fill_json_column_index``.
 
     ``None`` when the declaration makes the column unique instead (``unique`` without ``where``).
