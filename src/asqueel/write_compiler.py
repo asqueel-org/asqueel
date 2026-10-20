@@ -112,6 +112,8 @@ class WriteCompiler:
         virtual = set(table.virtual_columns) | set(table.composites)
         data = {}
         for key, value in record.items():
+            if key in table.columns and sql_attribute_declared(table.columns[key].attributes, 'generatedExpression'):
+                raise ValueError(f'{table.fullname}.{key}: cannot assign a database-generated column')
             if key.startswith('@') or key == 'pkey' or key in virtual:
                 continue
             if isinstance(value, Bag):
@@ -122,18 +124,76 @@ class WriteCompiler:
                 data[name] = None
         return data
 
+    def _partition(self, table, snapshot, ignore_partition):
+        if type(ignore_partition) is not bool:
+            raise ValueError('ignore_partition must be boolean')
+        if ignore_partition:
+            return None
+        field = next((key[len('partition_'):] for key in table.attributes if key.startswith('partition_')), None)
+        if field is None:
+            return None
+        path = table.attributes['partition_' + field]
+        current, allowed = snapshot.get('current_' + path), snapshot.get('allowed_' + path)
+        if current is None and allowed is None:
+            return None
+        if field not in table.columns:
+            raise ValueError('A write partition must use a physical column; use ignore_partition=True explicitly')
+        return field, current, allowed
+
+    def _guard_partition(self, table, data, snapshot, *, insert=False, ignore_partition=False):
+        partition = self._partition(table, snapshot, ignore_partition)
+        if partition is None:
+            return
+        field, current, allowed = partition
+        if insert and field not in data and current is not None:
+            data[field] = current
+        if insert and field not in data and current is None:
+            raise ValueError(f'{table.fullname}: insert requires partition value {field}')
+        if field not in data and not insert:
+            return
+        value = data.get(field)
+        def normalize(v):
+            return v.rstrip() if table.columns[field].dtype in ('A', 'C') and isinstance(v, str) else v
+        if current is not None:
+            valid = normalize(value) == normalize(current)
+        else:
+            valid = bool(allowed) and (value is None or normalize(value) in [normalize(v) for v in allowed])
+        if not valid:
+            raise ValueError(f'{table.fullname}.{field}: value is outside the active partition')
+
+    def _partition_where(self, table, where, params, snapshot, ignore_partition=False):
+        partition = self._partition(table, snapshot, ignore_partition)
+        if partition is None:
+            return where
+        field, current, allowed = partition
+        name = self.adapter.adaptSqlName(table.columns[field].sqlname)
+        index = 0
+        while f'__partition_{index}' in params:
+            index += 1
+        key = f'__partition_{index}'
+        if current is not None:
+            params[key] = current
+            predicate = f'{name} = :{key}'
+        elif allowed:
+            params[key] = allowed
+            predicate = f'({name} IS NULL OR {name} IN :{key})'
+        else:
+            predicate = '1=0'
+        return f'({where}) AND ({predicate})'
+
     # ------------------------------------------------------------------
     #  Statements
     # ------------------------------------------------------------------
 
-    def insert(self, table, record, snapshot):
+    def insert(self, table, record, snapshot, *, ignore_partition=False):
         """INSERT of the non-None physical columns plus every sql_value column."""
         data = self.prepare_record_data(table, record)
+        self._guard_partition(table, data, snapshot, insert=True, ignore_partition=ignore_partition)
         sql = self._insert_sql(table, data)
         sql += self._returning(table, self._insert_returning(table, data), 'returning_insert')
         return self.adapter.prepare_sql(sql, data, snapshot)
 
-    def insert_many(self, table, records, snapshot):
+    def insert_many(self, table, records, snapshot, *, ignore_partition=False):
         """insertMany: consecutive records with the same SQL share one statement.
 
         Returns ``(compiled, params)`` pairs for ``db.executemany``; no RETURNING,
@@ -142,6 +202,7 @@ class WriteCompiler:
         groups: list[tuple] = []
         for record in records:
             data = self.prepare_record_data(table, record)
+            self._guard_partition(table, data, snapshot, insert=True, ignore_partition=ignore_partition)
             compiled = self.adapter.prepare_sql(self._insert_sql(table, data), data, snapshot)
             if groups and groups[-1][0].sql == compiled.sql:
                 groups[-1][1].append(compiled.params)
@@ -166,13 +227,14 @@ class WriteCompiler:
             return f'INSERT INTO {target}({",".join(names)}) VALUES ({",".join(values)})'
         return f'INSERT INTO {target} DEFAULT VALUES'
 
-    def update(self, table, record, snapshot, *, pkey=None, old_record=None):
+    def update(self, table, record, snapshot, *, pkey=None, old_record=None, ignore_partition=False):
         """UPDATE of every physical column present in the record, None included.
 
         The key comes from old_record, then from pkey, then from the record
         itself, as in the legacy adapter.
         """
         data = self.prepare_record_data(table, record)
+        self._guard_partition(table, data, snapshot, ignore_partition=ignore_partition)
         quote = self.adapter.adaptSqlName
         assignments = []
         for key in list(data):
@@ -191,25 +253,28 @@ class WriteCompiler:
         else:
             key_values = [data[name] for name in keys]
         where = self._key_where(table, keys, key_values, data)
+        where = self._partition_where(table, where, data, snapshot, ignore_partition)
         sql = f'UPDATE {self.sql_fullname(table)} SET {",".join(assignments)} WHERE {where}'
         sql += self._returning(table, self._update_returning(table), 'returning_update')
         return self.adapter.prepare_sql(sql, data, snapshot)
 
-    def delete(self, table, record, snapshot):
+    def delete(self, table, record, snapshot, *, ignore_partition=False):
         """DELETE of one record by its key, with the SQL column names."""
         keys = self.pkeys(table)
         params = {}
         where = self._key_where(table, keys, [record[name] for name in keys], params)
+        where = self._partition_where(table, where, params, snapshot, ignore_partition)
         sql = f'DELETE FROM {self.sql_fullname(table)} WHERE {where}'
         return self.adapter.prepare_sql(sql, params, snapshot)
 
-    def update_selection(self, table, plan, values, snapshot):
+    def update_selection(self, table, plan, values, snapshot, *, ignore_partition=False):
         """UPDATE of the rows a query selects: ``WHERE pk IN (<its key SELECT>)``.
 
         ``plan`` is the query's SELECT reduced to the key columns, prepared by
         the query compiler; its filters, order and limit decide the rows.
         """
         data = self.prepare_record_data(table, values)
+        self._guard_partition(table, data, snapshot, ignore_partition=ignore_partition)
         quote = self.adapter.adaptSqlName
         assignments = []
         for key in list(data):
@@ -221,13 +286,15 @@ class WriteCompiler:
         if not assignments:
             raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
         where = self._selection_where(table, plan, data)
+        where = self._partition_where(table, where, data, snapshot, ignore_partition)
         sql = f'UPDATE {self.sql_fullname(table)} SET {",".join(assignments)} WHERE {where}'
         return self.adapter.prepare_sql(sql, data, snapshot)
 
-    def delete_selection(self, table, plan, snapshot):
+    def delete_selection(self, table, plan, snapshot, *, ignore_partition=False):
         """DELETE of the rows a query selects: ``WHERE pk IN (<its key SELECT>)``."""
         params = {}
         where = self._selection_where(table, plan, params)
+        where = self._partition_where(table, where, params, snapshot, ignore_partition)
         return self.adapter.prepare_sql(f'DELETE FROM {self.sql_fullname(table)} WHERE {where}', params, snapshot)
 
     def lock_table(self, table, snapshot, mode='ACCESS EXCLUSIVE', nowait=False):

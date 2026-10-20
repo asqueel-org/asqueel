@@ -66,7 +66,7 @@ except Exception:
 `update(record, old_record=None, pkey=None)` takes the key of the row to change
 from `old_record`, then from `pkey`, then from the record itself. To change a
 key, pass the old row as `old_record` and the new key in the record.
-`old_record` is never read from the database: read it yourself, with
+For ordinary tables, supply `old_record` yourself, with
 `for_update=True` when the row must stay locked until commit.
 
 Every physical column present in the record is written, `None` included. Pass
@@ -233,9 +233,8 @@ raises `ValueError`. On SQLite it takes the write reservation, as a
 
 ## Understand the write boundary
 
-- Partitions filter reads only. `insert` does not fill the partition column and
-  `update`/`delete` do not check the row's partition, as in GenroPy
-  ([#15](https://github.com/asqueel-org/asqueel/issues/15)).
+- Physical partitions constrain insert/update/delete, including SQL APIs;
+  `ignore_partition=True` is the explicit bypass. See [policy boundaries](limitations.md#policy-boundaries).
 - Draft and logical-deletion read filters do not restrict writes.
 - An SQL execution error rolls back the pending transaction of the selected
   connection. A Python error inside the cycle makes the connection
@@ -245,3 +244,10 @@ raises `ValueError`. On SQLite it takes the write reservation, as a
 
 Next: [transactions](transactions.md), [business hooks](hooks.md), and
 [troubleshooting](troubleshooting.md).
+
+
+Tables with hierarchies, protected/generated columns or active write partitions
+reread the persisted record with a lock before update validation and hooks.
+Hierarchical updates still require `old_record`. Standalone defaults, counters,
+relative indices and hierarchy maintenance run only through the ordinary cycle;
+see [standalone behaviors](hooks.md#standalone-table-behaviors).

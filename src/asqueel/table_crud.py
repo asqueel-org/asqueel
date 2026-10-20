@@ -52,7 +52,9 @@ class CrudMixin:
         A key string is reread with a lock; a missing one returns without error.
         """
         if isinstance(record, str):
-            record = self._reread(record)
+            with self.db._write_operation():
+                self._lock_behaviors()
+                record = self._reread(record)
             if record is None:
                 return
         self.db.delete(self, record, **kwargs)
@@ -191,6 +193,20 @@ class CrudMixin:
                 continue
             ofld = joiner['one_relation'].split('.')[2]
             related, mfld, rows = self._related_rows(joiner, record[ofld])
+            remaining = []
+            for row in rows:
+                parent = self.currentTrigger
+                scheduled = False
+                while parent:
+                    original = parent.old_record if parent.old_record is not None else parent.record
+                    if parent.event == 'delete' and parent.table == related.fullname and original:
+                        if all(original.get(name) == row.get(name) for name in related.pkeys):
+                            scheduled = True
+                            break
+                    parent = parent.parent
+                if not scheduled:
+                    remaining.append(row)
+            rows = remaining
             if not rows:
                 continue
             if action == 'raise':
@@ -199,12 +215,13 @@ class CrudMixin:
                                      reltable=related.fullname)
             if action == 'cascade':
                 for row in rows:
-                    related.delete(row)
+                    if related._reread(related._record_key(row)) is not None:
+                        related.delete(row, ignore_partition=True)
             elif action == 'setnull':
                 for row in rows:
                     old = dict(row)
                     row[mfld] = None
-                    related.update(row, old)
+                    related.update(row, old, ignore_partition=True)
 
     def archiveRelatedRecords(self, record, archive_ts):
         """Set ``archive_ts`` on the logical-deletion field of the cascade children that have one."""

@@ -40,9 +40,12 @@ For updates, override `trigger_onUpdating(record, old_record=None)` and/or
 `trigger_onUpdated(record, old_record=None)`. For physical deletion, override
 `trigger_onDeleting(record)` and/or `trigger_onDeleted(record)`.
 
-`old_record` is what the caller passed to `update()`; it is never read from the
-database. Read it yourself with `query(where=..., for_update=True).fetchRecord()` when
-the hooks need it and the row must stay locked until commit. `delete()` with a
+For an ordinary table, `old_record` is what the caller passed to `update()`.
+Tables with hierarchy, protected/generated columns or an active write partition
+reread the stored row with a lock before validation and hooks. Hierarchical
+updates still require the caller to supply `old_record`; the reread prevents a
+stale snapshot from bypassing cycle checks. For other tables, read it yourself
+with `query(where=..., for_update=True).fetchRecord()` when hooks need it. `delete()` with a
 key string, or with a record lacking physical columns, reads the row with a lock
 before the hooks.
 
@@ -57,7 +60,7 @@ method `trigger_<name>` of the table (or of `trigger_table`), called with the
 record and `fldname`; a callable is called with the record and the column name.
 
 Draft and logical-deletion read filters do not hide the row being written, and
-partitions are not applied to writes. Related SQL writes share the rollback;
+active physical partitions constrain writes before hooks. Related SQL writes share the rollback;
 external side effects, such as sending messages, cannot be undone by it.
 
 The full order of each cycle is in [writes](writes.md).
@@ -122,7 +125,40 @@ See [writes](writes.md) for selectors and returned values, and
 Table commands delegate to `db.insert(table, record)`, `db.update(table, record,
 old_record=None, pkey=None)` and `db.delete(table, record)`, which run the cycle
 with the table's hooks. There are no shared database-level hooks: no
-`onWriting`, `onWritten` or `_onDbChange`. Change log, totalizers, counters
-([#31](https://github.com/asqueel-org/asqueel/issues/31)) and package triggers
+`onWriting`, `onWritten` or `_onDbChange`. Change log, totalizers and package triggers
 are not executed; their mapping is tracked in
 [Adattamenti legacy](../adattamenti-legacy.md).
+
+
+## Standalone table behaviors
+
+`auto_counter` assigns MAX + 1 when its field is omitted or None. Its scope
+can contain one or several physical columns, including NULL values. Explicit
+positions are preserved. Deleted maximum positions may be reused.
+`relative_index` instead increments a persistent counter in the master's
+`_xtd` table: deletion does not rewind it, but transaction rollback does.
+The extension needs `main_id` and an `id` or `main_id` primary key.
+
+`hierarchical` maintains paths, root IDs and inherited fields through inserts,
+renames, moves and cascades. Custom parent/counter columns and `linked_to`
+master roots are supported. A moved node takes the last sibling position;
+the existing 1295-sibling bound remains. Keys cannot change or contain `/`.
+Before-hooks may normalize source fields: paths are recomputed before SQL.
+`depth` remains explicitly unsupported at model construction.
+
+Hierarchy and counter operations take a PostgreSQL `SHARE ROW EXCLUSIVE`
+table lock before reading rows; SQLite takes its write reservation. Locks last
+until commit/rollback. Use short transactions; callers own deadlock retries.
+Concurrency tests use PostgreSQL's default READ COMMITTED isolation.
+
+A column's `default` fills omitted values, leaving explicit None unchanged.
+`read_only` rejects caller assignments on insert (except a `sys_fields` ID)
+and changes on update. `unmodifiable` allows insert and rejects later changes.
+Database-generated columns are omitted from ordinary UPDATE assignments;
+changing their value or explicitly assigning them through SQL APIs raises.
+
+`sql_insert`, `sql_update` and `sql_delete` bypass Python defaults, column
+protections and hierarchy/counter maintenance. They still enforce active
+physical partitions unless `ignore_partition=True` is explicit. Structural
+cascades and descendant maintenance include rows hidden by read filters and
+partitions, so an entire tree remains consistent within the transaction.

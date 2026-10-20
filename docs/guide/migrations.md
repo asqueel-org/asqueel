@@ -362,3 +362,10 @@ also preserves the existing column, but an `I` declaration on a fresh database
 does not request a sequence. Changing to the 64-bit `serial` declaration is a
 separate explicit migration, tracked in
 [asqueel-migration #27](https://github.com/asqueel-org/asqueel-migration/issues/27).
+
+
+SQLite generated columns are introspected through `table_xinfo`, including
+in-memory databases. Changes to an existing generated expression are reported
+as skipped work, so the plan is not empty and `migrate()` refuses before DDL.
+Apply an explicit migration for these changes. PostgreSQL compares the actual
+catalog expression with the model through planner normalization.

@@ -26,7 +26,7 @@ step below on both databases.
 | Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `query(...).update()` / `.delete()` write the selected rows record by record; an update changing the logical-deletion field cascades to the children. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
 | Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
 | Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
-| Row policies | Partition, draft and logical-deletion filters on reads. | They do not apply to writes (see below). |
+| Row policies | Partition, draft and logical-deletion filters on reads; physical partition guards on writes. | Draft/logical-deletion exclusions remain read filters. |
 
 ## What the write cycle refuses
 
@@ -37,10 +37,8 @@ written through the cycle.
 
 | Declaration | Issue |
 |---|---|
-| option `auto_counter` (except on a hierarchical table) | [#31](https://github.com/asqueel-org/asqueel/issues/31) |
-| any other enabled table option | no issue yet |
-| column `default`, `default_from`, `x_generation` (except the `id` declared by `sys_fields`) | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
-| column `read_only` (except the `id` declared by `sys_fields`), `unmodifiable` | no issue yet |
+| enabled options other than `sys_fields`, `hierarchical`, `auto_counter`, `relative_index` | no issue yet |
+| column `default_from`, `x_generation` (except the `id` declared by `sys_fields`) | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
 | a column child other than its relation | no issue yet |
 | a table expanded from a legacy source (`x_expanded_legacy`) | no issue yet |
 
@@ -50,7 +48,6 @@ Other operations a project may expect and that are missing or fail:
 |---|---|---|
 | `recordToUpdate`: hooked update/delete of one record read with a lock | missing | [#17](https://github.com/asqueel-org/asqueel/issues/17) |
 | `batchUpdate` options (`_raw_update`, `autocommit`, `_wrapper`, `deferredTotalize`, `_onUpdatedCb`); `query(...).update()` covers the dict and callable updater | missing | [#32](https://github.com/asqueel-org/asqueel/issues/32) |
-| table partitions applied to insert, update and delete | not applied, as in GenroPy | [#15](https://github.com/asqueel-org/asqueel/issues/15) |
 | `newrecord` with defaults | missing | [#28](https://github.com/asqueel-org/asqueel/issues/28) |
 
 Known defects with an open issue: logical deletion ignores the deletion
@@ -68,12 +65,12 @@ a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-o
 
 - The commands modify the caller's record in place and return it. Values the
   database decides (`sql_value`, generated columns, omitted columns declaring
-  `sql_default`) are read back with RETURNING on PostgreSQL. SQLite has no RETURNING
-  in the write cycle. There is no `returning=` argument.
+  `sql_default`) are read back with RETURNING on PostgreSQL. SQLite 3.35+ also uses RETURNING. There is no `returning=` argument.
 - Keys of the mapping that are not physical columns (alias, formula, `@path`,
   unknown names) do not become SQL columns. They raise no error.
 - `update` takes the key from `old_record`, then `pkey`, then the record. It
-  writes every physical column present in the record, `None` included. It does
+  writes every writable physical column present in the record, `None` included;
+  generated columns in full snapshots are omitted. It does
   not check the number of updated rows.
 - `delete` accepts a key string or a record. It must remove exactly one row,
   otherwise `RecordNotFoundError`. A missing key string returns without error.
@@ -130,8 +127,15 @@ On reads, `partition_<field>='<path>'` filters as GenroPy: `current_<path>` in
 the environment gives `$<field> = :env_current_<path>`; otherwise
 `allowed_<path>` gives `$<field> IS NULL OR $<field> IN (...)`; otherwise no
 filter. Falsy values (`0`, `False`, an empty collection, None) filter nothing.
-Writes do not read them: `insert` does not fill the partition column
-and `update`/`delete` do not check the row's partition, as in GenroPy (#15).
+Writes use the same physical partition declaration. A non-None current value
+(including 0) fills an omitted insert field and constrains assignments and
+UPDATE/DELETE predicates. With only allowed values, insert requires an explicit
+field; NULL is allowed when the allowed list is nonempty. An explicit empty
+allowed list permits no writes. No current/allowed value means no write scope.
+SQL APIs enforce these guards too; `ignore_partition=True` bypasses them.
+Alias/relation partitions require an explicit write bypass. These guards
+prevent accidental cross-scope writes; the environment is application context,
+not a database authorization mechanism.
 
 Draft and logical-deletion exclusions apply to SELECT according to its options.
 `delete()` is a physical delete.

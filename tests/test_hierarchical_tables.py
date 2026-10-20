@@ -176,7 +176,7 @@ def test_virtual_roots_copy_the_flag_from_the_parent(implementation, tmp_path):
         assert row(table, child['id'], '$_virtual_node')['_virtual_node'] is True
 
 
-@pytest.mark.parametrize('option,value', [('linked_to', 'app.master'), ('depth', 3)])
+@pytest.mark.parametrize('option,value', [('depth', 3)])
 def test_deferred_hierarchical_options_raise_when_the_model_is_built(tmp_path, option, value):
     def declare(package):
         master = package.table('master', name_long='Master')
@@ -188,7 +188,7 @@ def test_deferred_hierarchical_options_raise_when_the_model_is_built(tmp_path, o
             pass
 
 
-def test_auto_counter_without_hierarchy_still_refuses_the_write(tmp_path):
+def test_auto_counter_without_hierarchy_allocates_positions(tmp_path):
     def declare(package):
         table = package.table('ranked', name_long='Ranked')
         table.options().sys_fields()
@@ -196,5 +196,4 @@ def test_auto_counter_without_hierarchy_still_refuses_the_write(tmp_path):
         table.column('title')
 
     with migrated_db('sqlite', tmp_path, declare) as db:
-        with pytest.raises(UnsupportedFeatureError, match='option auto_counter'):
-            db.table('app.ranked').insert({'title': 'x'})
+        assert db.table('app.ranked').insert({'title': 'x'})['_row_count'] == 1

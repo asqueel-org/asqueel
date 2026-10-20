@@ -117,7 +117,6 @@ def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
     scenario()
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#15: partition autofill and guard on write')
 def test_writes_fill_and_guard_the_partition(policy_database):
     dsn, model = policy_database
     env = SqlEnvironment()
