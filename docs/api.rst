@@ -15,7 +15,7 @@ Application configuration and objects
    :members: AsqueelDb, SqlDatabase
 
 .. automodule:: asqueel.application_table
-   :members: SqlTable, SqlQuery, SqlRecord, RecordNotFoundError, RecordMultipleRowsError
+   :members: SqlTable, SqlQuery, RecordNotFoundError, RecordMultipleRowsError
 
 Compiler
 --------
@@ -42,7 +42,7 @@ Model and query contracts
    :members: resolve_model
 
 .. automodule:: asqueel.contracts
-   :members: Column, Relation, Table, ResolvedModel, RowPolicies, CompiledQuery, ResultColumn, EnvironmentMismatchError
+   :members: Column, Relation, Table, ResolvedModel, RowPolicies, CompiledQuery, ResultColumn
 
 Database inspection
 -------------------

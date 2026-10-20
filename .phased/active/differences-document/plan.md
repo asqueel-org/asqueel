@@ -11,7 +11,8 @@ Must not break: no later macro consumes this output — Macro 8 is the last of t
 Describe asqueel against GenroPy legacy in the form the user agreed (decisioni.md, «Formato del documento», 2026-10-17): blocks Model / Query / Read-Write / Adapters, each split into Missing (labelled temporary / removed / replaced), Different, New, Same; "To implement" as a branch of its own; one card per item with the GenroPy side above and the asqueel side below. The source is the inventory, re-verified on the code as it stands after Macros 1-7. From it, an English Sphinx chapter for external users and a new Italian review page for the team.
 
 ## Work Plan
-- [ ] **Phase 1**: inventory re-verified and reclassified in the agreed form  `vast`
+- [>] **Phase 1**: inventory re-verified and reclassified in the agreed form  `vast`
+  > In execution since 2026-10-20T09:29:43+02:00
   > Batches: 1 areas 1-4 | 2 areas 5-8, Righe tolte, Riepilogo, Fonti, docs/api.rst
   - Pattern reference: `.phased/done/legacy-inventory/plan.md` Phases 1-2 (how the inventory was built: legacy read with `git -C ~/Sviluppo/Genropy/genropy show 95da66ee:<path>`, one row per feature a project calls or declares, file:line citations); the current rows of `docs/design/112-legacy-inventory.md`
   - Files: `docs/design/112-legacy-inventory.md`, `docs/api.rst`
