@@ -13,7 +13,7 @@ class Recipe(SqlDatabaseConfig):
 
 class Overlay(SqlDatabaseConfig):
     def main(self, root):
-        root.db('demo', conninfo='dbname=overlay')
+        root.db('demo', implementation='postgres', conninfo='dbname=overlay')
 
 
 def test_layering_owns_instances_and_preserves_parent_tree():
@@ -27,11 +27,11 @@ def test_layering_owns_instances_and_preserves_parent_tree():
     assert second.config('conninfo') == ''
     assert parent.source.get_item('db?conninfo') is None
     assert overlay.source.get_node('db.schemas') is None
-    assert first.model.table('customer').pkey == ('id',)
+    assert first.model.table('sales.customer').pkey == 'id'
     assert first.model is not second.model
-    assert first.table('customer') is not second.table('customer')
-    first.close()
-    second.close()
+    assert first.table('sales.customer') is not second.table('sales.customer')
+    first.closeConnection()
+    second.closeConnection()
 
 
 def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
@@ -42,12 +42,12 @@ def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
     recipe = Recipe()
     recipe.create()
     database = recipe.render()
-    assert database.config('implementation') == 'postgresql'
+    assert database.config('implementation') == 'sqlite'
     assert database.config('conninfo') == ''
-    assert database.table('customer') is database.table('sales.customer')
+    assert database.table('sales.customer').model is database.model.table('sales.customer')
     with pytest.raises(TypeError, match='object'):
         recipe.render(target=False)
-    database.close()
+    database.closeConnection()
 
 
 def test_scoped_configuration_defaults_and_missing_values():
@@ -58,7 +58,7 @@ def test_scoped_configuration_defaults_and_missing_values():
     assert view('missing', default=False) is False
     with pytest.raises(KeyError):
         view('missing')
-    database.close()
+    database.closeConnection()
 
 
 class MountedColumns(TableElements, ColumnElements):
@@ -101,8 +101,8 @@ def test_mounted_grammar_validation_and_signature_default():
     assert view('label.ui_hint') == 'mounted default'
     assert database.config.builder.source.get_item(
         'db.schemas.sales.tables.customer.columns.label?dtype') is None
-    assert database.model.table('customer').columns['label'].dtype == 'I'
-    database.close()
+    assert database.model.table('sales.customer').columns['label'].dtype == 'I'
+    database.closeConnection()
 
 
 def test_repeated_render_does_not_copy_live_products_or_reuse_context():
@@ -112,10 +112,10 @@ def test_repeated_render_does_not_copy_live_products_or_reuse_context():
     second = recipe.render()
     third = build_database(recipe)
     assert first is not second and second is not third
-    assert first.table('customer') is not second.table('customer')
-    assert recipe.materialized['objects'] == [second]
+    assert first.table('sales.customer') is not second.table('sales.customer')
+    assert recipe.materialized['objects'][0].tag == 'db'
     for database in (first, second, third):
-        database.close()
+        database.closeConnection()
 
 
 def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits():
@@ -130,27 +130,29 @@ def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits(
             columns.column('id', dtype='I')
             columns.column('target_id', dtype='I').relation('app.target.id', x_name='target')
             source.virtual_columns().aliasColumn(
-                'label', relation_path='@target.label', name_long='Local')
+                'label', relation_path='@target_id.label', name_long='Local')
 
-    with build_database(LogicalRecipe) as db:
-        alias = db.table('source').column('label')
-        target = db.table('target').column('label')
+    db = build_database(LogicalRecipe)
+    try:
+        alias = db.table('app.source').column('label')
+        target = db.table('app.target').column('label')
         assert alias.originalColumn is target
-        assert alias.relation_path == '@target.label'
-        assert alias.config('dtype') == 'A'
-        assert alias.config('size') == '30'
-        assert alias.config('name_long') == 'Local'
-        assert alias.config('missing', default=False) is False
-        assert alias.config.scope('missing')('value', default=0) == 0
-        assert alias.model.dtype == 'A'
-        assert 'LEFT JOIN' in db.table('source').query(columns='$label').sqltext
+        assert alias.relation_path == '@target_id.label'
+        assert alias.attributes['dtype'] == 'A'
+        assert alias.attributes['size'] == '30'
+        assert alias.attributes['name_long'] == 'Local'
+        assert alias.attributes.get('missing', False) is False
+        assert alias.dtype == 'A'
+        assert 'LEFT JOIN' in db.table('app.source').query(columns='$label').sqltext
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.parametrize(('root_impl', 'connection_impl', 'expected'), [
     ('sqlite', None, 'sqlite'),
-    ('postgresql', None, 'postgresql'),
-    ('postgresql', 'sqlite', 'sqlite'),
-    ('sqlite', 'postgresql', 'postgresql'),
+    ('postgres', None, 'postgres'),
+    ('postgres', 'sqlite', 'sqlite'),
+    ('sqlite', 'postgres', 'postgres'),
 ])
 def test_connection_implementation_inherits_root_unless_explicit(root_impl, connection_impl, expected):
     from asqueel.configuration import connection_settings
@@ -165,8 +167,8 @@ def test_connection_implementation_inherits_root_unless_explicit(root_impl, conn
     db = build_database(Config)
     try:
         implementation, conninfo, options = connection_settings(db.config)
-        assert implementation == db.driver.dialect == expected
+        assert implementation == db.adapter.dialect == expected
         assert conninfo == ''
         assert options == {'dbname': 'app.db'}
     finally:
-        db.close()
+        db.closeConnection()

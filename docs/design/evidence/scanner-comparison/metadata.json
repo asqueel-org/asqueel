@@ -1,0 +1,14 @@
+{
+  "drivers": {
+    "sqlite": "3.50.4",
+    "psycopg2": "2.9.13 (dt dec pq3 ext lo64)",
+    "psycopg": "3.3.6"
+  },
+  "python": "3.12.12 (main, Oct 28 2025, 11:52:25) [Clang 20.1.4 ]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "legacy_class": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsql/db.py",
+  "current_class": "/Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/application.py",
+  "postgres_executed": true,
+  "code_unchanged": true,
+  "benchmark_scope": "Fresh query -> driver-ready SQL/kwargs, model construction and SQL execution excluded; same Python process, alternating order, 10 warmups, GC off only while timed. Not scanner-only or query reuse timing."
+}

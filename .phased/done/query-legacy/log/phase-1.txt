@@ -1,0 +1,5 @@
+⚠ La Fase 1 si è chiusa con errori: un contract test non può passare così com'è scritto. Commit `400bb61`, fase marcata `[!]` con le note Issue, Attempted e Files.
+
+- **Test bloccante:** `tests/test_query_terminals.py:84` attende `list(fetchGrouped(key='grp', ordered=True)) == ['x', 'y']`. Il legacy (`gnrsqldata/query.py:379`) riempie un `OrderedDict` nell'ordine del fetch. Le righe arrivano ordinate per `$code`, quindi le chiavi sono `['y', 'x']`. Le due correzioni possibili sono scritte nella nota Issue: cambiare l'assert del test, oppure decidere che `ordered=True` ordina le chiavi (non è il comportamento legacy).
+- **Già fatto:** gli altri 28 contract test passano su SQLite e PostgreSQL; ruff e mypy sono puliti. Sono pronti i terminali, `fetchRecord`, i cursori nel runtime e negli adapter, il rifiuto di `record()` e la rilettura della delete.
+- **Ancora da fare (in attesa della decisione sul test):** riallineamento di test e `docs/guide` che usano `record()`/`SqlRecord`, e la run completa della suite. La suite completa non è stata rieseguita dopo le modifiche: il baseline prima delle modifiche era verde.

@@ -1,0 +1,13 @@
+⚠ Phase 2 ha un problema: **plan-defect claim**. Il contract test `test_cnd_relation_projects_no_foreign_key` non può passare così com'è scritto.
+
+- **Contraddizione:** il test chiama `migration_plan()` su SQLite `:memory:`. `src/asqueel/migration.py:346-348` rifiuta questo caso apposta. `tests/sqlite/test_migration_api.py:88-94` fissa quel rifiuto, e il vincolo `Must not break:` del piano protegge quella suite.
+- **Comportamento verificato:** la logica `cnd` funziona. Con lo stesso modello su un file SQLite non c'è FOREIGN KEY se la relazione ha `cnd`, e c'è senza `cnd`. Nel piano ho scritto la modifica proposta al test: `tmp_path` e un database su file.
+- **Stato dei controlli:**
+  - suite completa: 4967 passed, 42 skipped, 31 xfailed, 1 failed (solo questo test);
+  - contract test della fase: 8 passed su 9;
+  - test della Phase 1: verdi;
+  - ruff e mypy puliti;
+  - `grep x_auto_name` vuoto;
+  - `docs/grammar.md` rigenerato.
+- **Commit:** `1c25a73` (`wf(phase 2): FAILED — …`). Il codice resta al suo posto. In `notes.md` ho registrato le scelte non coperte dal piano.
+- **Scelta fuori dal piano:** al posto di `x_auto_name` c'è una regola nuova. Un indice con il nome di default legacy `<table>_<cols>_key` riceve il nome SQL hashed generato dal migrator. Il migrator legacy si comporta così: non passa mai `index_name`. Un nome esplicito resta il nome SQL. Così l'oracolo di migrazione legacy resta identico.

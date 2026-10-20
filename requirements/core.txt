@@ -2,6 +2,8 @@
 #    uv pip compile requirements/core.in --universal --python-version 3.11 --output-file requirements/core.txt
 anyio==4.15.1
     # via httpx
+asqueel-migration==0.3.1
+    # via -r requirements/core.in
 ast-serialize==0.11.2
     # via mypy
 attrs==26.1.0
@@ -24,20 +26,18 @@ dictdiffer==0.10.0
     # via asqueel-migration
 editables==0.6
     # via -r requirements/core.in
-genro-bag==0.27.0
+genro-bag==0.28.0
     # via
     #   -r requirements/core.in
     #   genro-builders
-genro-builders==0.27.0
+genro-builders==0.29.0
     # via -r requirements/core.in
-asqueel-migration==0.2.0
-    # via -r requirements/core.in
-genro-toolbox==0.14.0
+genro-toolbox==0.18.0
     # via
     #   -r requirements/core.in
     #   genro-bag
     #   genro-builders
-genro-tytx==0.16.0
+genro-tytx==0.16.3
     # via
     #   -r requirements/core.in
     #   genro-bag

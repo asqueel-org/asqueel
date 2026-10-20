@@ -1,0 +1,280 @@
+{
+  "legacy": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1185,
+        "ast_sha256": "d55b8a3527b9764166ac6e87040705c0702c4a604a4a92e6a731e9400009c01f"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 273,
+        "ast_sha256": "2cb9857d4348e9c5bf3ad124522a6a27184b315f53761a47e627370b14cd82ae"
+      }
+    ],
+    "test_count": 7,
+    "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "results": [
+      {
+        "test": "test_rows_json_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_notes_xml_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "test_notes_xml_distinct_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_rows_json_distinct_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_cross_validate_pg",
+        "status": "passed"
+      }
+    ]
+  },
+  "v2": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1140,
+        "ast_sha256": "ae4f3938d84261f0740393fe361b313b7cb5db70ac00f25b060c2ca2e724a818"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 1093,
+        "ast_sha256": "5a5421b05fe2d2f6d65c32340a8cfeee25296ee7c49c8784304184002c66451c"
+      }
+    ],
+    "test_count": 0,
+    "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+    "replay": "No identical test bodies in this snapshot; algorithm comparison only."
+  },
+  "v3": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1140,
+        "ast_sha256": "ae4f3938d84261f0740393fe361b313b7cb5db70ac00f25b060c2ca2e724a818"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 389,
+        "ast_sha256": "5d8f9906f19c5e79e759c445059e6f4301dc81daac362cb67929ff74cadcca8b"
+      }
+    ],
+    "test_count": 0,
+    "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "replay": "No identical test bodies in this snapshot; algorithm comparison only."
+  },
+  "v3_merged": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1141,
+        "ast_sha256": "ae4f3938d84261f0740393fe361b313b7cb5db70ac00f25b060c2ca2e724a818"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 389,
+        "ast_sha256": "5d8f9906f19c5e79e759c445059e6f4301dc81daac362cb67929ff74cadcca8b"
+      }
+    ],
+    "test_count": 5,
+    "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "results": [
+      {
+        "test": "test_rows_json_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_notes_xml_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_cross_validate_pg",
+        "status": "passed"
+      }
+    ]
+  },
+  "v4": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1141,
+        "ast_sha256": "ae4f3938d84261f0740393fe361b313b7cb5db70ac00f25b060c2ca2e724a818"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 390,
+        "ast_sha256": "5d8f9906f19c5e79e759c445059e6f4301dc81daac362cb67929ff74cadcca8b"
+      }
+    ],
+    "test_count": 5,
+    "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "results": [
+      {
+        "test": "test_rows_json_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_notes_xml_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_cross_validate_pg",
+        "status": "passed"
+      }
+    ]
+  },
+  "simplify": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1141,
+        "ast_sha256": "ae4f3938d84261f0740393fe361b313b7cb5db70ac00f25b060c2ca2e724a818"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 272,
+        "ast_sha256": "9d75d42c8b6957747ff7cb2f6000421170ab01e2c860007684932fb6c3c4ea17"
+      }
+    ],
+    "test_count": 5,
+    "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "results": [
+      {
+        "test": "test_rows_json_pg",
+        "status": "failed",
+        "message": "psycopg2.errors.UndefinedColumn: column t0.rows_json does not exist\nLINE 3: \"t0\".\"rows_json\" AS \"rows_json\",\n        ^"
+      },
+      {
+        "test": "test_notes_xml_pg",
+        "status": "failed",
+        "message": "psycopg2.errors.UndefinedColumn: column t0.notes_xml does not exist\nLINE 3: \"t0\".\"notes_xml\" AS \"notes_xml\",\n        ^"
+      },
+      {
+        "test": "test_max_row_price_pg",
+        "status": "failed",
+        "message": "psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist\nLINE 3: \"t0\".\"max_row_price\" AS \"max_row_price\",\n        ^"
+      },
+      {
+        "test": "test_max_row_price_sqlite",
+        "status": "failed",
+        "message": "sqlite3.OperationalError: no such column: t0.max_row_price"
+      },
+      {
+        "test": "test_max_row_price_cross_validate_pg",
+        "status": "failed",
+        "message": "psycopg2.errors.UndefinedColumn: column t0.max_row_price does not exist\nLINE 3: \"t0\".\"max_row_price\" AS \"max_row_price\",\n        ^"
+      }
+    ]
+  },
+  "next": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "subQueryColumn",
+        "line": 1198,
+        "ast_sha256": "d55b8a3527b9764166ac6e87040705c0702c4a604a4a92e6a731e9400009c01f"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 273,
+        "ast_sha256": "2cb9857d4348e9c5bf3ad124522a6a27184b315f53761a47e627370b14cd82ae"
+      }
+    ],
+    "test_count": 7,
+    "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+    "results": [
+      {
+        "test": "test_rows_json_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_notes_xml_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "test_notes_xml_distinct_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_rows_json_distinct_pg",
+        "status": "passed"
+      },
+      {
+        "test": "test_max_row_price_cross_validate_pg",
+        "status": "passed"
+      }
+    ]
+  },
+  "compound": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel.py",
+        "name": "subQueryColumn",
+        "line": 758,
+        "ast_sha256": "c3d7e9bbde0d29df25dd959ddfcb29b3c237cc8905dab97782db27d192aa8ea0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "getFieldAlias",
+        "line": 326,
+        "ast_sha256": "7b2f93086a9d6cb8d476ffb0e78224d442e6d8032e16310e40854425a5700315"
+      }
+    ],
+    "test_count": 0,
+    "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "replay": "No identical test bodies in this snapshot; algorithm comparison only."
+  }
+}

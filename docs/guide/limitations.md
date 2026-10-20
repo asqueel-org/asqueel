@@ -1,86 +1,144 @@
 # Current status
 
-The rest of this manual describes the delivery model, including designed
-capabilities. This chapter is the single implementation-status reference for
-the checkout: it separates working behavior, planned contracts and open decisions.
-Do not infer that every documented contract executes in the installed revision.
+This page is the single implementation-status reference. It states what a new
+project can do with this version of asqueel and what it refuses, with the open
+issue for each limit. The rest of the manual describes the delivery model; when
+another page and this one disagree, this page describes the installed code.
 
-Asqueel currently provides a native PostgreSQL and SQLite execution path for new
-applications. It is not a drop-in replacement for the complete Genropy legacy
-runtime. This page describes behavior you can rely on when choosing APIs.
-
-| Area | Available now | Boundary to account for |
-|---|---|---|
-| Data backend | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and BEGIN IMMEDIATE; PostgreSQL-specific SQL is not translated. |
-| Runtime | Synchronous execution, implicit transaction start and explicit completion. | No async API, worker pool, general-purpose connection pool or automatic retries; named connections are retained until closed. |
-| Ownership | Independent named connections per thread, one active transaction per name. | Share the DB graph; each worker closes its own connections. No nested transactions or savepoints; no async task isolation. |
-| Results | Materialized dictionary rows, row count and column metadata. | No streaming or lazy cursor; large results occupy application memory. |
-| Querying | SELECT, parameters, projections, aliases, filters, ordering, limit/offset and supported to-one relation paths. | No DISTINCT ON, tuple-of-columns IN, `*` grouping or Python-side deduplication; not a universal SQL parser. |
-| Formulas | SQL expressions, scalar select/exists dictionaries and named correlated subqueries. | Python providers, method callbacks, formula variants, subquery collections and advanced macros are outside the native profile. Partition filtering remains explicit inside subqueries. |
-| Alias columns | Declared aliases inherit target metadata, allow local overrides, and resolve through supported to-one paths, including alias/formula targets. | Read-only; no to-many/virtualRelation. Default RETURNING excludes aliases; explicit relational aliases cannot be returned by DML. |
-| Writes | INSERT/UPDATE/DELETE, RETURNING, rollback, explicit soft-delete and restore; before/after table hooks, database write hooks, and raw commands that retain change tracking. | Ordinary updates/deletes require exactly one row and a declared primary key. Raw predicates may match multiple rows; raw insertion also accepts a list. No record-cluster writes, automatic retry or implicit save of related records. |
-| Environment | Nested scopes, detached snapshots and guarded contextual queries. | Not a permissions system; direct SQL does not acquire model policy predicates automatically. |
-| Row policies | Declared partition scopes, draft and logical-deletion handling. | Tenant/store routing and legacy subtable behavior are not provided. Read policies are not complete write authorization. |
-| Model/UI | Native declarations, resolved naming and linked column metadata. | No UI renderer/editor; UI visibility and read-only metadata do not enforce database permissions. |
-| Import | PostgreSQL inspection with an explicit schema list and warnings. | No legacy application/package importer. Unsupported or application-only semantics must be reviewed separately. |
-| Native objects | Ordinary supported table structures can be projected for migration tooling. | View/function/trigger lifecycle and physical partition management are not supported as a complete native-object workflow. |
-
+Asqueel is not a drop-in replacement for the complete GenroPy legacy runtime.
 For porting guidance, see [legacy compatibility](legacy.md) and
-[legacy adaptations](../adattamenti-legacy.md). SQLite boundaries are in the [SQLite guide](sqlite.md). For errors and
-unexpected results, see [troubleshooting](troubleshooting.md).
+[legacy adaptations](../adattamenti-legacy.md).
+
+## What a new project can do
+
+The light version reads, inserts, updates and deletes records, with formulas and
+aggregations, on PostgreSQL and SQLite. The [tutorial](tutorial.md) runs every
+step below on both databases.
+
+| Area | Available | Boundary |
+|---|---|---|
+| Backends | PostgreSQL through psycopg 3; SQLite through sqlite3. | SQLite uses attached schema files and deferred transactions; `for_update=True` and `table.lock()` take the database write lock; `for_update='NOWAIT'`/`'SKIP LOCKED'` are refused. PostgreSQL-specific SQL is not translated. |
+| Tables | `db.migrate()` creates and alters the declared tables; it needs `asqueel[migration]`. | Without the extra, create tables with your own DDL, as in the [quickstart](quickstart.md). |
+| Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; the legacy fetch terminals (`fetchRecord()` for exactly one row, `fetchPkeys`, `fetchAsDict`, `fetchAsJson`, `fetchAsBag`, `fetchGrouped`, `cursor`, `servercursor`, `iterfetch`, `serverfetch`); `for_update=True` for a locked read. | Rows are Toolbox `NamedList` rows; `fetch()` materializes them, `iterfetch()` reads them in chunks. |
+| Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `relation_name` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |
+| Formulas | SQL formula columns, table formula methods, `formulaColumn_<x>()` dynamic columns, `select`/`exists` dictionaries, named `select_*`/`exists_*` subqueries, compositeColumn read as a value, `subQueryColumn` with `aggr=`, `#ENV` in `sql_formula`, `#BAG`/`#BAGCOLS` in the query columns. | Formulas are read-only. JSON/XML `subQueryColumn` modes and `aggr(to_xml(...))` need PostgreSQL; `aggr(to_json(...))` runs on both. |
+| Alias columns | `aliasColumn` through to-one paths, with inherited metadata and `originalColumn`. | Read-only: an alias key in a write mapping is skipped. |
+| Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `query(...).update()` / `.delete()` write the selected rows record by record; an update changing the logical-deletion field cascades to the children. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
+| Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
+| Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
+| Row policies | Partition, draft and logical-deletion filters on reads. | They do not apply to writes (see below). |
+
+## What the write cycle refuses
+
+`insert`, `update` and `delete` raise `UnsupportedFeatureError` before any
+trigger or SQL when the table declares something the cycle does not execute yet.
+The check is `require_write_capabilities`; a table with any of these cannot be
+written through the cycle.
+
+| Declaration | Issue |
+|---|---|
+| option `auto_counter` (except on a hierarchical table) | [#31](https://github.com/asqueel-org/asqueel/issues/31) |
+| any other enabled table option | no issue yet |
+| column `default`, `default_from`, `x_generation` (except the `id` declared by `sys_fields`) | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
+| column `read_only` (except the `id` declared by `sys_fields`), `unmodifiable` | no issue yet |
+| a column child other than its relation | no issue yet |
+| a table expanded from a legacy source (`x_expanded_legacy`) | no issue yet |
+
+Other operations a project may expect and that are missing or fail:
+
+| Operation | Status | Issue |
+|---|---|---|
+| `recordToUpdate`: hooked update/delete of one record read with a lock | missing | [#17](https://github.com/asqueel-org/asqueel/issues/17) |
+| `batchUpdate` options (`_raw_update`, `autocommit`, `_wrapper`, `deferredTotalize`, `_onUpdatedCb`); `query(...).update()` covers the dict and callable updater | missing | [#32](https://github.com/asqueel-org/asqueel/issues/32) |
+| table partitions applied to insert, update and delete | not applied, as in GenroPy | [#15](https://github.com/asqueel-org/asqueel/issues/15) |
+| `newrecord` with defaults | missing | [#28](https://github.com/asqueel-org/asqueel/issues/28) |
+
+Known defects with an open issue: logical deletion ignores the deletion
+timestamp in read filters ([#16](https://github.com/asqueel-org/asqueel/issues/16));
+the hierarchical model has no JSON round trip ([#18](https://github.com/asqueel-org/asqueel/issues/18));
+a `%` in a physical name is not escaped for psycopg ([#19](https://github.com/asqueel-org/asqueel/issues/19));
+quoted logical names `$"..."` are not supported ([#20](https://github.com/asqueel-org/asqueel/issues/20));
+the write compiler does not check the adapter capabilities ([#21](https://github.com/asqueel-org/asqueel/issues/21));
+`inspect_postgres` returns a removed model type ([#22](https://github.com/asqueel-org/asqueel/issues/22));
+`pkey='a,b'` is accepted on schema-level tables, the form the database reader produces; package tables raise ([#23](https://github.com/asqueel-org/asqueel/issues/23));
+a record key named `__pkey__N` is overwritten without error ([#24](https://github.com/asqueel-org/asqueel/issues/24));
+a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-org/asqueel/issues/25)).
+
+## Write cycle boundaries
+
+- The commands modify the caller's record in place and return it. Values the
+  database decides (`sql_value`, generated columns, omitted columns declaring
+  `sql_default`) are read back with RETURNING on PostgreSQL. SQLite has no RETURNING
+  in the write cycle. There is no `returning=` argument.
+- Keys of the mapping that are not physical columns (alias, formula, `@path`,
+  unknown names) do not become SQL columns. They raise no error.
+- `update` takes the key from `old_record`, then `pkey`, then the record. It
+  writes every physical column present in the record, `None` included. It does
+  not check the number of updated rows.
+- `delete` accepts a key string or a record. It must remove exactly one row,
+  otherwise `RecordNotFoundError`. A missing key string returns without error.
+- A composite key is passed as its serialized string; tuples and mappings raise.
+- `delete` is always a physical DELETE. There is no soft-delete or restore
+  command: write the logical-deletion column with `update`, which cascades to
+  the children as legacy.
+- `sql_insert` accepts one record or a list and assigns the missing keys; a
+  list runs one `executemany` per group of records with the same columns,
+  without RETURNING.
+- A Python error inside the cycle makes the connection rollback-only: call
+  `db.rollback()` before reusing it.
 
 ## Query and result boundaries
 
-Version 0.6.0 completes native package source → live objects → migration JSON,
-including structural option expansion and relation resolution. This path is
-verified on all 74 included `test_invoice_pg` models and by applying the schema
-on a temporary PostgreSQL database. Package formulas, virtual relations and
-behavioral options are retained as declarations; their presence in the model
-does not certify compilation or execution. The query/write capabilities listed
-above refer to the existing supported compiler/runtime profile. System records,
-locked records and optional diagnostics remain deferred.
+`query.execute()`, `fetch()` and `count()` run on the owning database
+connection and return Toolbox `NamedList` rows. The count terminal follows the
+legacy rules, including retained LIMIT/OFFSET. See {download}`the hierarchical
+terminal report <../design/92-hierarchical-fetch-count.md>`.
 
-The compiler resolves supported Asqueel field references and preserves authored
-SQL expressions. SQL fragments are trusted application code; bind external
-values through parameters. Successful rendering does not validate every SQL
-expression against the server.
+The compiler resolves asqueel field references and preserves authored
+SQL expressions. SQL fragments are trusted application code. External data
+belongs in parameters, but the compiler preserves legacy symbolic WHERE values:
+recognized `$column` and `@relation.column` strings can become model references
+rather than literal bindings. Validate external input and use the legacy escape
+when such strings must remain literal; see
+[symbolic parameters](queries.md#symbolic-parameters-and-external-values).
+Successful rendering does not validate every SQL expression against the server.
 
-Relation paths in the native profile require a uniquely identified target.
-To-many navigation and automatic collection shaping are not implemented.
-`aggregateRows` has been removed: there is no fallback that deduplicates or
-reassembles exploded joins in Python. Choose an explicit SQL result shape.
+A to-many path in a projection returns one SQL row per related row. To obtain
+one value per parent row, use `@relation.aggr(...)` (see [queries](queries.md)).
+`aggregateRows` has been removed: there is no Python-side deduplication of
+exploded joins.
 
 Computed projection expressions need explicit aliases. Returned names must be
-unique. Result metadata supplied to a direct `CompiledQuery` must match the
-actual returned names, order and number of columns.
+unique. Pagination uses limit/offset; there is no keyset-pagination helper and
+no result cache: every fetch terminal executes again. The query object keeps
+its first compilation, so its SQL text (an inlined `#ENV` value included) stays
+the one of that compilation, while `:env_*` parameters are read at every
+execution.
 
-Pagination uses limit/offset; there is no keyset-pagination helper. Streaming,
-COPY/executemany optimizations and query compilation/result caching are not provided by the
-runtime. Application records cache their exactly-one-row snapshot until explicit
-`refresh()`; ordinary query fetches always execute again. Record reads reject
-custom projections, limit and offset so they cannot mask multiple matches.
+The `formulaColumn_<x>()` methods of a table run once and their columns are
+kept in `currentEnv`, as legacy: they are evaluated again only after
+`clearCurrentEnv()`. GenroPy clears the environment at the start of every page
+request; this release has no request boundary of its own, so an application
+that wants fresh dynamic columns clears the environment itself. A `session(db)`
+boundary for work outside a request is planned with the environment and
+connection work of the next step.
 
 ## Policy boundaries
 
 Partition scopes are logical predicates, not PostgreSQL storage partitions.
-The current scope and allowed values are both enforced when present; an empty
-allowed collection matches no rows. Missing required scope context is an error.
-`None`, a false-valued scalar and an absent key are distinct values.
+On reads, `partition_<field>='<path>'` filters as GenroPy: `current_<path>` in
+the environment gives `$<field> = :env_current_<path>`; otherwise
+`allowed_<path>` gives `$<field> IS NULL OR $<field> IN (...)`; otherwise no
+filter. Falsy values (`0`, `False`, an empty collection, None) filter nothing.
+Writes do not read them: `insert` does not fill the partition column
+and `update`/`delete` do not check the row's partition, as in GenroPy (#15).
 
 Draft and logical-deletion exclusions apply to SELECT according to its options.
-`delete()` remains a physical delete. Use `soft_delete()` to write an explicit
-non-null tombstone and `restore()` to clear it. Do not infer write permissions
-from an earlier filtered SELECT.
-
-Logical-deletion `mark` mode adds `_isdeleted` using the actual tombstone field;
-it is not automatically a boolean. It requires physical-column projections and
-rejects opaque expressions/formulas. Relational policy fields have additional
-restrictions in writes; use physical policy fields for supported native DML.
+`delete()` is a physical delete.
 
 A query's environment guard prevents accidental reuse under changed relevant
 context. It is not a substitute for database roles, constraints or application
-authorization. Explicit bypass options must be used deliberately by the
-application; the compiler does not decide who may use them.
+authorization.
 
 ## Transaction and value boundaries
 
@@ -88,9 +146,10 @@ application; the compiler does not decide who may use them.
 implementation. Table operations and `db.execute()` use the current thread's
 selected named connection until explicit commit or rollback. Connections open
 lazily and are retained for reuse. `execute()` never commits automatically;
-there is no public transaction object or connection context manager.
-Closing the DB rolls back pending work and releases the current thread's
-connections. Each worker must close its own connections.
+there is no public transaction object. `db.closeConnection()` rolls back
+pending work and closes the current thread's connections; the database stays
+usable. `session(db)` is the unit of work outside a request and calls
+`closeConnection()` at exit. Each worker must close its own connections.
 
 An SQL execution error automatically rolls back the selected named connection.
 A Python error in the write lifecycle marks the affected connection rollback-only:
@@ -126,9 +185,39 @@ not the original source-file decomposition.
 
 Native features outside the declared profile generally raise
 `UnsupportedFeatureError`; malformed arguments and mismatched adapters can raise
-`ValueError` or `TypeError`. Driver errors propagate unchanged. Environment reuse
-mismatches raise `EnvironmentMismatchError`, while closed or incorrectly used
-runtime objects raise `DatabaseClosedError` or `TransactionStateError`.
+`ValueError` or `TypeError`. Driver errors propagate unchanged. Incorrectly used
+runtime objects raise `TransactionStateError`.
+
+The model grammar is closed. An attribute an element does not declare raises
+when it is written, naming the attribute and the element, for example
+`Element 'table' does not accept 'multi_tenant'`; free `x_*` keys and legacy UI
+attributes (`group_*`, `cell_*`, `template_*`, ...) are refused the
+same way. The column attribute `encrypted` raises `UnsupportedFeatureError`
+naming it. The partition filter of `partition_<field>` does not port the GenroPy
+fallback on an `__allowed_partition` column. The legacy loader `from_expanded_legacy_xml` raises on the first legacy
+attribute it does not map. `subtable()` and `options().tenant()` are not part of
+the grammar. A table class defining a package trigger (`trigger_onInserted_<pkg>`)
+raises `UnsupportedFeatureError` when the model is built; the environment keys `sql_comment`, `sql_details` and
+`env_<table>_condition_*` raise it at execution.
+
+These legacy features are absent from this release and raise
+`UnsupportedFeatureError` with the message `<feature> is not available in this
+release`, prefixed with the table or column path where one exists:
+
+- table attributes `variant`, `mixin`, `ext_<pkg>`;
+- column attributes `localized`, `variant`, `ext_<pkg>`;
+- the element `joinColumn`;
+- on a model table and on a table: `rowcaption`, `newrecord_caption`,
+  `starColumns`, `getRelation`, `getJoiner`, `relations_one`,
+  `relations_many`, `manyRelationsList`, `relationExplorer`
+  (`rowcaption` and `newrecord_caption` stay accepted as table attributes);
+- on the database: `tableMixin`, `packageMixin`, `db.query`, `db.whereTranslator`;
+- on a query: `setJoinCondition`;
+- on a table: `record`, whose message adds `use query(...).fetchRecord()`;
+  `readColumns`, `countRecords`, `recordAs`, `cachedRecord`, `sqlWhereFromBag`,
+  `whereTranslator`;
+- `query(columns=None)` and `query(columns='')`;
+- query keywords `jc_<name>` (join condition keyword).
 
 A custom adapter must declare and test its own supported behavior. See
 [adapters](adapters.md) for the boundaries; adding a capability name does not
@@ -145,8 +234,7 @@ The Genropy guide records agreed differences: removal of aggregateRows and expli
 partition semantics. Output naming, default ordering, wildcard selection and
 other unapproved divergences in the current implementation are compatibility
 work, not accepted product differences. The implicit `pkey` column of GenroPy
-queries is left to a future GenroPy adapter, not to the core. Native query results still
-use dictionary rows; path lookup on live columns is not complete. Collection
+queries is left to a future GenroPy adapter, not to the core. Native query results use Toolbox `NamedList` rows with name and position access; path lookup on live columns is not complete. Collection
 bindings, count, grouping and distinct are implemented; Selection is not.
 
 Standalone execution and application tables share the same execution service.
@@ -185,9 +273,10 @@ or equivalence for every Python hook failure.
 
 ### Queries, formulas and result names
 
-`*` currently expands all resolved columns, including aliases and formulas,
-rather than the target physical/static-column convention. Automatic relation
-aliases omit the target leading underscore (`customer_name` instead of
+`*` follows the legacy physical/static-column convention, including `bagFields`.
+On the native 74-table fixture, `adm.htmltemplate_atc` still requires unsupported
+static Python columns; the other 73 tables compile on both dialects. Automatic
+relation aliases omit the target leading underscore (`customer_name` instead of
 `_customer_name`). Use explicit projections and aliases for stable result contracts.
 Relation path segments currently require ASCII identifiers.
 
@@ -204,15 +293,24 @@ Scalar subquery definitions accept `table`, `columns`, `where`, `params`/`sqlpar
 `order_by`, `limit`, `offset`, policy options and `cast`. Cast syntax does not
 support quoted custom type names. Compatibility options are restricted to
 `subtable='*'`, `addPkeyColumn=False` and `ignoreTableOrderBy=True`.
-Method-based subqueries, formula callbacks/variants, Python columns and separate
-subquery collection columns are not implemented. Structured subquery formulas
+Formula variants and Python columns are not implemented. String references call
+`subquery_<name>()` on the current SELECT's root table, as in the legacy compiler;
+the method returns the existing query mapping. XML subQueryColumn still requires
+a dictionary declaration. RuntimeModel integration remains pending.
+Native subQueryColumn dictionaries compile plain scalar SELECTs on both dialects,
+and JSON/XML collections on PostgreSQL. SQLite rejects those collection modes;
+there is no implicit DISTINCT or LIMIT, nor a synthetic aggregate for other modes.
+Table SQL formula methods use the existing application table, as documented in
+[formulas](formulas.md). Structured subquery formulas
 are read-only. DML cannot traverse relations or return expressions requiring joins.
 
 ### Hooks, environment and application integration
 
-Only the documented table before/after write hooks execute. Field/package
-triggers, protection callbacks, counters, related-record cascades and legacy
-application mixins still need integration. After-statement hooks are not
+The write cycle runs, in the legacy order, the table triggers (`trigger_on*`),
+the column triggers (`onInserting` ... `onDeleted` column attributes),
+`protect_update`, `protect_delete`, `protect_validate`, `protect_draft` and the
+`onDelete`/`onUpdate` actions of related records. Counters (#31), package
+triggers and legacy application mixins are not executed. After-statement hooks are not
 post-commit callbacks. Deferred callbacks are available; application event queues
 still need integration. Locale defaults do not yet use full Babel catalog validation.
 Selecting an unsupported store fails before SQL execution.

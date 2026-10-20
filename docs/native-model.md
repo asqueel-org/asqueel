@@ -1,5 +1,8 @@
 # Modello nativo e importazione PostgreSQL V1
 
+> Historical profile: live queries now use the [single hierarchical path](guide/compiler.md).
+> Catalog snapshot descriptions remain applicable; previous compiler/renderer APIs do not.
+
 `resolve_model(builder, *, ui=None)` in `asqueel.model` risolve una ricetta
 `SqlBuilder` già costruita e validata nei contratti `ResolvedModel`, `Table`,
 `Column`, `Relation`. Non modifica la ricetta e non richiede il migratore.
@@ -19,8 +22,8 @@ un rename occorre quindi dichiararla esplicitamente: non esiste inferenza automa
 `attributes` conserva gli attributi dichiarati e la provenienza; il contenitore
 esterno è immutabile, i valori annidati sono metadati applicativi.
 
-I metadati `x_ui_*` sono arricchiti dall'overlay `ui` per percorso logico e infine
-per identità esplicita. Non è consentito ridefinire tipo, formula, nome SQL,
+I metadati UI di colonna vengono solo dall'overlay `ui`, per percorso logico e infine
+per identità esplicita; gli attributi `x_ui_*` sono fuori dalla grammatica. Non è consentito ridefinire tipo, formula, nome SQL,
 chiave, unicità o obbligatorietà nell'overlay UI. Non sono richiesti widget.
 
 ```python

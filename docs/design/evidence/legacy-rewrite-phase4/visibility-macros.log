@@ -1,0 +1,183 @@
+........................................................................ [ 41%]
+........................................................................ [ 82%]
+.........FFF..................                                           [100%]
+=================================== FAILURES ===================================
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x10e117a70>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_f8234153f5574adf878a9d70e9acd222".invoice')
+low = None, high = None, expected = [10, 11, 12, 13, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10d72d550>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_f8234153f5574adf878a9d70e9acd222"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': None, 'high': None}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $1
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                     ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x10def0cb0>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_7fd97cfef7f1496b8e0a2e5fbf2842b4".invoice')
+low = None, high = 40, expected = [11, 12, 13, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10d72e8d0>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_7fd97cfef7f1496b8e0a2e5fbf2842b4"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': None, 'high': 40}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $1
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                     ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+_ test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2] _
+
+shop = namespace(query=<bound method SqlTable.query of <asqueel.application_table.SqlTable object at 0x10e207b30>>, db=namesp...tetime.date(2026, 10, 15), 'locale': 'en'}), invoice_sql='"query_completion_4005e25e472f497a9095cc0c68558ef7".invoice')
+low = 40, high = None, expected = [10, 11, 15]
+
+    @pytest.mark.parametrize('low, high, expected', [
+        (None, None, [10, 11, 12, 13, 15]),
+        (None, 40, [11, 12, 13, 15]),
+        (40, None, [10, 11, 15]),
+        (40, 40, [11, 15]),
+        (50, 40, []),
+    ])
+    def test_inclusive_range_with_nullable_bound_parameters(shop, low, high, expected):
+        query = shop.query(columns='$id', where='#IN_RANGE($total,:low,:high)',
+                           low=low, high=high, order_by='$id')
+        compiled = query.compiled
+>       assert [row['id'] for row in shop.db.execute(compiled).rows] == expected
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/native_compiler/test_query_macros.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:393: in _execute_on_connection
+    return self.driver.execute(state['connection'], query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/drivers/psycopg.py:72: in execute
+    cursor.execute(query.sql, dict(query.params))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [IDLE] (host=127.0.0.1 database=postgres) at 0x10d72f7d0>
+query = 'SELECT "t0"."id" AS "id"\n FROM "query_completion_4005e25e472f497a9095cc0c68558ef7"."invoice" AS "t0"\nWHERE (\n     ...              (%(low)s IS NULL AND %(high)s IS NULL))\n            ) AND ("t0"."__del_ts" IS NULL)\nORDER BY "t0"."id"'
+params = {'low': 40, 'high': None}, prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.AmbiguousParameter: could not determine data type of parameter $2
+E           LINE 4:                 (($1 IS NULL AND $2 IS NOT NULL AND "t0"."to...
+E                                                    ^
+
+venv/lib/python3.12/site-packages/psycopg/cursor.py:117: AmbiguousParameter
+=========================== short test summary info ============================
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]
+FAILED tests/native_formulas/test_tree_phase4_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]
+3 failed, 171 passed in 5.94s

@@ -1,5 +1,10 @@
 # Legacy configuration-to-object lifecycle audit
 
+**Historical reference notice (15 October 2026):** this document retains its
+original `fa35e5ad` evidence. The [develop audit 95](95-develop-reference-audit.md)
+sets the reference for subsequent ports and records later fixes; this document
+is not a statement that those fixes have already landed in Asqueel.
+
 ## Scope and source baseline
 
 This is an internal architecture audit, not a proposal presented as existing API.

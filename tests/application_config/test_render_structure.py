@@ -20,7 +20,7 @@ def recipe():
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     invoice = sales.table('invoice', pkey='id', sqlname='invoices')
     invoice.column('id', dtype='L')
-    invoice.column('customer_id', dtype='L').relation('invc.customer.id', inverse='invoices')
+    invoice.column('customer_id', dtype='L').relation('invc.customer.id', relation_name='invoices')
     invoice.column('user_id', dtype='L').relation('adm.user.id')
     adm.table('user', pkey='id').column('id', dtype='L')
     return source, root, customer
@@ -35,7 +35,7 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
         calls.append('len')
         return '3:40'
     source, root, customer = recipe()
-    column = customer.column('label', foo_bar_color=EnvResolver('INVOICE_COLOR'),
+    column = customer.column('label', default=EnvResolver('INVOICE_COLOR'),
                              validate_len=BagCbResolver(length))
     # Unselected administrative connections must not be evaluated as model nodes.
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Unused connection read')))
@@ -47,27 +47,26 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
     db = source.render()
     try:
         handle = db.table('invc.customer').column('label')
-        assert handle.config('foo_bar_color') == 'blue'
+        assert handle.attributes['default'] == 'blue'
         assert handle.validations == {'len': '3:40'}
-        assert handle.config.scope('validation')('len') == '3:40'
         assert calls
         count = len(calls)
         monkeypatch.setenv('INVOICE_COLOR', 'red')
-        column.attr['foo_bar_color'] = 'green'
-        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['foo_bar_color'] = 'yellow'
-        assert handle.config('foo_bar_color') == 'blue'
-        assert handle.config('dtype') == 'T'
-        assert handle.config('missing', default=None) is None
+        column.attr['default'] = 'green'
+        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.label').attr['default'] = 'yellow'
+        assert handle.attributes['default'] == 'blue'
+        assert handle.dtype == 'T'
+        assert handle.attributes.get('missing') is None
         assert handle.validations == {'len': '3:40'}
         assert len(calls) == count
-        assert db.table('invc.invoice').relation('customer_id').target is db.table('invc.customer')
-        assert db.table('invc.customer') is db.table('customer')
-        assert db.package('empty').tables == ()
-        assert set(db.model.schemas) == {'main'}
-        assert db.model.table('invc.invoice').physical_name == 'invoices'
-        assert 'archive' not in db.model.attributes
+        assert db.table('invc.invoice').model.column('@customer_id.id') is db.table('invc.customer').column('id')
+        assert db.table('invc.customer').model is db.model.table('invc.customer')
+        assert not db.model.package('empty').tables
+        assert {t.sqlschema for t in db.model.tables.values()} == {'main'}
+        assert db.model.table('invc.invoice').sqlname == 'invoices'
+        assert 'archive' not in db.model.obj.attributes
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_callback_cache_semantics_are_owned_by_existing_resolver():
@@ -77,29 +76,29 @@ def test_callback_cache_semantics_are_owned_by_existing_resolver():
         calls.append(1)
         return 'fixed'
     resolver = BagCbResolver(value, cache_time=-1)
-    customer.column('value', foo_first=resolver, foo_second=resolver)
+    customer.column('value', default=resolver, onDeleted=resolver)
     db = build_database(source)
     try:
-        col = db.table('customer').column('value')
-        assert col.config('foo_first') == col.config('foo_second') == 'fixed'
+        col = db.table('invc.customer').column('value')
+        assert col.attributes['default'] == col.attributes['onDeleted'] == 'fixed'
         assert calls == [1]  # one shared resolver with its own permanent cache
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_render_defaults_follow_composition_and_failure_publishes_nothing():
     base, _, _ = recipe()
     overlay = SqlDatabaseConfig()
     table = overlay.source.db('invoice').packages().package('invc').table('customer')
-    table.column('account_name', foo_bar_color='red')
+    table.column('account_name', comment='red')
     db = build_database(overlay, parents=[base])
     try:
-        assert db.table('customer').config('name_long') == 'Cliente'
-        assert db.table('customer').column('account_name').validations == {'notnull': True, 'len': '2:40'}
-        assert db.table('customer').column('account_name').config('foo_bar_color') == 'red'
+        assert db.table('invc.customer').attributes['name_long'] == 'Cliente'
+        assert db.table('invc.customer').column('account_name').validations == {'notnull': True, 'len': '2:40'}
+        assert db.table('invc.customer').column('account_name').attributes['comment'] == 'red'
         assert 'name_long' not in table.attr
     finally:
-        db.close()
+        db.closeConnection()
     broken, _, customer = recipe()
     customer.column('missing_id', dtype='L').relation('missing.table.id')
     with pytest.raises(ValueError):
@@ -120,13 +119,13 @@ def test_validation_spellings_share_contribution_order(explicit_first):
             customer.column('code', validate_len='3:8')
         else:
             column.validation(len='3:8')
-    assert resolve_model(source).table('customer').columns['code'].validations == {'len': '3:8'}
+    assert resolve_model(source).table('invc.customer').columns['code'].validations == {'len': '3:8'}
 
 
 def test_removed_metadata_forms_are_not_part_of_source_grammar():
     source, root, customer = recipe()
     for kwargs in ({'metadata': {'ui': {'color': 'red'}}}, {'x_ui': {'color': 'red'}}):
-        with pytest.raises(ValueError, match='flat'):
+        with pytest.raises(ValueError, match="Element 'column' does not accept"):
             customer.column('label', **kwargs)
     with pytest.raises(AttributeError):
         root.options().metadata('ui', {'color': 'red'})

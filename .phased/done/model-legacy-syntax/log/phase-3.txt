@@ -1,0 +1,5 @@
+✓ Phase 3 completata: le funzionalità legacy assenti da questa release ora sollevano `UnsupportedFeatureError` e il messaggio nomina la funzionalità.
+
+- **Test:** i 19 contract test passano. I test delle Phase 1-2 passano. La suite completa dà 4987 passed, 42 skipped, 31 xfailed. ruff e mypy sono puliti.
+- **Commit:** `a567af2`. Il commit non è pushato.
+- **`joinColumn`:** non è un tag dello schema, quindi la chiamata non arriva al `__getattr__` di `SqlBuilder`. L'ho rifiutato con un metodo `@container('joinColumn')` di genro-builders che solleva l'errore. La decisione è annotata nel plan.

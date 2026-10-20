@@ -1,5 +1,8 @@
 # Adapter dati — estrazione dalla V1
 
+> Historical profile: live queries now use the [single hierarchical path](guide/compiler.md).
+> Catalog snapshot descriptions remain applicable; previous compiler/renderer APIs do not.
+
 **Aggiornamento:** il runtime corrente è sincrono; i risultati di verifica qui riportati descrivono la consegna adapter precedente. Vedi [runtime attuale](native-runtime.md).
 
 29 settembre 2026. Implementazione del [piano 08](design/08-data-adapters-plan.md).
@@ -27,7 +30,7 @@ modello + richiesta asqueel
     → QueryCompiler.plan_* → QueryPlan
     → PostgresDialect.render → SqlStatement
     → PsycopgDriver.prepare → CompiledQuery
-    → Database → PsycopgDriver.execute → QueryResult
+    → Database.execute → cursore aperto
 ```
 
 Il piano risolto non contiene placeholder psycopg e non applica l'escaping
@@ -47,8 +50,11 @@ query = compiler.select('sales.invoice', columns='$id, $total',
                         where='$total >= :minimum', params={'minimum': 100})
 
 def read(conninfo):
-    with Database(conninfo, driver=driver) as database:
-        return (database.execute(query)).rows
+    database = Database(conninfo, driver=driver)
+    try:
+        return database.execute(query).fetchall()
+    finally:
+        database.closeConnection()
 ```
 
 Per ispezionare i passaggi si usano `plan_select`, `plan_insert`, `plan_update`,

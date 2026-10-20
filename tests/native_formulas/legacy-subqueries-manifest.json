@@ -1,0 +1,512 @@
+{
+  "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "source": "gnrpy/tests/sql/test_compiler_coverage.py",
+  "tests": [
+    {
+      "test": "TestFormulaSelect.test_count_n_invoices_pg",
+      "line": 262,
+      "source_sha256": "a5916faf21ac2e472bbc5db31635af29d2b664183f4d727694c5bf76fed857c8",
+      "port_sha256": "a5916faf21ac2e472bbc5db31635af29d2b664183f4d727694c5bf76fed857c8",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_count_n_invoices_sqlite",
+      "line": 274,
+      "source_sha256": "cde99a1ff86ad93c768916f8825707f09d3ac9c6f8da04fea1e483373a56eab1",
+      "port_sha256": "cde99a1ff86ad93c768916f8825707f09d3ac9c6f8da04fea1e483373a56eab1",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_sum_invoiced_total_pg",
+      "line": 285,
+      "source_sha256": "2011cdf8cd9a06154a9dd8c0e5fce271c3be76031d246ab0b98883fac9b1f3c7",
+      "port_sha256": "2011cdf8cd9a06154a9dd8c0e5fce271c3be76031d246ab0b98883fac9b1f3c7",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_sum_invoiced_total_sqlite",
+      "line": 292,
+      "source_sha256": "e6488e00ad880292e6794e40fbf7cf21a83a7f70649edbd166928602e525923c",
+      "port_sha256": "e6488e00ad880292e6794e40fbf7cf21a83a7f70649edbd166928602e525923c",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_last_invoice_id_pg",
+      "line": 299,
+      "source_sha256": "4c2f577b48c5795a79b3df1725cf42a328dbd930c8478618e7f086b30ca34c8b",
+      "port_sha256": "4c2f577b48c5795a79b3df1725cf42a328dbd930c8478618e7f086b30ca34c8b",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_last_invoice_id_sqlite",
+      "line": 311,
+      "source_sha256": "87f502fd20b818ea02a01f359c8c51441ae825a74c5dc918dc98f5e88696cdd1",
+      "port_sha256": "87f502fd20b818ea02a01f359c8c51441ae825a74c5dc918dc98f5e88696cdd1",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_exists_has_invoices_pg",
+      "line": 322,
+      "source_sha256": "6c039017d8f42fac9e180af395d7fa4a5861264d172da720f51e8d554b0a2a24",
+      "port_sha256": "6c039017d8f42fac9e180af395d7fa4a5861264d172da720f51e8d554b0a2a24",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_exists_has_invoices_sqlite",
+      "line": 334,
+      "source_sha256": "e4b345b70c7c3b68b0c1b88ca9934d01ad66a2569b9300496b97626b2f1fcfd6",
+      "port_sha256": "e4b345b70c7c3b68b0c1b88ca9934d01ad66a2569b9300496b97626b2f1fcfd6",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_row_count_pg",
+      "line": 338,
+      "source_sha256": "3478395b4497c84db983cc7a9d59279eb36a2e0b1ac69fd294ffcad51b30bffb",
+      "port_sha256": "3478395b4497c84db983cc7a9d59279eb36a2e0b1ac69fd294ffcad51b30bffb",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_row_count_sqlite",
+      "line": 350,
+      "source_sha256": "f85bbf0a7b40901eac5ff67598ad75feb5153bd0a4b26e756c1b315a506f3e59",
+      "port_sha256": "f85bbf0a7b40901eac5ff67598ad75feb5153bd0a4b26e756c1b315a506f3e59",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_total_sold_pg",
+      "line": 361,
+      "source_sha256": "ac55ac56c3a504f809dc714f1d599594a0ddab158096dd4b4522bde874115069",
+      "port_sha256": "ac55ac56c3a504f809dc714f1d599594a0ddab158096dd4b4522bde874115069",
+      "adapted": false
+    },
+    {
+      "test": "TestFormulaSelect.test_total_sold_sqlite",
+      "line": 369,
+      "source_sha256": "52b725a501ed73c33a48a010c370cbb8cb44cfd31e1493cdcef40953ac097c02",
+      "port_sha256": "52b725a501ed73c33a48a010c370cbb8cb44cfd31e1493cdcef40953ac097c02",
+      "adapted": false
+    },
+    {
+      "test": "TestCaseWhen.test_customer_rank_pg",
+      "line": 507,
+      "source_sha256": "47694009b7812803715a6c3c7878581df345c227c324b027280d72a030477840",
+      "port_sha256": "47694009b7812803715a6c3c7878581df345c227c324b027280d72a030477840",
+      "adapted": false
+    },
+    {
+      "test": "TestCaseWhen.test_customer_rank_sqlite",
+      "line": 516,
+      "source_sha256": "17f8102337cd9a9fc06050fdb298f4dd6c8b74e54c14f9613ce8398fbda7f352",
+      "port_sha256": "17f8102337cd9a9fc06050fdb298f4dd6c8b74e54c14f9613ce8398fbda7f352",
+      "adapted": false
+    },
+    {
+      "test": "TestFilterAggregation.test_priced_rows_pct_pg",
+      "line": 925,
+      "source_sha256": "dc08cbf72d777699b66fd2979589e8047a3937569921f52d9f8c7549a539a59b",
+      "port_sha256": "dc08cbf72d777699b66fd2979589e8047a3937569921f52d9f8c7549a539a59b",
+      "adapted": false
+    },
+    {
+      "test": "TestFilterAggregation.test_priced_rows_pct_sqlite",
+      "line": 935,
+      "source_sha256": "8b44adb59d7bc1817cb6032afbb0a2d681e789b9cd6aff28801c42bd8b02a85d",
+      "port_sha256": "8b44adb59d7bc1817cb6032afbb0a2d681e789b9cd6aff28801c42bd8b02a85d",
+      "adapted": false
+    },
+    {
+      "test": "TestBooleanFormulas.test_is_active_valuable_pg",
+      "line": 999,
+      "source_sha256": "ffb4efb766d15bfaf638035b1a46233e6255b28e3d31ff495fae1728bf3a891e",
+      "port_sha256": "ffb4efb766d15bfaf638035b1a46233e6255b28e3d31ff495fae1728bf3a891e",
+      "adapted": false
+    },
+    {
+      "test": "TestBooleanFormulas.test_is_active_valuable_sqlite",
+      "line": 1009,
+      "source_sha256": "d096ad72d75f6808161614a1e84f1323e017eb2dbdd09ae1509e56422f94993f",
+      "port_sha256": "d096ad72d75f6808161614a1e84f1323e017eb2dbdd09ae1509e56422f94993f",
+      "adapted": false
+    },
+    {
+      "test": "TestNamedSubQuery.test_priority_note_pg",
+      "line": 1377,
+      "source_sha256": "9ae9343cc42bb47e6cad13579b7098eca2c0133143aa41b655542a98637e59f4",
+      "port_sha256": "9ae9343cc42bb47e6cad13579b7098eca2c0133143aa41b655542a98637e59f4",
+      "adapted": false
+    },
+    {
+      "test": "TestNamedSubQuery.test_priority_note_sqlite",
+      "line": 1385,
+      "source_sha256": "6370069a955b6ee646737be1e6a3387155322bd1c06d06a21fe6742aca487e51",
+      "port_sha256": "6370069a955b6ee646737be1e6a3387155322bd1c06d06a21fe6742aca487e51",
+      "adapted": false
+    },
+    {
+      "test": "TestNamedSubQuery.test_smart_row_count_pg",
+      "line": 1392,
+      "source_sha256": "6e936b898f9c1a32bdb6dbdcb23897a8bb4f8fa1a07c9bd2f27669d6f266eb14",
+      "port_sha256": "6e936b898f9c1a32bdb6dbdcb23897a8bb4f8fa1a07c9bd2f27669d6f266eb14",
+      "adapted": false
+    },
+    {
+      "test": "TestNamedSubQuery.test_smart_row_count_sqlite",
+      "line": 1401,
+      "source_sha256": "b13fb899c2c7d3bb22a0dcedbc5607096f9c37efed2d909274c00e6928cb508c",
+      "port_sha256": "b13fb899c2c7d3bb22a0dcedbc5607096f9c37efed2d909274c00e6928cb508c",
+      "adapted": false
+    },
+    {
+      "test": "TestNullif.test_avg_invoice_value_pg",
+      "line": 1508,
+      "source_sha256": "5cb7390735f587192a5eb19595aaa2b3824d0198ef2a1861ba6b95e85ee2bf56",
+      "port_sha256": "5cb7390735f587192a5eb19595aaa2b3824d0198ef2a1861ba6b95e85ee2bf56",
+      "adapted": false
+    },
+    {
+      "test": "TestNullif.test_avg_invoice_value_sqlite",
+      "line": 1524,
+      "source_sha256": "917faca80cee31bb3f0c0c369ca46ec3d920b0be8b392d7e4b338ea8ead1bc64",
+      "port_sha256": "917faca80cee31bb3f0c0c369ca46ec3d920b0be8b392d7e4b338ea8ead1bc64",
+      "adapted": false
+    },
+    {
+      "test": "TestExistsOr.test_has_activity_pg",
+      "line": 1546,
+      "source_sha256": "8358b0551d20dd314b3af1f3299dc83a51739c2dd4ceb82dc9a1b3704d06bdc4",
+      "port_sha256": "8358b0551d20dd314b3af1f3299dc83a51739c2dd4ceb82dc9a1b3704d06bdc4",
+      "adapted": false
+    },
+    {
+      "test": "TestExistsOr.test_has_activity_sqlite",
+      "line": 1553,
+      "source_sha256": "04854db0a426b2c515e21ac2dbb456befa9e5ae47f82db0f6f7598d600900d99",
+      "port_sha256": "04854db0a426b2c515e21ac2dbb456befa9e5ae47f82db0f6f7598d600900d99",
+      "adapted": false
+    },
+    {
+      "test": "TestPostgresOnly.test_invoice_numbers_pg",
+      "line": 1665,
+      "source_sha256": "62a1ae8489707de7d09ec816dd04213a3d502cbc94465b7be931e35672d17846",
+      "port_sha256": "62a1ae8489707de7d09ec816dd04213a3d502cbc94465b7be931e35672d17846",
+      "adapted": false
+    },
+    {
+      "test": "TestPostgresOnly.test_all_notes_string_agg_pg",
+      "line": 1684,
+      "source_sha256": "064948a3b78f0631e5e1df47c9f6e4dce0ad6953bdc1ef21bfab005b2cddfec8",
+      "port_sha256": "064948a3b78f0631e5e1df47c9f6e4dce0ad6953bdc1ef21bfab005b2cddfec8",
+      "adapted": false
+    },
+    {
+      "test": "TestWhereOrderBy.test_where_exists_pg",
+      "line": 1762,
+      "source_sha256": "fd6179612d77b1f74bd9e311178c363940678b85862bf3f2b2e9e0abfce1d9d7",
+      "port_sha256": "fd6179612d77b1f74bd9e311178c363940678b85862bf3f2b2e9e0abfce1d9d7",
+      "adapted": false
+    },
+    {
+      "test": "TestWhereOrderBy.test_where_exists_sqlite",
+      "line": 1774,
+      "source_sha256": "f1effa2e9ce3bb12610fe0107d2c1d851ae85d597441da364f9d8eadd862c557",
+      "port_sha256": "f1effa2e9ce3bb12610fe0107d2c1d851ae85d597441da364f9d8eadd862c557",
+      "adapted": false
+    },
+    {
+      "test": "TestCombinedQueries.test_customer_full_pg",
+      "line": 1816,
+      "source_sha256": "b038852b93b8946b80e430d3467df51250827a476b7cf5900b314f97e9787666",
+      "port_sha256": "b038852b93b8946b80e430d3467df51250827a476b7cf5900b314f97e9787666",
+      "adapted": false
+    },
+    {
+      "test": "TestCombinedQueries.test_customer_full_sqlite",
+      "line": 1833,
+      "source_sha256": "e968bc301dfd7fda9eba5c1cbb70ef2172b3180208dc0b34bc45b8aa05606832",
+      "port_sha256": "e968bc301dfd7fda9eba5c1cbb70ef2172b3180208dc0b34bc45b8aa05606832",
+      "adapted": false
+    },
+    {
+      "test": "TestCombinedQueries.test_invoice_full_pg",
+      "line": 1845,
+      "source_sha256": "f210e3dc292245e349f2fb66d919236411171251912283e9604c5b8e6403a552",
+      "port_sha256": "f210e3dc292245e349f2fb66d919236411171251912283e9604c5b8e6403a552",
+      "adapted": false
+    },
+    {
+      "test": "TestCombinedQueries.test_invoice_full_sqlite",
+      "line": 1859,
+      "source_sha256": "08984a63b7433b18b8f285eeab3ec33b1b1e09a37d936829d24c7c29ac45b39a",
+      "port_sha256": "08984a63b7433b18b8f285eeab3ec33b1b1e09a37d936829d24c7c29ac45b39a",
+      "adapted": false
+    },
+    {
+      "test": "TestExistsDict.test_has_expensive_rows_pg",
+      "line": 1929,
+      "source_sha256": "1f77c6522a63026cea0e418c2561fc3bba8324c6d15adca62dfb101bb3ba8666",
+      "port_sha256": "1f77c6522a63026cea0e418c2561fc3bba8324c6d15adca62dfb101bb3ba8666",
+      "adapted": false
+    },
+    {
+      "test": "TestExistsDict.test_has_expensive_rows_sqlite",
+      "line": 1938,
+      "source_sha256": "141d3d79ea51bf3408d2a33b2714ed9c51826ab177ea7ea5b8db81bdfd9ec47c",
+      "port_sha256": "141d3d79ea51bf3408d2a33b2714ed9c51826ab177ea7ea5b8db81bdfd9ec47c",
+      "adapted": false
+    },
+    {
+      "test": "TestGroupByHaving.test_duplicate_products_pg",
+      "line": 1963,
+      "source_sha256": "28a9b4e73f94750192451a29c8e3d7444995dec918c587f91feded5350ae2e0f",
+      "port_sha256": "28a9b4e73f94750192451a29c8e3d7444995dec918c587f91feded5350ae2e0f",
+      "adapted": false
+    },
+    {
+      "test": "TestGroupByHaving.test_duplicate_products_sqlite",
+      "line": 1973,
+      "source_sha256": "07a68ca385e2dde8ac42928bed68196fb2d8f5a07826ef44800d0c63fd6f110a",
+      "port_sha256": "07a68ca385e2dde8ac42928bed68196fb2d8f5a07826ef44800d0c63fd6f110a",
+      "adapted": false
+    },
+    {
+      "test": "TestExistsDict.test_has_expensive_rows_where_pg",
+      "line": 1946,
+      "source_sha256": "8bf548a69b1bb020dcf7f82657f9775bb32d4d09dc903b2ed2cac8358687f7a2",
+      "adaptation": "Explicit $id AS pkey, existing query/fetch scalar instead of legacy readColumns; assertions unchanged.",
+      "port_sha256": "2a9192efde8cd89fe77323fe116623568dad15b17b71607ff791a00995628f0c",
+      "adapted": true
+    }
+  ],
+  "notes": [
+    "Original assertions retained, including legacy SQLite skips.",
+    "One test adapts readColumns/pkey to existing query/fetch and explicit projection."
+  ],
+  "matching_branch_tests": {
+    "legacy": {
+      "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+      "identical_selected_test_bodies": [
+        "TestFormulaSelect.test_count_n_invoices_pg",
+        "TestFormulaSelect.test_count_n_invoices_sqlite",
+        "TestFormulaSelect.test_sum_invoiced_total_pg",
+        "TestFormulaSelect.test_sum_invoiced_total_sqlite",
+        "TestFormulaSelect.test_last_invoice_id_pg",
+        "TestFormulaSelect.test_last_invoice_id_sqlite",
+        "TestFormulaSelect.test_exists_has_invoices_pg",
+        "TestFormulaSelect.test_exists_has_invoices_sqlite",
+        "TestFormulaSelect.test_row_count_pg",
+        "TestFormulaSelect.test_row_count_sqlite",
+        "TestFormulaSelect.test_total_sold_pg",
+        "TestFormulaSelect.test_total_sold_sqlite",
+        "TestCaseWhen.test_customer_rank_pg",
+        "TestCaseWhen.test_customer_rank_sqlite",
+        "TestFilterAggregation.test_priced_rows_pct_pg",
+        "TestFilterAggregation.test_priced_rows_pct_sqlite",
+        "TestBooleanFormulas.test_is_active_valuable_pg",
+        "TestBooleanFormulas.test_is_active_valuable_sqlite",
+        "TestNamedSubQuery.test_priority_note_pg",
+        "TestNamedSubQuery.test_priority_note_sqlite",
+        "TestNamedSubQuery.test_smart_row_count_pg",
+        "TestNamedSubQuery.test_smart_row_count_sqlite",
+        "TestNullif.test_avg_invoice_value_pg",
+        "TestNullif.test_avg_invoice_value_sqlite",
+        "TestExistsOr.test_has_activity_pg",
+        "TestExistsOr.test_has_activity_sqlite",
+        "TestPostgresOnly.test_invoice_numbers_pg",
+        "TestPostgresOnly.test_all_notes_string_agg_pg",
+        "TestWhereOrderBy.test_where_exists_pg",
+        "TestWhereOrderBy.test_where_exists_sqlite",
+        "TestCombinedQueries.test_customer_full_pg",
+        "TestCombinedQueries.test_customer_full_sqlite",
+        "TestCombinedQueries.test_invoice_full_pg",
+        "TestCombinedQueries.test_invoice_full_sqlite",
+        "TestExistsDict.test_has_expensive_rows_pg",
+        "TestExistsDict.test_has_expensive_rows_sqlite",
+        "TestGroupByHaving.test_duplicate_products_pg",
+        "TestGroupByHaving.test_duplicate_products_sqlite",
+        "TestExistsDict.test_has_expensive_rows_where_pg"
+      ]
+    },
+    "v3_merged": {
+      "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+      "identical_selected_test_bodies": [
+        "TestFormulaSelect.test_count_n_invoices_pg",
+        "TestFormulaSelect.test_count_n_invoices_sqlite",
+        "TestFormulaSelect.test_sum_invoiced_total_pg",
+        "TestFormulaSelect.test_sum_invoiced_total_sqlite",
+        "TestFormulaSelect.test_last_invoice_id_pg",
+        "TestFormulaSelect.test_last_invoice_id_sqlite",
+        "TestFormulaSelect.test_exists_has_invoices_pg",
+        "TestFormulaSelect.test_exists_has_invoices_sqlite",
+        "TestFormulaSelect.test_row_count_pg",
+        "TestFormulaSelect.test_row_count_sqlite",
+        "TestFormulaSelect.test_total_sold_pg",
+        "TestFormulaSelect.test_total_sold_sqlite",
+        "TestCaseWhen.test_customer_rank_pg",
+        "TestCaseWhen.test_customer_rank_sqlite",
+        "TestFilterAggregation.test_priced_rows_pct_pg",
+        "TestFilterAggregation.test_priced_rows_pct_sqlite",
+        "TestBooleanFormulas.test_is_active_valuable_pg",
+        "TestBooleanFormulas.test_is_active_valuable_sqlite",
+        "TestNamedSubQuery.test_priority_note_pg",
+        "TestNamedSubQuery.test_priority_note_sqlite",
+        "TestNamedSubQuery.test_smart_row_count_pg",
+        "TestNamedSubQuery.test_smart_row_count_sqlite",
+        "TestNullif.test_avg_invoice_value_pg",
+        "TestNullif.test_avg_invoice_value_sqlite",
+        "TestExistsOr.test_has_activity_pg",
+        "TestExistsOr.test_has_activity_sqlite",
+        "TestPostgresOnly.test_invoice_numbers_pg",
+        "TestPostgresOnly.test_all_notes_string_agg_pg",
+        "TestWhereOrderBy.test_where_exists_pg",
+        "TestWhereOrderBy.test_where_exists_sqlite",
+        "TestCombinedQueries.test_customer_full_pg",
+        "TestCombinedQueries.test_customer_full_sqlite",
+        "TestCombinedQueries.test_invoice_full_pg",
+        "TestCombinedQueries.test_invoice_full_sqlite",
+        "TestExistsDict.test_has_expensive_rows_pg",
+        "TestExistsDict.test_has_expensive_rows_sqlite",
+        "TestGroupByHaving.test_duplicate_products_pg",
+        "TestGroupByHaving.test_duplicate_products_sqlite",
+        "TestExistsDict.test_has_expensive_rows_where_pg"
+      ]
+    },
+    "v4": {
+      "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+      "identical_selected_test_bodies": [
+        "TestFormulaSelect.test_count_n_invoices_pg",
+        "TestFormulaSelect.test_count_n_invoices_sqlite",
+        "TestFormulaSelect.test_sum_invoiced_total_pg",
+        "TestFormulaSelect.test_sum_invoiced_total_sqlite",
+        "TestFormulaSelect.test_last_invoice_id_pg",
+        "TestFormulaSelect.test_last_invoice_id_sqlite",
+        "TestFormulaSelect.test_exists_has_invoices_pg",
+        "TestFormulaSelect.test_exists_has_invoices_sqlite",
+        "TestFormulaSelect.test_row_count_pg",
+        "TestFormulaSelect.test_row_count_sqlite",
+        "TestFormulaSelect.test_total_sold_pg",
+        "TestFormulaSelect.test_total_sold_sqlite",
+        "TestCaseWhen.test_customer_rank_pg",
+        "TestCaseWhen.test_customer_rank_sqlite",
+        "TestFilterAggregation.test_priced_rows_pct_pg",
+        "TestFilterAggregation.test_priced_rows_pct_sqlite",
+        "TestBooleanFormulas.test_is_active_valuable_pg",
+        "TestBooleanFormulas.test_is_active_valuable_sqlite",
+        "TestNamedSubQuery.test_priority_note_pg",
+        "TestNamedSubQuery.test_priority_note_sqlite",
+        "TestNamedSubQuery.test_smart_row_count_pg",
+        "TestNamedSubQuery.test_smart_row_count_sqlite",
+        "TestNullif.test_avg_invoice_value_pg",
+        "TestNullif.test_avg_invoice_value_sqlite",
+        "TestExistsOr.test_has_activity_pg",
+        "TestExistsOr.test_has_activity_sqlite",
+        "TestPostgresOnly.test_invoice_numbers_pg",
+        "TestPostgresOnly.test_all_notes_string_agg_pg",
+        "TestWhereOrderBy.test_where_exists_pg",
+        "TestWhereOrderBy.test_where_exists_sqlite",
+        "TestCombinedQueries.test_customer_full_pg",
+        "TestCombinedQueries.test_customer_full_sqlite",
+        "TestCombinedQueries.test_invoice_full_pg",
+        "TestCombinedQueries.test_invoice_full_sqlite",
+        "TestExistsDict.test_has_expensive_rows_pg",
+        "TestExistsDict.test_has_expensive_rows_sqlite",
+        "TestGroupByHaving.test_duplicate_products_pg",
+        "TestGroupByHaving.test_duplicate_products_sqlite",
+        "TestExistsDict.test_has_expensive_rows_where_pg"
+      ]
+    },
+    "simplify": {
+      "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+      "identical_selected_test_bodies": [
+        "TestFormulaSelect.test_count_n_invoices_pg",
+        "TestFormulaSelect.test_count_n_invoices_sqlite",
+        "TestFormulaSelect.test_sum_invoiced_total_pg",
+        "TestFormulaSelect.test_sum_invoiced_total_sqlite",
+        "TestFormulaSelect.test_last_invoice_id_pg",
+        "TestFormulaSelect.test_last_invoice_id_sqlite",
+        "TestFormulaSelect.test_exists_has_invoices_pg",
+        "TestFormulaSelect.test_exists_has_invoices_sqlite",
+        "TestFormulaSelect.test_row_count_pg",
+        "TestFormulaSelect.test_row_count_sqlite",
+        "TestFormulaSelect.test_total_sold_pg",
+        "TestFormulaSelect.test_total_sold_sqlite",
+        "TestCaseWhen.test_customer_rank_pg",
+        "TestCaseWhen.test_customer_rank_sqlite",
+        "TestFilterAggregation.test_priced_rows_pct_pg",
+        "TestFilterAggregation.test_priced_rows_pct_sqlite",
+        "TestBooleanFormulas.test_is_active_valuable_pg",
+        "TestBooleanFormulas.test_is_active_valuable_sqlite",
+        "TestNamedSubQuery.test_priority_note_pg",
+        "TestNamedSubQuery.test_priority_note_sqlite",
+        "TestNamedSubQuery.test_smart_row_count_pg",
+        "TestNamedSubQuery.test_smart_row_count_sqlite",
+        "TestNullif.test_avg_invoice_value_pg",
+        "TestNullif.test_avg_invoice_value_sqlite",
+        "TestExistsOr.test_has_activity_pg",
+        "TestExistsOr.test_has_activity_sqlite",
+        "TestPostgresOnly.test_invoice_numbers_pg",
+        "TestPostgresOnly.test_all_notes_string_agg_pg",
+        "TestWhereOrderBy.test_where_exists_pg",
+        "TestWhereOrderBy.test_where_exists_sqlite",
+        "TestCombinedQueries.test_customer_full_pg",
+        "TestCombinedQueries.test_customer_full_sqlite",
+        "TestCombinedQueries.test_invoice_full_pg",
+        "TestCombinedQueries.test_invoice_full_sqlite",
+        "TestExistsDict.test_has_expensive_rows_pg",
+        "TestExistsDict.test_has_expensive_rows_sqlite",
+        "TestGroupByHaving.test_duplicate_products_pg",
+        "TestGroupByHaving.test_duplicate_products_sqlite",
+        "TestExistsDict.test_has_expensive_rows_where_pg"
+      ]
+    },
+    "next": {
+      "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+      "identical_selected_test_bodies": [
+        "TestFormulaSelect.test_count_n_invoices_pg",
+        "TestFormulaSelect.test_count_n_invoices_sqlite",
+        "TestFormulaSelect.test_sum_invoiced_total_pg",
+        "TestFormulaSelect.test_sum_invoiced_total_sqlite",
+        "TestFormulaSelect.test_last_invoice_id_pg",
+        "TestFormulaSelect.test_last_invoice_id_sqlite",
+        "TestFormulaSelect.test_exists_has_invoices_pg",
+        "TestFormulaSelect.test_exists_has_invoices_sqlite",
+        "TestFormulaSelect.test_row_count_pg",
+        "TestFormulaSelect.test_row_count_sqlite",
+        "TestFormulaSelect.test_total_sold_pg",
+        "TestFormulaSelect.test_total_sold_sqlite",
+        "TestCaseWhen.test_customer_rank_pg",
+        "TestCaseWhen.test_customer_rank_sqlite",
+        "TestFilterAggregation.test_priced_rows_pct_pg",
+        "TestFilterAggregation.test_priced_rows_pct_sqlite",
+        "TestBooleanFormulas.test_is_active_valuable_pg",
+        "TestBooleanFormulas.test_is_active_valuable_sqlite",
+        "TestNamedSubQuery.test_priority_note_pg",
+        "TestNamedSubQuery.test_priority_note_sqlite",
+        "TestNamedSubQuery.test_smart_row_count_pg",
+        "TestNamedSubQuery.test_smart_row_count_sqlite",
+        "TestNullif.test_avg_invoice_value_pg",
+        "TestNullif.test_avg_invoice_value_sqlite",
+        "TestExistsOr.test_has_activity_pg",
+        "TestExistsOr.test_has_activity_sqlite",
+        "TestPostgresOnly.test_invoice_numbers_pg",
+        "TestPostgresOnly.test_all_notes_string_agg_pg",
+        "TestWhereOrderBy.test_where_exists_pg",
+        "TestWhereOrderBy.test_where_exists_sqlite",
+        "TestCombinedQueries.test_customer_full_pg",
+        "TestCombinedQueries.test_customer_full_sqlite",
+        "TestCombinedQueries.test_invoice_full_pg",
+        "TestCombinedQueries.test_invoice_full_sqlite",
+        "TestExistsDict.test_has_expensive_rows_pg",
+        "TestExistsDict.test_has_expensive_rows_sqlite",
+        "TestGroupByHaving.test_duplicate_products_pg",
+        "TestGroupByHaving.test_duplicate_products_sqlite",
+        "TestExistsDict.test_has_expensive_rows_where_pg"
+      ]
+    }
+  },
+  "branch_exclusions": {
+    "v2/projects/test_invoice/tests/test_lazy_subquery.py": "eager/lazy mode equivalence; no lazy flag imported",
+    "v2/projects/test_invoice/tests/test_torture_compiler.py": "lazy/JOIN modes and virtual relation bases outside this increment",
+    "v4/projects/test_invoice/tests/test_subquery_where_orderby.py": "RuntimeModel and inline/JOIN equivalence outside this increment",
+    "v4/gnrpy/gnr/sql/gnrsqldata/subquery_utils.py": "join_to/join_from/join_condition normalization not imported"
+  }
+}

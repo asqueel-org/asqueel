@@ -43,7 +43,7 @@ try:
     assert configured_db.current_env["language"] == "en"
     assert "organization" not in configured_db.current_env
 finally:
-    configured_db.close()
+    configured_db.closeConnection()
 
 ```
 
@@ -54,8 +54,8 @@ different value, it remains. Changes to unrelated keys remain as well. Temporary
 values are not deep-copied. These details matter for mutable context and pending
 application state.
 
-`None` is a value, not removal of a key. For a partition, `organization=None`
-means the NULL partition; absence is different. Use `del db.currentEnv['key']`
+`None` is a value, not removal of a key; for a partition, `current_<path>=None`
+filters nothing, like absence. Use `del db.currentEnv['key']`
 or `.pop()` to remove a key. `db.updateEnv(...)` updates values; with
 `_excludeNoneValues=True` it skips only None, preserving 0 and False.
 `db.currentEnv = mapping` replaces the live dictionary, retaining its identity;
@@ -132,40 +132,29 @@ Custom values used in snapshots must support `deepcopy`. The mutable application
 mapping and its temporary scopes belong to the calling thread. Each thread gets
 its own mapping; do not pass that mutable mapping to another thread or async task.
 
-## Distinguish a lazy query from a compiled statement
+## Reuse a query in another environment
 
 ```python
-from asqueel import EnvironmentMismatchError
-
 query = db.table("sales.customer").query(
     columns="$id, $name", where="$id=:env_customer_id",
 )
 with db.temp_env(customer_id=1):
-    compiled = query.compiled
-
+    first = query.fetch()   # compiles once, reads customer_id=1
 with db.temp_env(customer_id=2):
-    try:
-        db.execute(compiled)
-    except EnvironmentMismatchError:
-        pass  # Rejected before execution: it captured customer_id=1.
-    try:
-        rows = query.fetch()  # Fresh compilation now uses customer_id=2.
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-
+    second = query.fetch()  # same SQL text, reads customer_id=2
+db.rollback()
 ```
 
-Compilation captures values; a saved `CompiledQuery` does not automatically
-rebind. By contrast, every terminal call on `SqlQuery` recompiles. Inspecting
-`query.sqltext` or `query.compiled` does not change the behavior of its next fetch.
+As in legacy, a query compiles once, on first use, and keeps its compiled form
+(A2.19): `query.compiled`, `query.sqltext` and `query.sqlparams` always return the
+same compilation. The `:env_*` parameters are not frozen in it: every execution
+reads them again from the current environment, also for a saved `CompiledQuery`
+passed to `db.execute`. What the environment changes in the SQL text itself
+(partition guards, `#PERIOD` dates) stays the one of the first compilation:
+build a new query in the new scope to change it.
 
-Only relevant context keys are recorded. Unrelated keys do not invalidate a
-statement. Partition guards record relevant absent keys too: adding an allowed
-set can change the intended restriction. Returning to the same values and key
-presence permits reuse. Explicit parameter values do not by themselves create
-environment dependencies.
+Explicit parameter values (`env_customer_id=5` passed to the query) are caller
+inputs: they are not read from the environment.
 
 `ignore_partition=True` removes partition dependencies but does not remove any
 other `:env_*` dependency. Direct psycopg execution does not perform Asqueel's
@@ -204,10 +193,13 @@ from asqueel import PostgresCompiler, PostgresDatabase, SqlEnvironment
 # model is a resolved model; no database connection is needed for compilation.
 environment = SqlEnvironment()
 compiler = PostgresCompiler(model, environment=environment)
-with PostgresDatabase("dbname=example", environment=environment) as executor:
+executor = PostgresDatabase("dbname=example", environment=environment)
+try:
     with environment.temp_env(customer_id=1):
         compiled = compiler.select("sales.customer", where="$id=:env_customer_id")
-        rows = executor.execute(compiled).rows
+        rows = executor.execute(compiled).fetchall()
+finally:
+    executor.closeConnection()
 ```
 
 Independent default environments do not share values. The low-level executor's
@@ -247,10 +239,12 @@ back pending work and releases all named connections in that thread. It does not
 undo a successful commit. Preserve the original application exception if cleanup
 also fails. Repeated `request.db` access does not reset context during the request.
 
-This is an application pattern, not a new Asqueel request/session class. A nested
-helper belonging to the same request should reuse its initialized context, not
-clear it again. A request instance is owned by one synchronous worker; async
-task isolation is not supplied by this pattern. `closeConnection()` permits
-subsequent requests to reuse the DB; `close()` permanently closes that worker’s
-DB state. `clearCurrentEnv()` alone neither rolls back work nor clears pending
-connection callbacks.
+This is an application pattern. Outside a request,
+[`session(db, **env)`](transactions.md#sessions) gives the same boundary: entry
+clears the context and applies the values, exit calls `closeConnection()`. A
+nested helper belonging to the same request should reuse its initialized
+context, not clear it again. A request instance is owned by one synchronous
+worker; async task isolation is not supplied by this pattern.
+`closeConnection()` permits subsequent requests to reuse the DB.
+`clearCurrentEnv()` alone does not roll back work; it drops the pending
+deferred callbacks, which live in `currentEnv`.

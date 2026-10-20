@@ -23,7 +23,7 @@ columns.column('deleted_at', dtype='DHZ')
 
 `x_partitions=[...]` permette più dimensioni, combinate in AND; non si può
 specificare insieme a `x_partition`. Il campo può essere una colonna fisica
-locale oppure un percorso forward to-one come `@customer.organization_id`.
+locale oppure un percorso forward to-one come `@customer_id.organization_id`.
 Le chiavi `current` e `allowed` nominano valori nell'ambiente. `current` è
 obbligatoria nella dichiarazione, `allowed` è opzionale. La loro presenza nel
 contesto è distinta dal valore. Le policy non ereditano dallo schema.
@@ -35,9 +35,12 @@ environment = SqlEnvironment()
 compiler = PostgresCompiler(model, environment=environment)
 
 def invoices(conninfo, organization):
-    with PostgresDatabase(conninfo, environment=environment) as db:
+    db = PostgresDatabase(conninfo, environment=environment)
+    try:
         with db.temp_env(organization=organization):
             return db.execute(compiler.select('sales.invoice'))
+    finally:
+        db.closeConnection()
 ```
 
 L'ambiente usa scope contestuali; il runtime opera sul thread chiamante. Il compiler

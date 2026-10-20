@@ -1,0 +1,280 @@
+{
+  "reference": "fa35e5ad",
+  "probe": "docs/design/probes/rewrite_phase2_join_conditions.py",
+  "cases": [
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "on_root",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.account_name",
+        "params": {
+          "minimum": 100
+        },
+        "defaults": false,
+        "count": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON (\"t0\".\"customer_id\"=\"t1\".\"id\" AND \"t0\".\"total\">:minimum)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON (\"t0\".\"customer_id\"=\"t1\".\"id\" AND \"t0\".\"total\">:minimum)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON (\"t0\".\"customer_id\"=\"t1\".\"id\" AND \"t0\".\"total\">:minimum)"
+          ],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "\"t0\".\"id\"",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "id": "id",
+            "_customer_id_account_name": "@customer_id.account_name",
+            "customer_id": "customer_id",
+            "total": "total",
+            "_customer_id_id": "@customer_id.id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            "07bGQ44ENPua7IKfGxIp7Q",
+            "Thomas Baker"
+          ],
+          [
+            "0_9BQalLPIeaiBMgZMwaFg",
+            "National Electrical Specialists"
+          ],
+          [
+            "0bnmEdwAOIagPCi4NEuumQ",
+            "Max Green"
+          ],
+          [
+            "1I47OxlTMy2cPbP9agwWgA",
+            "Metro Tiling Solutions"
+          ],
+          [
+            "1O8akXydMpmesuqvKuJEXQ",
+            "Northern Building Contractors"
+          ]
+        ],
+        "columns": [
+          "id",
+          "_customer_id_account_name"
+        ]
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "on_parent",
+        "table": "invc.invoice_row",
+        "columns": "$id,@invoice_id.@customer_id.account_name",
+        "params": {
+          "minimum": 100
+        },
+        "defaults": false,
+        "count": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON (\"t1\".\"customer_id\"=\"t2\".\"id\" AND \"t1\".\"total\">:minimum)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON (\"t1\".\"customer_id\"=\"t2\".\"id\" AND \"t1\".\"total\">:minimum)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")",
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON (\"t1\".\"customer_id\"=\"t2\".\"id\" AND \"t1\".\"total\">:minimum)"
+          ],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "\"t0\".\"id\"",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "id": "id",
+            "_invoice_id__customer_id_account_name": "@invoice_id.@customer_id.account_name",
+            "_invoice_id_customer_id": "@invoice_id.customer_id",
+            "_invoice_id__customer_id_id": "@invoice_id.@customer_id.id",
+            "_invoice_id_total": "@invoice_id.total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            "00fZ8cJJNlqOajTvHddjLQ",
+            "Premier Landscaping Specialists"
+          ],
+          [
+            "0B0ssn8pP1qg9_XrEO2pmQ",
+            "Premier Landscaping Specialists"
+          ],
+          [
+            "0CHh_S0VOBGtwWKIzwQXVw",
+            "Thomas Baker"
+          ],
+          [
+            "0FLeuZiEO0S_230zyK5VRQ",
+            "Jessica Murray"
+          ],
+          [
+            "0TsK5FhFOWOjJNOcWUnJkA",
+            "National Engineering Group"
+          ]
+        ],
+        "columns": [
+          "id",
+          "_invoice_id__customer_id_account_name"
+        ]
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "on_root",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.account_name",
+        "params": {
+          "minimum": 100
+        },
+        "defaults": false,
+        "count": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON (\"t0\".\"customer_id\"=\"t1\".\"id\" AND \"t0\".\"total\">%(minimum)s)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON (\"t0\".\"customer_id\"=\"t1\".\"id\" AND \"t0\".\"total\">:minimum)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"id\" AS \"id\",\n\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON (\"t0\".\"customer_id\"=\"t1\".\"id\" AND \"t0\".\"total\">:minimum)"
+          ],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "\"t0\".\"id\"",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "id": "id",
+            "_customer_id_account_name": "@customer_id.account_name",
+            "customer_id": "customer_id",
+            "total": "total",
+            "_customer_id_id": "@customer_id.id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "on_parent",
+        "table": "invc.invoice_row",
+        "columns": "$id,@invoice_id.@customer_id.account_name",
+        "params": {
+          "minimum": 100
+        },
+        "defaults": false,
+        "count": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "$id",
+          "limit": 5
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON (\"t1\".\"customer_id\"=\"t2\".\"id\" AND \"t1\".\"total\">%(minimum)s)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"\n FROM \"invc\".\"invc_invoice_row\" AS t0\n       LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON (\"t1\".\"customer_id\"=\"t2\".\"id\" AND \"t1\".\"total\">:minimum)\nORDER BY \"t0\".\"id\"\nLIMIT 5",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"id\" AS \"id\",\n\"t2\".\"account_name\" AS \"_invoice_id__customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_invoice\" AS \"t1\" ON ((\"t0\".\"invoice_id\")=\"t1\".\"id\")",
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t2\" ON (\"t1\".\"customer_id\"=\"t2\".\"id\" AND \"t1\".\"total\">:minimum)"
+          ],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "\"t0\".\"id\"",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "id": "id",
+            "_invoice_id__customer_id_account_name": "@invoice_id.@customer_id.account_name",
+            "_invoice_id_customer_id": "@invoice_id.customer_id",
+            "_invoice_id__customer_id_id": "@invoice_id.@customer_id.id",
+            "_invoice_id_total": "@invoice_id.total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        }
+      }
+    }
+  ]
+}

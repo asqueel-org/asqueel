@@ -5,14 +5,14 @@ Builders recipe. `AsqueelDb()` produces a synchronous `SqlDatabase` with
 stable table, column and relation objects. Construction validates and binds the
 model without connecting, executing SQL, or applying migrations.
 
-The [CLI and named configurations](cli.md) guide covers the singleton
-`connection` declaration with `EnvResolver`, `~/.asqueel` registration,
+The [CLI and named configurations](cli.md) guide covers named
+`connection` declarations with `EnvResolver`, `~/.asqueel` registration,
 migration commands and a Python console with `db` available. The older root
 connection attributes shown below remain supported.
 
 `AsqueelDb("gestionale")` loads a registered configuration and returns a
-persistent database object. Use `db.commit()`, `db.rollback()` and `db.close()`
-explicitly. The previous `build_database(...)` function remains available as a
+persistent database object. Use `db.commit()`, `db.rollback()` and
+`db.closeConnection()` explicitly. The previous `build_database(...)` function remains available as a
 compatibility factory returning an `AsqueelDb` instance.
 
 ## Construct a database or render a recipe
@@ -23,37 +23,38 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 
 class Shop(SqlDatabaseConfig):
     def main(self, root):
-        database = root.db("shop", conninfo="dbname=shop")
+        database = root.db("shop", implementation="postgres", conninfo="dbname=shop")
         table = database.schemas().schema("sales").tables().table(
             "customer", pkey="id", name_long="Customers",
         )
         columns = table.columns()
         columns.column("id", dtype="L")
-        columns.column("name", dtype="T", x_ui_label='Name')
+        columns.column("name", dtype="T", name_long='Name')
 
 
 db = AsqueelDb(Shop)
-assert db.table("customer") is db.table("sales.customer")
-assert db.table("customer").config("name_long") == "Customers"
-db.close()
+assert db.table("sales.customer").model is db.model.table("sales.customer")
+assert db.table("sales.customer").attributes["name_long"] == "Customers"
+db.closeConnection()
 
 recipe = Shop()
 recipe.create()
 db = recipe.render()
-print(db.table("customer").query(columns="$id, $name").sqltext)
-db.close()
+print(db.table("sales.customer").query(columns="$id, $name").sqltext)
+db.closeConnection()
 ```
 
 The default renderer is an object renderer. `render()` returns a database, not
 DDL or serialized configuration. Structural changes belong to the migration integration.
 
-The root declares `name`, `implementation='postgresql'`, `conninfo=''`, and
+The root declares `name`, `implementation='sqlite'`, `conninfo=''`, and
 optional `connect_kwargs`. An empty connection string uses the driver's normal
-connection defaults when an operation is eventually executed. The supported
-implementations are `postgresql` and `sqlite` (see [SQLite](sqlite.md)). `connect_kwargs={'autocommit': True}` is rejected.
+connection defaults when an operation is eventually executed. The
+implementations are `sqlite` (see [SQLite](sqlite.md)), `postgres` and
+`postgres3`, as in GenroPy; `<name>:<module>` loads the adapter of another
+module (see [Adapters](adapters.md)). `connect_kwargs={'autocommit': True}` is rejected.
 
-`AsqueelDb(source, *, parents=None, driver=None, dialect=None,
-environment=None)` accepts a recipe class, an existing builder instance, or a
+`AsqueelDb(source, *, parents=None, environment=None)` accepts a recipe class, an existing builder instance, or a
 configuration recipe file as supported by Builders' `ConfigHandler`. Recipe
 classes and paths are instantiated by the handler. Existing instances are copied
 before layers are merged; previously rendered live objects are not copied into
@@ -68,7 +69,7 @@ root label. A childless higher-layer node does not erase the lower subtree.
 ```python
 class Deployment(SqlDatabaseConfig):
     def main(self, root):
-        root.db("shop", conninfo="host=localhost dbname=shop_test")
+        root.db("shop", implementation="postgres", conninfo="host=localhost dbname=shop_test")
 
 
 db = AsqueelDb(Deployment, parents=[Shop])
@@ -76,25 +77,25 @@ try:
     assert db.config("conninfo") == "host=localhost dbname=shop_test"
     assert db.table("sales.customer").config("pkey") == "id"
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
 Configuration reads use the handler's read stack: written values, annotated
 signature defaults, then the caller's explicit default. A missing value without
-a default raises `KeyError`. `None` means missing in this stack; `False`, zero
-and empty strings remain values.
+a default raises `KeyError`. Explicit nullable SQL attributes retain `None`;
+`False`, zero and empty strings also remain values.
 
 ```python
 db = AsqueelDb(Shop)
 try:
-    assert db.config("implementation") == "postgresql"
-    customer = db.table("customer")
+    assert db.config("implementation") == "postgres"
+    customer = db.table("sales.customer")
     assert customer.config("pkey") == "id"
     assert customer.column("name").config("dtype") == "T"
     assert customer.config("optional_hint", default=False) is False
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -124,7 +125,7 @@ Against an existing database with the example table:
 ```python
 db = AsqueelDb(Shop)
 try:
-    customer = db.table("customer")
+    customer = db.table("sales.customer")
     try:
         customer.insert({"id": 1, "name": "Ada"})
         rows = customer.query(where="$id = :wanted", wanted=1).fetch()
@@ -135,7 +136,7 @@ try:
         raise
 
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -145,13 +146,11 @@ takes a mapping when names are built at runtime or clash with an option. Unused 
 arguments fail rather than silently turning a misspelled option into a parameter.
 Queries compile in the environment current at the terminal call.
 
-`record(pkey)` returns a lazy exactly-one reader. `.output('dict')` returns a
-copy of its cached result; `.refresh()` reloads it in the current environment.
-`record(pkey, mode='dict')` is the immediate form. These APIs use ordinary Python
-dictionaries. Legacy `Selection`, Bag output, and the `count()` terminal are not
-implemented. Use an explicit aggregate projection for counting.
+`query(...).fetchRecord()` executes and returns exactly one row.
+`ignoreMissing=True` returns None for no row. `query.count()` follows the legacy count algorithm;
+Selection remains outside this profile.
 
-Insert, update, delete, soft-delete and restore return `QueryResult`. Read the
+Insert and update return the record. Read the
 [transaction guide](transactions.md) before using writes: operations share the selected connection and do not commit individually.
 
 ## Add business behavior
@@ -160,12 +159,28 @@ Configure `x_table_class=YourTableSubclass` to attach before/after insert, updat
 and deletion hooks. See [table hooks](hooks.md) for the complete example, locking
 semantics and transaction rules.
 
+## Load a package folder in the legacy layout
+
+`package(name, path=<folder>)` loads a folder holding `main.py` (class
+`Package`) and `model/<table>.py` (class `Table`). Each `Table.config_db(self, pkg)`
+declares its table on `pkg` with the normal grammar; `Package.config_attributes()`
+and `Package.custom_type_<dtype>()` give package attributes and column types.
+The `Table` class is the runtime table, so its triggers run like those of an
+`x_table_class`. Layout and recipe packages coexist in one database. The layout
+is provisional; see [legacy features](legacy-features.md).
+
+```python
+packages = root.packages()
+packages.package('sales', path='/path/to/sales')
+crm = packages.package('crm')
+```
+
 ## Ownership and advanced integration
 
 A database shares its model and table handles between threads. Connections and
 mutable execution state are isolated per thread. Repeated table lookup within one
 instance preserves identity; custom table classes must not store per-request state
-on shared attributes. Table and column `.config` views read the completed model;
+on shared attributes. Table and column nodes expose the completed model through `.attributes`;
 editing the source or `db.config.builder` does not alter their structural values.
 `db.config` retains administrative connection configuration. Editing it does not
 reconfigure an already-open physical connection.
@@ -176,7 +191,25 @@ use; it does not require a second compiler or an alternative migration system.
 
 ### Connection implementation inheritance
 
-`connection(implementation=...)` explicitly selects the backend. When omitted,
-it inherits `db(implementation=...)`, whose default is PostgreSQL. For example,
-`root.db("demo", implementation="sqlite").connection(name="app.db")` selects
-SQLite. An explicit connection implementation overrides the DB default.
+`connection(implementation=...)` selects the backend; when omitted it inherits
+`db(implementation=...)`, whose default is PostgreSQL. Named connections use the
+same dialect as the DB root:
+
+```python
+root.db("demo", implementation="sqlite").connection("main", database="app.db")
+```
+
+Use `database` for the physical database and `name` for the logical connection.
+Additional connections may target other databases of the same dialect. Select
+one through `db.tempEnv(connectionName="reporting")`; `main` must be declared.
+For PostgreSQL, `dsn` is an alternative to the individual connection fields.
+Driver options belong to `connection.options().driver(...)`. On SQLite they are
+`timeout`, `cached_statements` and `foreignKeys` (default `True`; `False` runs
+`PRAGMA foreign_keys = OFF`, see the [SQLite guide](sqlite.md)). On PostgreSQL
+they are `connect_timeout`, `application_name`, `sslmode`, `sslrootcert` and
+`options`; `foreignKeys` is refused there.
+
+For compatibility, declarations without `database` or `dsn` still interpret
+`name` as the physical database name and allow an explicit connection backend
+to override the root default. The [CLI guide](cli.md) distinguishes these older
+forms from named connections and documents resolver handling.

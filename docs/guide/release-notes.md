@@ -1,11 +1,58 @@
 # Release notes
 
+## Unreleased
+
+- `onDelete_sql`/`onUpdate_sql` accept the legacy abbreviations `C`, `R`, `N`,
+  `SN`, `SD`, in any case.
+- Every relation on a physical column indexes its columns, also with
+  `foreign_key=False` (`indexed=False` skips it); a relation to target columns
+  other than the target pkey also indexes them on the target table. A column
+  that is part of the pkey gets no index, as legacy. The first migration after
+  the upgrade therefore adds `CREATE INDEX` commands for relations without a
+  foreign key, for non-pkey targets and for `indexed={...}` options.
+- `indexed={...}` options that differ from an explicit `index()` on the same
+  columns raise `UnsupportedFeatureError`; so does a partial or non-btree
+  explicit index on a relation target that needs a full one.
+- `column(indexed={...})` carries the index options: `unique`, `method`,
+  `where`, `tablespace`, `sorting`, `with_<name>`. `unique` without `where`
+  makes the column unique instead of creating an index.
+- `migration_plan()` and `migrate()` take `foreignKeys`, `force` and `backup`;
+  the CLI `db plan|apply` takes `--no-foreign-keys`, `--force`, `--backup`. A
+  conversion on a filled column without `force` raises `MigrationError`, and so
+  does an error while applying the DDL. With `backup`, a kept backup column
+  adds a warning to the returned plan and does not fail the final re-check.
+  `SqlMigrationRenderer` takes `foreignKeys`.
+- SQLite schema files change name, as in GenroPy: each attached schema is
+  `<schema>.db` in the folder of the main file, no longer `<stem>_<schema>.db`.
+  An existing SQLite database needs its schema files renamed. A missing main
+  file gets its folder created.
+- SQLite connection option `foreignKeys` (default `True`): `False` runs
+  `PRAGMA foreign_keys = OFF`. PostgreSQL refuses it.
+- `vacuum()` on SQLite runs `VACUUM` on every attached schema, not only `main`.
+- SQLite DDL declares the legacy type names (`character varying`, `character`,
+  `timestamp`, `time`); requires asqueel-migration 0.3.1.
+- Connection lifecycle as in GenroPy. `session(db, **env)` is the unit of work
+  outside a request: entry clears `currentEnv` and applies `env`, exit calls
+  `closeConnection()`, also when the body raises. `closeConnection()` rolls
+  back what was not committed and closes every named connection of the
+  thread; the database stays usable.
+- Removed in favour of `session(db)` and `closeConnection()`: `close()`,
+  `with db:` (also `with build_database(...) as db:`), `acquire()`, the
+  `outcome` property and the error class raised by a closed database.
+- `deferToCommit` and `deferAfterCommit` queues live in `currentEnv`, under the
+  GenroPy keys; `clearCurrentEnv()` drops them. `deferredRaise` keeps its
+  exceptions in `currentEnv['_pendingExceptions__main_db_<connectionName>']`,
+  one list per named connection (GenroPy keeps one global `_pendingExceptions`).
+- `AsqueelDbMixin` enters `session(db)` at the first take of a database during
+  a call and leaves it in `release_databases()`.
+
 ## 0.6.0
 
 This release completes the structural path from native package configuration to
 live model objects and migration JSON. Package schemas follow the legacy rules;
-table and column declarations retain labels, captions and flat namespaced
-attributes. Existing Builders resolvers supply external or calculated values.
+table and column declarations retain labels, captions and the other attributes
+their grammar declares; an attribute outside the grammar raises. Existing
+Builders resolvers supply external or calculated values.
 
 - Expand structural options, including system fields, hierarchies, counters,
   dynamic fields, audit and attachments, before resolving cross-table relations
@@ -14,11 +61,10 @@ attributes. Existing Builders resolvers supply external or calculated values.
   legacy source or repeating option expansion. Normalize logical types at the
   physical projection boundary.
 - Include the native `test_invoice_pg` example: 74 tables across sys, adm and
-  invc, 789 physical columns, 526 virtual columns, 58 foreign keys and 282 indexes.
+  invc, 789 physical columns, 522 virtual columns, 58 foreign keys and 282 indexes.
   Its migration JSON equals the legacy oracle after excluding `sys.locked_record`.
 - Keep `validate_*` as column validations; `validate_values` deliberately replaces
-  legacy `values`. Attribute namespaces are flat: use `x_ui_label=...`, not an
-  `x_ui` dictionary. `sys_fields(syscode=True)` adds an indexed UNIQUE column
+  legacy `values`. `sys_fields(syscode=True)` adds an indexed UNIQUE column
   without reintroducing system records.
 
 System records, locked records, release options and optional diagnostics remain
@@ -62,9 +108,9 @@ Released on PyPI and tagged `v0.5.1`.
   configuration. See "Migrate from Python" in the migrations guide.
 - `asqueel db plan/apply` use the same methods. Changed behaviour: `db apply`
   now exits 1, naming the skipped changes, instead of 0 with a warning.
-- Databases per call. `AsqueelDb.acquire()` takes a database for the current
-  call: the first take on a thread clears `currentEnv`, and `closeConnection()`
-  ends the take. `AsqueelDbMixin` gives a server and its applications databases
+- Databases per call. `AsqueelDb.acquire` took a database for the current
+  call: the first take on a thread cleared `currentEnv`, and `closeConnection()`
+  ended the take. It was removed later in favour of `session(db)`. `AsqueelDbMixin` gives a server and its applications databases
   by name (`set_asqueel_db`, `db`, `get_db` with `app:db` names) and closes the
   ones taken through an owner (`release_databases`). See "Own databases in a
   server and its applications" in the configuration grammars guide.

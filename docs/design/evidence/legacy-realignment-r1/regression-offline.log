@@ -1,0 +1,3008 @@
+........................................................................ [  3%]
+........................................................................ [  6%]
+........................................................................ [  9%]
+........................................................................ [ 13%]
+........................................................................ [ 16%]
+........................................................................ [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 26%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 36%]
+........................................................................ [ 39%]
+........................................................................ [ 43%]
+........................................................................ [ 46%]
+........................................................................ [ 49%]
+........................................................................ [ 53%]
+........................................................................ [ 56%]
+........................................................................ [ 59%]
+........................................................................ [ 63%]
+...........................E............................................ [ 66%]
+........................................................................ [ 69%]
+........................................................................ [ 72%]
+........................................................................ [ 76%]
+........................................................................ [ 79%]
+........................................................................ [ 82%]
+........................................................................ [ 86%]
+........................................................................ [ 89%]
+..........................................................EEEEE....EEEE. [ 92%]
+...EEEE................................................................. [ 96%]
+........................................................................ [ 99%]
+...........                                                              [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_hierarchical_json_apply_introspect_rediff_and_evolution _
+
+request = <SubRequest 'pg_database' for <Function test_hierarchical_json_apply_introspect_rediff_and_evolution>>
+pg_params = {'host': '127.0.0.1', 'port': '5432', 'user': 'postgres'}
+
+    @pytest.fixture
+    def pg_database(request, pg_params):
+        """PgDatabase on a dedicated empty test database, dropped in teardown."""
+        dbname = f"{DB_PREFIX}{request.function.__name__}"[:63]
+>       _drop_pg_database(pg_params, dbname)
+
+tests/conftest.py:147: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/conftest.py:108: in _drop_pg_database
+    with psycopg.connect(dbname="postgres", autocommit=True, **pg_params) as conn:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'dbname=postgres host=127.0.0.1 port=5432 user=postgres hostaddr=127.0.0.1'
+autocommit = True, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None
+kwargs = {'dbname': 'postgres', 'host': '127.0.0.1', 'port': '5432', 'user': 'postgres'}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0] _
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null5')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null5')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1] _
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null6')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null6')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2] _
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null7')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null7')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-40-40-expected3] _
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-40-40-expected3]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null8')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-40-40-expected3]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null8')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_inclusive_range_with_nullable_bound_parameters[postgresql-50-40-expected4] _
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-50-40-expected4]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null9')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_inclusive_range_with_nullable_bound_parameters[postgresql-50-40-expected4]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_inclusive_range_with_null9')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-None-None-True] _
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-None-None-True]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_4')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-None-None-True]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_4')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-0-None-False] _
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-0-None-False]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_5')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-0-None-False]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_5')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-None-10-False] _
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-None-10-False]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_6')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-None-10-False]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_6')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_null_value_range_retains_sql_unknown_in_where[postgresql-0-10-False] _
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-0-10-False]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_7')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_null_value_range_retains_sql_unknown_in_where[postgresql-0-10-False]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_null_value_range_retains_7')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0] _
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut4')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut4')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1] _
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut5')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut5')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2] _
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut6')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut6')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+_ ERROR at setup of test_period_bound_dates_execute_on_a_date_column[postgresql--expected3] _
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql--expected3]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut7')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+>               db.execute(CompiledQuery(statement.format(schema=schema)))
+
+tests/query_completion_support.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest 'shop' for <Function test_period_bound_dates_execute_on_a_date_column[postgresql--expected3]>>
+tmp_path = PosixPath('/private/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/pytest-of-gporcari/pytest-188/test_period_bound_dates_execut7')
+
+    @pytest.fixture(params=BACKENDS)
+    def shop(request, tmp_path):
+        if request.param == 'sqlite':
+            path = tmp_path / 'shop.db'
+    
+            class SqliteRecipe(SqlDatabaseConfig):
+                def main(self, root):
+                    db = root.db('shop')
+                    db.connection(name=str(path), implementation='sqlite')
+                    declare_tables(db.schemas().schema('sales'))
+    
+            db = AsqueelDb(SqliteRecipe)
+            try:
+                for statement in SQLITE_DDL:
+                    db.execute(statement)
+                db.commit()
+                seed(db, 'sales.invoice')
+                yield Shop('sqlite', db, 'sales.invoice')
+            finally:
+                db.rollback()
+                db.close()
+            return
+        schema = 'query_completion_' + uuid4().hex
+        dsn = postgres_dsn()
+    
+        class PostgresRecipe(SqlDatabaseConfig):
+            def main(self, root):
+                declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
+                    'sales', x_sql_schema=schema))
+    
+        db = AsqueelDb(PostgresRecipe)
+        try:
+            for statement in PG_DDL:
+                db.execute(CompiledQuery(statement.format(schema=schema)))
+            db.commit()
+            invoice_sql = f'"{schema}".invoice'
+            seed(db, invoice_sql)
+            yield Shop('postgresql', db, invoice_sql)
+        finally:
+            db.rollback()
+>           db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+tests/query_completion_support.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/asqueel/runtime.py:201: in execute
+    return self._execute_on_connection(self._connection_state, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/asqueel/runtime.py:389: in _execute_on_connection
+    state['connection'] = self.driver.connect(
+src/asqueel/drivers/psycopg.py:65: in connect
+    return psycopg.connect(conninfo, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'psycopg.Connection'>
+conninfo = 'user=postgres connect_timeout=3 dbname=postgres host=127.0.0.1 port=5432 hostaddr=127.0.0.1'
+autocommit = False, prepare_threshold = 5, context = None, row_factory = None
+cursor_factory = None, kwargs = {}
+
+    @classmethod
+    def connect(
+        cls,
+        conninfo: str = "",
+        *,
+        autocommit: bool = False,
+        prepare_threshold: int | None = 5,
+        context: AdaptContext | None = None,
+        row_factory: RowFactory[Row] | None = None,
+        cursor_factory: type[Cursor[Row]] | None = None,
+        **kwargs: ConnParam,
+    ) -> Self:
+        """
+        Connect to a database server and return a new `Connection` instance.
+        """
+    
+        params = cls._get_connection_params(conninfo, **kwargs)
+        timeout = timeout_from_conninfo(params)
+        rv = None
+        attempts = conninfo_attempts(params)
+        conn_errors: list[tuple[e.Error, str]] = []
+        for attempt in attempts:
+            tdescr = (attempt.get("host"), attempt.get("port"), attempt.get("hostaddr"))
+            descr = "host: %r, port: %r, hostaddr: %r" % tdescr
+            logger.debug("connection attempt: %s", descr)
+            try:
+                conninfo = make_conninfo("", **attempt)
+                gen = cls._connect_gen(conninfo)
+                rv = waiting.wait_conn(gen, interval=_WAIT_INTERVAL, timeout=timeout)
+            except e._WaitTimeout:
+                tex = e.ConnectionTimeout("connection timeout expired")
+                logger.debug("connection failed: %s: %s", descr, str(tex))
+                conn_errors.append((tex, descr))
+            except e.Error as ex:
+                logger.debug("connection failed: %s: %s", descr, str(ex))
+                conn_errors.append((ex, descr))
+            except e._NO_TRACEBACK as ex:
+                raise ex.with_traceback(None)
+            else:
+                logger.debug("connection succeeded: %s", descr)
+                break
+    
+        if not rv:
+            last_ex = conn_errors[-1][0]
+            if len(conn_errors) == 1:
+>               raise last_ex.with_traceback(None)
+E               psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 5432 failed: Operation not permitted
+E               	Is the server running on that host and accepting TCP/IP connections?
+
+venv/lib/python3.12/site-packages/psycopg/connection.py:126: OperationalError
+=========================== short test summary info ============================
+ERROR tests/object_tree/test_migration.py::test_hierarchical_json_apply_introspect_rediff_and_evolution
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-None-expected0]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-None-40-expected1]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-None-expected2]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-40-40-expected3]
+ERROR tests/native_compiler/test_query_macros.py::test_inclusive_range_with_nullable_bound_parameters[postgresql-50-40-expected4]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-None-None-True]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-0-None-False]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-None-10-False]
+ERROR tests/native_compiler/test_query_macros.py::test_null_value_range_retains_sql_unknown_in_where[postgresql-0-10-False]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2026-expected0]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2025-expected1]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql-2026-01-01-expected2]
+ERROR tests/native_compiler/test_query_macros.py::test_period_bound_dates_execute_on_a_date_column[postgresql--expected3]
+2157 passed, 14 errors in 17.93s

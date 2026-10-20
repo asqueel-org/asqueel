@@ -43,7 +43,7 @@ rows = db.table('sales.invoice').query(
 
 Both queries choose a projection. In Asqueel the path supplies the join from
 the model, and SQL expressions supply the filter and ordering. Values use
-parameters; the returned rows are dictionaries. An alias column can name the
+parameters; the returned rows are mutable Toolbox `NamedList` objects. An alias column can name the
 customer path once, while a formula column can centralize a calculation used
 by several queries. See [queries](queries.md) and [formulas](formulas.md).
 
@@ -59,7 +59,7 @@ a flush can also happen automatically before a query or commit. In Asqueel:
 ```python
 customer = db.table('sales.customer')
 try:
-    values = customer.record(101).output('dict')
+    values = dict(customer.query(where='$id = :id', id=101).fetchRecord())
     values['name'] = 'Ada Lovelace'
     customer.update(values)  # Execute UPDATE now, inside the transaction.
     db.commit()
@@ -70,8 +70,8 @@ except Exception:
 
 Changing `values` alone schedules nothing. `update()` executes SQL and
 `commit()` completes the transaction. There is no implicit flush of other
-modified dictionaries and no automatic persistence of related objects. A record
-reader keeps a snapshot until `refresh()`; ordinary query fetches execute again.
+modified rows and no automatic persistence of related objects. Query fetches
+execute again.
 
 An Asqueel named connection owns an independent transaction, not an identity map.
 Choosing another connection does not merge object state or coordinate commits.

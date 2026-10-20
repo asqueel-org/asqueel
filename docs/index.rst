@@ -58,6 +58,7 @@ Choose your starting point
    guide/models
    guide/queries
    guide/writes
+   guide/data-files
    guide/transactions
    guide/hooks
    guide/formulas
@@ -76,6 +77,7 @@ Choose your starting point
    :caption: Coming from another data layer
 
    guide/legacy
+   guide/legacy-features
    guide/for-sqlalchemy
    guide/for-django
    guide/for-peewee

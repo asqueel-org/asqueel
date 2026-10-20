@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-14",
+  "phase": "R0",
+  "compiler_modified": false,
+  "existing_tests_modified": false,
+  "improvements_approved": [],
+  "frozen_files_unchanged": 248,
+  "production_tests_examples_unchanged": 232,
+  "catalogue_check": {
+    "mode": "check",
+    "cases": 71,
+    "observations": 132,
+    "primary_status": {
+      "compatibilita_confermata": 24,
+      "recupero_legacy": 9,
+      "decisione_aperta": 33,
+      "dipendenza_successiva": 4,
+      "limite_comune": 1
+    },
+    "original_definitions_legacy": 19,
+    "original_definitions_available_by_snapshot": {
+      "legacy": 19,
+      "compound": 9,
+      "v2": 9,
+      "v3": 9,
+      "v3_merged": 13,
+      "v4": 13,
+      "simplify": 13,
+      "next": 19
+    },
+    "current_conflicting_definitions": 15,
+    "frozen_files": 248,
+    "approved_improvements": 0
+  },
+  "tests": [
+    {
+      "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts='' tests/native_compiler/test_compiler.py tests/native_compiler/test_compile_only.py tests/object_tree/test_minimal_select.py",
+      "passed": 294,
+      "seconds": 4.11,
+      "log": "asqueel-regression.log"
+    },
+    {
+      "command": "PYTHONPATH=/tmp/asqueel-formula-baseline/legacy/gnrpy /tmp/asqueel-formula-baseline/env/bin/python -m pytest -q -o addopts='' docs/design/probes/test_legacy_minimal_select.py",
+      "passed": 6,
+      "seconds": 0.5,
+      "log": "legacy-compile-only.log",
+      "kind": "existing adapted compile-only probe; not original runtime tests"
+    }
+  ],
+  "not_rerun": [
+    "132 SQL execution comparisons from report 78",
+    "19 original runtime definitions",
+    "full legacy branch suites",
+    "benchmarks"
+  ],
+  "catalogue_source_sha256": "4db00990c2e1e3c2ea2b6f0b87bdad562ef47da34526ff95ffae4e02c17a2d7a",
+  "ruff": "passed"
+}

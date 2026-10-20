@@ -1,0 +1,5 @@
+✓ Phase 2 completed: inventory, areas 5-8 (writes, transactions, migration, dialects)
+
+- `docs/design/112-legacy-inventory.md` ora ha le aree 5-8 (30 + 29 + 29 + 23 righe) e `## Riepilogo`. Il totale è 205 righe: 45 presente, 76 diverso, 68 mancante, 16 nuovo.
+- Il checker con `--areas 1-8` esce 0 e `sphinx -W` passa. Sotto `src/` e `tests/` non c'è nessuna modifica. Il commit è `762fd7c`.
+- Il codice non segue la decisione del 2026-10-16 su SQLite. `src/asqueel/drivers/sqlite.py:64-65` apre `BEGIN IMMEDIATE` anche per le letture: la riga A6.27 descrive il codice. Le pagine pubbliche che il codice contraddice sono elencate in `notes.md` sotto `## Phase 2`.

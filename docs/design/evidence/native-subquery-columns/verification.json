@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-14",
+  "scope": "Native subQueryColumn dictionaries; plain SELECT and PostgreSQL JSON/XML; no new syntax.",
+  "baseline_before": {
+    "passed": 0,
+    "failed": 7,
+    "cause": "UnsupportedFeatureError: requires subQueryColumn compiler capability"
+  },
+  "ported_legacy": {
+    "passed": 7,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "compile_only": {
+    "passed": 17,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "controlled_results": {
+    "passed": 6,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "full_suite": {
+    "passed": 1870,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 13
+  },
+  "commands": {
+    "full_suite": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts= --junitxml=docs/design/evidence/native-subquery-columns/asqueel-full.xml",
+    "ruff": "venv/bin/python -m ruff check src tests scripts",
+    "mypy": "venv/bin/python -m mypy src/asqueel",
+    "sphinx": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m sphinx -W --keep-going -b html docs /tmp/asqueel-subquery-columns-docs"
+  },
+  "ruff": "passed",
+  "mypy": "passed (51 source files)",
+  "sphinx": "passed (strict build)",
+  "limits": [
+    "SQLite JSON/XML modes rejected explicitly",
+    "String subquery method references unsupported",
+    "No automatic DISTINCT",
+    "Query chains and set operators remain deferred"
+  ]
+}

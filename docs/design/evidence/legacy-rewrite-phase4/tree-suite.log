@@ -1,0 +1,571 @@
+........................................................................ [  3%]
+........................................................................ [  6%]
+........................................................................ [  9%]
+........................................................................ [ 12%]
+................F.....................F................................. [ 15%]
+........................................................................ [ 19%]
+........................................................................ [ 22%]
+........................................................................ [ 25%]
+........................................................................ [ 28%]
+........................................................................ [ 31%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 41%]
+........................................................................ [ 44%]
+........................................................................ [ 47%]
+........................................................................ [ 50%]
+........................................................................ [ 53%]
+........................................................................ [ 57%]
+........................................................................ [ 60%]
+........................................................................ [ 63%]
+........................................................................ [ 66%]
+........................................................................ [ 69%]
+......FFFFFF....FFFFFF...FFFF........................................... [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 79%]
+........................................................................ [ 82%]
+........................................................................ [ 85%]
+...............................................................F........ [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 95%]
+........F............................................................... [ 98%]
+........F.F........................                                      [100%]
+=================================== FAILURES ===================================
+_______________ test_legacy_sql_and_kwargs_contract[sqlite-star] _______________
+
+database = <asqueel.application.SqlDatabase object at 0x10a327680>
+name = 'star'
+
+    @pytest.mark.parametrize('name', list(contract_parameters()))
+    def test_legacy_sql_and_kwargs_contract(database, name):
+        case = next(c for c in ORACLE['cases']
+                    if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+        request, expected = case['request'], case['expected']
+        query = database.table(request['table']).query(
+            request['columns'], sqlparams=request['params'], **request['options'])
+        if name == 'default_pkey':
+            # Agreed new default: pkey is opt-in; the explicit switch reproduces legacy.
+            assert [c.name for c in query.compiled.columns] == ['inv_number']
+            query = database.table(request['table']).query(
+                request['columns'], sqlparams=request['params'], addPkeyColumn=True, **request['options'])
+        actual = query._compile(database.compiler.count) if request['count'] else query.compiled
+        sql, params = actual.sql, dict(actual.params)
+        expected_sql = expected['sql']
+        expected_params = {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
+        if name == 'formula_parameters':
+            # Local scope ownership is the contract already agreed; names include
+            # id() in the legacy and are deliberately not a process-stable API.
+            sql, params = local_bindings(sql, params, database.dialect.name)
+            expected_sql, expected_params = local_bindings(
+                expected_sql, expected_params, database.dialect.name)
+>       assert normalized(sql) == normalized(expected_sql)
+E       assert 'SELECT "t0"....."id" LIMIT 1' == 'SELECT "t0"....."id" LIMIT 1'
+E         
+E         Skipping 55 identical trailing characters in diff, use -v to show
+E         - SELECT "t0"."id" AS "id", "t0"."__ins_ts" AS "__ins_ts", "t0"."__del_ts" AS "__del_ts", "t0"."__mod_ts" AS "__mod_ts", "t0"."__ins_user" AS "__ins_user", "t0"."__is_draft" AS "__is_draft", "t0"."account_name" AS "account_name", "t0"."street_address" AS "street_address", "t0"."suburb" AS "suburb", "t0"."state" AS "state", "t0"."postcode" AS "postcode", "t0"."customer_type_code" AS "customer_type_code", "t0"."payment_type_code" AS "payment_type_code", "t0"."notes" AS "notes", "t0"."email" AS "email", "t0"....
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/object_tree/test_legacy_rewrite_contracts.py:102: AssertionError
+_____________ test_legacy_sql_and_kwargs_contract[postgresql-star] _____________
+
+database = <asqueel.application.SqlDatabase object at 0x10a2519a0>
+name = 'star'
+
+    @pytest.mark.parametrize('name', list(contract_parameters()))
+    def test_legacy_sql_and_kwargs_contract(database, name):
+        case = next(c for c in ORACLE['cases']
+                    if c['dialect'] == database.dialect.name and c['request']['name'] == name)
+        request, expected = case['request'], case['expected']
+        query = database.table(request['table']).query(
+            request['columns'], sqlparams=request['params'], **request['options'])
+        if name == 'default_pkey':
+            # Agreed new default: pkey is opt-in; the explicit switch reproduces legacy.
+            assert [c.name for c in query.compiled.columns] == ['inv_number']
+            query = database.table(request['table']).query(
+                request['columns'], sqlparams=request['params'], addPkeyColumn=True, **request['options'])
+        actual = query._compile(database.compiler.count) if request['count'] else query.compiled
+        sql, params = actual.sql, dict(actual.params)
+        expected_sql = expected['sql']
+        expected_params = {k: v for k, v in expected['params'].items() if k != 'jc_kwargs'}
+        if name == 'formula_parameters':
+            # Local scope ownership is the contract already agreed; names include
+            # id() in the legacy and are deliberately not a process-stable API.
+            sql, params = local_bindings(sql, params, database.dialect.name)
+            expected_sql, expected_params = local_bindings(
+                expected_sql, expected_params, database.dialect.name)
+>       assert normalized(sql) == normalized(expected_sql)
+E       assert 'SELECT "t0"....."id" LIMIT 1' == 'SELECT "t0"....."id" LIMIT 1'
+E         
+E         Skipping 55 identical trailing characters in diff, use -v to show
+E         - SELECT "t0"."id" AS "id", "t0"."__ins_ts" AS "__ins_ts", "t0"."__del_ts" AS "__del_ts", "t0"."__mod_ts" AS "__mod_ts", "t0"."__ins_user" AS "__ins_user", "t0"."__is_draft" AS "__is_draft", "t0"."account_name" AS "account_name", "t0"."street_address" AS "street_address", "t0"."suburb" AS "suburb", "t0"."state" AS "state", "t0"."postcode" AS "postcode", "t0"."customer_type_code" AS "customer_type_code", "t0"."payment_type_code" AS "payment_type_code", "t0"."notes" AS "notes", "t0"."email" AS "email", "t0"....
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests/object_tree/test_legacy_rewrite_contracts.py:102: AssertionError
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs3-UnsupportedFeatureError-Star expansion] _
+
+db = <asqueel.application.SqlDatabase object at 0x10a241160>
+kwargs = {'columns': '*'}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Star expansion'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs4-UnsupportedFeatureError-macro] _
+
+db = <asqueel.application.SqlDatabase object at 0x10a240e30>
+kwargs = {'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>, message = 'macro'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs5-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x10ac2b320>
+kwargs = {'columns': '$id', 'group_by': '$id'}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs6-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x10adc8710>
+kwargs = {'columns': '$id', 'distinct': True}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs7-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x10a21a2d0>
+kwargs = {'columns': '$id', 'for_update': True}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[postgresql-kwargs8-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x10aed22a0>
+kwargs = {'columns': '$id', 'bagFields': True}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs3-UnsupportedFeatureError-Star expansion] _
+
+db = <asqueel.application.SqlDatabase object at 0x109c501d0>
+kwargs = {'columns': '*'}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Star expansion'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs4-UnsupportedFeatureError-macro] _
+
+db = <asqueel.application.SqlDatabase object at 0x10a1ffce0>
+kwargs = {'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>, message = 'macro'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs5-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x109bf8a10>
+kwargs = {'columns': '$id', 'group_by': '$id'}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs6-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x109bf8f20>
+kwargs = {'columns': '$id', 'distinct': True}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs7-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x10ad9bf20>
+kwargs = {'columns': '$id', 'for_update': True}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_ test_unavailable_features_fail_explicitly[sqlite-kwargs8-UnsupportedFeatureError-Grouping] _
+
+db = <asqueel.application.SqlDatabase object at 0x10a2e4e90>
+kwargs = {'columns': '$id', 'bagFields': True}
+error = <class 'asqueel.contracts.UnsupportedFeatureError'>
+message = 'Grouping'
+
+    @pytest.mark.parametrize('kwargs,error,message', [
+        ({'columns': '$missing'}, ValueError, 'Unknown column'),
+        ({'columns': '$id', 'limit': -1}, ValueError, 'nonnegative'),
+        ({'columns': '$id', 'offset': True}, ValueError, 'nonnegative'),
+        ({'columns': '*'}, UnsupportedFeatureError, 'Star expansion'),
+        ({'columns': '$id', 'where': '#IN_RANGE($total,:low,:high)', 'low': 1, 'high': 2}, UnsupportedFeatureError, 'macro'),
+        ({'columns': '$id', 'group_by': '$id'}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'distinct': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'for_update': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'bagFields': True}, UnsupportedFeatureError, 'Grouping'),
+        ({'columns': '$id', 'unused': 3}, UnsupportedFeatureError, 'unused keyword'),
+    ])
+    def test_unavailable_features_fail_explicitly(db, kwargs, error, message):
+>       with pytest.raises(error, match=message):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:159: Failed
+_______ test_unported_implicit_behaviour_is_not_silently_ignored[draft] ________
+
+feature = 'draft'
+
+    @pytest.mark.parametrize('feature', ['draft', 'deleted', 'partition', 'order'])
+    def test_unported_implicit_behaviour_is_not_silently_ignored(feature):
+        source, table = recipe('sqlite')
+        if feature == 'draft':
+            table.options().sys_fields(id=False, draft=True, ldel=False)
+        elif feature == 'deleted':
+            table.options().sys_fields(id=False, ldel=True)
+        elif feature == 'partition':
+            table.options().partition('customer', field='customer_id', value=12)
+        else:
+            table.attr['order_by'] = '$total DESC'
+        with bind(source) as db:
+            table = db.table('sales.invoice')
+>           with pytest.raises(UnsupportedFeatureError, match='Implicit filters|Table default order'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:196: Failed
+______ test_unported_implicit_behaviour_is_not_silently_ignored[deleted] _______
+
+feature = 'deleted'
+
+    @pytest.mark.parametrize('feature', ['draft', 'deleted', 'partition', 'order'])
+    def test_unported_implicit_behaviour_is_not_silently_ignored(feature):
+        source, table = recipe('sqlite')
+        if feature == 'draft':
+            table.options().sys_fields(id=False, draft=True, ldel=False)
+        elif feature == 'deleted':
+            table.options().sys_fields(id=False, ldel=True)
+        elif feature == 'partition':
+            table.options().partition('customer', field='customer_id', value=12)
+        else:
+            table.attr['order_by'] = '$total DESC'
+        with bind(source) as db:
+            table = db.table('sales.invoice')
+>           with pytest.raises(UnsupportedFeatureError, match='Implicit filters|Table default order'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:196: Failed
+_____ test_unported_implicit_behaviour_is_not_silently_ignored[partition] ______
+
+feature = 'partition'
+
+    @pytest.mark.parametrize('feature', ['draft', 'deleted', 'partition', 'order'])
+    def test_unported_implicit_behaviour_is_not_silently_ignored(feature):
+        source, table = recipe('sqlite')
+        if feature == 'draft':
+            table.options().sys_fields(id=False, draft=True, ldel=False)
+        elif feature == 'deleted':
+            table.options().sys_fields(id=False, ldel=True)
+        elif feature == 'partition':
+            table.options().partition('customer', field='customer_id', value=12)
+        else:
+            table.attr['order_by'] = '$total DESC'
+        with bind(source) as db:
+            table = db.table('sales.invoice')
+>           with pytest.raises(UnsupportedFeatureError, match='Implicit filters|Table default order'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:196: Failed
+_______ test_unported_implicit_behaviour_is_not_silently_ignored[order] ________
+
+feature = 'order'
+
+    @pytest.mark.parametrize('feature', ['draft', 'deleted', 'partition', 'order'])
+    def test_unported_implicit_behaviour_is_not_silently_ignored(feature):
+        source, table = recipe('sqlite')
+        if feature == 'draft':
+            table.options().sys_fields(id=False, draft=True, ldel=False)
+        elif feature == 'deleted':
+            table.options().sys_fields(id=False, ldel=True)
+        elif feature == 'partition':
+            table.options().partition('customer', field='customer_id', value=12)
+        else:
+            table.attr['order_by'] = '$total DESC'
+        with bind(source) as db:
+            table = db.table('sales.invoice')
+>           with pytest.raises(UnsupportedFeatureError, match='Implicit filters|Table default order'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE UnsupportedFeatureError
+
+tests/object_tree/test_minimal_select.py:196: Failed
+___________ test_recognizer_requires_closing_parenthesis[postgresql] ___________
+
+db = <asqueel.application.SqlDatabase object at 0x10a772090>
+
+    def test_recognizer_requires_closing_parenthesis(db):
+>       with pytest.raises(ValueError, match='missing closing parenthesis'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'missing closing parenthesis'
+E         Actual message: 'wrong level: missing :)'
+
+tests/object_tree/test_phase2_relations.py:111: AssertionError
+_____________ test_recognizer_requires_closing_parenthesis[sqlite] _____________
+
+db = <asqueel.application.SqlDatabase object at 0x10a1ffe60>
+
+    def test_recognizer_requires_closing_parenthesis(db):
+>       with pytest.raises(ValueError, match='missing closing parenthesis'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'missing closing parenthesis'
+E         Actual message: 'wrong level: missing :)'
+
+tests/object_tree/test_phase2_relations.py:111: AssertionError
+_____________ test_generated_markers_and_scalar_partition[sqlite] ______________
+
+backend = 'sqlite'
+
+    def test_generated_markers_and_scalar_partition(backend):
+        with tree_database(original.source(backend)) as db:
+            table = db.table('sales.customer')
+            query = table.query('$id', where='$state=:state OR $state IS NULL', state='VIC').compiled
+            # SQLite preparation retains the R3 legacy IS NOT TRUE -> IS NULL OR !=1.
+            draft = 'IS NOT TRUE' if backend == 'postgresql' else '!=1'
+>           assert f'"__is_draft" {draft}' in query.sql
+E           assert '"__is_draft" IS NOT 1' in 'SELECT "t0"."id" AS "id"\n FROM "main"."sales_customer" AS "t0"\nWHERE ("t0"."state"=:state OR "t0"."state" IS NULL) AND ("t0"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL) AND (("t0"."__is_draft" IS NULL OR "t0"."__is_draft" !=1))'
+E            +  where 'SELECT "t0"."id" AS "id"\n FROM "main"."sales_customer" AS "t0"\nWHERE ("t0"."state"=:state OR "t0"."state" IS NULL) AND ("t0"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL) AND (("t0"."__is_draft" IS NULL OR "t0"."__is_draft" !=1))' = CompiledQuery(sql='SELECT "t0"."id" AS "id"\n FROM "main"."sales_customer" AS "t0"\nWHERE ("t0"."state"=:state OR "t0"...'sales.customer.id', ui={}),), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=('state',)).sql
+
+tests/object_tree/test_phase4_options.py:62: AssertionError
+__ test_child_defaults_and_overrides_keep_partition_bindings_isolated[sqlite] __
+
+backend = 'sqlite'
+
+    def test_child_defaults_and_overrides_keep_partition_bindings_isolated(backend):
+        with tree_database(original.source(backend)) as db:
+            table = db.table('sales.invoice')
+            default = table.query('$all_customers').compiled
+            assert '__is_draft' not in default.sql
+            assert list(default.params.values()) == ['NSW']
+            query = table.query('$visible_customers').compiled
+            draft = 'IS NOT TRUE' if backend == 'postgresql' else '!=1'
+>           assert f'"__is_draft" {draft}' in query.sql
+E           assert '"__is_draft" IS NOT 1' in 'SELECT (  ( SELECT COUNT(*) AS "COUNT___"\n FROM "main"."sales_customer" AS "t0_t0"\nWHERE (TRUE) AND ("t0_t0"."state...ustomer" AS "t1" ON (("t0"."customer_id")="t1"."id")\nWHERE ("t1"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL)'
+E            +  where 'SELECT (  ( SELECT COUNT(*) AS "COUNT___"\n FROM "main"."sales_customer" AS "t0_t0"\nWHERE (TRUE) AND ("t0_t0"."state...ustomer" AS "t1" ON (("t0"."customer_id")="t1"."id")\nWHERE ("t1"."state" = :__policy_0) AND ("t0"."__del_ts" IS NULL)' = CompiledQuery(sql='SELECT (  ( SELECT COUNT(*) AS "COUNT___"\n FROM "main"."sales_customer" AS "t0_t0"\nWHERE (TRUE) A....invoice.visible_customers', ui={}),), dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=()).sql
+
+tests/object_tree/test_phase4_options.py:78: AssertionError
+=========================== short test summary info ============================
+FAILED tests/object_tree/test_legacy_rewrite_contracts.py::test_legacy_sql_and_kwargs_contract[sqlite-star]
+FAILED tests/object_tree/test_legacy_rewrite_contracts.py::test_legacy_sql_and_kwargs_contract[postgresql-star]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs3-UnsupportedFeatureError-Star expansion]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs4-UnsupportedFeatureError-macro]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs5-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs6-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs7-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[postgresql-kwargs8-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs3-UnsupportedFeatureError-Star expansion]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs4-UnsupportedFeatureError-macro]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs5-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs6-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs7-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unavailable_features_fail_explicitly[sqlite-kwargs8-UnsupportedFeatureError-Grouping]
+FAILED tests/object_tree/test_minimal_select.py::test_unported_implicit_behaviour_is_not_silently_ignored[draft]
+FAILED tests/object_tree/test_minimal_select.py::test_unported_implicit_behaviour_is_not_silently_ignored[deleted]
+FAILED tests/object_tree/test_minimal_select.py::test_unported_implicit_behaviour_is_not_silently_ignored[partition]
+FAILED tests/object_tree/test_minimal_select.py::test_unported_implicit_behaviour_is_not_silently_ignored[order]
+FAILED tests/object_tree/test_phase2_relations.py::test_recognizer_requires_closing_parenthesis[postgresql]
+FAILED tests/object_tree/test_phase2_relations.py::test_recognizer_requires_closing_parenthesis[sqlite]
+FAILED tests/object_tree/test_phase4_options.py::test_generated_markers_and_scalar_partition[sqlite]
+FAILED tests/object_tree/test_phase4_options.py::test_child_defaults_and_overrides_keep_partition_bindings_isolated[sqlite]
+22 failed, 2245 passed in 54.69s

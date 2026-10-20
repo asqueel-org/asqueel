@@ -1,0 +1,1763 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/gporcari/Sviluppo/asqueel/asqueel
+configfile: pyproject.toml
+plugins: cov-7.1.0, anyio-4.15.1
+collected 1864 items
+
+tests/adapter_dialect/test_postgres.py F.FFF...F................FFF      [  1%]
+tests/adapter_dialect/test_postgres_execution.py .                       [  1%]
+tests/adapter_compiler/test_locking.py .F..............FF                [  2%]
+tests/adapter_compiler/test_plans.py ....F                               [  2%]
+tests/object_tree/test_invoice.py ...................................... [  4%]
+........................................................................ [  8%]
+........................................                                 [ 10%]
+tests/object_tree/test_legacy_projections_parameters.py ................ [ 11%]
+......FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.......... [ 15%]
+......................                                                   [ 16%]
+tests/object_tree/test_legacy_resolution.py ...........................  [ 18%]
+tests/object_tree/test_legacy_sql_text.py .............................. [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 27%]
+........................................................................ [ 31%]
+........................................................................ [ 35%]
+........................................................................ [ 39%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 58%]
+........................................................................ [ 62%]
+........................................................................ [ 66%]
+........................................................................ [ 70%]
+........................................................................ [ 73%]
+........................................................................ [ 77%]
+.....................................                                    [ 79%]
+tests/object_tree/test_migration.py .................................... [ 81%]
+..........................................                               [ 83%]
+tests/object_tree/test_minimal_select.py ............................... [ 85%]
+........................................................................ [ 89%]
+........................................................................ [ 93%]
+..............................F...                                       [ 95%]
+tests/object_tree/test_operational_tables.py ........................... [ 96%]
+.....................................................                    [ 99%]
+tests/object_tree/test_structure.py ...........                          [100%]
+
+=================================== FAILURES ===================================
+_ test_plan_renders_identifiers_parameters_and_zero_pagination_without_driver_format _
+
+    def test_plan_renders_identifiers_parameters_and_zero_pagination_without_driver_format():
+        dialect = PostgresDialect()
+        plan = select(where=concat(Identifier('id'), ' = ', Parameter('key')), params={'key': 2}, limit=0, offset=0)
+        statement = dialect.render(plan)
+>       assert text(statement) == 'SELECT "t0"."id" AS "id" FROM "public"."rows" AS "t0" WHERE "id" = <bind:key> LIMIT 0 OFFSET 0'
+E       assert 'SELECT "t0"....T 0\nOFFSET 0' == 'SELECT "t0"....IT 0 OFFSET 0'
+E         
+E         - SELECT "t0"."id" AS "id" FROM "public"."rows" AS "t0" WHERE "id" = <bind:key> LIMIT 0 OFFSET 0
+E         + SELECT "t0"."id" AS "id"
+E         +  FROM "public"."rows" AS "t0"
+E         + WHERE "id" = <bind:key>
+E         + LIMIT 0
+E         + OFFSET 0
+
+tests/adapter_dialect/test_postgres.py:31: AssertionError
+_ test_dml_rendering[insert-INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)] _
+
+operation = 'insert'
+expected = 'INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)'
+
+    @pytest.mark.parametrize(('operation', 'expected'), [
+        ('insert', 'INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)'),
+        ('update', 'UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE'),
+        ('delete', 'DELETE FROM "s"."t" AS "t0" WHERE TRUE'),
+    ])
+    def test_dml_rendering(operation, expected):
+        plan = QueryPlan(operation, TableRef('s', 't'),
+                         assignments=() if operation == 'delete' else (Assignment('amount', concat(Parameter('value'))),),
+                         where=None if operation == 'insert' else concat('TRUE'),
+                         params={'value': 3}, projections=(projection(),))
+>       assert text(PostgresDialect().render(plan)) == expected + ' RETURNING "t0"."id" AS "id"'
+E       assert 'INSERT INTO ...."id" AS "id"' == 'INSERT INTO ...."id" AS "id"'
+E         
+E         Skipping 50 identical leading characters in diff, use -v to show
+E         + nd:value>)
+E         - nd:value>) RETURNING "t0"."id" AS "id"
+E         ? -----------
+E         + RETURNING "t0"."id" AS "id"
+
+tests/adapter_dialect/test_postgres.py:55: AssertionError
+_ test_dml_rendering[update-UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE] _
+
+operation = 'update'
+expected = 'UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE'
+
+    @pytest.mark.parametrize(('operation', 'expected'), [
+        ('insert', 'INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)'),
+        ('update', 'UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE'),
+        ('delete', 'DELETE FROM "s"."t" AS "t0" WHERE TRUE'),
+    ])
+    def test_dml_rendering(operation, expected):
+        plan = QueryPlan(operation, TableRef('s', 't'),
+                         assignments=() if operation == 'delete' else (Assignment('amount', concat(Parameter('value'))),),
+                         where=None if operation == 'insert' else concat('TRUE'),
+                         params={'value': 3}, projections=(projection(),))
+>       assert text(PostgresDialect().render(plan)) == expected + ' RETURNING "t0"."id" AS "id"'
+E       assert 'UPDATE "s"."...."id" AS "id"' == 'UPDATE "s"."...."id" AS "id"'
+E         
+E         Skipping 40 identical leading characters in diff, use -v to show
+E         - ind:value> WHERE TRUE RETURNING "t0"."id" AS "id"
+E         + ind:value>
+E         + WHERE TRUE
+E         + RETURNING "t0"."id" AS "id"
+
+tests/adapter_dialect/test_postgres.py:55: AssertionError
+______ test_dml_rendering[delete-DELETE FROM "s"."t" AS "t0" WHERE TRUE] _______
+
+operation = 'delete', expected = 'DELETE FROM "s"."t" AS "t0" WHERE TRUE'
+
+    @pytest.mark.parametrize(('operation', 'expected'), [
+        ('insert', 'INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)'),
+        ('update', 'UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE'),
+        ('delete', 'DELETE FROM "s"."t" AS "t0" WHERE TRUE'),
+    ])
+    def test_dml_rendering(operation, expected):
+        plan = QueryPlan(operation, TableRef('s', 't'),
+                         assignments=() if operation == 'delete' else (Assignment('amount', concat(Parameter('value'))),),
+                         where=None if operation == 'insert' else concat('TRUE'),
+                         params={'value': 3}, projections=(projection(),))
+>       assert text(PostgresDialect().render(plan)) == expected + ' RETURNING "t0"."id" AS "id"'
+E       assert 'DELETE FROM ...."id" AS "id"' == 'DELETE FROM ...."id" AS "id"'
+E         
+E         - DELETE FROM "s"."t" AS "t0" WHERE TRUE RETURNING "t0"."id" AS "id"
+E         + DELETE FROM "s"."t" AS "t0"
+E         + WHERE TRUE
+E         + RETURNING "t0"."id" AS "id"
+
+tests/adapter_dialect/test_postgres.py:55: AssertionError
+___________________ test_malformed_plans_are_rejected[plan2] ___________________
+
+plan = QueryPlan(operation='delete', table=TableRef(schema='s', name='t', alias='t0'), projections=(), joins=(), where=Fragme...lect='postgresql', environment=None, for_update=False, input_parameters=(), distinct=False, group_by=None, having=None)
+
+    @pytest.mark.parametrize('plan', [
+        QueryPlan('update', TableRef('s', 't')),
+        QueryPlan('delete', TableRef('s', 't'), where=Fragment()),
+        QueryPlan('delete', TableRef('s', 't'), where=concat(' /* comment */ -- more')),
+        QueryPlan('insert', TableRef('s', 't'), where=concat('TRUE')),
+        select(limit=-1), select(limit=True), select(dialect='sqlite'),
+        select(where=concat(Parameter('missing'))),
+        QueryPlan('select', TableRef('s', 't')),
+    ])
+    def test_malformed_plans_are_rejected(plan):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/adapter_dialect/test_postgres.py:79: Failed
+___________ test_manual_projection_comment_cannot_hide_alias_or_from ___________
+
+    def test_manual_projection_comment_cannot_hide_alias_or_from():
+        expression = concat('1 -- comment')
+        plan = QueryPlan('select', TableRef('missing_schema', 'missing_table'), projections=(
+            Projection(expression, 'value', ResultColumn('value')),))
+        statement = PostgresDialect().render(plan)
+>       assert text(statement) == ('SELECT 1 -- comment\n AS "value" FROM '
+                                   '"missing_schema"."missing_table" AS "t0"')
+E       assert 'SELECT 1 -- ...able" AS "t0"' == 'SELECT 1 -- ...able" AS "t0"'
+E         
+E         Skipping 37 identical trailing characters in diff, use -v to show
+E         - SELECT 1 -- comment
+E         + SELECT 1 -- comment AS "value"
+E         ?                    +++++++++++
+E         -  AS "value" FROM "mi
+E         +  FROM "mi
+
+tests/adapter_dialect/test_postgres.py:118: AssertionError
+___ test_manual_comments_cannot_hide_other_clauses_or_assignment_separators ____
+
+    def test_manual_comments_cannot_hide_other_clauses_or_assignment_separators():
+        dialect = PostgresDialect()
+        statement = dialect.render(select(
+            where=concat('TRUE -- predicate'), order_by=concat('1 -- order'), limit=0,
+            joins=(Join(TableRef('s', 't', 't1'), concat('TRUE -- join')),)))
+>       assert 'TRUE -- join\n WHERE TRUE -- predicate\n ORDER BY 1 -- order\n LIMIT 0' in text(statement)
+E       assert 'TRUE -- join\n WHERE TRUE -- predicate\n ORDER BY 1 -- order\n LIMIT 0' in 'SELECT "t0"."id" AS "id"\n FROM "public"."rows" AS "t0"\n LEFT JOIN "s"."t" AS "t1" ON TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0'
+E        +  where 'SELECT "t0"."id" AS "id"\n FROM "public"."rows" AS "t0"\n LEFT JOIN "s"."t" AS "t1" ON TRUE -- join\nWHERE TRUE -- predicate\nORDER BY 1 -- order\nLIMIT 0' = text(SqlStatement(parts=('SELECT ', '"t0"', '.', '"id"', ' AS ', '"id"', '\n FROM ', '"public"', '.', '"rows"', ' AS ', '"t...ngproxy({}), columns=(ResultColumn(name='id', dtype='I', source=None, ui={}),), dialect='postgresql', environment=None))
+
+tests/adapter_dialect/test_postgres.py:128: AssertionError
+_ test_fragment_comment_detection_handles_parts_and_protected_percent_strings __
+
+    def test_fragment_comment_detection_handles_parts_and_protected_percent_strings():
+        plan = select(where=Fragment(('TRUE ', '-- ', 'tail')), order_by=concat("'%--literal'"))
+        rendered = text(PostgresDialect().render(plan))
+>       assert "WHERE TRUE -- tail\n ORDER BY '%--literal'" in rendered
+E       assert "WHERE TRUE -- tail\n ORDER BY '%--literal'" in 'SELECT "t0"."id" AS "id"\n FROM "public"."rows" AS "t0"\nWHERE TRUE -- tail\nORDER BY \'%--literal\''
+
+tests/adapter_dialect/test_postgres.py:141: AssertionError
+________________ test_lock_is_structural_and_follows_pagination ________________
+
+compiler = <asqueel.compiler.PostgresCompiler object at 0x10b20da00>
+
+    def test_lock_is_structural_and_follows_pagination(compiler):
+        plan = compiler.plan_select('invoice', '$id, @customer.name', where='$id=:id',
+                                    sqlparams={'id': 3}, order_by='$id', limit=5, offset=2,
+                                    for_update=True)
+        assert plan.for_update is True
+        query = compiler.compile_plan(plan)
+        assert ' LEFT JOIN ' in query.sql
+>       assert query.sql.endswith(' ORDER BY "t0"."id" LIMIT 5 OFFSET 2 FOR UPDATE OF "t0"')
+E       assert False
+E        +  where False = <built-in method endswith of str object at 0x10b251a10>(' ORDER BY "t0"."id" LIMIT 5 OFFSET 2 FOR UPDATE OF "t0"')
+E        +    where <built-in method endswith of str object at 0x10b251a10> = 'SELECT "t0"."id" AS "id",\n"t1"."name" AS "customer_name"\n FROM "app"."invoice" AS "t0"\n LEFT JOIN "app"."customer"..." ON "t0"."customer_id" = "t1"."id"\nWHERE "t0"."id"=%(id)s\nORDER BY "t0"."id"\nLIMIT 5\nOFFSET 2\nFOR UPDATE OF "t0"'.endswith
+E        +      where 'SELECT "t0"."id" AS "id",\n"t1"."name" AS "customer_name"\n FROM "app"."invoice" AS "t0"\n LEFT JOIN "app"."customer"..." ON "t0"."customer_id" = "t1"."id"\nWHERE "t0"."id"=%(id)s\nORDER BY "t0"."id"\nLIMIT 5\nOFFSET 2\nFOR UPDATE OF "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS "id",\n"t1"."name" AS "customer_name"\n FROM "app"."invoice" AS "t0"\n LEFT JOI...ap object at 0x10b20cfe0>)), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('id',)).sql
+
+tests/adapter_compiler/test_locking.py:35: AssertionError
+_______________ test_manual_root_alias_is_quoted_for_lock_target _______________
+
+compiler = <asqueel.compiler.PostgresCompiler object at 0x10b2039b0>
+
+    def test_manual_root_alias_is_quoted_for_lock_target(compiler):
+        plan = compiler.plan_select('invoice', '1 AS one', for_update=True)
+        plan = replace(plan, table=TableRef('app', 'invoice', 'root"%'))
+        query = compiler.compile_plan(plan)
+>       assert query.sql.endswith(' FOR UPDATE OF "root""%%"')
+E       assert False
+E        +  where False = <built-in method endswith of str object at 0x10b222530>(' FOR UPDATE OF "root""%%"')
+E        +    where <built-in method endswith of str object at 0x10b222530> = 'SELECT 1 AS "one"\n FROM "app"."invoice" AS "root""%%"\nFOR UPDATE OF "root""%%"'.endswith
+E        +      where 'SELECT 1 AS "one"\n FROM "app"."invoice" AS "root""%%"\nFOR UPDATE OF "root""%%"' = CompiledQuery(sql='SELECT 1 AS "one"\n FROM "app"."invoice" AS "root""%%"\nFOR UPDATE OF "root""%%"', params=mappingpr...type=None, source=None, ui={}),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=()).sql
+
+tests/adapter_compiler/test_locking.py:78: AssertionError
+__________________ test_trailing_comment_cannot_swallow_lock ___________________
+
+compiler = <asqueel.compiler.PostgresCompiler object at 0x10b2023f0>
+
+    def test_trailing_comment_cannot_swallow_lock(compiler):
+        query = compiler.select('invoice', where='$id=:id -- user comment',
+                                sqlparams={'id': 1}, for_update=True)
+>       assert '-- user comment\n FOR UPDATE OF "t0"' in query.sql
+E       assert '-- user comment\n FOR UPDATE OF "t0"' in 'SELECT "t0"."id" AS "id",\n"t0"."customer_id" AS "customer_id"\n FROM "app"."invoice" AS "t0"\nWHERE "t0"."id"=%(id)s -- user comment\n\nFOR UPDATE OF "t0"'
+E        +  where 'SELECT "t0"."id" AS "id",\n"t0"."customer_id" AS "customer_id"\n FROM "app"."invoice" AS "t0"\nWHERE "t0"."id"=%(id)s -- user comment\n\nFOR UPDATE OF "t0"' = CompiledQuery(sql='SELECT "t0"."id" AS "id",\n"t0"."customer_id" AS "customer_id"\n FROM "app"."invoice" AS "t0"\nWHER...ap object at 0x10b201910>)), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('id',)).sql
+
+tests/adapter_compiler/test_locking.py:84: AssertionError
+_____ test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting _____
+
+model = ResolvedModel(tables=mappingproxy({'app.customer': Table(name='customer', schema='app', columns=mappingproxy({'id': Co...t at 0x10b2a0650>, attributes=<asqueel.model_sections.FrozenMap object at 0x10b2a0680>, extensions=(), capabilities=())
+
+    def test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting(model):
+        compiler = PostgresCompiler(model)
+        selected = compiler.select('invoice', '$id', where='$id=:id', sqlparams={'id': 4}, limit=0)
+>       assert selected.sql == ('SELECT "t0"."ID%%" AS "id" FROM "physical"."Bills%%" AS "t0" '
+                                'WHERE "t0"."ID%%"=%(id)s LIMIT 0')
+E       assert 'SELECT "t0"....id)s\nLIMIT 0' == 'SELECT "t0"....(id)s LIMIT 0'
+E         
+E         - SELECT "t0"."ID%%" AS "id" FROM "physical"."Bills%%" AS "t0" WHERE "t0"."ID%%"=%(id)s LIMIT 0
+E         + SELECT "t0"."ID%%" AS "id"
+E         +  FROM "physical"."Bills%%" AS "t0"
+E         + WHERE "t0"."ID%%"=%(id)s
+E         + LIMIT 0
+
+tests/adapter_compiler/test_plans.py:134: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-0] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd61040>
+record = {'kind': 'projection', 'name': '0', 'dialect': 'postgresql', 'columns': '$id', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"."id" AS "id"\n' == 'SELECT "t0"."id" AS "id"'
+E         
+E         - SELECT "t0"."id" AS "id"
+E         + SELECT "t0"."id" AS "id"
+E         ?                         +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-1] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10be4b8c0>
+record = {'kind': 'projection', 'name': '1', 'dialect': 'postgresql', 'columns': '$id,$total,$label', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "label"\n' == 'SELECT "t0"....l" AS "label"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total", "t0"."label_sql" AS "label"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total",
+E         + "t0"."label_sql" AS "label"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-2] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bf3f470>
+record = {'kind': 'projection', 'name': '2', 'dialect': 'postgresql', 'columns': '$id AS code,$total AS amount', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...." AS amount\n' == 'SELECT "t0"....al" AS amount'
+E         
+E         - SELECT "t0"."id" AS code, "t0"."total" AS amount
+E         + SELECT "t0"."id" AS code,
+E         + "t0"."total" AS amount
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-3] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bf28b00>
+record = {'kind': 'projection', 'name': '3', 'dialect': 'postgresql', 'columns': '$id as code, $total as amount', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...." AS amount\n' == 'SELECT "t0"....al" AS amount'
+E         
+E         - SELECT "t0"."id" AS code, "t0"."total" AS amount
+E         + SELECT "t0"."id" AS code,
+E         + "t0"."total" AS amount
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-4] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd8ec60>
+record = {'kind': 'projection', 'name': '4', 'dialect': 'postgresql', 'columns': '$total * 2', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...._total___2"\n' == 'SELECT "t0".... "_total___2"'
+E         
+E         - SELECT "t0"."total" * 2 AS "_total___2"
+E         + SELECT "t0"."total" * 2 AS "_total___2"
+E         ?                                        +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-5] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b69af30>
+record = {'kind': 'projection', 'name': '5', 'dialect': 'postgresql', 'columns': 'COALESCE($total,0)', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT COALE...__total_0_"\n' == 'SELECT COALE...CE__total_0_"'
+E         
+E         Skipping 44 identical leading characters in diff, use -v to show
+E         - __total_0_"
+E         + __total_0_"
+E         ?            +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-6] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b899ee0>
+record = {'kind': 'projection', 'name': '6', 'dialect': 'postgresql', 'columns': 'CASE WHEN $total>0 THEN $id ELSE 0 END', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT CASE ...ELSE_0_END"\n' == 'SELECT CASE ...d_ELSE_0_END"'
+E         
+E         Skipping 90 identical leading characters in diff, use -v to show
+E         - ELSE_0_END"
+E         + ELSE_0_END"
+E         ?            +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-7] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10c010d40>
+record = {'kind': 'projection', 'name': '7', 'dialect': 'postgresql', 'columns': '$id AS value,$total AS value', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....l" AS value\n' == 'SELECT "t0"."total" AS value'
+E         
+E         - SELECT "t0"."total" AS value
+E         + SELECT "t0"."total" AS value
+E         ?                             +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-8] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd52ae0>
+record = {'kind': 'projection', 'name': '8', 'dialect': 'postgresql', 'columns': '$id,$total,$id', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "total"\n' == 'SELECT "t0"....l" AS "total"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+__________ test_projection_from_original_compiled_query[postgresql-9] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2a2cf0>
+record = {'kind': 'projection', 'name': '9', 'dialect': 'postgresql', 'columns': ' $id , $id ', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"."id" AS "id"\n' == 'SELECT "t0"."id" AS "id"'
+E         
+E         - SELECT "t0"."id" AS "id"
+E         + SELECT "t0"."id" AS "id"
+E         ?                         +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-10] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b69ec60>
+record = {'kind': 'projection', 'name': '10', 'dialect': 'postgresql', 'columns': '$id AS "code",$total AS code', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....al" AS code\n' == 'SELECT "t0"....otal" AS code'
+E         
+E         - SELECT "t0"."id" AS "code", "t0"."total" AS code
+E         + SELECT "t0"."id" AS "code",
+E         + "t0"."total" AS code
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-11] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10be36f00>
+record = {'kind': 'projection', 'name': '11', 'dialect': 'postgresql', 'columns': '$id AS CamelCase', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....S CamelCase\n' == 'SELECT "t0".... AS CamelCase'
+E         
+E         - SELECT "t0"."id" AS CamelCase
+E         + SELECT "t0"."id" AS CamelCase
+E         ?                              +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-12] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bfc6d80>
+record = {'kind': 'projection', 'name': '12', 'dialect': 'postgresql', 'columns': '$id AS "CamelCase"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...."CamelCase"\n' == 'SELECT "t0"....S "CamelCase"'
+E         
+E         - SELECT "t0"."id" AS "CamelCase"
+E         + SELECT "t0"."id" AS "CamelCase"
+E         ?                                +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-13] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bf6b200>
+record = {'kind': 'projection', 'name': '13', 'dialect': 'postgresql', 'columns': '$id AS "display name"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....splay name"\n' == 'SELECT "t0"....display name"'
+E         
+E         - SELECT "t0"."id" AS "display name"
+E         + SELECT "t0"."id" AS "display name"
+E         ?                                   +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-14] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2f5820>
+record = {'kind': 'projection', 'name': '14', 'dialect': 'postgresql', 'columns': '$id AS "a""b"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"."id" AS "a""b"\n' == 'SELECT "t0"."id" AS "a""b"'
+E         
+E         - SELECT "t0"."id" AS "a""b"
+E         + SELECT "t0"."id" AS "a""b"
+E         ?                           +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-15] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bfc2cc0>
+record = {'kind': 'projection', 'name': '15', 'dialect': 'postgresql', 'columns': 'CAST($total AS NUMERIC)', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT CAST(...AS NUMERIC)\n' == 'SELECT CAST(..." AS NUMERIC)'
+E         
+E         - SELECT CAST("t0"."total" AS NUMERIC)
+E         + SELECT CAST("t0"."total" AS NUMERIC)
+E         ?                                     +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-16] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b359190>
+record = {'kind': 'projection', 'name': '16', 'dialect': 'postgresql', 'columns': 'CAST($total AS NUMERIC) AS amount', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       AssertionError: assert 'SELECT CAST(...) AS amount\n' == 'SELECT CAST(...IC) AS amount'
+E         
+E         Skipping 35 identical leading characters in diff, use -v to show
+E         - ) AS amount
+E         + ) AS amount
+E         ?            +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-17] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b678e60>
+record = {'kind': 'projection', 'name': '17', 'dialect': 'postgresql', 'columns': 'CAST($id AS NUMERIC),CAST($total AS NUMERIC)', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT CAST(...AS NUMERIC)\n' == 'SELECT CAST(..." AS NUMERIC)'
+E         
+E         - SELECT CAST("t0"."total" AS NUMERIC)
+E         + SELECT CAST("t0"."total" AS NUMERIC)
+E         ?                                     +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-18] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b69b4a0>
+record = {'kind': 'projection', 'name': '18', 'dialect': 'postgresql', 'columns': "'$id AS text'", ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT \'"t0..." AS text\'\n' == 'SELECT \'"t0"."id" AS text\''
+E         
+E         - SELECT '"t0"."id" AS text'
+E         + SELECT '"t0"."id" AS text'
+E         ?                           +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-19] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bb5a0c0>
+record = {'kind': 'projection', 'name': '19', 'dialect': 'postgresql', 'columns': "' AS ' AS label", ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert "SELECT ' AS ' AS label\n" == "SELECT ' AS ' AS label"
+E         
+E         - SELECT ' AS ' AS label
+E         + SELECT ' AS ' AS label
+E         ?                       +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-20] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b20ce60>
+record = {'kind': 'projection', 'name': '20', 'dialect': 'postgresql', 'columns': "'a,b' AS label,$id", ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT \'a,b...id" AS "id"\n' == 'SELECT \'a,b...."id" AS "id"'
+E         
+E         - SELECT 'a,b' AS label, "t0"."id" AS "id"
+E         + SELECT 'a,b' AS label,
+E         + "t0"."id" AS "id"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-21] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd03a40>
+record = {'kind': 'projection', 'name': '21', 'dialect': 'postgresql', 'columns': '$id As code', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....id_As_code"\n' == 'SELECT "t0"...."_id_As_code"'
+E         
+E         - SELECT "t0"."id" As code AS "_id_As_code"
+E         + SELECT "t0"."id" As code AS "_id_As_code"
+E         ?                                          +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-22] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10c066d50>
+record = {'kind': 'projection', 'name': '22', 'dialect': 'postgresql', 'columns': '$id AS code AS other', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....de AS other\n' == 'SELECT "t0"....code AS other'
+E         
+E         - SELECT "t0"."id" AS code AS other
+E         + SELECT "t0"."id" AS code AS other
+E         ?                                  +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-23] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bc88e60>
+record = {'kind': 'projection', 'name': '23', 'dialect': 'postgresql', 'columns': '$id,\n$total', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "total"\n' == 'SELECT "t0"....l" AS "total"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-24] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10b69e360>
+record = {'kind': 'projection', 'name': '24', 'dialect': 'postgresql', 'columns': '$id,, $total,', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "total"\n' == 'SELECT "t0"....l" AS "total"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-25] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd81130>
+record = {'kind': 'projection', 'name': '25', 'dialect': 'postgresql', 'columns': '$id AS "one",$total AS "one"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....l" AS "one"\n' == 'SELECT "t0"."total" AS "one"'
+E         
+E         - SELECT "t0"."total" AS "one"
+E         + SELECT "t0"."total" AS "one"
+E         ?                             +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-26] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10be4a1e0>
+record = {'kind': 'projection', 'name': '26', 'dialect': 'postgresql', 'columns': '$id AS a, $total AS b, $total AS a', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....total" AS b\n' == 'SELECT "t0"....."total" AS b'
+E         
+E         - SELECT "t0"."total" AS a, "t0"."total" AS b
+E         + SELECT "t0"."total" AS a,
+E         + "t0"."total" AS b
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_________ test_projection_from_original_compiled_query[postgresql-27] __________
+
+db = <asqueel.application.SqlDatabase object at 0x10c067bf0>
+record = {'kind': 'projection', 'name': '27', 'dialect': 'postgresql', 'columns': '42', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT 42 AS "_42"\n' == 'SELECT 42 AS "_42"'
+E         
+E         - SELECT 42 AS "_42"
+E         + SELECT 42 AS "_42"
+E         ?                   +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-0] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd02c30>
+record = {'kind': 'projection', 'name': '0', 'dialect': 'postgresql', 'columns': '$id', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"."id" AS "id"\n' == 'SELECT "t0"."id" AS "id"'
+E         
+E         - SELECT "t0"."id" AS "id"
+E         + SELECT "t0"."id" AS "id"
+E         ?                         +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-1] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2d72c0>
+record = {'kind': 'projection', 'name': '1', 'dialect': 'postgresql', 'columns': '$id,$total,$label', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "label"\n' == 'SELECT "t0"....l" AS "label"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total", "t0"."label_sql" AS "label"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total",
+E         + "t0"."label_sql" AS "label"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-2] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b7bd910>
+record = {'kind': 'projection', 'name': '2', 'dialect': 'postgresql', 'columns': '$id AS code,$total AS amount', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...." AS amount\n' == 'SELECT "t0"....al" AS amount'
+E         
+E         - SELECT "t0"."id" AS code, "t0"."total" AS amount
+E         + SELECT "t0"."id" AS code,
+E         + "t0"."total" AS amount
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-3] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd62b70>
+record = {'kind': 'projection', 'name': '3', 'dialect': 'postgresql', 'columns': '$id as code, $total as amount', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...." AS amount\n' == 'SELECT "t0"....al" AS amount'
+E         
+E         - SELECT "t0"."id" AS code, "t0"."total" AS amount
+E         + SELECT "t0"."id" AS code,
+E         + "t0"."total" AS amount
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-4] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10c0a2960>
+record = {'kind': 'projection', 'name': '4', 'dialect': 'postgresql', 'columns': '$total * 2', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...._total___2"\n' == 'SELECT "t0".... "_total___2"'
+E         
+E         - SELECT "t0"."total" * 2 AS "_total___2"
+E         + SELECT "t0"."total" * 2 AS "_total___2"
+E         ?                                        +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-5] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10beecd10>
+record = {'kind': 'projection', 'name': '5', 'dialect': 'postgresql', 'columns': 'COALESCE($total,0)', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT COALE...__total_0_"\n' == 'SELECT COALE...CE__total_0_"'
+E         
+E         Skipping 44 identical leading characters in diff, use -v to show
+E         - __total_0_"
+E         + __total_0_"
+E         ?            +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-6] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b7d8530>
+record = {'kind': 'projection', 'name': '6', 'dialect': 'postgresql', 'columns': 'CASE WHEN $total>0 THEN $id ELSE 0 END', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT CASE ...ELSE_0_END"\n' == 'SELECT CASE ...d_ELSE_0_END"'
+E         
+E         Skipping 90 identical leading characters in diff, use -v to show
+E         - ELSE_0_END"
+E         + ELSE_0_END"
+E         ?            +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-7] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b69c7d0>
+record = {'kind': 'projection', 'name': '7', 'dialect': 'postgresql', 'columns': '$id AS value,$total AS value', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....l" AS value\n' == 'SELECT "t0"."total" AS value'
+E         
+E         - SELECT "t0"."total" AS value
+E         + SELECT "t0"."total" AS value
+E         ?                             +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-8] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2ee8a0>
+record = {'kind': 'projection', 'name': '8', 'dialect': 'postgresql', 'columns': '$id,$total,$id', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "total"\n' == 'SELECT "t0"....l" AS "total"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+____________ test_projection_from_original_compiled_query[sqlite-9] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2f7a40>
+record = {'kind': 'projection', 'name': '9', 'dialect': 'postgresql', 'columns': ' $id , $id ', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"."id" AS "id"\n' == 'SELECT "t0"."id" AS "id"'
+E         
+E         - SELECT "t0"."id" AS "id"
+E         + SELECT "t0"."id" AS "id"
+E         ?                         +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-10] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10baa69f0>
+record = {'kind': 'projection', 'name': '10', 'dialect': 'postgresql', 'columns': '$id AS "code",$total AS code', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....al" AS code\n' == 'SELECT "t0"....otal" AS code'
+E         
+E         - SELECT "t0"."id" AS "code", "t0"."total" AS code
+E         + SELECT "t0"."id" AS "code",
+E         + "t0"."total" AS code
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-11] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10baead50>
+record = {'kind': 'projection', 'name': '11', 'dialect': 'postgresql', 'columns': '$id AS CamelCase', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....S CamelCase\n' == 'SELECT "t0".... AS CamelCase'
+E         
+E         - SELECT "t0"."id" AS CamelCase
+E         + SELECT "t0"."id" AS CamelCase
+E         ?                              +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-12] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b20e9c0>
+record = {'kind': 'projection', 'name': '12', 'dialect': 'postgresql', 'columns': '$id AS "CamelCase"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"...."CamelCase"\n' == 'SELECT "t0"....S "CamelCase"'
+E         
+E         - SELECT "t0"."id" AS "CamelCase"
+E         + SELECT "t0"."id" AS "CamelCase"
+E         ?                                +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-13] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd02b40>
+record = {'kind': 'projection', 'name': '13', 'dialect': 'postgresql', 'columns': '$id AS "display name"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....splay name"\n' == 'SELECT "t0"....display name"'
+E         
+E         - SELECT "t0"."id" AS "display name"
+E         + SELECT "t0"."id" AS "display name"
+E         ?                                   +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-14] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b540710>
+record = {'kind': 'projection', 'name': '14', 'dialect': 'postgresql', 'columns': '$id AS "a""b"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"."id" AS "a""b"\n' == 'SELECT "t0"."id" AS "a""b"'
+E         
+E         - SELECT "t0"."id" AS "a""b"
+E         + SELECT "t0"."id" AS "a""b"
+E         ?                           +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-15] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b201730>
+record = {'kind': 'projection', 'name': '15', 'dialect': 'postgresql', 'columns': 'CAST($total AS NUMERIC)', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT CAST(...AS NUMERIC)\n' == 'SELECT CAST(..." AS NUMERIC)'
+E         
+E         - SELECT CAST("t0"."total" AS NUMERIC)
+E         + SELECT CAST("t0"."total" AS NUMERIC)
+E         ?                                     +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-16] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bdb6ed0>
+record = {'kind': 'projection', 'name': '16', 'dialect': 'postgresql', 'columns': 'CAST($total AS NUMERIC) AS amount', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       AssertionError: assert 'SELECT CAST(...) AS amount\n' == 'SELECT CAST(...IC) AS amount'
+E         
+E         Skipping 35 identical leading characters in diff, use -v to show
+E         - ) AS amount
+E         + ) AS amount
+E         ?            +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-17] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2f6d50>
+record = {'kind': 'projection', 'name': '17', 'dialect': 'postgresql', 'columns': 'CAST($id AS NUMERIC),CAST($total AS NUMERIC)', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT CAST(...AS NUMERIC)\n' == 'SELECT CAST(..." AS NUMERIC)'
+E         
+E         - SELECT CAST("t0"."total" AS NUMERIC)
+E         + SELECT CAST("t0"."total" AS NUMERIC)
+E         ?                                     +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-18] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bfc1550>
+record = {'kind': 'projection', 'name': '18', 'dialect': 'postgresql', 'columns': "'$id AS text'", ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT \'"t0..." AS text\'\n' == 'SELECT \'"t0"."id" AS text\''
+E         
+E         - SELECT '"t0"."id" AS text'
+E         + SELECT '"t0"."id" AS text'
+E         ?                           +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-19] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bb63ce0>
+record = {'kind': 'projection', 'name': '19', 'dialect': 'postgresql', 'columns': "' AS ' AS label", ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert "SELECT ' AS ' AS label\n" == "SELECT ' AS ' AS label"
+E         
+E         - SELECT ' AS ' AS label
+E         + SELECT ' AS ' AS label
+E         ?                       +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-20] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10be4a4e0>
+record = {'kind': 'projection', 'name': '20', 'dialect': 'postgresql', 'columns': "'a,b' AS label,$id", ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT \'a,b...id" AS "id"\n' == 'SELECT \'a,b...."id" AS "id"'
+E         
+E         - SELECT 'a,b' AS label, "t0"."id" AS "id"
+E         + SELECT 'a,b' AS label,
+E         + "t0"."id" AS "id"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-21] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bf2ab40>
+record = {'kind': 'projection', 'name': '21', 'dialect': 'postgresql', 'columns': '$id As code', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....id_As_code"\n' == 'SELECT "t0"...."_id_As_code"'
+E         
+E         - SELECT "t0"."id" As code AS "_id_As_code"
+E         + SELECT "t0"."id" As code AS "_id_As_code"
+E         ?                                          +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-22] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b2d7ec0>
+record = {'kind': 'projection', 'name': '22', 'dialect': 'postgresql', 'columns': '$id AS code AS other', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....de AS other\n' == 'SELECT "t0"....code AS other'
+E         
+E         - SELECT "t0"."id" AS code AS other
+E         + SELECT "t0"."id" AS code AS other
+E         ?                                  +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-23] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b55d9d0>
+record = {'kind': 'projection', 'name': '23', 'dialect': 'postgresql', 'columns': '$id,\n$total', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "total"\n' == 'SELECT "t0"....l" AS "total"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-24] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b69b260>
+record = {'kind': 'projection', 'name': '24', 'dialect': 'postgresql', 'columns': '$id,, $total,', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0".... AS "total"\n' == 'SELECT "t0"....l" AS "total"'
+E         
+E         - SELECT "t0"."id" AS "id", "t0"."total" AS "total"
+E         + SELECT "t0"."id" AS "id",
+E         + "t0"."total" AS "total"
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-25] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10b35a1b0>
+record = {'kind': 'projection', 'name': '25', 'dialect': 'postgresql', 'columns': '$id AS "one",$total AS "one"', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....l" AS "one"\n' == 'SELECT "t0"."total" AS "one"'
+E         
+E         - SELECT "t0"."total" AS "one"
+E         + SELECT "t0"."total" AS "one"
+E         ?                             +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-26] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10c08cd70>
+record = {'kind': 'projection', 'name': '26', 'dialect': 'postgresql', 'columns': '$id AS a, $total AS b, $total AS a', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT "t0"....total" AS b\n' == 'SELECT "t0"....."total" AS b'
+E         
+E         - SELECT "t0"."total" AS a, "t0"."total" AS b
+E         + SELECT "t0"."total" AS a,
+E         + "t0"."total" AS b
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+___________ test_projection_from_original_compiled_query[sqlite-27] ____________
+
+db = <asqueel.application.SqlDatabase object at 0x10bd29700>
+record = {'kind': 'projection', 'name': '27', 'dialect': 'postgresql', 'columns': '42', ...}
+
+    @pytest.mark.parametrize('record', [r for r in ORACLE['records']
+                                       if r['kind'] == 'projection' and r['dialect'] == 'postgresql'],
+                             ids=lambda r: r['name'])
+    def test_projection_from_original_compiled_query(db, record):
+        plan = db.compiler.plan_select('sales.invoice', columns=record['columns'])
+        actual = ',\n'.join(''.join(p.expression.parts) for p in plan.projections)
+        assert actual.strip() == record['legacy']['value'].strip()
+        statement = db.compiler.dialect.render(plan)
+        sql = ''.join(statement.parts)
+        assert sql.startswith('SELECT ')
+        # The adapter must render authored projections without appending another AS.
+>       assert sql.split(' FROM ', 1)[0] == 'SELECT ' + actual.replace(',\n', ', ')
+E       assert 'SELECT 42 AS "_42"\n' == 'SELECT 42 AS "_42"'
+E         
+E         - SELECT 42 AS "_42"
+E         + SELECT 42 AS "_42"
+E         ?                   +
+
+tests/object_tree/test_legacy_projections_parameters.py:62: AssertionError
+_____________ test_empty_collection_and_legacy_params[postgresql] ______________
+
+db = <asqueel.application.SqlDatabase object at 0x10bc896d0>
+
+    def test_empty_collection_and_legacy_params(db):
+        compiled = db.table('sales.invoice').query(
+            columns='$id', where='$id IN :ids', sqlparams={'ids': [], 'unused': 3}).compiled
+        pg = db.dialect.name == 'postgresql'
+        assert compiled.params == ({'ids': [], 'unused': 3} if pg else {'unused': 3})
+        assert compiled.input_parameters == ('ids',)
+        empty = 'WHERE FALSE' if pg else 'IN ()'
+>       assert empty in compiled.sql
+E       assert 'WHERE FALSE' in 'SELECT "t0"."id" AS "id"\n FROM "main"."sales_invoice" AS "t0"\nWHERE (FALSE)'
+E        +  where 'SELECT "t0"."id" AS "id"\n FROM "main"."sales_invoice" AS "t0"\nWHERE (FALSE)' = CompiledQuery(sql='SELECT "t0"."id" AS "id"\n FROM "main"."sales_invoice" AS "t0"\nWHERE (FALSE)', params=mappingproxy...{'label': 'Identifier'}),), dialect='postgresql', binding='psycopg_named', environment=None, input_parameters=('ids',)).sql
+
+tests/object_tree/test_minimal_select.py:267: AssertionError
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.12-final-0 _______________
+
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+src/asqueel/__init__.py                    40      5    88%   83, 86-89
+src/asqueel/__main__.py                     3      3     0%   2-5
+src/asqueel/_compiler_bindings.py          58     17    71%   28-29, 44-50, 62-63, 71-78
+src/asqueel/_legacy_sql.py                120      0   100%
+src/asqueel/application.py                102     20    80%   29, 40, 57, 74, 89-92, 97, 103, 109, 134-135, 144-145, 148-153
+src/asqueel/application_table.py          309    129    58%   47-48, 57, 60, 66, 90-98, 118, 123-126, 130, 144, 174, 184, 191, 195-196, 203-206, 209-216, 219-221, 225-227, 272-273, 276-282, 286-288, 292, 295-303, 311, 315, 322-346, 352-368, 391, 395-400, 403-410, 413-420, 443-447, 451-453
+src/asqueel/builder.py                    406    143    65%   49, 102, 114-117, 120, 125, 130, 133, 137, 146, 163-167, 172-174, 176, 182, 187, 189-198, 210, 230-234, 253, 258-269, 272, 276, 278, 280-289, 299, 306, 310, 318, 320, 326, 333, 346, 351, 359, 362, 371, 374, 379, 381, 384, 386-389, 391-407, 409-428, 430-444, 458, 463, 467, 472, 475, 479, 481, 486, 490, 494, 501, 504, 515, 545
+src/asqueel/catalog.py                    109      1    99%   112
+src/asqueel/catalog_provider.py            10      2    80%   28-30
+src/asqueel/cli.py                         92     92     0%   2-127
+src/asqueel/common.py                       9      1    89%   21
+src/asqueel/compiler.py                   742    343    54%   41-48, 53-56, 75-86, 96-101, 134, 136-138, 145, 148, 168, 170, 180-182, 217-248, 255, 261-264, 268-273, 280-281, 283, 288-292, 295-308, 312, 317-332, 345-354, 361-362, 366, 369, 371, 373-386, 392, 394, 399-400, 404, 406-414, 429, 431, 433, 435, 437, 439, 441, 446, 451, 469-561, 566-567, 570, 573, 575, 580, 584-590, 594-603, 619-623, 625-629, 632-656, 674, 679-680, 682, 688, 691, 695-696, 698, 702, 714, 730, 734-741, 743-746, 751, 758-759, 761, 764, 766, 771, 786, 796, 804, 818, 820, 834, 842, 862-864, 889, 894, 909-914, 918, 923, 928, 930-931, 939, 942, 957, 965, 975, 990, 994-1000, 1004-1006, 1011
+src/asqueel/configuration.py              322    142    56%   29-44, 47-48, 105-106, 118, 122, 125, 131, 145, 155-160, 172, 182-227, 233, 235-236, 238-239, 241-242, 253-260, 265-275, 289-294, 299, 306-315, 339, 346, 353-355, 358, 366, 368, 370, 372-379, 382, 387, 389, 391-400, 405-406
+src/asqueel/contracts.py                  159      9    94%   39-41, 80-83, 97, 182
+src/asqueel/dialects/__init__.py            0      0   100%
+src/asqueel/dialects/base.py                5      0   100%
+src/asqueel/dialects/postgres.py          227     48    79%   57, 98, 107-114, 122-133, 144, 149, 153-154, 159, 162, 164, 166, 170-180, 194, 197, 211, 216, 220, 223, 226, 229, 232, 235, 251, 254, 276-278, 281, 300, 307
+src/asqueel/dialects/sqlite.py             52     24    54%   15, 20, 24, 29, 34, 39-42, 46, 50, 54, 56, 59, 63, 69-79
+src/asqueel/drivers/__init__.py             0      0   100%
+src/asqueel/drivers/base.py                 8      0   100%
+src/asqueel/drivers/psycopg.py             55     14    75%   31, 33, 41, 43, 47, 54, 56, 61-65, 77, 80, 83
+src/asqueel/drivers/result.py              14      3    79%   11, 14, 16
+src/asqueel/drivers/sql.py                 67      7    90%   24, 57, 77-81
+src/asqueel/drivers/sqlite.py              90     57    37%   25, 27, 32-40, 46-49, 52-78, 82, 85-94, 98-102, 105, 108, 111
+src/asqueel/elements.py                    53      0   100%
+src/asqueel/emitter.py                    124    101    19%   68-85, 94-104, 121, 132-153, 158-161, 164-167, 170-173, 176-194, 200-205, 214-219, 223-231, 236-249
+src/asqueel/environment.py                 83     18    78%   20-21, 51, 56, 61-68, 72, 99-101, 113, 136-137
+src/asqueel/errors.py                       4      0   100%
+src/asqueel/examples/__init__.py            0      0   100%
+src/asqueel/grammar_doc.py                146    146     0%   14-264
+src/asqueel/hosting.py                     60     41    32%   32-34, 38, 41, 46, 51-54, 62-68, 73-74, 78-79, 83-93, 96-104
+src/asqueel/importers.py                   96     82    15%   19-22, 28-30, 40-207, 212-225
+src/asqueel/legacy_source.py              116    107     8%   16-120, 124, 128, 132-139, 144-159
+src/asqueel/migration.py                  189     58    69%   86-88, 116, 139, 157, 160, 207, 235, 261-262, 294, 299-303, 312-324, 328-330, 335-364
+src/asqueel/model.py                      397    141    64%   33, 53, 58, 60, 70, 94, 98, 101-103, 108, 138, 149, 153, 161, 173, 176, 185, 207, 209, 215-216, 219, 221, 223, 229-230, 239, 244, 251-261, 265-284, 294, 298, 302, 313, 316, 320, 322-323, 327, 332, 337, 341-345, 361, 381, 384-398, 407, 409-411, 417, 420, 422-424, 427-434, 444, 454-470, 473, 486, 488, 491-506, 510, 515, 519
+src/asqueel/model_codec.py                 46     35    24%   17-30, 34-47, 51, 56-63
+src/asqueel/model_elements.py              27      0   100%
+src/asqueel/model_expansion.py            295     68    77%   55, 61, 63-65, 82-93, 198-201, 217, 228-230, 233, 241, 244, 260, 262-267, 275, 288, 296, 325-343, 347-360, 368, 377-378, 395, 399
+src/asqueel/model_sections.py              84      9    89%   33, 39, 56-62
+src/asqueel/model_source.py               199     15    92%   28, 76, 88, 94, 113, 136, 154, 163, 183, 190, 205, 210, 218-220, 242
+src/asqueel/object_renderer.py             17      2    88%   26, 28
+src/asqueel/object_tree.py                280     16    94%   45, 93, 96, 117, 142, 229, 235, 240, 277-279, 295, 304, 342, 366, 369
+src/asqueel/object_tree_compiler.py       114      6    95%   52, 105, 128, 138, 141, 168
+src/asqueel/object_tree_projection.py      92     15    84%   39, 49-57, 77-79, 110, 116
+src/asqueel/object_tree_relations.py      107      8    93%   52, 64, 66, 68, 74, 78, 90, 100
+src/asqueel/object_tree_renderer.py        30      1    97%   42
+src/asqueel/option_elements.py             42      0   100%
+src/asqueel/option_validation.py           97     34    65%   29, 31-33, 38, 43, 51, 55-59, 62, 68, 71, 82, 89, 92, 96-98, 100-105, 107-111, 114, 116
+src/asqueel/projection.py                 166     47    72%   25-26, 28, 35, 37, 39, 42, 48, 65, 83, 88, 105-121, 129, 138-146, 150-157, 168, 177, 197, 200-203, 208-214
+src/asqueel/query_plan.py                 108     21    81%   127-128, 135, 140-145, 154-166
+src/asqueel/reader.py                     205    168    18%   82-83, 90-91, 94, 105, 109-112, 126-129, 134-174, 178-207, 213-219, 234-256, 259-273, 277-285, 289-309, 314-318, 321-344, 348-356, 359-375, 382-394, 403, 408-410
+src/asqueel/registry.py                    47     47     0%   2-63
+src/asqueel/renderer.py                     4      0   100%
+src/asqueel/runtime.py                    412    256    38%   57, 61, 65, 76, 84, 99, 103, 106-108, 112-123, 127-128, 137-138, 141, 145, 154-158, 162-163, 167, 171-172, 176, 196-201, 204-205, 210-211, 215-218, 222-223, 227-228, 232-233, 236-238, 241-242, 245-246, 250-266, 270-277, 282-288, 290, 295, 297, 301, 308-318, 321-324, 327-331, 334-345, 348-350, 353-354, 357-359, 362-364, 367-369, 372-374, 377-405, 409-410, 413-415, 418-442, 445-475, 478-481, 484-486, 489-512, 521-525, 532-536
+src/asqueel/semantic_elements.py           14      0   100%
+src/asqueel/triggers.py                    33     12    64%   28, 33, 36-39, 44-57
+src/asqueel/validation.py                  62     62     0%   2-79
+src/asqueel/validators.py                 202     38    81%   98, 114-115, 126, 138, 149, 152, 163, 167, 175, 186, 189, 196, 202, 212, 215, 229, 242, 262-263, 266-271, 284-289, 292-297, 302-312, 320, 328-333, 335, 343, 357, 372
+src/asqueel/writes.py                     126    101    20%   22-27, 35-47, 64-69, 72-88, 91-126, 129-161
+---------------------------------------------------------------------
+TOTAL                                    7076   2715    62%
+=========================== short test summary info ============================
+FAILED tests/adapter_dialect/test_postgres.py::test_plan_renders_identifiers_parameters_and_zero_pagination_without_driver_format
+FAILED tests/adapter_dialect/test_postgres.py::test_dml_rendering[insert-INSERT INTO "s"."t" AS "t0" ("amount") VALUES (<bind:value>)]
+FAILED tests/adapter_dialect/test_postgres.py::test_dml_rendering[update-UPDATE "s"."t" AS "t0" SET "amount" = <bind:value> WHERE TRUE]
+FAILED tests/adapter_dialect/test_postgres.py::test_dml_rendering[delete-DELETE FROM "s"."t" AS "t0" WHERE TRUE]
+FAILED tests/adapter_dialect/test_postgres.py::test_malformed_plans_are_rejected[plan2]
+FAILED tests/adapter_dialect/test_postgres.py::test_manual_projection_comment_cannot_hide_alias_or_from
+FAILED tests/adapter_dialect/test_postgres.py::test_manual_comments_cannot_hide_other_clauses_or_assignment_separators
+FAILED tests/adapter_dialect/test_postgres.py::test_fragment_comment_detection_handles_parts_and_protected_percent_strings
+FAILED tests/adapter_compiler/test_locking.py::test_lock_is_structural_and_follows_pagination
+FAILED tests/adapter_compiler/test_locking.py::test_manual_root_alias_is_quoted_for_lock_target
+FAILED tests/adapter_compiler/test_locking.py::test_trailing_comment_cannot_swallow_lock
+FAILED tests/adapter_compiler/test_plans.py::test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-0]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-1]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-2]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-3]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-4]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-5]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-6]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-7]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-8]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-9]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-10]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-11]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-12]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-13]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-14]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-15]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-16]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-17]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-18]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-19]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-20]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-21]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-22]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-23]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-24]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-25]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-26]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[postgresql-27]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-0]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-1]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-2]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-3]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-4]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-5]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-6]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-7]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-8]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-9]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-10]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-11]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-12]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-13]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-14]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-15]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-16]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-17]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-18]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-19]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-20]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-21]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-22]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-23]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-24]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-25]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-26]
+FAILED tests/object_tree/test_legacy_projections_parameters.py::test_projection_from_original_compiled_query[sqlite-27]
+FAILED tests/object_tree/test_minimal_select.py::test_empty_collection_and_legacy_params[postgresql]
+======================= 69 failed, 1795 passed in 27.25s =======================

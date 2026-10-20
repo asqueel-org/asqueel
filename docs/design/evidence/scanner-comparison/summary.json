@@ -1,0 +1,22 @@
+{
+  "distinct_cases": 71,
+  "total": 132,
+  "categories": {
+    "sqlite": {
+      "same_rows_and_columns": 33,
+      "only_current_executes": 7,
+      "only_legacy_executes": 4,
+      "both_execute_but_different": 13,
+      "both_fail": 5,
+      "compile_only_boundary": 1
+    },
+    "postgresql": {
+      "same_rows_and_columns": 29,
+      "only_current_executes": 17,
+      "only_legacy_executes": 7,
+      "both_execute_but_different": 9,
+      "both_fail": 6,
+      "compile_only_boundary": 1
+    }
+  }
+}

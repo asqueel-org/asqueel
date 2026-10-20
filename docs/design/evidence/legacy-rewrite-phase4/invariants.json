@@ -1,0 +1,16 @@
+{
+  "changed_since_phase3": [
+    "src/asqueel/compiler.py",
+    "src/asqueel/_legacy_sql.py",
+    "src/asqueel/object_tree_compiler.py",
+    "src/asqueel/application_table.py",
+    "src/asqueel/_sql_bindings.py",
+    "tests/object_tree/test_minimal_select.py",
+    "tests/object_tree/test_legacy_rewrite_contracts.py",
+    "tests/native_formulas/test_tree_phase2_results.py",
+    "tests/native_formulas/test_tree_legacy_formulas.py"
+  ],
+  "legacy_ast_verified": 106,
+  "migration_tables": 74,
+  "migration_identical": true
+}

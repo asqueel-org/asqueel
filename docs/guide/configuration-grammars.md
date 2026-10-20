@@ -68,12 +68,12 @@ class App(SqlDatabaseConfig):
 db = AsqueelDb(App)
 try:
     rank = db.table('sales.customer').column('rank')
-    assert rank.config('dtype') == 'I'
-    assert rank.model.dtype == 'I'
-    assert rank.config('ui_hint') == 'Number'
-    assert db.table('customer').column('id').config('ui_hint') == 'Identifier'
+    assert rank.dtype == 'I'
+    assert rank.dtype == 'I'
+    assert rank.attributes['ui_hint'] == 'Number'
+    assert db.table('sales.customer').column('id').attributes['ui_hint'] == 'Identifier'
 finally:
-    db.close()
+    db.closeConnection()
 
 ```
 
@@ -206,18 +206,21 @@ then takes them:
 | `app.get_db("betadb")` | the server's `betadb` |
 | `app.get_db("chat:alfadb")` | the `alfadb` of application `chat` |
 
-Every take goes through `AsqueelDb.acquire()`. The first take on a thread
-clears `currentEnv`, so a call never sees the context left by the previous call
-on that thread. At the end of the call, on the same thread, the host calls
-`release_databases()` on the owner the call used: it closes the connections of
-every database taken through that owner, and the next take starts a new call.
-One call runs on one thread; each thread releases only its own takes.
+The first take of a database during a call enters
+[`session(db)`](transactions.md#sessions) on it. The session clears
+`currentEnv`, so a call never sees the context left by the previous call on
+that thread. A database already in a session on the thread, taken through
+another owner, is used as it is. At the end of the call, on the same thread,
+the host calls `release_databases()` on the owner the call used: it leaves the
+sessions opened through that owner, which rolls back what was not committed
+and closes the connections, and the next take starts a new call. One call runs
+on one thread; each thread releases only its own takes.
 
 ## Boundaries of customization
 
 - The effective model is built from a private copy; resolving defaults does not
   rewrite the authored recipe.
-- Keep grammar classes explicit and verify both `.config` and `.model` when
+- Keep grammar classes explicit and verify column `.attributes` and `.dtype` when
   composing declaration rules.
 - A generated Python recipe is not a round trip of arbitrary dynamic grammar
   mounts, class hierarchy or original file decomposition.

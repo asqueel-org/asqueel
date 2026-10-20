@@ -139,7 +139,7 @@ invoice = db.table("sales.invoice").query(
 assert invoice["customer"] == "Ada"
 assert invoice["author"] == "ada"
 assert db.table("sales.invoice").rows_query(1).fetch()[0]["amount"] == Decimal("25")
-db.close()
+db.closeConnection()
 
 ```
 

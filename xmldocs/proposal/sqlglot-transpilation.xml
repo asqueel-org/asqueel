@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proposal id="proposal/sqlglot-transpilation" title="Traduzione dei dialetti con sqlglot" date="2026-10-20" lang="it" author="Giovanni Porcari" status="draft">
+  <problem>
+    <p>Ogni dialetto SQL richiede un compilatore o una logica di dialetto propria. Ogni dialetto nuovo moltiplica il codice da scrivere e da testare.</p>
+    <p>sqlglot è una libreria Python con licenza MIT. Legge SQL di un dialetto, costruisce un AST e scrive lo stesso AST in un altro dialetto. Questo documento propone di usarla per i dialetti diversi da PostgreSQL.</p>
+  </problem>
+
+  <current>
+    <section title="GenroPy">
+      <p>Fonte: il ramo <c>origin/develop</c> della repo genropy al commit <c>5c72f3fbd7</c> del 2026-10-19.</p>
+      <fact source="gnrpy/gnr/sql/adapters/" method="read" verified="2026-10-20">GenroPy ha un adapter per dialetto: PostgreSQL, SQLite, MySQL, SQL Server. Ogni adapter scrive il proprio SQL per le differenze di dialetto.</fact>
+    </section>
+  </current>
+
+  <solution>
+    <p>asqueel compila solo SQL PostgreSQL. Per un altro dialetto, sqlglot legge l'SQL PostgreSQL e lo scrive nel dialetto di destinazione.</p>
+    <diagram kind="mermaid" title="Percorso di una query verso un dialetto diverso da PostgreSQL"><![CDATA[
+flowchart LR
+  Q[query asqueel] --> C[compilatore PostgreSQL]
+  C --> PG[SQL PostgreSQL]
+  PG -->|dialetto PostgreSQL| DB1[(PostgreSQL)]
+  PG -->|altro dialetto| T[sqlglot: AST e scrittura]
+  T --> DB2[(SQLite, MySQL, SQL Server, DuckDB)]
+]]></diagram>
+
+    <section title="Vantaggi">
+      <list>
+        <item>Un solo compilatore da scrivere e da testare.</item>
+        <item>La logica di dialetto è nel codice di sqlglot.</item>
+        <item>Altri dialetti diventano possibili: MySQL, SQL Server, DuckDB.</item>
+      </list>
+    </section>
+
+    <section title="Limiti da verificare">
+      <list>
+        <item>Semantica che non si traduce. <c>FOR UPDATE</c> non esiste su SQLite. <c>jsonb_agg</c>, <c>xmlagg</c> e <c>tsvector</c> non hanno un equivalente in ogni dialetto. Queste funzioni restano capability del dialetto e sono rifiutate prima della traduzione.</item>
+        <item>Conservazione dei parametri. I segnaposto dei parametri devono arrivare intatti nell'SQL tradotto, con lo stile del driver di destinazione.</item>
+        <item>Costo di analisi. Leggere e riscrivere ogni statement ha un costo. Una cache dell'SQL tradotto lo limita.</item>
+        <item>Nuova dipendenza. sqlglot entra tra le dipendenze del pacchetto, con i suoi rilasci.</item>
+      </list>
+    </section>
+
+    <section title="Primo passo">
+      <p>Una prova traduce in SQLite l'SQL generato dai test PostgreSQL. Esegue l'SQL tradotto su SQLite e conta quanti test passano. Il conteggio dice quanta parte del compilatore SQLite la traduzione può sostituire.</p>
+    </section>
+
+    <rule level="must">Questa proposta non aggiunge codice né dipendenze. La decisione arriva dopo la prova.</rule>
+    <rule level="must">Una funzione che sqlglot non traduce resta una capability del dialetto e solleva l'errore che la nomina.</rule>
+  </solution>
+
+  <decisions>
+    <decision id="dn-sqlglot-trial" status="open">
+      <question>Si fa la prova di traduzione dei test PostgreSQL in SQLite?</question>
+      <option id="dn-sqlglot-trial-yes" title="Sì, prima di altri dialetti"><p>La prova misura la parte di SQL tradotta correttamente. Il risultato decide se sqlglot sostituisce i compilatori di dialetto.</p></option>
+      <option id="dn-sqlglot-trial-no" title="No, un compilatore per dialetto"><p>Ogni dialetto ha la propria logica, come gli adapter GenroPy.</p></option>
+    </decision>
+  </decisions>
+
+  <consequences>
+    <p>Se la prova riesce, ogni dialetto nuovo richiede la sua dichiarazione delle capability e i test, non un compilatore.</p>
+    <p>Se la prova fallisce su molti casi, la traduzione resta limitata o si abbandona. Il catalogo delle capability serve in entrambi i casi.</p>
+  </consequences>
+
+  <related>
+    <doc id="proposal/capability-catalogue">Catalogo delle capability dei dialetti</doc>
+  </related>
+</proposal>

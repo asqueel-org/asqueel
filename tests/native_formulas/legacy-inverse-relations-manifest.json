@@ -1,0 +1,60 @@
+{
+  "source": "gnrpy/tests/sql/test_compiler_coverage.py",
+  "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "tests": [
+    {
+      "test": "TestRelationNavigation.test_one_to_many_pg",
+      "line": 1486,
+      "source_ast_sha256": "1cb5159bfe963a861078f09fcffb6cf4ac0d6a95c6b505a603c2bf600428f82c",
+      "port_ast_sha256": "1cb5159bfe963a861078f09fcffb6cf4ac0d6a95c6b505a603c2bf600428f82c",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestRelationNavigation.test_one_to_many_sqlite",
+      "line": 1494,
+      "source_ast_sha256": "b1ca1d546839938aeab61a951670f3013f1bb19353c575499cdedd033e2d1b6b",
+      "port_ast_sha256": "b1ca1d546839938aeab61a951670f3013f1bb19353c575499cdedd033e2d1b6b",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestExplodingFastPath.test_exploding_fast_path_pg",
+      "line": 2803,
+      "source_ast_sha256": "d184252f11b92309e6852470968bd6b36d63757dea2ab0b2c43e7c52c367ea4c",
+      "port_ast_sha256": "475afa3757cf3b17925e689cdd218467980333182c532f02f0efd54b9f51d54c",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "next"
+      ]
+    },
+    {
+      "test": "TestExplodingFastPath.test_exploding_fast_path_sqlite",
+      "line": 2815,
+      "source_ast_sha256": "3ceb4885cd40ee577df2955793ee2d07cb60e840a7ebe0c16500941ab5546577",
+      "port_ast_sha256": "e3addc94dee48ddd4e882a1f4f07e2ad171145aca8f3ade8e4cc93c46aeebe64",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "next"
+      ]
+    }
+  ],
+  "excluded": [
+    "TestDistinctExploding: implicit DISTINCT, hidden ORDER columns and pkey count semantics outside this increment",
+    "Runtime aggregation of child values and experimental automatic many-side subqueries"
+  ]
+}

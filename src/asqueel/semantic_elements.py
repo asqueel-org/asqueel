@@ -20,35 +20,30 @@ class SemanticElements:
     def encryption(self, mode: Literal['X', 'R', 'Q']):
         ...
 
-    @element(parent_tags='column, compositeColumn, formulaColumn', sub_tags='')
-    def weak_relation(self, to: str, name: str | None = None, inverse: str | None = None,
-                      indexed: bool = True, one_one: bool = False, on_delete: str | None = None,
-                      on_update: str | None = None, on_duplicate: str | bool | None = None,
+    @element(parent_tags='column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn', sub_tags='')
+    def weak_relation(self, to: str, name: str | None = None, relation_name: str | None = None,
+                      indexed: bool = True, one_one: bool = False, onDelete: str | None = None,
+                      onUpdate: str | None = None, onDuplicate: str | bool | None = None,
                       one_name: str | None = None, many_name: str | None = None,
                       one_group: str | None = None, many_group: str | None = None):
         ...
 
-    @element(parent_tags='virtual_columns', sub_tags='')
+    @element(parent_tags='virtual_columns', sub_tags='relation')
     def bagItemColumn(self, name: str, bagcolumn: str, itempath: str,
                       dtype: str | None = None, group: str | None = None,
                       name_long: str | None = None, name_short: str | None = None,
-                      comment: str | None = None, **extra):
+                      comment: str | None = None, x_identity: str | None = None):
         ...
 
-    @element(parent_tags='table', sub_tags='')
-    def subtable(self, name: str, condition: str, parameters: dict | None = None,
-                 name_long: str | None = None, name_short: str | None = None,
-                 comment: str | None = None, **extra):
-        ...
-
-    @element(parent_tags='table', sub_tags='')
+    @element(parent_tags='table', sub_tags='', _meta={'attribute_families': ['var_']})
     def virtualRelation(self, name: str, relation: str | None = None, table: str | None = None,
                         condition: str | None = None, ask: dict | None = None,
                         name_long: str | None = None, name_short: str | None = None,
                         comment: str | None = None, **bindings):
         """GEP virtual relation; var_* binds source expressions as declaration data.
 
-        condition refers to the target. var_* expressions refer to the source
+        table names a direct target and requires a nonempty condition in the
+        completed source. condition refers to the target. var_* expressions refer to the source
         and are used as :var_* in condition. An ask field named <name> is
         referenced as :ask_<name>. This namespace is provisional until compiler
         design. ask and bindings are preserved as data, without SQL rewriting.

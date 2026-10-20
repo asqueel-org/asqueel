@@ -9,9 +9,14 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
+from datetime import date
+import re
 from types import MappingProxyType
 from threading import local
 from typing import Any, cast
+
+
+_TRANSACTION_KEYS = re.compile(r'((to|after)_commit_defer_calls|_pendingExceptions)_.*')
 
 
 def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:
@@ -23,6 +28,14 @@ def _copy_values(values: Mapping[str, Any], operation: str) -> dict[str, Any]:
             'values must support deepcopy'
         ) from error
 
+
+
+def environment_arguments(keys, snapshot):
+    """The :env_* values of ``keys`` in ``snapshot``, read at every execution as legacy execute."""
+    params = {'env_' + key: snapshot.get(key) for key in keys}
+    if 'env_workdate' in params:
+        params['env_workdate'] = params['env_workdate'] or date.today()
+    return params
 
 class SqlEnvironment:
     """An isolated context variable holding the current SQL environment.
@@ -86,7 +99,11 @@ class ApplicationEnvironment(SqlEnvironment):
 
     @property
     def current_env(self) -> Mapping[str, Any]:
-        return MappingProxyType(_copy_values(self.currentEnv, 'snapshot'))
+        # The deferred-call queues and pending exceptions live in currentEnv as
+        # legacy; they are transaction state, not SQL values, and are not copied.
+        values = {key: value for key, value in self.currentEnv.items()
+                  if not _TRANSACTION_KEYS.fullmatch(key)}
+        return MappingProxyType(_copy_values(values, 'snapshot'))
 
     @property
     def currentEnv(self) -> dict[str, Any]:

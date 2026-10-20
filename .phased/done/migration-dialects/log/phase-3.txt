@@ -1,0 +1,5 @@
+✓ Phase 3 completata: due proposte per il team, sul catalogo delle capability e sulla traduzione con sqlglot.
+
+- **Commit:** `220b469`. Contiene i file XML, MD e HTML delle due proposte, il piano e `notes.md`. Dopo il commit `git status --porcelain xmldocs` non mostra file.
+- **Verifiche eseguite:** `xmldocs check` dà validi tutti e quattro i documenti. I test delle Phase 1-2 passano 40/40. Prima di iniziare la fase la suite completa era verde: 5253 passed, 42 skipped, 27 xfailed; ruff era pulito.
+- **Da controllare a mano:** il diagramma Mermaid in `xmldocs/proposal/sqlglot-transpilation.html` non è stato verificato. Lo script non rileva gli errori di sintassi Mermaid, quindi la pagina va aperta tramite un server HTTP locale. Il controllo è annotato come `Verify: now` nel piano e in `verify.md`.

@@ -25,7 +25,7 @@ INVOICES = [
 ]
 VISIBLE = [10, 11, 12, 13, 15]
 ALL_IDS = [10, 11, 12, 13, 14, 15]
-BACKENDS = ['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)]
+BACKENDS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)]
 PLACEHOLDER = r'%\(\w+\)s|:\w+'
 
 PG_DDL = (
@@ -52,7 +52,7 @@ def declare_tables(schema_node):
     customer.virtual_columns().formulaColumn('selected_invoices', dtype='L', select=dict(
         table='sales.invoice', columns='COUNT(*)',
         where='$customer_id = #THIS.id AND $id IN :ids'))
-    invoice = tables.table('invoice', pkey='id', x_logical_deletion_field='__del_ts')
+    invoice = tables.table('invoice', pkey='id', logicalDeletionField='__del_ts')
     columns = invoice.columns()
     columns.column('id', dtype='L')
     columns.column('customer_id', dtype='L').relation(
@@ -82,13 +82,14 @@ class Shop:
         return [row['id'] for row in self.query(**options).fetch()]
 
     def direct_ids(self, sql, params=None):
-        rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).rows
+        rows = self.db.execute(sql.format(invoice=self.invoice_sql), params).fetchall()
         return sorted(row['id'] for row in rows)
 
 
 def seed(db, invoice_sql):
     for row in CUSTOMERS:
-        db.table('sales.customer').insert(dict(zip(('id', 'name'), row)))
+        db.execute(f'INSERT INTO {invoice_sql.rsplit(".", 1)[0]}.customer (id, name) VALUES (:id, :name)',
+                   dict(zip(('id', 'name'), row)))
     for invoice_id, customer_id, total, note, deleted in INVOICES:
         db.execute(f'INSERT INTO {invoice_sql} (id, customer_id, total, note, __del_ts) '
                    'VALUES (:id, :customer_id, :total, :note, :deleted)',
@@ -117,15 +118,15 @@ def shop(request, tmp_path):
             yield Shop('sqlite', db, 'sales.invoice')
         finally:
             db.rollback()
-            db.close()
+            db.closeConnection()
         return
     schema = 'query_completion_' + uuid4().hex
     dsn = postgres_dsn()
 
     class PostgresRecipe(SqlDatabaseConfig):
         def main(self, root):
-            declare_tables(root.db('shop', conninfo=dsn).schemas().schema(
-                'sales', x_sql_schema=schema))
+            declare_tables(root.db('shop', implementation='postgres', conninfo=dsn).schemas().schema(
+                'sales', sqlname=schema))
 
     db = AsqueelDb(PostgresRecipe)
     try:
@@ -134,12 +135,12 @@ def shop(request, tmp_path):
         db.commit()
         invoice_sql = f'"{schema}".invoice'
         seed(db, invoice_sql)
-        yield Shop('postgresql', db, invoice_sql)
+        yield Shop('postgres', db, invoice_sql)
     finally:
         db.rollback()
         db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         db.commit()
-        db.close()
+        db.closeConnection()
 
 
 def amount(value):

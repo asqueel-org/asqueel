@@ -3,16 +3,19 @@
 A host mixes in :class:`AsqueelDbMixin` on its server and on its applications.
 Names follow one rule: ``<owner>:<db>`` is a database of the owner named
 ``<owner>`` (an application), a name without a colon is a database of the
-server. Every database taken during a call is taken with
-:meth:`~asqueel.runtime.Database.acquire`, which clears the context on the
-first take; :meth:`AsqueelDbMixin.release_databases` closes, on the current
-thread, the databases taken through that owner. One call runs on one thread.
+server. The first take of a database during a call enters
+:func:`~asqueel.runtime.session` on it, which clears the context; a database
+already in a session on the thread, taken through another owner, is used as
+it is. :meth:`AsqueelDbMixin.release_databases` leaves, on the current thread,
+the sessions opened through that owner. One call runs on one thread.
 """
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
 from threading import local
 
 from .application import AsqueelDb
+from .runtime import session
 
 #: Name of the database ``db`` returns.
 DEFAULT_DB = 'default'
@@ -46,12 +49,17 @@ class AsqueelDbMixin:
         return self._asqueel_dbs
 
     @property
+    def _sessions(self) -> list[tuple[AsqueelDb, AbstractContextManager | None]]:
+        """The sessions opened through this owner on the current thread, in order."""
+        if not hasattr(self._asqueel_taken, 'sessions'):
+            self._asqueel_taken.sessions = []
+        sessions: list[tuple[AsqueelDb, AbstractContextManager | None]] = self._asqueel_taken.sessions
+        return sessions
+
+    @property
     def taken_databases(self) -> list[AsqueelDb]:
         """The databases taken through this owner on the current thread, in order."""
-        if not hasattr(self._asqueel_taken, 'dbs'):
-            self._asqueel_taken.dbs = []
-        dbs: list[AsqueelDb] = self._asqueel_taken.dbs
-        return dbs
+        return [db for db, _ in self._sessions]
 
     def set_asqueel_db(self, name: str, source, **kwargs) -> AsqueelDb:
         """Build an :class:`AsqueelDb` from ``source`` and register it under ``name``.
@@ -79,13 +87,15 @@ class AsqueelDbMixin:
         return self._take(self.asqueel_owner(owner_name), local_name)
 
     def release_databases(self) -> None:
-        """Close, on the current thread, every database taken through this owner."""
-        taken = self.taken_databases
+        """Leave, on the current thread, the session of every database taken through this owner."""
+        sessions = self._sessions
         error = None
-        while taken:
-            db = taken.pop()
+        while sessions:
+            _, opened = sessions.pop()
+            if opened is None:
+                continue
             try:
-                db.closeConnection()
+                opened.__exit__(None, None, None)
             except BaseException as failure:
                 if error is None:
                     error = failure
@@ -97,8 +107,10 @@ class AsqueelDbMixin:
         if db is None:
             prefix = f'{owner.asqueel_owner_name}:' if owner.asqueel_owner_name else ''
             raise KeyError(f'no database {prefix}{local_name}')
-        db.acquire()
-        taken = self.taken_databases
-        if db not in taken:
-            taken.append(db)
+        if db not in self.taken_databases:
+            opened = None
+            if not db._thread_state.session_open:
+                opened = session(db)
+                opened.__enter__()
+            self._sessions.append((db, opened))
         return db

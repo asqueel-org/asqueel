@@ -20,7 +20,7 @@ def recipe(path, name_dtype='T'):
 
 
 def item_columns(path):
-    connection = sqlite3.connect(path.parent / f'{path.stem}_app.db')
+    connection = sqlite3.connect(path.parent / 'app.db')
     try:
         return [(row[1], row[2]) for row in connection.execute('PRAGMA table_info(item)')]
     finally:
@@ -40,9 +40,9 @@ def test_plan_changes_nothing_and_migrate_creates_the_tables(tmp_path):
         assert db.migration_plan().empty
         db.table('app.item').insert({'id': 1, 'name': 'first'})
         db.commit()
-        assert db.table('app.item').query(columns='$id, $name').fetch() == [{'id': 1, 'name': 'first'}]
+        assert [dict(row) for row in db.table('app.item').query(columns='$id, $name').fetch()] == [{'id': 1, 'name': 'first'}]
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_migrate_on_an_up_to_date_database_returns_an_empty_plan(tmp_path):
@@ -51,7 +51,7 @@ def test_migrate_on_an_up_to_date_database_returns_an_empty_plan(tmp_path):
         db.migrate()
         assert db.migrate().empty
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_a_database_declared_in_a_host_configuration_migrates(tmp_path):
@@ -61,9 +61,9 @@ def test_a_database_declared_in_a_host_configuration_migrates(tmp_path):
         db.migrate()
         db.table('chat.message').insert({'id': 1, 'text': 'ciao'})
         db.commit()
-        assert db.table('chat.message').query(columns='$text').fetch() == [{'text': 'ciao'}]
+        assert [dict(row) for row in db.table('chat.message').query(columns='$text').fetch()] == [{'text': 'ciao'}]
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
@@ -72,7 +72,7 @@ def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
     try:
         first.migrate()
     finally:
-        first.close()
+        first.closeConnection()
     changed = AsqueelDb(recipe(path, name_dtype='L'))
     try:
         plan = changed.migration_plan()
@@ -81,17 +81,24 @@ def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
         with pytest.raises(MigrationError, match='cannot apply'):
             changed.migrate()
     finally:
-        changed.close()
+        changed.closeConnection()
     assert ('name', 'TEXT') in item_columns(path)
 
 
-def test_an_in_memory_sqlite_database_cannot_be_migrated():
+def test_an_in_memory_sqlite_database_can_be_migrated_without_files(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     db = AsqueelDb(recipe(':memory:'))
     try:
-        with pytest.raises(MigrationError, match='persistent SQLite files'):
-            db.migration_plan()
+        plan = db.migration_plan()
+        assert 'CREATE TABLE' in plan.commands
+        assert db.migrate().commands == plan.commands
+        assert db.migration_plan().empty
+        db.table('app.item').insert({'id': 1, 'name': 'memory'})
+        db.commit()
+        assert db.table('app.item').query(columns='$name').fetch()[0]['name'] == 'memory'
+        assert list(tmp_path.iterdir()) == []
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_a_model_without_tables_cannot_be_migrated(tmp_path):
@@ -105,7 +112,7 @@ def test_a_model_without_tables_cannot_be_migrated(tmp_path):
         with pytest.raises(MigrationError, match='nonempty managed schema'):
             db.migration_plan()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_a_legacy_connection_without_a_database_name_cannot_be_migrated():
@@ -118,7 +125,7 @@ def test_a_legacy_connection_without_a_database_name_cannot_be_migrated():
         with pytest.raises(MigrationError, match='Declare connection.name'):
             db.migration_plan()
     finally:
-        db.close()
+        db.closeConnection()
 
 
 CONFIGURE = '''
@@ -154,7 +161,7 @@ def test_the_cli_refuses_a_skipped_change_and_names_it(tmp_path, capsys):
 
 @pytest.mark.parametrize('module, implementation, hint', [
     ('asqueel_migration', 'sqlite', 'Install asqueel[migration]'),
-    ('psycopg', 'postgresql', 'Install asqueel[postgresql]'),
+    ('psycopg', 'postgres', 'Install asqueel[postgresql]'),
 ])
 def test_the_cli_names_the_missing_extra(tmp_path, monkeypatch, capsys, module, implementation, hint):
     from asqueel.cli import main

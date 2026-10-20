@@ -13,6 +13,7 @@ from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
 from genro_bag import Bag, BagNode, BagResolver
 
 from .builder import SqlBuilder
+from .package_layout import load_package_layouts
 
 _MISSING = object()
 
@@ -53,9 +54,9 @@ class SqlDatabaseElements:
     """Keep root grammar in a mixin so recipe subclasses retain its defaults."""
 
     @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
-    def db(self, name: str = 'db', implementation: str = 'postgresql', conninfo: str = '',
+    def db(self, name: str = 'db', implementation: str = 'sqlite', conninfo: str = '',
            connect_kwargs: dict | None = None, name_long: str | None = None,
-           name_short: str | None = None, comment: str | None = None, **extra):
+           name_short: str | None = None, comment: str | None = None):
         ...
 
     @element(parent_tags='db', sub_tags='options[:1]')
@@ -66,7 +67,7 @@ class SqlDatabaseElements:
                    password: str | BagResolver | None = None,
                    options: dict | None = None, database: str | BagResolver | None = None,
                    dsn: str | BagResolver | None = None, name_long: str | None = None,
-                   name_short: str | None = None, comment: str | None = None, **extra):
+                   name_short: str | None = None, comment: str | None = None):
         """Named connection; legacy declarations without database/dsn keep name as database."""
         ...
 
@@ -80,6 +81,11 @@ class SqlDatabaseConfig(SqlDatabaseElements, SqlBuilder, ConfigBuilder):
     def renderer_objects(self):
         from .object_renderer import SqlObjectRenderer
         return SqlObjectRenderer(self)
+
+    @property
+    def renderer_objects_tree(self):
+        from .object_tree_renderer import SqlObjectTreeRenderer
+        return SqlObjectTreeRenderer(self)
 
 
 def _copy_recipe(recipe):
@@ -100,21 +106,18 @@ def _owned_handler(source, parents=None):
             with handler.builder.contribution(f'layer[{index}]'):
                 _compose_source(handler.builder, handler.builder.source, layer.builder.source)
         _normalize_connection_options(handler)
+        load_package_layouts(handler.builder)
         _validate_source_shape(handler.builder)
         return handler
 
 
 def _validate_source_shape(builder):
     """Validate composition without resolving defaults, references or secrets."""
-    from .model_elements import OPTION_LEVELS
-    from .option_elements import TABLE_OPTIONS
     tags = {node.node_tag for _, node in builder.source.query('#p,#n', deep=True)}
     if 'packages' in tags and 'schemas' in tags:
         raise ValueError('Package configuration derives schemas from package.sqlschema; '
                          'remove the explicit schemas section')
     for _, node in builder.source.query('#p,#n', deep=True):
-        if node.node_tag != 'validation' and {'metadata', 'x_ui'}.intersection(node.attr):
-            raise ValueError(f'{node.node_tag}: use flat namespaced attributes, not metadata/x_ui mappings')
         if node.node_tag in ('context', 'generation', 'behavior', 'pkey_from', 'macro',
                              'normalize', 'aliasTable', 'table_alias', 'metadata', 'diagnostics'):
             raise ValueError(f'{node.node_tag}: removed from the source grammar')
@@ -122,10 +125,14 @@ def _validate_source_shape(builder):
             owner = node._resolve_builder()
             owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
                                      dict(node.attr), node.node_tag)
-        if node.node_tag in (*TABLE_OPTIONS, 'encryption') and 'provider' in node.attr:
+            condition = node.attr.get('condition')
+            if node.attr.get('table') and (condition is None or
+                    isinstance(condition, str) and not condition.strip()):
+                raise ValueError('virtualRelation: table requires a nonempty condition')
+        if (node.node_tag in builder.table_options or node.node_tag == 'encryption') and 'provider' in node.attr:
             raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
-        if node.node_tag in OPTION_LEVELS:
-            if node.node_tag in TABLE_OPTIONS:
+        if builder.option_levels(node.node_tag) is not None:
+            if node.node_tag in builder.table_options:
                 owner = node._resolve_builder()
                 owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
                     {key: value for key, value in node.attr.items() if key != '_meta'}, node.node_tag)
@@ -197,10 +204,12 @@ def _compose_source(builder, target, incoming):
                 added.value = type(value)(builder=builder)
                 _compose_source(builder, added.value, value)
             continue
+        attributes = dict(node.attr)
         if existing.node_tag != node.node_tag:
-            raise ValueError(f'{existing.fullpath}: conflicting element kinds '
-                             f'{existing.node_tag!r} and {node.node_tag!r}')
-        builder._compose_attributes(existing, dict(node.attr))
+            group = (node.attr.get('_meta') or {}).get('colgroup')
+            if group and (existing.get_attr('group') or '').startswith(group + '.'):
+                attributes.pop('group', None)
+        builder._compose_attributes(existing, attributes, node_tag=node.node_tag)
         value = node.get_value(static=True)
         previous = existing.get_value(static=True)
         if node.node_tag == 'options' and isinstance(previous, Bag):
@@ -332,16 +341,16 @@ def _connection_settings(config, prefix):
             if root is not None and isinstance(root.value, Bag) and any(
                     child.node_tag == 'connection' for child in root.value):
                 raise ValueError('Named connections require an explicit main connection')
-        return (config('implementation', default='postgresql'),
+        return (config('implementation', default='sqlite'),
                 config('conninfo', default=''), config('connect_kwargs', default=None))
     implementation = read('implementation')
     if implementation is None:
-        implementation = config('implementation', default='postgresql')
+        implementation = config('implementation', default='sqlite')
     if config('conninfo', default='') or config('connect_kwargs', default=None):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
     options = dict(read('options') or {})
     fields = ('connect_timeout', 'application_name', 'sslmode', 'sslrootcert',
-              'options', 'timeout', 'cached_statements')
+              'options', 'timeout', 'cached_statements', 'foreignKeys')
     driver_options = {field: value for field in fields
                       if (value := read(f'options.driver.{field}')) is not None}
     if driver_options:
@@ -361,7 +370,7 @@ def _connection_settings(config, prefix):
         raise ValueError('connection.database must resolve to a nonempty database name')
     if explicit_dsn and dsn is None:
         raise ValueError('connection.dsn must resolve to a nonempty string')
-    if (database is not None or dsn is not None) and implementation != config('implementation', default='postgresql'):
+    if (database is not None or dsn is not None) and implementation != config('implementation', default='sqlite'):
         raise ValueError('Named connections must use the database dialect')
     if dsn is not None:
         if database is not None or any(read(field) is not None
@@ -369,18 +378,18 @@ def _connection_settings(config, prefix):
             raise ValueError('dsn and individual connection fields cannot be combined')
         if not isinstance(dsn, str) or not dsn.strip():
             raise ValueError('connection.dsn must resolve to a nonempty string')
-        if implementation != 'postgresql':
+        if implementation.partition(':')[0] not in ('postgres', 'postgres3'):
             raise ValueError('dsn requires a PostgreSQL connection')
         return implementation, dsn, options
     name = database if database is not None else name
     if not isinstance(name, str) or not name.strip():
         raise ValueError('connection.name must resolve to a nonempty database name')
     options['dbname'] = name
-    if implementation == 'sqlite':
+    if implementation.partition(':')[0] == 'sqlite':
         if any(read(key) is not None
                for key in ('host', 'port', 'user', 'password')):
             raise ValueError('SQLite uses a filename, not host/user/password/port')
-        if set(options) - {'dbname', 'timeout', 'cached_statements'}:
+        if set(options) - {'dbname', 'timeout', 'cached_statements', 'foreignKeys'}:
             raise ValueError('Unsupported SQLite connection options')
         return implementation, '', options
     for name in ('host', 'port', 'user', 'password'):
@@ -395,11 +404,10 @@ def _connection_settings(config, prefix):
     return implementation, '', options
 
 
-def build_database(source, *, parents=None, driver=None, dialect=None, environment=None):
+def build_database(source, *, parents=None, environment=None):
     """Compatibility factory; new application code can instantiate AsqueelDb."""
     from .application import AsqueelDb
-    return AsqueelDb(source, parents=parents, driver=driver, dialect=dialect,
-                     environment=environment)
+    return AsqueelDb(source, parents=parents, environment=environment)
 
 
 def _effective_model_builder(config):

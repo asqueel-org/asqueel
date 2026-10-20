@@ -1,30 +1,25 @@
-from tests.unit_of_work import completed
+from tests.unit_of_work import FakeCursor, completed
 import threading
 
-import pytest
 
-from asqueel.contracts import (
-    CompiledQuery, EnvironmentBinding, EnvironmentMismatchError, QueryResult,
-)
-from asqueel.drivers.psycopg import PsycopgDriver
+from asqueel.contracts import CompiledQuery
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
-from asqueel.query_plan import SqlStatement
 from asqueel.runtime import PostgresDatabase, Database
 
 
-class ContextDriver:
-    dialect = 'postgresql'
-    binding = 'psycopg_named'
+# Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
+FAKE = 'postgres:tests.environment.test_runtime_environment'
 
-    def __init__(self, environment):
-        self.environment = environment
+
+class SqlDbAdapter(PostgresAdapter):
+    def __init__(self, dbroot):
+        super().__init__(dbroot)
         self.calls = []
 
-    def validate(self, query):
-        PsycopgDriver().validate(query)
-
-    def prepare(self, statement):
-        return PsycopgDriver().prepare(statement)
+    @property
+    def environment(self):
+        return self.dbroot.environment
 
     def record(self, method):
         self.calls.append((method, dict(self.environment.snapshot()), threading.get_ident()))
@@ -33,13 +28,14 @@ class ContextDriver:
         self.record('connect')
         return object()
 
-    def execute(self, connection, query):
+    def execute(self, connection, query, cursorname=None):
         self.record('execute')
         result = dict(self.environment.snapshot())
-        # A nested driver scope restores the caller context on normal exit.
+        result.update(query.params)
+        # A nested adapter scope restores the caller context on normal exit.
         with self.environment.temp_env(driver_local=True):
             assert self.environment.current_env['driver_local']
-        return QueryResult([result], 1)
+        return FakeCursor([result])
 
     def commit(self, connection):
         self.record('commit')
@@ -51,40 +47,38 @@ class ContextDriver:
         self.record('close')
 
 
-def test_driver_preparation_preserves_environment_binding():
-    binding = EnvironmentBinding(('company',), {'company': 1})
-    query = PsycopgDriver().prepare(SqlStatement(('SELECT 1',), environment=binding))
-    assert query.environment is binding
+def test_driver_preparation_collects_environment_keys():
+    query = PostgresAdapter(None).prepare_sql('SELECT :env_company', {}, {'company': 1})
+    assert query.environment_keys == ('company',)
+    assert query.params == {'env_company': 1}
 
 
-def test_stale_environment_rejected_before_connect_and_before_transaction_dispatch():
+def test_reused_query_reads_the_environment_of_every_execution():
     env = SqlEnvironment({'company': 1})
-    driver = ContextDriver(env)
-    query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
-    with Database(driver=driver, environment=env) as db:
+    query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
+    db = Database(implementation=FAKE, environment=env)
+    try:
         with db.temp_env(company=2):
-            with pytest.raises(EnvironmentMismatchError):
-                db.execute(query)
-        assert not driver.calls
-        with completed(db) as tx:
-            with env.temp_env(company=2):
-                with pytest.raises(EnvironmentMismatchError):
-                    tx.execute(query)
-            assert not driver.calls
-            assert tx.execute(query).rows == [{'company': 1}]
+            assert db.execute(query).fetchone()['env_company'] == 2
+        assert db.execute(query).fetchone()['env_company'] == 1
+    finally:
+        db.closeConnection()
 
 
 def test_runtime_aliases_use_current_context_on_the_calling_thread():
     env = SqlEnvironment({'company': 1})
-    driver = ContextDriver(env)
-    with PostgresDatabase(driver=driver, environment=env) as db:
+    db = Database(implementation=FAKE, environment=env)
+    try:
+        driver = db.adapter
         assert db.environment is env
         with db.tempEnv(company=2):
             assert db.currentEnv == db.current_env == {'company': 2}
             with completed(db) as tx:
                 with db.temp_env(company=3):
-                    assert tx.execute(CompiledQuery('select')).rows == [{'company': 3}]
-        assert db.execute(CompiledQuery('select')).rows == [{'company': 1}]
+                    assert [dict(row) for row in tx.execute(CompiledQuery('select')).fetchall()] == [{'company': 3}]
+        assert [dict(row) for row in db.execute(CompiledQuery('select')).fetchall()] == [{'company': 1}]
+    finally:
+        db.closeConnection()
     assert [(method, values['company']) for method, values, _ in driver.calls] == [
         ('connect', 3), ('execute', 3), ('commit', 2),
         ('execute', 1), ('rollback', 1), ('close', 1)]
@@ -94,51 +88,24 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
 
 def test_separate_sync_databases_share_explicit_environment_without_leaking_scopes():
     env = SqlEnvironment({'company': 0})
-    driver = ContextDriver(env)
-    with Database(driver=driver, environment=env) as first, Database(driver=driver, environment=env) as second:
+    first, second = Database(implementation=FAKE, environment=env), Database(implementation=FAKE, environment=env)
+    try:
         with first.temp_env(company=1):
             assert second.current_env == {'company': 1}
-            first_query = CompiledQuery('select', environment=EnvironmentBinding(('company',), {'company': 1}))
-            assert first.execute(first_query).rows == [{'company': 1}]
+            first_query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
+            assert [dict(row) for row in first.execute(first_query).fetchall()] == [{'company': 1, 'env_company': 1}]
         with second.temp_env(company=2):
-            with pytest.raises(EnvironmentMismatchError):
-                second.execute(first_query)
-            assert second.execute(CompiledQuery('select')).rows == [{'company': 2}]
+            assert second.execute(first_query).fetchone()['env_company'] == 2
+            assert [dict(row) for row in second.execute(CompiledQuery('select')).fetchall()] == [{'company': 2}]
         assert env.current_env == {'company': 0}
+    finally:
+        first.closeConnection()
+        second.closeConnection()
 
 
 def test_runtime_default_environments_are_independent():
-    with PostgresDatabase() as first, PostgresDatabase() as second:
-        assert first.environment is not second.environment
-        with first.temp_env(company=1):
-            assert first.current_env == {'company': 1}
-            assert second.current_env == {}
-
-
-def test_environment_binding_keeps_private_snapshot_despite_nested_mutations():
-    source = {'allowed': [1], 'settings': {'mode': ['visible']}}
-    binding = EnvironmentBinding(('allowed', 'settings'), source)
-    source['allowed'].append(2)
-    snapshot = binding.values
-    with pytest.raises(TypeError):
-        snapshot['allowed'] = [3]
-    snapshot['allowed'].append(4)
-    snapshot['settings']['mode'].append('hidden')
-    expected = {'allowed': [1], 'settings': {'mode': ['visible']}}
-    assert binding.values == expected
-    binding.validate(expected)
-    with pytest.raises(EnvironmentMismatchError):
-        binding.validate(source)
-    with pytest.raises(EnvironmentMismatchError):
-        binding.validate(snapshot)
-
-
-def test_environment_binding_distinguishes_missing_key_from_none():
-    absent = EnvironmentBinding(('optional',), {})
-    absent.validate({})
-    with pytest.raises(EnvironmentMismatchError):
-        absent.validate({'optional': None})
-    present = EnvironmentBinding(('optional',), {'optional': None})
-    present.validate({'optional': None})
-    with pytest.raises(EnvironmentMismatchError):
-        present.validate({})
+    first, second = PostgresDatabase(), PostgresDatabase()
+    assert first.environment is not second.environment
+    with first.temp_env(company=1):
+        assert first.current_env == {'company': 1}
+        assert second.current_env == {}

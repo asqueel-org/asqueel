@@ -1,0 +1,13 @@
+✓ Phase 1 riparata e chiusa come `[x]`, con la nota `> Repaired:`. Il commit è `b4959c6`. Nessun push.
+
+- **Causa:** il codice non aveva difetti. Il blocco era il contract test di `fetchGrouped(ordered=True)`, già corretto prima della repair. La repair ha completato il lavoro lasciato aperto:
+  - test e `docs/guide` riallineati da `record()` a `query(...).fetchRecord()`;
+  - 16 correzioni MECHANICAL segnalate dal verifier: marker mancanti, pagine della guide ferme al vecchio `record()`, rami di `_key_selector` non più raggiungibili.
+- **Done verificato:**
+  - 30 contract test passano su SQLite e PostgreSQL;
+  - il grep su `record(`/`SqlRecord` trova solo il rifiuto e il suo test;
+  - la suite completa dà 5034 passed, 42 skipped, 31 xfailed;
+  - ruff e mypy sono puliti.
+- **`> Review:` per il quality check (2 rilievi JUDGMENT):**
+  - i contract test non coprono `serverfetch()`, il cursore con nome di `servercursor()` su PostgreSQL e il ramo datetime di `fetchAsJson`;
+  - un errore del driver durante `fetchmany` del cursore non marca la connessione come fallita.

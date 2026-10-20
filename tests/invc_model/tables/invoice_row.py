@@ -7,7 +7,7 @@ def config_db(tables):
     columns.column("id", dtype="serial")
     invoice_id = columns.column("invoice_id", dtype="L", notnull=True)
     invoice_id.relation(
-        "invc.invoice.id", foreign_key=True, on_delete="CASCADE",
+        "invc.invoice.id", foreign_key=True, onDelete_sql="cascade",
     )
     columns.column("line_no", dtype="I", notnull=True)
     columns.column("description", dtype="A", size="0:200", notnull=True)
@@ -27,6 +27,6 @@ def config_db(tables):
     )
     indexes = table.indexes()
     indexes.index(
-        "ix_invoice_row_invoice_line", columns="invoice_id,line_no",
+        name="ix_invoice_row_invoice_line", columns="invoice_id,line_no",
     )
     return table

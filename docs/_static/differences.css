@@ -1,0 +1,29 @@
+/* "Differences from GenroPy": labels of the Missing cards and card spacing. */
+.asq-label {
+  display: inline-block;
+  margin-left: 0.5em;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.7em;
+  font-weight: 600;
+  vertical-align: middle;
+  color: #fff;
+}
+.asq-label-temporary { background: #8a5a00; }
+.asq-label-removed { background: #a12a2a; }
+.asq-label-replaced { background: #1f5f99; }
+.rst-content section h4 {
+  margin-top: 2rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e6eb;
+}
+.rst-content details {
+  margin: 0.5rem 0 1rem;
+  padding: 0.25rem 0.75rem;
+  border-left: 3px solid #e2e6eb;
+}
+.rst-content details summary { cursor: pointer; font-weight: 600; }
+@media (prefers-color-scheme: dark) {
+  .rst-content section h4 { border-top-color: #3a4450; }
+  .rst-content details { border-left-color: #3a4450; }
+}

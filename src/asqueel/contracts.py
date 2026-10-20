@@ -16,42 +16,24 @@ class UnsupportedFeatureError(ValueError):
     """The requested feature is outside the declared native profile."""
 
 
-class EnvironmentMismatchError(ValueError):
-    """A context-bound query cannot be reused in a different environment."""
+def not_available(subject):
+    """The error of a legacy feature absent from this release, naming what the user wrote."""
+    return UnsupportedFeatureError(f'{subject} is not available in this release')
 
 
-@dataclass(frozen=True, init=False)
-class EnvironmentBinding:
-    keys: tuple[str, ...]
-    _values: Mapping[str, Any] = field(repr=False)
-
-    def __init__(self, keys: tuple[str, ...], values: Mapping[str, Any]):
-        object.__setattr__(self, 'keys', tuple(keys))
-        object.__setattr__(self, '_values', MappingProxyType(deepcopy(dict(values))))
-
-    @property
-    def values(self) -> Mapping[str, Any]:
-        """A detached snapshot; nested edits cannot change the bound context."""
-        return MappingProxyType(deepcopy(dict(self._values)))
-
-    def validate(self, current: Mapping[str, Any]) -> None:
-        actual = {key: current[key] for key in self.keys if key in current}
-        if actual != dict(self._values):
-            raise EnvironmentMismatchError(
-                'Query environment changed; compile again in the current scope')
+def refused_property(subject):
+    """A property whose read raises the error of a legacy feature absent from this release."""
+    def refuse(self):
+        raise not_available(subject)
+    return property(refuse)
 
 
-@dataclass(frozen=True)
-class PartitionScope:
-    field: str
-    current: str
-    allowed: str | None = None
-    include_null: bool = True
+class UnusedQueryParameterWarning(UserWarning):
+    """A query keyword that the compiled query does not use; the query still runs."""
 
 
 @dataclass(frozen=True)
 class RowPolicies:
-    partitions: tuple[PartitionScope, ...] = ()
     draft_field: str | None = None
     logical_deletion_field: str | None = None
 
@@ -195,18 +177,17 @@ class CompiledQuery:
     params: Mapping[str, Any] = field(default_factory=dict)
     columns: tuple[ResultColumn, ...] = ()
     # Existing positional constructors remain PostgreSQL/psycopg statements.
-    dialect: str = 'postgresql'
+    dialect: str = 'postgres'
     binding: str = 'psycopg_named'
-    environment: EnvironmentBinding | None = None
+    # Environment keys read into the :env_* parameters at every execution.
+    environment_keys: tuple[str, ...] = ()
     # Original caller parameter names consumed before scoped SQL renaming.
     input_parameters: tuple[str, ...] = ()
+    for_update: bool | str = False
+    lock_table: str | None = None
+    lock_column: str | None = None
+    # (field, separateCols) of the #BAG/#BAGCOLS columns, turned into Bags after fetch.
+    evaluateBagColumns: tuple[tuple[str, bool], ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "params", MappingProxyType(dict(self.params)))
-
-
-@dataclass(frozen=True)
-class QueryResult:
-    rows: list[dict[str, Any]]
-    rowcount: int
-    columns: tuple[ResultColumn, ...] = ()

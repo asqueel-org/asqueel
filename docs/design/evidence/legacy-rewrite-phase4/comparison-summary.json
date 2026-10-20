@@ -1,0 +1,40 @@
+{
+  "counts": {
+    "exact": 334,
+    "different": 8
+  },
+  "differences": [
+    [
+      "sqlite",
+      "formula_parameters"
+    ],
+    [
+      "sqlite",
+      "star"
+    ],
+    [
+      "sqlite",
+      "macro_range"
+    ],
+    [
+      "sqlite",
+      "default_pkey"
+    ],
+    [
+      "postgresql",
+      "formula_parameters"
+    ],
+    [
+      "postgresql",
+      "star"
+    ],
+    [
+      "postgresql",
+      "macro_range"
+    ],
+    [
+      "postgresql",
+      "default_pkey"
+    ]
+  ]
+}

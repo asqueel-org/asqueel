@@ -1,0 +1,15 @@
+{
+  "sql": "SELECT  \"t0\".\"id\" AS code,\nCOALESCE(\"t0\".\"total\",0) AS amount,\nCASE WHEN \"t0\".\"total\" >= :threshold THEN 1 ELSE 0 END AS category\n FROM \"main\".\"sales_invoice\" AS t0\nWHERE (\"t0\".\"issued\" <= :day AND (:empty IS NULL OR \"t0\".\"id\" = :empty))\nORDER BY \"t0\".\"total\" DESC, \"t0\".\"id\"\nLIMIT 3\nOFFSET 2",
+  "params": {
+    "threshold": "100.50",
+    "day": "2026-10-14",
+    "empty": null,
+    "jc_kwargs": {}
+  },
+  "types": {
+    "threshold": "Decimal",
+    "day": "date",
+    "empty": "NoneType",
+    "jc_kwargs": "dict"
+  }
+}

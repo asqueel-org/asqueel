@@ -1,0 +1,5 @@
+✓ Phase 4 completata: nuova pagina di review in italiano per il team (commit `eae04eb` su `plan/write-cycle`, non ancora pushato).
+
+- **File:** `docs/review/asqueel-vs-genropy-0.6-it.html`. Riprende lo stile della pagina vecchia con CSS inline, senza script e senza link esterni. Contiene un riepilogo dei conteggi e 8 sezioni per area. Le 68 funzioni mancanti sono presentate come punti aperti, con le alternative affiancate.
+- **Criteri Done eseguiti:** HTMLParser termina con exit 0. Tutti i 205 ID dell'inventario sono presenti. `sphinx -W` passa. Il diff su `src`, `tests` e sulla pagina vecchia è vuoto.
+- **Da verificare a mano** (nota `Verify: now` nel piano): aprire la pagina nel browser e controllarla con tema chiaro, tema scuro e larghezza da telefono.

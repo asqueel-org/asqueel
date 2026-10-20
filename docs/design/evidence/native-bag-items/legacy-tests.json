@@ -1,0 +1,99 @@
+{
+  "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "tests": [
+    {
+      "file": "gnrpy/tests/sql/test_compiler_coverage.py",
+      "test": "TestBagItemColumn.test_detail_weight_no_crash_pg",
+      "line": 1276,
+      "sha256": "11a2da2e94e7e8a31572e4b1f69e0df7aff5f576950d8c23c3919234609868f2"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_compiler_coverage.py",
+      "test": "TestBagItemColumn.test_detail_color_no_crash_pg",
+      "line": 1283,
+      "sha256": "0fb157063a50c2c0520fdde3057b15fe49ee83bef77b931c8c373a9d610e1f52"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_compiler_coverage.py",
+      "test": "TestBagItemColumn.test_bagitem_with_physical_pg",
+      "line": 1289,
+      "sha256": "3545b7a3522c1928d7854217c1595562abf7a08e36c91e7a74eaf5fad9561b0d"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_compiler_coverage.py",
+      "test": "TestBagItemColumn.test_bagitem_custom_dtype_pg",
+      "line": 1299,
+      "sha256": "293d0d3633fccf224b063515e37bec199c9807a1290d4f1593f6736d34f1fbf3"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_text",
+      "line": 916,
+      "sha256": "4fb40df09f8c4c26441add39c790543b473485dce3173f048ee11f87caa8f5c0"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_numeric",
+      "line": 923,
+      "sha256": "0a6d5e413d923408cb710488bf410f08190ea3d67fedf3bc0878ece98a2654f5"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_positional_index",
+      "line": 928,
+      "sha256": "d1a96743fd907812a1934e31ba568bc288666d67cc7efb7ea7765e3dcc60f9b0"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_xml_attribute",
+      "line": 933,
+      "sha256": "ae64f4fb2c7f1b63d92b22ce7097e84cac86962ed4b487ecbaf625d8a52cba42"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_integer",
+      "line": 938,
+      "sha256": "e4ddea8945bd9288544287bfec04cbedae1f0c452d913d0fc3fb02d09d8f47f2"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_timestamp",
+      "line": 943,
+      "sha256": "7b624a5573a51a2db50283a15692abed17523eda7605378f69caece214ba5609"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemFormula_unknown_dtype_falls_back_to_text",
+      "line": 948,
+      "sha256": "83c47152d27a3fc41f7bb02ec585a7d1c2f33b895ec2bcb88ad86de56896872a"
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestTableVirtualColumns.test_bag_item_column",
+      "line": 225,
+      "sha256": "1e36e90bbab6889492daaafd3205baa2f0053e09f629ea4fa610f8f591e685ee",
+      "adaptation": "Native resolved model metadata; SQL generated at compile time; helper adapter is test-only."
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestTableSerialization.test_bagItemFormula",
+      "line": 484,
+      "sha256": "517b46da8c3fd68d6b5162a7d55b40ccdeca097e6f12167cd7ae9d2515ae882e",
+      "adaptation": "Native resolved model metadata; SQL generated at compile time; helper adapter is test-only."
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_bagItemColumn_custom_dtype",
+      "line": 963,
+      "sha256": "feb4465d7fa4f74862a205bfd0dc520d3f133b5f7c9e217797a168c5592d9beb",
+      "adaptation": "Native resolved model metadata; SQL generated at compile time; helper adapter is test-only."
+    },
+    {
+      "file": "gnrpy/tests/sql/test_model_structure.py",
+      "test": "TestHelpers.test_tableobj_bagItemFormula_custom_dtype",
+      "line": 972,
+      "sha256": "c7dc4d6826148c1ab16394a8b2f9d5b25ffafdc69540aa5cbec000ae471c84ad",
+      "adaptation": "Native resolved model metadata; SQL generated at compile time; helper adapter is test-only."
+    }
+  ]
+}

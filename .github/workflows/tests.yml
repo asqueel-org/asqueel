@@ -14,6 +14,22 @@ jobs:
       - run: python -m sphinx -W --keep-going -b html docs docs/_build/html
   wheel:
     runs-on: ubuntu-latest
+    # Ported legacy cases also access PostgreSQL through dynamic fixtures.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      GNR_TEST_PG_HOST: 127.0.0.1
+      GNR_TEST_PG_PORT: '5432'
+      GNR_TEST_PG_USER: postgres
+      GNR_TEST_PG_PASSWORD: postgres
     strategy:
       fail-fast: false
       matrix:

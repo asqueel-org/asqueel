@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<!-- generated from sqlglot-transpilation.xml by xmldocs: do not edit, edit the XML -->
+<html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Traduzione dei dialetti con sqlglot</title><style>
+:root {
+  --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --line: #e2dfd8; --panel: #f3f1ec;
+  --code-bg: #f0eee8; --accent: #2f5d8a;
+  --ok: #2e7d4f; --warn: #a86b00; --bad: #b23b3b; --info: #2f5d8a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18181a; --fg: #e8e6e1; --muted: #9a9890; --line: #33332f; --panel: #212123;
+    --code-bg: #26262a; --accent: #8fb4dc;
+    --ok: #6cc28f; --warn: #e0a940; --bad: #e57373; --info: #8fb4dc;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18181a; --fg: #e8e6e1; --muted: #9a9890; --line: #33332f; --panel: #212123;
+  --code-bg: #26262a; --accent: #8fb4dc;
+  --ok: #6cc28f; --warn: #e0a940; --bad: #e57373; --info: #8fb4dc;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 4px 0 8px; }
+h2 { font-size: 1.35rem; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.12rem; margin: 28px 0 8px; }
+h4 { font-size: 1rem; margin: 20px 0 6px; }
+a { color: var(--accent); }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg);
+  padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; overflow-x: auto; }
+pre code { display: block; padding: 12px 14px; background: none; }
+figure { margin: 16px 0; }
+figure.code { background: var(--code-bg); border-radius: 8px; }
+figure.code figcaption { font-size: 0.8rem; color: var(--muted); padding: 8px 14px 0; }
+figure.diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+figure.embed { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+figure.embed figcaption { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 8px; }
+figure.embed svg { max-width: 100%; height: auto; }
+.tag-script { color: var(--bad); }
+figure.diagram figcaption { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 8px; }
+.doc-type { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem; color: var(--muted); }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 0.9rem; }
+.muted { color: var(--muted); font-size: 0.9em; }
+.box { border: 1px solid var(--line); border-left: 4px solid var(--line); background: var(--panel);
+  border-radius: 6px; padding: 10px 14px; margin: 12px 0; }
+.box-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.box-foot { margin-top: 6px; }
+.box.fact { border-left-color: var(--info); }
+.box.rule-must { border-left-color: var(--ok); }
+.box.rule-must-not { border-left-color: var(--bad); }
+.box.rule-should { border-left-color: var(--warn); }
+.box.limit { border-left-color: var(--warn); }
+.box.decision-open, .box.decision-proposed { border-left-color: var(--warn); }
+.box.decision-decided { border-left-color: var(--ok); }
+.box.decision-rejected { border-left-color: var(--bad); }
+.box.example { border-left-color: var(--accent); }
+.box.done { border-left-color: var(--ok); }
+.tag-done { color: var(--ok); }
+.tag-doing, .tag-in-progress { color: var(--info); }
+.tag-todo { color: var(--muted); }
+.tag-approved { color: var(--ok); }
+.source { font-size: 0.8rem; }
+.why { margin-top: 4px; }
+.tag { display: inline-block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 1px 7px; border-radius: 10px; border: 1px solid currentColor; color: var(--muted); }
+.tag-test, .tag-run, .tag-must, .tag-decided, .tag-accepted { color: var(--ok); }
+.tag-read, .tag-review { color: var(--info); }
+.tag-should, .tag-open, .tag-proposed, .tag-draft { color: var(--warn); }
+.tag-must-not, .tag-rejected { color: var(--bad); }
+.options li { margin: 6px 0; }
+.options li.chosen b { color: var(--ok); }
+.choice { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.step-num { color: var(--muted); font-weight: 400; margin-right: 6px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; color: var(--muted); padding-bottom: 6px; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: var(--panel); }
+  </style></head><body><main><header class="doc-head"><div class="doc-type">Proposal</div><h1>Traduzione dei dialetti con sqlglot</h1><div class="doc-meta"><span>proposal/sqlglot-transpilation</span><span>2026-10-20</span><span>Giovanni Porcari</span><span class="tag tag-draft">draft</span></div></header><section class="part problem"><h2>Problem</h2>
+    <p>Ogni dialetto SQL richiede un compilatore o una logica di dialetto propria. Ogni dialetto nuovo moltiplica il codice da scrivere e da testare.</p>
+    <p>sqlglot è una libreria Python con licenza MIT. Legge SQL di un dialetto, costruisce un AST e scrive lo stesso AST in un altro dialetto. Questo documento propone di usarla per i dialetti diversi da PostgreSQL.</p>
+  </section><section class="part current"><h2>Current state</h2>
+    <section class="section"><h3>GenroPy</h3>
+      <p>Fonte: il ramo <code>origin/develop</code> della repo genropy al commit <code>5c72f3fbd7</code> del 2026-10-19.</p>
+      <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">gnrpy/gnr/sql/adapters/</code><span class="muted">2026-10-20</span></div><div>GenroPy ha un adapter per dialetto: PostgreSQL, SQLite, MySQL, SQL Server. Ogni adapter scrive il proprio SQL per le differenze di dialetto.</div></div>
+    </section>
+  </section><section class="part solution"><h2>Proposed solution</h2>
+    <p>asqueel compila solo SQL PostgreSQL. Per un altro dialetto, sqlglot legge l'SQL PostgreSQL e lo scrive nel dialetto di destinazione.</p>
+    <figure class="diagram"><pre class="mermaid">flowchart LR
+  Q[query asqueel] --&gt; C[compilatore PostgreSQL]
+  C --&gt; PG[SQL PostgreSQL]
+  PG --&gt;|dialetto PostgreSQL| DB1[(PostgreSQL)]
+  PG --&gt;|altro dialetto| T[sqlglot: AST e scrittura]
+  T --&gt; DB2[(SQLite, MySQL, SQL Server, DuckDB)]</pre><figcaption>Percorso di una query verso un dialetto diverso da PostgreSQL</figcaption></figure>
+
+    <section class="section"><h3>Vantaggi</h3>
+      <ul>
+        <li>Un solo compilatore da scrivere e da testare.</li>
+        <li>La logica di dialetto è nel codice di sqlglot.</li>
+        <li>Altri dialetti diventano possibili: MySQL, SQL Server, DuckDB.</li>
+      </ul>
+    </section>
+
+    <section class="section"><h3>Limiti da verificare</h3>
+      <ul>
+        <li>Semantica che non si traduce. <code>FOR UPDATE</code> non esiste su SQLite. <code>jsonb_agg</code>, <code>xmlagg</code> e <code>tsvector</code> non hanno un equivalente in ogni dialetto. Queste funzioni restano capability del dialetto e sono rifiutate prima della traduzione.</li>
+        <li>Conservazione dei parametri. I segnaposto dei parametri devono arrivare intatti nell'SQL tradotto, con lo stile del driver di destinazione.</li>
+        <li>Costo di analisi. Leggere e riscrivere ogni statement ha un costo. Una cache dell'SQL tradotto lo limita.</li>
+        <li>Nuova dipendenza. sqlglot entra tra le dipendenze del pacchetto, con i suoi rilasci.</li>
+      </ul>
+    </section>
+
+    <section class="section"><h3>Primo passo</h3>
+      <p>Una prova traduce in SQLite l'SQL generato dai test PostgreSQL. Esegue l'SQL tradotto su SQLite e conta quanti test passano. Il conteggio dice quanta parte del compilatore SQLite la traduzione può sostituire.</p>
+    </section>
+
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Questa proposta non aggiunge codice né dipendenze. La decisione arriva dopo la prova.</div></div>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Una funzione che sqlglot non traduce resta una capability del dialetto e solleva l'errore che la nomina.</div></div>
+  </section><section class="part decisions"><h2>Decisions</h2>
+    <div class="box decision decision-open" id="dn-sqlglot-trial"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-sqlglot-trial</span></div><div class="question">Si fa la prova di traduzione dei test PostgreSQL in SQLite?</div><ol class="options"><li id="dn-sqlglot-trial-yes"><b>Sì, prima di altri dialetti</b><p>La prova misura la parte di SQL tradotta correttamente. Il risultato decide se sqlglot sostituisce i compilatori di dialetto.</p></li><li id="dn-sqlglot-trial-no"><b>No, un compilatore per dialetto</b><p>Ogni dialetto ha la propria logica, come gli adapter GenroPy.</p></li></ol></div>
+  </section><section class="part consequences"><h2>Consequences</h2>
+    <p>Se la prova riesce, ogni dialetto nuovo richiede la sua dichiarazione delle capability e i test, non un compilatore.</p>
+    <p>Se la prova fallisce su molti casi, la traduzione resta limitata o si abbandona. Il catalogo delle capability serve in entrambi i casi.</p>
+  </section><section class="part related"><h2>Related documents</h2><ul>
+    <li><a href="../proposal/capability-catalogue.html">proposal/capability-catalogue</a> — Catalogo delle capability dei dialetti</li>
+  </ul></section></main><script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'neutral' });
+          </script></body></html>

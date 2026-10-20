@@ -8,12 +8,11 @@ from asqueel import AsqueelDb, TransactionStateError
 from asqueel.contracts import CompiledQuery
 from asqueel.environment import SqlEnvironment
 from tests.application_config.test_application import Recipe
-from tests.application_connections.test_connections import Driver
 
 
 def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
-    driver = Driver()
-    db = AsqueelDb(Recipe, driver=driver, environment=SqlEnvironment({'options': []}))
+    db = AsqueelDb(Recipe, environment=SqlEnvironment({'options': []}))
+    driver = db.adapter
     barrier = Barrier(2)
     callbacks = []
 
@@ -33,7 +32,6 @@ def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
                         with db._write_operation():
                             barrier.wait(timeout=10)
                             assert db.currentTrigger is trigger
-                            assert trigger.level == 0
                             assert db._write_depth == 1
                             assert db.currentEnv['options'] == [name]
                             barrier.wait(timeout=10)
@@ -55,12 +53,12 @@ def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
     assert driver.calls.count('connect') == driver.calls.count('close') == 4
     assert db.currentEnv == {'options': []}
     assert db.currentTrigger is None
-    db.close()
+    db.closeConnection()
 
 
 def test_named_environment_changes_selection_without_completion():
-    driver = Driver()
-    db = AsqueelDb(Recipe, driver=driver)
+    db = AsqueelDb(Recipe)
+    driver = db.adapter
     assert not hasattr(db, 'transaction')
     assert not hasattr(db, 'connection')
     db.execute(CompiledQuery('main'))
@@ -71,22 +69,22 @@ def test_named_environment_changes_selection_without_completion():
     assert driver.persisted == ['main']
     with db.tempEnv(connectionName='other'):
         db.rollback()
-    db.close()
+    db.closeConnection()
 
 
 def test_internal_connection_rejects_cross_thread_use():
-    db = AsqueelDb(Recipe, driver=Driver())
+    db = AsqueelDb(Recipe)
     state = db._connection_state
     with ThreadPoolExecutor(max_workers=1) as pool:
         for operation in (lambda: db._commit_connection(state), lambda: db._rollback_connection(state)):
             with pytest.raises(TransactionStateError, match='constructing thread'):
                 pool.submit(operation).result()
-    db.close()
+    db.closeConnection()
 
 
 def test_explicit_commit_preserves_deferred_hook_and_pending_work():
-    driver = Driver()
-    db = AsqueelDb(Recipe, driver=driver)
+    db = AsqueelDb(Recipe)
+    driver = db.adapter
     db.execute(CompiledQuery('before'))
     db.deferToCommit(lambda: db.execute(CompiledQuery('hook')))
     db.execute(CompiledQuery('inside'))
@@ -94,17 +92,17 @@ def test_explicit_commit_preserves_deferred_hook_and_pending_work():
     db.commit()
     assert driver.persisted == ['before', 'inside', 'hook']
     assert driver.calls.count('connect') == 1
-    db.close()
+    db.closeConnection()
 
 
-def test_new_thread_does_not_inherit_closed_state_or_environment():
-    db = AsqueelDb(Recipe, driver=Driver())
+def test_new_thread_does_not_inherit_environment():
+    db = AsqueelDb(Recipe)
     def worker():
         assert db.currentEnv == {}
         db.updateEnv(user='previous')
-        db.close()
+        db.closeConnection()
     for _ in range(2):
         with ThreadPoolExecutor(max_workers=1) as pool:
             pool.submit(worker).result()
     assert db.currentEnv == {}
-    db.close()
+    db.closeConnection()

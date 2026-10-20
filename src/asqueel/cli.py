@@ -41,6 +41,12 @@ def parser():
         target_arguments(operation_parser)
         operation_parser.add_argument('--allow-removals', action='store_true',
                                       help='Enable supported removals (currently columns, not whole tables)')
+        operation_parser.add_argument('--no-foreign-keys', action='store_true',
+                                      help='Create no foreign key constraint; relation indexes stay')
+        operation_parser.add_argument('--force', action='store_true',
+                                      help='Convert filled columns; values that do not convert become NULL')
+        operation_parser.add_argument('--backup', action='store_true',
+                                      help='As --force, keeping the old values in <column>__<old dtype>')
     return result
 
 
@@ -49,10 +55,10 @@ def target_arguments(command):
     command.add_argument('--config', help='Explicit configuration source, instead of a target')
 
 
-def run_migration(db, operation, *, allow_removals=False):
+def run_migration(db, operation, *, allow_removals=False, foreignKeys=True, force=False, backup=False):
     """Print the plan; on apply, migrate and confirm. Errors reach ``main``."""
-    plan = (db.migration_plan(allow_removals=allow_removals) if operation == 'plan'
-            else db.migrate(allow_removals=allow_removals))
+    options = dict(allow_removals=allow_removals, foreignKeys=foreignKeys, force=force, backup=backup)
+    plan = db.migration_plan(**options) if operation == 'plan' else db.migrate(**options)
     for warning in plan.warnings:
         write_line(f'Warning: {warning}', file=sys.stderr)
     if plan.empty:
@@ -91,13 +97,15 @@ def run(options):
         if options.command == 'shell':
             code.interact(
                 banner='Asqueel Python console: db is ready. Use db.commit() or db.rollback().\n'
-                       'Leaving the console rolls back pending work and closes the database.',
-                local={'db': db}, exitmsg='Database closed on console exit.',
+                       'Leaving the console rolls back pending work and releases the connection.',
+                local={'db': db}, exitmsg='Connection released on console exit.',
             )
             return 0
-        return run_migration(db, options.operation, allow_removals=options.allow_removals)
+        return run_migration(db, options.operation, allow_removals=options.allow_removals,
+                             foreignKeys=not options.no_foreign_keys, force=options.force,
+                             backup=options.backup)
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def main(argv=None):

@@ -1,0 +1,270 @@
+{
+  "date": "2026-10-14",
+  "python": "3.12.12",
+  "sqlite": "3.50.4",
+  "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''",
+  "full_suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "9",
+    "tests": "1642",
+    "time": "63.207",
+    "timestamp": "2026-10-14T14:26:58.380201+02:00",
+    "hostname": "MacBook-Pro-di-Giovanni.local"
+  },
+  "inverse_tests": [
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_reuses_the_join_across_clauses_and_aliases[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_reuses_the_join_across_clauses_and_aliases[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_then_forward_and_separate_inverse_paths[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_then_forward_and_separate_inverse_paths[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_correlated_inverse_stays_inside_the_child_select[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_correlated_inverse_stays_inside_the_child_select[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_outer_and_inner_joins_and_formula_locals_have_separate_scopes[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_outer_and_inner_joins_and_formula_locals_have_separate_scopes[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_explicit_grouping_and_having_share_the_inverse_join[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_explicit_grouping_and_having_share_the_inverse_join[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_on_compound_key_keeps_every_pair",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_invalid_inverse_and_virtual_relations_are_still_rejected[source_not_unique]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_invalid_inverse_and_virtual_relations_are_still_rejected[missing_target_key]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_invalid_inverse_and_virtual_relations_are_still_rejected[wrong_arity]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_invalid_inverse_and_virtual_relations_are_still_rejected[virtual_relation]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_does_not_enable_joined_dml[postgresql]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_compiler.test_inverse_relations",
+      "name": "test_inverse_does_not_enable_joined_dml[sqlite]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_pg-sys.widget]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_pg-adm.htag]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_pg-adm.menu]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_pg-invc.product_group]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_pg-invc.product_type]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_pg-sys.widget]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_pg-adm.htag]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_pg-adm.menu]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_pg-invc.product_group]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_pg-invc.product_type]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_sqlite-sys.widget]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_sqlite-adm.htag]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_sqlite-adm.menu]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_sqlite-invc.product_group]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_native_child_count_matches_direct_children_and_keeps_outer_rows[db_sqlite-invc.product_type]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_sqlite-sys.widget]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_sqlite-adm.htag]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_sqlite-adm.menu]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_sqlite-invc.product_group]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_inverse_results",
+      "name": "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity[db_sqlite-invc.product_type]",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_inverse_relations.TestRelationNavigation",
+      "name": "test_one_to_many_pg",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_inverse_relations.TestRelationNavigation",
+      "name": "test_one_to_many_sqlite",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_inverse_relations.TestExplodingFastPath",
+      "name": "test_exploding_fast_path_pg",
+      "status": "passed"
+    },
+    {
+      "classname": "tests.native_formulas.test_legacy_inverse_relations.TestExplodingFastPath",
+      "name": "test_exploding_fast_path_sqlite",
+      "status": "passed"
+    }
+  ],
+  "before_change": {
+    "suite": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "4",
+      "skipped": "0",
+      "tests": "4",
+      "time": "3.117",
+      "timestamp": "2026-10-14T14:23:16.153373+02:00",
+      "hostname": "MacBook-Pro-di-Giovanni.local"
+    },
+    "tests": [
+      {
+        "classname": "tests.native_formulas.test_legacy_inverse_relations.TestRelationNavigation",
+        "name": "test_one_to_many_pg",
+        "status": "failed"
+      },
+      {
+        "classname": "tests.native_formulas.test_legacy_inverse_relations.TestRelationNavigation",
+        "name": "test_one_to_many_sqlite",
+        "status": "failed"
+      },
+      {
+        "classname": "tests.native_formulas.test_legacy_inverse_relations.TestExplodingFastPath",
+        "name": "test_exploding_fast_path_pg",
+        "status": "failed"
+      },
+      {
+        "classname": "tests.native_formulas.test_legacy_inverse_relations.TestExplodingFastPath",
+        "name": "test_exploding_fast_path_sqlite",
+        "status": "failed"
+      }
+    ]
+  },
+  "legacy_assertions_unchanged": true,
+  "checks": {
+    "ruff": "passed",
+    "mypy": "passed",
+    "sphinx": "passed",
+    "git_diff_check": "passed"
+  },
+  "source_sha256": {
+    "src/asqueel/compiler.py": "636cee8eca2a2284d0b4e89cf513dc1aa5fc0922db325ee9e857b25256e968f5",
+    "tests/native_compiler/test_inverse_relations.py": "527ed62780b307f25134394c2bbcadec457dd133eaa7034dca9ef006cf478236",
+    "tests/native_formulas/test_legacy_inverse_relations.py": "0ec4cb1b50618c29a958d04c8c7e42c180c563c99fe7800f680a41052af527b9",
+    "tests/native_formulas/test_inverse_results.py": "8550b60901d6072071efe4d02ade7cd577dc2a55da11efc3ee34b4fec3378ec0"
+  }
+}

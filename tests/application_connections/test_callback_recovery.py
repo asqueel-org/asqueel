@@ -7,7 +7,7 @@ from asqueel import AsqueelDb, SqlDatabaseConfig, TransactionStateError
 from tests.native_support import postgres_dsn
 
 
-@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 @pytest.mark.parametrize('stage', ['before', 'after'])
 @pytest.mark.parametrize('callback_writes', [False, True])
 def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback_writes):
@@ -19,7 +19,7 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
                 database = root.db()
                 database.connection(name=str(tmp_path / 'callbacks.db'), implementation='sqlite')
             else:
-                database = root.db(conninfo=postgres_dsn())
+                database = root.db(implementation='postgres', conninfo=postgres_dsn())
             database.schemas().schema(schema).tables().table('event', pkey='id').columns().column('id', dtype='I')
 
     db = AsqueelDb(Configuration)
@@ -31,7 +31,7 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
         db.execute(f'INSERT INTO "{schema}".event VALUES (:value)', {'value': value})
 
     def visible():
-        result = observer.execute(f'SELECT id FROM "{schema}".event ORDER BY id').rows
+        result = observer.execute(f'SELECT id FROM "{schema}".event ORDER BY id').fetchall()
         observer.rollback()
         return [row['id'] for row in result]
 
@@ -43,7 +43,7 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
         raise error
 
     try:
-        if backend == 'postgresql':
+        if backend == 'postgres':
             db.execute(f'CREATE SCHEMA "{schema}"')
         db.execute(f'CREATE TABLE "{schema}".event (id INTEGER PRIMARY KEY)')
         db.commit()
@@ -79,11 +79,11 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
         assert visible() == sorted(durable + [3])
         assert trace == (['failed', 'remaining', 'fresh'] if continued else ['failed', 'fresh'])
     finally:
-        observer.close()
+        observer.closeConnection()
         try:
             db.rollback()
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
                 db.commit()
         finally:
-            db.close()
+            db.closeConnection()

@@ -1,0 +1,411 @@
+.EEEEEEEE                                                                [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_double_colon_not_matched[pg] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_double_colon_not_matched[mysql] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_param_still_matched[pg] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_param_still_matched[mysql] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_cast_and_param_mixed[pg] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_cast_and_param_mixed[mysql] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_multiple_casts_and_params[pg] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+_ ERROR at setup of TestPrepareSqlTextDoubleColon.test_multiple_casts_and_params[mysql] _
+
+cls = <class 'sql.test_gnrbaseadapter.TestPrepareSqlTextDoubleColon'>
+
+    @classmethod
+    def setup_class(cls):
+        from gnr.sql.adapters.gnrpostgres import SqlDbAdapter as PgAdapter
+>       from gnr.sql.adapters.gnrmysql import SqlDbAdapter as MysqlAdapter
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #-*- coding: utf-8 -*-
+    #--------------------------------------------------------------------------
+    # package       : GenroPy sql - see LICENSE for details
+    # module gnrpostgres : Genro postgres db connection.
+    # Copyright (c) : 2004 - 2007 Softwell sas - Milano
+    # Written by    : Giovanni Porcari, Michele Bertoldi
+    #                 Saverio Porcari, Francesco Porcari , Francesco Cavazzana
+    #--------------------------------------------------------------------------
+    #This library is free software; you can redistribute it and/or
+    #modify it under the terms of the GNU Lesser General Public
+    #License as published by the Free Software Foundation; either
+    #version 2.1 of the License, or (at your option) any later version.
+    
+    #This library is distributed in the hope that it will be useful,
+    #but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    #Lesser General Public License for more details.
+    
+    #You should have received a copy of the GNU Lesser General Public
+    #License along with this library; if not, write to the Free Software
+    #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    
+    import re
+    
+    # pymysql is a pure python driver with
+    # compatibility with MySQLdb driver, useful in
+    # testing environments
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except:
+        pass
+    
+>   import MySQLdb
+E   ModuleNotFoundError: No module named 'MySQLdb'
+
+/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/adapters/gnrmysql.py:34: ModuleNotFoundError
+=============================== warnings summary ===============================
+../../../../../tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_double_colon_not_matched[pg]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_double_colon_not_matched[mysql]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_param_still_matched[pg]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_param_still_matched[mysql]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_cast_and_param_mixed[pg]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_cast_and_param_mixed[mysql]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_multiple_casts_and_params[pg]
+ERROR ../../../../../tmp/asqueel-formula-baseline/legacy/gnrpy/tests/sql/test_gnrbaseadapter.py::TestPrepareSqlTextDoubleColon::test_multiple_casts_and_params[mysql]
+1 passed, 1 warning, 8 errors in 0.11s

@@ -1,0 +1,50 @@
+{
+  "legacy": {
+    "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 939,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "compound": {
+    "file": "/tmp/asqueel-formula-baseline/compound/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 1005,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "v2": {
+    "file": "/tmp/asqueel-formula-baseline/v2/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 1241,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "v3": {
+    "file": "/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 1369,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "v3_merged": {
+    "file": "/tmp/asqueel-formula-baseline/v3_merged/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 1370,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "v4": {
+    "file": "/tmp/asqueel-formula-baseline/v4/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 1369,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "simplify": {
+    "file": "/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 962,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  },
+  "next": {
+    "file": "/tmp/asqueel-formula-baseline/next/gnrpy/gnr/sql/gnrsqldata/compiler.py",
+    "line": 939,
+    "sha256": "ab56a0e870e232b27865394c1f0fa439900e5629a8f40d65f6ab98cb61b85c9d",
+    "code": "order_by = ''\nif group_by:\n    columns = group_by\nelif distinct:\n    pass\nelse:\n    columns = 'count(*) AS \"gnr_row_count\"'"
+  }
+}

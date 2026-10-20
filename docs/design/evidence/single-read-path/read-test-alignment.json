@@ -1,0 +1,471 @@
+{
+  "retired": {
+    "tests/native_compiler/test_subquery_review.py": [
+      "test_manual_column_cannot_silently_discard_an_executable_definition",
+      "test_named_subquery_in_protected_text_is_not_a_consumed_declaration"
+    ],
+    "tests/native_compiler/test_compile_only.py": [
+      "test_direct_compiler_period_needs_explicit_workdate_and_locale",
+      "test_formula_in_range_and_subquery_period_use_existing_scopes",
+      "test_period_repeated_in_where_reuses_bounds_and_keeps_environment",
+      "test_missing_macro_parameter_fails_without_execution",
+      "test_macro_text_inside_literals_comments_and_percent_is_preserved",
+      "test_macro_not_valid_in_direct_projection_is_explicit",
+      "test_period_collision_and_recompilation",
+      "test_period_uses_existing_decoder_and_binds_only_dates",
+      "test_in_range_uses_legacy_inclusive_null_bound_algorithm",
+      "test_collection_collision_and_query_reuse_keep_caller_values",
+      "test_sql_and_typed_kwargs_are_complete_without_execution"
+    ],
+    "tests/native_compiler/test_subquery_methods.py": [
+      "test_same_query_uses_thread_local_method_values",
+      "test_schema_entry_preserves_method_and_runs_only_at_compilation",
+      "test_xml_method_reference_remains_outside_legacy_support",
+      "test_effective_declaration_is_not_cached_between_compilations",
+      "test_errors_cycles_and_unbound_compiler",
+      "test_invalid_mapping_uses_common_validation",
+      "test_method_must_return_mapping_without_recursive_dispatch",
+      "test_no_fallback_to_related_owner",
+      "test_returned_mapping_and_model_remain_unchanged",
+      "test_manglers_scopes_and_recompilation"
+    ],
+    "tests/native_compiler/test_legacy_bag_items.py": [
+      "test_tableobj_bagItemFormula_custom_dtype",
+      "test_bagItemColumn_custom_dtype",
+      "test_bagItemFormula",
+      "test_bag_item_column",
+      "TestHelpers"
+    ],
+    "tests/native_compiler/test_compiler.py": [
+      "test_manual_relation_accepts_normalized_unique_constraints",
+      "test_manual_relation_without_unique_target_rejected",
+      "test_literal_quoted_field_syntax_is_not_interpreted",
+      "test_removed_aggregate_rows_option_is_explicit",
+      "test_formula_cycles_fail",
+      "test_pagination_validated",
+      "test_unclosed_tokens_fail",
+      "test_unsupported_or_unknown_expressions_fail",
+      "test_missing_parameters_and_duplicate_aliases",
+      "test_cast_as_is_not_projection_alias",
+      "test_escape_string_and_quoted_alias",
+      "test_scanner_preserves_sql_literals_comments_cast_and_percent",
+      "test_projection_join_reuse_and_metadata"
+    ],
+    "tests/native_compiler/test_native_star.py": [
+      "test_record_keeps_physical_x_fields_unless_explicitly_excluded",
+      "test_static_unimplemented_column_is_not_silently_dropped"
+    ],
+    "tests/native_compiler/test_subqueries.py": [
+      "test_exists_cast_rejected_instead_of_rendering_invalid_exists_cast",
+      "test_driver_formats_only_final_statement",
+      "test_this_relation_path_allocates_outer_join_not_inner_join",
+      "test_snapshot_once_even_with_nested_subqueries",
+      "test_local_collection_shadows_outer_scalar_of_the_same_name",
+      "test_original_input_consumption_tracks_child_inheritance_not_local_overrides",
+      "test_subquery_sql_percent_is_escaped_once_after_child_render",
+      "test_scalar_subquery_requires_one_column",
+      "test_unsupported_or_ambiguous_child_options_rejected",
+      "test_child_policy_defaults_match_legacy_and_partition_can_be_requested",
+      "test_child_environment_dependencies_are_bound_to_root_snapshot",
+      "test_macros_and_this_in_literals_comments_stay_literal",
+      "test_subquery_cycles_share_recursion_guard_across_contexts",
+      "test_nested_subqueries_allocate_distinct_scopes",
+      "test_this_in_raw_sql_formula_and_nested_formula_is_owning_row",
+      "test_reached_formula_uses_owner_alias_in_outer_reference",
+      "test_direct_subquery_keeps_formula_locals",
+      "test_formula_locals_and_subquery_locals_keep_their_own_origins",
+      "test_named_subqueries_and_outer_bindings_do_not_collide",
+      "test_scalar_and_exists_have_no_implicit_limit_and_preserve_metadata"
+    ],
+    "tests/native_compiler/test_native_subqueries.py": [
+      "test_native_subquery_cycles_and_method_references_fail_explicitly",
+      "test_invalid_or_unagreed_child_options_are_rejected",
+      "test_environment_is_refreshed_and_literals_are_not_rewritten",
+      "test_local_collection_and_scalar_uses_are_isolated_from_query",
+      "test_grouping_having_distinct_order_and_limits_use_child_fields",
+      "test_repeated_subqueries_in_clauses_allocate_fresh_sql_scopes",
+      "test_nested_subqueries_keep_nearest_this_and_input_origin",
+      "test_this_relation_adds_join_to_outer_scope",
+      "test_relation_alias_and_inner_join_have_distinct_owners",
+      "test_child_and_formula_and_caller_parameters_do_not_capture_one_another",
+      "test_native_scalar_exists_and_alias_keep_shape_and_metadata"
+    ],
+    "tests/native_compiler/test_aliases.py": [
+      "test_mark_allows_alias_value_that_resolves_to_physical_column",
+      "test_alias_cycle_has_explicit_diagnostic",
+      "test_alias_cannot_stand_in_for_physical_policy_field",
+      "test_alias_key_not_allowed_in_join",
+      "test_local_alias_chain_and_quoted_target",
+      "test_mixed_alias_formula_cycle_reports_error",
+      "test_explicit_relational_alias_returning_rejected",
+      "test_alias_assignments_cannot_write_physical_lookalike",
+      "test_multi_hop_tokens_in_literals_are_not_resolved",
+      "test_legacy_and_native_paths_have_same_sql_and_default_alias",
+      "test_formula_target_is_evaluated_in_related_table_scope",
+      "test_alias_metadata_and_all_clauses_reuse_joins"
+    ],
+    "tests/native_compiler/test_policies.py": [
+      "test_env_fallback_explicit_override_and_snapshot_once",
+      "test_multiple_partitions_are_and_combined_and_parameter_names_do_not_collide",
+      "test_allowed_requires_collection_of_scalars",
+      "test_empty_allowed_intersection_and_null_membership",
+      "test_missing_partition_context_requires_explicit_bypass",
+      "test_current_falsy_is_present_and_missing_key_is_captured",
+      "test_mark_rejects_opaque_aggregate_and_formula",
+      "test_mark_preserves_actual_column_metadata_and_alias_collision",
+      "test_default_filters_and_include_options"
+    ],
+    "tests/native_compiler/test_bag_items.py": [
+      "test_sqlite_rejects_extraction_at_compile_time_without_emulation",
+      "test_cycle_uses_existing_formula_guard",
+      "test_path_is_bound_not_interpolated",
+      "test_same_query_is_repeatable_and_thread_scopes_are_independent",
+      "test_recompile_uses_effective_model_not_stale_generated_formula",
+      "test_where_group_having_order_count_and_star",
+      "test_nested_select_has_its_own_bindings",
+      "test_relation_ownership_and_join_reuse",
+      "test_dependencies_aliases_and_caller_have_separate_bindings",
+      "test_native_invoice_columns_preserve_custom_dtype_and_source"
+    ],
+    "tests/native_compiler/test_native_options.py": [
+      "test_disabled_sys_fields_does_not_activate_read_markers",
+      "test_child_defaults_and_overrides_keep_partition_bindings_isolated",
+      "test_generated_markers_and_scalar_partition"
+    ],
+    "tests/native_compiler/test_native_formulas.py": [
+      "test_a_replacement_model_does_not_reuse_compilation_state",
+      "test_compilation_cannot_mutate_local_collections_or_environment",
+      "test_two_relations_have_distinct_aliases_and_local_parameters",
+      "test_formula_text_and_local_strings_are_not_sql_substitutions",
+      "test_same_parameter_origin_cannot_be_scalar_and_collection",
+      "test_a_local_does_not_consume_or_accept_an_external_override",
+      "test_existing_expression_alias_and_duplicate_local_declarations",
+      "test_cycles_remain_explicit",
+      "test_existing_parameters_spelling_and_query_reuse",
+      "test_formula_binding_scope_does_not_create_or_duplicate_sql_joins",
+      "test_alias_uses_target_formula_without_inheriting_executable_attributes",
+      "test_collection_and_scalar_names_are_separate_by_origin",
+      "test_dependencies_do_not_inherit_calling_formula_locals",
+      "test_local_values_are_isolated_from_dependencies_and_query"
+    ],
+    "tests/native_compiler/test_inverse_relations.py": [
+      "test_invalid_inverse_and_virtual_relations_are_still_rejected",
+      "test_inverse_on_compound_key_keeps_every_pair",
+      "test_explicit_grouping_and_having_share_the_inverse_join",
+      "test_outer_and_inner_joins_and_formula_locals_have_separate_scopes",
+      "test_correlated_inverse_stays_inside_the_child_select",
+      "test_inverse_then_forward_and_separate_inverse_paths",
+      "test_inverse_reuses_the_join_across_clauses_and_aliases"
+    ],
+    "tests/native_compiler/test_method_formulas.py": [
+      "test_existing_schema_declaration_can_defer_a_method_until_compile",
+      "test_same_query_compiles_with_thread_local_method_values",
+      "test_new_effective_declaration_has_no_cached_formula_or_locals",
+      "test_cycles_and_method_errors_keep_their_diagnostics",
+      "test_method_must_return_sql_text",
+      "test_missing_method_and_standalone_compiler_are_explicit",
+      "test_method_is_bound_to_the_related_table_and_row_alias",
+      "test_method_gets_mutable_collections_without_changing_the_model",
+      "test_method_edits_are_local_and_nested_scopes_do_not_mix",
+      "test_methods_are_lazy_and_repeated_uses_share_only_one_compilation"
+    ],
+    "tests/native_compiler/test_subquery_columns.py": [
+      "test_multicolumn_plain_subquery_still_requires_one_result",
+      "test_json_xml_and_nested_scopes_keep_parameters_distinct",
+      "test_aggregate_grouping_joins_and_policy_overrides",
+      "test_aggregate_uses_same_child_plan_with_pagination_and_defaults",
+      "test_cycles_use_existing_formula_guard",
+      "test_missing_query_and_method_reference_remain_explicit_errors",
+      "test_local_bindings_do_not_capture_sibling_or_caller_parameters",
+      "test_plain_mode_alias_and_formula_dependency"
+    ],
+    "tests/adapter_compiler/test_plans.py": [
+      "test_adapter_mismatch_and_plan_mismatch_are_rejected",
+      "test_plan_generation_does_not_render_or_escape_sql",
+      "test_neutral_lexer_renderer_and_formatter_are_actual_injected_dependencies"
+    ],
+    "tests/adapter_compiler/test_locking.py": [
+      "test_trailing_comment_cannot_swallow_lock",
+      "test_manual_root_alias_is_quoted_for_lock_target",
+      "test_lock_capability_cannot_be_silently_ignored",
+      "test_renderer_revalidates_manually_constructed_plan",
+      "test_compiler_rejects_non_boolean_lock_options",
+      "test_lock_is_structural_and_follows_pagination",
+      "test_select_defaults_do_not_lock"
+    ],
+    "tests/adapter_dialect/test_postgres.py": [
+      "test_fragment_parts_are_preserved_without_comment_detection",
+      "test_manual_projection_text_is_not_rewritten_before_alias",
+      "test_identifier_boundaries_are_explicit",
+      "test_scanner_rejects_unclosed_regions",
+      "test_scanner_protects_sql_lexical_regions_and_exposes_cast_operator",
+      "test_disabled_features_and_join_variants_fail_explicitly",
+      "test_left_join_uses_only_resolved_table_references",
+      "test_plan_renders_identifiers_parameters_and_zero_pagination_without_driver_format"
+    ],
+    "tests/model_policies/test_declarations.py": [
+      "test_policy_metadata_changes_no_physical_ddl",
+      "test_manual_contract_relation_must_be_to_one",
+      "test_schema_policy_is_rejected_instead_of_accidentally_inherited",
+      "test_invalid_or_unimplemented_semantics_cannot_be_ignored",
+      "test_single_partition_and_no_implicit_policy_from_column_names",
+      "test_multiple_dimensions_and_markers_preserve_metadata_and_defaults"
+    ],
+    "tests/native_model/test_alias_model.py": [
+      "test_alias_physical_policies_are_rejected",
+      "test_manual_alias_normalization_keeps_ui_and_rejects_ambiguous_kind",
+      "test_alias_is_excluded_from_physical_name_collision_check",
+      "test_alias_is_never_a_physical_unique_target_even_with_inherited_unique",
+      "test_local_alias_cycle_is_reported_with_names",
+      "test_bad_alias_targets_fail_during_model_resolution",
+      "test_alias_explicit_dtype_and_none_metadata_do_not_erase_target",
+      "test_multihop_alias_chains_and_formula_targets_keep_immediate_lineage",
+      "test_alias_inherits_target_and_overrides_ui_without_copying_physical_identity"
+    ],
+    "tests/native_model/test_model.py": [
+      "test_composite_relation_survives_physical_migration_projection",
+      "test_physical_projection_uses_resolved_naming",
+      "test_nonunique_relation_cannot_silently_explode_rows",
+      "test_duplicate_physical_mapping_is_rejected",
+      "test_import_requires_explicit_schema_sequence",
+      "test_unsupported_virtual_fails_loudly",
+      "test_ui_cannot_override_dtype",
+      "test_resolution_keeps_ui_mapping_formulas_and_provenance"
+    ],
+    "tests/native_model/test_subquery_model.py": [
+      "test_select_prefix_exception_is_only_for_formula_columns_and_valid_names",
+      "test_subquery_methods_are_preserved_without_execution",
+      "test_method_formula_is_preserved_until_database_bound_compilation",
+      "test_invalid_formula_contract_fails_early",
+      "test_named_subqueries_and_alias_lineage_do_not_copy_operational_definition",
+      "test_structured_formula_is_snapshotted_and_virtual"
+    ],
+    "tests/application_table/test_handles.py": [
+      "test_record_cannot_hide_duplicates_behind_an_aggregate_projection",
+      "test_cycles_resolve_relation_target_only_after_handle_registration",
+      "test_record_errors_and_unsupported_modes",
+      "test_record_is_lazy_cached_defensive_and_explicitly_refreshable",
+      "test_alias_conflicts_and_no_fake_selection",
+      "test_unsupported_options_are_not_silently_treated_as_bindings",
+      "test_detached_parameters_and_legacy_keyword_bindings",
+      "test_query_is_lazy_inspection_does_not_pin_environment_and_fetch_reexecutes",
+      "test_stable_live_handles_and_model_configuration"
+    ],
+    "tests/test_release_resolved_model.py": [
+      "test_table_schema_override_uses_a_schema_deduced_from_another_package",
+      "test_package_source_rejects_the_superseded_explicit_schema_section",
+      "test_schemas_are_deduced_from_packages_including_shared_empty_and_default",
+      "test_system_field_expansion_is_repeatable_and_keeps_source_unexpanded",
+      "test_package_requires_and_physical_collisions_are_loud",
+      "test_flat_attributes_do_not_propagate_and_model_round_trips_without_connections",
+      "test_schema_and_package_objects_preserve_identity_mapping_and_empty_sections",
+      "test_legacy_textual_key_declaration_stays_distinct_from_sql_primary_key"
+    ],
+    "tests/test_release_model_semantics.py": [
+      "test_expanded_legacy_export_cannot_be_mistaken_for_an_executable_runtime",
+      "test_flat_attribute_list_is_immutable",
+      "test_virtual_relation_alias_and_python_provider_are_model_data_only",
+      "test_live_column_exposes_the_translated_validation_dict_without_source_access",
+      "test_validation_contributions_keep_flat_legacy_keys_and_opaque_data",
+      "test_validation_translation_keeps_case_and_messages_without_executing_rules",
+      "test_partial_index_cannot_silently_replace_a_required_full_index",
+      "test_composite_primary_key_is_not_a_stored_column",
+      "test_weak_nonunique_relations_have_no_foreign_key_and_keep_indexes"
+    ],
+    "tests/test_wf_phase1_query_collections.py": [
+      "test_direct_sql_uses_legacy_preparation_and_leaves_scalar_errors_to_driver",
+      "test_direct_sql_expands_collections",
+      "test_raw_update_and_delete_share_the_expression_path",
+      "test_postgres_any_with_a_list_still_binds_an_array",
+      "test_collection_inside_named_subquery",
+      "test_query_reuse_does_not_mutate_parameters",
+      "test_environment_collection_and_reuse_after_environment_change",
+      "test_hostile_values_stay_parameters",
+      "test_in_text_inside_literals_and_comments_is_not_rewritten",
+      "test_collection_next_to_scalar_parameters",
+      "test_generated_names_do_not_collide_with_prefixed_parameters",
+      "test_two_collections_expand_independently",
+      "test_same_collection_in_and_scalar_position_is_rejected",
+      "test_same_collection_twice_in_position",
+      "test_non_collection_in_position_is_rejected_before_execution",
+      "test_null_column_satisfies_neither_in_nor_not_in",
+      "test_none_member_follows_sql_three_valued_logic",
+      "test_empty_not_in_is_true_including_null_column",
+      "test_empty_in_is_false_without_empty_list",
+      "test_duplicates_are_bound_not_deduplicated",
+      "test_not_in_list",
+      "test_in_binds_one_placeholder_per_member"
+    ],
+    "tests/test_wf_phase2_query_grouping.py": [
+      "test_mark_with_distinct_or_group_by_is_rejected",
+      "test_for_update_with_distinct_or_group_by_is_rejected",
+      "test_grouped_pagination_and_empty_dataset",
+      "test_aggregate_projection_without_group_by",
+      "test_having_without_group_by_is_rejected",
+      "test_having_accepts_collection_parameters",
+      "test_having_binds_its_parameters",
+      "test_group_by_star_is_rejected",
+      "test_group_by_alias_column_and_formula",
+      "test_group_by_relation_path_uses_one_join",
+      "test_group_by_resolves_like_where_and_keeps_the_null_group",
+      "test_distinct_order_by_inside_projection_is_accepted",
+      "test_distinct_order_by_outside_projection_is_rejected",
+      "test_distinct_through_a_to_one_path",
+      "test_distinct_other_values_are_rejected",
+      "test_distinct_false_and_none_mean_no_distinct",
+      "test_distinct_true_projects_only_the_requested_columns",
+      "test_plan_rejects_invalid_combinations_on_every_dialect",
+      "test_plan_defaults_render_no_new_clause",
+      "test_plan_renders_distinct_group_by_and_having_in_clause_order"
+    ],
+    "tests/test_wf_phase3_query_count.py": [
+      "test_count_does_not_mutate_the_query",
+      "test_count_ignores_for_update",
+      "test_count_drops_order_by",
+      "test_count_follows_row_policies",
+      "test_empty_dataset_counts_zero",
+      "test_count_with_limit_or_offset_is_rejected",
+      "test_relation_path_projection_counts_rows",
+      "test_opaque_projection_is_counted_through_a_subquery",
+      "test_grouped_count_counts_surviving_groups",
+      "test_distinct_count_counts_distinct_rows",
+      "test_count_respects_where_and_parameters",
+      "test_plain_count_has_no_projected_columns"
+    ],
+    "tests/test_wf_phase4_query_acceptance.py": [
+      "test_direct_sql_collection_on_physical_names",
+      "test_distinct_correlated_formula_over_customers_without_invoices",
+      "test_formula_grouping_and_null_groups",
+      "test_grouped_pagination_and_count_rejection",
+      "test_draft_rows_enter_groups_only_when_requested",
+      "test_empty_not_in_keeps_null_customers_and_counts_them",
+      "test_distinct_totals_and_their_count_per_organization",
+      "test_grouped_collection_query_follows_the_organization"
+    ],
+    "tests/test_native_invoice_migration.py": [
+      "test_native_invoice_apply_introspect_rediff_and_evolution",
+      "test_scalar_weak_relation_checks_target_without_parsing_its_formula",
+      "test_native_production_and_projection_do_not_read_oracles_or_reexpand",
+      "test_native_json_matches_independent_oracle_and_saved_artifact",
+      "test_native_totals_options_relations_and_deferred_expressions",
+      "test_original_column_attributes_survive_native_translation",
+      "test_every_native_table_matches_legacy_structure_and_declarations"
+    ],
+    "tests/test_release_invoice_migration.py": [
+      "test_complete_invoice_apply_introspect_rediff_and_controlled_changes",
+      "test_all_packages_match_the_independent_legacy_physical_oracle"
+    ],
+    "tests/application_integration/test_formula_subqueries.py": [
+      "test_subquery_local_params_are_isolated_from_outer_binding",
+      "test_scalar_multiple_rows_raise_and_this_inside_literal_comment_survives",
+      "test_nested_policy_defaults_and_explicit_overrides",
+      "test_correlated_owner_through_relation_and_alias",
+      "test_scalar_aggregate_exists_named_nested_formula_and_metadata"
+    ],
+    "tests/application_integration/test_alias_columns.py": [
+      "test_alias_metadata_and_physical_projection",
+      "test_alias_projection_filter_order_null_chains_and_formula"
+    ],
+    "tests/native_integration/test_relational_policies.py": [
+      "test_allowed_dimensions_include_nulls_and_empty_set_still_denies_all",
+      "test_related_partition_zero_and_false_intersect_without_target_visibility_filters"
+    ],
+    "tests/native_formulas/test_inverse_results.py": [
+      "test_inverse_projection_keeps_null_children_and_explicit_row_multiplicity",
+      "test_native_child_count_matches_direct_children_and_keeps_outer_rows"
+    ],
+    "tests/native_formulas/test_legacy_inverse_relations.py": [
+      "TestExplodingFastPath",
+      "TestRelationNavigation"
+    ]
+  },
+  "preserved": {
+    "tests/native_compiler/test_compiler.py": [
+      "test_result_source_preserves_stable_identity_across_alias_and_physical_names",
+      "test_returning_formula_that_requires_join_is_rejected",
+      "test_quoted_logical_names_work_in_wildcards_predicates_and_returning",
+      "test_dml_rejects_formula_writes_and_relation_paths",
+      "test_writes_need_predicate",
+      "test_update_collision_returning_and_line_comment",
+      "test_insert_values_mapping_and_default_values"
+    ],
+    "tests/native_compiler/test_native_star.py": [
+      "test_subquery_star_uses_same_bag_fields_option",
+      "test_static_alias_uses_existing_relation_join",
+      "test_bag_fields_requires_boolean",
+      "test_returning_keeps_all_physical_columns",
+      "test_star_selects_physical_then_static_virtual_columns"
+    ],
+    "tests/native_compiler/test_subqueries.py": [
+      "test_default_returning_excludes_transitive_virtual_dependencies",
+      "test_dml_default_excludes_subqueries_and_explicit_request_rejected"
+    ],
+    "tests/native_compiler/test_aliases.py": [
+      "test_wildcard_excludes_dynamic_aliases_and_dml_defaults_stay_physical"
+    ],
+    "tests/native_compiler/test_policies.py": [
+      "test_relational_partition_reads_work_but_writes_are_explicitly_unsupported",
+      "test_soft_delete_and_restore_are_explicit_guarded_updates_with_quoted_marker",
+      "test_allowed_only_insert_requires_value_and_empty_allowed_refuses_insert",
+      "test_dml_partition_guards_autofill_and_no_draft_or_deleted_filters"
+    ],
+    "tests/native_compiler/test_native_options.py": [
+      "test_partition_value_never_becomes_sql_text",
+      "test_names_alone_do_not_create_filters",
+      "test_existing_resolver_is_evaluated_by_render_not_compiler",
+      "test_collection_partition_has_no_implicit_allowed_values_semantics",
+      "test_required_missing_is_explicit_and_can_be_bypassed",
+      "test_optional_missing_and_disabled_partitions_do_not_filter",
+      "test_present_scalar_is_bound_even_when_falsy",
+      "test_partition_alias_reuses_join_without_filtering_joined_table"
+    ],
+    "tests/native_compiler/test_inverse_relations.py": [
+      "test_inverse_does_not_enable_joined_dml"
+    ],
+    "tests/adapter_compiler/test_plans.py": [
+      "test_postgres_facade_preserves_exact_compiled_sql_and_legacy_quoting",
+      "test_write_plans_keep_assignments_and_parameters_structured"
+    ],
+    "tests/adapter_compiler/test_locking.py": [
+      "test_non_select_lock_is_rejected"
+    ],
+    "tests/application_table/test_handles.py": [
+      "test_poisoned_application_session_rejects_insert_before_running_hooks",
+      "test_post_insert_hook_does_not_treat_computed_alias_as_a_record_field",
+      "test_post_insert_hook_maps_returning_alias_to_column_identity",
+      "test_delete_hook_cannot_redirect_the_saved_key",
+      "test_locked_write_rowcount_mismatch_fails_before_after_hook",
+      "test_hooked_write_rejects_missing_or_multiple_records_before_hooks",
+      "test_update_hooks_receive_locked_old_record_and_detached_complete_values",
+      "test_insert_hooks_share_session_and_failure_propagates_without_mutating_input",
+      "test_update_record_and_delete_pkey_zero_keep_explicit_selectors",
+      "test_composite_selector_requires_complete_keys_and_uses_named_physical_resolution"
+    ],
+    "tests/test_release_model_semantics.py": [
+      "test_validation_embedding_and_explicit_form_match_and_remain_detached",
+      "test_custom_types_forward_fk_inference_inverse_and_application_sql_actions"
+    ],
+    "tests/test_wf_phase3_query_count.py": [
+      "test_count_does_not_commit",
+      "test_count_uses_the_current_environment"
+    ],
+    "tests/adapter_dialect/test_postgres.py": [
+      "test_clauses_have_fixed_separators_without_repairing_expression_text",
+      "test_default_values_and_returning_are_independent_capabilities",
+      "test_dml_rendering",
+      "test_malformed_plans_are_rejected"
+    ],
+    "tests/test_wf_phase2_query_grouping.py": [
+      "test_plan_rejects_grouping_outside_select"
+    ]
+  },
+  "coverage": {
+    "compiler/plans/scanner": "tests/object_tree/test_legacy_resolution.py, test_legacy_rewrite_contracts.py, test_minimal_select.py, test_phase2_relations.py",
+    "projection/binding/adapter": "tests/adapter_driver/test_legacy_preparation.py, tests/adapter_dialect/test_legacy_renderer.py, tests/adapter_integration/test_legacy_preparation.py",
+    "formulas/subqueries/methods": "tests/object_tree/test_phase3*.py, tests/native_formulas/test_tree_legacy_formulas.py, test_tree_terminals_legacy.py",
+    "options/star/bag/count": "tests/object_tree/test_phase4*.py, test_count.py, tests/native_formulas/test_tree_count*.py",
+    "model/74 packages/migration": "tests/object_tree/test_structure.py, test_invoice.py, test_migration.py, tests/test_native_option_expansion.py",
+    "record/fetch/lock": "tests/read_path/test_public_records.py, test_postgres_records.py, tests/adapter_integration/test_tree_terminals.py"
+  },
+  "note": "Retired collection contracts, not deleted legacy oracle bodies. Reused functions/classes remain in support modules or in canonical tree tests. DML bodies are preserved."
+}

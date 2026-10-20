@@ -1,0 +1,459 @@
+{
+  "shared_fields": 15,
+  "tables": 8,
+  "fields": {
+    "adm.htag.code": {
+      "legacy": {
+        "tag": "column",
+        "name_long": "!!Code",
+        "unique": true,
+        "validate_notnull": true,
+        "validate_nodup": true,
+        "dtype": "T"
+      },
+      "native": {
+        "name_long": "!!Code",
+        "validate_notnull": true,
+        "validate_nodup": true,
+        "unique": true,
+        "name": "code",
+        "notnull": false,
+        "indexed": false,
+        "read_only": false,
+        "unmodifiable": false
+      },
+      "effective_dtype": "T",
+      "emissions": [],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.htag.description": {
+      "legacy": {
+        "tag": "column",
+        "name_long": "!!Description",
+        "validate_notnull": true,
+        "dtype": "T"
+      },
+      "native": {
+        "name_long": "!!Description",
+        "validate_notnull": true,
+        "name": "description",
+        "notnull": false,
+        "unique": false,
+        "indexed": false,
+        "read_only": false,
+        "unmodifiable": false
+      },
+      "effective_dtype": "T",
+      "emissions": [],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.htag.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "!![en]Id",
+        "group": "zzz",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.htmltemplate.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "!![en]Id",
+        "group": "zzz",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [
+        "_attachments"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.htmltemplate_atc.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "Id",
+        "group": "_",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "_",
+        "name_long": "Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields",
+        "_attachments"
+      ],
+      "readers": [
+        "_attachments",
+        "_attachments"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.menu.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "!![en]Id",
+        "group": "zzz",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.menu.label": {
+      "legacy": {
+        "tag": "column",
+        "name_long": "!!Label",
+        "dtype": "T"
+      },
+      "native": {
+        "name_long": "!!Label",
+        "name": "label",
+        "notnull": false,
+        "unique": false,
+        "indexed": false,
+        "read_only": false,
+        "unmodifiable": false
+      },
+      "effective_dtype": "T",
+      "emissions": [],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "adm.user.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "Id",
+        "group": "_",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "size": "22",
+        "group": "_",
+        "read_only": true,
+        "name_long": "Id",
+        "name": "id",
+        "notnull": false,
+        "unique": false,
+        "indexed": true,
+        "unmodifiable": false,
+        "x_legacy__sysfield": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [],
+      "same_emitted_node": true
+    },
+    "invc.product_group._row_count": {
+      "legacy": {
+        "tag": "column",
+        "dtype": "L",
+        "name_long": "!![en]Counter",
+        "group": "zzz",
+        "counter": true,
+        "_sysfield": true
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Counter",
+        "x_legacy_counter": true,
+        "x_legacy__sysfield": true,
+        "dtype": "L",
+        "name": "_row_count"
+      },
+      "effective_dtype": "L",
+      "emissions": [
+        "local"
+      ],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "invc.product_group.code": {
+      "legacy": {
+        "tag": "column",
+        "size": ":10",
+        "name_long": "!!Code",
+        "dtype": "A"
+      },
+      "native": {
+        "size": ":10",
+        "name_long": "!!Code",
+        "name": "code",
+        "notnull": false,
+        "unique": false,
+        "indexed": false,
+        "read_only": false,
+        "unmodifiable": false
+      },
+      "effective_dtype": "A",
+      "emissions": [],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "invc.product_group.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "!![en]Id",
+        "group": "zzz",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "invc.product_type.description": {
+      "legacy": {
+        "tag": "column",
+        "size": ":50",
+        "name_long": "!!Description",
+        "dtype": "A"
+      },
+      "native": {
+        "size": ":50",
+        "name_long": "!!Description",
+        "name": "description",
+        "notnull": false,
+        "unique": false,
+        "indexed": false,
+        "read_only": false,
+        "unmodifiable": false
+      },
+      "effective_dtype": "A",
+      "emissions": [],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "invc.product_type.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "!![en]Id",
+        "group": "zzz",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "sys.widget.id": {
+      "legacy": {
+        "size": "22",
+        "name_long": "!![en]Id",
+        "group": "zzz",
+        "readOnly": "y",
+        "_sendback": true,
+        "_sysfield": true,
+        "tag": "column",
+        "_owner_package": "invc",
+        "dtype": "A"
+      },
+      "native": {
+        "group": "zzz",
+        "name_long": "!![en]Id",
+        "x_legacy__sysfield": true,
+        "size": "22",
+        "read_only": true,
+        "x_generation": {
+          "type": "uuid",
+          "algorithm": "legacy22"
+        },
+        "x_legacy__sendback": true,
+        "dtype": "A",
+        "name": "id"
+      },
+      "effective_dtype": "A",
+      "emissions": [
+        "sys_fields"
+      ],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    },
+    "sys.widget.name": {
+      "legacy": {
+        "tag": "column",
+        "_owner_package": "invc",
+        "name_long": "!!Name",
+        "dtype": "T"
+      },
+      "native": {
+        "name_long": "!!Name",
+        "name": "name",
+        "notnull": false,
+        "unique": false,
+        "indexed": false,
+        "read_only": false,
+        "unmodifiable": false
+      },
+      "effective_dtype": "T",
+      "emissions": [],
+      "readers": [
+        "hierarchy"
+      ],
+      "same_emitted_node": true
+    }
+  },
+  "tests": {
+    "passed": 366,
+    "new_contracts": 19
+  },
+  "production_changes": false,
+  "accepted_order_differences": 12
+}

@@ -1,0 +1,229 @@
+{
+  "source": "gnrpy/tests/sql/test_compiler_coverage.py",
+  "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "tests": [
+    {
+      "test": "TestPhysicalColumns.test_star_expansion_pg",
+      "line": 80,
+      "source_ast_sha256": "42df2c5987a75f885952c2ae7563a0378b4a78024b586223357438059ffc3359",
+      "port_ast_sha256": "42df2c5987a75f885952c2ae7563a0378b4a78024b586223357438059ffc3359",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPhysicalColumns.test_star_expansion_sqlite",
+      "line": 89,
+      "source_ast_sha256": "b6e8434849ce614d499a8df9aef3b401a7186477aab186b9702029eb45e2c1bb",
+      "port_ast_sha256": "b6e8434849ce614d499a8df9aef3b401a7186477aab186b9702029eb45e2c1bb",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestDraftField.test_is_confirmed_pg",
+      "line": 2138,
+      "source_ast_sha256": "3b73378d27fed84780e3d7b3c22f48472c736aa9b61bf14b979ae3098b8a00dc",
+      "port_ast_sha256": "3b73378d27fed84780e3d7b3c22f48472c736aa9b61bf14b979ae3098b8a00dc",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestDraftField.test_is_confirmed_sqlite",
+      "line": 2147,
+      "source_ast_sha256": "2e5fbbc232db32e8e42945a5e37c57f2ef73ef463f6e359c81599570d6f5207d",
+      "port_ast_sha256": "2e5fbbc232db32e8e42945a5e37c57f2ef73ef463f6e359c81599570d6f5207d",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestDraftField.test_draft_filter_count_pg",
+      "line": 2156,
+      "source_ast_sha256": "dab4113ee18996d4ff648172ecd58d7f566fdc29c1e56dba62d8d4f22c5d0d81",
+      "port_ast_sha256": "dab4113ee18996d4ff648172ecd58d7f566fdc29c1e56dba62d8d4f22c5d0d81",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestDraftField.test_draft_filter_count_sqlite",
+      "line": 2164,
+      "source_ast_sha256": "6757b0c6fdb1486c27d389cae7510890a23d10fbb64131aa2a98bd1259b9d19e",
+      "port_ast_sha256": "6757b0c6fdb1486c27d389cae7510890a23d10fbb64131aa2a98bd1259b9d19e",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionCurrentState.test_customer_partition_nsw_pg",
+      "line": 2343,
+      "source_ast_sha256": "91befc8ca2f379d7fd2aec87e896c217de564670ad720736f10c5ca0cf6a41bd",
+      "port_ast_sha256": "ac9345b4a16e48deb040aba39956b520169e731c090fe65d99836a2e3201f9bd",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionCurrentState.test_customer_partition_nsw_sqlite",
+      "line": 2351,
+      "source_ast_sha256": "a36278847cf04f0045e31311513ea9eca902989dfeea51b83cb8d740127c4424",
+      "port_ast_sha256": "ce4749a3f080fe820600f5108dfdbe28f98d24024d07842c990156150d63a203",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionCurrentState.test_invoice_partition_nsw_pg",
+      "line": 2359,
+      "source_ast_sha256": "86625a8ba5acf2db61980827e3412c34258565d98574a0c2b9f8988889ef7df5",
+      "port_ast_sha256": "25e163908d5425311980dc3d4d7df665390487492d612238b8825d7abb11ad7b",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionCurrentState.test_invoice_partition_nsw_sqlite",
+      "line": 2367,
+      "source_ast_sha256": "db111200121c8e79e0c62f9fd47ae7db75ee7184c0eb4cf987c978ae131ec480",
+      "port_ast_sha256": "47d22ac17d76f52f4fbe2ced1996b45240c70cf266dd7fa8e2407e97fd269311",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionCurrentState.test_partition_ignore_pg",
+      "line": 2375,
+      "source_ast_sha256": "6d9b415d3150f91ee39a95387d81cc1954f258179b88b46f8f36acf86b54ebc6",
+      "port_ast_sha256": "e11dbe587f682f47b1d27b3066cb349fc916aee5adb163056d3ff293db4f9a19",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionCurrentState.test_partition_ignore_sqlite",
+      "line": 2386,
+      "source_ast_sha256": "219ffafc4caf32f3ceb1aebd604feedfdd639e1bef5ac6806dbc957529714029",
+      "port_ast_sha256": "eadf3917cfd720ae7dfd0e72350392f282709215e82089c03bcc1e2433f459e2",
+      "adapted": true,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionAllowedStates.test_no_partition_full_count_pg",
+      "line": 2432,
+      "source_ast_sha256": "193dd873262a5bf0cbbb60cc8207eef8c02ca82d69874fb6f479897be31380fd",
+      "port_ast_sha256": "193dd873262a5bf0cbbb60cc8207eef8c02ca82d69874fb6f479897be31380fd",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestPartitionAllowedStates.test_no_partition_full_count_sqlite",
+      "line": 2437,
+      "source_ast_sha256": "93505639ea399b762faf9fdfda0b2ddb87bf07ecc76de132b2ac37916497e213",
+      "port_ast_sha256": "93505639ea399b762faf9fdfda0b2ddb87bf07ecc76de132b2ac37916497e213",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestExcludeLogicalDeletedMark.test_mark_adds_isdeleted_column_pg",
+      "line": 2995,
+      "source_ast_sha256": "2b33eb3647b1bf6c5ff38e1140a0ee342ce6c455fb11748aff4e5490284b7710",
+      "port_ast_sha256": "2b33eb3647b1bf6c5ff38e1140a0ee342ce6c455fb11748aff4e5490284b7710",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "next"
+      ]
+    },
+    {
+      "test": "TestExcludeLogicalDeletedMark.test_mark_adds_isdeleted_column_sqlite",
+      "line": 3004,
+      "source_ast_sha256": "039bc789cfdfd54c0383496f0317dfefbdc2f27726943222376418e4080cfbd1",
+      "port_ast_sha256": "039bc789cfdfd54c0383496f0317dfefbdc2f27726943222376418e4080cfbd1",
+      "adapted": false,
+      "identical_source_refs": [
+        "legacy",
+        "next"
+      ]
+    }
+  ],
+  "adaptation": "Current-state partition tests use fixtures resolving INVC_STATE=NSW at model render; queries and assertions unchanged. Generic fixtures have no current partition.",
+  "excluded": [
+    "Allowed-state collections: decision deferred",
+    "Record bagFields: record runtime outside query compilation"
+  ]
+}

@@ -1,0 +1,2679 @@
+{
+  "tables": 74,
+  "source_unchanged": true,
+  "expanded_order_preserved": 74,
+  "identical_field_sets": 74,
+  "identical_order": 62,
+  "different_order": [
+    "sys.widget",
+    "adm.group",
+    "adm.group_helpdoc",
+    "adm.htag",
+    "adm.htmltemplate_atc",
+    "adm.language",
+    "adm.menu",
+    "adm.shortcut",
+    "adm.user",
+    "invc.invoice_row",
+    "invc.product_group",
+    "invc.product_type"
+  ],
+  "models": {
+    "sys.batch_log": {
+      "authored": [
+        "batch_title",
+        "page_id",
+        "start_ts",
+        "end_ts",
+        "notes",
+        "logbag",
+        "tbl"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "batch_title",
+        "page_id",
+        "start_ts",
+        "end_ts",
+        "notes",
+        "logbag",
+        "tbl"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "batch_title",
+        "page_id",
+        "start_ts",
+        "end_ts",
+        "notes",
+        "logbag",
+        "tbl"
+      ],
+      "same_order": true
+    },
+    "sys.calendar": {
+      "authored": [
+        "date"
+      ],
+      "expanded": [
+        "date"
+      ],
+      "legacy": [
+        "date"
+      ],
+      "same_order": true
+    },
+    "sys.dataretention": {
+      "authored": [
+        "table_fullname",
+        "filter_column",
+        "retention_period"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "table_fullname",
+        "filter_column",
+        "retention_period"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "table_fullname",
+        "filter_column",
+        "retention_period"
+      ],
+      "same_order": true
+    },
+    "sys.dbchange": {
+      "authored": [
+        "ref",
+        "tbl",
+        "record_pkey",
+        "evt",
+        "record",
+        "dbstore"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__ins_user",
+        "ref",
+        "tbl",
+        "record_pkey",
+        "evt",
+        "record",
+        "dbstore"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__ins_user",
+        "ref",
+        "tbl",
+        "record_pkey",
+        "evt",
+        "record",
+        "dbstore"
+      ],
+      "same_order": true
+    },
+    "sys.error": {
+      "authored": [
+        "description",
+        "error_data",
+        "username",
+        "user_ip",
+        "user_agent",
+        "fixed",
+        "notes",
+        "error_type",
+        "error_code",
+        "request_uri",
+        "request_host",
+        "rpc_method",
+        "rpc_kwargs",
+        "page_id",
+        "current_domain"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "description",
+        "error_data",
+        "username",
+        "user_ip",
+        "user_agent",
+        "fixed",
+        "notes",
+        "error_type",
+        "error_code",
+        "request_uri",
+        "request_host",
+        "rpc_method",
+        "rpc_kwargs",
+        "page_id",
+        "current_domain"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "description",
+        "error_data",
+        "username",
+        "user_ip",
+        "user_agent",
+        "fixed",
+        "notes",
+        "error_type",
+        "error_code",
+        "request_uri",
+        "request_host",
+        "rpc_method",
+        "rpc_kwargs",
+        "page_id",
+        "current_domain"
+      ],
+      "same_order": true
+    },
+    "sys.external_token": {
+      "authored": [
+        "id",
+        "datetime",
+        "expiry",
+        "allowed_user",
+        "connection_id",
+        "max_usages",
+        "allowed_host",
+        "page_path",
+        "method",
+        "assigned_user_id",
+        "parameters",
+        "exec_user",
+        "userobject_id"
+      ],
+      "expanded": [
+        "id",
+        "datetime",
+        "expiry",
+        "allowed_user",
+        "connection_id",
+        "max_usages",
+        "allowed_host",
+        "page_path",
+        "method",
+        "assigned_user_id",
+        "parameters",
+        "exec_user",
+        "userobject_id"
+      ],
+      "legacy": [
+        "id",
+        "datetime",
+        "expiry",
+        "allowed_user",
+        "connection_id",
+        "max_usages",
+        "allowed_host",
+        "page_path",
+        "method",
+        "assigned_user_id",
+        "parameters",
+        "exec_user",
+        "userobject_id"
+      ],
+      "same_order": true
+    },
+    "sys.external_token_use": {
+      "authored": [
+        "id",
+        "external_token_id",
+        "datetime",
+        "host"
+      ],
+      "expanded": [
+        "id",
+        "external_token_id",
+        "datetime",
+        "host"
+      ],
+      "legacy": [
+        "id",
+        "external_token_id",
+        "datetime",
+        "host"
+      ],
+      "same_order": true
+    },
+    "sys.externalcall_log": {
+      "authored": [
+        "endpoint",
+        "methodname",
+        "parameters",
+        "error",
+        "result"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "endpoint",
+        "methodname",
+        "parameters",
+        "error",
+        "result"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "endpoint",
+        "methodname",
+        "parameters",
+        "error",
+        "result"
+      ],
+      "same_order": true
+    },
+    "sys.service": {
+      "authored": [
+        "service_identifier",
+        "service_type",
+        "service_name",
+        "implementation",
+        "parameters",
+        "daemon",
+        "disabled"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "service_identifier",
+        "service_type",
+        "service_name",
+        "implementation",
+        "parameters",
+        "daemon",
+        "disabled"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "service_identifier",
+        "service_type",
+        "service_name",
+        "implementation",
+        "parameters",
+        "daemon",
+        "disabled"
+      ],
+      "same_order": true
+    },
+    "sys.shared_object": {
+      "authored": [
+        "data",
+        "backup",
+        "description",
+        "linked_table"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "data",
+        "backup",
+        "description",
+        "linked_table"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "data",
+        "backup",
+        "description",
+        "linked_table"
+      ],
+      "same_order": true
+    },
+    "sys.shorturl": {
+      "authored": [
+        "codekey",
+        "service_identifier",
+        "longurl",
+        "shorturl",
+        "domain",
+        "key",
+        "expiration",
+        "traking"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "codekey",
+        "service_identifier",
+        "longurl",
+        "shorturl",
+        "domain",
+        "key",
+        "expiration",
+        "traking"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "codekey",
+        "service_identifier",
+        "longurl",
+        "shorturl",
+        "domain",
+        "key",
+        "expiration",
+        "traking"
+      ],
+      "same_order": true
+    },
+    "sys.task": {
+      "authored": [
+        "table_name",
+        "task_name",
+        "command",
+        "month",
+        "day",
+        "weekday",
+        "hour",
+        "minute",
+        "frequency",
+        "parameters",
+        "last_scheduled_ts",
+        "last_execution_ts",
+        "last_error_ts",
+        "last_error_info",
+        "run_asap",
+        "max_workers",
+        "log_result",
+        "user_id",
+        "date_start",
+        "date_end",
+        "stopped",
+        "worker_code",
+        "saved_query_code"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "table_name",
+        "task_name",
+        "command",
+        "month",
+        "day",
+        "weekday",
+        "hour",
+        "minute",
+        "frequency",
+        "parameters",
+        "last_scheduled_ts",
+        "last_execution_ts",
+        "last_error_ts",
+        "last_error_info",
+        "run_asap",
+        "max_workers",
+        "log_result",
+        "user_id",
+        "date_start",
+        "date_end",
+        "stopped",
+        "worker_code",
+        "saved_query_code"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "table_name",
+        "task_name",
+        "command",
+        "month",
+        "day",
+        "weekday",
+        "hour",
+        "minute",
+        "frequency",
+        "parameters",
+        "last_scheduled_ts",
+        "last_execution_ts",
+        "last_error_ts",
+        "last_error_info",
+        "run_asap",
+        "max_workers",
+        "log_result",
+        "user_id",
+        "date_start",
+        "date_end",
+        "stopped",
+        "worker_code",
+        "saved_query_code"
+      ],
+      "same_order": true
+    },
+    "sys.task_execution": {
+      "authored": [
+        "task_id",
+        "result",
+        "logbag",
+        "errorbag",
+        "pid",
+        "start_ts",
+        "end_ts",
+        "is_error",
+        "exec_reason",
+        "reasonkey"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "task_id",
+        "result",
+        "logbag",
+        "errorbag",
+        "pid",
+        "start_ts",
+        "end_ts",
+        "is_error",
+        "exec_reason",
+        "reasonkey"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "task_id",
+        "result",
+        "logbag",
+        "errorbag",
+        "pid",
+        "start_ts",
+        "end_ts",
+        "is_error",
+        "exec_reason",
+        "reasonkey"
+      ],
+      "same_order": true
+    },
+    "sys.task_result": {
+      "authored": [
+        "task_id",
+        "result",
+        "result_time",
+        "start_time",
+        "end_time",
+        "is_error"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "task_id",
+        "result",
+        "result_time",
+        "start_time",
+        "end_time",
+        "is_error"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "task_id",
+        "result",
+        "result_time",
+        "start_time",
+        "end_time",
+        "is_error"
+      ],
+      "same_order": true
+    },
+    "sys.upgrade": {
+      "authored": [
+        "codekey",
+        "pkg",
+        "filename",
+        "error"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "codekey",
+        "pkg",
+        "filename",
+        "error"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "codekey",
+        "pkg",
+        "filename",
+        "error"
+      ],
+      "same_order": true
+    },
+    "sys.widget": {
+      "authored": [
+        "name",
+        "summary",
+        "server"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__version",
+        "df_fields",
+        "df_fbcolumns",
+        "df_custom_templates",
+        "df_colswidth",
+        "parent_id",
+        "hierarchical_name",
+        "_parent_h_name",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "name",
+        "summary",
+        "server"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "parent_id",
+        "name",
+        "hierarchical_name",
+        "_parent_h_name",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "__version",
+        "__ins_user",
+        "df_fields",
+        "df_fbcolumns",
+        "df_custom_templates",
+        "df_colswidth",
+        "summary",
+        "server"
+      ],
+      "same_order": false
+    },
+    "adm.access_group": {
+      "authored": [
+        "code",
+        "description",
+        "allowed_ip"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description",
+        "allowed_ip"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description",
+        "allowed_ip"
+      ],
+      "same_order": true
+    },
+    "adm.api_token": {
+      "authored": [
+        "token",
+        "description",
+        "group_code",
+        "is_active",
+        "expires_ts",
+        "activated_ts",
+        "last_used_ts",
+        "created_by",
+        "notes",
+        "token_hint"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "token",
+        "description",
+        "group_code",
+        "is_active",
+        "expires_ts",
+        "activated_ts",
+        "last_used_ts",
+        "created_by",
+        "notes",
+        "token_hint"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "token",
+        "description",
+        "group_code",
+        "is_active",
+        "expires_ts",
+        "activated_ts",
+        "last_used_ts",
+        "created_by",
+        "notes",
+        "token_hint"
+      ],
+      "same_order": true
+    },
+    "adm.api_token_tag": {
+      "authored": [
+        "api_token_id",
+        "tag_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "api_token_id",
+        "tag_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "api_token_id",
+        "tag_id"
+      ],
+      "same_order": true
+    },
+    "adm.audit": {
+      "authored": [
+        "tablename",
+        "event",
+        "username",
+        "record_pkey",
+        "version",
+        "data",
+        "transaction_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "tablename",
+        "event",
+        "username",
+        "record_pkey",
+        "version",
+        "data",
+        "transaction_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "tablename",
+        "event",
+        "username",
+        "record_pkey",
+        "version",
+        "data",
+        "transaction_id"
+      ],
+      "same_order": true
+    },
+    "adm.authorization": {
+      "authored": [
+        "code",
+        "user_id",
+        "use_ts",
+        "used_by",
+        "note",
+        "usage_scope",
+        "remaining_usages",
+        "expiry_date"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "user_id",
+        "use_ts",
+        "used_by",
+        "note",
+        "usage_scope",
+        "remaining_usages",
+        "expiry_date"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "user_id",
+        "use_ts",
+        "used_by",
+        "note",
+        "usage_scope",
+        "remaining_usages",
+        "expiry_date"
+      ],
+      "same_order": true
+    },
+    "adm.backup": {
+      "authored": [
+        "name",
+        "start_ts",
+        "end_ts",
+        "file_url"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "name",
+        "start_ts",
+        "end_ts",
+        "file_url"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "name",
+        "start_ts",
+        "end_ts",
+        "file_url"
+      ],
+      "same_order": true
+    },
+    "adm.ckstyle": {
+      "authored": [
+        "name",
+        "element",
+        "styles",
+        "attributes",
+        "stylegroup"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "name",
+        "element",
+        "styles",
+        "attributes",
+        "stylegroup"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "name",
+        "element",
+        "styles",
+        "attributes",
+        "stylegroup"
+      ],
+      "same_order": true
+    },
+    "adm.connection": {
+      "authored": [
+        "id",
+        "userid",
+        "username",
+        "ip",
+        "start_ts",
+        "end_ts",
+        "end_reason",
+        "user_agent"
+      ],
+      "expanded": [
+        "id",
+        "userid",
+        "username",
+        "ip",
+        "start_ts",
+        "end_ts",
+        "end_reason",
+        "user_agent"
+      ],
+      "legacy": [
+        "id",
+        "userid",
+        "username",
+        "ip",
+        "start_ts",
+        "end_ts",
+        "end_reason",
+        "user_agent"
+      ],
+      "same_order": true
+    },
+    "adm.counter": {
+      "authored": [
+        "codekey",
+        "code",
+        "pkg",
+        "tbl",
+        "fld",
+        "period",
+        "counter",
+        "last_used",
+        "holes",
+        "errors"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "codekey",
+        "code",
+        "pkg",
+        "tbl",
+        "fld",
+        "period",
+        "counter",
+        "last_used",
+        "holes",
+        "errors"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "codekey",
+        "code",
+        "pkg",
+        "tbl",
+        "fld",
+        "period",
+        "counter",
+        "last_used",
+        "holes",
+        "errors"
+      ],
+      "same_order": true
+    },
+    "adm.day": {
+      "authored": [
+        "date",
+        "weekday",
+        "is_holyday"
+      ],
+      "expanded": [
+        "date",
+        "weekday",
+        "is_holyday"
+      ],
+      "legacy": [
+        "date",
+        "weekday",
+        "is_holyday"
+      ],
+      "same_order": true
+    },
+    "adm.group": {
+      "authored": [
+        "code",
+        "description",
+        "custom_menu",
+        "rootpage",
+        "require_2fa",
+        "no2fa_alternative_group"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "code",
+        "description",
+        "custom_menu",
+        "rootpage",
+        "require_2fa",
+        "no2fa_alternative_group"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "_row_count",
+        "__ins_user",
+        "code",
+        "description",
+        "custom_menu",
+        "rootpage",
+        "require_2fa",
+        "no2fa_alternative_group"
+      ],
+      "same_order": false
+    },
+    "adm.group_helpdoc": {
+      "authored": [
+        "group_code",
+        "helpdoc_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "group_code",
+        "helpdoc_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "_row_count",
+        "__ins_user",
+        "group_code",
+        "helpdoc_id"
+      ],
+      "same_order": false
+    },
+    "adm.helpdoc": {
+      "authored": [
+        "title",
+        "url",
+        "description"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "title",
+        "url",
+        "description"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "title",
+        "url",
+        "description"
+      ],
+      "same_order": true
+    },
+    "adm.htag": {
+      "authored": [
+        "code",
+        "description",
+        "require_2fa",
+        "isreserved",
+        "note",
+        "linked_table"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__syscode",
+        "_row_count",
+        "parent_id",
+        "hierarchical_code",
+        "_parent_h_code",
+        "hierarchical_description",
+        "_parent_h_description",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "code",
+        "description",
+        "require_2fa",
+        "isreserved",
+        "note",
+        "linked_table"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "parent_id",
+        "code",
+        "hierarchical_code",
+        "_parent_h_code",
+        "description",
+        "hierarchical_description",
+        "_parent_h_description",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "_row_count",
+        "__ins_user",
+        "__syscode",
+        "require_2fa",
+        "isreserved",
+        "note",
+        "linked_table"
+      ],
+      "same_order": false
+    },
+    "adm.htmltemplate": {
+      "authored": [
+        "name",
+        "username",
+        "version",
+        "type_code",
+        "data",
+        "center_height",
+        "center_width",
+        "based_on",
+        "next_letterhead_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "name",
+        "username",
+        "version",
+        "type_code",
+        "data",
+        "center_height",
+        "center_width",
+        "based_on",
+        "next_letterhead_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "name",
+        "username",
+        "version",
+        "type_code",
+        "data",
+        "center_height",
+        "center_width",
+        "based_on",
+        "next_letterhead_id"
+      ],
+      "same_order": true
+    },
+    "adm.htmltemplate_atc": {
+      "authored": [],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "filepath",
+        "filepath_hash",
+        "filepath_original_name",
+        "external_url",
+        "description",
+        "mimetype",
+        "text_content",
+        "info",
+        "is_foreign_document",
+        "maintable_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "_row_count",
+        "__ins_user",
+        "filepath",
+        "filepath_hash",
+        "filepath_original_name",
+        "external_url",
+        "description",
+        "mimetype",
+        "text_content",
+        "info",
+        "is_foreign_document",
+        "maintable_id"
+      ],
+      "same_order": false
+    },
+    "adm.install_checklist": {
+      "authored": [
+        "__syscode",
+        "name",
+        "description",
+        "pkg",
+        "checked",
+        "check_ts",
+        "check_user",
+        "annotations",
+        "doc_url"
+      ],
+      "expanded": [
+        "__del_ts",
+        "__ins_user",
+        "__syscode",
+        "name",
+        "description",
+        "pkg",
+        "checked",
+        "check_ts",
+        "check_user",
+        "annotations",
+        "doc_url"
+      ],
+      "legacy": [
+        "__del_ts",
+        "__ins_user",
+        "__syscode",
+        "name",
+        "description",
+        "pkg",
+        "checked",
+        "check_ts",
+        "check_user",
+        "annotations",
+        "doc_url"
+      ],
+      "same_order": true
+    },
+    "adm.language": {
+      "authored": [
+        "code",
+        "name"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__syscode",
+        "_row_count",
+        "code",
+        "name"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "_row_count",
+        "__ins_user",
+        "__syscode",
+        "code",
+        "name"
+      ],
+      "same_order": false
+    },
+    "adm.letterhead_type": {
+      "authored": [
+        "code",
+        "description"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "same_order": true
+    },
+    "adm.menu": {
+      "authored": [
+        "label",
+        "tags",
+        "summary",
+        "ts_import",
+        "page_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "parent_id",
+        "hierarchical_label",
+        "_parent_h_label",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "label",
+        "tags",
+        "summary",
+        "ts_import",
+        "page_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "parent_id",
+        "label",
+        "hierarchical_label",
+        "_parent_h_label",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "_row_count",
+        "__ins_user",
+        "tags",
+        "summary",
+        "ts_import",
+        "page_id"
+      ],
+      "same_order": false
+    },
+    "adm.menu_page": {
+      "authored": [
+        "label",
+        "filepath",
+        "tbl",
+        "pkg",
+        "metadata"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "label",
+        "filepath",
+        "tbl",
+        "pkg",
+        "metadata"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "label",
+        "filepath",
+        "tbl",
+        "pkg",
+        "metadata"
+      ],
+      "same_order": true
+    },
+    "adm.notification": {
+      "authored": [
+        "title",
+        "template",
+        "confirm_label",
+        "tag_rule",
+        "group_code",
+        "all_users",
+        "letterhead_id",
+        "linked_query",
+        "dynamic_list",
+        "start_date",
+        "end_date"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "title",
+        "template",
+        "confirm_label",
+        "tag_rule",
+        "group_code",
+        "all_users",
+        "letterhead_id",
+        "linked_query",
+        "dynamic_list",
+        "start_date",
+        "end_date"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "title",
+        "template",
+        "confirm_label",
+        "tag_rule",
+        "group_code",
+        "all_users",
+        "letterhead_id",
+        "linked_query",
+        "dynamic_list",
+        "start_date",
+        "end_date"
+      ],
+      "same_order": true
+    },
+    "adm.pkginfo": {
+      "authored": [
+        "pkgid",
+        "prj"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "pkgid",
+        "prj"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "pkgid",
+        "prj"
+      ],
+      "same_order": true
+    },
+    "adm.preference": {
+      "authored": [
+        "code",
+        "data"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "data"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "data"
+      ],
+      "same_order": true
+    },
+    "adm.record_tag": {
+      "authored": [
+        "tablename",
+        "tag",
+        "description"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "tablename",
+        "tag",
+        "description"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "tablename",
+        "tag",
+        "description"
+      ],
+      "same_order": true
+    },
+    "adm.sent_email": {
+      "authored": [
+        "code",
+        "tbl",
+        "mail_address",
+        "sent_ts",
+        "record_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "tbl",
+        "mail_address",
+        "sent_ts",
+        "record_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "tbl",
+        "mail_address",
+        "sent_ts",
+        "record_id"
+      ],
+      "same_order": true
+    },
+    "adm.served_page": {
+      "authored": [
+        "page_id",
+        "pagename",
+        "connection_id",
+        "start_ts",
+        "end_ts",
+        "end_reason"
+      ],
+      "expanded": [
+        "page_id",
+        "pagename",
+        "connection_id",
+        "start_ts",
+        "end_ts",
+        "end_reason"
+      ],
+      "legacy": [
+        "page_id",
+        "pagename",
+        "connection_id",
+        "start_ts",
+        "end_ts",
+        "end_reason"
+      ],
+      "same_order": true
+    },
+    "adm.shortcut": {
+      "authored": [
+        "keycode",
+        "phrase",
+        "groupcode"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "keycode",
+        "phrase",
+        "groupcode"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "_row_count",
+        "__ins_user",
+        "keycode",
+        "phrase",
+        "groupcode"
+      ],
+      "same_order": false
+    },
+    "adm.tblinfo": {
+      "authored": [
+        "tblid",
+        "pkgid",
+        "description"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "tblid",
+        "pkgid",
+        "description"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "tblid",
+        "pkgid",
+        "description"
+      ],
+      "same_order": true
+    },
+    "adm.tblinfo_item": {
+      "authored": [
+        "info_key",
+        "code",
+        "description",
+        "item_type",
+        "data",
+        "tblid"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "info_key",
+        "code",
+        "description",
+        "item_type",
+        "data",
+        "tblid"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "info_key",
+        "code",
+        "description",
+        "item_type",
+        "data",
+        "tblid"
+      ],
+      "same_order": true
+    },
+    "adm.user": {
+      "authored": [
+        "id",
+        "username",
+        "email",
+        "mobile",
+        "firstname",
+        "lastname",
+        "registration_date",
+        "auth_tags",
+        "status",
+        "md5pwd",
+        "locale",
+        "language",
+        "preferences",
+        "menu_root_id",
+        "avatar_rootpage",
+        "sms_login",
+        "sms_number",
+        "photo",
+        "group_code",
+        "xgroup",
+        "custom_menu",
+        "custom_fields",
+        "avatar_secret_2fa",
+        "avatar_last_2fa_otp"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__rec_md5",
+        "username",
+        "email",
+        "mobile",
+        "firstname",
+        "lastname",
+        "registration_date",
+        "auth_tags",
+        "status",
+        "md5pwd",
+        "locale",
+        "language",
+        "preferences",
+        "menu_root_id",
+        "avatar_rootpage",
+        "sms_login",
+        "sms_number",
+        "photo",
+        "group_code",
+        "xgroup",
+        "custom_menu",
+        "custom_fields",
+        "avatar_secret_2fa",
+        "avatar_last_2fa_otp"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__rec_md5",
+        "__ins_user",
+        "username",
+        "email",
+        "mobile",
+        "firstname",
+        "lastname",
+        "registration_date",
+        "auth_tags",
+        "status",
+        "md5pwd",
+        "locale",
+        "language",
+        "preferences",
+        "menu_root_id",
+        "avatar_rootpage",
+        "sms_login",
+        "sms_number",
+        "photo",
+        "group_code",
+        "xgroup",
+        "custom_menu",
+        "custom_fields",
+        "avatar_secret_2fa",
+        "avatar_last_2fa_otp"
+      ],
+      "same_order": false
+    },
+    "adm.user_access_group": {
+      "authored": [
+        "user_id",
+        "access_group_code"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "access_group_code"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "access_group_code"
+      ],
+      "same_order": true
+    },
+    "adm.user_config": {
+      "authored": [
+        "ruleid",
+        "user_group",
+        "username",
+        "pkgid",
+        "tblid",
+        "data"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "ruleid",
+        "user_group",
+        "username",
+        "pkgid",
+        "tblid",
+        "data"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "ruleid",
+        "user_group",
+        "username",
+        "pkgid",
+        "tblid",
+        "data"
+      ],
+      "same_order": true
+    },
+    "adm.user_group": {
+      "authored": [
+        "user_id",
+        "group_code"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "group_code"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "group_code"
+      ],
+      "same_order": true
+    },
+    "adm.user_notification": {
+      "authored": [
+        "user_id",
+        "notification_id",
+        "confirmed",
+        "notification"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "notification_id",
+        "confirmed",
+        "notification"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "notification_id",
+        "confirmed",
+        "notification"
+      ],
+      "same_order": true
+    },
+    "adm.user_setting": {
+      "authored": [
+        "user_id",
+        "setting_code",
+        "setting_data",
+        "identifier"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "setting_code",
+        "setting_data",
+        "identifier"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "user_id",
+        "setting_code",
+        "setting_data",
+        "identifier"
+      ],
+      "same_order": true
+    },
+    "adm.user_tag": {
+      "authored": [
+        "group_code",
+        "user_id",
+        "tag_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "group_code",
+        "user_id",
+        "tag_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "group_code",
+        "user_id",
+        "tag_id"
+      ],
+      "same_order": true
+    },
+    "adm.userobject": {
+      "authored": [
+        "identifier",
+        "code",
+        "objtype",
+        "pkg",
+        "tbl",
+        "userid",
+        "description",
+        "notes",
+        "data",
+        "authtags",
+        "private",
+        "quicklist",
+        "flags",
+        "required_pkg",
+        "preview"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "identifier",
+        "code",
+        "objtype",
+        "pkg",
+        "tbl",
+        "userid",
+        "description",
+        "notes",
+        "data",
+        "authtags",
+        "private",
+        "quicklist",
+        "flags",
+        "required_pkg",
+        "preview"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "identifier",
+        "code",
+        "objtype",
+        "pkg",
+        "tbl",
+        "userid",
+        "description",
+        "notes",
+        "data",
+        "authtags",
+        "private",
+        "quicklist",
+        "flags",
+        "required_pkg",
+        "preview"
+      ],
+      "same_order": true
+    },
+    "adm.week": {
+      "authored": [
+        "start_date"
+      ],
+      "expanded": [
+        "start_date"
+      ],
+      "legacy": [
+        "start_date"
+      ],
+      "same_order": true
+    },
+    "adm.xgroup": {
+      "authored": [
+        "code",
+        "description"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__syscode",
+        "code",
+        "description"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__syscode",
+        "code",
+        "description"
+      ],
+      "same_order": true
+    },
+    "invc.customer": {
+      "authored": [
+        "account_name",
+        "street_address",
+        "suburb",
+        "state",
+        "postcode",
+        "customer_type_code",
+        "payment_type_code",
+        "notes",
+        "email",
+        "phone",
+        "access_token",
+        "bank_account",
+        "registration_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__is_draft",
+        "account_name",
+        "street_address",
+        "suburb",
+        "state",
+        "postcode",
+        "customer_type_code",
+        "payment_type_code",
+        "notes",
+        "email",
+        "phone",
+        "access_token",
+        "bank_account",
+        "registration_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "__is_draft",
+        "account_name",
+        "street_address",
+        "suburb",
+        "state",
+        "postcode",
+        "customer_type_code",
+        "payment_type_code",
+        "notes",
+        "email",
+        "phone",
+        "access_token",
+        "bank_account",
+        "registration_id"
+      ],
+      "same_order": true
+    },
+    "invc.customer_type": {
+      "authored": [
+        "code",
+        "description"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "same_order": true
+    },
+    "invc.discount_tier": {
+      "authored": [
+        "customer_type_code",
+        "min_amount",
+        "max_amount",
+        "discount_rate",
+        "description"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "customer_type_code",
+        "min_amount",
+        "max_amount",
+        "discount_rate",
+        "description"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "customer_type_code",
+        "min_amount",
+        "max_amount",
+        "discount_rate",
+        "description"
+      ],
+      "same_order": true
+    },
+    "invc.invoice": {
+      "authored": [
+        "inv_number",
+        "customer_id",
+        "date",
+        "total",
+        "vat_total",
+        "gross_total",
+        "invoice_time"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "inv_number",
+        "customer_id",
+        "date",
+        "total",
+        "vat_total",
+        "gross_total",
+        "invoice_time"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "inv_number",
+        "customer_id",
+        "date",
+        "total",
+        "vat_total",
+        "gross_total",
+        "invoice_time"
+      ],
+      "same_order": true
+    },
+    "invc.invoice_note": {
+      "authored": [
+        "invoice_id",
+        "note_type",
+        "note_text",
+        "priority"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "invoice_id",
+        "note_type",
+        "note_text",
+        "priority"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "invoice_id",
+        "note_type",
+        "note_text",
+        "priority"
+      ],
+      "same_order": true
+    },
+    "invc.invoice_row": {
+      "authored": [
+        "invoice_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "tot_price",
+        "vat",
+        "vat_rate"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "invoice_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "tot_price",
+        "vat",
+        "vat_rate"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "_row_count",
+        "__ins_user",
+        "invoice_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "tot_price",
+        "vat",
+        "vat_rate"
+      ],
+      "same_order": false
+    },
+    "invc.payment_type": {
+      "authored": [
+        "code",
+        "description"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "same_order": true
+    },
+    "invc.postcode": {
+      "authored": [
+        "postcode",
+        "suburb",
+        "state",
+        "lat",
+        "lon"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "postcode",
+        "suburb",
+        "state",
+        "lat",
+        "lon"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "postcode",
+        "suburb",
+        "state",
+        "lat",
+        "lon"
+      ],
+      "same_order": true
+    },
+    "invc.price_year": {
+      "authored": [
+        "product_id",
+        "year",
+        "unit_price",
+        "note"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "product_id",
+        "year",
+        "unit_price",
+        "note"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "product_id",
+        "year",
+        "unit_price",
+        "note"
+      ],
+      "same_order": true
+    },
+    "invc.price_year_note": {
+      "authored": [
+        "product_id",
+        "year",
+        "note_text",
+        "importance"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "product_id",
+        "year",
+        "note_text",
+        "importance"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "product_id",
+        "year",
+        "note_text",
+        "importance"
+      ],
+      "same_order": true
+    },
+    "invc.product": {
+      "authored": [
+        "code",
+        "description",
+        "presentation_txt",
+        "vat_type_code",
+        "product_type_id",
+        "unit_price",
+        "image_url",
+        "details"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description",
+        "presentation_txt",
+        "vat_type_code",
+        "product_type_id",
+        "unit_price",
+        "image_url",
+        "details"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description",
+        "presentation_txt",
+        "vat_type_code",
+        "product_type_id",
+        "unit_price",
+        "image_url",
+        "details"
+      ],
+      "same_order": true
+    },
+    "invc.product_group": {
+      "authored": [
+        "code",
+        "description"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "_row_count",
+        "parent_id",
+        "hierarchical_code",
+        "_parent_h_code",
+        "hierarchical__row_count",
+        "_parent_h__row_count",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "code",
+        "description"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "parent_id",
+        "code",
+        "hierarchical_code",
+        "_parent_h_code",
+        "_row_count",
+        "hierarchical__row_count",
+        "_parent_h__row_count",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "__ins_user",
+        "description"
+      ],
+      "same_order": false
+    },
+    "invc.product_type": {
+      "authored": [
+        "description"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "df_fields",
+        "df_fbcolumns",
+        "df_custom_templates",
+        "df_colswidth",
+        "_row_count",
+        "parent_id",
+        "hierarchical_description",
+        "_parent_h_description",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "description"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "parent_id",
+        "description",
+        "hierarchical_description",
+        "_parent_h_description",
+        "hierarchical_pkey",
+        "_parent_h_pkey",
+        "_h_count",
+        "_parent_h_count",
+        "_row_count",
+        "__ins_user",
+        "df_fields",
+        "df_fbcolumns",
+        "df_custom_templates",
+        "df_colswidth"
+      ],
+      "same_order": false
+    },
+    "invc.region": {
+      "authored": [
+        "code",
+        "name"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "name"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "name"
+      ],
+      "same_order": true
+    },
+    "invc.staff": {
+      "authored": [
+        "first_name",
+        "last_name",
+        "email",
+        "hire_date",
+        "state",
+        "role_code",
+        "user_id"
+      ],
+      "expanded": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "first_name",
+        "last_name",
+        "email",
+        "hire_date",
+        "state",
+        "role_code",
+        "user_id"
+      ],
+      "legacy": [
+        "id",
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "first_name",
+        "last_name",
+        "email",
+        "hire_date",
+        "state",
+        "role_code",
+        "user_id"
+      ],
+      "same_order": true
+    },
+    "invc.staff_role": {
+      "authored": [
+        "code",
+        "description"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description"
+      ],
+      "same_order": true
+    },
+    "invc.state": {
+      "authored": [
+        "code",
+        "name",
+        "region_code"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "name",
+        "region_code"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "name",
+        "region_code"
+      ],
+      "same_order": true
+    },
+    "invc.vat_type": {
+      "authored": [
+        "code",
+        "description",
+        "vat_rate"
+      ],
+      "expanded": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description",
+        "vat_rate"
+      ],
+      "legacy": [
+        "__ins_ts",
+        "__del_ts",
+        "__mod_ts",
+        "__ins_user",
+        "code",
+        "description",
+        "vat_rate"
+      ],
+      "same_order": true
+    }
+  }
+}

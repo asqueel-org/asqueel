@@ -516,7 +516,15 @@ ma il modello mantiene il collegamento inverso per dipendenze e ciclo scritture.
 metadati comuni. `inverse` corrisponde al legacy `relation_name`, non al nome
 della FK SQL. `constraint_name` è un ulteriore parametro solo di `relation`.
 
-`relation` crea FK; target fisico PK/UNIQUE e componenti compatibili obbligatori.
+Sulle colonne virtuali `.relation(...)` è weak per default; una FK fisica
+sulla virtuale resta vietata. L'alias senza relazione esplicita eredita nel renderer
+la destinazione della relazione della colonna riferita, come weak; una relazione
+esplicita prevale, anche quando un altro alias dipende da essa. Non eredita nomi
+inversi, cardinalità inversa o azioni del ciclo record appartenenti alla colonna
+originaria. Nessuna modifica della source e nessun indice/FK aggiunto per l'alias.
+
+Per le dichiarazioni fisiche il profilo esistente di `relation` crea FK;
+target fisico PK/UNIQUE e componenti compatibili obbligatori.
 `weak_relation` non crea FK e accetta anche sorgenti virtuali scalari: il target
 è dichiarato logicamente unico, assunzione da validare dall'applicazione.
 Condizioni arbitrarie appartengono a virtualRelation, non a weak_relation.
@@ -543,6 +551,16 @@ Questo è rilevante per `adm.htmltemplate` e `adm.group`.
 [revisione della GEP 2](https://github.com/genropy/genropy_meta/issues/1#issuecomment-5803053743).
 `aliasTable` è rinviato (41, R-04); `virtualRelation` resta, compresa la forma
 con `relation`. Le inverse delle relazioni virtuali sono rinviate (41, R-05).
+**Chiarimento del 16 ottobre:** le virtualRelation riguardano le relazioni
+verso molti, non abbreviazioni di percorsi verso uno. Nelle proiezioni si usano
+con il solo metodo di aggregazione `.aggr(...)`, secondo il
+[documento 101](101-many-aggregation-decisions.md). Per gli alias verso uno vale
+il [raccordo 100](100-alias-relation-inheritance.md).
+Le raccolte `to_json` e `to_xml` seguono la selezione della query, incluse le
+statiche; `to_xml` produce XML compatibile con Bag. L'ordine base della tabella
+si applica automaticamente; `.order_by(...).aggr(...)` lo sostituisce nell'uso
+in query, senza aggiungere `order_by` alla dichiarazione della virtualRelation.
+
 **Semplificazione successiva approvata rispetto alla GEP:** anche `limit`,
 `order_by` e `one_one` sono rinviati ed esclusi dalla firma (41, R-06).
 
@@ -553,17 +571,20 @@ tbl.virtualRelation(name, relation=None, table=None, condition=None,
 
 - `relation` identifica una relazione o un percorso esistente, anche virtuale.
   Può essere accompagnato da `condition` per dichiarare un filtro.
+  Le derivazioni compongono le condizioni in AND tra parentesi; ciascun livello
+  mantiene i propri `var_*`, manglizzati separatamente senza sovrascritture.
+  Il raccordo è verificato nel [passo 109](109-derived-virtual-relations.md).
 - `table` identifica la destinazione di un collegamento senza una relazione
-  di partenza. Si usa in alternativa a `relation`.
+  di partenza. Si usa in alternativa a `relation`. Richiede una `condition`
+  non vuota nella source completa, dopo la composizione dei contributi. La
+  condizione descrive l’intero collegamento, senza correlazioni aggiunte.
+  Il raccordo è verificato nel [passo 110](110-direct-virtual-relations.md).
 - In `condition`, `$campo` e `@rel.campo` appartengono alla destinazione B.
   `var_<nome>` contiene un'espressione della sorgente A e viene richiamato
   come `:var_<nome>`. Non si introduce `#THIS` in questa grammatica.
-- `ask` conserva la dichiarazione dei parametri richiesti, come nella GEP
-  (es. `{'title': 'Year', 'fields': [{'name': 'year', 'dtype': 'I'}]}`).
-  **Decisione provvisoria del 13 ottobre:** il campo `name='year'` viene
-  referenziato nella condizione come `:ask_year`; in generale `:ask_<nome>`.
-  Il nome del campo resta senza prefisso. Ogni ask appartiene alla propria
-  dichiarazione, anche se altre relazioni usano lo stesso nome di campo.
+- `ask` è conservato nella dichiarazione ma rinviato dal lavoro corrente.
+  Contesto, namespace provvisorio ed esempio sono nel
+  [documento 108](108-deferred-virtual-relation-ask.md).
 - `limit`, `order_by` e `one_one` non sono ammessi, anche nelle source
   importate. Non si dichiara una selezione dei primi N né una cardinalità
   scalare sulla virtualRelation. Query e subQueryColumn restano distinti.
@@ -579,29 +600,26 @@ condizione, binding e ask: nessuna query, nuova FK o vincolo.
 Il collegamento dei riferimenti già presente nel modello accetta anche le
 relazioni filtrate, senza eseguire o riscrivere il filtro.
 
-Esempio della grammatica semplificata per il join condizionale di `invc.invoice`:
+Esempi dichiarativi di relazioni verso molti. Count, aggregati numerici, join, to_json e to_xml su
+relazione di base con condition/var_* sono raccordati nel
+[passo 106](106-xml-many-aggregates.md), incluso ordine base/override;
+to_xml è disponibile solo su PostgreSQL. `ask` è rinviato (documento 108):
 
 ```python
-tbl.virtualRelation('discount_tier', table='invc.discount_tier',
-    condition='$customer_type_code=:var_customer_type AND '
-              '$min_amount<=:var_total AND $max_amount>:var_total',
-    var_customer_type='@customer_id.customer_type_code',
-    var_total='$total')
-tbl.aliasColumn('discount_tier_id', '@discount_tier.id')
-
 # Relazione filtrata, dichiarata su customer:
 tbl.virtualRelation('invoices_current_year', relation='@invoices',
                     condition='$year=:env_current_year')
 
-# Anno richiesto, dichiarato su customer:
-tbl.virtualRelation('invoices_year', relation='@invoices',
-    condition='EXTRACT(YEAR FROM $date)=:ask_year',
-    ask=dict(title='Anno delle fatture',
-             fields=[dict(name='year', dtype='I', lbl='Anno')]))
-
-# Percorso dichiarato su invoice_row:
-tbl.virtualRelation('customer', relation='@invoice_id.@customer_id')
+# Collegamento diretto: non richiede una relazione ordinaria di partenza.
+tbl.virtualRelation('invoices_direct', table='invc.invoice',
+                    condition='$customer_id=:var_customer', var_customer='$id')
 ```
+
+I precedenti esempi `virtualRelation('customer', relation='@invoice_id.@customer_id')`
+e dell'alias scalare `discount_tier_id` non rappresentano usi approvati: il primo
+è un'abbreviazione verso uno esclusa, il secondo non autorizza una cardinalità scalare. `table=` è compilato come
+collegamento verso molti con `condition` obbligatoria e uso tramite `.aggr()`,
+come descritto nel [passo 110](110-direct-virtual-relations.md).
 
 Il ponte offline dalla source legacy espansa conserva ancora la `cnd` legacy
 come espressione opaca nel suo profilo legacy: questa revisione non introduce
@@ -609,13 +627,9 @@ un riscrittore SQL generico di `cnd` verso la GEP. Conserva `relation_name`
 e `one_one` nei metadati legacy senza attribuire loro effetti nella
 virtualRelation e senza generare l’inversa `invoices_in_tier`.
 
-**Decisioni rivedibili al compilatore:** il namespace ask è ora stabilito
-provvisoriamente come `:ask_<nome>`, distinto da `:var_<nome>` e `:env_<nome>`.
-La grammatica conserva i nomi dei campi e il testo della condizione; non
-riscrive placeholder, non raccoglie valori e non introduce un validatore SQL.
-Nomi dei parametri SQL generati, isolamento tra più usi della stessa relazione
-e controlli sui riferimenti verranno definiti nella fase del compilatore,
-quando queste decisioni potranno essere riviste su indicazione dell'utente.
+**ask rinviato:** le decisioni provvisorie e i punti ancora aperti sono raccolti
+nel [documento 108](108-deferred-virtual-relation-ask.md); non sono prerequisiti
+del raccordo corrente delle virtualRelation.
 
 La derivazione da una relazione limitata esce dal perimetro corrente insieme
 a limit/order_by. Le inverse e la dichiarazione one_one restano rinviate.

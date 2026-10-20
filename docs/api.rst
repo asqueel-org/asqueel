@@ -15,7 +15,7 @@ Application configuration and objects
    :members: AsqueelDb, SqlDatabase
 
 .. automodule:: asqueel.application_table
-   :members: SqlTable, SqlColumn, SqlRelation, SqlQuery, SqlRecord, RecordNotFoundError, RecordMultipleRowsError
+   :members: SqlTable, SqlQuery, RecordNotFoundError, RecordMultipleRowsError
 
 Compiler
 --------
@@ -27,7 +27,7 @@ Synchronous runtime
 -------------------
 
 .. automodule:: asqueel.runtime
-   :members: Database, PostgresDatabase, DatabaseClosedError, TransactionStateError
+   :members: Database, PostgresDatabase, SqlCursor, session, TransactionStateError
 
 Environment
 -----------
@@ -42,7 +42,7 @@ Model and query contracts
    :members: resolve_model
 
 .. automodule:: asqueel.contracts
-   :members: Column, Relation, Table, ResolvedModel, PartitionScope, RowPolicies, CompiledQuery, QueryResult, ResultColumn, EnvironmentMismatchError
+   :members: Column, Relation, Table, ResolvedModel, RowPolicies, CompiledQuery, ResultColumn
 
 Database inspection
 -------------------
@@ -52,3 +52,9 @@ Database inspection
 
 .. automodule:: asqueel.projection
    :members: to_physical_builder
+
+Hierarchical model
+------------------
+
+.. automodule:: asqueel.object_tree
+   :members: DbModel, DbModelObj, DbTableObj, DbColumnObj

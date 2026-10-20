@@ -1,0 +1,34 @@
+{
+  "legacy": {
+    "scanned_files": 192,
+    "method_declarations_or_string_references": []
+  },
+  "v2": {
+    "scanned_files": 107,
+    "method_declarations_or_string_references": []
+  },
+  "v3": {
+    "scanned_files": 103,
+    "method_declarations_or_string_references": []
+  },
+  "v3_merged": {
+    "scanned_files": 126,
+    "method_declarations_or_string_references": []
+  },
+  "v4": {
+    "scanned_files": 127,
+    "method_declarations_or_string_references": []
+  },
+  "simplify": {
+    "scanned_files": 109,
+    "method_declarations_or_string_references": []
+  },
+  "next": {
+    "scanned_files": 210,
+    "method_declarations_or_string_references": []
+  },
+  "compound": {
+    "scanned_files": 95,
+    "method_declarations_or_string_references": []
+  }
+}

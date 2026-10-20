@@ -1,8 +1,8 @@
-# Published ecosystem baseline, verified 2026-09-29. SQL is installed separately.
-genro-builders==0.27.0
-genro-bag==0.27.0
-genro-tytx==0.16.0
-genro-toolbox==0.14.0
+# Published ecosystem baseline, verified 2026-10-20. SQL is installed separately.
+genro-builders==0.29.0
+genro-bag==0.28.0
+genro-tytx==0.16.3
+genro-toolbox==0.18.0
 pytest>=8.4
 pytest-cov>=4.0
 ruff>=0.1.0
@@ -11,5 +11,5 @@ build
 hatchling
 editables
 # Reviewed migration release for development/CI; wheel extras keep compatible bounds.
-asqueel-migration[postgresql,validation]==0.2.0
+asqueel-migration[postgresql,validation]==0.3.1
 psycopg[binary]>=3.3.6

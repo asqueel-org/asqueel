@@ -1,0 +1,17 @@
+{
+  "changed_since_phase2": [
+    "src/asqueel/object_tree_compiler.py",
+    "src/asqueel/application_table.py",
+    "src/asqueel/sql_compiled_query.py",
+    "src/asqueel/dialects/sqlite.py",
+    "src/asqueel/dialects/postgres.py",
+    "src/asqueel/dialects/base.py",
+    "tests/object_tree/test_phase2_relations.py",
+    "tests/object_tree/test_minimal_select.py",
+    "tests/object_tree/test_legacy_projections_parameters.py",
+    "tests/object_tree/test_legacy_rewrite_contracts.py"
+  ],
+  "legacy_ast_verified": 106,
+  "migration_tables": 74,
+  "migration_identical": true
+}

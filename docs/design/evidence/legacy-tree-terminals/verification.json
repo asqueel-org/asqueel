@@ -1,0 +1,27 @@
+{
+  "full_suite": {
+    "passed": 5147,
+    "skipped": 21,
+    "xfailed": 2,
+    "failed": 0,
+    "seconds": 188.99
+  },
+  "focused_passed": 132,
+  "native_passed": 188,
+  "native_tables": 74,
+  "toolbox_rows": "NamedList",
+  "dialects": [
+    "sqlite",
+    "postgresql"
+  ],
+  "legacy_snapshot_count": 8,
+  "ruff": "passed",
+  "sphinx": "passed",
+  "mypy_existing_errors": [
+    "dialects/postgres.py:127",
+    "dialects/postgres.py:367"
+  ],
+  "mypy_new_errors": 0,
+  "migration_tables_unchanged": 74,
+  "many_handlers": 0
+}

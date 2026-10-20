@@ -1,0 +1,95 @@
+{
+  "source": "gnrpy/tests/sql/test_compiler_coverage.py",
+  "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "tests": [
+    {
+      "test": "TestSubQueryColumn.test_rows_json_pg",
+      "line": 1071,
+      "source_ast_sha256": "6ea597eabdcd0d18c8e01e5c021f1b441bc571a6430da3f034aee2baaf52236d",
+      "port_ast_sha256": "6ea597eabdcd0d18c8e01e5c021f1b441bc571a6430da3f034aee2baaf52236d",
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestSubQueryColumn.test_notes_xml_pg",
+      "line": 1084,
+      "source_ast_sha256": "663e51de7f7c9f75bb53707b4375d47647d8647790e760e430d3e0b9cfc30bb1",
+      "port_ast_sha256": "663e51de7f7c9f75bb53707b4375d47647d8647790e760e430d3e0b9cfc30bb1",
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestSubQueryColumn.test_max_row_price_pg",
+      "line": 1095,
+      "source_ast_sha256": "2ec057867aa69eaac8d2855a88564a33385a4db0686de8171ca71524b61fa816",
+      "port_ast_sha256": "2ec057867aa69eaac8d2855a88564a33385a4db0686de8171ca71524b61fa816",
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestSubQueryColumn.test_max_row_price_sqlite",
+      "line": 1104,
+      "source_ast_sha256": "1bfecd13b38b8c297d72931770f9dc3a0229e3b2a57fa988102b43fffec7bcaa",
+      "port_ast_sha256": "1bfecd13b38b8c297d72931770f9dc3a0229e3b2a57fa988102b43fffec7bcaa",
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    },
+    {
+      "test": "TestSubQueryColumn.test_notes_xml_distinct_pg",
+      "line": 1112,
+      "source_ast_sha256": "7f2cbcddaa19f39da675e4a08abc34604408ed00b54cfe7457dca0e5b84f1cdb",
+      "port_ast_sha256": "7f2cbcddaa19f39da675e4a08abc34604408ed00b54cfe7457dca0e5b84f1cdb",
+      "identical_source_refs": [
+        "legacy",
+        "next"
+      ]
+    },
+    {
+      "test": "TestSubQueryColumn.test_rows_json_distinct_pg",
+      "line": 1122,
+      "source_ast_sha256": "50b232d9d0c104d463e2affb7189c0da0058ba627f1544019a1711649520b7b2",
+      "port_ast_sha256": "50b232d9d0c104d463e2affb7189c0da0058ba627f1544019a1711649520b7b2",
+      "identical_source_refs": [
+        "legacy",
+        "next"
+      ]
+    },
+    {
+      "test": "TestSubQueryColumn.test_max_row_price_cross_validate_pg",
+      "line": 1146,
+      "source_ast_sha256": "334323f4c1889e047edeb5c72293c2f9cca9454199c4a81508c70ffcc5966e0b",
+      "port_ast_sha256": "6f23396b18bee8001f589c49bff3453f31560a8be72d864a0d1e2cabdc2cd4f7",
+      "identical_source_refs": [
+        "legacy",
+        "v3_merged",
+        "v4",
+        "simplify",
+        "next"
+      ]
+    }
+  ],
+  "adaptation": "readColumns in cross-validation replaced by equivalent query with explicit alias and fetch()[0]; assertions unchanged.",
+  "excluded": [
+    "test_subquery_columns_auto_distinct_pg: automatic DISTINCT is outside the agreed scope"
+  ]
+}

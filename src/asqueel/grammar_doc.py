@@ -104,7 +104,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
     marker = _marker(tag)
     signature = inspect.signature(marker._func)
     descriptions = _arg_docs(inspect.getdoc(marker._func) or "")
-    from .option_elements import TABLE_OPTIONS
+    table_options = SqlBuilder().table_options
     rows: list[tuple[str, str, str, str, str]] = []
     open_signature = False
     for name, param in signature.parameters.items():
@@ -124,7 +124,7 @@ def _parameters(tag: str) -> tuple[list[tuple[str, str, str, str, str]], bool]:
         )
         description = descriptions.get(name, "")
         rows.append((name, type_name, default,
-                     'semantic' if tag in TABLE_OPTIONS else _plane(description), _prose(description)))
+                     'semantic' if tag in table_options else _plane(description), _prose(description)))
     return rows, open_signature
 
 
@@ -188,10 +188,10 @@ def generate_grammar_md() -> str:
         "Do not edit by hand: regenerate with "
         "`python -m asqueel.grammar_doc`.",
         "",
-        "Domain element signatures are **semi-closed**: they declare their "
-        "physical and enumerated semantic parameters. Where `**extra` is "
-        "accepted, extra keys use flat namespace prefixes, except the opaque "
-        "declarations in `validation(**rules)` and `var_*` bindings of `virtualRelation`.",
+        "Element signatures are **closed**: an attribute the signature does "
+        "not declare raises. An element accepts only the attribute families "
+        "its declaration names (`validate_*`, `var_*`, `select_*`, `col_*`), "
+        "and `validation(**rules)` keeps its rules as data.",
         "",
         "## Hierarchy",
         "",
@@ -232,7 +232,9 @@ def generate_grammar_md() -> str:
             addressing.append("ordered internal labels for " + ", ".join(ordered))
         out.append("- Child addressing: " + ("; ".join(addressing) or "no children"))
         meta = form.get("_meta") or {}
-        projections = [name for name, flag in sorted(meta.items()) if flag]
+        projections = [name for name, flag in sorted(meta.items())
+                       if flag and name != "attribute_families"]
+        families = meta.get("attribute_families") or ()
         out.append(
             "- Projection flags: " + (", ".join(f"`{p}`" for p in projections)
                                       if projections else "none declared")
@@ -240,10 +242,8 @@ def generate_grammar_md() -> str:
         out.append(
             "- Extra keys: preserved as validation data without rule-specific checks"
             if tag == 'validation' else
-            "- Extra keys: source expression bindings (`var_*`) and `x_*` metadata"
-            if tag == 'virtualRelation' else
-            "- Extra keys: accepted (flat namespace prefixes)"
-            if open_signature
+            "- Extra keys: " + ", ".join(f"`{family}*`" for family in families)
+            if families
             else "- Extra keys: not accepted"
         )
         out.append("")

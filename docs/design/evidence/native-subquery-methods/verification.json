@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-14",
+  "full_suite": {
+    "passed": 1922,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 13
+  },
+  "compile_only": {
+    "passed": 44,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "controlled_results": {
+    "passed": 6,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_provenance": "New shared regression contracts replayed on original legacy compilers; no historical dedicated method-reference tests found.",
+  "shared_contract": {
+    "path": "tests/native_compiler/test_subquery_methods.py",
+    "class": "TestLegacySubqueryMethodContract",
+    "ast_sha256": "2e66876c520b203be1de7ea6d7da5be987484839eb68cdfa75eaca84e20f704e"
+  },
+  "commands": {
+    "pytest": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts= --junitxml=docs/design/evidence/native-subquery-methods/asqueel-full.xml",
+    "replay": "venv/bin/python docs/design/probes/replay_subquery_methods.py --snapshots /tmp/asqueel-formula-baseline",
+    "ruff": "venv/bin/python -m ruff check src tests scripts docs/design/probes/replay_subquery_methods.py",
+    "mypy": "venv/bin/python -m mypy src/asqueel",
+    "sphinx": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m sphinx -W --keep-going -b html docs /tmp/asqueel-subquery-methods-docs"
+  },
+  "mypy": "passed (51 source files)",
+  "ruff": "passed",
+  "sphinx": "passed (strict build)",
+  "boundaries": [
+    "Current SELECT root owns subquery_*; no fallback to formula owner",
+    "XML subQueryColumn requires mapping as in legacy",
+    "RuntimeModel integration remains pending",
+    "Query chains and set operators remain deferred"
+  ]
+}

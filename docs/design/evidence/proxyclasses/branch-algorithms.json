@@ -1,0 +1,42 @@
+{
+  "legacy": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "7a01c0f5b6a400b318520da9508fe989e550e02a779cdd5a900989a0a6cde9d8",
+    "instanceMixin": "0a5f1c6ff9408026b7da6ea6abf6e7219d91f09d908682d758524643db642bf1"
+  },
+  "compound": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "cf54d1bac08dfa79fb39591b625ad7d507881d83351466f60ce2f62e5e24a595",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  },
+  "v2": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "cf54d1bac08dfa79fb39591b625ad7d507881d83351466f60ce2f62e5e24a595",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  },
+  "v3": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "cf54d1bac08dfa79fb39591b625ad7d507881d83351466f60ce2f62e5e24a595",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  },
+  "v3_merged": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "cf54d1bac08dfa79fb39591b625ad7d507881d83351466f60ce2f62e5e24a595",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  },
+  "v4": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "cf54d1bac08dfa79fb39591b625ad7d507881d83351466f60ce2f62e5e24a595",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  },
+  "simplify": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "cf54d1bac08dfa79fb39591b625ad7d507881d83351466f60ce2f62e5e24a595",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  },
+  "next": {
+    "BaseProxy": "41888f8536ecbdf50616fb35e666cf91f13b0693fc13ea61375ad3427fe22ae5",
+    "classMixin": "171266c5c06e55d3256779c883bac4f29ecbe20ae12e3fe05bd1858324e78664",
+    "instanceMixin": "a793cacf6fb055c93aa7e84bad94e06abf32a56d617d87b344dd501447a982b3"
+  }
+}

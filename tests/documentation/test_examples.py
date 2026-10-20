@@ -31,10 +31,12 @@ def test_all_guide_python_fragments_have_valid_syntax():
             compile(block, f'{path}:python-block-{index + 1}', 'exec')
 
 
-@pytest.mark.postgresql
-def test_downloadable_tutorial():
+@pytest.mark.parametrize('dialect', [
+    pytest.param('postgres', marks=pytest.mark.postgresql), 'sqlite',
+])
+def test_downloadable_tutorial(dialect):
     tutorial = runpy.run_path(str(GUIDE / '_examples' / 'shop_tutorial.py'))
-    rows = tutorial['run'](postgres_dsn())
+    rows = tutorial['run'](postgres_dsn() if dialect == 'postgres' else None)
     assert [row['id'] for row in rows] == [10, 11]
 
 
@@ -42,8 +44,9 @@ def test_downloadable_tutorial():
 def test_application_query_guide_against_tutorial_data():
     tutorial = runpy.run_path(str(GUIDE / '_examples' / 'shop_tutorial.py'))
     schema = 'genro_doc_queries_' + uuid4().hex
-    with tutorial['open_shop'](postgres_dsn(), schema) as db:
-        tutorial['create_tables'](db, schema)
+    db = tutorial['open_shop'](postgres_dsn(), schema)
+    try:
+        tutorial['create_tables'](db)
         try:
             tutorial['seed'](db)
             namespace = {'db': db}
@@ -58,7 +61,9 @@ def test_application_query_guide_against_tutorial_data():
         finally:
             db.rollback()
             with completed(db):
-                db.execute(CompiledQuery(f'DROP SCHEMA "{schema}" CASCADE'))
+                db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+    finally:
+        db.closeConnection()
 
 
 @pytest.mark.postgresql
@@ -71,8 +76,9 @@ def test_quickstart_as_published(monkeypatch):
 def test_application_environment_examples():
     tutorial = runpy.run_path(str(GUIDE / '_examples' / 'shop_tutorial.py'))
     schema = 'genro_doc_env_' + uuid4().hex
-    with tutorial['open_shop'](postgres_dsn(), schema) as db:
-        tutorial['create_tables'](db, schema)
+    db = tutorial['open_shop'](postgres_dsn(), schema)
+    try:
+        tutorial['create_tables'](db)
         try:
             tutorial['seed'](db)
             # First five blocks cover the application API. Later blocks use a
@@ -83,4 +89,6 @@ def test_application_environment_examples():
         finally:
             db.rollback()
             with completed(db):
-                db.execute(CompiledQuery(f'DROP SCHEMA "{schema}" CASCADE'))
+                db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+    finally:
+        db.closeConnection()

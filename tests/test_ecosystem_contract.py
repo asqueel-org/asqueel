@@ -9,18 +9,19 @@ from asqueel.catalog import SqlModelCatalog
 from asqueel.grammar_doc import generate_grammar_md
 
 
-def test_catalog_paths_and_typed_extension_metadata():
+def test_catalog_paths_and_no_extension_metadata():
     model = SqlBuilder()
     table = model.source.db('demo').schemas().schema('public').tables().table('invoice', pkey='id')
     columns = table.columns()
     columns.column('id', dtype='L')
     metadata = {'created': date(2026, 9, 29), 'amount': Decimal('12.50'), 'tags': ['a', 'b']}
-    columns.column('total', dtype='N', x_business=metadata)
+    with pytest.raises(ValueError, match="Element 'column' does not accept 'x_business'"):
+        columns.column('total', dtype='N', x_business=metadata)
+    columns.column('total', dtype='N')
     model.validate_model()
     catalog = SqlModelCatalog(model)
     node = catalog.physical_columns['public', 'invoice', 'total']
     assert catalog.path(node) == 'db.schemas.public.tables.invoice.columns.total'
-    assert node.get_attr('x_business') == metadata
     assert catalog.children(columns) == list(columns.value)
     assert list(catalog.tables) == [('public', 'invoice')]
 

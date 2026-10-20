@@ -1,0 +1,43 @@
+         6162202 function calls (6159002 primitive calls) in 1.155 seconds
+
+   Ordered by: cumulative time
+   List reduced from 145 to 35 due to restriction <35>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    1.173    1.173 /Users/gporcari/Sviluppo/asqueel/asqueel/docs/design/probes/verify_legacy_r4.py:94(<lambda>)
+      100    0.001    0.000    1.173    0.012 /Users/gporcari/Sviluppo/asqueel/asqueel/docs/design/probes/compare_scanners.py:89(compile_case)
+      100    0.000    0.000    1.141    0.011 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/application_table.py:157(compiled)
+      100    0.000    0.000    1.141    0.011 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/application_table.py:161(_compile)
+      100    0.001    0.000    1.140    0.011 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:871(select)
+      100    0.000    0.000    0.841    0.008 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:851(plan_select)
+      100    0.001    0.000    0.837    0.008 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:417(select_plan)
+      100    0.016    0.000    0.826    0.008 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:790(projection)
+   442200    0.253    0.000    0.468    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:17(_tokens)
+    10000    0.043    0.000    0.304    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:160(_projection_alias)
+      100    0.001    0.000    0.297    0.003 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:844(compile_plan)
+      100    0.032    0.000    0.284    0.003 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:127(_split)
+      100    0.030    0.000    0.272    0.003 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:205(render)
+51100/50900    0.041    0.000    0.237    0.000 {method 'join' of 'str' objects}
+   149000    0.048    0.000    0.230    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:104(_characters)
+    10200    0.024    0.000    0.206    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:711(expression)
+   149000    0.017    0.000    0.162    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:162(<genexpr>)
+      100    0.005    0.000    0.156    0.002 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/query_plan.py:44(separated)
+    10100    0.006    0.000    0.139    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:253(<genexpr>)
+  1584800    0.125    0.000    0.125    0.000 {method 'startswith' of 'str' objects}
+    10200    0.008    0.000    0.121    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:191(_fragment)
+    20800    0.017    0.000    0.104    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:113(_runs)
+   561600    0.085    0.000    0.085    0.000 {method 'match' of 're.Pattern' objects}
+   139000    0.027    0.000    0.077    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/re/__init__.py:164(match)
+    10200    0.015    0.000    0.052    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/compiler.py:563(field)
+    40800    0.030    0.000    0.048    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/query_plan.py:34(concat)
+   612200    0.046    0.000    0.047    0.000 {built-in method builtins.isinstance}
+   159200    0.027    0.000    0.040    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/re/__init__.py:280(_compile)
+    10200    0.009    0.000    0.038    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:186(_has_expression)
+    51100    0.023    0.000    0.037    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:135(quote_identifier)
+   446600    0.036    0.000    0.036    0.000 {method 'append' of 'list' objects}
+   646100    0.032    0.000    0.032    0.000 {built-in method builtins.len}
+ 3900/900    0.028    0.000    0.030    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/copy.py:118(deepcopy)
+      900    0.001    0.000    0.028    0.000 /Users/gporcari/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/copy.py:217(_deepcopy_dict)
+    41000    0.008    0.000    0.026    0.000 /Users/gporcari/Sviluppo/asqueel/asqueel/src/asqueel/dialects/postgres.py:197(<genexpr>)
+
+

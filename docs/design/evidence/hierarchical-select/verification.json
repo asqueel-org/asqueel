@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-14",
+  "scope": "Plan 76 phases 0 and 1: physical SELECT on DbModel; compile only",
+  "legacy_probe": {
+    "legacy": {
+      "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+      "passed": 6,
+      "log": "legacy.log"
+    },
+    "compound": {
+      "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+      "passed": 6,
+      "log": "compound.log"
+    },
+    "v2": {
+      "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+      "passed": 6,
+      "log": "v2.log"
+    },
+    "v3": {
+      "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+      "passed": 6,
+      "log": "v3.log"
+    },
+    "v3_merged": {
+      "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+      "passed": 6,
+      "log": "v3_merged.log"
+    },
+    "v4": {
+      "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+      "passed": 6,
+      "log": "v4.log"
+    },
+    "simplify": {
+      "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+      "passed": 6,
+      "log": "simplify.log"
+    },
+    "next": {
+      "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+      "passed": 6,
+      "log": "next.log"
+    }
+  },
+  "legacy_probe_command": "PYTHONPATH=<snapshot>/gnrpy <legacy-python> -m pytest -q -c /dev/null -p no:cacheprovider docs/design/probes/test_legacy_minimal_select.py",
+  "legacy_probe_limit": "Default compiler in each snapshot; compile-only adaptations, not a rerun of the original runtime suite or all alternative factories.",
+  "before": {
+    "passed": 487,
+    "setup_errors": 13,
+    "reason": "Sandbox denied PostgreSQL loopback; complete previous run: 2300 passed, 13 skipped (report 75)."
+  },
+  "full_suite": {
+    "passed": 2507,
+    "skipped": 13,
+    "seconds": 89.65,
+    "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''",
+    "note": "Started before the last column_ui reuse refinement and two added metadata guard cases. Latest source checked by the targeted run below."
+  },
+  "latest_targeted": {
+    "passed": 289,
+    "seconds": 5.04,
+    "select_cases": 209,
+    "binding_cases": 80,
+    "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts='' tests/object_tree/test_minimal_select.py tests/object_tree/test_operational_tables.py"
+  },
+  "native_comparison": {
+    "tables": 74,
+    "physical_columns": 789,
+    "dialects": [
+      "postgresql",
+      "sqlite"
+    ],
+    "assertion": "Whole CompiledQuery equality against previous model, including SQL, params, result columns and input_parameters.",
+    "explicit_limits": "Physical fields explicitly listed, explicit order; excludeDraft=False, excludeLogicalDeleted=False, ignorePartition=True. Does not certify default filters, star, joins or formulas."
+  },
+  "static_checks": {
+    "ruff": "passed on changed Python files",
+    "mypy": "passed, 57 source files"
+  },
+  "sha256": {
+    "src/asqueel/compiler.py": "dd94b47da39791716f6aaaf9a70d7ae2dc90637d9e1d07202c0e983b82298ef2",
+    "src/asqueel/object_tree_compiler.py": "0f9e2069647a0a240dfca39ab2683775c63e4ad64b07c3fb2fc4cc4f526773e0",
+    "src/asqueel/application.py": "12ce1fb4ee04d34ad1ba7636861cf5048c126e315f1ea71f448b60adfbd0735e",
+    "src/asqueel/application_table.py": "b81754a646939526e8caa5196393896554d96e78d73441cba3427c9cef371fe5",
+    "tests/object_tree/test_minimal_select.py": "577b8cbc6f627de4c465f6efe32531533be3deb9d252e18e98e0dc1342e700ca",
+    "tests/object_tree/test_operational_tables.py": "0bdb4ed006692c6dded11fe3df1e5ead14f1d1d45bb81800b7bc7a8c43892acf",
+    "docs/design/probes/test_legacy_minimal_select.py": "efe8d0060a8c1b15aaa0920e27d691253b9a9d020dbe48b36576cd8d43a682d9"
+  }
+}

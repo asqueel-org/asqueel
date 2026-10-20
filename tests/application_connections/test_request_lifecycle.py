@@ -34,7 +34,7 @@ class Request:
             self.shared_db.clearCurrentEnv()
 
 
-@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgresql', marks=pytest.mark.postgresql)])
+@pytest.mark.parametrize('backend', ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 @pytest.mark.parametrize('failure', ['application', 'hook', 'sql', 'before', 'after'])
 def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, failure):
     schema = 'request_' + uuid4().hex
@@ -45,7 +45,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 database = root.db()
                 database.connection(name=str(tmp_path / 'requests.db'), implementation='sqlite')
             else:
-                database = root.db(conninfo=postgres_dsn())
+                database = root.db(implementation='postgres', conninfo=postgres_dsn())
             table = database.schemas().schema(schema).tables().table('item', pkey='id', x_table_class=Item)
             table.columns().column('id', dtype='I')
 
@@ -56,7 +56,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
         raise ValueError('callback failure')
 
     try:
-        if backend == 'postgresql':
+        if backend == 'postgres':
             db.execute(f'CREATE SCHEMA "{schema}"')
         db.execute(f'CREATE TABLE "{schema}".item (id INTEGER PRIMARY KEY)')
         db.commit()
@@ -76,9 +76,9 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 db.rollback()
                 db.deferAfterCommit(fail)
                 db.deferAfterCommit(lambda: trace.append('unreached'))
-            db.table('item').insert({'id': 1})
+            db.table(f'{schema}.item').insert({'id': 1})
             if failure == 'sql':
-                db.table('item').insert({'id': 1})
+                db.table(f'{schema}.item').insert({'id': 1})
             elif failure == 'application':
                 raise ValueError('request failure')
             elif failure == 'before':
@@ -94,11 +94,10 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
         try:
             assert second.db.currentEnv == {'user': 'bob', 'locale': 'it_IT'}
             assert second.db is db
-            assert db.outcome == 'not_started'
-            assert db.table('item').query(columns='$id', order_by='$id').fetch() == (
+            assert [dict(row) for row in db.table(f'{schema}.item').query(columns='$id', order_by='$id').fetch()] == (
                 [{'id': 1}] if failure == 'after' else [])
             db.rollback()
-            db.table('item').insert({'id': 2})
+            db.table(f'{schema}.item').insert({'id': 2})
             db.deferAfterCommit(lambda: trace.append('new main'))
             db.commit()
             with db.tempEnv(connectionName='auxiliary'):
@@ -111,8 +110,8 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
     finally:
         try:
             db.closeConnection()
-            if backend == 'postgresql':
+            if backend == 'postgres':
                 db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
                 db.commit()
         finally:
-            db.close()
+            db.closeConnection()

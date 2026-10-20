@@ -1,0 +1,2600 @@
+[
+  {
+    "name": "physical",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"title\" AS \"title\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"title\" AS \"title\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            1,
+            "Alpha"
+          ],
+          [
+            2,
+            "O'Reilly"
+          ],
+          [
+            3,
+            "$unit_price"
+          ],
+          [
+            4,
+            "\\$unit_price"
+          ]
+        ],
+        "columns": [
+          "id",
+          "title"
+        ],
+        "types": [
+          [
+            "int",
+            "str"
+          ],
+          [
+            "int",
+            "str"
+          ],
+          [
+            "int",
+            "str"
+          ],
+          [
+            "int",
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\",\n\"t0\".\"title\" AS \"title\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "id",
+          "title"
+        ],
+        "rows": [
+          [
+            1,
+            "Alpha"
+          ],
+          [
+            2,
+            "O'Reilly"
+          ],
+          [
+            3,
+            "$unit_price"
+          ],
+          [
+            4,
+            "\\$unit_price"
+          ]
+        ],
+        "columns": [
+          "id",
+          "title"
+        ],
+        "types": [
+          [
+            "int",
+            "str"
+          ],
+          [
+            "int",
+            "str"
+          ],
+          [
+            "int",
+            "str"
+          ],
+          [
+            "int",
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "sqlparams_year",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"title\" AS \"title\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"year\"=:y)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "y": 2005,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"title\" AS \"title\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"year\"=:y)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "y": 2005,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            "Alpha"
+          ],
+          [
+            "$unit_price"
+          ]
+        ],
+        "columns": [
+          "title"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"title\" AS \"title\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"year\"=:y)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "y": 2005
+        },
+        "input_parameters": [
+          "y"
+        ],
+        "input_after": {
+          "y": 2005
+        },
+        "result_columns": [
+          "title"
+        ],
+        "rows": [
+          [
+            "Alpha"
+          ],
+          [
+            "$unit_price"
+          ]
+        ],
+        "columns": [
+          "title"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "case",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  CASE WHEN \"t0\".\"amount\" >= :threshold THEN 1 ELSE 0 END AS category\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  CASE WHEN \"t0\".\"amount\" >= :threshold THEN 1 ELSE 0 END AS category\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "category"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT CASE WHEN \"t0\".\"amount\" >= :threshold THEN 1 ELSE 0 END AS category\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "input_parameters": [
+          "threshold"
+        ],
+        "input_after": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "result_columns": [
+          "category"
+        ],
+        "rows": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "category"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "coalesce",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  COALESCE(\"t0\".\"amount\",0) AS amount\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  COALESCE(\"t0\".\"amount\",0) AS amount\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            10
+          ],
+          [
+            20
+          ],
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "amount"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT COALESCE(\"t0\".\"amount\",0) AS amount\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "amount"
+        ],
+        "rows": [
+          [
+            10
+          ],
+          [
+            20
+          ],
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "amount"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "cast",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  CAST(\"t0\".\"id\" AS text) AS id_text\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  CAST(\"t0\".\"id\" AS text) AS id_text\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            "1"
+          ],
+          [
+            "2"
+          ],
+          [
+            "3"
+          ],
+          [
+            "4"
+          ]
+        ],
+        "columns": [
+          "id_text"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT CAST(\"t0\".\"id\" AS text) AS id_text\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "id_text"
+        ],
+        "rows": [
+          [
+            "1"
+          ],
+          [
+            "2"
+          ],
+          [
+            "3"
+          ],
+          [
+            "4"
+          ]
+        ],
+        "columns": [
+          "id_text"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "alias_lower",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS code\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS code\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "code"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS code\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "code"
+        ],
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "code"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "expression_no_alias",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"amount\" * 2 AS \"_amount___2\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"amount\" * 2 AS \"_amount___2\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            20
+          ],
+          [
+            40
+          ],
+          [
+            null
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "_amount___2"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "NoneType"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"amount\" * 2 AS \"_amount___2\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "_amount___2"
+        ],
+        "rows": [
+          [
+            20
+          ],
+          [
+            40
+          ],
+          [
+            null
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "_amount___2"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "NoneType"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "duplicate_alias",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"quantity\" AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"quantity\" AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            2
+          ],
+          [
+            25
+          ],
+          [
+            3
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"quantity\" AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            2
+          ],
+          [
+            25
+          ],
+          [
+            3
+          ],
+          [
+            0
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "literal_comma",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  'a,b' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  'a,b' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            "a,b"
+          ],
+          [
+            "a,b"
+          ],
+          [
+            "a,b"
+          ],
+          [
+            "a,b"
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT 'a,b' AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            "a,b"
+          ],
+          [
+            "a,b"
+          ],
+          [
+            "a,b"
+          ],
+          [
+            "a,b"
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "literal_as",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  ' AS ' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  ' AS ' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            " AS "
+          ],
+          [
+            " AS "
+          ],
+          [
+            " AS "
+          ],
+          [
+            " AS "
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT ' AS ' AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            " AS "
+          ],
+          [
+            " AS "
+          ],
+          [
+            " AS "
+          ],
+          [
+            " AS "
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "literal_field",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  '\"t0\".\"id\"' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  '\"t0\".\"id\"' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            "\"t0\".\"id\""
+          ],
+          [
+            "\"t0\".\"id\""
+          ],
+          [
+            "\"t0\".\"id\""
+          ],
+          [
+            "\"t0\".\"id\""
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT '\"t0\".\"id\"' AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            "\"t0\".\"id\""
+          ],
+          [
+            "\"t0\".\"id\""
+          ],
+          [
+            "\"t0\".\"id\""
+          ],
+          [
+            "\"t0\".\"id\""
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "literal_dollars",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  '$' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  '$' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            "$"
+          ],
+          [
+            "$"
+          ],
+          [
+            "$"
+          ],
+          [
+            "$"
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT '$' AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            "$"
+          ],
+          [
+            "$"
+          ],
+          [
+            "$"
+          ],
+          [
+            "$"
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "literal_quotes",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  'O''Reilly \"t0\".\"id\"' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  'O''Reilly \"t0\".\"id\"' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            "O'Reilly \"t0\".\"id\""
+          ],
+          [
+            "O'Reilly \"t0\".\"id\""
+          ],
+          [
+            "O'Reilly \"t0\".\"id\""
+          ],
+          [
+            "O'Reilly \"t0\".\"id\""
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT 'O''Reilly \"t0\".\"id\"' AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            "O'Reilly \"t0\".\"id\""
+          ],
+          [
+            "O'Reilly \"t0\".\"id\""
+          ],
+          [
+            "O'Reilly \"t0\".\"id\""
+          ],
+          [
+            "O'Reilly \"t0\".\"id\""
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "bound_quote",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"title\"=:title)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "title": "O'Reilly",
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"title\"=:title)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "title": "O'Reilly",
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"title\"=:title)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "title": "O'Reilly"
+        },
+        "input_parameters": [
+          "title"
+        ],
+        "input_after": {
+          "title": "O'Reilly"
+        },
+        "result_columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "comment_known_field",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id /* \"t0\".\"id\" */)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id /* \"t0\".\"id\" */)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 1,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            1
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=:id /* \"t0\".\"id\" */)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1
+        },
+        "input_parameters": [
+          "id"
+        ],
+        "input_after": {
+          "id": 1
+        },
+        "result_columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            1
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "repeated_bind",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"quantity\"=:id)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 2,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"quantity\"=:id)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 2,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"quantity\"=:id)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 2
+        },
+        "input_parameters": [
+          "id"
+        ],
+        "input_after": {
+          "id": 2
+        },
+        "result_columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "prefix_params",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"id\"=:id2)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "id2": 2,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"id\"=:id2)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 1,
+          "id2": 2,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"id\"=:id2)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "id2": 2
+        },
+        "input_parameters": [
+          "id",
+          "id2"
+        ],
+        "input_after": {
+          "id": 1,
+          "id2": 2
+        },
+        "result_columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "null_binding",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= :value OR :value IS NULL)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": null,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= :value OR :value IS NULL)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "value": null,
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"amount\" >= :value OR :value IS NULL)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": null
+        },
+        "input_parameters": [
+          "value"
+        ],
+        "input_after": {
+          "value": null
+        },
+        "result_columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "numeric_binding",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= :value)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= :value)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        },
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"amount\" >= :value)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "input_parameters": [
+          "value"
+        ],
+        "input_after": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "result_columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "columns": [
+          "id"
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "quoted_alias",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"display name\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"display name\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "display name"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"display name\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "display name"
+        ],
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "display name"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "escaped_alias",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"a\"\"b\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"a\"\"b\"\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "a\"b"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"a\"\"b\"\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "a\"b"
+        ],
+        "rows": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "a\"b"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "adjacent_field_operator",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"amount\"+\"t0\".\"id\" AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"amount\"+\"t0\".\"id\" AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            11
+          ],
+          [
+            22
+          ],
+          [
+            null
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "NoneType"
+          ],
+          [
+            "int"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"amount\"+\"t0\".\"id\" AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            11
+          ],
+          [
+            22
+          ],
+          [
+            null
+          ],
+          [
+            4
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "int"
+          ],
+          [
+            "int"
+          ],
+          [
+            "NoneType"
+          ],
+          [
+            "int"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "literal_semicolon",
+    "dialect": "sqlite",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  '; SELECT' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  '; SELECT' AS value\n FROM \"main\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {},
+        "rows": [
+          [
+            "; SELECT"
+          ],
+          [
+            "; SELECT"
+          ],
+          [
+            "; SELECT"
+          ],
+          [
+            "; SELECT"
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      },
+      "tree": {
+        "sql": "SELECT '; SELECT' AS value\n FROM \"main\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ],
+        "rows": [
+          [
+            "; SELECT"
+          ],
+          [
+            "; SELECT"
+          ],
+          [
+            "; SELECT"
+          ],
+          [
+            "; SELECT"
+          ]
+        ],
+        "columns": [
+          "value"
+        ],
+        "types": [
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ],
+          [
+            "str"
+          ]
+        ]
+      }
+    },
+    "same_rows_columns": true
+  },
+  {
+    "name": "physical",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"title\" AS \"title\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\",\n\"t0\".\"title\" AS \"title\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\",\n\"t0\".\"title\" AS \"title\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "id",
+          "title"
+        ]
+      }
+    }
+  },
+  {
+    "name": "sqlparams_year",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"title\" AS \"title\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"year\"=%(y)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "y": 2005,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"title\" AS \"title\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"year\"=:y)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "y": 2005,
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"title\" AS \"title\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"year\"=%(y)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "y": 2005
+        },
+        "input_parameters": [
+          "y"
+        ],
+        "input_after": {
+          "y": 2005
+        },
+        "result_columns": [
+          "title"
+        ]
+      }
+    }
+  },
+  {
+    "name": "case",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  CASE WHEN \"t0\".\"amount\" >= %(threshold)s THEN 1 ELSE 0 END AS category\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  CASE WHEN \"t0\".\"amount\" >= :threshold THEN 1 ELSE 0 END AS category\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT CASE WHEN \"t0\".\"amount\" >= %(threshold)s THEN 1 ELSE 0 END AS category\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "input_parameters": [
+          "threshold"
+        ],
+        "input_after": {
+          "threshold": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "result_columns": [
+          "category"
+        ]
+      }
+    }
+  },
+  {
+    "name": "coalesce",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  COALESCE(\"t0\".\"amount\",0) AS amount\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  COALESCE(\"t0\".\"amount\",0) AS amount\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT COALESCE(\"t0\".\"amount\",0) AS amount\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "amount"
+        ]
+      }
+    }
+  },
+  {
+    "name": "cast",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  CAST(\"t0\".\"id\" AS text) AS id_text\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  CAST(\"t0\".\"id\" AS text) AS id_text\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT CAST(\"t0\".\"id\" AS text) AS id_text\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "id_text"
+        ]
+      }
+    }
+  },
+  {
+    "name": "alias_lower",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS code\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS code\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS code\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "code"
+        ]
+      }
+    }
+  },
+  {
+    "name": "expression_no_alias",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"amount\" * 2 AS \"_amount___2\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"amount\" * 2 AS \"_amount___2\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"amount\" * 2 AS \"_amount___2\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "_amount___2"
+        ]
+      }
+    }
+  },
+  {
+    "name": "duplicate_alias",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"quantity\" AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"quantity\" AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"quantity\" AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "literal_comma",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  'a,b' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  'a,b' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT 'a,b' AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "literal_as",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  ' AS ' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  ' AS ' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT ' AS ' AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "literal_field",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  '\"t0\".\"id\"' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  '\"t0\".\"id\"' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT '\"t0\".\"id\"' AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "literal_dollars",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  '$' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  '$' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT '$' AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "literal_quotes",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  'O''Reilly \"t0\".\"id\"' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  'O''Reilly \"t0\".\"id\"' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT 'O''Reilly \"t0\".\"id\"' AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "bound_quote",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"title\"=%(title)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "title": "O'Reilly",
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"title\"=:title)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "title": "O'Reilly",
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"title\"=%(title)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "title": "O'Reilly"
+        },
+        "input_parameters": [
+          "title"
+        ],
+        "input_after": {
+          "title": "O'Reilly"
+        },
+        "result_columns": [
+          "id"
+        ]
+      }
+    }
+  },
+  {
+    "name": "comment_known_field",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=%(id)s /* \"t0\".\"id\" */)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id /* \"t0\".\"id\" */)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 1,
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=%(id)s /* \"t0\".\"id\" */)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1
+        },
+        "input_parameters": [
+          "id"
+        ],
+        "input_after": {
+          "id": 1
+        },
+        "result_columns": [
+          "id"
+        ]
+      }
+    }
+  },
+  {
+    "name": "repeated_bind",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=%(id)s OR \"t0\".\"quantity\"=%(id)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 2,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"quantity\"=:id)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 2,
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=%(id)s OR \"t0\".\"quantity\"=%(id)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 2
+        },
+        "input_parameters": [
+          "id"
+        ],
+        "input_after": {
+          "id": 2
+        },
+        "result_columns": [
+          "id"
+        ]
+      }
+    }
+  },
+  {
+    "name": "prefix_params",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=%(id)s OR \"t0\".\"id\"=%(id2)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "id2": 2,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id OR \"t0\".\"id\"=:id2)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 1,
+          "id2": 2,
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=%(id)s OR \"t0\".\"id\"=%(id2)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "id2": 2
+        },
+        "input_parameters": [
+          "id",
+          "id2"
+        ],
+        "input_after": {
+          "id": 1,
+          "id2": 2
+        },
+        "result_columns": [
+          "id"
+        ]
+      }
+    }
+  },
+  {
+    "name": "null_binding",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= %(value)s OR %(value)s IS NULL)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": null,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= :value OR :value IS NULL)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "value": null,
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"amount\" >= %(value)s OR %(value)s IS NULL)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": null
+        },
+        "input_parameters": [
+          "value"
+        ],
+        "input_after": {
+          "value": null
+        },
+        "result_columns": [
+          "id"
+        ]
+      }
+    }
+  },
+  {
+    "name": "numeric_binding",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= %(value)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"amount\" >= :value)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          },
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"id\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"amount\" >= %(value)s)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "input_parameters": [
+          "value"
+        ],
+        "input_after": {
+          "value": {
+            "type": "Decimal",
+            "value": "15"
+          }
+        },
+        "result_columns": [
+          "id"
+        ]
+      }
+    }
+  },
+  {
+    "name": "quoted_alias",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"display name\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"display name\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"display name\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "display name"
+        ]
+      }
+    }
+  },
+  {
+    "name": "escaped_alias",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\" AS \"a\"\"b\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\" AS \"a\"\"b\"\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\" AS \"a\"\"b\"\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "a\"b"
+        ]
+      }
+    }
+  },
+  {
+    "name": "cast_colon",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"id\"::text AS id_text\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=%(id)s::integer)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"id\"::text AS id_text\n FROM \"pg_temp\".\"app_invoice\" AS t0\nWHERE (\"t0\".\"id\"=:id::integer)\nORDER BY \"t0\".\"id\"",
+        "input_after": {
+          "id": 1,
+          "jc_kwargs": {}
+        }
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"id\"::text AS id_text\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nWHERE (\"t0\".\"id\"=%(id)s::integer)\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "id": 1
+        },
+        "input_parameters": [
+          "id"
+        ],
+        "input_after": {
+          "id": 1
+        },
+        "result_columns": [
+          "id_text"
+        ]
+      }
+    }
+  },
+  {
+    "name": "adjacent_field_operator",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  \"t0\".\"amount\"+\"t0\".\"id\" AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"amount\"+\"t0\".\"id\" AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT \"t0\".\"amount\"+\"t0\".\"id\" AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  },
+  {
+    "name": "literal_semicolon",
+    "dialect": "postgresql",
+    "engines": {
+      "legacy": {
+        "sql": "-- GNRCOMMENT - {\"user\": \"gporcari@cli\", \"line_number\": 93, \"function_name\": \"compile_case\", \"module_name\": \"compare_scanners\", \"sqlcommand\": \"query\"}\nSELECT  '; SELECT' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  '; SELECT' AS value\n FROM \"pg_temp\".\"app_invoice\" AS t0\nORDER BY \"t0\".\"id\"",
+        "input_after": {}
+      },
+      "tree": {
+        "sql": "SELECT '; SELECT' AS value\n FROM \"pg_temp\".\"app_invoice\" AS \"t0\"\nORDER BY \"t0\".\"id\"",
+        "params": {},
+        "input_parameters": [],
+        "input_after": {},
+        "result_columns": [
+          "value"
+        ]
+      }
+    }
+  }
+]

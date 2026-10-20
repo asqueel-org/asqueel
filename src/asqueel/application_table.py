@@ -1,17 +1,56 @@
-"""Live application tables, lazy query intent, and cached single-record reads.
+"""Live application tables and lazy query intent with the legacy fetch terminals.
 
 Application objects execute through their owning SqlDatabase. They do
-not open connections, commit, or emulate legacy Bag/selection result objects.
+not open connections, commit, or emulate legacy selection result objects.
 """
 from __future__ import annotations
 
+import json
+import sys
+import warnings
+from collections import OrderedDict
 from collections.abc import Mapping
-from contextlib import contextmanager
 from copy import deepcopy
-from types import MappingProxyType
+from datetime import datetime
 
-from .configuration import ConfigurationView, _MISSING
-from .contracts import UnsupportedFeatureError
+from genro_bag import Bag
+from genro_toolbox.uid import get_uuid
+
+from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
+from .hierarchical import HierarchicalHandler
+from .table_crud import _INTEGER_DTYPES, CrudMixin
+from .table_io import read_records, write_rows
+from .table_triggers import TriggersMixin
+from .write_compiler import _TYPED_TEXT_PARSERS
+
+
+#: Rows read or written per block by file import and export.
+_DATA_BLOCK = 1000
+_TRUE_TEXTS = frozenset({'TRUE', 'YES', 'Y', '1'})
+_FALSE_TEXTS = frozenset({'FALSE', 'NO', 'N', '0'})
+
+
+def _adapt_text(name, text, dtype):
+    """A text value converted to ``dtype``; text dtypes keep it, an empty text is None."""
+    if dtype in ('serial', 'serial4'):
+        dtype = 'L'
+    if dtype == 'B':
+        word = text.strip().upper()
+        if word in _TRUE_TEXTS or word in _FALSE_TEXTS:
+            return word in _TRUE_TEXTS
+    else:
+        parser = _TYPED_TEXT_PARSERS.get(dtype)
+        if parser is None:
+            return text
+        if text.strip() == '':
+            return None
+        try:
+            return parser(text.strip())
+        except (ValueError, ArithmeticError):
+            pass
+    if dtype == 'B' and text.strip() == '':
+        return None
+    raise ValueError(f'column {name!r}: {text!r} is not a {dtype} value')
 
 
 class RecordNotFoundError(LookupError):
@@ -24,7 +63,7 @@ class RecordMultipleRowsError(LookupError):
 
 _SELECT_OPTIONS = frozenset({
     'order_by', 'limit', 'offset', 'exclude_draft', 'exclude_logical_deleted',
-    'ignore_partition', 'for_update', 'distinct', 'group_by', 'having',
+    'ignore_partition', 'for_update', 'distinct', 'group_by', 'having', 'bagFields',
 })
 _ALIASES = {
     'excludeDraft': 'exclude_draft',
@@ -34,7 +73,7 @@ _ALIASES = {
 _UNSUPPORTED = frozenset({
     'aggregateRows', '_aggregateRows',
     'relationDict', 'joinConditions', 'sqlContextName',
-    'addPkeyColumn', 'ignoreTableOrderBy', 'subtable', 'bagFields',
+    'addPkeyColumn', 'ignoreTableOrderBy', 'subtable',
     '_storename', 'storename', 'locale', 'mode', 'checkPermissions', 'aliasPrefix',
     'lazy', 'eager', 'virtual_columns', 'ignoreMissing', 'ignoreDuplicate',
 })
@@ -62,89 +101,15 @@ def _bindings(*sources):
 
 
 def _reference(name):
-    return '$"' + name.replace('"', '""') + '"'
-
-
-def _model_config(model):
-    """Keep the existing scoped read API, using only finalized model data."""
-    def values(item):
-        result = dict(item.attributes)
-        if hasattr(item, 'dtype'):
-            result['dtype'] = item.dtype
-        for child in getattr(item, 'declarations', getattr(item, 'children', ())):
-            key = (f'{child.kind}_{child.name}'
-                   if child.kind in ('subtable', 'virtualRelation') else child.name)
-            result[key] = values(child)
-        if hasattr(item, 'options'):
-            result['options'] = {key: values(option) for key, option in item.options.items()}
-        if hasattr(item, 'columns'):
-            for collection, virtual in (('columns', False), ('virtual_columns', True)):
-                result[collection] = {name: values(column) for name, column in item.columns.items()
-                                      if column.is_virtual == virtual}
-        return result
-
-    data = values(model)
-
-    def read(path, default=_MISSING):
-        current = data
-        try:
-            for key in path.split('.'):
-                current = current[key]
-        except (KeyError, TypeError):
-            if default is not _MISSING:
-                return default
-            raise KeyError(path) from None
-        return deepcopy(current)
-
-    return read
-
-
-class SqlColumn:
-    """A stable live column handle backed by the completed structural model."""
-
-    def __init__(self, table, model):
-        self.table = self.owner = table
-        self.db = table.db
-        self.model = model
-        self.name = model.name
-        self.fullname = f'{table.fullname}.{self.name}'
-        fallback = (lambda: self.originalColumn.config) if model.alias_target is not None else None
-        self.config = ConfigurationView(_model_config(model), fallback=fallback)
-
-    @property
-    def validations(self):
-        """Validation declarations from the translated column, without execution."""
-        return self.model.validations
-
-    @property
-    def originalColumn(self):
-        """Legacy-style link to an alias's target live column, if it is an alias."""
-        if self.model.alias_target is None:
-            return None
-        table_name, column_name = self.model.alias_target
-        return self.db.table(table_name).column(column_name)
-
-    @property
-    def relation_path(self):
-        return self.model.relation_path
-
-
-class SqlRelation:
-    """A live relation whose target resolves lazily from the database registry."""
-
-    def __init__(self, table, model):
-        self.table = table
-        self.db = table.db
-        self.model = model
-        self.name = model.name
-
-    @property
-    def target(self):
-        return self.db.table(self.model.target)
+    return '$' + name
 
 
 class SqlQuery:
-    """Detached query intent; every terminal compiles in the current environment."""
+    """Query intent compiled once, on first use; :env_* values are read at every execution."""
+
+    @property
+    def setJoinCondition(self):
+        raise not_available('setJoinCondition')
 
     def __init__(self, table, options, params, keyword_bindings=()):
         self.table = table
@@ -152,239 +117,452 @@ class SqlQuery:
         self._options = _copy(dict(options))
         self._params = _copy(dict(params))
         self._keyword_bindings = tuple(keyword_bindings)
+        self._compiled = None
+        self._compiled_first_row = None
 
     @property
     def compiled(self):
-        return self._compile(self.db.compiler.select)
+        """The compiled query, built on first access and kept: its SQL text is the one of that compilation."""
+        self.table.db  # Reject handles invalidated by an explicit model reload.
+        if self._compiled is None:
+            self._compiled = self._compile(self.db.compiler.select)
+        return self._compiled
 
-    def _compile(self, terminal):
+    def _compile(self, terminal, options=None):
+        self.table.db
         self.db._check_open()
         query = terminal(self.table.fullname, sqlparams=_copy(self._params),
-                         **_copy(self._options))
-        unused = set(self._keyword_bindings) - set(query.input_parameters)
+                         **_copy(self._options if options is None else options))
+        unused = sorted(set(self._keyword_bindings) - set(query.input_parameters))
         if unused:
-            raise UnsupportedFeatureError(
-                f'Unknown query options or unused keyword bindings: {sorted(unused)}; '
-                'use sqlparams for explicit parameter mappings')
+            # Point the warning at the caller's line, outside the asqueel package.
+            frame, stacklevel = sys._getframe(1), 2
+            while frame.f_back is not None and frame.f_globals.get('__name__', '').startswith('asqueel.'):
+                frame, stacklevel = frame.f_back, stacklevel + 1
+            for name in unused:
+                warnings.warn(UnusedQueryParameterWarning(
+                    f"query keyword {name!r} is not used by the query; "
+                    f"its parameters are: {', '.join(query.input_parameters)}"), stacklevel=stacklevel)
         return query
 
     @property
     def sqltext(self):
         return self.compiled.sql
 
+    @property
+    def sqlparams(self):
+        """The query parameters; the :env_* values are read at execution, so they are not listed."""
+        environment = {'env_' + key for key in self.compiled.environment_keys}
+        return {name: value for name, value in self.compiled.params.items() if name not in environment}
+
+    def test(self):
+        """``(sqltext, sqlparams)`` of the compiled query, as legacy."""
+        return self.sqltext, self.sqlparams
+
     def execute(self):
         return self.db.execute(self.compiled)
 
-    def fetch(self):
-        """Execute again and return ordinary dictionaries, without result caching."""
-        return self.execute().rows
+    def fetch(self, destination=None, format=None):
+        """Execute again and return mutable Toolbox NamedList rows, without caching.
+
+        With ``destination`` (a path or an open text stream) the rows are
+        written there in blocks from a server-side cursor, as CSV, JSON or
+        TYTX by ``format`` or by the file extension, and the row count is
+        returned instead of the rows.
+        """
+        if destination is None:
+            if format is not None:
+                raise ValueError('format= needs destination=')
+            return self.handleBagColumns(self._fetchall(self.compiled), self.compiled)
+        return write_rows(destination, self.iterfetch(arraysize=_DATA_BLOCK), format)
+
+    def _fetchall(self, compiled):
+        self.table.db
+        cursor = self.db.execute(compiled)
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
+
+    def handleBagColumns(self, rows, compiled):
+        """Legacy handleBagColumns: a #BAG value becomes a Bag, #BAGCOLS spreads its leaves into columns."""
+        for row in rows:
+            for field, separateCols in compiled.evaluateBagColumns:
+                value = Bag() if row[field] is None else Bag.from_xml(row[field])
+                if separateCols:
+                    for path, leaf in value.get_leaves():
+                        row[f'{field}_{path.replace(".", "_")}'] = leaf
+                    row[field] = None
+                else:
+                    row[field] = value
+        return rows
+
+    def cursor(self):
+        """Execute the query and return its open cursor; the caller closes it."""
+        return self.db.cursor(self.compiled)
+
+    def servercursor(self):
+        """A named server-side cursor on PostgreSQL; a normal cursor on SQLite (legacy gnrsqlite)."""
+        return self.db.cursor(self.compiled, cursorname='asqueel_' + get_uuid())
+
+    def serverfetch(self, arraysize=30):
+        """``(cursor, generator)``: the generator yields lists of at most ``arraysize`` rows."""
+        cursor = self.servercursor()
+        cursor.arraysize = arraysize
+        return cursor, self._cursorGenerator(cursor)
+
+    def iterfetch(self, arraysize=30):
+        """Yield the rows in lists of at most ``arraysize``, from a server-side cursor."""
+        yield from self.serverfetch(arraysize=arraysize)[1]
+
+    def _cursorGenerator(self, cursor):
+        """Legacy _cursorGenerator: chunks until the cursor is exhausted, the last one empty."""
+        try:
+            rows = True
+            while rows:
+                rows = cursor.fetchmany()
+                yield self.handleBagColumns(rows, self.compiled)
+        finally:
+            cursor.close()
+
+    def fetchPkeys(self):
+        """The primary-key values of the rows, in query order."""
+        pkey = self.table.model.pkey
+        return [row[pkey] for row in self.fetch()]
+
+    def fetchAsJson(self, key=None):
+        """The rows as a JSON array; datetimes in ISO format, other values through ``str``."""
+        def default(value):
+            return value.isoformat() if isinstance(value, datetime) else str(value)
+        return json.dumps([dict(row) for row in self.fetch()], default=default)
+
+    def fetchAsDict(self, key=None, ordered=False, pkeyOnly=False):
+        """The rows keyed by ``key`` (default the pkey); ``pkeyOnly`` keeps only the pkey as value."""
+        key = key or self.table.model.pkey
+        factory = OrderedDict if ordered else dict
+        if pkeyOnly:
+            pkey = self.table.model.pkey
+            return factory((row[key], row[pkey]) for row in self.fetch())
+        return factory((row[key], row) for row in self.fetch())
+
+    def fetchAsBag(self, key=None):
+        """A Bag with one node per row, labelled by ``key`` and sorted by it, the row as attributes."""
+        key = key or self.table.model.pkey
+        result = Bag()
+        for row in sorted(self.fetch(), key=lambda row: row[key]):
+            result.set_item(row[key], None, _attributes=dict(row))
+        return result
+
+    def fetchGrouped(self, key=None, asBag=False, ordered=False):
+        """Lists of rows grouped by ``key`` (default the pkey), in a dict, OrderedDict or Bag."""
+        key = key or self.table.model.pkey
+        result = Bag() if asBag else OrderedDict() if ordered else {}
+        for row in self.fetch():
+            if row[key] in result:
+                result[row[key]].append(row)
+            else:
+                result[row[key]] = [row]
+        return result
+
+    def fetchRecord(self, ignoreMissing=False):
+        """The single row of the query; with an explicit order_by, the first row.
+
+        No row raises RecordNotFoundError, or returns None with ``ignoreMissing``;
+        several rows raise RecordMultipleRowsError.
+        """
+        if self._options.get('order_by'):
+            if self._compiled_first_row is None:
+                options = dict(_copy(self._options), limit=1)
+                self._compiled_first_row = self._compile(self.db.compiler.select, options)
+            compiled = self._compiled_first_row
+            rows = self.handleBagColumns(self._fetchall(compiled), compiled)
+        else:
+            rows = self.fetch()
+        if not rows:
+            if ignoreMissing:
+                return None
+            raise RecordNotFoundError(f'No visible record in {self.table.fullname}')
+        if len(rows) > 1:
+            raise RecordMultipleRowsError(f'Multiple visible records in {self.table.fullname}')
+        return rows[0]
+
+    def sql_delete(self):
+        """DELETE the rows this query selects, without triggers; returns the row count."""
+        table = self.table.model
+        plan = self._key_plan(table)
+        compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot())
+        return self._rowcount(compiled)
+
+    def _rowcount(self, compiled):
+        cursor = self.db.execute(compiled)
+        rowcount: int = cursor.rowcount
+        cursor.close()
+        return rowcount
+
+    def sql_update(self, values):
+        """UPDATE the rows this query selects with ``values``, without triggers; returns the row count."""
+        table = self.table.model
+        plan = self._key_plan(table)
+        compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot())
+        return self._rowcount(compiled)
+
+    def delete(self):
+        """Delete the selected rows one by one through the write cycle; returns the rows."""
+        table = self.table
+        pkey = table.model.pkey
+        rows = self._rows_to_write('delete')
+        for row in rows:
+            # A key string is reread: a row already removed by a cascade is skipped.
+            table.delete(str(row[pkey]) if pkey in row else table.pkeyValue(row))
+        return rows
+
+    def update(self, updater):
+        """Update the selected rows one by one through the write cycle; returns their pkeys.
+
+        ``updater`` is a dict merged into each row, or a callable changing the row in place.
+        """
+        table = self.table
+        pkey = table.model.pkey
+        pkeys = []
+        for old_record in self._rows_to_write('update'):
+            record = _copy(old_record)
+            if callable(updater):
+                updater(record)
+            else:
+                record.update(updater)
+            table.update(record, old_record=old_record)
+            pkeys.append(record[pkey] if pkey in record else table.pkeyValue(record))
+        return pkeys
+
+    def _rows_to_write(self, terminal):
+        """The selected rows with every physical column, locked, as dicts."""
+        options = _copy(self._options)
+        grouping = [name for name in ('group_by', 'having') if options.get(name)]
+        if grouping:
+            raise UnsupportedFeatureError(f'{", ".join(grouping)} is valid only in a SELECT, not in {terminal}')
+        options['columns'] = ','.join(_reference(name) for name in self.table.model.columns)
+        options['bagFields'] = True
+        options['for_update'] = options.get('for_update') or True
+        compiled = self._compile(self.db.compiler.select, options)
+        return [dict(row) for row in self.handleBagColumns(self._fetchall(compiled), compiled)]
+
+    def _key_plan(self, table):
+        """The query's SELECT with the same filters, order and limit, reduced to the key."""
+        options = _copy(self._options)
+        grouping = [name for name in ('group_by', 'having') if options.get(name)]
+        if grouping:
+            raise UnsupportedFeatureError(f'{", ".join(grouping)} is valid only in a SELECT, not in sql_update or sql_delete')
+        options['columns'] = ','.join(_reference(name) for name in self.db.write_compiler.pkeys(table))
+        options.pop('addPkeyColumn', None)
+        options.pop('bagFields', None)
+        return self._compile(self.db.compiler.plan_select, options)
 
     def selection(self, *args, **kwargs):
-        raise UnsupportedFeatureError('Selection and Bag output are outside this application profile')
+        raise UnsupportedFeatureError('selection(): Selection and Bag output are not available in this release')
 
     def count(self):
-        row = self.db.execute(self._compile(self.db.compiler.count)).rows[0]
-        return int(row['count'])
+        cursor = self.db.execute(self._compile(self.db.compiler.count))
+        rows = cursor.fetchall()
+        name = cursor.description[0][0]
+        cursor.close()
+        # Legacy count returns rows for grouped/distinct queries.
+        if len(rows) == 1 and name == 'gnr_row_count':
+            return int(rows[0][0])
+        return len(rows)
 
 
-class SqlRecord:
-    """Lazy exactly-one read; loaded data stays cached until explicit refresh."""
-
-    def __init__(self, query):
-        self.query = query
-        self.table = query.table
-        self.db = query.db
-        self._result = None
-
-    def _load(self):
-        if self._result is None:
-            rows = self.query.fetch()
-            if not rows:
-                raise RecordNotFoundError(f'No visible record in {self.table.fullname}')
-            if len(rows) != 1:
-                raise RecordMultipleRowsError(f'Multiple visible records in {self.table.fullname}')
-            self._result = _copy(rows[0])
-        return self._result
-
-    def output(self, mode='dict'):
-        if mode != 'dict':
-            raise UnsupportedFeatureError(f'Unsupported record output: {mode!r}; supported: dict')
-        return _copy(self._load())
-
-    def refresh(self):
-        """Discard the snapshot, reload in the current environment, and return self."""
-        self._result = None
-        self._load()
-        return self
-
-
-class SqlTable:
+class SqlTable(CrudMixin, TriggersMixin):
     """Database-bound application table with stable column/relation handles."""
 
     def __init__(self, db, model):
-        self.db = db
         self.model = model
-        self.fullname = model.key
-        self.config = ConfigurationView(_model_config(model))
-        self.columns = MappingProxyType({name: SqlColumn(self, column)
-                                         for name, column in model.columns.items()})
-        self.relations = MappingProxyType({name: SqlRelation(self, relation)
-                                           for name, relation in model.relations.items()})
+        self.fullname = model.fullname
+        if model.attributes.get('x_legacy_hierarchical'):
+            self.hierarchicalHandler = HierarchicalHandler(self)
+
+    @property
+    def db(self):
+        db = self.model._model._operational_db
+        if db is None:
+            raise UnsupportedFeatureError('Table is not bound to a SqlDatabase')
+        return db
+
+    def __getattr__(self, name):
+        """Read missing members from the model, preserving their original binding."""
+        # Bypass this fallback if model is not yet installed (e.g. during construction).
+        model = object.__getattribute__(self, 'model')
+        return getattr(model, name)
 
     def column(self, name):
-        try:
-            return self.columns[name]
-        except KeyError:
-            raise ValueError(f'Unknown column {self.fullname}.{name}') from None
+        return self.model.column(name)
 
-    def relation(self, name):
-        try:
-            return self.relations[name]
-        except KeyError:
-            raise ValueError(f'Unknown relation {self.fullname}.{name}') from None
+    def sql_formula___protecting_reasons(self, attr):
+        """Legacy sysFields formula; this describes reasons, not write checks."""
+        attributes = self.model.attributes
+        protection = attributes.get('protectionColumn')
+        return self._sql_reasons('__protected_by_', protection)
+
+    def sql_formula___invalid_reasons(self, attr):
+        """Legacy sysFields formula, including NULL when no rules are declared."""
+        return self._sql_reasons('__invalid_by_')
+
+    def _sql_reasons(self, prefix, protection=None):
+        def reason(name, condition, label):
+            literal = "'" + label.replace("'", "''") + "'"
+            reference = '$' + name
+            return f'CASE WHEN {reference} {condition} THEN {literal} ELSE NULL END'
+
+        reasons = [reason(protection, 'IS NOT NULL', protection)] if protection else []
+        columns = self.model.virtual_columns.items()
+        reasons.extend(reason(name, 'IS TRUE', name[len(prefix):])
+                       for name, column in columns if name.startswith(prefix))
+        return self.db.adapter.string_join(reasons, ',') if reasons else 'NULL'
+
+    readColumns = refused_property('readColumns')
+    countRecords = refused_property('countRecords')
+    recordAs = refused_property('recordAs')
+    cachedRecord = refused_property('cachedRecord')
+    sqlWhereFromBag = refused_property('sqlWhereFromBag')
+    whereTranslator = refused_property('whereTranslator')
 
     def query(self, columns='*', where=None, sqlparams=None, **options_or_bindings):
         self.db._check_open()
+        if columns is None or columns == '':
+            raise not_available(f'columns={columns!r}')
         incoming = dict(options_or_bindings)
         for alias, native in _ALIASES.items():
             if alias in incoming:
                 if native in incoming:
                     raise ValueError(f'Conflicting query options: {alias} and {native}')
                 incoming[native] = incoming.pop(alias)
-        unsupported = incoming.keys() & _UNSUPPORTED
+        select_options = _SELECT_OPTIONS
+        unsupported_options = _UNSUPPORTED
+        select_options = select_options | {'addPkeyColumn'}
+        unsupported_options = unsupported_options - {'addPkeyColumn'}
+        join_conditions = sorted(key for key in incoming if key.startswith('jc_'))
+        if join_conditions:
+            raise not_available(f'join condition keyword {join_conditions[0]}')
+        unsupported = incoming.keys() & unsupported_options
         if unsupported:
-            raise UnsupportedFeatureError(f'Unsupported query options: {sorted(unsupported)}')
+            name = sorted(unsupported)[0]
+            raise UnsupportedFeatureError(f'query option {name!r} is not available in this release')
         options = {'columns': columns, 'where': where}
-        options.update({key: incoming.pop(key) for key in list(incoming) if key in _SELECT_OPTIONS})
+        options.update({key: incoming.pop(key) for key in list(incoming) if key in select_options})
+        if options.get('for_update') and (options.get('distinct') or options.get('group_by')):
+            raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
         bindings = _bindings(sqlparams, incoming)
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 
-    def _key_selector(self, pkey, sqlparams=None):
-        names = self.model.pkey
+    def _key_selector(self, pkey):
+        names = self.model._model.physical_columns(self.model, self.model.pkey) if self.model.pkey else ()
         if not names:
             raise ValueError(f'{self.fullname} has no declared primary key')
-        if isinstance(pkey, Mapping):
-            missing = set(names) - pkey.keys()
-            if missing:
-                raise ValueError(f'Incomplete primary key: {sorted(missing)}')
-            values = [pkey[name] for name in names]
-        elif len(names) == 1:
-            values = [pkey]
-        elif isinstance(pkey, (tuple, list)) and len(pkey) == len(names):
-            values = list(pkey)
-        else:
-            raise ValueError('Composite primary keys require a complete mapping or ordered sequence')
+        values = self.db.write_compiler.key_values(self.model, pkey)
         if any(value is None for value in values):
             raise ValueError('Primary-key values must not be None')
-        bindings = _bindings(sqlparams)
+        bindings = {}
         conditions = []
         for index, (name, value) in enumerate(zip(names, values)):
             parameter = f'__record_key_{index}'
-            while parameter in bindings:
-                parameter = '_' + parameter
             bindings[parameter] = _copy(value)
             conditions.append(f'{_reference(name)} = :{parameter}')
         return ' AND '.join(conditions), bindings
 
-    def record(self, pkey=None, where=None, sqlparams=None, mode=None, **options_or_bindings):
-        self.db._check_open()
-        if 'columns' in options_or_bindings:
-            raise UnsupportedFeatureError('Record reads select the complete row; use query for custom projections')
-        if 'limit' in options_or_bindings or 'offset' in options_or_bindings:
-            raise UnsupportedFeatureError('Record reads cannot limit/offset away duplicate candidates')
-        bindings = _bindings(sqlparams)
-        if where is not None:
-            if not isinstance(where, str) or not where.strip():
-                raise ValueError('Record lookup needs a nonempty selector')
-        elif pkey is not None:
-            where, bindings = self._key_selector(pkey, bindings)
-        else:
-            raise ValueError('Record lookup requires a primary key or explicit where')
-        result = SqlRecord(self.query(where=where, sqlparams=bindings, **options_or_bindings))
-        return result.output(mode) if mode is not None else result
-
-    def trigger_onInserting(self, record):
-        """Override to validate/change the outgoing record in the selected connection."""
-
-    def trigger_onInserted(self, record):
-        """Override to react to input values overlaid with available returned fields."""
-
-    def trigger_onUpdating(self, record, old_record=None):
-        """Override to prepare a complete record using its locked old snapshot."""
-
-    def trigger_onUpdated(self, record, old_record=None):
-        """Override to react after updating within the same unit of work."""
-
-    def trigger_onDeleting(self, record):
-        """Override to validate a locked record before physical deletion."""
-
-    def trigger_onDeleted(self, record):
-        """Override to react after physical deletion."""
+    def record(self, *args, **kwargs):
+        raise UnsupportedFeatureError('record is not available in this release; use query(...).fetchRecord()')
 
     @property
     def currentTrigger(self):
-        """Current write operation with ``parent`` and zero-based ``level``."""
+        """Current write operation; ``parent`` is the operation that caused it."""
         return getattr(self.db, 'currentTrigger', None)
 
-    @contextmanager
-    def _trigger_operation(self, event, record=None, old_record=None):
-        operation = getattr(self.db, '_trigger_operation', None)
-        if operation is None:
-            yield None
+    def sql_insert(self, record, adapt=None, format=None):
+        """Insert without triggers (legacy raw_insert); a list runs one executemany per column set.
+
+        Missing keys are assigned first (checkPkey); in a list each further
+        integer key is the next integer. A key the database generates is left out.
+
+        ``record`` can also be an open CSV, JSON or TYTX text file (``format``
+        or the extension of its name): it is read and inserted in blocks and
+        the row count is returned. ``adapt`` passes every record through
+        :meth:`adaptRecord`; by default it is on for a file and off for a
+        record or a list.
+        """
+        if hasattr(record, 'read'):
+            return self._sql_insert_file(record, True if adapt is None else adapt, format)
+        if format is not None:
+            raise ValueError('format= is for a file; a record or a list has no format')
+        if adapt:
+            record = ([self._adapted(item, index) for index, item in enumerate(record, 1)]
+                      if isinstance(record, list) else self._adapted(record, 1))
+        writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
+        self._assign_keys(record if isinstance(record, list) else [record])
+        if isinstance(record, list):
+            for compiled, params in writer.insert_many(self.model, record, snapshot):
+                self.db.executemany(compiled, params).close()
+            return record
+        cursor = self.db.execute(writer.insert(self.model, record, snapshot))
+        rows = cursor.fetchall() if cursor.description is not None else []
+        cursor.close()
+        if rows:
+            record.update(dict(rows[0]))
+        return record
+
+    def _sql_insert_file(self, stream, adapt, format):
+        count, block = 0, []
+        for count, record in enumerate(read_records(stream, format), 1):
+            block.append(self._adapted(record, count) if adapt else record)
+            if len(block) == _DATA_BLOCK:
+                self.sql_insert(block)
+                block = []
+        if block:
+            self.sql_insert(block)
+        return count
+
+    def _adapted(self, record, index):
+        try:
+            return self.adaptRecord(record)
+        except ValueError as error:
+            raise ValueError(f'{self.fullname} record {index}: {error}') from error
+
+    def adaptRecord(self, record):
+        """Convert the text values of ``record`` to the dtype of their column and return it.
+
+        Generic conversion for untyped sources such as CSV and JSON; a table
+        class can override it. Values that already have a type are left as
+        they are. A key that is not a column, or a text that does not convert,
+        raises ``ValueError``.
+        """
+        columns = self.model.columns
+        for key, value in record.items():
+            column = columns.get(key)
+            if column is None:
+                raise ValueError(f'{key!r} is not a column of {self.fullname}')
+            if isinstance(value, str):
+                record[key] = _adapt_text(key, value, column.dtype)
+        return record
+
+    def _assign_keys(self, records):
+        pkey = self.model.pkey
+        if not pkey:
             return
-        with operation(event, self, record=record, old_record=old_record) as item:
-            yield item
+        if self._pkey_from_database():
+            return
+        column = self.model.columns.get(pkey)
+        integer = column is not None and column.dtype in _INTEGER_DTYPES
+        next_integer = None
+        for record in records:
+            if integer and next_integer is not None and record.get(pkey) in (None, ''):
+                record[pkey] = next_integer
+            else:
+                self.checkPkey(record)
+            if integer and record.get(pkey) is not None:
+                next_integer = max(next_integer or 0, record[pkey] + 1)
 
-    def _locked_record(self, where, sqlparams, ignore_partition):
-        if not self.model.pkey:
-            raise ValueError('Ordinary update/delete require a declared primary key')
-        columns = ', '.join(_reference(name) for name, column in self.model.columns.items()
-                            if not column.is_virtual)
-        query = self.query(columns=columns, where=where, sqlparams=sqlparams, for_update=True, limit=2,
-                           exclude_draft=False, exclude_logical_deleted=False,
-                           ignore_partition=ignore_partition)
-        return SqlRecord(query).output()
+    def sql_update(self, record, old_record=None, pkey=None):
+        """Update without triggers (legacy raw_update); the key comes from old_record, pkey or record."""
+        self.db.execute(self.db.write_compiler.update(
+            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record)).close()
 
-    def _overlay_returned(self, record, result):
-        if result.rows:
-            sources = {column.identity or f'{self.fullname}.{name}': name
-                       for name, column in self.model.columns.items()}
-            returned = result.rows[0]
-            for column in result.columns:
-                name = sources.get(column.source)
-                if name is not None and column.name in returned:
-                    record[name] = _copy(returned[column.name])
-
-    def insert(self, values, returning='*', *, ignore_partition=False):
-        return self.db.insert(self, values, returning, ignore_partition=ignore_partition)
-
-    def raw_insert(self, values, returning='*', *, ignore_partition=False):
-        return self.db.raw_insert(self, values, returning, ignore_partition=ignore_partition)
-
-    def update(self, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
-        return self.db.update(self, values, where, sqlparams, returning, ignore_partition=ignore_partition)
-
-    def raw_update(self, values, where=None, sqlparams=None, returning='*', *, ignore_partition=False):
-        return self.db.raw_update(self, values, where, sqlparams, returning, ignore_partition=ignore_partition)
-
-    def delete(self, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
-        return self.db.delete(self, record_or_pkey, where=where, sqlparams=sqlparams,
-                              returning=returning, ignore_partition=ignore_partition)
-
-    def raw_delete(self, record_or_pkey=None, *, where=None, sqlparams=None, returning='*', ignore_partition=False):
-        return self.db.raw_delete(self, record_or_pkey, where=where, sqlparams=sqlparams,
-                                  returning=returning, ignore_partition=ignore_partition)
-
-    def soft_delete(self, value, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        with self.db._write_operation():
-            if value is None:
-                raise ValueError('soft_delete requires a non-None tombstone value')
-            field = self.db.compiler._tombstone(self.fullname)
-            return self.update({field: value}, where, sqlparams, returning,
-                               ignore_partition=ignore_partition)
-
-    def restore(self, where, sqlparams=None, returning='*', *, ignore_partition=False):
-        with self.db._write_operation():
-            field = self.db.compiler._tombstone(self.fullname)
-            return self.update({field: None}, where, sqlparams, returning,
-                               ignore_partition=ignore_partition)
+    def sql_delete(self, record):
+        """Delete without triggers or related actions (legacy raw_delete)."""
+        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot())).close()

@@ -18,7 +18,7 @@ def customer_table(tables):
     columns.column(
         'name', dtype='T', notnull=True,
         x_identity='customer-name',
-        x_ui_label='Customer name',
+        name_long='Customer name',
     )
     return table
 
@@ -35,14 +35,14 @@ def invoice_table(tables):
     virtuals.formulaColumn(
         'double_total', dtype='N', sql_formula='$total * 2',
     )
-    table.indexes().index('invoice_total', columns={'total': 'DESC'})
+    table.indexes().index(name='invoice_total', columns={'total': 'DESC'})
     return table
 
 
 class SalesModel(SqlDatabaseConfig):
     def main(self, root):
         tables = root.db('sales_app').schemas().schema(
-            'sales', x_sql_schema='public', x_sql_prefix=True,
+            'sales', sqlname='public',
         ).tables()
         customer_table(tables)
         invoice_table(tables)
@@ -50,11 +50,10 @@ class SalesModel(SqlDatabaseConfig):
 
 builder = SalesModel()
 builder.create()
-with builder.render() as db:
-    model = db.model
+model = builder.render().model
 
-assert model.table('sales.invoice').physical_name == 'sales_invoice'
-assert model.table('sales.invoice').physical_schema == 'public'
+assert model.table('sales.invoice').sqlname == 'invoice'
+assert model.table('sales.invoice').sqlschema == 'public'
 ```
 
 The example uses caller-supplied integer primary keys. It does not allocate
@@ -72,52 +71,33 @@ when several helper functions contribute to it.
 
 ## Keep logical and physical names separate
 
-Use logical names such as `sales.invoice` in queries. The resolver supplies
-the physical names to query rendering and the migration bridge.
+Queries use qualified names such as `sales.invoice`. The live table exposes
+`sqlschema` and `sqlname`; its physical columns expose `sqlname`.
+Native packages declare `sqlschema` and `sqlprefix`; a table or column can declare
+`sqlname`. A package prefix defaults to the package name, following the legacy.
+The source-to-migration projection uses these same objects.
 
-| Attribute | Where to declare it | Meaning |
-|---|---|---|
-| `x_sql_schema` | Schema or table | Physical SQL schema; table overrides schema. |
-| `x_sql_prefix=True` | Schema or table | Prefix table names with the logical schema plus `_`. |
-| `x_sql_prefix='app_'` | Schema or table | Use this exact prefix. |
-| `x_sql_prefix=False` | Schema or table | Disable an inherited prefix. |
-| `x_sql_name` | Table or column | Exact physical name; on a table, it overrides the prefix. |
+## Keep descriptive attributes on the column
 
-No convention is inferred from underscores. For example, an imported table
-named `sales_invoice` remains named `sales_invoice` unless you explicitly
-construct a different logical mapping. Physical table and column collisions
-are rejected. PostgreSQL rendering also rejects identifiers exceeding 63 UTF-8
-bytes instead of accepting server-side truncation.
-
-## Attach UI metadata to the same column
-
-`x_ui_*` keeps display information alongside the declaration. An overlay lets
-you manage that information separately without creating a second column model:
+Labels and the other attributes the grammar declares stay on their model node:
 
 ```python
-model = resolve_model(builder, ui={
-    'sales.customer.name': {'placeholder': 'Enter a name'},
-    'customer-name': {'label': 'Account name'},
-})
-column = model.table('sales.customer').columns['name']
-assert column.ui['label'] == 'Account name'
-assert column.ui['placeholder'] == 'Enter a name'
+column = model.table('sales.customer').column('name')
+label = column.attributes.get('name_long')
+dtype = column.dtype
 ```
 
-Precedence is inline `x_ui_*`, then the logical-path overlay, then the explicit
-identity overlay. An identity defaults to `schema.table.column`; use
-`x_identity` when it must remain stable after a logical rename. Stable identity
-is metadata, not an automatic database-rename migration.
-
-UI metadata cannot redefine the column type, formula, SQL name, nullability,
-uniqueness or primary-key status. No GUI library is needed to resolve or query
-the model. Labels, placeholders and formats are data for your application;
-Asqueel does not instantiate editors or render forms.
+Use source contributions to override declarations before rendering. The removed
+`resolve_model(..., ui=...)` overlay and separate column `.config` wrapper are
+not part of the live model. Declared attributes remain available in
+`attributes`; validation attributes are exposed separately by `validations`.
+An attribute the element does not declare raises, naming the attribute and the
+element: free extras such as `x_ui_label` are outside this release's grammar.
 
 ## Declare relations and formulas
 
-The relation above is navigable as `@customer.name`. Without `x_name`, its name
-would be the owning column, giving `@customer_id.name`.
+The relation above is navigable as `@customer_id.name`: a forward relation is
+named by its owning column. `x_name` does not rename the forward path.
 
 Relations in the native query profile navigate toward a declared primary or
 unique key. `foreign_key=True` also makes the relation part of the physical
@@ -133,36 +113,81 @@ Python columns express application-side computations. Collection subqueries
 represent related results with an explicit shape; they are distinct from scalar
 formulas that return one value.
 
+### Redefine a virtual column
+
+Declaring the same virtual column with a different kind replaces its definition,
+as in the legacy model. Attributes not redefined by the new declaration remain:
+
+```python
+virtuals.aliasColumn('customer_name', '@customer_id.name',
+                     dtype='T', name_long='Customer')
+virtuals.formulaColumn('customer_name', "'from_formula'")
+```
+
+`customer_name` is now a formula; `relation_path` is removed, while `dtype='T'`
+and `name_long='Customer'` remain. Reversing the declarations produces an alias
+and removes `sql_formula`. The column keeps its position and group, with no
+duplicate node. The same rule applies through `colgroup` and when composing
+ordered configuration contributions. Composing recipes does not mutate the
+input recipes.
+
+Only the defining attributes of the former kind are removed. Accessory
+attributes, including `static`, `required_columns`, `var_*` and named `select_*`
+declarations, remain unless explicitly overridden, as in the legacy cleanup.
+Retained attributes do not activate the former kind. Existing conflict rules
+for repeated declarations of the same kind remain unchanged. Physical↔virtual
+replacement is still rejected.
+
 `aliasColumn` names an existing column reached through a relation, following the
 legacy model's target-and-override behavior:
 
 ```python
 # Add inside invoice_table(), before returning; reuse its virtuals handle.
 virtuals.aliasColumn(
-    'customer_name', relation_path='@customer.name', name_long='Customer',
-    x_ui_label='Customer name',
+    'customer_name', relation_path='@customer_id.name', name_long='Customer name',
 )
 ```
 
 Read the alias as `$customer_name` in projections, filters, ordering or another
 formula. Its dtype and descriptive metadata are inherited from the destination;
-non-None local attributes and UI overrides take precedence. Its own identity is
+non-None local attributes take precedence. Its own identity is
 preserved in result metadata. The target may itself be an alias or a formula.
-For multiple relations, both legacy `@customer.@country.name` and
-`@customer.country.name` are accepted. Local `name`/`$name` alias targets are also
+For multiple relations, both legacy `@customer_id.@country_id.name` and
+`@customer_id.country_id.name` are accepted. Local `name`/`$name` alias targets are also
 accepted as a native convenience. Cycles and missing targets raise errors.
 
 With a rendered application, `db.table('sales.invoice').column('customer_name')`
 is a stable live handle. Its `originalColumn` links to the target column and its
 `relation_path` preserves the declaration. Configuration reads fall back to the
-target when no local value is declared. `model.ui` exposes the merged UI metadata.
+target when no local value is declared.
 Inherited `notnull` metadata describes the target column; a LEFT JOIN can still
 produce NULL when the source record has no related row.
 
+An alias of a column that has a relation also inherits that relation during
+model rendering. This is an approved extension to the legacy behavior:
+
+```python
+# invoice.customer_id already relates to customer.id
+row.aliasColumn('customer_id', '@invoice_id.customer_id')
+# The row can now query @customer_id.name.
+```
+
+The inherited relation is weak: no physical column, foreign key or supporting
+index is created for the alias. Its own declared relation takes precedence:
+
+```python
+row.aliasColumn('customer_id', '@invoice_id.customer_id').relation('other_customer.id')
+```
+
+Relations on virtual columns default to weak. The target key is inherited,
+not the original owner's inverse name, inverse cardinality or lifecycle actions.
+Alias chains follow the effective relation, including explicit overrides.
+This does not enable virtualRelation declarations or to-many query operations.
+
 Aliases are read-only and never become physical columns in migration output.
-Writes with an alias in their value mapping fail explicitly. `RETURNING '*'`
-includes only physical columns; explicitly returning an alias is supported only when its
-expression is valid in the database's RETURNING clause. The model distinguishes
+An alias key in a write mapping is skipped without error: it never becomes an
+SQL column. The write cycle reads back with RETURNING only the physical columns
+whose value the database decides; aliases are never returned. The model distinguishes
 physical/static columns from dynamic virtuals when expanding SELECT `*`.
 Virtual relations describe model relationships derived from queries or conditions;
 their cardinality remains part of their contract.
@@ -174,11 +199,15 @@ subset; a store selects a database context. Neither is a physical partition.
 
 ## Read resolved metadata or save a recipe
 
-`model.tables` is keyed by fully qualified logical names. `model.table('invoice')`
-is also accepted when that short name is unambiguous. Tables expose `columns`,
-`relations`, `pkey`, physical names and `policies`; columns expose `dtype`, `ui`,
-`identity`, `formula` and `attributes`. Attributes retain source information and
-provenance. Outer mappings are read-only; treat nested metadata as immutable too.
+`model.table('sales.invoice')` returns the `DbTableObj` owned by the hierarchical
+model. The operational `db.table('sales.invoice').model` is that same object.
+`columns` contains physical nodes, `virtual_columns` contains virtual nodes,
+and `relations` is the legacy relation Bag. Descriptive attributes and option
+nodes remain in this hierarchy. `pkey` is the logical key name.
+
+The catalog DTO codec is separate: `model_to_json`/`model_from_json` serialize
+catalog snapshots, not the live `DbModel`. Use the source for a configuration
+recipe, and `SqlMigrationRenderer(to_physical_builder(model))` for migration JSON.
 
 `SqlPythonEmitter` emits an editable Python module from a built recipe:
 

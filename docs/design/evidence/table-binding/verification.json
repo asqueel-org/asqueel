@@ -1,0 +1,30 @@
+{
+  "legacy_reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "legacy_command": "PYTHONPATH=/tmp/asqueel-formula-baseline/legacy/gnrpy /tmp/asqueel-formula-baseline/env/bin/python -m pytest -q -c /dev/null -p no:cacheprovider docs/design/probes/test_legacy_table_binding.py",
+  "legacy": {
+    "passed": 3,
+    "tables_checked": 75,
+    "sql_and_sockets": "denied"
+  },
+  "suite_command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''",
+  "suite": {
+    "passed": 2222,
+    "skipped": 13,
+    "seconds": 76.1
+  },
+  "native_binding_tests": 80,
+  "native_tables_checked": 74,
+  "compiler_diff_unchanged": true,
+  "checks": {
+    "ruff": "passed on changed Python files",
+    "mypy": "passed on 55 source files"
+  },
+  "sha256": {
+    "src/asqueel/application.py": "f55213c7da8c1a79ebbef29d9e1188e46bfc61aa9b06011b9767660fbd6a977f",
+    "src/asqueel/application_table.py": "74cd71716d192217938e2783523d5142d6e65309dca57dc9c6cc5d62ce1366a9",
+    "src/asqueel/object_tree.py": "0c1bb09fc5a414af554bbf077df7d6cf58225424e78fbb7a0fb17a2293a97ce7",
+    "tests/object_tree/test_operational_tables.py": "fd663ca12cf8dc65cdfe3fe0ce3acf6390cf0a159d3ea774397eda63af4cbefe",
+    "tests/object_tree/test_structure.py": "3cb4108f85856c0f48cc76c1d6e9e8fb7dfe04f07d77fd962b8f8778aee0d978",
+    "docs/design/probes/test_legacy_table_binding.py": "819fed8ebc1fe5212b014a7c5d46096099f4cbc4494160c5fb7091581d4a9225"
+  }
+}

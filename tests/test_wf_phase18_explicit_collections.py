@@ -41,7 +41,7 @@ class _ExplicitRecipe(SqlBuilder):
             columns="id,author_id",
         )
         recipe_indexes = recipe.indexes()
-        recipe_indexes.index("ix_recipe_author", columns="author_id")
+        recipe_indexes.index(name="ix_recipe_author", columns="author_id")
 
         extensions = db.extensions()
         extensions.extension("pg_trgm")
@@ -70,6 +70,7 @@ _ORACLE = {
                     "related_schema": "public",
                     "related_table": "author",
                     "related_columns": ["id"],
+                    "on_update": "CASCADE",
                 }],
                 "constraints": [{
                     "name": "uq_recipe_author",

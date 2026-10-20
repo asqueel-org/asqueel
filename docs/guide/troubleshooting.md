@@ -49,22 +49,21 @@ or its physical-name mapping differs from the existing database.
 | A formula total includes deleted/draft rows | Formula subqueries include these by default. Set `excludeDraft=True` / `excludeLogicalDeleted=True` in the definition. |
 | Empty SUM is NULL | This is PostgreSQL aggregate behavior. Use an explicit `COALESCE` when zero is intended. |
 | Scalar subquery returns multiple rows | Choose an aggregate or explicit ordered `limit=1`; no implicit limit is added. |
-| Changes to a fetched dictionary are not saved | Results are data. Pass writable fields to `table.update(...)`. |
-| An updated record reader shows old data | `SqlRecord` caches its snapshot. Call `refresh()` or construct a new reader. |
+| Changes to a fetched row are not saved | Results are data. Pass writable fields to `table.update(...)`. |
 | SELECT `*` becomes expensive or gains fields | It includes virtual columns; choose an explicit projection. |
 
 ## Transaction and lifecycle errors
 
 | Symptom | Explanation and recovery |
 |---|---|
-| Writes disappear after leaving `with db:` | Closing rolls back pending work. Use `db.commit()` / `db.rollback()` or explicit `db.commit()`. |
+| Writes disappear after leaving `session(db)` or after `closeConnection()` | Both roll back pending work. Call `db.commit()` before the end of the session. |
 | Connection is rollback-only | A table/shared write hook failed or rollback failed. Roll back explicitly; ordinary SQL execution errors already trigger automatic rollback. |
-| `EnvironmentMismatchError` | A saved compiled statement captured different context. Recompile within the intended scope or use a lazy query terminal there. |
+| `UnusedQueryParameterWarning` | A query keyword is not used by the query (often a misspelled parameter name). The query still runs; the warning names the keyword and the parameters the query uses. |
 | `RecordNotFoundError` | No visible record matched, or a hooked write failed to identify its row. Review the selector and scope. |
 | `RecordMultipleRowsError` | A record read or hooked update/delete matched more than one row. Fix the selector; do not hide matches with a limit. |
 | Thread ownership error | Share the DB, not its internal connection records or driver connections. Each worker must release its own connections. |
-| `DatabaseClosedError` | Construct a new database; closed objects cannot be reopened. |
-| Commit outcome is `unknown` | The server outcome was not confirmed. Reconcile using application identifiers before retrying. |
+| `TransactionStateError` mentioning a session | `session(db)` was entered while another session on the same database is open on this thread. Leave the first session before opening the next. |
+| Commit raised a driver error | The server outcome was not confirmed. Reconcile using application identifiers before retrying. |
 
 Driver exceptions such as `psycopg.errors.UniqueViolation` propagate unchanged.
 Catch those you can handle **outside** the transaction block. A Python hook's

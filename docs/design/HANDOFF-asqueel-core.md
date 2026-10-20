@@ -1,5 +1,336 @@
 # Handoff — modello, compilatore e scritture Asqueel
 
+**16 ottobre 2026 — percorso unico delle letture nel worktree dedicato:**
+[Rapporto 98](98-single-read-path.md). Gli ingressi operativi usano DbModel e
+QueryCompiler gerarchico; eliminati il vecchio compilatore, QueryPlan/Fragment e
+le copie SqlColumn/SqlRelation. Record e lock verificati su SQLite/PostgreSQL.
+**3.200 test passati, 8 skip nel perimetro letture**. Le scritture restano al
+lavoro separato; questo risultato non dichiara verde la suite generale.
+
+**Aggiornamento 15 ottobre 2026 — campi condivisi dalle options verificati:**
+[Rapporto 94](94-shared-option-fields.md). Le 12 differenze d'ordine sono accettate;
+non richiedono riallineamento. Verificati tipo, attributi, relazioni e unicità dei
+campi condivisi, incluso `invc.product_group._row_count`. **366 test passati**
+nel gruppo mirato, inclusi 19 nuovi contratti e le verifiche sui 74 modelli.
+Nessuna modifica alla produzione; aggiunti test e documentazione.
+
+**Aggiornamento 15 ottobre 2026 — options prima delle dichiarazioni:**
+[Rapporto 93](93-options-first-object-renderer.md). Il renderer gerarchico
+consuma prima le options sulla copia privata della source, conservandole sugli
+oggetti senza ripeterne gli effetti. Compilatore invariato. I due contratti `star`
+ora passano senza xfail; 62/74 ordini fisici identici al legacy, 12 differenze
+residue interne alle espansioni documentate separatamente. JSON migration
+invariato sui 74 modelli. Le note successive conservano lo storico.
+
+**Decisione 15 ottobre 2026 — wildcard:** restano soltanto `*` e le colonne
+esplicite (incluse espressioni e percorsi di relazione già supportati).
+I wildcard avanzati escono dalla TODO: [cose non portate, R-11](41-deferred-features.md#r-11--wildcard-avanzati).
+Nessuna modifica al compilatore. Il confronto dell'ordine delle colonne di `*`
+e l'intervento nel renderer sono ora documentati nel [rapporto 93](93-options-first-object-renderer.md).
+
+**Aggiornamento 15 ottobre 2026 — fetch e count eseguibili sul nuovo albero:**
+[Rapporto 92](92-hierarchical-fetch-count.md). Terminali reali sul database
+proprietario, righe Toolbox NamedList, ambiente corrente e transazione condivisa.
+Count interpreta il risultato secondo il legacy; nessun handler verso molti.
+Record, Selection e scritture gerarchiche restano fuori perimetro.
+**5.147 test passati, 21 skip, 2 xfail preesistenti**. Ruff e Sphinx passano;
+JSON migration invariato sui 74 modelli. Le note successive conservano lo storico.
+
+**Aggiornamento 15 ottobre 2026 — count compilato sul nuovo albero:**
+[Rapporto 91](91-legacy-tree-count.md). Stesso ramo legacy negli otto snapshot:
+COUNT(*) per query semplici, chiavi di GROUP BY, proiezione conservata per
+DISTINCT; ordinamento eliminato. SQL e kwargs senza esecuzione sul nuovo albero.
+Nessun handler verso molti. **4.915 test passati, 21 skip, 2 xfail preesistenti**;
+Ruff e Sphinx passano, JSON migration invariato sui 74 modelli. Le note successive
+sono storiche.
+
+**Stato corrente, 15 ottobre 2026 — raccordo richiesto della fase 4 verificato:**
+[Rapporto 90](90-legacy-rewrite-phase4.md). Raccordati options native, filtri,
+star, macro già portate e bagItemColumn sul nuovo albero; pkey automatica opt-in
+con `addPkeyColumn=True`, default False. Nessun handler many_*.
+148 prove di visibilità sui 74 modelli; JSON migration invariato. Riusata con
+approvazione esplicita la correzione IN_RANGE per limiti NULL su PostgreSQL.
+Ordine star diverso per le colonne sys_fields preesistenti nell'albero registrato
+separatamente. **4.801 test passati, 21 skip, 2 xfail** per tale ordine; Ruff e
+Sphinx passano, mypy conserva i due errori preesistenti. Alla data di questo
+rapporto count e wildcard avanzati erano aperti; gli aggiornamenti in testa
+registrano il raccordo del count e l’esclusione dei wildcard avanzati.
+Le note successive sono storiche.
+
+**Stato corrente, 15 ottobre 2026 — fase 3 completata:**
+[Rapporto 89](89-legacy-rewrite-phase3.md), [piano 86](86-legacy-compiler-logical-phases.md).
+Sul nuovo albero sono raccordate formule SQL e da metodo, alias, dipendenze,
+var_*, select/exists/select_*, subQueryColumn e metodi subquery_*.
+Ricorsione legacy, alias SQL e mangler separati, unica preparazione finale
+SQL/kwargs. Nessun handler many_*; RuntimeModel e mixin restano separati.
+334 richieste supportate confrontate con il legacy (332 SQL/kwargs equivalenti,
+2 con normalizzazione dei nomi locali dipendenti da id nel riferimento).
+**4.516 test passati, 21 skip, 10 xfail previsti**. JSON migration invariato
+sui 74 modelli; Ruff e Sphinx passano, mypy conserva due errori preesistenti.
+Prossimo passo: fase 4, options/filtri, star, macro, bagItemColumn e clausole
+esterne rimanenti. Nessun cambio del compilatore predefinito o delle scritture.
+Le note successive sono storiche; la fase 2 resta nel [rapporto 88](88-legacy-rewrite-phase2.md).
+
+**Decisione corrente, 15 ottobre 2026 — piano per fasi legacy:**
+[diagramma e piano 86](86-legacy-compiler-logical-phases.md).
+La sostituzione di QueryPlan/Fragment comprende da subito la risoluzione delle
+relazioni sul nuovo albero: la SELECT fisica da sola non valida l’architettura.
+Contenitore equivalente a SqlCompiledQuery, clausole SQL e kwargs separati,
+assemblaggio e preparazione agli adapter. Binding PostgreSQL invariato:
+ClientCursor ritirato; il parametro tra apici è un errore d’uso e non un requisito.
+Piano operativo in cinque fasi, con riferimenti legacy e prove di chiusura.
+Obiettivo vincolante: reimplementazione chiara e leggibile dello stesso algoritmo,
+senza variazioni non concordate; ricorsione e ordine delle operazioni preservati.
+Fase 1 verificata nel [rapporto 87](87-legacy-rewrite-phase1-baseline.md):
+144 test legacy passati e 2 skip, 148 SELECT fisiche equivalenti; censite
+144 relazioni native. Sul nuovo albero il raccordo relazionale manca ancora.
+Contratti e differenze fissati; compilatore invariato, fase 2 non iniziata.
+Le note successive conservano lo storico dei passi precedenti.
+
+**Stato corrente, 15 ottobre 2026 — renderer riallineato dopo R4:**
+[rapporto 85](85-legacy-renderer-and-postgres-binding.md), [piano 79](79-legacy-compiler-realignment-plan.md).
+Eliminate le scansioni dal renderer condiviso; assemblaggio e WHERE seguono il
+legacy. **3.944 test passati, 13 saltati**, 148 SELECT fisiche e JSON migration
+invariato. Scomparse le quattro differenze del renderer nel corpus R4.
+Binding PostgreSQL invariato: proposta ClientCursor provata su otto SELECT,
+da discutere prima dell’adozione. Collisione IN separata e invariata.
+R5/relazioni non avviata. Misure aggiornate e limiti nel rapporto.
+Le note successive conservano lo storico dei passi precedenti.
+
+**Stato corrente, 15 ottobre 2026 — verifica R4 eseguita, accettazione aperta:**
+[rapporto 84](84-legacy-realignment-r4.md), [piano 79](79-legacy-compiler-realignment-plan.md).
+**3.918 test superati, 13 saltati**; 15 prove legacy, 148 SELECT fisiche e JSON
+migration dei 74 modelli verificati. Confronto integrato sui tre compilatori:
+82/84 casi eseguiti da entrambi con stessi risultati sul nuovo albero.
+Restano la differenza di binding PostgreSQL, la collisione postgres3 già nota
+e residui dello scanner nel renderer condiviso. SELECT ordinaria più rapida del
+legacy; 100 proiezioni ripetute ancora 2,3–2,6 volte più lente. Nessuna modifica
+agli algoritmi; R5/relazioni non avviata. Dettagli e misure nel rapporto.
+Le note successive conservano lo storico dei passi precedenti.
+
+**Stato corrente, 14 ottobre 2026 — R3 completata:**
+[rapporto 83](83-legacy-realignment-r3.md), [piano 79](79-legacy-compiler-realignment-plan.md).
+Preparazione SQL/kwargs negli adapter secondo il legacy, senza I/O implicito.
+Psycopg 3 usa l’espansione IN dell’adapter legacy postgres3, con protocollo nominato.
+**3.918 test superati, 13 saltati**; 100 confronti sul riferimento, 24 verifiche
+d’integrazione e 148 SELECT native senza differenze. Otto snapshot confrontati.
+Il prossimo passo è R4, prima delle relazioni. Nomi generati, collisioni ed errori
+affidati al driver mantengono i contratti legacy documentati nel rapporto.
+Le note successive conservano lo storico dei passi precedenti.
+
+**Stato corrente, 14 ottobre 2026 — R2 completata nel perimetro locale:**
+[rapporto 82](82-legacy-realignment-r2.md), [piano 79](79-legacy-compiler-realignment-plan.md).
+Proiezioni conservate come nel legacy ed embedFieldPars sul WHERE, senza nuove
+sintassi. **3.791 test superati, 13 saltati**; quattro test legacy originali
+superati, 624 confronti sugli otto snapshot e 148 SELECT native senza differenze.
+Prossimo passo R3: preparazione negli adapter, poi R4 prima delle relazioni.
+Le note successive conservano lo storico dei passi precedenti.
+
+**Stato corrente, 14 ottobre 2026 — R1 completata:**
+[rapporto 81](81-legacy-realignment-r1.md), [piano aggiornato](79-legacy-compiler-realignment-plan.md).
+SELECT fisica sul nuovo albero: algoritmi legacy per raccolta, risoluzione e
+sostituzione dei riferimenti; preparazione delegata una sola volta, senza I/O.
+Rimosse dal raccordo le estensioni lessicali non concordate. **3.681 test superati,
+13 saltati**; 148 SELECT native confrontate con GenroPy, 10.584 confronti degli
+helper su otto snapshot senza differenze. Prossimo passo R2, poi R3/R4 prima
+delle relazioni. Adapter ancora da riallineare integralmente; nessuna parità
+complessiva dichiarata. Il legacy è la specifica: domande solo per impedimenti
+concreti. Le note seguenti descrivono i passi precedenti, non lo stato corrente.
+
+**Alias delle sottoquery, decisione acquisita:** seguire il legacy anche nei
+prefissi: `aliasPrefix = '%s_t' % alias` dalla proprietaria esterna, per esempio
+`t0_t0`, `t0_t1`, oppure `t1_t0`. Alias delle tabelle separati dai namespace e
+dagli allocatori dei parametri; nessun prefisso derivato da `_Bindings.namespace`.
+Annotati contratto e verifiche nei piani 79 e 76. Solo documenti, codice invariato.
+
+**Decisione sugli adapter, 14 ottobre 2026:** mantenere la delega legacy:
+risoluzione del modello nel compilatore, `adapter.compileSql` per assemblare
+SQL, preparazione comune e `adapter.prepareSqlText` separate dall'esecuzione.
+Quoting/alias/macro restano delegati anche durante la compilazione. Nessuna
+ramificazione SQLite/PostgreSQL nel nucleo. [Piano 79 aggiornato](79-legacy-compiler-realignment-plan.md).
+Solo documenti: M1 resta aperta per gli adapter. **M2/M3 chiuse sul legacy**:
+commenti e stringhe seguono template, sostituzioni ed escape legacy, senza
+protezioni aggiuntive. Nessuna estensione lessicale approvata. R1 non iniziata.
+
+**R0 completata, 14 ottobre 2026:** [rapporto 80](80-legacy-realignment-r0-contracts.md).
+Classificati 71 casi / 132 osservazioni; fissate 19 definizioni legacy e 15
+test attuali con conflitti/decisioni pendenti. Verifiche: 294 test Asqueel e
+6 prove legacy compile-only superati. Nessuna modifica al compilatore o ai test
+esistenti, nessun miglioramento approvato. R1 non avviata. La proposta iniziale
+di discutere M1 è stata ricollocata nel gruppo adapter dalla decisione sopra.
+
+**Priorità corrente, 14 ottobre 2026:** [piano 79](79-legacy-compiler-realignment-plan.md)
+per riallineare il compilatore agli algoritmi legacy prima di proseguire con
+relations. Il [confronto 78](78-scanner-legacy-comparison.md) ha evidenziato
+compatibilità perse e vantaggi solo circoscritti del percorso attuale.
+Ripristino e miglioramenti sono separati; questi ultimi si decidono uno alla
+volta prima di implementarli. Solo documentazione in questo passo.
+
+**SELECT minima gerarchica, 14 ottobre 2026:** completate le fasi 0 e 1 del
+[piano 76](76-hierarchical-compiler-plan.md), nel
+[rapporto 77](77-hierarchical-minimal-select.md). Query fisiche → SQL e kwargs,
+nessuna esecuzione o conversione in ResolvedModel. Confrontati gli otto snapshot
+legacy e verificata uguaglianza con il precedente compilatore sulle 74 tabelle,
+sia PostgreSQL sia SQLite, nel perimetro esplicito. Il default resta invariato.
+Prima della navigazione legacy del ramo relations viene ora il piano 79.
+Formule, filtri impliciti,
+star e macro ancora da raccordare al nuovo albero; mixin/RuntimeModel separati.
+Le sezioni successive descrivono gli incrementi precedenti.
+
+**JSON migration gerarchico, 14 ottobre 2026:** completata la fase 5 del piano 70.
+to_physical_builder accetta DbModel direttamente, senza ResolvedModel intermedio.
+JSON identico su tutti i 74 modelli, rispetto al percorso precedente e al legacy
+nel perimetro ammesso. Verificati 789 colonne, 58 FK, 282 indici e ciclo PostgreSQL
+temporaneo applicazione/introspezione/seconda diff vuota, anche dopo evoluzione.
+Compilatore non modificato; default e decisioni sui mixin restano separati.
+[Rapporto 75](75-hierarchical-migration-json.md).
+
+**Collegamento tabella/modello, 14 ottobre 2026:** implementato il primo raccordo
+DbTableObj ↔ SqlTable ↔ SqlDatabase sul nuovo albero. `.dbtable` viene creata
+prima dei figli come nel legacy; il database riusa quelle istanze e `column()`
+restituisce gli oggetti del modello. Il fallback a `.model` resta attivo.
+Il renderer offline continua a restituire DbModel; il collegamento operativo
+è esplicito tramite SqlDatabase. Compilazione e scritture su questo percorso
+sono rifiutate esplicitamente; il default precedente resta funzionante.
+Mixin, namespace e RuntimeModel ancora da decidere; JSON migration completato
+successivamente nel rapporto 75. [Rapporto 74](74-hierarchical-table-binding.md).
+
+**Renderer gerarchico alternativo, 14 ottobre 2026:** implementato il percorso
+`objects_tree` usando la walk generica e costruendo gli oggetti in finalize.
+Ramo globale relations e viste lazy confrontati con il legacy: 144 nodi
+ordinari identici; 74 modelli, 789 colonne fisiche e 526 virtuali.
+Il renderer corrente resta il default; compilatore ed esecuzione SQL non sono
+raccordati al nuovo albero. La proiezione JSON è ora completata nel rapporto 75.
+[Piano 70](70-hierarchical-object-renderer-plan.md) e
+[rapporto 71](71-hierarchical-object-renderer.md) distinguono verifiche e limiti.
+I risultati SQL precedenti non certificano fedeltà architetturale del compilatore.
+
+**Priorità aggiornata, 14 ottobre 2026:** SELECT FROM SELECT e operatori fra
+query sono rinviati per decisione dell’utente ([R-09](41-deferred-features.md#r-09--query-concatenate-e-operatori-fra-query)).
+Il lavoro corrente riguarda il modello gerarchico alternativo; il compilatore resta separato.
+
+**bagItemColumn e guide connessioni, 14 ottobre 2026:** [rapporto 69](69-native-bag-items.md).
+Raccordo PostgreSQL con XPath parametrizzato, cast e tipi custom legacy;
+3/3 colonne native compilano. Confrontati otto snapshot e portati 15 test legacy,
+con prove aggiuntive su valori e isolamento dei parametri. SQLite non emulato.
+Guide CLI/configurazione riallineate alle connessioni nominate già implementate.
+
+**Fetch e Toolbox 0.18.0, 14 ottobre 2026:** [rapporto 68](68-named-list-fetch.md).
+Porting NamedList verificato con otto test legacy. I due driver restituiscono
+direttamente quel contenitore per fetch/execute/RETURNING, con nomi, posizioni
+e valori modificabili. record.output('dict') conserva il dict. Dipendenza,
+lock ed esempi aggiornati; suite **1940 superati, 13 saltati**.
+
+**Metodi subquery_*, 14 ottobre 2026:** [rapporto 67](67-native-subquery-methods.md).
+Riferimenti stringa raccordati a metodi senza argomenti sulla root della SELECT
+corrente, come nel legacy. Il risultato mapping usa il compilatore comune.
+Confrontati otto snapshot con sette nuove prove di contratto; nessun test storico
+dedicato trovato. Suite **1922 superati, 13 saltati**. XML richiede ancora il dict;
+RuntimeModel, query concatenate e operatori restano separati/rinviati.
+
+**subQueryColumn native, 14 ottobre 2026:** [rapporto 66](66-native-subquery-columns.md).
+Raccordate query dict semplici su PostgreSQL/SQLite e JSON/XML su PostgreSQL,
+riusando piano SELECT e scope esistenti. Sette test legacy verdi e 3/3 colonne
+native compilabili; suite **1870 superati, 13 saltati**. Riferimenti stringa a
+metodi di sottoquery ancora aperti; nessuna traduzione JSON/XML inventata per
+SQLite, nessun DISTINCT automatico. Query concatenate e operatori restano rinviati.
+
+**Options native e wildcard, 14 ottobre 2026:** [rapporto 65](65-native-options-and-star.md).
+Passo 2 chiuso: marcatori sys_fields, partition scalare confermata, espansione
+fisiche/statiche e bagFields. Filtri verificati sui dati di tutte le 74 tabelle,
+PostgreSQL e SQLite. `*` compila su 73/74; adm.htmltemplate_atc richiede pyColumn
+statiche ancora non supportate. Insiemi ammessi della partition rinviati;
+nessuna nuova convenzione di ambiente o comportamento sulle scritture.
+Suite: **1840 superati, 9 saltati**; Ruff, mypy e Sphinx strict superati.
+
+**Decisione del 14 ottobre 2026:** `#PREF` è tra le funzionalità legacy non
+portate, esclusa dal lavoro corrente: [registro 41, R-08](41-deferred-features.md#r-08--macro-pref).
+La formula `invc.invoice_row.adjusted_total` resta conservata e non compilabile;
+non viene introdotta alcuna sostituzione automatica. I censimenti sotto
+mantengono i numeri rilevati, con questo caso classificato come esclusione concordata.
+
+**Inverse ordinarie, 14 ottobre 2026:** [rapporto 63](63-native-inverse-relations.md).
+Riusato il percorso LEFT JOIN con unicità verificata sul lato one; nessuna
+nuova sintassi o aggregazione automatica. Verificate le cinque child_count su
+PostgreSQL e SQLite, preservando formule e cardinalità della query esterna.
+Sonda a **460/462 formule e 45/46 alias**; suite **1633 superati, 9 saltati**.
+Restano #PREF, un valore di ambiente assente nella sonda, virtualRelation,
+altre famiglie di colonne e RuntimeModel. Gli incrementi sotto sono storici.
+
+**Formule da metodo, 14 ottobre 2026:** [rapporto 62](62-native-method-formulas.md).
+`sql_formula=True` invoca il metodo legacy sulla tabella tramite la classe
+applicativa già esistente. Attributi modificabili locali alla compilazione,
+var_* e select_* nel percorso comune, nessuna nuova sintassi. Raccordati i due
+metodi di sistema: sonda a **455/462 formule e 45/46 alias** compilabili.
+RuntimeModel studiato ma ancora da implementare; restano inverse, virtualRelation,
+subQueryColumn, bagItemColumn e ulteriori macro. I paragrafi successivi conservano
+gli esiti storici degli incrementi precedenti.
+
+**Sottoquery native, 14 ottobre 2026:** [rapporto 61](61-native-subqueries.md).
+Raccordati select/exists/select_* usando la SELECT comune anche per
+GROUP BY/HAVING/DISTINCT. Default ignorePartition True riallineato al legacy;
+override False disponibile. Scope separati per formule e sottoquery, nessuna
+conversione automatica a JOIN. Sonda dei 74 modelli: 187 formule e 45 alias
+compilabili. Restano metodi, cinque sottoquery con relazioni inverse,
+subQueryColumn, altre macro, virtualRelation e RuntimeModel.
+
+**Raccordo formule SQL native, 14 ottobre 2026:** [rapporto 60](60-native-sql-formulas.md).
+Implementati SQL, dipendenze, alias e var_* senza nuove firme. Separati scope
+dei parametri e alias SQL; stato limitato alla compilazione, nessuna mutazione
+del modello o currentEnv. 93 test legacy passati, 3 skip originali SQLite;
+sonda senza I/O: 159 formule e 44 alias compilano sui 74 modelli nativi.
+Restano sottoquery native, metodi, ulteriori macro e RuntimeModel. I numeri
+della baseline sotto descrivono lo stato precedente a questo raccordo.
+
+**Baseline formule, 14 ottobre 2026:** [rapporto 59](59-formula-legacy-baseline.md).
+Censiti otto riferimenti legacy; suite di riferimento 645 pass/10 skip e next
+746 pass/10 skip. Fallimenti dei refactor e limiti del dataset v2 documentati.
+Asqueel: 197 test del profilo esistente verdi; sulle 526 virtuali native compilano
+39 alias, mentre 462 formule (incluse 134 delegate a metodi), 7 alias e gli altri
+tipi restano bloccati. Priorità al raccordo delle formule e al porting dei test;
+nessuna nuova sintassi o implementazione del core in questo censimento.
+
+**SQL e kwargs senza esecuzione, 14 ottobre 2026:** completato il passo 1 del
+[piano 56](56-read-compiler-plan.md). API esistente `compiled = q.compiled`,
+poi `compiled.sql` e `dict(compiled.params)`. Aggiunti `#IN_RANGE` e `#PERIOD`
+con algoritmi legacy e decoder già presente in Toolbox 0.17.0; differenze
+motivate e limiti registrati nel piano. Suite completa: 1350 passati, 1 saltato,
+con PostgreSQL e SQLite. Il prossimo passo è il raccordo delle options native
+ai filtri e dell'espansione `*`; catene, operatori e formule native restano aperti.
+
+**Refactor storici riesaminati, 14 ottobre 2026:** [rapporto 57](57-legacy-compiler-refactoring-review.md).
+Letti v2/v3/v4, compiler-simplify, compiler_next_step_1 e le conversazioni locali
+SQL archaeology. Utili la separazione colonne/alias e la risoluzione comune
+delle relazioni; non sono già una query derivata navigabile. Nel core esiste
+`ResultColumn.source`: verificarne l'uso prima di aggiungere strutture per il
+passo 3 del piano 56. Nessuna adozione implicita di aggregazioni automatiche,
+LATERAL o riscritture di sottoquery; suite storiche non rieseguite.
+
+**Query concatenate, 14 ottobre 2026:** aggiunte al [piano 56](56-read-compiler-plan.md)
+come passo dedicato: `query(...).query(...).query(...)` significa SELECT FROM
+SELECT. Ogni livello vede la proiezione precedente e può generare join tramite
+le relazioni dei campi esposti: `customer_id` → `@customer_id.name`. Conservare
+l'origine del campo nel modello; non dedurre una relazione dal solo nome.
+Obiettivo invariato: SQL e kwargs completi senza esecuzione. Firma acquisita,
+implementazione ancora da fare; alias e origini ambigue da decidere esplicitamente.
+
+**Composizione query, 14 ottobre 2026:** [piano del compilatore 56](56-read-compiler-plan.md).
+Riferimento acquisito: branch legacy feature/compound_query, con `+` UNION,
+`|` UNION ALL, `&` INTERSECT e `-` EXCEPT sulle righe proiettate. Obiettivo sempre
+SQL e kwargs, senza esecuzione. Sonda isolata con metodi legacy originali e
+foglie sintetiche: 50 confronti PostgreSQL, 40 conformi e 10 divergenze attese
+(cache/parametri, raggruppamenti, clausole locali). Il porting deve correggerle;
+nessuna implementazione degli operatori nel core. Sequenza attiva nel piano 56.
+
+**Ripresa letture, 13 ottobre 2026:** [indagine SQL e kwargs](55-select-sql-and-kwargs-investigation.md).
+Scelta corrente: query(...) nella forma legacy, compilata in SELECT e kwargs;
+grammatica Builder delle clausole rinviata. Le prove compilano le proiezioni
+fisiche su tutte le 74 tabelle, ma i filtri delle options native, *, formule e
+altre dichiarazioni richiedono ancora il raccordo descritto nell'indagine.
+Approvata la direzione del [controllo finale SQL](54-query-recipe-and-sql-check.md)
+con SQLGlot per fonti non fidate; check a richiesta ipotizzato senza firma/default.
+Nessuna integrazione nel core. Non anticipare scritture o variant.
+
 **Release 0.6.0, 13 ottobre 2026:** bump del core e documentazione aggiornata;
 [release notes](../guide/release-notes.md#060). Il perimetro consegnato è
 source nativa → oggetti completi → JSON migrations. Compilazione delle nuove

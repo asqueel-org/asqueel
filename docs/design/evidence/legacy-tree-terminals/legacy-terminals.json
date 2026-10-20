@@ -1,0 +1,138 @@
+{
+  "legacy": {
+    "file": "/tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 235,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 241,
+        "sha256_without_docstring": "853bd39ce9e55e9cbe87db20e607c0d0c88873527cfcecec0806f1433ab41c5d"
+      },
+      "count": {
+        "line": 557,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "compound": {
+    "file": "/tmp/asqueel-formula-baseline/compound/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 245,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 251,
+        "sha256_without_docstring": "a8427c9cd7fc60a1a16a9b774c1254adf18b058da4fab6554382202c666adaed"
+      },
+      "count": {
+        "line": 549,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "v2": {
+    "file": "/tmp/asqueel-formula-baseline/v2/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 248,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 254,
+        "sha256_without_docstring": "a8427c9cd7fc60a1a16a9b774c1254adf18b058da4fab6554382202c666adaed"
+      },
+      "count": {
+        "line": 552,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "v3": {
+    "file": "/tmp/asqueel-formula-baseline/v3/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 248,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 254,
+        "sha256_without_docstring": "a8427c9cd7fc60a1a16a9b774c1254adf18b058da4fab6554382202c666adaed"
+      },
+      "count": {
+        "line": 552,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "v3_merged": {
+    "file": "/tmp/asqueel-formula-baseline/v3_merged/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 248,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 254,
+        "sha256_without_docstring": "a8427c9cd7fc60a1a16a9b774c1254adf18b058da4fab6554382202c666adaed"
+      },
+      "count": {
+        "line": 552,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "v4": {
+    "file": "/tmp/asqueel-formula-baseline/v4/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 248,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 254,
+        "sha256_without_docstring": "a8427c9cd7fc60a1a16a9b774c1254adf18b058da4fab6554382202c666adaed"
+      },
+      "count": {
+        "line": 552,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "simplify": {
+    "file": "/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 237,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 243,
+        "sha256_without_docstring": "a8427c9cd7fc60a1a16a9b774c1254adf18b058da4fab6554382202c666adaed"
+      },
+      "count": {
+        "line": 541,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  },
+  "next": {
+    "file": "/tmp/asqueel-formula-baseline/next/gnrpy/gnr/sql/gnrsqldata/query.py",
+    "symbols": {
+      "cursor": {
+        "line": 235,
+        "sha256_without_docstring": "67eb63c809cf081648585f9dac1d451bf028253ba8e32c27efc371e48d3869d7"
+      },
+      "fetch": {
+        "line": 241,
+        "sha256_without_docstring": "853bd39ce9e55e9cbe87db20e607c0d0c88873527cfcecec0806f1433ab41c5d"
+      },
+      "count": {
+        "line": 557,
+        "sha256_without_docstring": "789c8162ab7aaa1b63350671e966ca1eb59e9a16346a56a97a978df9c3ebac0a"
+      }
+    }
+  }
+}

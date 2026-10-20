@@ -63,9 +63,10 @@ def main():
         )
         assert query.params == {'id': 7}
         assert '"public"."customer"' in query.sql
-        generic = package.QueryCompiler(
-            resolved, package.PostgresDialect(), package.PsycopgDriver(),
-        ).select('public.customer', where='$id = :id', sqlparams={'id': 7})
+        adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
+        generic = package.QueryCompiler(resolved, adapter).select(
+            'public.customer', where='$id = :id', sqlparams={'id': 7},
+        )
         assert generic == query
         print('Core-only build, validation, emission, model and adapter pipeline passed')
         return
@@ -73,7 +74,7 @@ def main():
         destination = Path(directory)
         for name in ('tests', 'docs', 'examples'):
             shutil.copytree(repository / name, destination / name)
-        for name in ('migration.json', 'native/migration.json'):
+        for name in ('migration.json', 'native/migration.json', 'objects_tree/migration.json'):
             artifact = Path('artifacts/test_invoice_pg') / name
             (destination / artifact).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(repository / artifact, destination / artifact)

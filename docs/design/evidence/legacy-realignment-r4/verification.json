@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-15",
+  "legacy_commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "source_tests_examples_unchanged": true,
+  "files_hashed": 238,
+  "suite": {
+    "passed": 3918,
+    "skipped": 13,
+    "seconds": 144.6
+  },
+  "legacy_tests": 15,
+  "native_queries": 148,
+  "native_mismatches": 0,
+  "benchmarks": 14,
+  "integrated_cases": 132,
+  "summary": {
+    "current": {
+      "same_stage_outcome": 89,
+      "both_execute": 84,
+      "same_rows_columns": 62,
+      "same_rows_columns_types": 62
+    },
+    "tree": {
+      "same_stage_outcome": 116,
+      "both_execute": 84,
+      "same_rows_columns": 82,
+      "same_rows_columns_types": 82
+    }
+  },
+  "python": "3.12.12 (main, Oct 28 2025, 11:52:25) [Clang 20.1.4 ]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "sqlite": "3.50.4",
+  "psycopg": "3.3.6",
+  "acceptance": "open: PostgreSQL execution difference and shared renderer residue; no R5",
+  "benchmark_scope": "Fresh query to prepared SQL/kwargs; no model construction or database execution in measured rounds. Legacy includes execute with capture cursor. 10 warmups; 9 rotating rounds; GC disabled only during timed iterations. Separate cProfile probes."
+}

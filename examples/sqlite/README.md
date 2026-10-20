@@ -9,8 +9,8 @@ asqueel db apply sqlite-demo
 asqueel shell sqlite-demo
 ```
 
-The migration adapter creates `example.db`, `example_contacts.db` and
-`example_sales.db`. The relation between customer and invoice is logical;
+The migration adapter creates `example.db`, `contacts.db` and
+`sales.db` in the same folder. The relation between customer and invoice is logical;
 SQLite cannot enforce a foreign key between attached files.
 
 In Python, after migration (use unused IDs when rerunning):
@@ -32,7 +32,7 @@ except Exception:
     db.rollback()
     raise
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 SQLite units of work use `BEGIN IMMEDIATE`; finish each transaction before using

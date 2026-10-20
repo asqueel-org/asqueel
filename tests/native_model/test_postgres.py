@@ -79,7 +79,7 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
      "CREATE TABLE {schema}.child(tenant integer NOT NULL,parent_id integer,"
      "FOREIGN KEY(tenant,parent_id) REFERENCES {schema}.parent(tenant,id) "
      "ON DELETE SET NULL(parent_id))", 'column subset'),
-    ('CREATE TABLE {schema}.t(id integer UNIQUE WITH(fillfactor=70))', 'advanced constraint index'),
+    ('CREATE TABLE {schema}.t(id integer UNIQUE WITH(fillfactor=70))', 'constraint index with storage options'),
     ('CREATE TABLE {schema}.t(id integer); ALTER TABLE {schema}.t ENABLE ROW LEVEL SECURITY', 'import warnings'),
 ])
 def test_unsupported_catalog_semantics_cannot_become_a_partial_migration(ddl, error):
@@ -119,19 +119,20 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
 
     class Config(SqlDatabaseConfig):
         def main(self, root):
-            db = root.db('demo', conninfo=dsn)
-            tables = db.schemas().schema('s', x_sql_schema=schema).tables()
-            parent = tables.table('parent', pkey='x,y')
+            db = root.db('demo', implementation='postgres', conninfo=dsn)
+            tables = db.schemas().schema('s', sqlname=schema).tables()
+            parent = tables.table('parent', pkey='pk')
             columns = parent.columns()
             columns.column('x', dtype='I')
             columns.column('y', dtype='I')
+            parent.composites().compositeColumn('pk', columns='x,y')
             child = tables.table('child', pkey='id')
             columns = child.columns()
             columns.column('id', dtype='I')
             columns.column('ax', dtype='I')
             columns.column('ay', dtype='I')
             child.composites().compositeColumn('pair', columns='ax,ay').relation(
-                's.parent', foreign_key=True, on_delete='CASCADE')
+                's.parent', foreign_key=True, onDelete_sql='cascade')
 
     db = AsqueelDb(Config)
     try:
@@ -150,4 +151,4 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
             db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
             db.commit()
         finally:
-            db.close()
+            db.closeConnection()

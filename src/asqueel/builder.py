@@ -10,17 +10,19 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from copy import deepcopy
+from functools import cached_property
 from typing import cast, get_args
-import re
 
 from genro_bag import BagNode
 
-from genro_builders.builder import BuilderBase, SourceBag
+from genro_builders.builder import BuilderBase, SourceBag, container
 from genro_builders.builder.base import SOURCE_ROOT
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
+from .catalog import _VIRTUAL_COLUMN_TAGS
+from .common import default_index_name, in_attribute_family
 from .semantic_elements import SemanticElements
-from .option_elements import BehaviorOptionElements, TABLE_OPTIONS, NAMED_OPTIONS
+from .option_elements import BehaviorOptionElements, NAMED_OPTIONS
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
 from .renderer import SqlRenderer
 from .validators import SqlModelValidator
@@ -71,10 +73,10 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         "relation": "to",
         'type': 'name',
         'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
-        'connection': 'name', 'weak_relation': 'to', 'subtable': 'name', 'virtualRelation': 'name',
-        'hierarchical': 'columns',
+        'connection': 'name', 'weak_relation': 'to', 'virtualRelation': 'name',
+        'hierarchical': 'columns', 'index': 'columns',
         'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
-        'partition': 'name', 'numbering': 'field', 'broadcast': 'columns',
+        'numbering': 'field', 'broadcast': 'columns',
     }
     _singletons = frozenset({'schemas', 'packages', 'extensions', 'tables',
                             'columns', 'virtual_columns', 'composites',
@@ -84,6 +86,14 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         'aliasColumn': 'virtual_columns', 'subQueryColumn': 'virtual_columns',
         'pyColumn': 'virtual_columns', 'compositeColumn': 'composites',
         'index': 'indexes', 'bagItemColumn': 'virtual_columns',
+    }
+    # DbModelSrc.virtual_column's kind cleanup, using the native declarations.
+    _virtual_definitions = {
+        'aliasColumn': {'relation_path'},
+        'formulaColumn': {'sql_formula', 'select', 'exists'},
+        'subQueryColumn': {'query'},
+        'pyColumn': {'py_method', 'method'},
+        'bagItemColumn': {'bagcolumn', 'itempath'},
     }
 
     def __init__(self, name: str | None = None) -> None:
@@ -98,19 +108,36 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     def _node_path(node):
         return node.fullpath or node.label
 
+    @cached_property
+    def table_options(self):
+        """Option tags of :class:`BehaviorOptionElements` and of its subclasses mixed into this builder."""
+        return frozenset(name for cls in type(self).__mro__
+                         if issubclass(cls, BehaviorOptionElements) and not issubclass(cls, BuilderBase)
+                         for name in vars(cls) if self._schema.get_node(name) is not None)
+
+    def option_levels(self, tag):
+        """The owners an option may be declared on; None when ``tag`` is not an option."""
+        return {'table'} if tag in self.table_options else OPTION_LEVELS.get(tag)
+
+
     def main(self, root):
         pass
+
+    @container('joinColumn')
+    def joinColumn(self, target, *args, **kwargs):
+        from .contracts import not_available
+        raise not_available('joinColumn')
 
     def __getattr__(self, name):
         handler = super().__getattr__(name)
         fields = {
             'column': ('name', 'dtype'), 'formulaColumn': ('name', 'sql_formula'),
             'aliasColumn': ('name', 'relation_path'), 'subQueryColumn': ('name', 'query'),
-            'compositeColumn': ('name', 'columns'),
+            'compositeColumn': ('name', 'columns'), 'pyColumn': ('name',), 'bagItemColumn': ('name',),
         }.get(name)
 
         def call(destination, *args, **kwargs):
-            if name in TABLE_OPTIONS and name not in NAMED_OPTIONS and len(args) == 1 and args[0] is False:
+            if name in self.table_options and name not in NAMED_OPTIONS and len(args) == 1 and args[0] is False:
                 if 'enabled' in kwargs:
                     raise ValueError(f'{name}: enabled passed twice')
                 kwargs['enabled'] = False
@@ -133,8 +160,19 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                         raise ValueError(f'{name}: {field} passed twice')
                     kwargs[field] = value
                 args = ()
+                # GenroPy column/virtual_column: 'name::dtype' carries the dtype in the name.
+                if name != 'compositeColumn' and '::' in str(kwargs.get('name', '')):
+                    if 'dtype' in kwargs:
+                        raise ValueError(f'{name}: dtype passed twice')
+                    if kwargs['name'].count('::') != 1:
+                        raise ValueError(f"{name}: {kwargs['name']!r} must be 'name::dtype'")
+                    kwargs['name'], kwargs['dtype'] = kwargs['name'].split('::')
             elif len(args) > 1:
                 raise TypeError(f'{name}: at most one positional argument is allowed')
+            if name in ('table', 'column'):
+                self._missing_feature_attributes(destination, name, kwargs)
+            if name == 'column':
+                self._legacy_column_attributes(destination, kwargs)
             return handler(destination, *args, **kwargs)
 
         return call
@@ -151,12 +189,39 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         finally:
             self._contribution = previous
 
-    def _compose_attributes(self, node, attributes):
+    def _compose_attributes(self, node, attributes, *, node_tag=None):
+        replace_kind = node_tag is not None and node_tag != node.node_tag
+        if replace_kind and not (node.node_tag in self._virtual_definitions
+                                 and node_tag in self._virtual_definitions):
+            raise ValueError(f'{node.fullpath}: conflicting element kinds '
+                             f'{node.node_tag!r} and {node_tag!r}')
         validation_overrides = self._validation_overrides(node, attributes)
         result = deepcopy(dict(node.attr))
         origins = dict(self._attribute_origins)
         path = self._node_path(node)
+        if replace_kind:
+            obsolete = self._virtual_definitions[node.node_tag] - self._virtual_definitions[node_tag]
+            for key in obsolete - attributes.keys():
+                result.pop(key, None)
+                origins = {entry: owner for entry, owner in origins.items()
+                           if entry[0] != path or not (entry[1] == key or entry[1].startswith(key + '.'))}
         meta = result.setdefault('_meta', {})
+        incoming_inherited = (attributes.get('_meta') or {}).get('inherited_attributes', ())
+        if incoming_inherited:
+            meta['inherited_attributes'] = sorted(set(meta.get('inherited_attributes', ()))
+                                                  | set(incoming_inherited))
+        if replace_kind:
+            # An attribute accepted by the original declaration stays valid
+            # when retained (e.g. static on an alias changed to a bag item).
+            declared = self._get_schema_info(node.node_tag).get('declared_names') or set()
+            declared = declared | {key for key in result if in_attribute_family(self, node.node_tag, key)}
+            inherited = set(meta.get('inherited_attributes', ())) | (declared & result.keys())
+            current = self._get_schema_info(node_tag).get('declared_names') or set()
+            inherited = (inherited & result.keys()) - current
+            if inherited:
+                meta['inherited_attributes'] = sorted(inherited)
+            else:
+                meta.pop('inherited_attributes', None)
         disabled = meta.setdefault('disabled_fields', {}) if node.node_tag == 'sys_fields' else {}
 
         def origin(parts):
@@ -172,7 +237,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 for subkey, item in value.items():
                     assign(previous, subkey, item, (*parts, subkey), depth - 1)
                 return
-            if key in target and previous != value and origin(parts) == self._contribution:
+            if not replace_kind and key in target and previous != value and origin(parts) == self._contribution:
                 raise ValueError(f'{path}: conflicting {".".join(parts)!r} '
                                  f'in contribution {self._contribution!r}')
             target[key] = deepcopy(value)
@@ -205,6 +270,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             result.pop('_meta', None)
         node.attr.clear()
         node.attr.update(result)
+        if replace_kind:
+            node.node_tag = node_tag
         self._attribute_origins = origins
         for other, key in validation_overrides:
             other.attr.pop(key, None)
@@ -242,23 +309,25 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             node = node.parent_node
         return None
 
-    @staticmethod
-    def _validate_option(tag, parent, attributes):
+    def _validate_option(self, tag, parent, attributes):
         if tag == 'dynamic_fields' and parent is not None and parent.node_tag == 'column':
             from .option_validation import validate_option
             validate_option(tag, parent, attributes)
             return
         owner = parent.parent_node if parent is not None else None
-        if owner is None or owner.node_tag not in OPTION_LEVELS[tag]:
+        if owner is None or owner.node_tag not in self.option_levels(tag):
             raise ValueError(f'{tag}: option is not available at this level')
-        if tag in TABLE_OPTIONS:
+        if tag in self.table_options:
             from .option_validation import validate_option
             validate_option(tag, parent, attributes)
         if tag == 'driver':
             if owner.get_attr('options') is not None:
                 raise ValueError('Use driver() or legacy connection options, not both')
-            dialect = owner.get_attr('implementation') or owner.parent_node.get_attr('implementation') or 'postgresql'
-            allowed = ({'timeout', 'cached_statements'} if dialect == 'sqlite' else
+            implementation = owner.get_attr('implementation') or owner.parent_node.get_attr('implementation') or 'sqlite'
+            dialect = implementation.partition(':')[0]
+            if 'foreignKeys' in attributes and dialect != 'sqlite':
+                raise ValueError('driver: foreignKeys is a SQLite connection option, not available on PostgreSQL')
+            allowed = ({'timeout', 'cached_statements', 'foreignKeys'} if dialect == 'sqlite' else
                        {'connect_timeout', 'application_name', 'sslmode', 'sslrootcert', 'options'})
             unknown = attributes.keys() - allowed - {'_meta'}
             if unknown:
@@ -289,21 +358,14 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                             raise ValueError(f'sys_fields.{field}.{key}: expected {expected.__name__}')
 
     def _validate_call_args(self, info, node_value, attr, node_tag=""):
-        if node_tag == 'virtualRelation':
-            declared = info.get('declared_names') or set()
-            unknown = [key for key in attr if key not in declared
-                       and key not in ('_meta', '_tag', 'node_label', 'node_position')
-                       and not key.startswith('x_')
-                       and not re.fullmatch(r'var_[A-Za-z_][A-Za-z0-9_]*', key)]
-            if unknown:
-                raise ValueError(f'virtualRelation: unsupported attributes {sorted(unknown)}')
         if node_tag == 'validation':
             return super()._validate_call_args(info, node_value, attr, node_tag)
-        if node_tag in ('db', 'connection', 'package', 'type', 'bagItemColumn', 'subtable'):
-            unknown = set(attr) - set(info.get('declared_names') or ())
-            unknown = {key for key in unknown if '_' not in key}
-            if unknown:
-                raise ValueError(f'{node_tag}: does not accept {sorted(unknown)}')
+        if info.get('accepts_var_keyword'):
+            # An open signature accepts only the attribute families its element declares.
+            self._validate_declared_names(
+                {**info, 'accepts_var_keyword': False},
+                {key: value for key, value in attr.items()
+                 if key != '_meta' and not in_attribute_family(self, node_tag, key)}, node_tag)
         parameter = self._positional_arguments.get(node_tag)
         if parameter is not None and node_value is not None:
             if parameter in attr:
@@ -316,15 +378,13 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 if (not isinstance(value, str) or not value.strip()
                         or any(c in value for c in '.@$/\\')):
                     raise ValueError(f'{node_tag}.{key}: invalid name or path separator')
-        if 'metadata' in attr or 'x_ui' in attr:
-            raise ValueError(f'{node_tag}: use flat namespaced attributes, not metadata/x_ui mappings')
         if node_tag == 'requires' and 'packages' in attr:
             values = attr['packages']
             values = [values] if isinstance(values, str) else values
             if not isinstance(values, (list, tuple)) or any(
                     not isinstance(v, str) or not v or any(c in v for c in '.@$/\\') for v in values):
                 raise ValueError('requires: expected package names')
-        if node_tag in OPTION_LEVELS or node_tag in ('package', 'colgroup'):
+        if self.option_levels(node_tag) is not None or node_tag in ('package', 'colgroup'):
             for key, value in attr.items():
                 entry = (info.get('call_args_validations') or {}).get(key)
                 if value is None and entry is not None:
@@ -332,6 +392,37 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                     if annotation is not object and type(None) not in get_args(annotation):
                         raise ValueError(f'{node_tag}.{key}: None is not allowed')
         return super()._validate_call_args(info, node_value, attr, node_tag)
+
+    def _element_path(self, destination, attr):
+        node = getattr(destination, 'parent_node', None)
+        labels = []
+        while node is not None:
+            if node.node_tag in ('table', 'package', 'schema'):
+                labels.insert(0, node.label)
+            node = node.parent_node
+        return '.'.join([*labels, str(attr.get('name'))])
+
+    def _missing_feature_attributes(self, destination, tag, attr):
+        """Legacy table/column attributes of features absent from this release."""
+        absent = {'variant', 'mixin'} if tag == 'table' else {'variant', 'localized'}
+        for key in attr:
+            if key in absent or key.startswith('ext_'):
+                from .contracts import not_available
+                raise not_available(f'{self._element_path(destination, attr)}: {key}')
+
+    def _legacy_column_attributes(self, destination, attr):
+        """``encrypted`` is refused; ``indexed``/``unique`` strings read as GenroPy ``str_boolean``."""
+        if 'encrypted' in attr:
+            from .contracts import not_available
+            raise not_available(f'{self._element_path(destination, attr)}: encrypted')
+        for key in ('indexed', 'unique'):
+            if isinstance(attr.get(key), str):
+                attr[key] = attr[key].lower() not in ('', 'n', 'no', 'f', 'false', '0')
+        from .common import SQL_COLUMN_KEYS, SQL_DIALECTS
+        for key in attr:
+            dialect = next((f'sql_{d}_' for d in SQL_DIALECTS if key.startswith(f'sql_{d}_')), None)
+            if dialect and f'sql_{key[len(dialect):]}' not in SQL_COLUMN_KEYS:
+                raise ValueError(f"Element 'column' does not accept '{key}'")
 
     def set_child(self, build_where, node_tag, node_value=None, node_label=None,
                   node_position=None, **attr):
@@ -347,24 +438,30 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if node_tag == 'weak_relation':
             return self.set_child(build_where, 'relation', node_value,
                                   foreign_key=False, x_weak=True, **attr)
-        if node_tag == 'relation' and parent is not None and parent.node_tag == 'formulaColumn' and not attr.get('x_weak'):
-            raise ValueError('A scalar virtual column requires weak_relation, never a physical relation')
+        if node_tag == 'relation' and parent is not None and parent.node_tag in _VIRTUAL_COLUMN_TAGS:
+            attr.setdefault('foreign_key', False)
+            if attr['foreign_key']:
+                raise ValueError('foreign_key is not allowed on virtual columns')
+            if not attr['foreign_key']:
+                attr['x_weak'] = True
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
-            attr.setdefault('foreign_key', True)
+            if attr.get('cnd') and attr.get('foreign_key'):
+                raise ValueError(f"relation {attr.get('to')!r}: a relation with cnd= has no foreign key; "
+                                 "remove foreign_key=True")
+            attr.setdefault('foreign_key', not attr.get('cnd'))
             attr['x_canonical'] = True
-        if node_tag in ('subtable', 'virtualRelation'):
+        if node_tag == 'virtualRelation':
             node_label = f'{node_tag}_{attr["name"]}'
             existing = build_where.node(node_label)
             if existing is not None:
                 return self._compose_attributes(existing, attr)
-        if node_tag == 'index' and attr.get('name') is None:
-            if self._package_ancestor(parent) is None and not attr.get('x_auto_name'):
-                raise ValueError('index: name is required outside a package')
-            import hashlib
-            import json
-            key = json.dumps(attr.get('columns'), sort_keys=False)
-            attr['name'] = 'index_' + hashlib.sha256(key.encode()).hexdigest()[:12]
-            attr['x_auto_name'] = True
+        if node_tag == 'index':
+            columns = attr.get('columns')
+            if isinstance(columns, (list, tuple)):
+                attr['columns'] = columns = ','.join(columns)
+            if attr.get('name') is None:
+                table = parent if parent.node_tag == 'table' else parent.parent_node
+                attr['name'] = default_index_name(table.label, columns)
         if node_tag in ('validation', 'encryption'):
             existing = build_where.node(node_tag)
             if existing is not None:
@@ -404,7 +501,12 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                         if key.startswith('col_') and key[4:] in declared
                         and (existing is None or key[4:] not in existing.attr)}
             values = () if node_value is None else (node_value,)
-            return getattr(table, node_tag)(*values, **{**defaults, **attr, 'group': group})
+            child = getattr(table, node_tag)(*values, **{**defaults, **attr, 'group': group})
+            # A layer-local ordinal must not renumber an existing column when
+            # this independently built contribution is composed with its base.
+            child.attr['_meta'] = {**child.attr.get('_meta', {}),
+                                   'colgroup': parent.get_attr('name')}
+            return child
         if node_tag == 'colgroup':
             name = attr.get('name')
             if not isinstance(name, str) or not name or '.' in name:
@@ -430,7 +532,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             self._validate_parent_tags(self._get_schema_info(node_tag), parent)
             name = attr['name']
             owner = parent.parent_node
-            if name not in OPTION_LEVELS or owner.node_tag not in OPTION_LEVELS[name]:
+            if self.option_levels(name) is None or owner.node_tag not in self.option_levels(name):
                 raise ValueError(f'Cannot reset unknown option {name!r} at this level')
             nodes = [node for node in build_where if node.node_tag == name]
             for node in nodes:
@@ -457,7 +559,10 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 if existing.node_tag != node_tag:
                     raise ValueError(f'conflicting element kind for {node_tag!r}')
                 return existing
-        if node_tag in OPTION_LEVELS:
+        if parent is not None and parent.node_tag == 'options' and node_tag != 'reset' \
+                and self.option_levels(node_tag) is None:
+            raise ValueError(f'{node_tag!r} is not an option')
+        if self.option_levels(node_tag) is not None:
             self._validate_option(node_tag, parent, attr)
             if node_label is not None:
                 raise ValueError(f'{node_tag}: node_label is fixed by the option identity')
@@ -497,9 +602,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             if (node_tag in ('schema', 'package') or self._package_ancestor(parent) is not None) and name:
                 existing = build_where.node(name)
                 if existing is not None:
-                    if existing.node_tag != node_tag:
-                        raise ValueError(f'conflicting element kind for {name!r}')
-                    return self._compose_attributes(existing, attr)
+                    return self._compose_attributes(existing, attr, node_tag=node_tag)
         if node_label is not None and build_where.node(node_label) is not None:
             raise ValueError(
                 f"duplicate {node_tag} name {name!r} in the same SQL namespace",

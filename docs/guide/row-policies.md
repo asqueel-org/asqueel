@@ -9,6 +9,18 @@ The supported policies are logical partition scopes, draft visibility, and
 logical deletion. Logical partition scopes add query predicates; they do not
 create PostgreSQL partitions or route queries to other databases.
 
+## Table attributes
+
+`draftField`, `logicalDeletionField` and `partition_<field>` are table
+attributes, as in GenroPy. `sys_fields(draft=True)` supplies `draftField`;
+enabled logical deletion supplies `logicalDeletionField`. SELECT uses these
+declarations, never guesses policy from a column name. Read flags override
+these filters as shown below.
+
+Filters apply to the SELECT root, not automatically to joined tables. Formula
+subqueries retain legacy defaults (include drafts/deleted rows, ignore partition)
+and can explicitly override them.
+
 ## Declare policies in a model
 
 ```python
@@ -17,18 +29,13 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 
 class Documents(SqlDatabaseConfig):
     def main(self, root):
-        table = root.db("documents", conninfo="dbname=example").schemas().schema(
+        table = root.db("documents", implementation="postgres", conninfo="dbname=example").schemas().schema(
             "app",
         ).tables().table(
             "document", pkey="id",
-            x_partition={
-                "field": "organization_id",
-                "current": "organization",
-                "allowed": "allowed_organizations",
-                "include_null": True,
-            },
-            x_draft_field="draft",
-            x_logical_deletion_field="deleted_at",
+            partition_organization_id="organization",
+            draftField="draft",
+            logicalDeletionField="deleted_at",
         )
         columns = table.columns()
         columns.column("id", dtype="I")
@@ -48,13 +55,10 @@ must be a local physical nullable column, distinct from the draft field, and
 cannot be part of the primary key. A non-NULL logical-deletion value means the
 record is deleted; the value does not have to be boolean.
 
-Partition fields must resolve to physical columns. Their `current` and `allowed`
-entries name [environment keys](environment.md), not data values. `allowed` is
-optional; `include_null` defaults to `True`.
-
-Use `x_partitions=[{...}, {...}]` for multiple dimensions. Do not combine
-`x_partition` and `x_partitions`. Each dimension has its own field and environment
-keys; their predicates are combined with AND.
+`partition_<field>='<path>'` partitions the table on the column `<field>`. The
+value `<path>` names two [environment keys](environment.md): `current_<path>`
+and `allowed_<path>`. Only the first `partition_*` attribute of a table counts,
+as in GenroPy.
 
 Inspection does not infer policies from suggestive database column names. Add
 application policies explicitly to an imported model. See [importing](importing.md).
@@ -66,7 +70,7 @@ shared environment:
 
 ```python
 # db comes from a recipe declaring the app.document policy above.
-with db.temp_env(organization=0):
+with db.temp_env(current_organization=10):
     try:
         documents = db.table('app.document').query(columns='$id, $title', order_by='$id').fetch()
         db.commit()
@@ -76,9 +80,8 @@ with db.temp_env(organization=0):
 
 ```
 
-This SELECT restricts `organization_id` to `0`, includes only rows whose draft
+This SELECT restricts `organization_id` to `10`, includes only rows whose draft
 field is not true, and includes only rows whose deletion marker is NULL.
-`0` is a valid current value; it is not treated as missing.
 
 Policy conditions and your explicit `where` are individually parenthesized and
 joined with AND. A user condition containing OR therefore cannot escape the
@@ -86,72 +89,34 @@ partition restriction through operator precedence.
 
 ## Partition semantics
 
-Presence is determined by whether an environment key exists, rather than the
-truth value of its contents.
+The partition filter follows GenroPy `getPartitionCondition`. Values are read
+by their truth value, as in GenroPy.
 
-| Context for one dimension | Resulting restriction |
+| Environment | Resulting restriction |
 |---|---|
-| Current key present with a non-NULL scalar | Field equals that value. `0`, `False`, and `''` remain valid values. |
-| Current key present with `None` | Field IS NULL. |
-| Allowed key present with an empty collection | FALSE: no rows match. |
-| Allowed key present with nonempty values | Field belongs to those values; NULL handling is described below. |
-| Both current and allowed keys present | Both restrictions apply: their intersection. |
-| Neither key present | Compilation raises `ValueError`. |
-
-Values must be appropriate for the database column's type. Allowed values must
-be a collection of scalars, such as a list or tuple. A string, mapping, scalar
-`None`, or nested collection is not an allowed-values collection.
-
-For a nonempty allowed collection, `include_null=True` also admits NULL rows.
-With `include_null=False`, NULL rows are admitted only when the collection
-explicitly contains `None`. An empty collection always matches no rows,
-regardless of `include_null`.
+| `current_<path>` true | `$<field> = :env_current_<path>`. |
+| `current_<path>` false or absent, `allowed_<path>` true | `$<field> IS NULL OR $<field> IN :env_allowed_<path>`. |
+| Neither true | No restriction. `0`, `False`, `''`, `None` and an empty collection add no filter. |
 
 ```python
-with db.temp_env(allowed_organizations=[10, 20]):
-    # With include_null=True: organization_id IN (10, 20) OR organization_id IS NULL.
+with db.temp_env(allowed_organization=[10, 20]):
+    # organization_id IS NULL OR organization_id IN (10, 20).
     query = db.table('app.document').query(columns='$id')
     print(query.sqltext)
-
-with db.temp_env(organization=10, allowed_organizations=[20]):
-    # The current value is outside the allowed set, so the SELECT matches no rows.
-    query = db.table('app.document').query(columns='$id')
-    print(query.sqltext)
-
-with db.temp_env(allowed_organizations=[]):
-    query = db.table('app.document').query(columns='$id')
-    print(query.sqltext)  # Matches no rows.
 ```
 
-These examples assume that `db.environment` has no default current organization. Temporary
-scopes overlay existing values; they do not remove an inherited current key.
-Assigning `None` requests NULL rows rather than removing the key.
+The GenroPy fallback on an `__allowed_partition` column of the related table is
+not available in this release.
 
-`ignore_partition=True` explicitly bypasses partition predicates and their
-required context:
+`ignore_partition=True` explicitly bypasses partition predicates:
 
 ```python
 query = db.table('app.document').query(columns='$id', ignore_partition=True)
 print(query.sqltext)
 ```
 
-It does not disable draft or logical-deletion filtering. The same option exists
-on insert, update, delete, soft_delete, and restore; expose it only where your
-application intends to allow that behavior.
-
-### Relational partition fields
-
-A partition may use a declared to-one path, for example `@organization.region`.
-SELECT resolves the relation and applies the root table's partition condition
-to the reached field. The relation must have a recognized unique target key.
-
-This does not automatically apply the target table's own draft, deletion, or
-partition policies. A missing target yields NULL; it can therefore match a
-NULL-accepting scope.
-
-Writes on a table with a relational partition are rejected unless
-`ignore_partition=True` is explicitly supplied. The compiler does not silently
-substitute an unguarded write for a relational guard.
+It does not disable draft or logical-deletion filtering. Writes do not read
+partitions, so the option has no write counterpart.
 
 ## Draft visibility
 
@@ -195,71 +160,35 @@ aggregates, are rejected in mark mode. If `*` includes a formula, use an explici
 physical-column list. For an aggregate that should include deleted rows, use
 `exclude_logical_deleted=False` without requesting a marker.
 
-## Guarded writes
+## Writes and policies
 
-Partition policies apply to insert, update, and physical delete. Draft and
-logical-deletion read filters do not automatically apply to these operations.
+Partition, draft and logical-deletion policies filter reads only. As in GenroPy,
+`insert` does not fill the partition column from the environment, and `update`
+and `delete` do not check that the row belongs to the current or allowed
+partition ([#15](https://github.com/asqueel-org/asqueel/issues/15) proposes it).
+Set the partition column in the record yourself.
 
-For INSERT, a missing partition column is filled from its current environment
-value, including `None`. With only an allowed set and no current value, the
-insert must provide that column explicitly. Provided values must satisfy both
-the current and allowed restrictions; out-of-scope values raise `ValueError`.
+## Logical deletion and restoration
 
-For UPDATE, the existing row is restricted by the partition predicate. If the
-update changes a partition column, its new value is checked against the same
-scope. An explicit empty allowed collection matches no existing rows and
-cannot be used to insert a new row. A supplied out-of-scope replacement value
-is rejected before execution.
-
-```python
-with db.temp_env(organization=10):
-    # Compile only, without executing a write.
-    created = db.compiler.insert(
-        'app.document', {'id': 100, 'title': 'Draft', 'draft': True},
-    )  # organization_id is filled with 10.
-    print(created.sql, dict(created.params))
-```
-
-Here `db.compiler` is used explicitly to inspect the generated write before
-executing anything. Ordinary application calls to `table.insert()` and
-`table.update()` execute immediately.
-
-A SQL guard that matches no rows produces a normal zero-row update/delete;
-it is not an authorization exception. Update and delete still require an
-explicit predicate. `where='TRUE'` means every row allowed by the partition
-scope, unless that scope is explicitly bypassed.
-
-## Soft deletion and restoration
-
-Soft deletion is an UPDATE with an explicit non-NULL marker value. Restoration
-sets the marker to NULL. Neither operation adds draft/deletion read filters;
-both retain the normal partition write guards.
+There is no soft-delete command. Mark a row as deleted by writing its
+logical-deletion column with `update()`, and restore it by writing `None`:
 
 ```python
 from datetime import datetime, timezone
 
-with db.temp_env(organization=10):
-    try:
-        document = db.table('app.document')
-        deleted = document.soft_delete(
-            value=datetime.now(timezone.utc),
-            where='$id = :id', sqlparams={'id': 100},
-            returning='$id, $deleted_at',
-        )
-        restored = document.restore(
-            where='$id = :id', sqlparams={'id': 100},
-            returning='$id, $deleted_at',
-        )
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+try:
+    document = db.table('app.document')
+    old = dict(document.query(where='$id = :id', id=100, for_update=True).fetchRecord())
+    document.update(dict(old, deleted_at=datetime.now(timezone.utc)), old)
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
 
 ```
 
-These table methods execute immediately in the shared transaction. They require
-an existing row to affect any data. `document.delete(...)` remains a physical
-DELETE even when the model declares a logical-deletion field.
+The update runs the normal write cycle and its hooks. `document.delete(...)`
+remains a physical DELETE even when the model declares a logical-deletion field.
 
 See [environment scopes](environment.md) for query reuse checks and
 [transactions](transactions.md) for grouping changes atomically.

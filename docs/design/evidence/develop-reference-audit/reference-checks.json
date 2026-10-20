@@ -1,0 +1,10 @@
+{
+  "old_sql_equals_merge_base": true,
+  "develop_compilers_equal_after_name_and_module_doc_normalization": true,
+  "legacy_compiler_sha256": "84768a8bb8a40d4f4df5bdf4d06e5f41ba904221309d702a7c35d9bddf7085da",
+  "next_compiler_sha256": "4fd33782318908180d2cb047024792094014daa655a353febaa61ab92210cb56",
+  "src_and_tests_unchanged": true,
+  "xml_valid": true,
+  "audit_local_links_valid": true,
+  "all_24_commits_accounted_for": true
+}

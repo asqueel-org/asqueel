@@ -1,0 +1,109 @@
+{"snapshot": "compound", "checks": 100, "mismatches": 4}
+[
+  {
+    "kind": "prepared",
+    "name": "cast",
+    "dialect": "postgresql",
+    "sql": "SELECT :x::numeric AS value",
+    "params": {
+      "x": 3
+    },
+    "snapshot": {
+      "workdate": {
+        "type": "date",
+        "value": "2026-10-14"
+      }
+    },
+    "legacy": {
+      "value": {
+        "sql": "SELECT %(x)s:%(numeric)s AS value",
+        "params": {
+          "x": 3
+        }
+      }
+    },
+    "current": {
+      "value": {
+        "sql": "SELECT %(x)s::numeric AS value",
+        "params": {
+          "x": 3
+        }
+      }
+    }
+  },
+  {
+    "kind": "prepared",
+    "name": "cast_no_bind",
+    "dialect": "postgresql",
+    "sql": "SELECT t0.value::numeric AS value FROM t0",
+    "params": {},
+    "snapshot": {
+      "workdate": {
+        "type": "date",
+        "value": "2026-10-14"
+      }
+    },
+    "legacy": {
+      "value": {
+        "sql": "SELECT t0.value%(:numeric)s AS value FROM t0",
+        "params": {}
+      }
+    },
+    "current": {
+      "value": {
+        "sql": "SELECT t0.value::numeric AS value FROM t0",
+        "params": {}
+      }
+    }
+  },
+  {
+    "kind": "prepared",
+    "name": "boolean",
+    "dialect": "sqlite",
+    "sql": "SELECT (t0.flag IS NOT TRUE) AS value FROM t0",
+    "params": {},
+    "snapshot": {
+      "workdate": {
+        "type": "date",
+        "value": "2026-10-14"
+      }
+    },
+    "legacy": {
+      "value": {
+        "sql": "SELECT (t0.flag !=1 ) AS value FROM t0",
+        "params": {}
+      }
+    },
+    "current": {
+      "value": {
+        "sql": "SELECT ((t0.flag IS NULL OR t0.flag !=1)) AS value FROM t0",
+        "params": {}
+      }
+    }
+  },
+  {
+    "kind": "prepared",
+    "name": "false",
+    "dialect": "sqlite",
+    "sql": "SELECT t0.flag IS FALSE AS value FROM t0",
+    "params": {},
+    "snapshot": {
+      "workdate": {
+        "type": "date",
+        "value": "2026-10-14"
+      }
+    },
+    "legacy": {
+      "value": {
+        "sql": "SELECT t0.flag =0  AS value FROM t0",
+        "params": {}
+      }
+    },
+    "current": {
+      "value": {
+        "sql": "SELECT (t0.flag IS NOT NULL AND t0.flag =0) AS value FROM t0",
+        "params": {}
+      }
+    }
+  }
+]

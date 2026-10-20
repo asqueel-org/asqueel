@@ -93,7 +93,7 @@ from asqueel import AsqueelDb
 
 db = AsqueelDb("gestionale")
 rows = db.table("sales.customer").query().fetch()
-db.close()
+db.closeConnection()
 
 ```
 
@@ -107,7 +107,7 @@ db = AsqueelDb(DatabaseConfiguration)
 query = db.table("sales.invoice").rows_query(100)
 print(query.compiled.sql)  # No connection
 # rows = query.fetch()     # Requires an existing matching PostgreSQL schema
-db.close()
+db.closeConnection()
 
 ```
 

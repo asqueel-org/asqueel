@@ -1,0 +1,138 @@
+{
+  "legacy_reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "legacy_algorithm": "gnrpy/gnr/sql/gnrsqlmigration/orm_extractor.py",
+  "comparison": "complete dict equality; only agreed sys.locked_record exclusion from legacy oracle",
+  "canonical_hashes": {
+    "hierarchy": "37f21b5d3dd72a4531a061331c62b4cfcacede819dc4d34fed4c9ddda977bb45",
+    "native": "37f21b5d3dd72a4531a061331c62b4cfcacede819dc4d34fed4c9ddda977bb45",
+    "legacy_admitted": "37f21b5d3dd72a4531a061331c62b4cfcacede819dc4d34fed4c9ddda977bb45"
+  },
+  "packages": {
+    "sys": {
+      "tables": 16,
+      "columns": 188,
+      "relations": 7,
+      "indexes": 56,
+      "members": [
+        "sys_batch_log",
+        "sys_calendar",
+        "sys_dataretention",
+        "sys_dbchange",
+        "sys_error",
+        "sys_external_token",
+        "sys_external_token_use",
+        "sys_externalcall_log",
+        "sys_service",
+        "sys_shared_object",
+        "sys_shorturl",
+        "sys_task",
+        "sys_task_execution",
+        "sys_task_result",
+        "sys_upgrade",
+        "sys_widget"
+      ]
+    },
+    "adm": {
+      "tables": 40,
+      "columns": 412,
+      "relations": 32,
+      "indexes": 150,
+      "members": [
+        "adm_access_group",
+        "adm_api_token",
+        "adm_api_token_tag",
+        "adm_audit",
+        "adm_authorization",
+        "adm_backup",
+        "adm_ckstyle",
+        "adm_connection",
+        "adm_counter",
+        "adm_day",
+        "adm_group",
+        "adm_group_helpdoc",
+        "adm_helpdoc",
+        "adm_htag",
+        "adm_htmltemplate",
+        "adm_htmltemplate_atc",
+        "adm_install_checklist",
+        "adm_language",
+        "adm_letterhead_type",
+        "adm_menu",
+        "adm_menu_page",
+        "adm_notification",
+        "adm_pkginfo",
+        "adm_preference",
+        "adm_record_tag",
+        "adm_sent_email",
+        "adm_served_page",
+        "adm_shortcut",
+        "adm_tblinfo",
+        "adm_tblinfo_item",
+        "adm_user",
+        "adm_user_access_group",
+        "adm_user_config",
+        "adm_user_group",
+        "adm_user_notification",
+        "adm_user_setting",
+        "adm_user_tag",
+        "adm_userobject",
+        "adm_week",
+        "adm_xgroup"
+      ]
+    },
+    "invc": {
+      "tables": 18,
+      "columns": 189,
+      "relations": 19,
+      "indexes": 76,
+      "members": [
+        "invc_customer",
+        "invc_customer_type",
+        "invc_discount_tier",
+        "invc_invoice",
+        "invc_invoice_note",
+        "invc_invoice_row",
+        "invc_payment_type",
+        "invc_postcode",
+        "invc_price_year",
+        "invc_price_year_note",
+        "invc_product",
+        "invc_product_group",
+        "invc_product_type",
+        "invc_region",
+        "invc_staff",
+        "invc_staff_role",
+        "invc_state",
+        "invc_vat_type"
+      ]
+    }
+  },
+  "targeted": {
+    "passed": 78,
+    "seconds": 5.82
+  },
+  "suite": {
+    "passed": 2300,
+    "skipped": 13,
+    "seconds": 84.56
+  },
+  "postgresql": "temporary test_asqueel_* database; apply/introspect/rediff and evolution passed",
+  "checks": {
+    "ruff": "passed",
+    "mypy": "passed on 56 source files",
+    "diff_check": "passed"
+  },
+  "commands": {
+    "export": "PYTHONPATH=.:src:../asqueel-migration/src venv/bin/python scripts/export_invoice_tree_migration.py",
+    "targeted": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts='' tests/object_tree/test_migration.py",
+    "suite": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=''"
+  },
+  "compiler_diff_unchanged": true,
+  "sha256": {
+    "src/asqueel/projection.py": "8a3ea4165f08d8afd1221573a4e341c1f478bd541f604f41be1c6298a4130ea4",
+    "src/asqueel/object_tree_projection.py": "da985f4afc6039e72032b569529b469ee30870facfcb69cb18b7cd12ee79d9ad",
+    "tests/object_tree/test_migration.py": "7b4f245466911da2a6ece760bea1094c7c70a54e1b75cb8d2af9688bd48b12c2",
+    "scripts/export_invoice_tree_migration.py": "3c542bcbc066f656be9d0199a22a9c31d37309b435215fdd001572a9a45fad19",
+    "artifacts/test_invoice_pg/objects_tree/migration.json": "a107eecc1784480faa36dfb49ecbb8d2a1c12096c8093f77a8e68fda00dcb056"
+  }
+}

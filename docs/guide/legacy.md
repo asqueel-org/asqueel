@@ -14,6 +14,8 @@ rows = db.table('sales.invoice').query(
 Use this chapter to understand the relationship with Genropy’s legacy database layer and the
 intentional differences. It is organized around application behavior rather
 than the internal modules of either implementation.
+For the status of each legacy feature, see
+[Differences from GenroPy](legacy-features.md).
 
 ## Contracts to carry forward
 
@@ -45,11 +47,11 @@ identity, collection cardinality, ordering and NULL/empty behavior first.
 
 ### Partition context has explicit semantics
 
-The new partition contract treats `0` and `False` as valid values. An empty
-allowed collection selects no rows. Missing required context raises an error
-unless bypass is explicitly requested. When both current and allowed values
-are present, both restrict access. The old possibility of silently omitting a
-filter is not carried forward.
+Partitions follow GenroPy: `partition_<field>='<path>'` reads
+`current_<path>`, then `allowed_<path>`, from the environment. Falsy values
+(`0`, `False`, an empty collection) and a missing key filter nothing, so a
+query without partition context sees every row. When both keys are present,
+`current_<path>` wins.
 
 These are application row scopes. They do not define a PostgreSQL physical
 partition or a logical subtable.

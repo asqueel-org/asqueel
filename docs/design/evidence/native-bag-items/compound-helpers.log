@@ -1,0 +1,110 @@
+....FFF                                                                  [100%]
+=================================== FAILURES ===================================
+___________________ TestHelpers.test_bagItemFormula_integer ____________________
+
+self = <test_bag_items.TestHelpers object at 0x10de70c50>
+
+    def test_bagItemFormula_integer(self):
+        kw = {}
+>       result = bagItemFormula(bagcolumn='$details', itempath='x.y', dtype='I', kwargs=kw)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+bagcolumn = '$details', itempath = 'x/y', dtype = 'I'
+kwargs = {'var_calculated_path': '/GenRoBag/x/y/text()'}
+
+    def bagItemFormula(bagcolumn=None,itempath=None,dtype=None,kwargs=None):
+        itemlist = itempath.split('.')
+        last_chunk = itemlist[-1]
+        suffix = 'text()'
+        if '?' in last_chunk:
+            last_chunk,searchattr = last_chunk.split('?')
+            suffix = f'@{searchattr}'
+            itemlist[-1] = last_chunk
+        itempath = '/'.join([c if not c.startswith('#') else f'*[{int(c[1:])+1}]' for c in itemlist])
+        sql_formula = f""" CAST( (xpath(:calculated_path, CAST({bagcolumn} as XML) ) )[1]  AS text)"""
+        kwargs['var_calculated_path'] = f'/GenRoBag/{itempath}/{suffix}'
+        dtype = dtype or 'T'
+        typeconverter = {'T':'text','A':'text','C':'text','P':'text', 'N': 'numeric','B': 'boolean',
+                     'D': 'date', 'H': 'time without time zone','L': 'bigint', 'R': 'real','X':'text'}
+>       desttype = typeconverter[dtype]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'I'
+
+/tmp/asqueel-formula-baseline/compound/gnrpy/gnr/sql/gnrsqlmodel.py:54: KeyError
+__________________ TestHelpers.test_bagItemFormula_timestamp ___________________
+
+self = <test_bag_items.TestHelpers object at 0x10de70ec0>
+
+    def test_bagItemFormula_timestamp(self):
+        kw = {}
+>       result = bagItemFormula(bagcolumn='$details', itempath='x.y', dtype='DH', kwargs=kw)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+bagcolumn = '$details', itempath = 'x/y', dtype = 'DH'
+kwargs = {'var_calculated_path': '/GenRoBag/x/y/text()'}
+
+    def bagItemFormula(bagcolumn=None,itempath=None,dtype=None,kwargs=None):
+        itemlist = itempath.split('.')
+        last_chunk = itemlist[-1]
+        suffix = 'text()'
+        if '?' in last_chunk:
+            last_chunk,searchattr = last_chunk.split('?')
+            suffix = f'@{searchattr}'
+            itemlist[-1] = last_chunk
+        itempath = '/'.join([c if not c.startswith('#') else f'*[{int(c[1:])+1}]' for c in itemlist])
+        sql_formula = f""" CAST( (xpath(:calculated_path, CAST({bagcolumn} as XML) ) )[1]  AS text)"""
+        kwargs['var_calculated_path'] = f'/GenRoBag/{itempath}/{suffix}'
+        dtype = dtype or 'T'
+        typeconverter = {'T':'text','A':'text','C':'text','P':'text', 'N': 'numeric','B': 'boolean',
+                     'D': 'date', 'H': 'time without time zone','L': 'bigint', 'R': 'real','X':'text'}
+>       desttype = typeconverter[dtype]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'DH'
+
+/tmp/asqueel-formula-baseline/compound/gnrpy/gnr/sql/gnrsqlmodel.py:54: KeyError
+_______ TestHelpers.test_bagItemFormula_unknown_dtype_falls_back_to_text _______
+
+self = <test_bag_items.TestHelpers object at 0x10de71130>
+
+    def test_bagItemFormula_unknown_dtype_falls_back_to_text(self):
+        # issue #22: unresolved dtypes must not raise KeyError
+        kw = {}
+>       result = bagItemFormula(bagcolumn='$details', itempath='x.y', dtype='money', kwargs=kw)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+bagcolumn = '$details', itempath = 'x/y', dtype = 'money'
+kwargs = {'var_calculated_path': '/GenRoBag/x/y/text()'}
+
+    def bagItemFormula(bagcolumn=None,itempath=None,dtype=None,kwargs=None):
+        itemlist = itempath.split('.')
+        last_chunk = itemlist[-1]
+        suffix = 'text()'
+        if '?' in last_chunk:
+            last_chunk,searchattr = last_chunk.split('?')
+            suffix = f'@{searchattr}'
+            itemlist[-1] = last_chunk
+        itempath = '/'.join([c if not c.startswith('#') else f'*[{int(c[1:])+1}]' for c in itemlist])
+        sql_formula = f""" CAST( (xpath(:calculated_path, CAST({bagcolumn} as XML) ) )[1]  AS text)"""
+        kwargs['var_calculated_path'] = f'/GenRoBag/{itempath}/{suffix}'
+        dtype = dtype or 'T'
+        typeconverter = {'T':'text','A':'text','C':'text','P':'text', 'N': 'numeric','B': 'boolean',
+                     'D': 'date', 'H': 'time without time zone','L': 'bigint', 'R': 'real','X':'text'}
+>       desttype = typeconverter[dtype]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'money'
+
+/tmp/asqueel-formula-baseline/compound/gnrpy/gnr/sql/gnrsqlmodel.py:54: KeyError
+=========================== short test summary info ============================
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py::TestHelpers::test_bagItemFormula_integer
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py::TestHelpers::test_bagItemFormula_timestamp
+FAILED ../../../../../var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/bag-item-replay-ps05n9zg/test_bag_items.py::TestHelpers::test_bagItemFormula_unknown_dtype_falls_back_to_text
+3 failed, 4 passed in 0.21s

@@ -52,11 +52,10 @@ def test_constraint_and_index_names_do_not_share_the_column_namespace():
     assert item["constraints"] and item["indexes"]
 
 
-def test_index_requires_a_name_and_columns():
+def test_index_name_defaults_as_legacy_and_columns_are_required():
     model, table, _columns = _table()
     indexes = table.indexes()
-    with pytest.raises((TypeError, ValueError), match="name"):
-        indexes.index(columns="id")
+    assert indexes.index(columns="id").get_attr("name") == f"{table.get_attr('name')}_id_key"
     indexes.index(name="empty")
     with pytest.raises(SqlModelValidationError, match="columns"):
         model.validate_model()
@@ -103,9 +102,8 @@ def test_auto_index_over_the_exact_pkey_is_suppressed():
 
 def test_sql_type_and_dotted_address_names_are_rejected():
     model, _table_node, columns = _table()
-    columns.column(name="native", sql_type="geometry(Point,4326)")
-    with pytest.raises(SqlModelValidationError, match="sql_type"):
-        model.validate_model()
+    with pytest.raises(ValueError, match="does not accept 'sql_type'"):
+        columns.column(name="native", sql_type="geometry(Point,4326)")
     dotted = _mount()
     db = dotted.source.db(name="d")
     with pytest.raises(ValueError, match="dot|separator|name"):

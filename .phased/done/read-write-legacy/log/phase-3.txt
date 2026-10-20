@@ -1,0 +1,8 @@
+✓ Phase 3 completata: le scritture su singolo record ora seguono il legacy. Commit `bc10718` sul branch `plan/write-cycle`.
+
+- **Test:** i contract test della fase passano tutti, 22/22 su SQLite e PostgreSQL. Passano anche i test delle Phase 1-2. Suite completa: 5180 passed, 42 skipped, 27 xfailed. `ruff` e `mypy src` puliti. Gli errori `import-not-found` su `asqueel_migration` vengono dal mypy dell'hook di commit, che è solo consultivo.
+- **Test riallineati per decisione del piano:**
+  - `test_handles` testava la rilettura di un dict incompleto, che la decisione del piano ha tolto.
+  - `test_write_cycle` ora cancella passando la key string.
+  - `test_write_compiler` passa la composite key come stringa serializzata.
+- **Da rivedere (`> Review:` nel piano):** su SQLite `lock_table` ora restituisce un `UPDATE` che non tocca righe, invece di None. Così `hierarchical.lock_roots` lo esegue anche su SQLite. Il controllo `is not None` in `hierarchical.py` e il commento accanto non servono più; il file era fuori dai Files della fase.

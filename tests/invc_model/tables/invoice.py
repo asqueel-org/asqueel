@@ -8,7 +8,7 @@ def config_db(tables):
     columns.column("number", dtype="A", size="0:24", notnull=True)
     customer_id = columns.column("customer_id", dtype="L", notnull=True)
     customer_id.relation(
-        "invc.customer.id", foreign_key=True, on_delete="RESTRICT",
+        "invc.customer.id", foreign_key=True, onDelete_sql="restrict",
     )
     columns.column("invoice_date", dtype="D", notnull=True)
     columns.column("total", dtype="N", size="12,2", notnull=True)
@@ -22,6 +22,6 @@ def config_db(tables):
     )
     indexes = table.indexes()
     indexes.index(
-        "ix_invoice_customer_date", columns="customer_id,invoice_date",
+        name="ix_invoice_customer_date", columns="customer_id,invoice_date",
     )
     return table

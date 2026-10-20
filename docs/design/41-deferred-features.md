@@ -1,6 +1,6 @@
 # 41 — Funzionalità rinviate
 
-Aggiornato il **13 ottobre 2026**. Registro dei rinvii esplicitamente decisi
+Aggiornato il **16 ottobre 2026**. Registro dei rinvii esplicitamente decisi
 durante la definizione del core. Il rinvio non è una rimozione definitiva.
 Le funzionalità ancora da discutere o da implementare non entrano in questo
 elenco automaticamente: restano nei rispettivi contratti e piani.
@@ -148,3 +148,110 @@ le quattro virtuali di base che il legacy aggiunge sempre con sysFields
 
 **Alla ripresa:** riesaminare i singoli flag legacy e decidere le firme di
 tabella; non presumere approvati il raggruppamento diagnostics o rules.
+
+## R-08 — Macro `#PREF`
+
+**Decisione del 14 ottobre 2026:** annotata tra le funzionalità legacy non
+portate; esclusa dal lavoro corrente sul compilatore.
+
+**Funzione nel legacy:** `#PREF(path, default)` legge una preferenza del
+package della tabella durante la compilazione. `expandPref` in
+`gnrpy/gnr/sql/gnrsqldata/compiler.py` chiama
+`curr_tblobj.pkg.getPreference(path, default)` e inserisce nel SQL il valore
+convertito in stringa.
+
+**Caso concreto:** `invc.invoice_row.adjusted_total` dichiara
+`$line_total * #PREF(markup_rate,1)`. La dichiarazione resta conservata nel
+modello, ma la sua compilazione resta esplicitamente non supportata. Non si
+sostituisce la macro con il default né con un nuovo meccanismo di preferenze.
+Nel censimento delle 462 formule questa è un'esclusione concordata, non una
+funzionalità ancora da completare nel perimetro corrente.
+
+**Alla ripresa:** riesaminare il contratto delle preferenze del package e
+l'espansione legacy, senza presumere approvata un'API sostitutiva.
+
+## R-09 — Query concatenate e operatori fra query
+
+**Decisione del 14 ottobre 2026:** rinviare per ora entrambi i fronti:
+
+- concatenazione `q.query(...).query(...)` come SELECT FROM SELECT, compresi
+  i JOIN esterni attraverso le colonne proiettate;
+- operatori `+` UNION, `|` UNION ALL, `&` INTERSECT e `-` EXCEPT.
+
+Il rinvio riguarda i passi 3 e 4 del piano 56 e le relative verifiche combinate.
+Non revoca le firme già concordate, non elimina l'indagine legacy e non
+riguarda le sottoquery delle formule `select`, `exists`, `select_*` già portate.
+Questi due fronti non bloccano il completamento della query singola.
+
+**Alla ripresa:** riutilizzare il piano 56 e il riesame dei branch nel rapporto
+57, verificando nuovamente le premesse sul compilatore allora disponibile.
+
+
+## R-10 — Compilazione delle relazioni verso molti sul nuovo albero
+
+**Aggiornamento del 16 ottobre 2026:** non portare le JOIN verso molti,
+le righe esplose e il DISTINCT implicito del legacy. Il percorso di lettura
+è ormai unico; count e aggregati numerici sono implementati nel
+[passo 103](103-numeric-many-aggregates.md), join e ordine nel
+[passo 104](104-join-ordered-many-aggregates.md), JSON nel
+[passo 105](105-json-many-aggregates.md), XML Bag PostgreSQL nel
+[passo 106](106-xml-many-aggregates.md).
+
+Si riconosce `@relazione.operazione(argomenti)` e si cerca l'handler `many_*`
+tramite getattr. L’handler `many_aggr` compila count/sum/avg/min/max, join, to_json e to_xml, con ordine base
+o override `.order_by(...)`; XML è disponibile solo su PostgreSQL. La sintassi concordata
+usa **soltanto `.aggr(...)`** come aggregazione, con `count`, `sum`, `avg`,
+`min`, `max`, `join`, `to_json` e `to_xml` al suo interno, espressioni e risultati
+su più colonne con alias. `to_xml` produce XML compatibile con Bag; `join`
+prevede un placeholder per valore vuoto, di default `''`. L’ordine base della
+tabella si applica automaticamente e `.order_by(...)` lo sostituisce. Vale per
+relazioni ordinarie e virtualRelation verso molti: niente proiezioni nude.
+
+Decisioni e punti ancora aperti sono nel
+[documento 101](101-many-aggregation-decisions.md). I precedenti esempi di metodi
+diretti sum/calc/first/last non definiscono la grammatica attuale. Prima/ultima
+riga ordinata restano rinviate; XML Bag è implementato su PostgreSQL.
+LATERAL è un'eventuale tecnica SQL,
+non una firma pubblica approvata.
+
+**Alla ripresa:** i contratti approvati delle aggregazioni passano, senza xfail
+([rapporto 106](106-xml-many-aggregates.md)). `to_xml` è disponibile su PostgreSQL; SQLite non ha la capability,
+senza fallback. `to_json` è implementato su entrambi.
+Non introdurre aggregazioni automatiche né importare il meccanismo exploding.
+Il [rapporto della fase 2](88-legacy-rewrite-phase2.md) conserva l'evidenza storica.
+
+
+## R-11 — Wildcard avanzati
+
+**Decisione del 15 ottobre 2026:** mantenere soltanto `*` e le colonne esplicite.
+Escludere dalla TODO i wildcard per prefisso o percorso di relazione: non sono
+necessari per chiudere il perimetro corrente del compilatore.
+Restano disponibili le espressioni e i riferimenti espliciti già supportati,
+compresi `$campo` e i percorsi `@relazione.campo` verso uno.
+
+**Non portati:** `*@relazione`, `*@relazione.prefisso_`,
+`*@relazione.(campo1,campo2)` e la variante `*prefisso_` descritta nel legacy.
+Quest'ultima richiede una precisazione: il ramo locale di `expandMultipleColumns`
+nel riferimento esaminato restituisce tutte le star columns, senza filtrare
+il prefisso. Non si assume il docstring come comportamento implementato.
+
+**Evidenza:** la ricerca Sourcerer ha trovato usi delle forme avanzate nei test
+e nella documentazione, senza evidenza applicativa nei risultati esaminati.
+La ricerca letterale `*@` è completa nell'indice consultato; quella più generale
+sui prefissi è parziale e non esclude costruzioni dinamiche. Dettagli e limiti
+nel [censimento](evidence/wildcard-usage/sourcerer.json).
+La decisione privilegia la semplicità e non dipende da una pretesa assenza
+assoluta di usi nel legacy.
+
+**Effetto:** nessuna modifica al codice; sul nuovo albero rimane il rifiuto
+esplicito delle forme avanzate. Un eventuale recupero richiederà un'esigenza
+concreta e una nuova decisione, senza reintroduzione automatica durante il port.
+
+
+## R-12 — ask nelle virtualRelation
+
+**Decisione del 16 ottobre 2026:** per ora non serve. Escluso dalla TODO attiva
+delle letture e delle aggregazioni. Dichiarazione, contesto e punti da riprendere
+sono conservati nel [documento separato 108](108-deferred-virtual-relation-ask.md).
+Nessuna modifica al codice: la grammatica conserva la dichiarazione, mentre
+il compilatore continua a rifiutarne l'uso nelle aggregazioni.

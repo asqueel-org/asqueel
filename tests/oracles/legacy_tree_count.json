@@ -1,0 +1,2043 @@
+{
+  "reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "cases": [
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "plain",
+        "table": "invc.invoice",
+        "columns": "$id,$total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "where",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestWhereOrderBy",
+        "params": {
+          "minimum": 100
+        },
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$total>:minimum"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"total\">:minimum)",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"total\">:minimum)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(\"t0\".\"total\">:minimum)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "total": "total"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "empty",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "1=0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(1=0)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "to_one",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "@customer_id.account_name IS NOT NULL"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+          ],
+          "where": "(\"t1\".\"account_name\" IS NOT NULL)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "_customer_id_account_name": "@customer_id.account_name"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "projection_only",
+        "table": "invc.invoice",
+        "columns": "@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "group",
+        "table": "invc.invoice",
+        "columns": "$customer_id,SUM($total) AS sum_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$customer_id"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "\"t0\".\"customer_id\"",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "having",
+        "table": "invc.invoice",
+        "columns": "$customer_id,SUM($total) AS sum_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestGroupByHaving",
+        "params": {
+          "minimum": 100
+        },
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$customer_id",
+          "having": "SUM($total)>:minimum"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\")>:minimum",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\")>:minimum",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "\"t0\".\"customer_id\"",
+          "having": "SUM(\"t0\".\"total\")>:minimum",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id",
+            "total": "total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        }
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "empty_group",
+        "table": "invc.invoice",
+        "columns": "$customer_id,SUM($total) AS sum_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$customer_id",
+          "where": "1=0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)\nGROUP BY \"t0\".\"customer_id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)\nGROUP BY \"t0\".\"customer_id\"",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "(1=0)",
+          "group_by": "\"t0\".\"customer_id\"",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "group_relation",
+        "table": "invc.invoice",
+        "columns": "@customer_id.account_name,SUM($total) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestGroupByHaving",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "@customer_id.account_name",
+          "having": "SUM($total)>0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nGROUP BY \"t1\".\"account_name\"\nHAVING SUM(\"t0\".\"total\")>0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nGROUP BY \"t1\".\"account_name\"\nHAVING SUM(\"t0\".\"total\")>0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+          ],
+          "where": "",
+          "group_by": "\"t1\".\"account_name\"",
+          "having": "SUM(\"t0\".\"total\")>0",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "_customer_id_account_name": "@customer_id.account_name",
+            "total": "total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "distinct",
+        "table": "invc.invoice",
+        "columns": "$customer_id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "distinct_relation",
+        "table": "invc.invoice",
+        "columns": "@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+          ],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "_customer_id_account_name": "@customer_id.account_name"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "distinct_formula",
+        "table": "invc.invoice_row",
+        "columns": "$line_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaSql",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT ( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT ( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "line_total": "line_total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "empty_distinct",
+        "table": "invc.invoice",
+        "columns": "$customer_id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true,
+          "where": "1=0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "(1=0)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "group_star",
+        "table": "invc.invoice",
+        "columns": "SUM($total) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "*"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "aggregate_projection",
+        "table": "invc.invoice",
+        "columns": "SUM($total) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "defaults",
+        "table": "invc.customer",
+        "columns": "*",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDraftField",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {}
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND ((\"t0\".\"__is_draft\" IS NULL OR \"t0\".\"__is_draft\" !=1))",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "__del_ts": "__del_ts",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "mark",
+        "table": "invc.customer",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestExcludeLogicalDeletedMark",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {
+          "excludeLogicalDeleted": "mark"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((\"t0\".\"__is_draft\" IS NULL OR \"t0\".\"__is_draft\" !=1))",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "group_mark",
+        "table": "invc.customer",
+        "columns": "$state,COUNT(*) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {
+          "group_by": "$state",
+          "excludeLogicalDeleted": "mark"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((\"t0\".\"__is_draft\" IS NULL OR \"t0\".\"__is_draft\" !=1))\nGROUP BY \"t0\".\"state\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)\nGROUP BY \"t0\".\"state\"",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"state\" AS \"state\"",
+          "joins": [],
+          "where": "(\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "\"t0\".\"state\"",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "state": "state",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "distinct_mark",
+        "table": "invc.customer",
+        "columns": "$state",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {
+          "distinct": true,
+          "excludeLogicalDeleted": "mark"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE ((\"t0\".\"__is_draft\" IS NULL OR \"t0\".\"__is_draft\" !=1))",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"state\" AS \"state\"",
+          "joins": [],
+          "where": "(\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "state": "state",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "drop_order",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "@customer_id.account_name"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "limit",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "limit": 2
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "offset",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "limit": 2,
+          "offset": 1
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2\nOFFSET 1",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2\nOFFSET 1",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "sqlite",
+      "request": {
+        "name": "distinct_limit",
+        "table": "invc.invoice",
+        "columns": "$customer_id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true,
+          "limit": 2
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "plain",
+        "table": "invc.invoice",
+        "columns": "$id,$total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "where",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestWhereOrderBy",
+        "params": {
+          "minimum": 100
+        },
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "$total>:minimum"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"total\">%(minimum)s)",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (\"t0\".\"total\">:minimum)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(\"t0\".\"total\">:minimum)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "total": "total"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "empty",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestPhysicalColumns",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "1=0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(1=0)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "to_one",
+        "table": "invc.invoice",
+        "columns": "$id,@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestRelationNavigation",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "where": "@customer_id.account_name IS NOT NULL"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nWHERE (\"t1\".\"account_name\" IS NOT NULL)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+          ],
+          "where": "(\"t1\".\"account_name\" IS NOT NULL)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "_customer_id_account_name": "@customer_id.account_name"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "projection_only",
+        "table": "invc.invoice",
+        "columns": "@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "group",
+        "table": "invc.invoice",
+        "columns": "$customer_id,SUM($total) AS sum_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$customer_id"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "\"t0\".\"customer_id\"",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "having",
+        "table": "invc.invoice",
+        "columns": "$customer_id,SUM($total) AS sum_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestGroupByHaving",
+        "params": {
+          "minimum": 100
+        },
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$customer_id",
+          "having": "SUM($total)>:minimum"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\")>%(minimum)s",
+        "params": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nGROUP BY \"t0\".\"customer_id\"\nHAVING SUM(\"t0\".\"total\")>:minimum",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "\"t0\".\"customer_id\"",
+          "having": "SUM(\"t0\".\"total\")>:minimum",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id",
+            "total": "total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {
+          "minimum": 100,
+          "jc_kwargs": {}
+        }
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "empty_group",
+        "table": "invc.invoice",
+        "columns": "$customer_id,SUM($total) AS sum_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "$customer_id",
+          "where": "1=0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)\nGROUP BY \"t0\".\"customer_id\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)\nGROUP BY \"t0\".\"customer_id\"",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "(1=0)",
+          "group_by": "\"t0\".\"customer_id\"",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "group_relation",
+        "table": "invc.invoice",
+        "columns": "@customer_id.account_name,SUM($total) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestGroupByHaving",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "@customer_id.account_name",
+          "having": "SUM($total)>0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nGROUP BY \"t1\".\"account_name\"\nHAVING SUM(\"t0\".\"total\")>0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")\nGROUP BY \"t1\".\"account_name\"\nHAVING SUM(\"t0\".\"total\")>0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+          ],
+          "where": "",
+          "group_by": "\"t1\".\"account_name\"",
+          "having": "SUM(\"t0\".\"total\")>0",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "_customer_id_account_name": "@customer_id.account_name",
+            "total": "total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "distinct",
+        "table": "invc.invoice",
+        "columns": "$customer_id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "distinct_relation",
+        "table": "invc.invoice",
+        "columns": "@customer_id.account_name",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t1\".\"account_name\" AS \"_customer_id_account_name\"\n FROM \"invc\".\"invc_invoice\" AS t0\n       LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t1\".\"account_name\" AS \"_customer_id_account_name\"",
+          "joins": [
+            "LEFT JOIN \"invc\".\"invc_customer\" AS \"t1\" ON ((\"t0\".\"customer_id\")=\"t1\".\"id\")"
+          ],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "_customer_id_account_name": "@customer_id.account_name"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "distinct_formula",
+        "table": "invc.invoice_row",
+        "columns": "$line_total",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestFormulaSql",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT ( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT ( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"\n FROM \"invc\".\"invc_invoice_row\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "( \"t0\".\"quantity\" * \"t0\".\"unit_price\" ) AS \"line_total\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "line_total": "line_total"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "empty_distinct",
+        "table": "invc.invoice",
+        "columns": "$customer_id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true,
+          "where": "1=0"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nWHERE (1=0)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "(1=0)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "group_star",
+        "table": "invc.invoice",
+        "columns": "SUM($total) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "group_by": "*"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "aggregate_projection",
+        "table": "invc.invoice",
+        "columns": "SUM($total) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "defaults",
+        "table": "invc.customer",
+        "columns": "*",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestDraftField",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {}
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(\"t0\".\"__del_ts\" IS NULL) AND (\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "__del_ts": "__del_ts",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "mark",
+        "table": "invc.customer",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestExcludeLogicalDeletedMark",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {
+          "excludeLogicalDeleted": "mark"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "(\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "group_mark",
+        "table": "invc.customer",
+        "columns": "$state,COUNT(*) AS n",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {
+          "group_by": "$state",
+          "excludeLogicalDeleted": "mark"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)\nGROUP BY \"t0\".\"state\"",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)\nGROUP BY \"t0\".\"state\"",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"state\" AS \"state\"",
+          "joins": [],
+          "where": "(\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "\"t0\".\"state\"",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id",
+            "state": "state",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "distinct_mark",
+        "table": "invc.customer",
+        "columns": "$state",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::TestCompiledQueryOptions",
+        "params": {},
+        "count": true,
+        "defaults": true,
+        "options": {
+          "distinct": true,
+          "excludeLogicalDeleted": "mark"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"state\" AS \"state\"\n FROM \"invc\".\"invc_customer\" AS t0\nWHERE (\"t0\".\"__is_draft\" IS NOT TRUE)",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"state\" AS \"state\"",
+          "joins": [],
+          "where": "(\"t0\".\"__is_draft\" IS NOT TRUE)",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "state": "state",
+            "__is_draft": "__is_draft"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "drop_order",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "order_by": "@customer_id.account_name"
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "limit",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "limit": 2
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "offset",
+        "table": "invc.invoice",
+        "columns": "$id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "limit": 2,
+          "offset": 1
+        }
+      },
+      "expected": {
+        "sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2\nOFFSET 1",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  count(*) AS \"gnr_row_count\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2\nOFFSET 1",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "count(*) AS \"gnr_row_count\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "",
+          "relationDict": {
+            "pkey": "id"
+          },
+          "aliasDict": {
+            "\"\"gnr_row_count\"\"": "count(*)"
+          },
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    },
+    {
+      "dialect": "postgres",
+      "request": {
+        "name": "distinct_limit",
+        "table": "invc.invoice",
+        "columns": "$customer_id",
+        "origin": "gnrpy/tests/sql/test_compiler_coverage.py::SqlQueryCompiler.compiledQuery",
+        "params": {},
+        "count": true,
+        "defaults": false,
+        "options": {
+          "excludeDraft": false,
+          "excludeLogicalDeleted": false,
+          "ignorePartition": true,
+          "distinct": true,
+          "limit": 2
+        }
+      },
+      "expected": {
+        "sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "params": {
+          "jc_kwargs": {}
+        },
+        "raw_sql": "SELECT  DISTINCT \"t0\".\"customer_id\" AS \"customer_id\"\n FROM \"invc\".\"invc_invoice\" AS t0\nLIMIT 2",
+        "execution_audit_omitted": true,
+        "clauses": {
+          "columns": "\"t0\".\"customer_id\" AS \"customer_id\"",
+          "joins": [],
+          "where": "",
+          "group_by": "",
+          "having": "",
+          "order_by": "",
+          "distinct": "DISTINCT ",
+          "relationDict": {
+            "pkey": "id",
+            "customer_id": "customer_id"
+          },
+          "aliasDict": {},
+          "explodingColumns": []
+        },
+        "stable": true,
+        "input_after": {}
+      }
+    }
+  ]
+}

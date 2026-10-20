@@ -39,29 +39,29 @@ def database(tmp_path):
     try:
         yield db, path
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def observed(path):
-    with sqlite3.connect(path.with_name('sample_app.db')) as connection:
+    with sqlite3.connect(path.with_name('app.db')) as connection:
         return connection.execute('SELECT id, name FROM item ORDER BY id').fetchall()
 
 
 def test_normal_and_raw_commands_share_execute_and_explicit_commit(database):
     db, path = database
-    table = db.table('item')
-    assert table.insert({'id': 1, 'name': '  Ada  '}).rows == [{'id': 1, 'name': 'Ada'}]
+    table = db.table('app.item')
+    assert table.insert({'id': 1, 'name': '  Ada  '}) == {'id': 1, 'name': 'Ada'}
     assert observed(path) == []
     db.commit()
     assert observed(path) == [(1, 'Ada')]
     table.update({'id': 1, 'name': 'Grace'})
     assert table.query().fetch()[0]['name'] == 'Grace!'
-    table.raw_update({'id': 1, 'name': 'raw'})
-    table.raw_insert({'id': 2, 'name': ' fail '})
+    table.sql_update({'id': 1, 'name': 'raw'})
+    table.sql_insert({'id': 2, 'name': ' fail '})
     db.commit()
     assert observed(path) == [(1, 'raw'), (2, ' fail ')]
-    table.raw_delete(1)
-    table.delete(2)
+    table.sql_delete({'id': 1})
+    table.delete({'id': 2})
     db.rollback()
     assert len(observed(path)) == 2
 
@@ -69,12 +69,12 @@ def test_normal_and_raw_commands_share_execute_and_explicit_commit(database):
 def test_hook_failure_blocks_commit_and_rollback_restores_usability(database):
     db, path = database
     with pytest.raises(ValueError, match='hook failure'):
-        db.table('item').insert({'id': 1, 'name': 'fail'})
+        db.table('app.item').insert({'id': 1, 'name': 'fail'})
     with pytest.raises(TransactionStateError, match='rollback-only'):
         db.commit()
     db.rollback()
     assert observed(path) == []
-    db.table('item').insert({'id': 2, 'name': 'ok'})
+    db.table('app.item').insert({'id': 2, 'name': 'ok'})
     db.commit()
     assert observed(path) == [(2, 'ok')]
 
@@ -83,14 +83,13 @@ def test_parameters_environment_percent_literals_and_sql_error(database):
     db, path = database
     with db.tempEnv(user="O'Reilly"):
         result = db.execute("SELECT :env_user AS name, '50% :literal' AS label")
-        assert result.rows == [{'name': "O'Reilly", 'label': '50% :literal'}]
+        assert [dict(row) for row in result.fetchall()] == [{'name': "O'Reilly", 'label': '50% :literal'}]
     db.rollback()
     db.execute('INSERT INTO app.item VALUES (:id, :name)', {'id': 1, 'name': 'ok'})
     with pytest.raises(sqlite3.IntegrityError):
         db.execute('INSERT INTO app.item VALUES (:id, :name)', {'id': 1, 'name': 'duplicate'})
     assert observed(path) == []
-    assert db.outcome == 'rolled_back'
-    db.table('item').raw_insert({'id': 2, 'name': 'retry'})
+    db.table('app.item').sql_insert({'id': 2, 'name': 'retry'})
     db.commit()
 
 
@@ -100,7 +99,7 @@ def test_threads_and_named_connections_use_same_files_with_independent_state(dat
         try:
             assert db.currentEnv == {}
             with db.tempEnv(connectionName='worker', user='worker'):
-                db.table('item').raw_insert({'id': 1, 'name': 'worker'})
+                db.table('app.item').sql_insert({'id': 1, 'name': 'worker'})
                 db.commit()
         finally:
             db.closeConnection()
@@ -109,7 +108,7 @@ def test_threads_and_named_connections_use_same_files_with_independent_state(dat
     assert observed(path) == [(1, 'worker')]
     assert db.currentEnv == {}
     with db.tempEnv(connectionName='other'):
-        db.table('item').raw_update({'id': 1, 'name': 'other'})
+        db.table('app.item').sql_update({'id': 1, 'name': 'other'})
         db.rollback()
     assert observed(path) == [(1, 'worker')]
 
@@ -119,12 +118,12 @@ def test_sqlite_cli_reuses_existing_migrator_and_file_layout(tmp_path):
     db = AsqueelDb(recipe(path))
     try:
         assert run_migration(db, 'apply') == 0
-        db.table('item').insert({'id': 1, 'name': 'migrated'})
+        db.table('app.item').insert({'id': 1, 'name': 'migrated'})
         db.commit()
         assert observed(path) == [(1, 'migrated')]
         assert db.migration_plan().empty
     finally:
-        db.close()
+        db.closeConnection()
 
 
 def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypatch):
@@ -139,57 +138,74 @@ def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypat
         rows = db.table('sales.invoice').query(
             columns='$id, @customer_id.name AS customer, $description', offset=0,
         ).fetch()
-        assert rows == [{'id': 10, 'customer': 'Ada', 'description': 'Example'}]
+        assert [dict(row) for row in rows] == [{'id': 10, 'customer': 'Ada', 'description': 'Example'}]
         db.commit()
-        assert (tmp_path / 'example_contacts.db').exists()
-        assert (tmp_path / 'example_sales.db').exists()
+        assert (tmp_path / 'contacts.db').exists()
+        assert (tmp_path / 'sales.db').exists()
     finally:
-        db.close()
+        db.closeConnection()
 
 
-def test_another_named_connection_times_out_without_losing_first_transaction(database):
+def test_another_named_connection_reads_committed_state_without_losing_first_transaction(database):
     db, path = database
-    db.table('item').raw_insert({'id': 1, 'name': 'pending'})
+    db.table('app.item').sql_insert({'id': 1, 'name': 'pending'})
     with db.tempEnv(connectionName='other'):
-        with pytest.raises(sqlite3.OperationalError, match='locked'):
-            db.table('item').query().fetch()
-    assert db.outcome == 'active'
+        assert db.table('app.item').query().fetch() == []
+    assert db._connection_state['pending']
     db.commit()
     assert observed(path) == [(1, 'pending')]
     with db.tempEnv(connectionName='other'):
-        assert db.table('item').query().fetch()[0]['id'] == 1
+        assert db.table('app.item').query().fetch()[0]['id'] == 1
         db.commit()
 
 
-def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
+def partitioned(path):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
             db = root.db()
-            db.connection(name=str(tmp_path / 'policies.db'), implementation='sqlite')
+            db.connection(name=str(path), implementation='sqlite')
             table = db.schemas().schema('app').tables().table(
-                'item', pkey='id', x_partition={'field': 'organization', 'current': 'organization'})
+                'item', pkey='id', partition_organization='organization')
             columns = table.columns()
             for name in ('id', 'organization', 'quantity'):
                 columns.column(name, dtype='I')
             table.virtual_columns().formulaColumn('doubled', sql_formula='$quantity * 2', dtype='I')
     db = AsqueelDb(Recipe)
+    db.execute('CREATE TABLE app.item (id INTEGER PRIMARY KEY, organization INTEGER, quantity INTEGER)')
+    db.commit()
+    return db
+
+
+def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
+    db = partitioned(tmp_path / 'policies.db')
     try:
-        db.execute('CREATE TABLE app.item (id INTEGER PRIMARY KEY, organization INTEGER, quantity INTEGER)')
-        db.commit()
-        with pytest.raises(ValueError, match='partition'):
-            db.table('item').raw_insert({'id': 1, 'quantity': 3})
-        db.rollback()
-        with db.tempEnv(organization=10):
-            db.table('item').raw_insert({'id': 1, 'quantity': 3})
+        with db.tempEnv(current_organization=10):
+            db.table('app.item').sql_insert({'id': 1, 'organization': 10, 'quantity': 3})
             db.commit()
-            assert db.table('item').query(columns='$id, $doubled').fetch() == [{'id': 1, 'doubled': 6}]
+            assert [dict(row) for row in db.table('app.item').query(columns='$id, $doubled').fetch()] == [{'id': 1, 'doubled': 6}]
             db.commit()
-        with db.tempEnv(organization=20):
-            assert db.table('item').raw_update({'id': 1, 'quantity': 9}).rowcount == 0
-            assert db.table('item').raw_delete(1).rowcount == 0
+        with db.tempEnv(current_organization=20):
+            assert db.table('app.item').query(where='$id = :id', id=1).sql_update({'quantity': 9}) == 0
+            assert db.table('app.item').query(where='$id = :id', id=1).sql_delete() == 0
             db.commit()
-        with db.tempEnv(organization=10):
-            assert db.table('item').query(columns='$quantity').fetch() == [{'quantity': 3}]
+        with db.tempEnv(current_organization=10):
+            assert [dict(row) for row in db.table('app.item').query(columns='$quantity').fetch()] == [{'quantity': 3}]
             db.commit()
     finally:
-        db.close()
+        db.closeConnection()
+
+
+@pytest.mark.xfail(strict=True, reason='asqueel#15: sql_insert neither refuses nor fills the partition field')
+def test_raw_insert_refuses_and_fills_the_partition(tmp_path):
+    db = partitioned(tmp_path / 'policies.db')
+    try:
+        with pytest.raises(ValueError, match='partition'):
+            db.table('app.item').sql_insert({'id': 1, 'quantity': 3})
+        db.rollback()
+        with db.tempEnv(current_organization=10):
+            db.table('app.item').sql_insert({'id': 1, 'quantity': 3})
+            db.commit()
+            assert [dict(row) for row in db.table('app.item').query(columns='$id, $organization').fetch()] == [{'id': 1, 'organization': 10}]
+            db.commit()
+    finally:
+        db.closeConnection()

@@ -8,7 +8,6 @@ from __future__ import annotations
 from genro_builders.builder import element
 
 from .elements import DTYPE
-from .option_elements import TABLE_OPTIONS
 
 
 OPTION_LEVELS = {
@@ -18,14 +17,12 @@ OPTION_LEVELS = {
     'driver': {'connection'},
 }
 
-OPTION_LEVELS.update({tag: {'table'} for tag in TABLE_OPTIONS})
-
 SYS_FIELD_KEYS = {'name_long', 'name_short', 'comment', 'group', 'indexed'}
 SYS_FIELDS = ('id', 'ins', 'upd', 'user_ins', 'user_upd', 'ldel', 'draft', 'syscode')
 
 
 class ModelElements:
-    @element(parent_tags='table', sub_tags='')
+    @element(parent_tags='table', sub_tags='', _meta={'attribute_families': ['col_']})
     def colgroup(self, name: str, name_long: str | None = None,
                  name_short: str | None = None, comment: str | None = None,
                  **col_defaults):
@@ -40,7 +37,8 @@ class ModelElements:
     @element(parent_tags='packages', sub_tags='tables[:1], options[:1]')
     def package(self, name: str, sqlschema: str | None = None,
                 sqlprefix: bool | str = True, name_long: str | None = None,
-                name_short: str | None = None, comment: str | None = None, **extra):
+                name_short: str | None = None, name_full: str | None = None,
+                comment: str | None = None, path: str | None = None):
         """Logical table namespace with an explicit physical placement.
 
         Args:
@@ -51,11 +49,13 @@ class ModelElements:
             name_long: semantic; human label.
             name_short: semantic; short label.
             comment: semantic; package description.
+            path: folder in the legacy layout (``main.py`` with class ``Package``,
+                ``model/<table>.py`` with class ``Table``) whose tables the package loads.
         """
         ...
 
     @element(parent_tags='db, connection, schema, package, table',
-             sub_tags='requires[:1], type, sys_fields[:1], driver[:1], reset, ' + ', '.join(TABLE_OPTIONS),
+             sub_tags='*',
              node_label='options')
     def options(self):
         """Singleton section of typed functions, validated for its owning level."""
@@ -70,7 +70,8 @@ class ModelElements:
     def driver(self, connect_timeout: int | None = None,
                application_name: str | None = None, sslmode: str | None = None,
                sslrootcert: str | None = None, options: str | None = None,
-               timeout: float | int | None = None, cached_statements: int | None = None):
+               timeout: float | int | None = None, cached_statements: int | None = None,
+               foreignKeys: bool | None = None):
         """Driver options, checked against the connection's configured dialect."""
         ...
 
@@ -81,7 +82,7 @@ class ModelElements:
 
     @element(parent_tags='options', sub_tags='')
     def type(self, name: str, dtype: DTYPE, size: str | None = None,
-             name_long: str | None = None, name_short: str | None = None, **extra):
+             name_long: str | None = None, name_short: str | None = None):
         """Package-local column type and its explicit presentation defaults."""
         ...
 

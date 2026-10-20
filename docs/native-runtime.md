@@ -18,14 +18,14 @@ except Exception:
     db.rollback()
     raise
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 ## Transazioni e risorse
 
 La connessione selezionata si apre al primo execute. Le operazioni successive
 condividono la transazione pendente fino a `commit()` o `rollback()` espliciti.
-Non esistono oggetti Session né un metodo `transaction()`. `tempEnv` modifica
+Non esiste un metodo `transaction()`. `tempEnv` modifica
 il contesto e può selezionare una connessione nominata; non conclude transazioni.
 
 Un errore SQL provoca rollback automatico, compreso il lavoro precedente non
@@ -37,9 +37,10 @@ fallita ha aperto nuovo lavoro SQL, quel lavoro richiede rollback.
 
 Un errore del driver durante commit/rollback può lasciare un esito incerto:
 non ripetere automaticamente le scritture. La connessione viene scartata.
-`closeConnection()` ripulisce tutte le connessioni del thread corrente e permette
-il riuso del DB nella richiesta successiva. `close()` chiude lo stato DB di quel
-thread; è idempotente e non committa. La conclusione durante hook o callback
+`closeConnection()` fa rollback e chiude tutte le connessioni del thread
+corrente; il DB resta utilizzabile nella richiesta successiva. Fuori da una
+richiesta, `session(db)` svuota il contesto all'ingresso e chiama
+`closeConnection()` all'uscita. La conclusione durante hook o callback
 è protetta dai controlli di rientranza.
 
 ## Thread, ambiente e driver
@@ -53,13 +54,13 @@ manualmente, né rende il runtime async-safe.
 
 Il compiler standalone può condividere un `SqlEnvironment` con il runtime.
 Il DB applicativo usa `ApplicationEnvironment` per `currentEnv`, workdate e
-locale. Le dipendenze ambientali di una query compilata vengono verificate
-prima dell'esecuzione; una query non più valida solleva `EnvironmentMismatchError`.
+locale. I parametri `:env_*` di una query compilata sono riletti dall'ambiente
+corrente a ogni esecuzione.
 
 Il driver implementa `SyncDriver`. La facciata PostgreSQL ammette il profilo
 `postgresql/psycopg_named`; per altri profili usare `Database` con il driver
-appropriato o la configurazione applicativa. `QueryResult.rows` contiene
-risultati materializzati; nessun cursore lazy esce dall'esecuzione.
+appropriato o la configurazione applicativa. `execute` restituisce il cursore
+aperto, come il legacy; le righe si leggono per nome.
 
 Il runtime possiede il controllo transazionale: non inserire BEGIN/COMMIT/ROLLBACK
 nelle query applicative. I valori utente vanno nei parametri; le espressioni SQL

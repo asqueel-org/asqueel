@@ -1,5 +1,10 @@
 # 09 — Reassessing the product against the legacy object architecture
 
+**Historical reference notice (15 October 2026):** this document retains its
+original `fa35e5ad` evidence. The [develop audit 95](95-develop-reference-audit.md)
+sets the reference for subsequent ports and records later fixes; this document
+is not a statement that those fixes have already landed in Asqueel.
+
 Internal architecture review, 29 September 2026. **The implemented package is a
 useful SQL model/compiler/execution core, but it does not yet implement the
 Asqueel application object model requested by the user.** This is a product

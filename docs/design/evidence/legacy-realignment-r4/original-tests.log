@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/gporcari/Sviluppo/asqueel/asqueel
+configfile: pyproject.toml
+plugins: cov-7.1.0, anyio-3.7.1
+collected 14 items
+
+docs/design/probes/test_legacy_minimal_select.py ......                  [ 42%]
+docs/design/probes/test_legacy_r3_original.py ....                       [ 71%]
+. ..../tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/coverage/inorout.py:558: CoverageWarning: Module asqueel was never imported. (module-not-imported); see https://coverage.readthedocs.io/en/7.16.2/messages.html#warning-module-not-imported
+  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
+/tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/coverage/control.py:967: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.16.2/messages.html#warning-no-data-collected
+  self._warn("No data was collected.", slug="no-data-collected")
+/tmp/asqueel-formula-baseline/env/lib/python3.12/site-packages/pytest_cov/plugin.py:366: CovReportWarning: Failed to generate report: No data to report.
+
+  warnings.warn(CovReportWarning(message), stacklevel=1)
+
+WARNING: Failed to generate report: No data to report.
+
+                                                                         [100%]
+
+=============================== warnings summary ===============================
+::TestEmbedFieldPars::test_relation_param_pg
+  /tmp/asqueel-formula-baseline/legacy/gnrpy/gnr/web/gnrwebpage_proxy/utils.py:19: DeprecationWarning: 'getReader' has been moved to gnr.core.flatfiles. Import from gnr.core.gnrlist is deprecated.
+    from gnr.core.gnrlist import getReader
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 14 passed, 1 warning in 3.55s =========================

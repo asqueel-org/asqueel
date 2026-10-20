@@ -1,5 +1,5 @@
-"""Offline binding contracts and driver-independent runtime integration."""
-from tests.unit_of_work import completed
+"""Offline binding contracts and adapter-independent runtime integration."""
+from tests.unit_of_work import FakeCursor, completed
 from pathlib import Path
 import subprocess
 import sys
@@ -7,80 +7,43 @@ import threading
 
 import pytest
 
-from asqueel.contracts import CompiledQuery, QueryResult, ResultColumn
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.query_plan import Identifier, Parameter, SqlStatement
+from asqueel.contracts import CompiledQuery
+from asqueel.adapters.base import SqlDbAdapter as SqlDbBaseAdapter
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.runtime import PostgresDatabase, Database
 
-
-def test_formatter_preserves_literal_percent_and_structural_parameter_boundaries():
-    column = ResultColumn('result', 'T')
-    statement = SqlStatement((
-        'SELECT \'50% and %(literal)s\', 8 % 3, "percent%name", ',
-        Parameter('value'), ', ', Parameter('value'), ' -- 10%\n',
-    ), {'value': "O'Reilly", 'unused': 99}, (column,))
-    query = PsycopgDriver().prepare(statement)
-    assert query.sql == 'SELECT \'50%% and %%(literal)s\', 8 %% 3, "percent%%name", %(value)s, %(value)s -- 10%%\n'
-    assert dict(query.params) == {'value': "O'Reilly"}
-    assert query.columns == (column,)
-    assert (query.dialect, query.binding) == ('postgresql', 'psycopg_named')
-    assert "O'Reilly" not in query.sql
-    assert PsycopgDriver().prepare(statement) == query
-
-
-@pytest.mark.parametrize('parts,params,error', [
-    ((Parameter('missing'),), {}, ValueError),
-    ((Parameter('bad)name'),), {'bad)name': 1}, ValueError),
-    ((Parameter('1name'),), {'1name': 1}, ValueError),
-    ((Parameter('é'),), {'é': 1}, ValueError),
-    ((Identifier('unquoted'),), {}, TypeError),
-    ((object(),), {}, TypeError),
-])
-def test_formatter_rejects_invalid_parts_or_parameters(parts, params, error):
-    with pytest.raises(error):
-        PsycopgDriver().prepare(SqlStatement(parts, params))
+# Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
+FAKE = 'fake:tests.adapter_driver.test_driver'
 
 
 def test_formatter_and_execution_profile_are_explicit():
-    driver = PsycopgDriver()
-    with pytest.raises(ValueError, match='dialect'):
-        driver.prepare(SqlStatement(('SELECT 1',), dialect='sqlite'))
-    with pytest.raises(TypeError):
-        driver.prepare(CompiledQuery('SELECT 1'))
+    driver = PostgresAdapter(None)
     driver.validate(CompiledQuery('SELECT %(raw)s', {'raw': 1}))
     for query in (CompiledQuery('x', dialect='sqlite'), CompiledQuery('x', binding='qmark')):
         with pytest.raises(ValueError, match='profile'):
             driver.execute(object(), query)  # No connection methods may run.
 
 
-class RecordingDriver:
+class SqlDbAdapter(SqlDbBaseAdapter):
     dialect = 'fake'
     binding = 'fake'
 
-    def __init__(self):
+    def __init__(self, dbroot):
+        super().__init__(dbroot)
         self.calls = []
-
-    def validate(self, query):
-        if not isinstance(query, CompiledQuery):
-            raise TypeError('query required')
-        if (query.dialect, query.binding) != (self.dialect, self.binding):
-            raise ValueError('profile mismatch')
 
     def record(self, name):
         self.calls.append((name, threading.get_ident()))
-
-    def prepare(self, statement):
-        raise NotImplementedError
 
     def connect(self, conninfo, **kwargs):
         self.record('connect')
         return object()
 
-    def execute(self, connection, query):
+    def execute(self, connection, query, cursorname=None):
         self.record('execute')
         if query.sql == 'fail':
             raise LookupError('original driver error')
-        return QueryResult([{'answer': 42}], 1, query.columns)
+        return FakeCursor([{'answer': 42}])
 
     def commit(self, connection):
         self.record('commit')
@@ -94,12 +57,15 @@ class RecordingDriver:
 
 def test_generic_runtime_injected_driver_affinity_and_original_errors():
     def scenario():
-        driver = RecordingDriver()
-        with Database(driver=driver) as db:
+        db = Database(implementation=FAKE)
+        try:
+            driver = db.adapter
             result = db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
-            assert result.rows == [{'answer': 42}]
+            assert [dict(row) for row in result.fetchall()] == [{'answer': 42}]
             with pytest.raises(LookupError, match='original driver error'):
                 db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
+        finally:
+            db.closeConnection()
         assert [name for name, _ in driver.calls] == [
             'connect', 'execute', 'execute', 'rollback', 'close']
         assert len({thread for _, thread in driver.calls}) == 1
@@ -109,8 +75,9 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
 
 def test_runtime_rejects_profile_before_connect_or_execute():
     def scenario():
-        driver = RecordingDriver()
-        with Database(driver=driver) as db:
+        db = Database(implementation=FAKE)
+        try:
+            driver = db.adapter
             with pytest.raises(ValueError, match='profile'):
                 db.execute(CompiledQuery('SELECT 1'))
             assert not driver.calls
@@ -118,13 +85,18 @@ def test_runtime_rejects_profile_before_connect_or_execute():
                 with pytest.raises(ValueError, match='profile'):
                     tx.execute(CompiledQuery('SELECT 1'))
                 assert not driver.calls
+        finally:
+            db.closeConnection()
         assert not driver.calls
     scenario()
 
 
-def test_postgres_facade_rejects_other_profiles():
-    with pytest.raises(ValueError, match='profile'):
-        PostgresDatabase(driver=RecordingDriver())
+def test_postgres_facade_uses_the_postgres_adapter():
+    db = PostgresDatabase()
+    try:
+        assert type(db.adapter) is PostgresAdapter
+    finally:
+        db.closeConnection()
 
 
 def test_offline_formatting_and_injected_runtime_do_not_import_psycopg():
@@ -136,26 +108,27 @@ def guarded(name, *args, **kwargs):
         raise AssertionError('unexpected psycopg dependency')
     return original(name, *args, **kwargs)
 builtins.__import__ = guarded
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.query_plan import SqlStatement, Parameter
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.runtime import Database, PostgresDatabase
-from asqueel.contracts import CompiledQuery, QueryResult
-query = PsycopgDriver().prepare(SqlStatement(('SELECT ', Parameter('x')), {'x': 3}))
+from asqueel.contracts import CompiledQuery
+query = PostgresAdapter(None).prepare_sql('SELECT :x', {'x': 3}, {})
 assert query.sql == 'SELECT %(x)s'
-class Driver:
+from asqueel.adapters.base import SqlDbAdapter as SqlDbBaseAdapter
+class SqlDbAdapter(SqlDbBaseAdapter):
     dialect = 'fake'
     binding = 'fake'
-    def validate(self, query): pass
     def connect(self, *args, **kwargs): return object()
-    def execute(self, conn, query): return QueryResult([], 0)
+    def execute(self, conn, query, cursorname=None): return type('Cursor', (), {'description': None})()
     def commit(self, conn): pass
     def rollback(self, conn): pass
     def close(self, conn): pass
 def main():
-    with Database(driver=Driver()) as db:
+    db = Database(implementation='fake:__main__')
+    try:
         db.execute(CompiledQuery('x', dialect='fake', binding='fake'))
-    with PostgresDatabase():
-        pass
+    finally:
+        db.closeConnection()
+    PostgresDatabase().closeConnection()
 main()
 '''
     result = subprocess.run([sys.executable, '-c', script], cwd=Path(__file__).parents[2],

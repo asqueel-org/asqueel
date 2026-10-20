@@ -2,7 +2,7 @@
 
 Generated from the live grammar by `asqueel.grammar_doc.generate_grammar_md()`. Do not edit by hand: regenerate with `python -m asqueel.grammar_doc`.
 
-Domain element signatures are **semi-closed**: they declare their physical and enumerated semantic parameters. Where `**extra` is accepted, extra keys use flat namespace prefixes, except the opaque declarations in `validation(**rules)` and `var_*` bindings of `virtualRelation`.
+Element signatures are **closed**: an attribute the signature does not declare raises. An element accepts only the attribute families its declaration names (`validate_*`, `var_*`, `select_*`, `col_*`), and `validation(**rules)` keeps its rules as data.
 
 ## Hierarchy
 
@@ -23,12 +23,12 @@ Database root, one per model.
 - Contains: schemas[:1], packages[:1], extensions[:1], options[:1]
 - Child addressing: ordered internal labels for schemas, packages, extensions, options
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the database name — the JSON `entity_name`. |
-| implementation | `str` | `'postgresql'` | physical |  |
+| implementation | `str` | `'sqlite'` | physical |  |
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
@@ -69,7 +69,7 @@ Rendered `CREATE EXTENSION IF NOT EXISTS` and never dropped.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -85,7 +85,7 @@ A physical database schema, separate from logical packages.
 - Contains: tables[:1], options[:1]
 - Child addressing: ordered internal labels for tables, options
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -111,10 +111,10 @@ The explicit collection of a schema's tables.
 
 A table.
 
-- Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1], options[:1], colgroup, subtable, virtualRelation
-- Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes, options, colgroup, subtable, virtualRelation
+- Contains: columns[:1], virtual_columns[:1], composites[:1], constraints[:1], indexes[:1], options[:1], colgroup, virtualRelation
+- Child addressing: ordered internal labels for columns, virtual_columns, composites, constraints, indexes, options, colgroup, virtualRelation
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: `partition_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -125,6 +125,7 @@ A table.
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_plural | `str \| None` | `None` | semantic | human label, plural form. |
 | name_short | `str \| None` | `None` | semantic | short human label. |
+| name_full | `str \| None` | `None` | physical |  |
 | rowcaption | `str \| None` | `None` | physical |  |
 | newrecord_caption | `str \| None` | `None` | physical |  |
 | order_by | `str \| None` | `None` | physical |  |
@@ -134,6 +135,14 @@ A table.
 | sqlschema | `str \| None` | `None` | physical |  |
 | pkey_columns | `str \| None` | `None` | semantic | legacy comma-separated source fields for a single textual primary key; not SQL primary-key members. |
 | pkey_columns_joiner | `str \| None` | `None` | semantic | legacy separator for that textual key. Absent or empty, the legacy uses underscore. Declaration only. |
+| deletable | `bool` | `True` | physical | False refuses every delete of the table's records, as in GenroPy. |
+| lastTS | `str \| None` | `None` | physical | the column holding the last modification timestamp. |
+| logicalDeletionField | `str \| None` | `None` | physical | the column marking a row as logically deleted; queries exclude those rows. |
+| draftField | `str \| None` | `None` | physical | the boolean column marking a draft row; queries exclude drafts. |
+| protectionColumn | `str \| None` | `None` | physical | the column whose value protects a row. |
+| x_table_class | `type \| None` | `None` | physical |  |
+| x_expanded_legacy | `bool \| None` | `None` | physical |  |
+| x_logical_pkey | `str \| None` | `None` | physical |  |
 
 ### `columns`
 
@@ -202,7 +211,7 @@ A physical column — the only element that projects as a column.
 - Contains: relation, validation[:1], encryption[:1], dynamic_fields[:1]
 - Child addressing: ordered internal labels for relation, validation, encryption, dynamic_fields
 - Projection flags: `projects_column`, `projects_relation`
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: `validate_*`, `sql_pg_*`, `sql_sqlite_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -210,33 +219,45 @@ A physical column — the only element that projects as a column.
 | dtype | `DTYPE \| str \| None` | `None` | physical | asqueel normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
 | size | `str \| None` | `None` | physical | `'n'` or `'min:max'` character size. |
 | notnull | `bool` | `False` | physical | NOT NULL. Pkey members get it from their pkey membership, not from this flag. |
-| unique | `bool` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. |
-| indexed | `bool` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a foreign key is always indexed. |
-| sqldefault | `str \| None` | `None` | physical | SQL DEFAULT expression. |
-| extra_sql | `str \| None` | `None` | physical | verbatim tail of the column definition. |
-| generated_expression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. |
+| unique | `bool \| str` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. A string is read as in GenroPy: `n`, `no`, `f`, `false`, `0` are false. |
+| indexed | `bool \| str \| dict` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a relation is always indexed. A string is read as `unique`. A dict carries the index options, as legacy `fill_json_column_index`: `method`, `where`, `tablespace`, `sorting` (comma-separated, one direction per column), `with_<name>` (a `WITH` storage option) and `unique` (without `where` it makes the column unique and creates no index; with `where` a partial unique index). |
+| sql_default | `str \| None` | `None` | physical | SQL DEFAULT expression. |
+| sql_extra | `str \| None` | `None` | physical | verbatim tail of the column definition. |
+| sql_generatedExpression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra: the same for one dialect (`pg`, `sqlite`); they win on it. |
 | comment | `str \| None` | `None` | physical | the column comment. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | human label, short form. |
-| group | `str \| None` | `None` | semantic | field-group key. |
+| name_full | `str \| None` | `None` | semantic | human label, full form. |
+| format | `str \| None` | `None` | semantic | display format. |
+| print_width | `int \| None` | `None` | semantic | print width. |
+| group | `str \| None` | `None` | semantic | field-group key. onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted: field triggers, as in GenroPy: a method name, called as `trigger_<name>(record, fldname=, tblname=)` on the table or on `trigger_table`, or a callable `f(record, fldname)`. They run at every write, in column declaration order. |
 | sqlname | `str \| None` | `None` | physical |  |
 | default | `object` | `None` | physical |  |
 | default_from | `str \| None` | `None` | physical |  |
 | sql_value | `str \| None` | `None` | physical |  |
 | read_only | `bool` | `False` | physical |  |
 | unmodifiable | `bool` | `False` | physical |  |
+| onInserting | `object` | `None` | physical |  |
+| onUpdating | `object` | `None` | physical |  |
+| onDeleting | `object` | `None` | physical |  |
+| onInserted | `object` | `None` | physical |  |
+| onUpdated | `object` | `None` | physical |  |
+| onDeleted | `object` | `None` | physical |  |
+| trigger_table | `str \| None` | `None` | physical |  |
+| x_identity | `str \| None` | `None` | physical |  |
+| x_generation | `dict \| None` | `None` | physical |  |
 
 ### `aliasColumn`
 
 A virtual column projecting a related column. Never physical.
 
-An alias reads through a relation that already exists, so it never
-carries one of its own.
+An alias inherits the target column's relation as a weak relation during
+model rendering, unless it declares an explicit relation of its own.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -248,6 +269,7 @@ carries one of its own.
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
 | static | `bool` | `False` | semantic | retain the legacy static declaration without executing it. |
+| x_identity | `str \| None` | `None` | physical |  |
 
 ### `formulaColumn`
 
@@ -256,53 +278,52 @@ A virtual column defined by SQL. Never physical.
 - Contains: relation
 - Child addressing: ordered internal labels for relation
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: `var_*`, `select_*`, `exists_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
 | sql_formula | `str \| bool \| None` | `None` | physical | an expression over the row's own columns. |
-| expression | `str \| None` | `None` | physical |  |
-| parameters | `dict \| None` | `None` | physical |  |
-| subqueries | `dict \| None` | `None` | physical |  |
-| handler | `str \| None` | `None` | physical |  |
 | static | `bool` | `False` | physical |  |
 | select | `dict \| str \| None` | `None` | physical | a scalar sub-select. |
 | exists | `dict \| str \| None` | `None` | physical | an EXISTS predicate. |
-| dtype | `str \| None` | `None` | physical | the resulting type code. |
+| dtype | `str \| None` | `None` | physical | the resulting type code; `A` when omitted. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
+| x_identity | `str \| None` | `None` | physical |  |
 
 ### `subQueryColumn`
 
 A virtual column defined by a sub-query. Never physical.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: `var_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | physical | the column name. |
 | query | `str \| dict \| None` | `None` | physical | the sub-query declaration; may be supplied by a later contribution. |
-| mode | `str \| None` | `None` | physical | None, `json`, `xml` or a legacy aggregate name; preserved without expansion or execution by the grammar. |
+| aggr | `str \| None` | `None` | physical | one call of the `.aggr()` grammar (count, sum, avg, min, max, join, to_json, to_xml); it replaces the query columns. |
+| mode | `str \| None` | `None` | physical | None, `json` or `xml`, as legacy; not together with `aggr`. |
 | dtype | `str \| None` | `None` | physical | the declared result type. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
+| x_identity | `str \| None` | `None` | physical |  |
 
 ### `pyColumn`
 
 A virtual column computed in Python. Never physical.
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -316,6 +337,7 @@ A virtual column computed in Python. Never physical.
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
+| x_identity | `str \| None` | `None` | physical |  |
 
 ### `compositeColumn`
 
@@ -329,7 +351,7 @@ composite UNIQUE is `unique=True` here.
 - Contains: relation
 - Child addressing: ordered internal labels for relation
 - Projection flags: `projects_relation`
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -348,7 +370,7 @@ A table constraint.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -364,13 +386,13 @@ A table index.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| name | `str \| None` | `None` | physical | the index name. |
-| columns | `object \| None` | `None` | physical | comma-joined names, or a `{name: None \| 'DESC'}` dict when per-column ordering matters. |
-| unique | `bool` | `False` | physical | a UNIQUE index. |
+| columns | `object \| None` | `None` | physical | comma-joined names, a list or tuple of names, or a `{name: None \| 'DESC'}` dict when per-column ordering matters. |
+| name | `str \| None` | `None` | physical | the index name; `<table>_<columns joined by _>_key` when absent, as in GenroPy. |
+| unique | `bool \| None` | `None` | physical | a UNIQUE index. |
 | method | `str \| None` | `None` | physical | access method (`btree`, `gin`, …). |
 | where | `str \| None` | `None` | physical | partial-index predicate. |
 | tablespace | `str \| None` | `None` | physical | target tablespace. |
@@ -387,31 +409,41 @@ reports every conflicting relation together.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | to | `str` | *required* | physical | the target, `schema.table.column` or `schema.table` (target columns default to the target pkey). |
-| foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project into the migration JSON. |
-| on_delete | `FK_ACTION \| str \| None` | `None` | physical | referential action on delete. |
-| on_update | `FK_ACTION \| str \| None` | `None` | physical | referential action on update. |
-| deferred | `bool` | `False` | physical | compatibility sugar for DEFERRABLE INITIALLY DEFERRED. |
+| foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project a foreign key into the migration JSON; every relation on a physical column indexes it. |
+| onDelete | `str \| None` | `None` | semantic | Python action on delete of the target row, as in GenroPy: `raise`, `cascade`, `setnull`, `ignore`, optionally followed by `:message`. |
+| onUpdate | `str \| None` | `None` | semantic | Python action on update, same values. |
+| onDelete_sql | `str \| None` | `None` | physical | SQL action of the foreign key on delete: `cascade`, `restrict`, `no action`, `setnull`, `setdefault` (any case; `set null`/`set default` too), or the legacy abbreviations `C`, `R`, `N`, `SN`, `SD`. |
+| onUpdate_sql | `str \| None` | `None` | physical | SQL action of the foreign key on update, same values; `cascade` when absent, as in GenroPy. |
+| deferred | `bool` | `False` | physical | DEFERRABLE INITIALLY DEFERRED. True by default when `onDelete` or `onDelete_sql` is `setnull`, as in GenroPy. |
 | deferrable | `bool` | `False` | physical | make the foreign key DEFERRABLE. Without `initially_deferred` it is initially immediate. |
 | initially_deferred | `bool` | `False` | physical | start a deferrable foreign key deferred. |
-| indexed | `bool` | `True` | physical | the supporting index of the foreign key. On by default (GenroPy parity, D3); `False` states that the columns are deliberately left unindexed. |
-| back_reference | `str \| None` | `None` | semantic | navigable path of the many side. |
+| indexed | `bool` | `True` | physical | the index of the relation columns, with or without a foreign key. On by default, as legacy; `False` states that the columns are deliberately left unindexed. |
 | one_name | `str \| None` | `None` | semantic | human label of the one side. |
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
-| one_one | `bool` | `False` | semantic | the relation is 1:1. |
+| one_one | `bool \| Literal['*']` | `False` | semantic | the relation is 1:1. `'*'` without `relation_name` names the inverse after the many table and makes it public, as in GenroPy. |
 | case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
 | name | `str \| None` | `None` | physical |  |
-| inverse | `str \| None` | `None` | physical |  |
-| on_delete_sql | `str \| None` | `None` | physical |  |
-| on_update_sql | `str \| None` | `None` | physical |  |
-| on_duplicate | `str \| bool \| None` | `None` | physical |  |
+| relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`), as in GenroPy. |
+| onDuplicate | `str \| bool \| None` | `None` | physical |  |
 | constraint_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
 | many_group | `str \| None` | `None` | physical |  |
+| many_order_by | `str \| None` | `None` | physical |  |
+| eager_one | `bool \| None` | `None` | physical |  |
+| eager_many | `bool \| None` | `None` | physical |  |
+| external_relation | `bool \| None` | `None` | physical |  |
+| resolver_kwargs | `dict \| None` | `None` | physical |  |
+| join_on | `str \| None` | `None` | semantic | the ON condition in place of the key equality. Wins over `cnd`. |
+| cnd | `str \| None` | `None` | semantic | the ON condition in place of the key equality. The relation projects no foreign key (GenroPy `mode='custom'`). |
+| between | `str \| None` | `None` | semantic | `'value;low;high'`, a range condition in place of the key equality. |
+| x_weak | `bool \| None` | `None` | physical |  |
+| x_canonical | `bool \| None` | `None` | physical |  |
+| x_name | `str \| None` | `None` | physical |  |
 
 ### `colgroup`
 
@@ -420,7 +452,7 @@ Ordered group handle; col_* defaults apply to declarations made through it.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: `col_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -448,7 +480,7 @@ Logical table namespace with an explicit physical placement.
 - Contains: tables[:1], options[:1]
 - Child addressing: ordered internal labels for tables, options
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -457,14 +489,16 @@ Logical table namespace with an explicit physical placement.
 | sqlprefix | `bool \| str` | `True` | physical | True uses the package name, False omits the prefix. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | short label. |
+| name_full | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | semantic | package description. |
+| path | `str \| None` | `None` | physical | folder in the legacy layout (`main.py` with class `Package`, `model/<table>.py` with class `Table`) whose tables the package loads. |
 
 ### `options`
 
 Singleton section of typed functions, validated for its owning level.
 
-- Contains: requires[:1], type, sys_fields[:1], driver[:1], reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
-- Child addressing: ordered internal labels for requires, type, sys_fields, driver, reset, hierarchical, auto_counter, relative_index, dynamic_fields, record_hash, full_update, audit, system_records, protection, release, partition, tenant, retention, broadcast, archive, enabled_when, attachments, numbering
+- Contains: *
+- Child addressing: ordered internal labels for *
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -502,6 +536,7 @@ Driver options, checked against the connection's configured dialect.
 | options | `str \| None` | `None` | physical |  |
 | timeout | `float \| int \| None` | `None` | physical |  |
 | cached_statements | `int \| None` | `None` | physical |  |
+| foreignKeys | `bool \| None` | `None` | physical |  |
 
 ### `requires`
 
@@ -523,7 +558,7 @@ Package-local column type and its explicit presentation defaults.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -601,12 +636,12 @@ rule-specific type checks. Translation never executes these rules.
 | --- | --- | --- | --- | --- |
 | to | `str` | *required* | physical |  |
 | name | `str \| None` | `None` | physical |  |
-| inverse | `str \| None` | `None` | physical |  |
+| relation_name | `str \| None` | `None` | physical |  |
 | indexed | `bool` | `True` | physical |  |
 | one_one | `bool` | `False` | physical |  |
-| on_delete | `str \| None` | `None` | physical |  |
-| on_update | `str \| None` | `None` | physical |  |
-| on_duplicate | `str \| bool \| None` | `None` | physical |  |
+| onDelete | `str \| None` | `None` | physical |  |
+| onUpdate | `str \| None` | `None` | physical |  |
+| onDuplicate | `str \| bool \| None` | `None` | physical |  |
 | one_name | `str \| None` | `None` | physical |  |
 | many_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
@@ -616,10 +651,10 @@ rule-specific type checks. Translation never executes these rules.
 
 
 
-- Contains: *nothing*
-- Child addressing: no children
+- Contains: relation
+- Child addressing: ordered internal labels for relation
 - Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
+- Extra keys: not accepted
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -631,30 +666,14 @@ rule-specific type checks. Translation never executes these rules.
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
-
-### `subtable`
-
-
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: accepted (flat namespace prefixes)
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| name | `str` | *required* | physical |  |
-| condition | `str` | *required* | physical |  |
-| parameters | `dict \| None` | `None` | physical |  |
-| name_long | `str \| None` | `None` | physical |  |
-| name_short | `str \| None` | `None` | physical |  |
-| comment | `str \| None` | `None` | physical |  |
+| x_identity | `str \| None` | `None` | physical |  |
 
 ### `virtualRelation`
 
 GEP virtual relation; var_* binds source expressions as declaration data.
 
-condition refers to the target. var_* expressions refer to the source
+table names a direct target and requires a nonempty condition in the
+completed source. condition refers to the target. var_* expressions refer to the source
 and are used as :var_* in condition. An ask field named <name> is
 referenced as :ask_<name>. This namespace is provisional until compiler
 design. ask and bindings are preserved as data, without SQL rewriting.
@@ -664,7 +683,7 @@ virtual inverses.
 - Contains: *nothing*
 - Child addressing: no children
 - Projection flags: none declared
-- Extra keys: source expression bindings (`var_*`) and `x_*` metadata
+- Extra keys: `var_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -830,37 +849,6 @@ Declare version-to-handler references; no transformations run at build time.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | handlers | `dict \| None` | `None` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `partition`
-
-Declare a logical partition with a value or an existing lazy resolver.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| name | `str` | *required* | semantic |  |
-| field | `str \| None` | `None` | semantic |  |
-| value | `object` | `None` | semantic |  |
-| required | `bool` | `False` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `tenant`
-
-Declare the legacy multi-tenant flag.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| field | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `retention`

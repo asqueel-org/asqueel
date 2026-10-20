@@ -1,0 +1,9 @@
+✓ Phase 1 completata: il ciclo di vita delle connessioni ora segue il legacy (commit `2ffc583`). La suite completa dà 5140 passed, 42 skipped e solo i 27 xfail già noti; anche `ruff` e `mypy` sono puliti.
+
+- **Fuori dai Files del piano:**
+  - `environment.py` esclude dagli snapshot le code deferred e `_pendingExceptions`, perché contengono callback.
+  - `cli.py` chiamava ancora `db.close()`; ora chiama `closeConnection()`.
+- **Note `> Review:` per il quality check:**
+  - All'uscita di `session(db)`, se anche `closeConnection()` fallisce, quell'errore sostituisce l'eccezione del body.
+  - `session(db)` fallisce su un database costruito con `SqlEnvironment`.
+  - Due oracoli in `docs/design/evidence/` usano ancora la vecchia API.

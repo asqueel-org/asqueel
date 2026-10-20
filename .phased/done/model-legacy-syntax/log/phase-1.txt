@@ -1,0 +1,10 @@
+⚠ Phase 1 resta `[!]`. I tentativi di correzione dentro la fase sono esauriti: lo skill ne ammette due e li ho fatti entrambi.
+
+- **Tentativo 1:** passare `sql_generatedExpression` ad asqueel-migration come `generated_expression`. PostgreSQL è verde. SQLite fallisce con `MigrationError` perché `PRAGMA table_info` non mostra le colonne generated.
+- **Tentativo 2:** cercare `table_xinfo` sul main di asqueel-migration (`2c2f1b2`). Non c'è. In asqueel non esiste una correzione possibile senza cambiare asqueel-migration, e il piano lo vieta.
+
+Ho aggiunto alla nota `> Attempted:` la frase "Fix budget exhausted: two attempts, the stop-loss of the executor.". La modifica è entrata con un amend nel commit di esito, che ora è `83fd723`: resta un solo commit di esito. Il working tree è pulito.
+
+La repair di cui parlavo prima è un passo successivo e separato (`/repair-phase`). Prima della repair va decisa la plan-defect claim:
+- asqueel-migration legge le colonne SQLite con `PRAGMA table_xinfo`, in una release che arriva prima della fase;
+- oppure il caso SQLite del test toglie la colonna `double`.

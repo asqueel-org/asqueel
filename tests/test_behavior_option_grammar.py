@@ -1,11 +1,11 @@
 """Declaration-only contracts: no live-model or provider construction."""
 from pathlib import Path
 import importlib.util
+import json
 
 import pytest
 from asqueel import SqlDatabaseConfig, SqlBuilder, SqlMigrationRenderer
 from asqueel.configuration import _copy_recipe, _owned_handler
-from asqueel.option_elements import TABLE_OPTIONS
 
 
 def source():
@@ -46,8 +46,6 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
     ('audit', {'mode': 'lazy'}),
     ('system_records', {'records': {'a': {'title': 'A'}}}),
     ('protection', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
-    ('partition', {'name': 'org', 'field': 'org_id', 'value': 'organization'}),
-    ('tenant', {}),
     ('retention', {'field': 'created', 'days': 30}),
     ('broadcast', {}), ('archive', {}),
     ('enabled_when', {'preference': 'enabled'}),
@@ -89,9 +87,6 @@ def test_merge_disable_reenable_and_reset_keep_explicit_source_values():
 def test_named_options_are_independent_and_broadcast_accepts_positional_columns():
     b, _, table = source()
     opts = table.options()
-    one = opts.partition('one', field='one_id', value='one')
-    two = opts.partition('two', field='two_id', value='two')
-    assert one is not two
     assert opts.numbering('first') is not opts.numbering('second')
     assert opts.broadcast('a', 'b').get_attr('columns') == ['a', 'b']
     b.validate_source()
@@ -135,10 +130,11 @@ def test_grammar_export_and_source_json_preserve_declarations(tmp_path):
     path = tmp_path / 'grammar.json'
     SqlBuilder.to_grammar(path)
     text = path.read_text()
-    assert all('"' + tag + '"' in text for tag in TABLE_OPTIONS)
-    from genro_bag import Bag
-    parsed = Bag.from_json(b.source.to_json())
-    assert parsed.get_node('db.packages.app.tables.item.options.hierarchical').get_attr('columns') == [{'name': 'code', 'unique': True}]
+    assert all('"' + tag + '"' in text for tag in b.table_options)
+    node, = json.loads(b.source.to_json())
+    for label in ('packages', 'app', 'tables', 'item', 'options', 'hierarchical'):
+        node, = (child for child in node['value'] if child['label'] == label)
+    assert node['attr']['columns'] == [{'name': 'code', 'unique': True}]
 
 
 def test_attachment_missing_master_cannot_be_silently_omitted_from_migration():
@@ -181,7 +177,7 @@ def test_old_source_nodes_cannot_silently_survive_composition(name):
 
 
 @pytest.mark.parametrize(('tag', 'kwargs'), [
-    ('audit', {'mode': 'lazy'}), ('tenant', {}),
+    ('audit', {'mode': 'lazy'}),
     ('retention', {'field': '__ins_ts', 'days': 60}),
     ('broadcast', {'columns': 'objtype'}), ('archive', {}),
     ('enabled_when', {'preference': 'adm.dev.connection_log_enabled'}),
@@ -199,12 +195,11 @@ def test_legacy_options_reject_provider_bindings(tag, kwargs):
 
 
 def test_existing_resolvers_survive_build_clone_and_composition_without_running(monkeypatch):
-    from genro_bag import BagResolver
     from genro_bag.resolvers import BagCbResolver, EnvResolver
     def forbidden(*args, **kwargs):
         pytest.fail('Resolvers must stay deferred while building the source')
     monkeypatch.setattr(EnvResolver, 'load', forbidden)
-    b = complete_example(current_state=forbidden)
+    b = complete_example()
     # Exercise a calculated configuration value, not a per-write default.
     b.source.get_node('db.packages.invc.tables.invoice').column(
         'date', default=BagCbResolver(forbidden))
@@ -212,12 +207,11 @@ def test_existing_resolvers_survive_build_clone_and_composition_without_running(
         assert builder.validate_source() == []
         invoice = builder.source.get_node('db.packages.invc.tables.invoice')
         assert isinstance(invoice.value.get_node('columns.date').get_attr('default'), BagCbResolver)
-        assert isinstance(invoice.value.get_node('options.partition_customer_state').get_attr('value'), BagResolver)
         assert isinstance(builder.source.get_node('db.connection').get_attr('password'), EnvResolver)
     # Ordinary Python callbacks must be wrapped in the existing resolver.
     with pytest.raises(ValueError, match='BagResolver'):
-        b.source.get_node('db.packages.invc.tables.customer').options().partition(
-            'invalid', field='state', value=forbidden)
+        b.source.get_node('db.packages.invc.tables.customer').options().numbering(
+            'invalid', parameters={'value': forbidden})
 
 
 def test_encryption_rejects_provider_in_calls_and_imported_source():
@@ -255,3 +249,9 @@ def test_alias_table_is_deferred_but_virtual_relation_remains():
         assert builder.validate_source() == []
         node = builder.source.get_node('db.packages.app.tables.item.virtualRelation_customer')
         assert node.get_attr('relation') == '@invoice_id.@customer_id'
+
+
+def test_tenant_is_not_an_option_of_the_grammar():
+    _, _, table = source()
+    with pytest.raises(AttributeError, match="'tenant'"):
+        table.options().tenant()

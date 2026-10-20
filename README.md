@@ -34,6 +34,12 @@ for the approach and an example. The manual also covers planned capabilities;
 [Current status](docs/guide/limitations.md) identifies what works today and what
 remains to be implemented.
 
+The alternative hierarchical model supports SELECT compilation and fetch/count
+execution, including supported to-one relations, formulas, subqueries and filters.
+It returns mutable Toolbox NamedList rows on PostgreSQL and SQLite; see the
+[scope and legacy comparison](docs/design/92-hierarchical-fetch-count.md).
+The default renderer is unchanged; to-many operations still have no handlers.
+
 ## Install
 
 Version **0.6.0** completes native package configuration → live model objects →
@@ -74,14 +80,15 @@ query = customer.query(
     minimum_id=1, order_by="$id",
 )
 print(query.sqltext)  # Compiles without opening a connection.
-db.close()
+db.closeConnection()
 
 ```
 
 Against an existing `sales.customer` table, call `query.fetch()` to get a list
-of dictionaries. Table writes and reads share the selected thread-local connection, opened lazily. Use `db.commit()`
+of mutable Toolbox `NamedList` rows (name and position access). Table writes and reads share the selected thread-local connection, opened lazily. Use `db.commit()`
 and `db.rollback()`. Select a named connection with `db.tempEnv(connectionName=...)`.
-Closing the database rolls back pending work; `with db:` does not commit it.
+`db.closeConnection()` rolls back pending work and keeps the database usable;
+`with session(db):` calls it at exit.
 
 Construction does not connect or create tables. The
 [runnable quickstart](docs/guide/quickstart.md) includes explicit disposable

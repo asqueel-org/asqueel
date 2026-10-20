@@ -37,13 +37,146 @@ up-to-date database it returns an empty plan (`plan.empty`).
 Both methods work for every way of building an `AsqueelDb`, including a database
 declared in a host configuration (`AsqueelDb(node)`, see
 [cascading grammars](configuration-grammars.md)). The database name comes from
-the connection settings; a missing PostgreSQL database is created. An in-memory
-SQLite database cannot be migrated.
+the connection settings; a missing PostgreSQL database is created. A SQLite
+`:memory:` database is migrated through the application's existing connection,
+including introspection and the comparison after applying the migration.
 
 `allow_removals=True` enables the supported removals, currently columns only.
 
+Three more options come from the GenroPy migration, with the same keywords on
+both methods:
+
+- `foreignKeys=False` creates no foreign key constraint. The indexes of the
+  relation columns stay. Foreign keys already in the database are kept: the
+  migration does not remove relations.
+- `force=True` converts a filled column to a new type. Values that do not
+  convert become NULL. Without it, such a conversion raises `MigrationError`.
+- `backup=True` implies `force` and first copies the column into
+  `<column>__<old dtype>`. After applying, a backup column without lost values
+  is dropped; a kept one adds a warning to the returned plan.
+
+```python
+plan = db.migrate(backup=True)
+for warning in plan.warnings:
+    print(warning)   # app.event.happened: 1 value(s) not converted, kept in backup column happened__T
+```
+
+### Indexes the model implies
+
+The migration creates, as GenroPy:
+
+- an index on the columns of every relation declared on a physical column or a
+  `compositeColumn`, with or without `foreign_key`, unless the relation says
+  `indexed=False`;
+- an index on the target columns of a relation whose target is not the target
+  pkey;
+- an index for `column(indexed=True)` or `column(indexed={...})`.
+
+Pkey columns and unique columns get no index. `indexed={...}` carries the index
+options: `method`, `where`, `tablespace`, `sorting` (comma-separated, one
+direction per column), `with_<name>` (a `WITH` storage option) and `unique`.
+`unique` without `where` makes the column unique and creates no index; with
+`where` it is a partial unique index. Any other key raises.
+
+```python
+columns.column('code', dtype='T', indexed=dict(where='code IS NOT NULL', sorting='DESC',
+                                               with_fillfactor=70))
+```
+
 The [CLI](cli.md) provides `asqueel db plan NAME` and `asqueel db apply NAME`
 on top of the same methods. The lower-level API below remains available.
+
+## Experiment in a Python console, without files
+
+Start Python in an environment containing `asqueel[migration]`. Declare a
+builder directly; no configuration file or recipe subclass is required:
+
+```python
+from asqueel import AsqueelDb, SqlDatabaseConfig
+
+model = SqlDatabaseConfig()
+root = model.source.db(implementation="sqlite")
+root.connection(name=":memory:", implementation="sqlite")
+product = root.packages().package("shop", sqlschema="shop").table("product", pkey="code")
+product.column("code", size=":10")
+product.column("name", size=":60")
+
+db = AsqueelDb(model)
+print(db.migrate().commands)
+products = db.table("shop.product")
+products.insert({"code": "TEA", "name": "Tea"})
+db.commit()
+products.query(columns="$code, $name").fetch()
+products.update({"name": "Green tea"}, pkey="TEA")
+db.commit()
+```
+
+The builder and the running model are separate snapshots. Add columns to the
+builder, explicitly reload the model, then migrate the same database:
+
+```python
+product.column("category", size=":30")
+product.column("stock", dtype="I")
+db.reloadModel(model)
+print(db.migrate().commands)
+
+products = db.table("shop.product")  # Fresh handle for the new model.
+products.update({"category": "Drinks", "stock": 8}, pkey="TEA")
+db.commit()
+products.query(columns="$name, $stock").fetch()
+db.commit()
+```
+
+Even the CSV can be held in memory for a short demonstration:
+
+```python
+import csv
+from io import StringIO
+
+data = StringIO("code,name,category,stock\nCOF,Coffee,Drinks,24\nMUG,Mug,Kitchen,12\n")
+for row in csv.DictReader(data):
+    row["stock"] = int(row["stock"])
+    products.insert(row)
+db.commit()
+products.query(
+    columns="$name, $stock",
+    where="$category = :category", category="Drinks",
+    order_by="$stock DESC",
+).fetch()
+# [[name=Coffee,stock=24], [name=Green tea,stock=8]]
+
+db.closeConnection()  # Discards this in-memory database.
+```
+
+The in-memory path borrows the main SQLite connection. It never closes it
+during planning, applying or verifying a migration. Attached SQL schemas are
+also in memory. There are no database files to persist between processes:
+exiting Python, closing the connection, or constructing a different `AsqueelDb`
+creates a different database.
+
+`reloadModel(source, parents=None)` is for an exclusively
+used, single-threaded SQLite `:memory:` session with only the main connection
+open. It validates the replacement
+before swapping models, keeps the connection, and refuses changes to connection
+settings or SQL schemas. It changes the model only; `migrate()` applies the DDL.
+Obtain fresh table and query handles after reloading: old handles are invalid.
+The original builder is not watched for changes.
+
+A relation added to a table that already exists needs
+`migrate(foreignKeys=False)`: SQLite cannot add a foreign key to an existing
+table, so the migration creates the column and its index without the
+constraint. The relation works in queries (`@category_code.name`) because
+joins come from the model.
+
+Both in-memory migration methods and model reload require an idle session.
+Commit or roll back pending work first, including after reads, and finish any
+deferred callbacks. They refuse unfinished work rather than committing or
+discarding it. A failed DDL transaction is rolled back without closing the
+database. File-backed SQLite and PostgreSQL retain their existing migration
+paths.
+
+The complete executable example is
+[`examples/sqlite_memory.py`](../../examples/sqlite_memory.py).
 
 (native-package-models)=
 ## Native package models
@@ -60,7 +193,7 @@ db = AsqueelDb(source())
 try:
     migration_data = SqlMigrationRenderer(to_physical_builder(db.model)).render()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 This example requires the repository checkout. To write the JSON artifacts,
@@ -191,9 +324,9 @@ that represents it. Read-only query use of supported imported tables can continu
 independently of migration support.
 
 Imported foreign keys do not acquire new indexes implicitly: the importer
-projects the indexes present in the catalog. In native declarations,
-`foreign_key=True` normally also requests a supporting index; declare
-`indexed=False` on the relation when that is not intended.
+projects the indexes present in the catalog. In native declarations, every
+relation on a physical column requests an index on its columns, with or without
+`foreign_key`; declare `indexed=False` on the relation when that is not intended.
 
 ## Read or export migration recipes
 
@@ -220,9 +353,8 @@ for the read-only PostgreSQL catalog API.
 
 `dtype="serial"` retains its existing 64-bit BIGSERIAL meaning. The additive
 `dtype="serial4"` declaration requests a 32-bit PostgreSQL SERIAL key. Native
-migration requires an asqueel-migration build with `serial4` support; the published
-migration 0.2.1 does not include it. Existing applications using other dtypes keep
-working with the previously supported migration versions.
+migration requires `asqueel-migration>=0.3.1,<0.4`, required by the core's
+`migration` and `dev` extras. Published migration 0.2.2 includes `serial4` support.
 
 With the updated migration engine, a populated SERIAL4 column declared as
 `serial4` produces no DDL and retains its sequence/default. Declaring it as `I`

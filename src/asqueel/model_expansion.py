@@ -10,19 +10,25 @@ from copy import deepcopy
 import inspect
 
 from .catalog import SqlModelCatalog
-from .common import split_names
+from .common import in_attribute_family, split_names
 from .contracts import UnsupportedFeatureError
-from .model_source import options
+from .model_source import generate_attributes, options
+
+
+_TRIGGER_KEYS = ('onInserting', 'onUpdating', 'onUpdated', 'onInserted', 'onDeleting', 'onDeleted')
 
 
 def _legacy(**attributes):
-    # Use the same flat namespace as the offline legacy adapter.
-    return {f'x_legacy_{key}': value for key, value in attributes.items()}
+    # Use the same flat namespace as the offline legacy adapter; column
+    # triggers keep their grammar names.
+    return {key if key in _TRIGGER_KEYS else f'x_legacy_{key}': value for key, value in attributes.items()}
 
 
 class _TableExpansion:
-    def __init__(self, builder, key, table):
+    def __init__(self, builder, key, table, *, options_first=False):
         self.builder, self.key, self.table = builder, '.'.join(key), table
+        self.options_first = options_first
+        self.emitted = {}
 
     def spec(self, name):
         option = options(self.table).get(name)
@@ -66,15 +72,34 @@ class _TableExpansion:
         data = {**attributes, **previous, **structure}
         if kind == 'formulaColumn':
             data['x_requires_compilation'] = 'formulaColumn'
-        return getattr(self.table, kind)(name, **data)
+        declared = self.builder._get_schema_info(kind).get('declared_names') or set()
+        generated = {key: data.pop(key) for key in list(data)
+                     if key not in declared and not in_attribute_family(self.builder, kind, key)}
+        # The tree renderer consumes options before ordinary declarations.
+        # Keep the complete source available for validation/cross-table reads,
+        # but insert each generated field at the next option position.
+        collection = 'columns' if kind == 'column' else 'virtual_columns'
+        emitted = self.emitted.setdefault(collection, set())
+        first = self.options_first and name not in emitted
+        position = len(emitted) if first else None
+        result = getattr(self.table, kind)(name, node_position=position, **data)
+        generate_attributes(self.builder, result, generated)
+        if first:
+            if existing is not None:
+                # Composition updates a predeclared node in place. Preserve its
+                # children and attributes while consuming it in this first pass.
+                siblings = result.parent_bag
+                siblings.move(siblings.keys().index(result.label), position)
+            emitted.add(name)
+        return result
 
     def formula(self, name, formula=None, **attributes):
         return self.add(name, attributes.pop('dtype', 'A'), kind='formulaColumn',
                         sql_formula=formula, **attributes)
 
     def table_default(self, **attributes):
-        for key, value in attributes.items():
-            self.table.attr.setdefault(key, value)
+        generate_attributes(self.builder, self.table,
+                            {key: value for key, value in attributes.items() if key not in self.table.attr})
 
     def relation(self, column, to, **attributes):
         existing = [n for n in column.value or () if n.node_tag == 'relation']
@@ -89,9 +114,13 @@ class _TableExpansion:
             for key, value in attributes.items():
                 if key in relation.attr and key not in defaults and relation.attr[key] != value:
                     raise ValueError(f'{self.key}.{column.label}: conflicting relation {key}')
-            relation.attr.update(attributes)
+            generate_attributes(self.builder, relation, attributes)
             return
-        column.relation(to, foreign_key=True, **attributes)
+        declared = self.builder._get_schema_info('relation').get('declared_names') or set()
+        relation = column.relation(to, foreign_key=True,
+                                   **{key: value for key, value in attributes.items() if key in declared})
+        generate_attributes(self.builder, relation,
+                            {key: value for key, value in attributes.items() if key not in declared})
 
     def sys_fields(self):
         spec = self.spec('sys_fields')
@@ -130,7 +159,7 @@ class _TableExpansion:
                 ('ldel', 'logicalDeletionField', '__del_ts'), ('upd', 'lastTS', '__mod_ts'),
                 ('draft', 'draftField', '__is_draft')):
             if spec[flag] is not False:
-                self.table_default(**_legacy(**{key: value}))
+                self.table_default(**{key: value})
         pkey = self.table.get_attr('pkey')
         if pkey:
             self.formula('__record_pointer', f" '{self.key}.' || ${pkey} ", group=group,
@@ -148,20 +177,6 @@ class _TableExpansion:
                          **_legacy(_sysfield=True))
 
     def local(self):
-        # DbModelSrc._subtable_table exposes each declared filter as a boolean
-        # virtual column. Keep the SQL and its bindings as model data.
-        for child in list(self.table.value or ()):
-            if child.node_tag != 'subtable':
-                continue
-            name = child.get_attr('name')
-            bindings = {f'var_{key}': value for key, value in
-                        (child.get_attr('parameters') or {}).items()}
-            bindings.update({f'var_{key[10:]}': value for key, value in child.attr.items()
-                             if key.startswith('condition_')})
-            self.formula('subtable_' + name, child.get_attr('condition'), dtype='B',
-                         name_long=child.get_attr('name_long') or name, group='subtables',
-                         **_legacy(_addClass='subtable_' + name), **bindings)
-            self.table_default(group_subtables='!![en]Subtables')
         spec = self.spec('full_update')
         if spec is not None:
             self.add(spec['field'], 'DHZ', indexed=True, group=self.group,
@@ -202,15 +217,19 @@ class _TableExpansion:
                                                     ELSE NOT (',' || :env_userTags || ',' LIKE '%%,'|| $__protection_tag || ',%%')
                                                     END ) """, dtype='B', **_legacy(_sysfield=True))
         # Column-level dynamic_fields is declaration data, not a new physical field.
-        for column in self.table.value.get_item('columns') or ():
+        columns = self.table.value.get_item('columns') if self.table.value is not None else None
+        for column in columns or ():
             child = column.value.get_node('dynamic_fields') if column.value else None
             if child is not None and child.get_attr('enabled', True):
-                column.attr.update(_legacy(subfields=child.get_attr('source')))
+                generate_attributes(self.builder, column, _legacy(subfields=child.get_attr('source')))
 
     def hierarchy(self):
         spec = self.spec('hierarchical')
         if spec is None:
             return
+        for name in ('linked_to', 'depth'):
+            if spec.get(name):
+                raise UnsupportedFeatureError(f'{self.key}: hierarchical {name} is not available in this release')
         id_column = self.node('id')
         if id_column is None or self.table.get_attr('pkey') != 'id' or id_column.get_attr('size') != '22':
             raise ValueError(f'{self.key}: hierarchical requires id size 22 as primary key, as in legacy')
@@ -218,22 +237,26 @@ class _TableExpansion:
         col = self.add(parent, 'A', required={'size': '22'}, group='*', name_long='!![en]Parent id',
                        **_legacy(_sysfield=True, onInserting='hierarchical_before',
                                  onUpdating='hierarchical_before', onUpdated='hierarchical_after'))
-        self.relation(col, self.key + '.id', inverse='_children', deferred=True, on_delete='cascade',
+        self.relation(col, self.key + '.id', relation_name='_children', deferred=True, onDelete='cascade',
                       one_name='!![en]Parent', many_name='!![en]Children', one_group=self.group, many_group=self.group)
         self.formula('child_count', dtype='L', group='*',
-                     select=dict(table=self.key, where=f'@_children.{parent}=#THIS.id', columns='COUNT(*)'))
+                     select=dict(table=self.key, where=f'${parent}=#THIS.id', columns='COUNT(*)'))
         self.formula('hlevel', "length($hierarchical_pkey)-length(replace($hierarchical_pkey,'/',''))+1", group='*')
         if spec['root_id']:
             col = self.add('root_id', 'A', required={'size': '22'}, group='*',
-                           sql_value='substring(:hierarchical_pkey from 1 for 22)', **_legacy(_sysfield=True))
-            self.relation(col, self.key + '.id', inverse='_grandchildren', deferred=True,
-                          on_delete='ignore', one_name='!![en]Root', many_name='!![en]Grandchildren')
+                           sql_value='substr(:hierarchical_pkey,1,22)', **_legacy(_sysfield=True))
+            self.relation(col, self.key + '.id', relation_name='_grandchildren', deferred=True,
+                          onDelete='ignore', one_name='!![en]Root', many_name='!![en]Grandchildren')
         if spec['virtual_roots']:
             self.add('_virtual_node', 'B', name_long='!![en]H.Virtual node', **_legacy(copyFromParent=True))
         columns = spec.get('columns') or ()
         columns = split_names(columns) if isinstance(columns, str) else columns
         fields = []
         counter = self.spec('auto_counter')
+        if counter and counter.get('field', '_row_count') != '_row_count':
+            # The legacy hierarchical counter is always _row_count.
+            raise UnsupportedFeatureError(
+                f"{self.key}: hierarchical auto_counter field {counter['field']!r} is not available in this release")
         for item in columns:
             name = item['name'] if isinstance(item, Mapping) else item
             if name == 'pkey':
@@ -257,13 +280,6 @@ class _TableExpansion:
         self.table_default(**_legacy(hierarchical=','.join(fields)))
         if spec.get('caption_field'):
             self.table_default(caption_field=spec['caption_field'])
-        if spec.get('depth'):
-            for name in fields:
-                column = self.node('hierarchical_' + name)
-                column.attr.update(_legacy(variant='hdepth', variant_hdepth_levels=spec['depth']))
-                if not column.get_attr('group'):
-                    column.attr['group'] = 'hierarchical_' + name
-                    self.table_default(**{'group_hierarchical_' + name: column.get_attr('name_long')})
         broadcast = self.spec('broadcast')
         broadcast_fields = split_names((broadcast or {}).get('columns') or '')
         if parent not in broadcast_fields:
@@ -309,8 +325,8 @@ def _attachments(owner, spec, expansions):
     owner.add('info', 'X', name_long='!![en]Additional info')
     owner.add('is_foreign_document', 'B', name_long='!![en][Is foreign document]', name_short='!![en]Ext')
     column = owner.add('maintable_id', 'A', required={'size': '22'}, group='*', name_long=master.table.get_attr('name'))
-    owner.relation(column, master.key + '.' + pkey, inverse='atc_attachments',
-                   on_delete='cascade', on_delete_sql='cascade', on_duplicate=False, deferred=True)
+    owner.relation(column, master.key + '.' + pkey, relation_name='atc_attachments',
+                   onDelete='cascade', onDelete_sql='cascade', onDuplicate=False, deferred=True)
     owner.formula('adapted_url', """CASE WHEN position('\\:' in $filepath)>0 THEN '/'||$filepath
              ELSE '/_vol/' || $filepath
             END""", group='_')
@@ -318,28 +334,6 @@ def _attachments(owner, spec, expansions):
               required_columns='$external_url,$filepath', static=True)
     owner.add('missing_file', 'B', kind='pyColumn', method='pyColumn_missing_file', name_long='Missing file')
     owner.add('full_external_url', 'T', kind='pyColumn', method='pyColumn_full_external_url', name_long='Full external url')
-
-
-def _linked_hierarchy(owner, spec, expansions):
-    master = _target(expansions, spec['linked_to'], owner)
-    pkey = master.table.get_attr('pkey')
-    column = master.node(pkey) if pkey else None
-    if column is None or column.node_tag != 'column':
-        raise ValueError(f'{owner.key}: linked hierarchy master needs a physical primary key')
-    dtype = column.get_attr('dtype') or ('A' if column.get_attr('size') else 'T')
-    dtype = {'serial': 'L', 'serial4': 'I'}.get(dtype, dtype)
-    required = {'size': column.get_attr('size')} if column.get_attr('size') else {}
-    name = master.table.get_attr('name')
-    col = owner.add(f'{name}_{pkey}', dtype, required=required, group='_',
-                    name_long=master.table.get_attr('name_long'), **_legacy(copyFromParent=True, fkeyToMaster=True))
-    owner.relation(col, master.key + '.' + pkey, inverse=owner.table.get_attr('name') + 's',
-                   on_duplicate=False, deferred=True, on_delete='cascade')
-    root = master.add('root_' + owner.table.get_attr('name') + '_id', 'A', required={'size': '22'},
-                      name_long=f"{owner.table.get_attr('name_long')} root",
-                      **_legacy(onInserting='insertLinkedHierarchicalRoot', onUpdating='updateLinkedHierarchicalRoot'))
-    master.relation(root, owner.key + '.id', one_one=True, on_duplicate=False, on_delete_sql='set_null',
-                    deferred=True, **_legacy(one_one='*'))
-    owner.table_default(hierarchical_linked_to=master.key)
 
 
 def _relative_index(owner, spec, expansions):
@@ -360,12 +354,12 @@ def _relative_index(owner, spec, expansions):
             name_long=f"{owner.table.get_attr('name_long')} relidx count")
 
 
-def expand_options(builder):
+def expand_options(builder, *, options_first=False):
     catalog = SqlModelCatalog(builder)
     for path, node in catalog.nodes:
         if node.node_tag in ('system_records', 'release') and node.get_attr('enabled', True):
             raise UnsupportedFeatureError(f'{path}: {node.node_tag} is deferred; no expansion in this release')
-    expansions = {'.'.join(key): _TableExpansion(builder, key, entry['node'])
+    expansions = {'.'.join(key): _TableExpansion(builder, key, entry['node'], options_first=options_first)
                   for key, entry in catalog.tables.items()}
     with builder.contribution('@options'):
         # Compose the existing base options for AttachmentTable, on the owned source only.
@@ -388,10 +382,6 @@ def expand_options(builder):
             spec = owner.spec('attachments')
             if spec is not None:
                 _attachments(owner, spec, expansions)
-        for owner in expansions.values():
-            spec = owner.spec('hierarchical')
-            if spec and spec.get('linked_to'):
-                _linked_hierarchy(owner, spec, expansions)
         for owner in expansions.values():
             spec = owner.spec('relative_index')
             if spec is not None:

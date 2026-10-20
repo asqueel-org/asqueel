@@ -1,0 +1,3234 @@
+{
+  "snapshot": "/tmp/asqueel-formula-baseline/next",
+  "checks": 100,
+  "mismatches": [],
+  "records": [
+    {
+      "kind": "prepared",
+      "name": "ordinary",
+      "dialect": "postgresql",
+      "sql": "SELECT :value AS value",
+      "params": {
+        "value": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(value)s AS value",
+          "params": {
+            "value": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(value)s AS value",
+          "params": {
+            "value": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "repeat",
+      "dialect": "postgresql",
+      "sql": "SELECT :x+:x AS value",
+      "params": {
+        "x": 2
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s+%(x)s AS value",
+          "params": {
+            "x": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s+%(x)s AS value",
+          "params": {
+            "x": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "prefix",
+      "dialect": "postgresql",
+      "sql": "SELECT :x+:xx AS value",
+      "params": {
+        "x": 2,
+        "xx": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s+%(xx)s AS value",
+          "params": {
+            "x": 2,
+            "xx": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s+%(xx)s AS value",
+          "params": {
+            "x": 2,
+            "xx": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "unicode",
+      "dialect": "postgresql",
+      "sql": "SELECT :soglia_è AS value",
+      "params": {
+        "soglia_è": {
+          "type": "Decimal",
+          "value": "12.50"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(soglia_è)s AS value",
+          "params": {
+            "soglia_è": {
+              "type": "Decimal",
+              "value": "12.50"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(soglia_è)s AS value",
+          "params": {
+            "soglia_è": {
+              "type": "Decimal",
+              "value": "12.50"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "missing",
+      "dialect": "postgresql",
+      "sql": "SELECT :missing AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(missing)s AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(missing)s AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "unused",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": 2,
+        "unused": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": 2,
+            "unused": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": 2,
+            "unused": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "null",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": null
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "bytes",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "bytes",
+          "value": "636166c3a8"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "cafè"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "cafè"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "date",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "decimal",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "Decimal",
+          "value": "1.25"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": {
+              "type": "Decimal",
+              "value": "1.25"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": {
+              "type": "Decimal",
+              "value": "1.25"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_field",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": "\\$id"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_relation",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": "\\@customer_id.name"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "@customer_id.name"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "@customer_id.name"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_bytes",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "bytes",
+          "value": "5c246964"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_sql",
+      "dialect": "postgresql",
+      "sql": "SELECT '\\:value' AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT ':value' AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT ':value' AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "percent",
+      "dialect": "postgresql",
+      "sql": "SELECT '10%%' AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT '10%%' AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT '10%%' AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "percent_bound",
+      "dialect": "postgresql",
+      "sql": "SELECT :x AS value, 8 %% 3 AS remainder",
+      "params": {
+        "x": "10%"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s AS value, 8 %% 3 AS remainder",
+          "params": {
+            "x": "10%"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s AS value, 8 %% 3 AS remainder",
+          "params": {
+            "x": "10%"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "environment",
+      "dialect": "postgresql",
+      "sql": "SELECT :env_workdate AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(env_workdate)s AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(env_workdate)s AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "environment_missing",
+      "dialect": "postgresql",
+      "sql": "SELECT :env_absent AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(env_absent)s AS value",
+          "params": {
+            "env_absent": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(env_absent)s AS value",
+          "params": {
+            "env_absent": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "environment_override",
+      "dialect": "postgresql",
+      "sql": "SELECT :env_workdate AS value",
+      "params": {
+        "env_workdate": {
+          "type": "date",
+          "value": "2020-01-01"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(env_workdate)s AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2020-01-01"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(env_workdate)s AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2020-01-01"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "cast",
+      "dialect": "postgresql",
+      "sql": "SELECT :x::numeric AS value",
+      "params": {
+        "x": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(x)s::numeric AS value",
+          "params": {
+            "x": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(x)s::numeric AS value",
+          "params": {
+            "x": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "cast_no_bind",
+      "dialect": "postgresql",
+      "sql": "SELECT t0.value::numeric AS value FROM t0",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT t0.value::numeric AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT t0.value::numeric AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "regexp",
+      "dialect": "postgresql",
+      "sql": "SELECT value REGEXP :pattern AS value FROM t0",
+      "params": {
+        "pattern": "^a"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value ~* %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value ~* %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "ilike",
+      "dialect": "postgresql",
+      "sql": "SELECT value ILIKE :pattern AS value FROM t0",
+      "params": {
+        "pattern": "a%"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value ILIKE %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value ILIKE %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "ilike_lower",
+      "dialect": "postgresql",
+      "sql": "SELECT value ilike :pattern AS value FROM t0",
+      "params": {
+        "pattern": "a%"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value ilike %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value ilike %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "sqlite_regex",
+      "dialect": "postgresql",
+      "sql": "SELECT value ~* :pattern AS value FROM t0",
+      "params": {
+        "pattern": "^a"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value ~* %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value ~* %(pattern)s AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "boolean",
+      "dialect": "postgresql",
+      "sql": "SELECT (t0.flag IS NOT TRUE) AS value FROM t0",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT (t0.flag IS NOT TRUE) AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT (t0.flag IS NOT TRUE) AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "false",
+      "dialect": "postgresql",
+      "sql": "SELECT t0.flag IS FALSE AS value FROM t0",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT t0.flag IS FALSE AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT t0.flag IS FALSE AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "literal_operator",
+      "dialect": "postgresql",
+      "sql": "SELECT 'ILIKE REGEXP' AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 'ILIKE ~*' AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 'ILIKE ~*' AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "literal_binding",
+      "dialect": "postgresql",
+      "sql": "SELECT ':x' AS value",
+      "params": {
+        "x": "text"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT '%(x)s' AS value",
+          "params": {
+            "x": "text"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT '%(x)s' AS value",
+          "params": {
+            "x": "text"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "list",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "list",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "tuple",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": {
+          "type": "tuple",
+          "value": [
+            1,
+            2
+          ]
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "tuple",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": {
+          "type": "tuple",
+          "value": [
+            1,
+            2
+          ]
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "set",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": {
+          "type": "set",
+          "value": [
+            1,
+            2
+          ]
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "set",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": {
+          "type": "set",
+          "value": [
+            1,
+            2
+          ]
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "one",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "one",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0) AS value FROM t0",
+          "params": {
+            "ids_0": 1
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0) AS value FROM t0",
+          "params": {
+            "ids_0": 1
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "empty",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": []
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT FALSE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT FALSE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "empty",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": []
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT FALSE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT FALSE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "empty_not",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
+      "params": {
+        "ids": []
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT TRUE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT TRUE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "empty_not",
+      "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
+      "params": {
+        "ids": []
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT TRUE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT TRUE AS value FROM t0",
+          "params": {
+            "ids": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "null_member",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          null
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "null_member",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          null
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "not_in",
+      "dialect": "postgresql",
+      "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN(%(ids_0)s,%(ids_1)s) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "not_in",
+      "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN(:ids_0,:ids_1) AS value FROM t0",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_repeat",
+      "dialect": "postgresql",
+      "sql": "SELECT 1 IN :ids OR 2 IN :ids AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) OR 2 IN(%(ids_0)s,%(ids_1)s) AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) OR 2 IN(%(ids_0)s,%(ids_1)s) AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "collection_repeat",
+      "sql": "SELECT 1 IN :ids OR 2 IN :ids AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) OR 2 IN(:ids_0,:ids_1) AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) OR 2 IN(:ids_0,:ids_1) AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_prefix",
+      "dialect": "postgresql",
+      "sql": "SELECT 1 IN :ids AND 3=:ids0 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ],
+        "ids0": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) AND 3=%(ids0)s AS value",
+          "params": {
+            "ids0": 3,
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) AND 3=%(ids0)s AS value",
+          "params": {
+            "ids0": 3,
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "collection_prefix",
+      "sql": "SELECT 1 IN :ids AND 3=:ids0 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ],
+        "ids0": 3
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) AND 3=:ids0 AS value",
+          "params": {
+            "ids0": 3,
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) AND 3=:ids0 AS value",
+          "params": {
+            "ids0": 3,
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_pg_collision",
+      "dialect": "postgresql",
+      "sql": "SELECT 1 IN :ids AND 3=:ids_0 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ],
+        "ids_0": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) AND 3=%(ids_0)s AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) AND 3=%(ids_0)s AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "collection_pg_collision",
+      "sql": "SELECT 1 IN :ids AND 3=:ids_0 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ],
+        "ids_0": 3
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) AND 3=:ids_0 AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) AND 3=:ids_0 AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_unused",
+      "dialect": "postgresql",
+      "sql": "SELECT 1 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "collection_unused",
+      "sql": "SELECT 1 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_non_in",
+      "dialect": "postgresql",
+      "sql": "SELECT :ids AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT %(ids)s AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT %(ids)s AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "collection_non_in",
+      "sql": "SELECT :ids AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :ids AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :ids AS value",
+          "params": {
+            "ids": [
+              1,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_shared_scalar",
+      "dialect": "postgresql",
+      "sql": "SELECT 1 IN :ids AND :ids IS NOT NULL AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) AND %(ids)s IS NOT NULL AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(%(ids_0)s,%(ids_1)s) AND %(ids)s IS NOT NULL AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "pg3_collection",
+      "name": "collection_shared_scalar",
+      "sql": "SELECT 1 IN :ids AND :ids IS NOT NULL AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) AND :ids IS NOT NULL AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN(:ids_0,:ids_1) AND :ids IS NOT NULL AS value",
+          "params": {
+            "ids_0": 1,
+            "ids_1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "ordinary",
+      "dialect": "sqlite",
+      "sql": "SELECT :value AS value",
+      "params": {
+        "value": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :value AS value",
+          "params": {
+            "value": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :value AS value",
+          "params": {
+            "value": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "repeat",
+      "dialect": "sqlite",
+      "sql": "SELECT :x+:x AS value",
+      "params": {
+        "x": 2
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x+:x AS value",
+          "params": {
+            "x": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x+:x AS value",
+          "params": {
+            "x": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "prefix",
+      "dialect": "sqlite",
+      "sql": "SELECT :x+:xx AS value",
+      "params": {
+        "x": 2,
+        "xx": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x+:xx AS value",
+          "params": {
+            "x": 2,
+            "xx": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x+:xx AS value",
+          "params": {
+            "x": 2,
+            "xx": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "unicode",
+      "dialect": "sqlite",
+      "sql": "SELECT :soglia_è AS value",
+      "params": {
+        "soglia_è": {
+          "type": "Decimal",
+          "value": "12.50"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :soglia_è AS value",
+          "params": {
+            "soglia_è": {
+              "type": "Decimal",
+              "value": "12.50"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :soglia_è AS value",
+          "params": {
+            "soglia_è": {
+              "type": "Decimal",
+              "value": "12.50"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "missing",
+      "dialect": "sqlite",
+      "sql": "SELECT :missing AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :missing AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :missing AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "unused",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": 2,
+        "unused": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": 2,
+            "unused": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": 2,
+            "unused": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "null",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": null
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "bytes",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "bytes",
+          "value": "636166c3a8"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "cafè"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "cafè"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "date",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "decimal",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "Decimal",
+          "value": "1.25"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": {
+              "type": "Decimal",
+              "value": "1.25"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": {
+              "type": "Decimal",
+              "value": "1.25"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_field",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": "\\$id"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_relation",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": "\\@customer_id.name"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "@customer_id.name"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "@customer_id.name"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_bytes",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value",
+      "params": {
+        "x": {
+          "type": "bytes",
+          "value": "5c246964"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value",
+          "params": {
+            "x": "$id"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "escaped_sql",
+      "dialect": "sqlite",
+      "sql": "SELECT '\\:value' AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT ':value' AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT ':value' AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "percent",
+      "dialect": "sqlite",
+      "sql": "SELECT '10%%' AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT '10%%' AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT '10%%' AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "percent_bound",
+      "dialect": "sqlite",
+      "sql": "SELECT :x AS value, 8 %% 3 AS remainder",
+      "params": {
+        "x": "10%"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x AS value, 8 %% 3 AS remainder",
+          "params": {
+            "x": "10%"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x AS value, 8 %% 3 AS remainder",
+          "params": {
+            "x": "10%"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "environment",
+      "dialect": "sqlite",
+      "sql": "SELECT :env_workdate AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :env_workdate AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :env_workdate AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2026-10-14"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "environment_missing",
+      "dialect": "sqlite",
+      "sql": "SELECT :env_absent AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :env_absent AS value",
+          "params": {
+            "env_absent": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :env_absent AS value",
+          "params": {
+            "env_absent": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "environment_override",
+      "dialect": "sqlite",
+      "sql": "SELECT :env_workdate AS value",
+      "params": {
+        "env_workdate": {
+          "type": "date",
+          "value": "2020-01-01"
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :env_workdate AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2020-01-01"
+            }
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :env_workdate AS value",
+          "params": {
+            "env_workdate": {
+              "type": "date",
+              "value": "2020-01-01"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "cast",
+      "dialect": "sqlite",
+      "sql": "SELECT :x::numeric AS value",
+      "params": {
+        "x": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT :x::numeric AS value",
+          "params": {
+            "x": 3
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT :x::numeric AS value",
+          "params": {
+            "x": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "cast_no_bind",
+      "dialect": "sqlite",
+      "sql": "SELECT t0.value::numeric AS value FROM t0",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT t0.value::numeric AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT t0.value::numeric AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "regexp",
+      "dialect": "sqlite",
+      "sql": "SELECT value REGEXP :pattern AS value FROM t0",
+      "params": {
+        "pattern": "^a"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value REGEXP :pattern AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value REGEXP :pattern AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "ilike",
+      "dialect": "sqlite",
+      "sql": "SELECT value ILIKE :pattern AS value FROM t0",
+      "params": {
+        "pattern": "a%"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value LIKE :pattern AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value LIKE :pattern AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "ilike_lower",
+      "dialect": "sqlite",
+      "sql": "SELECT value ilike :pattern AS value FROM t0",
+      "params": {
+        "pattern": "a%"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value like :pattern AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value like :pattern AS value FROM t0",
+          "params": {
+            "pattern": "a%"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "sqlite_regex",
+      "dialect": "sqlite",
+      "sql": "SELECT value ~* :pattern AS value FROM t0",
+      "params": {
+        "pattern": "^a"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT value  REGEXP  :pattern AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT value  REGEXP  :pattern AS value FROM t0",
+          "params": {
+            "pattern": "^a"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "boolean",
+      "dialect": "sqlite",
+      "sql": "SELECT (t0.flag IS NOT TRUE) AS value FROM t0",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT ((t0.flag IS NULL OR t0.flag !=1)) AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT ((t0.flag IS NULL OR t0.flag !=1)) AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "false",
+      "dialect": "sqlite",
+      "sql": "SELECT t0.flag IS FALSE AS value FROM t0",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT (t0.flag IS NOT NULL AND t0.flag =0) AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT (t0.flag IS NOT NULL AND t0.flag =0) AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "literal_operator",
+      "dialect": "sqlite",
+      "sql": "SELECT 'ILIKE REGEXP' AS value",
+      "params": {},
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 'LIKE REGEXP' AS value",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 'LIKE REGEXP' AS value",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "literal_binding",
+      "dialect": "sqlite",
+      "sql": "SELECT ':x' AS value",
+      "params": {
+        "x": "text"
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT ':x' AS value",
+          "params": {
+            "x": "text"
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT ':x' AS value",
+          "params": {
+            "x": "text"
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "list",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "tuple",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": {
+          "type": "tuple",
+          "value": [
+            1,
+            2
+          ]
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "set",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": {
+          "type": "set",
+          "value": [
+            1,
+            2
+          ]
+        }
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "one",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0)  AS value FROM t0",
+          "params": {
+            "ids0": 1
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0)  AS value FROM t0",
+          "params": {
+            "ids0": 1
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "empty",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": []
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN ()  AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN ()  AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "empty_not",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
+      "params": {
+        "ids": []
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN ()  AS value FROM t0",
+          "params": {}
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN ()  AS value FROM t0",
+          "params": {}
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "null_member",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          null
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": null
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": null
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "not_in",
+      "dialect": "sqlite",
+      "sql": "SELECT \"t0\".\"id\" NOT IN :ids AS value FROM t0",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT \"t0\".\"id\" NOT IN (:ids0,:ids1)  AS value FROM t0",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_repeat",
+      "dialect": "sqlite",
+      "sql": "SELECT 1 IN :ids OR 2 IN :ids AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  OR 2 IN (:ids0,:ids1)  AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  OR 2 IN (:ids0,:ids1)  AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_prefix",
+      "dialect": "sqlite",
+      "sql": "SELECT 1 IN :ids AND 3=:ids0 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ],
+        "ids0": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  AND 3=:ids0 AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  AND 3=:ids0 AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_pg_collision",
+      "dialect": "sqlite",
+      "sql": "SELECT 1 IN :ids AND 3=:ids_0 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ],
+        "ids_0": 3
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  AND 3=:ids_0 AS value",
+          "params": {
+            "ids_0": 3,
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  AND 3=:ids_0 AS value",
+          "params": {
+            "ids_0": 3,
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_unused",
+      "dialect": "sqlite",
+      "sql": "SELECT 1 AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_non_in",
+      "dialect": "sqlite",
+      "sql": "SELECT :ids AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT (:ids0,:ids1)  AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT (:ids0,:ids1)  AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "prepared",
+      "name": "collection_shared_scalar",
+      "dialect": "sqlite",
+      "sql": "SELECT 1 IN :ids AND :ids IS NOT NULL AS value",
+      "params": {
+        "ids": [
+          1,
+          2
+        ]
+      },
+      "snapshot": {
+        "workdate": {
+          "type": "date",
+          "value": "2026-10-14"
+        }
+      },
+      "legacy": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  AND (:ids0,:ids1)  IS NOT NULL AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      },
+      "current": {
+        "value": {
+          "sql": "SELECT 1 IN (:ids0,:ids1)  AND (:ids0,:ids1)  IS NOT NULL AS value",
+          "params": {
+            "ids0": 1,
+            "ids1": 2
+          }
+        }
+      }
+    }
+  ]
+}

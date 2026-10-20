@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="7" skipped="0" tests="7" time="0.196" timestamp="2026-10-14T16:23:57.197027+02:00" hostname="MacBook-Pro-di-Giovanni.local"><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_select_and_named_methods" time="0.145"><failure message="assert 'MAX(' in 'SELECT  &quot;t0&quot;.&quot;scalar&quot; AS &quot;scalar&quot;,\n&quot;t0&quot;.&quot;named&quot; AS &quot;named&quot;,\n&quot;t0&quot;.&quot;id&quot; AS &quot;pkey&quot;\n FROM &quot;main&quot;.&quot;app_owner&quot; AS t0'">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x105b07230&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10b5e0bc0&gt;
+
+    def test_select_and_named_methods(self, db):
+        sql = db.table('app.owner').query(columns='$scalar,$named').sqltext
+&gt;       assert 'MAX(' in sql
+E       assert 'MAX(' in 'SELECT  "t0"."scalar" AS "scalar",\n"t0"."named" AS "named",\n"t0"."id" AS "pkey"\n FROM "main"."app_owner" AS t0'
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:92: AssertionError</failure></testcase><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_exists_method" time="0.002"><failure message="assert 'EXISTS' in 'SELECT  &quot;t0&quot;.&quot;present&quot; AS &quot;present&quot;,\n&quot;t0&quot;.&quot;id&quot; AS &quot;pkey&quot;\n FROM &quot;main&quot;.&quot;app_owner&quot; AS t0'">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x10b5b3a40&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf7e30&gt;
+
+    def test_exists_method(self, db):
+        sql = db.table('app.owner').query(columns='$present').sqltext
+&gt;       assert 'EXISTS' in sql
+E       assert 'EXISTS' in 'SELECT  "t0"."present" AS "present",\n"t0"."id" AS "pkey"\n FROM "main"."app_owner" AS t0'
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:97: AssertionError</failure></testcase><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_related_column_dispatches_on_select_root" time="0.002"><failure message="assert ([])&#10; +  where [] = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf58e0&gt;.method_calls">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x10b5b3d10&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf58e0&gt;
+
+    def test_related_column_dispatches_on_select_root(self, db):
+        db.table('app.line').query(columns='@owner_id.scalar').sqltext
+&gt;       assert db.method_calls and set(db.method_calls) == {'app.line'}
+E       assert ([])
+E        +  where [] = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf58e0&gt;.method_calls
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:101: AssertionError</failure></testcase><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_nested_select_uses_its_own_root" time="0.002"><failure message="AssertionError: assert set() == {'app.line', 'app.owner'}&#10;  &#10;  Extra items in the right set:&#10;  'app.owner'&#10;  'app.line'&#10;  Use -v to get more diff">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x10b5e0050&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dc7fb00&gt;
+
+    def test_nested_select_uses_its_own_root(self, db):
+        db.table('app.owner').query(columns='$scalar,$nested').sqltext
+&gt;       assert set(db.method_calls) == {'app.owner', 'app.line'}
+E       AssertionError: assert set() == {'app.line', 'app.owner'}
+E         
+E         Extra items in the right set:
+E         'app.owner'
+E         'app.line'
+E         Use -v to get more diff
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:105: AssertionError</failure></testcase><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_sql_formula_can_supply_method_reference" time="0.001"><failure message="assert 'MAX(' in 'SELECT  &quot;t0&quot;.&quot;from_formula&quot; AS &quot;from_formula&quot;,\n&quot;t0&quot;.&quot;id&quot; AS &quot;pkey&quot;\n FROM &quot;main&quot;.&quot;app_owner&quot; AS t0'">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x10b5e02f0&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dca6510&gt;
+
+    def test_sql_formula_can_supply_method_reference(self, db):
+        sql = db.table('app.owner').query(columns='$from_formula').sqltext
+&gt;       assert 'MAX(' in sql
+E       assert 'MAX(' in 'SELECT  "t0"."from_formula" AS "from_formula",\n"t0"."id" AS "pkey"\n FROM "main"."app_owner" AS t0'
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:109: AssertionError</failure></testcase><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_subquery_column_method[None]" time="0.001"><failure message="assert ([])&#10; +  where [] = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccd910&gt;.method_calls">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x10b5e0740&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccd910&gt;, mode = 'None'
+
+    @pytest.mark.parametrize('mode', ['None', 'json'])
+    def test_subquery_column_method(self, db, mode):
+        if getattr(db, 'dialect', None) and db.dialect.name == 'sqlite' and mode != 'None':
+            from asqueel.contracts import UnsupportedFeatureError
+    
+            with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):
+                db.table('app.owner').query(columns='$collection_' + mode).sqltext
+        else:
+            sql = db.table('app.owner').query(columns='$collection_' + mode).sqltext
+            assert 'SELECT' in sql
+&gt;           assert db.method_calls and set(db.method_calls) == {'app.owner'}
+E           assert ([])
+E            +  where [] = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccd910&gt;.method_calls
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:122: AssertionError</failure></testcase><testcase classname="test_contract.TestLegacySubqueryMethodContract" name="test_subquery_column_method[json]" time="0.001"><failure message="assert ([])&#10; +  where [] = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccf260&gt;.method_calls">self = &lt;test_contract.TestLegacySubqueryMethodContract object at 0x10b5e0aa0&gt;
+db = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccf260&gt;, mode = 'json'
+
+    @pytest.mark.parametrize('mode', ['None', 'json'])
+    def test_subquery_column_method(self, db, mode):
+        if getattr(db, 'dialect', None) and db.dialect.name == 'sqlite' and mode != 'None':
+            from asqueel.contracts import UnsupportedFeatureError
+    
+            with pytest.raises(UnsupportedFeatureError, match='SQLite does not support'):
+                db.table('app.owner').query(columns='$collection_' + mode).sqltext
+        else:
+            sql = db.table('app.owner').query(columns='$collection_' + mode).sqltext
+            assert 'SELECT' in sql
+&gt;           assert db.method_calls and set(db.method_calls) == {'app.owner'}
+E           assert ([])
+E            +  where [] = &lt;gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccf260&gt;.method_calls
+
+/var/folders/wx/slcfx8nd5dngmw59yz2gm4v40000gn/T/subquery-method-replay-uyzdc12q/test_contract.py:122: AssertionError</failure></testcase></testsuite></testsuites>

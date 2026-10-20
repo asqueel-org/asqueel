@@ -64,10 +64,10 @@ def scenarios(backend):
 
 def native_backend():
     from asqueel.runtime import Database
-    from tests.application_connections.test_connections import Driver
-    db = Database(driver=Driver())
+    from tests.application_connections.test_connections import FAKE
+    db = Database(implementation=FAKE)
     db.defer = db.deferToCommit
-    db.drain = lambda: db._invoke_deferred(db._connection_state, 'before')
+    db.drain = lambda: db._invoke_deferred(db._connection_state, 'to_commit_defer_calls')
     return db
 
 
@@ -85,7 +85,7 @@ def legacy_backend(root):
     exec(compile(ast.fix_missing_locations(module), str(path), 'exec'), namespace)
 
     class Legacy(namespace['TransactionMixin']):
-        QUEUE_DEFER_TO_COMMIT = 'before'
+        QUEUE_DEFER_TO_COMMIT = 'to_commit_defer_calls'
         currentEnv = {}
 
         def connectionKey(self):

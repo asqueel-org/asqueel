@@ -27,7 +27,7 @@ dai test PostgreSQL delle migrazioni.
 | Catalogo | Le colonne vengono raccolte, il back-reference agli antenati funziona e `projects_column` viene conservato. |
 | Validazione standard | Il modello montato con attributi SQL standard supera la validazione. |
 | Proiezione migration | PK e colonne vengono proiettate nella struttura normalizzata. |
-| Modello nativo/UI | `resolve_model` conserva i metadati `x_ui_*` della colonna montata. |
+| Modello nativo | `resolve_model` conserva il dtype della colonna montata. |
 | Emitter dinamico | Il prototipo conserva una classe Python in `x_config`. L'emitter ne produce il repr `<class '...'>`, che non è Python compilabile. Il test caratterizza il limite con `SyntaxError`; non dichiara riuscito quel round-trip. |
 | Firme locali | Un parametro `domain_hint` dichiarato dalla grammatica montata viene accettato da Builders ma respinto dal validatore SQL, che consulta ancora la firma del builder radice. |
 
@@ -55,7 +55,7 @@ Il test verifica:
 - errore esplicito su una seconda dichiarazione della stessa tabella;
 - emissione di Python compilabile e ricostruzione con struttura migration uguale;
 - conservazione di `x_sql_schema`, `x_sql_prefix`, `x_sql_name` di tabella e colonna;
-- identità stabile `x_identity` e UI inline `x_ui_*`, con overlay parallelo per identità;
+- identità stabile `x_identity`;
 - proiezione fisica coerente: `sales.customer` → `public.sales_customer`,
   override `sales.invoice` → `public.documents`, `label` → `display_name`;
 - una modifica esclusivamente UI non modifica la struttura migration fisica.

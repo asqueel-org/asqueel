@@ -1,0 +1,45 @@
+## Phase 1
+
+- Merge commit 8e6222f (`merge: read path 7cee8e8 into write cycle`), no conflict.
+- Open merge in worktrees/write-cycle, read only: of its 16 staged files, 11 are byte-identical to the merged tree. 5 differ only by later read-path additions in 7cee8e8 (docs 42, 58, 99, docs/grammar.md, semantic_elements.py docstring: `table=` direct virtualRelation, aggregations, handoff 111 pointer). Nothing in the staged index is missing from the merged tree.
+- Suite run with `--continue-on-collection-errors`, added to the plan's command: without it pytest stops at the 7 collection errors and nothing else can be attributed.
+- Baseline: the 134 failing nodeids were run on an export of 1995fe4 (pre-merge write-cycle tip); all 134 fail there with the same message. They are the tests the read-path manifest `tests/read_path/pytest.args` excluded, never realigned after e96f0c1.
+- Result: 134 R, 0 B, 0 O. No row reaches the merged write code, so B rows can only appear after Phase 2 realigns the tests.
+- G10 (composite pkey) is R: legacy `gnrsqlmodel/table.py:194-209` requires `pkey` to name a column, composite through `composed_of`.
+- G9 (tutorial `@customer`) is R: the relation path is the column name; `x_name` is not a relation name.
+- No test is deleted. test_plans.py, adapter_dialect/test_postgres.py and test_wf_phase2_query_grouping.py assert properties no write test covers (`%` escaping of physical names, RETURNING capability, line comments that cannot swallow the following clause, GROUP BY outside SELECT refused); tests/write_compiler covers only DEFAULT VALUES (test_write_compiler.py:91). They are realigned in Phase 2; only the QueryPlan/Fragment structure assertions go.
+- G9 confirmed R on the legacy: `gnrsqlmodel/columns.py:180` resolves `'@%s' % self.name`; `relation_name` names only the inverse relation.
+
+## Phase 2
+
+- Foreman, clarify 1 (2026-10-16): an assertion on behaviour that a closed write-cycle decision removed on purpose (d-db-hooks, d-sql-effects, d-return, d-reverse, d-trigger-stack, d-logical-delete) or that the write cycle reproduces from the legacy is an R row: the assertion is rewritten to the decided mechanism, or dropped when the decided mechanism has nothing to assert. Not a deletion, not O. Soft delete/restore restated as an update of the logical-deletion field. Removing a whole test stays a deletion: it needs the user's approval in the phase chat (plan, Phase 2 Decisions).
+- Foreman, clarify 2 (2026-10-16): partition-on-write tests are covered by the existing open issue asqueel-org/asqueel#15 ("Apply table partitions to writes"). Their xfail reason is `asqueel#15: <one line>`, no new issue draft. Phase 3 does not draft an issue for them.
+- Gate (user, 2026-10-16): phase approved as presented. Plan edit of clarify 2 accepted. Deletions approved: test_raw_writes::test_raw_list_late_python_failure_requires_rollback (fails only through onWritten; sql_insert runs no Python code) and test_handles::test_delete_hook_cannot_redirect_the_saved_key (asserts a property the legacy lacks; the write cycle reproduces the legacy, d-legacy-bugs).
+- B rows (fan-out, verified): (a) a `--` line comment in a `sql_value` swallows the following clause in WriteCompiler insert/update/update_selection; the legacy has the same one-line SQL (_gnrbaseadapter.py:818), but Phase 1 approved keeping the property on WriteCompiler. (b) `_key_plan` copies group_by/having into the key SELECT of `query(...).sql_update/sql_delete`; Phase 1 approved keeping the refusal.
+- Not B: `x_sql_prefix` is ignored by `tableSqlName` while docs/native-model.md documents it. The grammar attribute is `sqlprefix` (model_elements.py:42, legacy spelling); tests are realigned to `sqlprefix` and the doc mismatch becomes draft 9. `require_write_capabilities` not refusing `x_partition` follows d-partition-write (legacy), not a bug.
+- O draft numbers: 1 recordToUpdate (hooked write on exactly one locked record selected by where), 2 hierarchical model JSON round trip, 3 `%` in physical names on PostgreSQL, 4 quoted logical names `$"..."` and DML binding of non-identifier names, 5 dialect capabilities not enforced by WriteCompiler, 6 inspect_postgres returns the removed contracts model; without a test: 7 comma-joined pkey accepted by WriteCompiler.pkeys/elements.py vs legacy, 8 `__pkey__N` parameter collision in `_key_where`, 9 docs/native-model.md `x_sql_prefix`.
+- Build (batch 2), non-obvious choices:
+  - `test_write_hooks.py`: the audit key became `dtype='serial'`. With `'I'`, `checkPkey` generates `max(id)+1` (table_crud.py:98-100); an insert on a second named connection reused a key still uncommitted on the main connection and hung on the unique index.
+  - `test_write_hooks.py`: `pkey='org,id'` became a compositeColumn (G10). Reads on that table fail (draft 10), so updates take `old_record` from the caller through a `stored()` helper, deletes receive the full record, and only the tests whose subject is the read are xfail.
+  - `test_raw_writes.py` keeps `SharedHooks`/`db_hooks`, reduced to recording `onWriting`/`onWritten` calls, and asserts they are never called: this keeps the attributed nodeids `[*-True]` instead of deleting them. To review at the close.
+  - `test_postgres_vertical.py` and `test_postgres_pipeline.py`: the schema-tag recipe could not set the prefix the DDL uses (`sqlprefix` refused on `<schema>`, `x_sql_prefix` ignored; draft 9). The recipe moved to the package grammar `packages().package('crm', sqlschema=..., sqlprefix=True)`.
+  - `test_plans.py`: the exact-SQL assertions use a table without `%`; the `Bills%`/`ID%` shapes are in the draft 3 xfail.
+  - `test_handles.py`: rewritten on a hierarchical SQLite fixture; some tests renamed because their old names stated removed behaviour.
+  - Not touched: `test_formula_subqueries.py:82` still declares `relation_path='@invoice.total'` with `x_name='invoice'` (G9); no test reads `invoice_total`. `tests/read_path/pytest.args` still ignores the write-dependent files; it is the read-path manifest, outside this phase.
+
+## Phase 3
+- Gate approved 2026-10-16: drafts 1-11 from attribution.md O rows (draft 1 also covers recordToUpdate); 12 newrecord, 13 sys_fields, 14 hierarchical, 15 auto_counter, 16 batchUpdate. No open issue covered 12-16 (`gh issue list`, 2026-10-16).
+- Drafts cite only public sources (code, tests, legacy, genropy issues): the private write-cycle plan is not named.
+- xfail reasons use `asqueel#<number>` (not bare `#<number>`), the form Phase 2 already used for asqueel#15. Draft n became asqueel#(n+16): #17-#32, list in issues/opened.txt.
+
+## Final touch
+
+- Reviewed revision: 0cc44aa (REVIEW_HEAD), review by quality-check-agent (opus / medium) over 7e97958..0cc44aa.
+- Correction commit: b6865b6.
+- Rows applied:
+  1. G9 drift left by Phase 2: docs/guide/formulas.md (2 places), docs/row-policies.md, tests/application_integration/test_formula_subqueries.py now use @customer_id / @invoice_id.
+  2. sql_insert/sql_update/sql_delete docstrings named raw_* as if they existed; now "(legacy raw_*)".
+  3. Tests renamed because their names stated removed behaviour: test_raw_insert_input_contract_and_hook_mutation -> test_sql_insert_returns_input_and_runs_no_db_hooks; test_plan_rejects_grouping_outside_select -> test_query_write_terminals_reject_grouping. attribution.md keeps the old nodeids as history.
+- Dismissed: docs/asqueel-target-architecture.md:525 (candidate-syntax design doc, outside this workflow); db_hooks in test_raw_writes.py (asserts d-sql-effects: sql_* run no hooks); issues #23 #24 #25 #27 without tests (by design, tests come with the issue work).
+- Checks run after the batch: pytest on the 3 touched test files + tests/documentation (38 passed, 8 xfailed), ruff src tests scripts, sphinx -W. Re-check of the delta: those runs; no residual finding.
+- Rows on the phase road: none.

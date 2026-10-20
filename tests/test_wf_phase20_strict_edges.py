@@ -55,8 +55,8 @@ def test_index_orders_and_repeated_structural_members_are_loud():
         "uq_pair", constraint_type="UNIQUE", columns="id,id",
     )
     indexes = table.indexes()
-    indexes.index("ix_pair", columns="id,id")
-    indexes.index("ix_order", columns={"id": "SIDEWAYS"})
+    indexes.index(name="ix_pair", columns="id,id")
+    indexes.index(name="ix_order", columns={"id": "SIDEWAYS"})
 
     with pytest.raises(SqlModelValidationError) as caught:
         model.validate_model()
@@ -86,21 +86,23 @@ def test_schema_comment_is_explicitly_source_only():
 
 
 def test_emitter_handles_empty_tuples_and_rejects_invalid_class_names():
-    # wf:contract: validator-green x_* empty tuples emit as () and the complete
+    # wf:contract: validator-green empty tuples emit as () and the complete
     # wf:contract: module compiles and executes; invalid/keyword class names raise
     # wf:contract: ValueError before any source is returned.
     model = _Model()
     model.create()
-    model.source.db("d").schemas().schema("s", x_marker=())
+    table = model.source.db("d").schemas().schema("s").tables().table("t", pkey="id")
+    table.columns().column("id", dtype="L")
+    table.virtual_columns().pyColumn("p", method="compute", required_columns=())
     model.validate_model()
 
     emitted = SqlPythonEmitter(model).emit(class_name="TupleRecipe")
-    assert "x_marker=()" in emitted
+    assert "required_columns=()" in emitted
     namespace = {}
     exec(compile(emitted, "<phase20>", "exec"), namespace)  # noqa: S102
     rebuilt = namespace["TupleRecipe"]()
     rebuilt.create()
-    assert rebuilt.source["db.schemas.s"].get_attr("x_marker") == ()
+    assert rebuilt.source["db.schemas.s.tables.t.virtual_columns.p"].get_attr("required_columns") == ()
 
     for invalid in ("123Bad", "bad-name", "class"):
         with pytest.raises(ValueError, match="class name"):
@@ -146,7 +148,7 @@ def test_nonphysical_relations_reject_physical_fk_options():
     # wf:contract: but reject explicit physical FK actions/deferral flags instead
     # wf:contract: of accepting configuration that the projection drops.
     semantic = _relation_model(
-        back_reference="sources", one_name="Target", many_name="Sources",
+        relation_name="sources", one_name="Target", many_name="Sources",
         one_one=True, case_insensitive=True,
     )
     semantic.validate_model()
@@ -156,10 +158,9 @@ def test_nonphysical_relations_reject_physical_fk_options():
     assert table["relations"] == {}
 
     for option in (
-        {"on_delete": "CASCADE"},
+        {"onDelete_sql": "cascade"},
         {"deferrable": True},
         {"initially_deferred": True},
-        {"indexed": False},
     ):
         with pytest.raises(SqlModelValidationError, match="physical option"):
             _relation_model(**option).validate_model()

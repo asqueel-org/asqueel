@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proposal id="proposal/capability-catalogue" title="Catalogo delle capability dei dialetti" date="2026-10-20" lang="it" author="Giovanni Porcari" status="draft">
+  <problem>
+    <p>I dialetti SQL non offrono le stesse funzioni. PostgreSQL ha RETURNING, <c>FOR UPDATE</c> con le sue varianti, <c>jsonb_agg</c>, <c>xmlagg</c>, <c>tsvector</c>, gli indici gin, gli schemi e <c>LISTEN</c>/<c>NOTIFY</c>. SQLite ne ha una parte.</p>
+    <p>Quando un utente chiede una funzione che il dialetto non ha, deve ricevere un errore. L'errore deve nominare la funzione mancante. Non deve essere un errore generico del driver o un <c>KeyError</c>.</p>
+    <p>Serve quindi un elenco delle capability. Ogni dialetto dichiara quelle che ha. Questo documento propone l'elenco e il modo di usarlo. Va discusso prima dell'implementazione.</p>
+  </problem>
+
+  <current>
+    <section title="GenroPy">
+      <p>Fonte: il ramo <c>origin/develop</c> della repo genropy al commit <c>5c72f3fbd7</c> del 2026-10-19. I file citati sono sotto <c>gnrpy/gnr/</c>.</p>
+      <fact source="sql/__init__.py:14" method="read" verified="2026-10-20">GenroPy definisce l'enum <c>AdapterCapabilities</c> con quattro valori: <c>MIGRATIONS</c>, <c>VECTOR</c>, <c>SCHEMAS</c>, <c>ADMINISTER</c>.</fact>
+      <fact source="sql/adapters/_gnrbaseadapter.py:343" method="read" verified="2026-10-20">L'adapter base offre due metodi di classe: <c>has_capability(capability)</c> e <c>not_capable(capability)</c>. Leggono l'insieme <c>CAPABILITIES</c> della classe, vuoto nell'adapter base.</fact>
+      <table title="Capability dichiarate dagli adapter GenroPy">
+        <row head="true"><cell>Adapter</cell><cell>CAPABILITIES</cell><cell>Fonte</cell></row>
+        <row><cell>PostgreSQL</cell><cell><c>MIGRATIONS</c>, <c>VECTOR</c>, <c>SCHEMAS</c></cell><cell><c>sql/adapters/_gnrbasepostgresadapter.py:114</c></cell></row>
+        <row><cell>SQLite</cell><cell><c>SCHEMAS</c></cell><cell><c>sql/adapters/gnrsqlite.py:56</c></cell></row>
+        <row><cell>MySQL</cell><cell><c>SCHEMAS</c></cell><cell><c>sql/adapters/gnrmysql.py:64</c></cell></row>
+        <row><cell>SQL Server</cell><cell><c>SCHEMAS</c></cell><cell><c>sql/adapters/gnrmssql.py:115</c></cell></row>
+      </table>
+      <fact source="db/cli/gnrmigrate.py:199" method="read" verified="2026-10-20">Il comando di migrazione controlla <c>MIGRATIONS</c> e termina con un errore se l'adapter non la dichiara.</fact>
+      <fact source="sql/gnrsqlmodel/table.py:176" method="read" verified="2026-10-20">Il nome SQL completo di una table usa lo schema solo se l'adapter dichiara <c>SCHEMAS</c>.</fact>
+      <p>Nessun adapter dichiara <c>ADMINISTER</c>, e nessun codice sotto <c>gnrpy/gnr/</c> la legge.</p>
+      <fact source="sql/adapters/gnrsqlite.py:61" method="read" verified="2026-10-20">GenroPy ha anche capability fuori dall'enum: l'attributo di classe <c>allowAlterColumn</c>, <c>True</c> nell'adapter base e <c>False</c> in SQLite, letto da <c>sql/gnrsqlutils.py:319</c>.</fact>
+      <p>Le altre differenze tra dialetti non hanno una capability. Un adapter che non implementa un metodo solleva <c>AdapterMethodNotImplemented</c>, che non nomina la funzione chiesta dall'utente.</p>
+    </section>
+  </current>
+
+  <solution>
+    <p>Il catalogo elenca le capability per tema. Ogni dialetto dichiara l'insieme delle capability che ha. Quando una richiesta usa una capability che il dialetto non dichiara, asqueel solleva un errore che nomina la capability. L'errore arriva prima di inviare SQL al database.</p>
+    <p>Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge una capability per ogni funzione di dialetto dei temi qui sotto.</p>
+
+    <section title="Query">
+      <list>
+        <item>RETURNING su INSERT, UPDATE e DELETE.</item>
+        <item><c>FOR UPDATE</c> e le sue varianti: <c>NOWAIT</c>, <c>SKIP LOCKED</c>, <c>FOR SHARE</c>, <c>FOR NO KEY UPDATE</c>, <c>FOR KEY SHARE</c>.</item>
+        <item>Aggregati JSON (<c>jsonb_agg</c>, <c>json_agg</c>) e XML (<c>xmlagg</c>).</item>
+        <item>Ricerca full-text con colonne <c>tsvector</c>.</item>
+        <item>Vettori: corrisponde a <c>VECTOR</c> di GenroPy.</item>
+      </list>
+    </section>
+
+    <section title="Schema">
+      <list>
+        <item>Schemi SQL: corrisponde a <c>SCHEMAS</c> di GenroPy.</item>
+        <item>ALTER COLUMN: corrisponde a <c>allowAlterColumn</c> di GenroPy.</item>
+        <item>Foreign key deferrable.</item>
+        <item>Metodi di indice oltre al default, per esempio gin. Una colonna TSV con indice gin è rifiutata sui dialetti che non dichiarano le due capability.</item>
+      </list>
+    </section>
+
+    <section title="Migrazione">
+      <list>
+        <item>Migrazione del database: corrisponde a <c>MIGRATIONS</c> di GenroPy.</item>
+      </list>
+    </section>
+
+    <section title="Amministrazione">
+      <list>
+        <item>Operazioni di amministrazione del database: corrisponde a <c>ADMINISTER</c> di GenroPy. L'elenco delle operazioni coperte è da definire, perché in GenroPy la capability non ha usi.</item>
+      </list>
+    </section>
+
+    <section title="Notifiche">
+      <list>
+        <item><c>LISTEN</c> e <c>NOTIFY</c> di PostgreSQL. GenroPy le espone come <c>listen</c> e <c>notify</c> dell'adapter (<c>_gnrbaseadapter.py:381</c>, <c>:429</c>). Nel catalogo sono una capability dell'adapter PostgreSQL.</item>
+      </list>
+    </section>
+
+    <rule level="must">Ogni funzione che dipende dal dialetto appartiene a una capability del catalogo.</rule>
+    <rule level="must">Una richiesta che usa una capability non dichiarata dal dialetto solleva un errore che nomina la capability. L'errore non è mai un <c>KeyError</c> o un errore del driver.</rule>
+    <rule level="must">I quattro nomi GenroPy restano: <c>MIGRATIONS</c>, <c>VECTOR</c>, <c>SCHEMAS</c>, <c>ADMINISTER</c>.</rule>
+    <rule level="should">Una capability copre una funzione che l'utente può chiedere, non un dettaglio interno del compilatore.</rule>
+  </solution>
+
+  <decisions>
+    <decision id="dn-granularity" status="open">
+      <question>Quanto è fine una capability?</question>
+      <option id="dn-granularity-theme" title="Una capability per tema"><p>Esempio: una sola capability per tutte le varianti di <c>FOR UPDATE</c>. L'elenco è corto. Un dialetto che ha solo una parte del tema non si può descrivere.</p></option>
+      <option id="dn-granularity-feature" title="Una capability per funzione"><p>Esempio: <c>FOR UPDATE NOWAIT</c> e <c>FOR UPDATE SKIP LOCKED</c> sono due capability. L'errore nomina esattamente la funzione chiesta. L'elenco è lungo.</p></option>
+    </decision>
+    <decision id="dn-declaration" status="open">
+      <question>Come dichiara un dialetto le sue capability?</question>
+      <option id="dn-declaration-set" title="Un insieme sulla classe dell'adapter"><p>Come GenroPy: un attributo di classe <c>CAPABILITIES</c> con i valori di un enum. Gli attributi separati come <c>allowAlterColumn</c> entrano nell'enum.</p></option>
+      <option id="dn-declaration-config" title="Una dichiarazione nella configurazione del dialetto"><p>L'elenco sta in un file di configurazione del dialetto, letto all'avvio. Un dialetto nuovo si aggiunge senza scrivere una classe.</p></option>
+    </decision>
+    <decision id="dn-error" status="open">
+      <question>Come nomina la capability l'errore?</question>
+      <option id="dn-error-class" title="Una classe di errore dedicata"><p>Un'eccezione con due campi: la capability e il dialetto. Il messaggio dice, per esempio, che SQLite non ha <c>FOR UPDATE</c>.</p></option>
+      <option id="dn-error-existing" title="Un errore generico di funzione non supportata"><p>Un solo errore per tutte le funzioni non supportate; il suo messaggio nomina la capability. Nessuna classe dedicata.</p></option>
+    </decision>
+  </decisions>
+
+  <consequences>
+    <p>Ogni dialetto deve dichiarare tutte le capability del catalogo che ha. Una capability dimenticata produce un rifiuto su una funzione che il dialetto avrebbe.</p>
+    <p>Il catalogo serve anche alla proposta di traduzione con sqlglot: le funzioni che sqlglot non sa tradurre restano capability del dialetto.</p>
+  </consequences>
+
+  <related>
+    <doc id="proposal/sqlglot-transpilation">Traduzione dei dialetti con sqlglot</doc>
+  </related>
+</proposal>

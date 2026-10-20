@@ -1,0 +1,448 @@
+{
+  "kind": "static source inspection; no new test execution",
+  "snapshots": {
+    "legacy": {
+      "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "39f6867e6d3cf0f2c2ac7bb4670c97dd67b961722a423bce7decde266c07d836",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 273,
+              "end_line": 454,
+              "ast_sha256": "1becda5f83ce6d396fe939b54bf37b0646f92129222693bd5fbe6d2624c4da52"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 456,
+              "end_line": 501,
+              "ast_sha256": "7d2f96c5bb8a1ef79f030fbd875fcc31b3d5989ab98708a7c10a7feea6d71373"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 507,
+              "end_line": 668,
+              "ast_sha256": "205555b70620ed0b7513ed339a07d8f4ab8991f1e1f555d887676254bd078a43"
+            }
+          }
+        }
+      }
+    },
+    "compound": {
+      "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "24556fb759a9068920ae84261dec38b4a2a8b779e704afbe0e0c95b75565eddd",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 326,
+              "end_line": 505,
+              "ast_sha256": "402ed16b2237d0b4f400b6fec26c48f0fa349b78f96677f29f6058aa838f2df8"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 507,
+              "end_line": 568,
+              "ast_sha256": "8d9c4012dcf542aa6af069edff3f6a023cbe781cd56a22d4192a20c1bee3b672"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 574,
+              "end_line": 735,
+              "ast_sha256": "b81982c5babe4fe502003fe2d6a8696bb08d839f67df74c60cae8eb45807ff41"
+            }
+          }
+        }
+      }
+    },
+    "v2": {
+      "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "83588a02839847b0910e3c6708b2f3dc96e39bebb119966727c8966beec1420a",
+          "methods": {
+            "AliasManager.lookup": {
+              "line": 186,
+              "end_line": 188,
+              "ast_sha256": "bb30b4bece3e3b417782f6e1e7a8147b7ba18fb57f6b45a7e373448930896b81"
+            },
+            "AliasManager.register": {
+              "line": 190,
+              "end_line": 194,
+              "ast_sha256": "5933b4b55d9aacb53c686c56c25ea6508d17fa5eb931ff2e8246f6dc5d9bbf66"
+            },
+            "ColumnCompiler.compile": {
+              "line": 253,
+              "end_line": 338,
+              "ast_sha256": "32ca7224b4d56b9b57a5017fec45313ddd741a641986f95baa68a697742a6576"
+            },
+            "ColumnCompiler._handle_formula": {
+              "line": 344,
+              "end_line": 413,
+              "ast_sha256": "10b52f23e27b32b6a59aae4e69c0a54ac015e78269cecbb64d6bbd21db278a03"
+            },
+            "ColumnCompiler._condense_subqueries": {
+              "line": 478,
+              "end_line": 516,
+              "ast_sha256": "eac710e6e3af9aec1c2d56854d0be08636985b692d509d02953fdefe74f6802c"
+            },
+            "ColumnCompiler._preprocess_formula": {
+              "line": 518,
+              "end_line": 537,
+              "ast_sha256": "0e9d7b5f0ea3b96d76bfe10287baf67259411c8e939f9b5dfba4bba3bf3a946d"
+            },
+            "ColumnCompiler._compiled_sub_query": {
+              "line": 547,
+              "end_line": 590,
+              "ast_sha256": "1b7a7402a57d2a29a0e33ebcb5a7186236476367c5b7ab04360c4fe345de3cdf"
+            },
+            "ColumnCompiler._find_relation_alias": {
+              "line": 596,
+              "end_line": 646,
+              "ast_sha256": "e161571a5007f5608501860311ac2cc5a7328a25613fa69fb33232fc5d780e33"
+            },
+            "ColumnCompiler._get_relation_alias": {
+              "line": 648,
+              "end_line": 768,
+              "ast_sha256": "6becf8315568dd9949721d58a63a0f6f804ea39fdb1cc7a539088b3efbfe6851"
+            },
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 1093,
+              "end_line": 1105,
+              "ast_sha256": "573bd9f74efc6ff0c4362ab2705097615e92bc44e68a777a93d56a03e40dc719"
+            }
+          }
+        }
+      }
+    },
+    "v3": {
+      "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "bda4523590f53355301aa5185976d73de10771f627f8778acab87897097e5d9e",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 389,
+              "end_line": 489,
+              "ast_sha256": "03116b4f94028e073e9041727cff0a177df70da1191126b986933f8a12e97e7f"
+            },
+            "SqlQueryCompiler._handleFormulaColumn": {
+              "line": 491,
+              "end_line": 544,
+              "ast_sha256": "35f33d3f1b18ca27ebe6e2e29d421a95c266b9129f0e636c6f1a179e3c63acf5"
+            },
+            "SqlQueryCompiler._condense_subqueries": {
+              "line": 736,
+              "end_line": 772,
+              "ast_sha256": "eac710e6e3af9aec1c2d56854d0be08636985b692d509d02953fdefe74f6802c"
+            },
+            "SqlQueryCompiler._preprocessFormula": {
+              "line": 774,
+              "end_line": 791,
+              "ast_sha256": "11cbd1e28a45c414b8110e7d01f0319a0812a395f6a7787b60d923952053ebf9"
+            },
+            "SqlQueryCompiler._compiledSubQuery": {
+              "line": 801,
+              "end_line": 842,
+              "ast_sha256": "e6e25859ce4ab710f69c271440db7223a9218438056796d5c8830253c284fe49"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 869,
+              "end_line": 930,
+              "ast_sha256": "fb9fd31c5a7a8fe15f5bc5abbc051375de51fd2d7e1e3f89b34ef8feb416eb02"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 936,
+              "end_line": 1097,
+              "ast_sha256": "fe934fd6611acd6a03d8ca07fe17d65aefe0d1dd63f1e08dffe4ddfc9359dd10"
+            }
+          }
+        },
+        "gnrpy/gnr/sql/gnrsql/runtime_model.py": {
+          "sha256": "623f5e1cd32b5588964d169e82f61372678782bd901248bd96c323303a8c6a20",
+          "methods": {
+            "RuntimeModel.__enter__": {
+              "line": 186,
+              "end_line": 189,
+              "ast_sha256": "1bb08e828f5a51448c12b601644cac88cd86a94400e11f628a3ba708d9abe9dc"
+            },
+            "RuntimeModel.__exit__": {
+              "line": 191,
+              "end_line": 193,
+              "ast_sha256": "05dc53a17a00b28f992c6d9662942f5a1efe0ff8f59945b01855374e0340b67f"
+            }
+          }
+        }
+      }
+    },
+    "v3_merged": {
+      "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "edd6f628fa1e2a4cea4d2b21eb0747b86ee144da37a50640717ca00afdefc6c0",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 389,
+              "end_line": 489,
+              "ast_sha256": "03116b4f94028e073e9041727cff0a177df70da1191126b986933f8a12e97e7f"
+            },
+            "SqlQueryCompiler._handleFormulaColumn": {
+              "line": 491,
+              "end_line": 544,
+              "ast_sha256": "35f33d3f1b18ca27ebe6e2e29d421a95c266b9129f0e636c6f1a179e3c63acf5"
+            },
+            "SqlQueryCompiler._condense_subqueries": {
+              "line": 736,
+              "end_line": 772,
+              "ast_sha256": "eac710e6e3af9aec1c2d56854d0be08636985b692d509d02953fdefe74f6802c"
+            },
+            "SqlQueryCompiler._preprocessFormula": {
+              "line": 774,
+              "end_line": 791,
+              "ast_sha256": "11cbd1e28a45c414b8110e7d01f0319a0812a395f6a7787b60d923952053ebf9"
+            },
+            "SqlQueryCompiler._compiledSubQuery": {
+              "line": 801,
+              "end_line": 842,
+              "ast_sha256": "e6e25859ce4ab710f69c271440db7223a9218438056796d5c8830253c284fe49"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 869,
+              "end_line": 930,
+              "ast_sha256": "fb9fd31c5a7a8fe15f5bc5abbc051375de51fd2d7e1e3f89b34ef8feb416eb02"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 936,
+              "end_line": 1097,
+              "ast_sha256": "fe934fd6611acd6a03d8ca07fe17d65aefe0d1dd63f1e08dffe4ddfc9359dd10"
+            }
+          }
+        },
+        "gnrpy/gnr/sql/gnrsql/runtime_model.py": {
+          "sha256": "623f5e1cd32b5588964d169e82f61372678782bd901248bd96c323303a8c6a20",
+          "methods": {
+            "RuntimeModel.__enter__": {
+              "line": 186,
+              "end_line": 189,
+              "ast_sha256": "1bb08e828f5a51448c12b601644cac88cd86a94400e11f628a3ba708d9abe9dc"
+            },
+            "RuntimeModel.__exit__": {
+              "line": 191,
+              "end_line": 193,
+              "ast_sha256": "05dc53a17a00b28f992c6d9662942f5a1efe0ff8f59945b01855374e0340b67f"
+            }
+          }
+        }
+      }
+    },
+    "v4": {
+      "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "f51c4b22ad225dc599e8eef3579c2f2a2b3ab561646d53520f7a8de7fff7df4a",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 390,
+              "end_line": 490,
+              "ast_sha256": "03116b4f94028e073e9041727cff0a177df70da1191126b986933f8a12e97e7f"
+            },
+            "SqlQueryCompiler._handleFormulaColumn": {
+              "line": 492,
+              "end_line": 545,
+              "ast_sha256": "35f33d3f1b18ca27ebe6e2e29d421a95c266b9129f0e636c6f1a179e3c63acf5"
+            },
+            "SqlQueryCompiler._condense_subqueries": {
+              "line": 735,
+              "end_line": 771,
+              "ast_sha256": "eac710e6e3af9aec1c2d56854d0be08636985b692d509d02953fdefe74f6802c"
+            },
+            "SqlQueryCompiler._preprocessFormula": {
+              "line": 773,
+              "end_line": 790,
+              "ast_sha256": "11cbd1e28a45c414b8110e7d01f0319a0812a395f6a7787b60d923952053ebf9"
+            },
+            "SqlQueryCompiler._compiledSubQuery": {
+              "line": 800,
+              "end_line": 841,
+              "ast_sha256": "e6e25859ce4ab710f69c271440db7223a9218438056796d5c8830253c284fe49"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 868,
+              "end_line": 929,
+              "ast_sha256": "fb9fd31c5a7a8fe15f5bc5abbc051375de51fd2d7e1e3f89b34ef8feb416eb02"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 935,
+              "end_line": 1096,
+              "ast_sha256": "fe934fd6611acd6a03d8ca07fe17d65aefe0d1dd63f1e08dffe4ddfc9359dd10"
+            }
+          }
+        },
+        "gnrpy/gnr/sql/gnrsqldata/subquery_utils.py": {
+          "sha256": "3a59b8a94e45b23e1a0b0d449cb2aca1deb6f2f27759a710d500f6fbeaf474b5",
+          "methods": {}
+        },
+        "gnrpy/gnr/sql/gnrsql/runtime_model.py": {
+          "sha256": "623f5e1cd32b5588964d169e82f61372678782bd901248bd96c323303a8c6a20",
+          "methods": {
+            "RuntimeModel.__enter__": {
+              "line": 186,
+              "end_line": 189,
+              "ast_sha256": "1bb08e828f5a51448c12b601644cac88cd86a94400e11f628a3ba708d9abe9dc"
+            },
+            "RuntimeModel.__exit__": {
+              "line": 191,
+              "end_line": 193,
+              "ast_sha256": "05dc53a17a00b28f992c6d9662942f5a1efe0ff8f59945b01855374e0340b67f"
+            }
+          }
+        }
+      }
+    },
+    "simplify": {
+      "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "84b1060703b5d57d69c2506f131ac4d3e0a519ff9c08c342e764445376f4b3fa",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 272,
+              "end_line": 461,
+              "ast_sha256": "fb512a69334083f0e935771ba6757faeab3d6485d09b4ef060797afd024dc6c4"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 463,
+              "end_line": 524,
+              "ast_sha256": "8d9c4012dcf542aa6af069edff3f6a023cbe781cd56a22d4192a20c1bee3b672"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 530,
+              "end_line": 691,
+              "ast_sha256": "b81982c5babe4fe502003fe2d6a8696bb08d839f67df74c60cae8eb45807ff41"
+            }
+          }
+        },
+        "gnrpy/gnr/sql/gnrsqldata/compiler_new.py": {
+          "sha256": "84b1060703b5d57d69c2506f131ac4d3e0a519ff9c08c342e764445376f4b3fa",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 272,
+              "end_line": 461,
+              "ast_sha256": "fb512a69334083f0e935771ba6757faeab3d6485d09b4ef060797afd024dc6c4"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 463,
+              "end_line": 524,
+              "ast_sha256": "8d9c4012dcf542aa6af069edff3f6a023cbe781cd56a22d4192a20c1bee3b672"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 530,
+              "end_line": 691,
+              "ast_sha256": "b81982c5babe4fe502003fe2d6a8696bb08d839f67df74c60cae8eb45807ff41"
+            }
+          }
+        }
+      }
+    },
+    "next": {
+      "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+      "files": {
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py": {
+          "sha256": "4053c9f44e5a1d7516f92b9aa79b363a75c1535eda737397352c69f76577bb74",
+          "methods": {
+            "SqlQueryCompiler.getFieldAlias": {
+              "line": 273,
+              "end_line": 454,
+              "ast_sha256": "1becda5f83ce6d396fe939b54bf37b0646f92129222693bd5fbe6d2624c4da52"
+            },
+            "SqlQueryCompiler._findRelationAlias": {
+              "line": 456,
+              "end_line": 501,
+              "ast_sha256": "7d2f96c5bb8a1ef79f030fbd875fcc31b3d5989ab98708a7c10a7feea6d71373"
+            },
+            "SqlQueryCompiler._getRelationAlias": {
+              "line": 507,
+              "end_line": 668,
+              "ast_sha256": "205555b70620ed0b7513ed339a07d8f4ab8991f1e1f555d887676254bd078a43"
+            }
+          }
+        },
+        "gnrpy/gnr/sql/gnrsqldata/compiler_next.py": {
+          "sha256": "c9dc2a01423d81771cc02ab0c409665eeeb54de47729210282a59c4ff6fbd2f2",
+          "methods": {
+            "SqlQueryCompilerNext.getFieldAlias": {
+              "line": 267,
+              "end_line": 448,
+              "ast_sha256": "1becda5f83ce6d396fe939b54bf37b0646f92129222693bd5fbe6d2624c4da52"
+            },
+            "SqlQueryCompilerNext._findRelationAlias": {
+              "line": 450,
+              "end_line": 495,
+              "ast_sha256": "7d2f96c5bb8a1ef79f030fbd875fcc31b3d5989ab98708a7c10a7feea6d71373"
+            },
+            "SqlQueryCompilerNext._getRelationAlias": {
+              "line": 501,
+              "end_line": 662,
+              "ast_sha256": "205555b70620ed0b7513ed339a07d8f4ab8991f1e1f555d887676254bd078a43"
+            }
+          }
+        }
+      }
+    }
+  },
+  "current_files": {
+    "src/asqueel/catalog.py": "28c3b38b17840b22b0f1b3bddb2916e3700d4420deaf77e1831ae25638f67a60",
+    "src/asqueel/object_tree_projection.py": "da985f4afc6039e72032b569529b469ee30870facfcb69cb18b7cd12ee79d9ad",
+    "src/asqueel/grammar_doc.py": "8bb58b581a1e575e2741771ddb513aebb353ca26c557b059c4e7c2a528dd4060",
+    "src/asqueel/catalog_provider.py": "323a5a5f3f6eefb8f7d40ffbe284bc40ef8cd563326e7498c1867623d23b0329",
+    "src/asqueel/configuration.py": "c8049f4a0e431b3d59950d4a5e248194d0994bb1a1b764cceec8cf24179e93cc",
+    "src/asqueel/option_elements.py": "e632dd9776eb6b7e811395e2a4dc4cd93536ef4206d80b87c8c0d7a19ebdfa35",
+    "src/asqueel/hosting.py": "11cc5c60cbd44747aadb09a22a8f9832e3c333eec62bfc31ac68f728334d0717",
+    "src/asqueel/object_tree_renderer.py": "853ba64566f8fc5025141bf4916eecc33f6df096ae9b602901e32884f43bc455",
+    "src/asqueel/object_tree_relations.py": "3139a8f01c565a56db58f1d3161fc0fc52ec57d91a8a1172850e01d4e71fe845",
+    "src/asqueel/model_expansion.py": "f050ff5c93a2ca08a4dc87b4c7ae76c7e5c23bd482370f24d5bb76abeaeccd99",
+    "src/asqueel/legacy_source.py": "65c7fe14179dde8528851288024e55853c1ca8fba3cd235e718cf74de4d2458c",
+    "src/asqueel/compiler.py": "6415737a8fe078bdc94f2fa3baf2d5dc63cf9617c2b3bd4efff18c9af8717e92",
+    "src/asqueel/triggers.py": "092a5c65bad6f2d2b7781356e01be97f12dedabaf1ee0f10d6b54190e9967caa",
+    "src/asqueel/semantic_elements.py": "712bb577fb5bd39b3dec306232180570c7c73fa5205b63d78f25cd58378b2008",
+    "src/asqueel/registry.py": "a4425ad2e519226da5293fdbac0e755539064386ce55d34524bed2e63173cfa2",
+    "src/asqueel/renderer.py": "343e2dc82fcb73784ae7e0d038942c52f8b9be8302633ffdef7fe6981b8d05ce",
+    "src/asqueel/query_plan.py": "7d162df14c33c3801aa8d76ca5e166130af5bd33eea0406f9a920fa77138b18d",
+    "src/asqueel/model_codec.py": "bd987e76ef78aaf96acd6af52b73fd8cc0510bb8465d80165296d1791791315f",
+    "src/asqueel/elements.py": "5747eec5e96d4749150294b45fe5196abe0a62a6e271c8fbbd328aabcf1f5fe7",
+    "src/asqueel/validators.py": "8cbe14651815526ceb85b302967b75c0be35a0f0df9544f7d1d568e358f56d84",
+    "src/asqueel/object_renderer.py": "10f5f8eb3168a5745e0f2499aa19e02a2b6f99c2d9772cba64e5a72ea0f89b36",
+    "src/asqueel/__init__.py": "2a841954d3b8a4ca70850fe191df95b89c9fd9d0f6af6ec7d0b98c27f97847b2",
+    "src/asqueel/importers.py": "c053d911713e1b62725b63bac0826184e913a8c80f99781986205a0772a63c42",
+    "src/asqueel/runtime.py": "a3a4b49e56c17d32c09562ea3937a81d76ab00a617093e20147f63d1d010ad2e",
+    "src/asqueel/model.py": "1cb31f6b1cbd92ef317691f1cac6609263f353a617c7aec99b5afa3de9004b2c",
+    "src/asqueel/builder.py": "29261b5ecb9f18db7bbb7e0e70ed1eed19b87134b3f9dbde2201f081a344b3ca",
+    "src/asqueel/application.py": "f55213c7da8c1a79ebbef29d9e1188e46bfc61aa9b06011b9767660fbd6a977f",
+    "src/asqueel/_compiler_bindings.py": "118f50946678e89623c171e378c4e05cd430ed3552fffdc1d1c226f5b97a01cc",
+    "src/asqueel/application_table.py": "74cd71716d192217938e2783523d5142d6e65309dca57dc9c6cc5d62ce1366a9",
+    "src/asqueel/reader.py": "1720bfa850d5ad107f7472ed7a25671151842103e079b6f88edf204f8999f573",
+    "src/asqueel/model_sections.py": "c78598549666409773209fbf51121d7d85991280dfd424bb2b9e04cc3f9e3f2c",
+    "src/asqueel/writes.py": "8b835e8ef762fa307f53bf50764469a4729ec6c04327b5196b87dec4dbf6062b",
+    "src/asqueel/cli.py": "769bcd3f7b96c4b1b0e66e8b96066faa9f674745fe4bb396e414bf15a598c43e",
+    "src/asqueel/common.py": "c94c2e082aa9b492e9caa6914dfa133df72e4ae56e346884252d08c861b03285",
+    "src/asqueel/object_tree.py": "0c1bb09fc5a414af554bbf077df7d6cf58225424e78fbb7a0fb17a2293a97ce7",
+    "src/asqueel/contracts.py": "11aa95548512bc14ceb6f1bf92657b87e53d9ab04c0e8bf14a3ae80e7ab15201",
+    "src/asqueel/environment.py": "baa739e8bec96c807ce85b132b1b0f267fa8a08a81b77eb6e4e773bc12302792",
+    "src/asqueel/errors.py": "a6df6908dec3d1dd053e57bd286d2e8f30f991a064f308e900151c041a989734",
+    "src/asqueel/projection.py": "8a3ea4165f08d8afd1221573a4e341c1f478bd541f604f41be1c6298a4130ea4",
+    "src/asqueel/migration.py": "6a5d2c6a50588c0853e74848c27bc9fd0d1b53f4589a09457005b003549704dd",
+    "src/asqueel/option_validation.py": "a4db4d40664d2d13bca7303b08a55b64e7ed2bb9d39c57cb80b921875a82ed79",
+    "src/asqueel/emitter.py": "a393de7b501f0fe3eba2da0a94c6436ea9b30a289e6d4affdb258439d010a45e",
+    "src/asqueel/__main__.py": "bad1fb35c3ec5a5bdafe49b792c6d82626ad24d6284adec7c6cd1471dbece729",
+    "src/asqueel/model_elements.py": "4b6cbd2e29491f45ff47de6f8fa79f7b693f17d383fe50714c713e026efa7036",
+    "src/asqueel/model_source.py": "f83ce2e898f1b340d9e0b083cd7ac6329b64642235a281e7861cf43893215e67",
+    "src/asqueel/validation.py": "dd712151dfd4946db67ae44ee316f918601b9e954af9c39c2f241dedaaf0c7fa",
+    "src/asqueel/drivers/__init__.py": "2aff921f1f36ed919999563fc59d88c75818aacf03e666c5da1a34962daed42d",
+    "src/asqueel/drivers/psycopg.py": "e954f6d7c4143dd8d1a7e0fd48723775d475516cbe2b300f26c325f96faf3673",
+    "src/asqueel/drivers/sqlite.py": "1cce815549f4db5a82c524737522bb0b49c02d27286c855f19a8d20a99c8aaae",
+    "src/asqueel/drivers/result.py": "864cabff32dfd4dd9207c40d1a839ff9a5a70df4632a08ef9662622cd19607ff",
+    "src/asqueel/drivers/sql.py": "4700b015065504fddaa1346ed6dae7a8fada4d096eac5e1e2d810973c061e51a",
+    "src/asqueel/drivers/base.py": "c0e5724727c06650b5021609aa5375e483ae1f1df07dbd1225351ae3afff444f",
+    "src/asqueel/examples/__init__.py": "d354b615d4d1af542a1454a33e1e62a595b326e85301b477a852454b9e972d20",
+    "src/asqueel/dialects/__init__.py": "29baccbd26317a011b9cc6f2527c4968b1d2af7d7e03dbbd48524ee8c12b6471",
+    "src/asqueel/dialects/sqlite.py": "6fa3b5db617ab93b9b5c3401d11a24a814ac5eb3b2d30042eabc697947bc6521",
+    "src/asqueel/dialects/postgres.py": "2357aaebf45f4f5c58438862b926651d29d08a49d68c36c7af3d867c00c092c2",
+    "src/asqueel/dialects/base.py": "6cb855121d0ccccde63c897545c88e24cc6ccbef7d20d30fb0293da52729dbe4"
+  }
+}

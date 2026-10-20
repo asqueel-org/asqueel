@@ -1,0 +1,678 @@
+{
+  "old_reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "new_reference": "95da66ee64b0c789dbb6b35254011d83ce1911c5",
+  "merge_base": "ee1b8a43db03cc4cec2bd30a2f375c1ec554937d",
+  "commits": [
+    {
+      "commit": "cdc70698ff6b12bdaa1a634906c27ebd2f0ed287",
+      "date": "2026-09-17",
+      "subject": "fix(sql): batchUpdate and touchRecords no longer swallow a call with no selection (#1055)",
+      "parents": [
+        "4ef8533ed07ae409b77010607d31d45e5a92a7ec"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqltable/crud.py",
+        "gnrpy/gnr/sql/gnrsqltable/helpers.py",
+        "gnrpy/gnr/sql/gnrsqltable/triggers.py",
+        "gnrpy/tests/sql/test_batch_update_guard.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_batch_update_guard.py"
+      ],
+      "added_tests": [
+        "test_explicit_where_updates_every_visible_row",
+        "test_no_selection_raises_without_touching_any_row",
+        "test_explicitly_empty_selection_is_a_silent_noop",
+        "test_single_pkey_updates_exactly_one_row",
+        "test_pkeys_string_updates_exactly_its_rows",
+        "test_pkeys_string_ignores_the_spaces_after_the_commas",
+        "test_pkeys_string_of_separators_only_is_a_noop",
+        "test_falsy_pkey_is_a_selection_not_a_silent_skip",
+        "test_explicit_where_none_stays_a_full_table_update",
+        "test_explicit_where_touches_every_visible_row",
+        "test_no_selection_raises",
+        "test_explicitly_empty_selection_is_a_silent_noop",
+        "test_single_pkey_touches_exactly_one_row",
+        "test_pkeys_string_touches_exactly_its_rows",
+        "test_pkeys_string_ignores_the_spaces_after_the_commas",
+        "test_pkeys_string_of_separators_only_is_a_noop",
+        "test_falsy_pkey_is_a_selection_not_a_silent_skip",
+        "test_explicit_where_none_stays_a_full_table_touch",
+        "test_zero_pkey_names_a_row",
+        "test_none_pkey_is_the_only_empty_selection"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "5ddb6813dc53302b42045db233587a253c63bad3",
+      "date": "2026-09-17",
+      "subject": "Resolve missing SQL bindings to NULL",
+      "parents": [
+        "88235ae95dfd1196a15456c3b8db24b77f4e7012"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "gnrpy/gnr/sql/gnrsql/execute.py",
+        "gnrpy/tests/sql/test_missing_sql_parameters.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_missing_sql_parameters.py"
+      ],
+      "added_tests": [
+        "test_missing_binding_is_null",
+        "test_explicit_binding_and_environment_are_preserved"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "51e4b7af3f2ca304252a2eb240e8190d0870f42e",
+      "date": "2026-09-17",
+      "subject": "Separate SQL resolver output mode from relation metadata",
+      "parents": [
+        "88235ae95dfd1196a15456c3b8db24b77f4e7012"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqldata/record.py",
+        "gnrpy/gnr/sql/gnrsqldata/selection.py",
+        "gnrpy/tests/sql/test_resolver_output_mode.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_resolver_output_mode.py"
+      ],
+      "added_tests": [
+        "test_record_relation_preserves_cardinality_and_output_mode",
+        "test_selection_resolver_preserves_cardinality_and_output_mode",
+        "test_selection_record_resolver_factories",
+        "test_reverse_relation_factory_uses_output_mode"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "aabc11c37a35d73051f763735a0f3070f2443545",
+      "date": "2026-09-18",
+      "subject": "Merge pull request #1344 from genropy/codex/sql-resolver-output-mode",
+      "parents": [
+        "6c2a72c586c9686c711147d69ef7dfe7b550fe76",
+        "51e4b7af3f2ca304252a2eb240e8190d0870f42e"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqldata/record.py",
+        "gnrpy/gnr/sql/gnrsqldata/selection.py",
+        "gnrpy/tests/sql/test_resolver_output_mode.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_resolver_output_mode.py"
+      ],
+      "added_tests": [
+        "test_record_relation_preserves_cardinality_and_output_mode",
+        "test_selection_resolver_preserves_cardinality_and_output_mode",
+        "test_selection_record_resolver_factories",
+        "test_reverse_relation_factory_uses_output_mode"
+      ],
+      "merge_resolution": ""
+    },
+    {
+      "commit": "3be912d2e64b8256c1f1a8de89be13e60dda6ff3",
+      "date": "2026-09-20",
+      "subject": "fix(sql): resolve relationDict placeholders in the record join conditions (#1326)",
+      "parents": [
+        "8add74fd0d07454a02d0fd087daaa097571364b4"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "gnrpy/tests/sql/test_compiler_coverage.py",
+        "projects/test_invoice/packages/invc/model/invoice.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_compiler_coverage.py"
+      ],
+      "added_tests": [
+        "test_relation_on_virtual_column_record_pg",
+        "test_relation_on_virtual_column_record_sqlite"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "6fbd80e9f217a8d54dbf1a048ca4e00c53863842",
+      "date": "2026-09-20",
+      "subject": "fix(sql): vacuum honours full and runs on an autocommit connection (#1305)",
+      "parents": [
+        "02315b230a721d08267574e41cf20eec0d14d7ca"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "gnrpy/gnr/sql/adapters/gnrpostgres3.py",
+        "gnrpy/gnr/sql/adapters/gnrpostgres8000.py",
+        "gnrpy/gnr/sql/gnrsql/transactions.py",
+        "gnrpy/tests/sql/test_vacuum.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_vacuum.py"
+      ],
+      "added_tests": [
+        "test_postgres_adapters_inherit_base_vacuum",
+        "test_statement_and_autocommit",
+        "test_whole_database",
+        "test_vacuum_inside_transaction",
+        "test_vacuum_inside_transaction"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "48dd2f8174d2531a234b84b1f0adb52cb264f4b4",
+      "date": "2026-09-21",
+      "subject": "fix(sql): no phantom table when a model module's filename differs from the declared table name (#1029)",
+      "parents": [
+        "b651e79c2fe2ab486b6ea11ba532d7fa699a845a"
+      ],
+      "files": [
+        "gnrpy/gnr/app/gnrapp.py",
+        "gnrpy/gnr/core/cli/gnr.py",
+        "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "gnrpy/tests/app/test_model_folder_scan.py",
+        "gnrpy/tests/sql/test_model_table_naming.py",
+        "projects/gnrdocker/packages/docker/model/image.py"
+      ],
+      "tests": [
+        "gnrpy/tests/app/test_model_folder_scan.py",
+        "gnrpy/tests/sql/test_model_table_naming.py"
+      ],
+      "added_tests": [
+        "test_a_model_module_becomes_a_mixin_key",
+        "test_init_is_not_a_model_module",
+        "test_an_absent_model_folder_yields_nothing",
+        "test_matching_module_builds_and_binds",
+        "test_mismatched_module_is_refused",
+        "test_module_declaring_nothing_is_refused",
+        "test_module_declaring_nothing_sorting_first_still_lists_the_package",
+        "test_module_declaring_nothing_in_an_empty_package",
+        "test_module_declaring_several_tables_is_accepted",
+        "test_module_declaring_several_tables_but_not_its_own",
+        "test_image_relation_has_a_real_target"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "ebe3dedbeddb72cddf09b72284b0683a770a9cf9",
+      "date": "2026-09-22",
+      "subject": "refactor(sql,web): alternative compiler and app handler behind instance switches (#1361)",
+      "parents": [
+        "641213987c1758694d12124bc200684f755b47e4"
+      ],
+      "files": [
+        "gnrpy/gnr/app/gnrdbo.py",
+        "gnrpy/gnr/app/gnrsqltable_proxy/__init__.py",
+        "gnrpy/gnr/app/gnrsqltable_proxy/selection.py",
+        "gnrpy/gnr/sql/gnrsqldata/compiler_factory.py",
+        "gnrpy/gnr/sql/gnrsqldata/compiler_next.py",
+        "gnrpy/gnr/sql/gnrsqldata/query.py",
+        "gnrpy/gnr/sql/gnrsqldata/record.py",
+        "gnrpy/gnr/web/gnrwebpage.py",
+        "gnrpy/gnr/web/gnrwebpage_proxy/apphandler/next.py",
+        "gnrpy/pyproject.toml",
+        "gnrpy/tests/sql/test_compiler_factory.py",
+        "gnrpy/tests/sql/test_compiler_next_sync.py",
+        "gnrpy/tests/web/test_apphandler_next.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_compiler_factory.py",
+        "gnrpy/tests/sql/test_compiler_next_sync.py",
+        "gnrpy/tests/web/test_apphandler_next.py"
+      ],
+      "added_tests": [
+        "test_setting_absent",
+        "test_setting_next",
+        "test_setting_other_value",
+        "test_setting_empty_value",
+        "test_no_application",
+        "test_query_uses_legacy_by_default",
+        "test_query_uses_next_when_selected",
+        "test_record_uses_next_when_selected",
+        "test_same_sql_through_the_switch",
+        "test_same_compilation",
+        "test_same_count_compilation",
+        "test_same_record_compilation",
+        "test_same_compilation",
+        "test_same_count_compilation",
+        "test_same_record_compilation",
+        "test_next_compiler_is_a_copy_of_the_legacy_one",
+        "test_the_two_classes_are_distinct",
+        "test_columns_as_string",
+        "test_columns_as_struct_bag",
+        "test_where_bag",
+        "test_where_bag_whereasplaintext",
+        "test_condition_with_kwargs",
+        "test_order_by_and_limit",
+        "test_pkeys",
+        "test_single_pkey",
+        "test_filtering_pkeys_as_string",
+        "test_filtering_pkeys_single_value",
+        "test_filtering_pkeys_from_rpc_method",
+        "test_count_only",
+        "test_sum_columns",
+        "test_distinct",
+        "test_total_row_count",
+        "test_query_mode_union",
+        "test_query_mode_intersection",
+        "test_saved_view",
+        "test_saved_query",
+        "test_saved_query_with_view",
+        "test_join_conditions_bag",
+        "test_structure",
+        "test_get_record_count",
+        "test_switch_absent_gives_the_current_handler",
+        "test_switch_next_gives_the_new_handler",
+        "test_switch_other_value_gives_the_current_handler",
+        "test_saved_query_loaded_by_the_proxy",
+        "test_saved_view_loaded_by_the_proxy",
+        "test_selection_proxy_is_cached",
+        "test_selection_proxy_knows_its_table"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "233e06b2369033f8c1fc2bdc861812cab751cbfe",
+      "date": "2026-09-22",
+      "subject": "fix(sql): an empty IN filter matches nothing instead of rendering as IN NULL",
+      "parents": [
+        "87ea484455fd180cd548622071203875db79134f"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "gnrpy/tests/sql/test_empty_in_filter.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_empty_in_filter.py"
+      ],
+      "added_tests": [
+        "test_empty_in_returns_no_row",
+        "test_empty_not_in_returns_every_row",
+        "test_non_empty_in_still_filters"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "d3243913e72cf2ec378d199db7f5c225fe2cde7a",
+      "date": "2026-09-22",
+      "subject": "fix(sql): compile column references in the wildcard join condition (#1371)",
+      "parents": [
+        "c568974f3d090e2581e49f63072db45a5cb61383"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "gnrpy/tests/sql/test_compiler_coverage.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_compiler_coverage.py"
+      ],
+      "added_tests": [
+        "test_join_condition_global_where_column_token_sqlite",
+        "test_join_condition_global_where_relation_token_sqlite",
+        "test_join_condition_global_where_related_query_sqlite"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "f60cfb983e328e5c9a3e60c75dddc88079e23b91",
+      "date": "2026-09-22",
+      "subject": "fix(sql): mirror the wildcard join condition fix in compiler_next (#1397)",
+      "parents": [
+        "62ef64d7cde4b6d600cc49c5a91f3b6352ad26f3"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler_next.py"
+      ],
+      "tests": [],
+      "added_tests": [],
+      "merge_resolution": null
+    },
+    {
+      "commit": "ead219ffaed911efea12086d392f021f89cacb1f",
+      "date": "2026-09-24",
+      "subject": "refactor(sql): select the next query compiler through an experimental flag (#1409)",
+      "parents": [
+        "e6cb4c55138a9c7e6e19cb2b3f5a3a6b2e2ff5a8"
+      ],
+      "files": [
+        "docs/genro/project/gnr/instanceconfig.rst",
+        "gnrpy/gnr/sql/gnrsqldata/compiler_factory.py",
+        "gnrpy/gnr/sql/gnrsqldata/compiler_next.py",
+        "gnrpy/tests/sql/test_compiler_factory.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_compiler_factory.py"
+      ],
+      "added_tests": [
+        "test_setting_true",
+        "test_setting_false"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "d6c7e81bb8f0e5cd7062eebf91794ff0d7e7d576",
+      "date": "2026-09-25",
+      "subject": "Merge pull request #1392 from genropy/fix/1385-empty-in-filter",
+      "parents": [
+        "fa9be503b60be5d6360cff0bbb2aed34440c53a8",
+        "233e06b2369033f8c1fc2bdc861812cab751cbfe"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "gnrpy/tests/sql/test_empty_in_filter.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_empty_in_filter.py"
+      ],
+      "added_tests": [
+        "test_empty_in_returns_no_row",
+        "test_empty_not_in_returns_every_row",
+        "test_non_empty_in_still_filters"
+      ],
+      "merge_resolution": ""
+    },
+    {
+      "commit": "ee2a507247f2a13694f96b03a51e02dec2e4a9f9",
+      "date": "2026-09-26",
+      "subject": "fix(sql): report a non-convertible filter value as a typed error",
+      "parents": [
+        "31e57a4d76d587ea18b1af3e853157df89dd7dab"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "gnrpy/gnr/sql/gnrsqltable/__init__.py",
+        "gnrpy/tests/sql/test_invalid_filter_value.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_invalid_filter_value.py"
+      ],
+      "added_tests": [
+        "test_text_on_integer_column",
+        "test_text_in_list_on_integer_column",
+        "test_percent_in_value_renders",
+        "test_text_on_decimal_column",
+        "test_valid_value_still_converts"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "2213cfd7c3777af13664ec25bf3536b2d47797f1",
+      "date": "2026-10-01",
+      "subject": "fix(sql): build protecting/invalid reasons through the adapter so they work on SQLite",
+      "parents": [
+        "ca7c964299d957d21a0211157db1a2830d25ddb0"
+      ],
+      "files": [
+        "gnrpy/gnr/app/gnrdbo.py",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "gnrpy/tests/sql/test_gnrbaseadapter.py",
+        "gnrpy/tests/sql/test_string_join.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_gnrbaseadapter.py",
+        "gnrpy/tests/sql/test_string_join.py"
+      ],
+      "added_tests": [
+        "test_string_join",
+        "test_string_join_separator_length",
+        "test_string_join_skips_nulls",
+        "test_protecting_and_invalid_reasons"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "3c581d9d267cb5a3c7b7ac343aabb237a4d4be2b",
+      "date": "2026-10-02",
+      "subject": "fix: hierarchical tables reject cycles and read deleted parents and children",
+      "parents": [
+        "5e7f02e8d774d968c1252accebb6fc060c4f888b"
+      ],
+      "files": [
+        "gnrpy/gnr/app/gnrdbo.py",
+        "gnrpy/gnr/sql/gnrsqltable_proxy/hierarchical.py",
+        "gnrpy/tests/sql/test_hierarchical_trigger.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_hierarchical_trigger.py"
+      ],
+      "added_tests": [
+        "test_cycle_is_refused",
+        "test_legit_move_rewrites_the_subtree",
+        "test_child_inserted_under_deleted_parent",
+        "test_restore_of_parent_keeps_children_paths",
+        "test_rename_reaches_deleted_children",
+        "test_update_without_old_record_is_an_explicit_error",
+        "test_fix_row_count_on_roots",
+        "test_path_from_pkey_with_condition",
+        "test_paths_from_pkeys_skip_nodes_outside_parent",
+        "test_variant_on_non_hierarchical_table"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "ba377674f79fe73d1cb6609adea4d64cc838fbbc",
+      "date": "2026-10-03",
+      "subject": "fix: expand #THIS before relation placeholders in sql_formula",
+      "parents": [
+        "5e7f02e8d774d968c1252accebb6fc060c4f888b"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "gnrpy/gnr/sql/gnrsqldata/compiler_next.py",
+        "gnrpy/tests/sql/test_compiler_coverage.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_compiler_coverage.py"
+      ],
+      "added_tests": [
+        "test_this_relation_in_sql_formula_sqlite"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "15cb7215f24ecf7b9224b77a0477bf02c0a6e8d0",
+      "date": "2026-10-03",
+      "subject": "Merge pull request #1494 from genropy/1485-sqlite-reasons-array",
+      "parents": [
+        "8cfe28ceed2d89e3d8ff51beae4e5820631697b8",
+        "2213cfd7c3777af13664ec25bf3536b2d47797f1"
+      ],
+      "files": [
+        "gnrpy/gnr/app/gnrdbo.py",
+        "gnrpy/gnr/sql/adapters/_gnrbaseadapter.py",
+        "gnrpy/gnr/sql/adapters/gnrsqlite.py",
+        "gnrpy/tests/sql/test_gnrbaseadapter.py",
+        "gnrpy/tests/sql/test_string_join.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_gnrbaseadapter.py",
+        "gnrpy/tests/sql/test_string_join.py"
+      ],
+      "added_tests": [
+        "test_string_join",
+        "test_string_join_separator_length",
+        "test_string_join_skips_nulls",
+        "test_protecting_and_invalid_reasons"
+      ],
+      "merge_resolution": ""
+    },
+    {
+      "commit": "a659df9d3617ef6532b729ead614d0a70b906f86",
+      "date": "2026-10-06",
+      "subject": "fix(sql): redefining a virtual column with another kind drops the old kind attributes",
+      "parents": [
+        "4e9f5c69e2533cab875597213a8ee652a28db12c"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "gnrpy/tests/sql/test_virtual_column_redefinition.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_virtual_column_redefinition.py"
+      ],
+      "added_tests": [
+        "test_alias_redefined_as_formula",
+        "test_formula_redefined_as_alias",
+        "test_relabel_keeps_kind"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "600f347ef35f5338b26a5873507a9cb3b1b4d822",
+      "date": "2026-10-06",
+      "subject": "fix(sqlmigration): drop a column's uniqueness by its real, schema-qualified names (#1425)",
+      "parents": [
+        "43c93ab8d8848fc2bcd7d109f4152b3ef1e9b3a4"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/adapters/_gnrbasepostgresadapter.py",
+        "gnrpy/gnr/sql/gnrsqlmigration/README.md",
+        "gnrpy/gnr/sql/gnrsqlmigration/command_builder.py",
+        "gnrpy/gnr/sql/gnrsqlmigration/db_extractor.py",
+        "gnrpy/gnr/sql/gnrsqlmigration/diff_engine.py",
+        "gnrpy/gnr/sql/gnrsqlmigration/orm_extractor.py",
+        "gnrpy/tests/sql/test_gnrsqlmigration.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_gnrsqlmigration.py"
+      ],
+      "added_tests": [
+        "test_13a_legacy_unique_column",
+        "test_13b_remove_unique_from_legacy_column",
+        "test_13c_legacy_unique_index_beside_the_plain_one",
+        "test_13d_rebuild_legacy_named_index",
+        "test_13e_unique_index_on_an_expression_survives",
+        "test_13f_indexed_unique_is_the_column_uniqueness",
+        "test_13g_indexed_unique_legacy_index_converges"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "4699eafd21282929e0567627032f0d99399d3839",
+      "date": "2026-10-08",
+      "subject": "fix(exceptions): name the unknown key instead of raising None (#1622) (#1624)",
+      "parents": [
+        "ccb4c811154fcc7c8137d0f537b62ad1aade17fe"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqltable/table.py",
+        "gnrpy/gnr/web/gnrwebpage.py",
+        "gnrpy/tests/sql/d_table_test.py",
+        "gnrpy/tests/web/gnrwebpage_test.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/d_table_test.py",
+        "gnrpy/tests/web/gnrwebpage_test.py"
+      ],
+      "added_tests": [
+        "test_exception_unknown_name",
+        "test_exception_business_logic",
+        "test_exception_unknown_name_raises_naming_it",
+        "test_exception_registered_name_returns_instance"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "a89bf5c272a39b1219759df884b5160459e62548",
+      "date": "2026-10-08",
+      "subject": "Merge pull request #1585 from genropy/fix/1529-virtual-column-kind-override",
+      "parents": [
+        "3430f892d2712b6deaed3863648fdc384b0e9704",
+        "a659df9d3617ef6532b729ead614d0a70b906f86"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "gnrpy/tests/sql/test_virtual_column_redefinition.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_virtual_column_redefinition.py"
+      ],
+      "added_tests": [
+        "test_alias_redefined_as_formula",
+        "test_formula_redefined_as_alias",
+        "test_relabel_keeps_kind"
+      ],
+      "merge_resolution": ""
+    },
+    {
+      "commit": "170495f80a3bacd2eb167a4dc4f8f0aa302b761c",
+      "date": "2026-10-08",
+      "subject": "fix(sql): virtual columns declared on a colgroup crash the model build (#1642)",
+      "parents": [
+        "22d3971302d2e5eb6ad7e2eaea3153d27914d542"
+      ],
+      "files": [
+        "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "gnrpy/tests/sql/test_virtual_column_redefinition.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_virtual_column_redefinition.py"
+      ],
+      "added_tests": [
+        "test_colgroup_new_column",
+        "test_colgroup_redefined_as_formula"
+      ],
+      "merge_resolution": null
+    },
+    {
+      "commit": "8e4cd1cc17915ff6d2fa2c3cfd4f2df3b4530386",
+      "date": "2026-10-08",
+      "subject": "Merge pull request #1549 from genropy/fix/hierarchical-trigger-defects",
+      "parents": [
+        "0c600c6b3e8138064f3da22a945542ba340e55db",
+        "3c581d9d267cb5a3c7b7ac343aabb237a4d4be2b"
+      ],
+      "files": [
+        "gnrpy/gnr/app/gnrdbo.py",
+        "gnrpy/gnr/sql/gnrsqltable_proxy/hierarchical.py",
+        "gnrpy/tests/sql/test_hierarchical_trigger.py"
+      ],
+      "tests": [
+        "gnrpy/tests/sql/test_hierarchical_trigger.py"
+      ],
+      "added_tests": [
+        "test_cycle_is_refused",
+        "test_legit_move_rewrites_the_subtree",
+        "test_child_inserted_under_deleted_parent",
+        "test_restore_of_parent_keeps_children_paths",
+        "test_rename_reaches_deleted_children",
+        "test_update_without_old_record_is_an_explicit_error",
+        "test_fix_row_count_on_roots",
+        "test_path_from_pkey_with_condition",
+        "test_paths_from_pkeys_skip_nodes_outside_parent",
+        "test_variant_on_non_hierarchical_table"
+      ],
+      "merge_resolution": ""
+    }
+  ],
+  "test_only_path_commits": [
+    {
+      "commit": "a19c01502401c4ad0518fedd9b7e53a695f83a5a",
+      "subject": "test(sql): run the wildcard join condition tests on both compilers (#1398)"
+    },
+    {
+      "commit": "8b5a976997a7e883f7007b89f17b47d13d0f8a9d",
+      "subject": "fix(adm): translate counter errors when they are composed"
+    },
+    {
+      "commit": "a62786df585cb3d1824c7ba3d644ecc1fcffe382",
+      "subject": "Merge pull request #1432 from genropy/1399-counter-date-error-localization"
+    },
+    {
+      "commit": "b24d2eaa5e9dd809e56aa6d0fad174b043e90b2d",
+      "subject": "fix(adm): roll back the system connection after a preference read (#1600)"
+    },
+    {
+      "commit": "904fb7b112e824ef64f27315e7d09a411ef92521",
+      "subject": "fix(adm): syncExternalUser inserts a new external user as a complete record (#1628)"
+    },
+    {
+      "commit": "ccb4c811154fcc7c8137d0f537b62ad1aade17fe",
+      "subject": "fix(sys,adm): roll back the system connection after reads with no write (#1603) (#1623)"
+    },
+    {
+      "commit": "95da66ee64b0c789dbb6b35254011d83ce1911c5",
+      "subject": "fix(core): Bag.getLeaves excludes nested folders too (#1674)"
+    }
+  ]
+}

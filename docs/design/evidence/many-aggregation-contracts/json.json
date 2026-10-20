@@ -1,0 +1,978 @@
+{
+  "date": "2026-10-16",
+  "base_commit": "531d87b29c477450794bc448e64d263cbda59d0e",
+  "implemented": [
+    "count",
+    "sum",
+    "avg",
+    "min",
+    "max",
+    "join",
+    "order_by",
+    "to_json"
+  ],
+  "pending": [
+    "to_xml (PostgreSQL)"
+  ],
+  "counts": {
+    "passed": 177,
+    "skipped": 5,
+    "xfail": 4
+  },
+  "cases": [
+    {
+      "name": "test_oracle_provenance_is_intact",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_labels_root_and_empty_bag_use_existing_format",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[code]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[empty]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[missing]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[integer]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[amount]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[real]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[active]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[inactive]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[day]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[clock]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_type_markers_null_empty_and_escaping[utc]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_installed_bag_serializer_matches_frozen_wire[rows]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_installed_bag_serializer_matches_frozen_wire[empty]",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_real_bag_parser_restores_values_types_and_labels",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_postgres_xml_constructors_match_bag_wire",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_postgres_generated_xml_roundtrips_through_bag",
+      "module": "tests.many_aggregations.test_bag_xml_format",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-count()-names0-expected0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-count() AS n-names1-expected1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($total), avg($total), min($total), max($total)-names2-expected2]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($total AS amount, $qty AS quantity)-names3-expected3]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($total, $qty)-names4-expected4]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-avg($total, $qty)-names5-expected5]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-min($total, $qty)-names6-expected6]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-max($total, $qty)-names7-expected7]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-avg($total AS amount, $qty AS quantity)-names8-expected8]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-min($total AS amount, $qty AS quantity)-names9-expected9]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-max($total AS amount, $qty AS quantity)-names10-expected10]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($total * $qty) AS amount-names11-expected11]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum(CASE WHEN $qty>1 THEN $total ELSE 0 END) AS amount-names12-expected12]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($double_total) AS doubled-names13-expected13]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($adjusted) AS adjusted-names14-expected14]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum(@vat_id.rate) AS taxes-names15-expected15]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($tax_rate) AS taxes-names16-expected16]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-min(total), avg(qty)-names17-expected17]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-join($code, ',')-names18-expected18]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-join($code, ',', '-empty-') AS codes-names19-expected19]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-join($code, ',', 'null') AS codes-names20-expected20]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-join($code, ',', '') AS codes-names21-expected21]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-join($code, ';', '-empty-')-names22-expected22]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-count() AS result, sum($total) AS result-names23-expected23]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-join($code, ','), join($code, ';')-names24-expected24]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[sqlite-sum($total) AS amount, avg($qty)-names25-expected25]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[sqlite-count()-0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[sqlite-sum($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[sqlite-avg($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[sqlite-min($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[sqlite-max($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[sqlite-join($code, ',', '-empty-')-]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_null_code_in_existing_row_is_not_an_empty_set[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_many_rows_never_multiply_outer_rows[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_override_applies_to_join[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_two_calls_keep_local_order_and_bindings[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_selected_columns_alias_formula_relation_and_order[sqlite--expected_ids0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_selected_columns_alias_formula_relation_and_order[sqlite-.order_by('$id DESC')-expected_ids1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_star_is_query_star_including_static_columns[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_without_rows_is_empty_array[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_xml_labels_follow_order_without_selecting_primary_key[sqlite--codes0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "skipped"
+    },
+    {
+      "name": "test_xml_labels_follow_order_without_selecting_primary_key[sqlite-.order_by('$id DESC')-codes1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "skipped"
+    },
+    {
+      "name": "test_xml_star_and_empty_bag[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "skipped"
+    },
+    {
+      "name": "test_sqlite_xml_rejection_identifies_the_missing_capability[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_fixture_uses_real_formula_alias_relation_and_static_star[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_bare_many_paths_remain_rejected[sqlite-@invoices]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_bare_many_paths_remain_rejected[sqlite-@invoices.total]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_shared_order_for_join_and_json_with_unselected_sort_field[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_to_one_prefix_changes_aggregation_context[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_filtered_virtual_many_relations_use_same_aggregation_contract[sqlite-large_invoices]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_filtered_virtual_many_relations_use_same_aggregation_contract[sqlite-above_customer]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_xml_selected_formulas_and_related_fields_preserve_types[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "skipped"
+    },
+    {
+      "name": "test_numeric_scopes_reuse_and_model_are_isolated[sqlite]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_implicit_scalar_or_tuple_extensions[sqlite-$id-options0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_implicit_scalar_or_tuple_extensions[sqlite-COALESCE(@invoices.aggr(sum($total)),0)-options1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_implicit_scalar_or_tuple_extensions[sqlite-@invoices.aggr(sum($total,$qty) AS one_name)-options2]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-count()-names0-expected0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-count() AS n-names1-expected1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($total), avg($total), min($total), max($total)-names2-expected2]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($total AS amount, $qty AS quantity)-names3-expected3]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($total, $qty)-names4-expected4]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-avg($total, $qty)-names5-expected5]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-min($total, $qty)-names6-expected6]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-max($total, $qty)-names7-expected7]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-avg($total AS amount, $qty AS quantity)-names8-expected8]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-min($total AS amount, $qty AS quantity)-names9-expected9]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-max($total AS amount, $qty AS quantity)-names10-expected10]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($total * $qty) AS amount-names11-expected11]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum(CASE WHEN $qty>1 THEN $total ELSE 0 END) AS amount-names12-expected12]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($double_total) AS doubled-names13-expected13]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($adjusted) AS adjusted-names14-expected14]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum(@vat_id.rate) AS taxes-names15-expected15]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($tax_rate) AS taxes-names16-expected16]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-min(total), avg(qty)-names17-expected17]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-join($code, ',')-names18-expected18]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-join($code, ',', '-empty-') AS codes-names19-expected19]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-join($code, ',', 'null') AS codes-names20-expected20]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-join($code, ',', '') AS codes-names21-expected21]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-join($code, ';', '-empty-')-names22-expected22]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-count() AS result, sum($total) AS result-names23-expected23]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-join($code, ','), join($code, ';')-names24-expected24]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_approved_values_and_aliases[postgresql-sum($total) AS amount, avg($qty)-names25-expected25]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[postgresql-count()-0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[postgresql-sum($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[postgresql-avg($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[postgresql-min($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[postgresql-max($total)-None]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_correlated_rows[postgresql-join($code, ',', '-empty-')-]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_null_code_in_existing_row_is_not_an_empty_set[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_many_rows_never_multiply_outer_rows[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_override_applies_to_join[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_two_calls_keep_local_order_and_bindings[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_selected_columns_alias_formula_relation_and_order[postgresql--expected_ids0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_selected_columns_alias_formula_relation_and_order[postgresql-.order_by('$id DESC')-expected_ids1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_star_is_query_star_including_static_columns[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_without_rows_is_empty_array[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_xml_labels_follow_order_without_selecting_primary_key[postgresql--codes0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "xfail"
+    },
+    {
+      "name": "test_xml_labels_follow_order_without_selecting_primary_key[postgresql-.order_by('$id DESC')-codes1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "xfail"
+    },
+    {
+      "name": "test_xml_star_and_empty_bag[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "xfail"
+    },
+    {
+      "name": "test_sqlite_xml_rejection_identifies_the_missing_capability[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "skipped"
+    },
+    {
+      "name": "test_fixture_uses_real_formula_alias_relation_and_static_star[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_bare_many_paths_remain_rejected[postgresql-@invoices]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_bare_many_paths_remain_rejected[postgresql-@invoices.total]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_shared_order_for_join_and_json_with_unselected_sort_field[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_to_one_prefix_changes_aggregation_context[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_filtered_virtual_many_relations_use_same_aggregation_contract[postgresql-large_invoices]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_filtered_virtual_many_relations_use_same_aggregation_contract[postgresql-above_customer]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_xml_selected_formulas_and_related_fields_preserve_types[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "xfail"
+    },
+    {
+      "name": "test_numeric_scopes_reuse_and_model_are_isolated[postgresql]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_implicit_scalar_or_tuple_extensions[postgresql-$id-options0]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_implicit_scalar_or_tuple_extensions[postgresql-COALESCE(@invoices.aggr(sum($total)),0)-options1]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_implicit_scalar_or_tuple_extensions[postgresql-@invoices.aggr(sum($total,$qty) AS one_name)-options2]",
+      "module": "tests.many_aggregations.test_contracts",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_uses_unselected_columns_relations_and_formulas[sqlite-$qty DESC, $id--,xx,zz,-]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_uses_unselected_columns_relations_and_formulas[sqlite-@vat_id.rate DESC, $id DESC--,zz,-,xx]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_uses_unselected_columns_relations_and_formulas[sqlite-$adjusted DESC--,zz,-,xx]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[sqlite-join(upper($code), ';', '-') AS codes-XX;-;ZZ;-]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[sqlite-join(code, ',') AS codes-xx,,zz,]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[sqlite-join($adjusted, ',') AS codes-25,45,65,85]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[sqlite-join(@vat_id.rate, ',') AS codes-10,10,20,20]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[sqlite-join(CASE WHEN $id=1 THEN ' ' ELSE $code END, ',', '-') AS codes- ,-,zz,-]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[sqlite-join($code, ',', 'it''s empty') AS codes-xx,it's empty,zz,it's empty]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_child_bindings_do_not_mix_with_outer_or_order_formulas[sqlite]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_join_base_order_and_override[sqlite-large_invoices]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_join_base_order_and_override[sqlite-above_customer]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_to_one_prefix_then_many_join[sqlite]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_table_order_does_not_invent_a_fallback[sqlite]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_uses_unselected_columns_relations_and_formulas[postgresql-$qty DESC, $id--,xx,zz,-]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_uses_unselected_columns_relations_and_formulas[postgresql-@vat_id.rate DESC, $id DESC--,zz,-,xx]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_order_uses_unselected_columns_relations_and_formulas[postgresql-$adjusted DESC--,zz,-,xx]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[postgresql-join(upper($code), ';', '-') AS codes-XX;-;ZZ;-]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[postgresql-join(code, ',') AS codes-xx,,zz,]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[postgresql-join($adjusted, ',') AS codes-25,45,65,85]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[postgresql-join(@vat_id.rate, ',') AS codes-10,10,20,20]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[postgresql-join(CASE WHEN $id=1 THEN ' ' ELSE $code END, ',', '-') AS codes- ,-,zz,-]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_expressions_and_placeholder[postgresql-join($code, ',', 'it''s empty') AS codes-xx,it's empty,zz,it's empty]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_join_child_bindings_do_not_mix_with_outer_or_order_formulas[postgresql]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_join_base_order_and_override[postgresql-large_invoices]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_join_base_order_and_override[postgresql-above_customer]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_to_one_prefix_then_many_join[postgresql]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_table_order_does_not_invent_a_fallback[postgresql]",
+      "module": "tests.many_aggregations.test_join_order",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[sqlite-$total * $qty AS line_total-expected0]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[sqlite-$code-expected1]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[sqlite-$id AS value, $qty AS value-expected2]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[sqlite-$tax_rate AS rate-expected3]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_outer_alias_collision_keeps_last_json_projection[sqlite]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_explicit_star_uses_the_same_query_expansion[sqlite]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_parameters_are_values_and_encoded_in_sql[sqlite]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_order_formulas_and_bindings_stay_local[sqlite]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_json_filter_order_and_outer_cardinality[sqlite-large_invoices]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_json_filter_order_and_outer_cardinality[sqlite-above_customer]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_to_one_prefix_then_json[sqlite]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_without_base_order_does_not_add_a_fallback[sqlite]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_keys_follow_existing_authored_query_names[sqlite-$id AS CamelCase,$total]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_keys_follow_existing_authored_query_names[sqlite-CAST($total AS NUMERIC)]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[postgresql-$total * $qty AS line_total-expected0]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[postgresql-$code-expected1]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[postgresql-$id AS value, $qty AS value-expected2]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_projection_expressions_nulls_aliases[postgresql-$tax_rate AS rate-expected3]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_outer_alias_collision_keeps_last_json_projection[postgresql]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_explicit_star_uses_the_same_query_expansion[postgresql]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_parameters_are_values_and_encoded_in_sql[postgresql]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_order_formulas_and_bindings_stay_local[postgresql]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_json_filter_order_and_outer_cardinality[postgresql-large_invoices]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_virtual_json_filter_order_and_outer_cardinality[postgresql-above_customer]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_to_one_prefix_then_json[postgresql]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_without_base_order_does_not_add_a_fallback[postgresql]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_keys_follow_existing_authored_query_names[postgresql-$id AS CamelCase,$total]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    },
+    {
+      "name": "test_json_keys_follow_existing_authored_query_names[postgresql-CAST($total AS NUMERIC)]",
+      "module": "tests.many_aggregations.test_json",
+      "status": "passed"
+    }
+  ],
+  "full_read_suite": {
+    "passed": 4435,
+    "skipped": 21,
+    "xfail": 4,
+    "deselected": 16
+  },
+  "reuse": [
+    "split_sql",
+    "col_to_as",
+    "projection_columns",
+    "FieldReferences",
+    "subquery",
+    "SqlBindings",
+    "select_plan",
+    "aggregate_sql_subquery (PostgreSQL)"
+  ],
+  "checks": {
+    "ruff": "passed",
+    "mypy": "passed (58 source files)",
+    "git_diff_check": "passed",
+    "existing_adapter_methods": "unchanged",
+    "legacy_projection_algorithm": "unchanged"
+  },
+  "writes": "Excluded through the unchanged tests/read_path/pytest.args manifest; no write implementation modified"
+}

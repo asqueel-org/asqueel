@@ -1,0 +1,333 @@
+{
+  "legacy": {
+    "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "dispatch": [
+      {
+        "name": "getFieldAlias",
+        "line": 273,
+        "ast_sha256": "2cb9857d4348e9c5bf3ad124522a6a27184b315f53761a47e627370b14cd82ae"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "passed"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  },
+  "compound": {
+    "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "dispatch": [
+      {
+        "name": "getFieldAlias",
+        "line": 326,
+        "ast_sha256": "7b2f93086a9d6cb8d476ffb0e78224d442e6d8032e16310e40854425a5700315"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "passed"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  },
+  "v2": {
+    "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+    "dispatch": [
+      {
+        "name": "_handle_formula",
+        "line": 344,
+        "ast_sha256": "f6b43a5b551540c7c5e565b32f502edee608458f174ffc4bd3eb7d36cd94fdb6"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "failed",
+        "message": "TypeError: 'str' object does not support item assignment"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  },
+  "v3": {
+    "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "dispatch": [
+      {
+        "name": "_handleFormulaColumn",
+        "line": 491,
+        "ast_sha256": "35f33d3f1b18ca27ebe6e2e29d421a95c266b9129f0e636c6f1a179e3c63acf5"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "failed",
+        "message": "TypeError: 'str' object does not support item assignment"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  },
+  "v3_merged": {
+    "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "dispatch": [
+      {
+        "name": "_handleFormulaColumn",
+        "line": 491,
+        "ast_sha256": "35f33d3f1b18ca27ebe6e2e29d421a95c266b9129f0e636c6f1a179e3c63acf5"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "failed",
+        "message": "TypeError: 'str' object does not support item assignment"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  },
+  "v4": {
+    "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "dispatch": [
+      {
+        "name": "_handleFormulaColumn",
+        "line": 492,
+        "ast_sha256": "35f33d3f1b18ca27ebe6e2e29d421a95c266b9129f0e636c6f1a179e3c63acf5"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "failed",
+        "message": "TypeError: 'str' object does not support item assignment"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  },
+  "simplify": {
+    "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "dispatch": [
+      {
+        "name": "getFieldAlias",
+        "line": 272,
+        "ast_sha256": "9d75d42c8b6957747ff7cb2f6000421170ab01e2c860007684932fb6c3c4ea17"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "failed",
+        "message": "assert 'MAX(' in 'SELECT  \"t0\".\"scalar\" AS \"scalar\",\\n\"t0\".\"named\" AS \"named\",\\n\"t0\".\"id\" AS \"pkey\"\\n FROM \"main\".\"app_owner\" AS t0'"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "failed",
+        "message": "assert 'EXISTS' in 'SELECT  \"t0\".\"present\" AS \"present\",\\n\"t0\".\"id\" AS \"pkey\"\\n FROM \"main\".\"app_owner\" AS t0'"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "failed",
+        "message": "assert ([])\n +  where [] = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dbf58e0>.method_calls"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "failed",
+        "message": "AssertionError: assert set() == {'app.line', 'app.owner'}\n  \n  Extra items in the right set:\n  'app.owner'\n  'app.line'\n  Use -v to get more diff"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "failed",
+        "message": "assert 'MAX(' in 'SELECT  \"t0\".\"from_formula\" AS \"from_formula\",\\n\"t0\".\"id\" AS \"pkey\"\\n FROM \"main\".\"app_owner\" AS t0'"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "failed",
+        "message": "assert ([])\n +  where [] = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccd910>.method_calls"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "failed",
+        "message": "assert ([])\n +  where [] = <gnr.sql.gnrsql.db.GnrSqlDb object at 0x10dccf260>.method_calls"
+      }
+    ]
+  },
+  "next": {
+    "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+    "dispatch": [
+      {
+        "name": "getFieldAlias",
+        "line": 273,
+        "ast_sha256": "2cb9857d4348e9c5bf3ad124522a6a27184b315f53761a47e627370b14cd82ae"
+      }
+    ],
+    "tests": [
+      {
+        "test": "test_select_and_named_methods",
+        "status": "passed"
+      },
+      {
+        "test": "test_exists_method",
+        "status": "passed"
+      },
+      {
+        "test": "test_related_column_dispatches_on_select_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_nested_select_uses_its_own_root",
+        "status": "passed"
+      },
+      {
+        "test": "test_sql_formula_can_supply_method_reference",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[None]",
+        "status": "passed"
+      },
+      {
+        "test": "test_subquery_column_method[json]",
+        "status": "passed"
+      }
+    ]
+  }
+}

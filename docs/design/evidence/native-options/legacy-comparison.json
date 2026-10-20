@@ -1,0 +1,587 @@
+{
+  "legacy": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 396,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 479,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 72,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 744,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 831,
+        "ast_sha256": "87e0e79a1a6e4502125e22a8c722d7a048a8ad0bc0a2c6475212db13617e7199"
+      }
+    ],
+    "tests": [
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestExcludeLogicalDeletedMark.test_mark_adds_isdeleted_column_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestExcludeLogicalDeletedMark.test_mark_adds_isdeleted_column_sqlite",
+        "status": "passed"
+      }
+    ]
+  },
+  "v2": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 385,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 468,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 71,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 1142,
+        "ast_sha256": "7df16fdbb83ef98e94ac34aa29ae4432d5e4afe249be955b79231fa2f52cd968"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 1192,
+        "ast_sha256": "528d51f65ff5423ce29f190ccfbef6ff40db4b2d83ffa2f87c6c81087461f56d"
+      }
+    ],
+    "tests": []
+  },
+  "v3": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 450,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 533,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 71,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 1173,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 1260,
+        "ast_sha256": "b38233c889c7943c6dbab186b276779bb3ae0150667ceeada7becf372880ed95"
+      }
+    ],
+    "tests": []
+  },
+  "v3_merged": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 461,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 544,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 71,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 1173,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 1260,
+        "ast_sha256": "e128c54162bd9c67cb580be27fcc0c99ab689d6217632f3baf92927df0d44bf1"
+      }
+    ],
+    "tests": [
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_sqlite",
+        "status": "passed"
+      }
+    ]
+  },
+  "v4": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 461,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 544,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 71,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 1172,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 1259,
+        "ast_sha256": "e128c54162bd9c67cb580be27fcc0c99ab689d6217632f3baf92927df0d44bf1"
+      }
+    ],
+    "tests": [
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_sqlite",
+        "status": "passed"
+      }
+    ]
+  },
+  "simplify": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 396,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 479,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 71,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 767,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 854,
+        "ast_sha256": "33d16905feb567c9ed879793d75652faadf19809fa5cf3053d5ea8aed568ad83"
+      }
+    ],
+    "tests": [
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_pg",
+        "status": "failed",
+        "reason": "psycopg2.errors.UndefinedColumn: column t0.is_confirmed does not exist\nLINE 3: \"t0\".\"is_confirmed\" AS \"is_confirmed\",\n        ^"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_sqlite",
+        "status": "failed",
+        "reason": "sqlite3.OperationalError: no such column: t0.is_confirmed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_pg",
+        "status": "failed",
+        "reason": "psycopg2.errors.UndefinedColumn: column t0.state does not exist\nLINE 4: WHERE (\"t0\".\"state\" ='NSW') AND (\"t0\".\"__del_ts\" IS NULL)\n               ^\nHINT:  Perhaps you meant to reference the column \"t0.date\"."
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_sqlite",
+        "status": "failed",
+        "reason": "sqlite3.OperationalError: no such column: t0.state"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_sqlite",
+        "status": "passed"
+      }
+    ]
+  },
+  "next": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "static_virtual_columns",
+        "line": 396,
+        "ast_sha256": "0d16e040c652f9690c72c491965631129f2a732fa9e6a4f8c6b7a5635a5a6ca6"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "starColumns",
+        "line": 479,
+        "ast_sha256": "74e82b667b1e06da894404e3166b743c1ea0948aec34b5e899be33c12f1d15d0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable/columns.py",
+        "name": "getPartitionCondition",
+        "line": 72,
+        "ast_sha256": "a13ea261fdc5e03be64a6e2722d3367b7ebfb22b298836dd12c696b4244be5b0"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 744,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 831,
+        "ast_sha256": "87e0e79a1a6e4502125e22a8c722d7a048a8ad0bc0a2c6475212db13617e7199"
+      }
+    ],
+    "tests": [
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPhysicalColumns.test_star_expansion_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_is_confirmed_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestDraftField.test_draft_filter_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_customer_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_invoice_partition_nsw_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionCurrentState.test_partition_ignore_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestPartitionAllowedStates.test_no_partition_full_count_sqlite",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestExcludeLogicalDeletedMark.test_mark_adds_isdeleted_column_pg",
+        "status": "passed"
+      },
+      {
+        "test": "tests.sql.test_compiler_coverage.TestExcludeLogicalDeletedMark.test_mark_adds_isdeleted_column_sqlite",
+        "status": "passed"
+      }
+    ]
+  },
+  "compound": {
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "expandMultipleColumns",
+        "line": 811,
+        "ast_sha256": "0c67c1a59378f4f324f586ba81c2084590c185ab126a4d9b699fbe97709c7a61"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqldata/compiler.py",
+        "name": "compiledQuery",
+        "line": 898,
+        "ast_sha256": "e556e91a3afb8e7bb9a27b6ab235072cf1b556389f54616c7ef7fbf561157402"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel.py",
+        "name": "static_virtual_columns",
+        "line": 1288,
+        "ast_sha256": "319aca2f2e9c260dc465f3568e38e88f1e3201451378c9b98e1afac2d2624e5f"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel.py",
+        "name": "starColumns",
+        "line": 1349,
+        "ast_sha256": "158de32e0e0fd19f1646243bc863e42e00864a355a2abc09ebd7f4113e56ed08"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqltable.py",
+        "name": "getPartitionCondition",
+        "line": 360,
+        "ast_sha256": "8642ea78ba18e04a11470f2ad4035cdb0d23a93d305fb78d2885b05106f4b05f"
+      }
+    ],
+    "tests": []
+  }
+}

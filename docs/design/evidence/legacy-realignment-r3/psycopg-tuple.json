@@ -1,0 +1,25 @@
+[
+  {
+    "case": "legacy_tuple",
+    "sql": "SELECT 1 IN %(ids)s AS matched",
+    "params": {
+      "ids": [
+        1,
+        2
+      ]
+    },
+    "error": "SyntaxError",
+    "message": "syntax error at or near \"$1\"\nLINE 1: SELECT 1 IN $1 AS matched\n                    ^"
+  },
+  {
+    "case": "legacy_postgres3_expansion",
+    "sql": "SELECT 1 IN (%(ids_0)s,%(ids_1)s) AS matched",
+    "params": {
+      "ids_0": 1,
+      "ids_1": 2
+    },
+    "result": [
+      true
+    ]
+  }
+]

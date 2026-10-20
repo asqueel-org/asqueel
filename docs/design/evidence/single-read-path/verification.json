@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-16",
+  "branch": "codex/core-single-read-path",
+  "base": "926000dde5f7dbaa07d56aa4c5a4985bd8162c85",
+  "scope": "single hierarchical read path; write-cycle implementation excluded",
+  "pytest": {
+    "passed": 4253,
+    "skipped": 12,
+    "deselected": 16,
+    "seconds": 210.7,
+    "command": "PYTHONPATH=src python -m pytest @tests/read_path/pytest.args --no-cov -q --tb=short",
+    "excluded_writer_files": 27,
+    "scope_manifest": "tests/read_path/pytest.args"
+  },
+  "checks": {
+    "ruff": "passed",
+    "mypy": "passed, 57 source files",
+    "sphinx": "passed, warnings as errors",
+    "wheel": "rebuilt offline and installed under /tmp independently of checkout; NamedList/record/lock/migration projection passed; empty sqlite configuration passed with explicit :memory: conninfo",
+    "migration_dependency": "0.2.2 from PyPI",
+    "writes_py": "unchanged",
+    "triggers_py": "unchanged",
+    "runtime_py": "unchanged",
+    "legacy_json_oracles": "unchanged",
+    "modified_files_write_test_bodies": {
+      "checked": 39,
+      "changed": 0
+    }
+  },
+  "limits": [
+    "Full-suite and CI status require the separate writer integration; explicit DML exclusions are listed in writer-tests.json.",
+    "No release, push or merge performed."
+  ]
+}

@@ -1,5 +1,9 @@
 # Handoff — completamento query Asqueel
 
+> Documento storico. Per riprendere il lavoro dal 12 ottobre 2026 usare
+> [Handoff Asqueel core](HANDOFF-asqueel-core.md): l'incremento query descritto
+> qui è stato implementato; baseline e prossimi passi sono cambiati.
+
 ## Richiesta e prossimo passo
 
 L'utente ha chiesto un piano per verificare i problemi concreti e aumentare la

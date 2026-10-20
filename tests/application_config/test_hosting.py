@@ -55,15 +55,16 @@ def host(tmp_path):
     chat = App(server, 'chat')
     plain = App(server, 'plain')
     for owner, name in ((server, 'default'), (server, 'alfadb'), (chat, 'default'), (chat, 'alfadb')):
-        db = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}.db'))
+        db = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}' / 'main.db'))
         db.migrate()
-        db.table('app.item').insert({'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
+        db.execute('INSERT INTO app.item (id, owner) VALUES (:id, :owner)',
+                   {'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
         db.commit()
         db.closeConnection()
     yield server, chat, plain
     for owner in (server, chat, plain):
         for db in owner.asqueel_dbs.values():
-            db.close()
+            db.closeConnection()
 
 
 def owner_of(db):
@@ -154,12 +155,21 @@ def test_a_host_must_name_itself():
 
 def test_release_closes_the_others_and_then_reports_a_failure(host, tmp_path):
     server, chat, _ = host
-    extra = chat.set_asqueel_db('extra', recipe(tmp_path / 'extra.db'))
+    extra = chat.set_asqueel_db('extra', recipe(tmp_path / 'extra' / 'main.db'))
     first, second = chat.get_db('chat:extra'), chat.get_db('chat:alfadb')
     owner_of(second)
-    extra.close()
-    with pytest.raises(Exception, match='closed'):
-        chat.release_databases()
+
+    def failing_close():
+        raise RuntimeError('connection already closed')
+
+    # Set on the instance and removed here: the host fixture closes every
+    # database at teardown, after the monkeypatch fixture of conftest.
+    extra.closeConnection = failing_close
+    try:
+        with pytest.raises(RuntimeError, match='closed'):
+            chat.release_databases()
+    finally:
+        del extra.closeConnection
     assert not second._connections
     assert chat.taken_databases == []
     assert first is extra

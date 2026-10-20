@@ -1,15 +1,14 @@
 """Grammar review using real test_invoice_pg models, not the full 75-table port.
 
 Only selected declarations are shown; object rendering is not performed.
-current_state is an optional callback supplying a configuration value at render.
 """
-from genro_bag.resolvers import BagCbResolver, EnvResolver
+from genro_bag.resolvers import EnvResolver
 from asqueel import SqlDatabaseConfig
 
 
-def source(*, current_state=None):
+def source():
     config = SqlDatabaseConfig()
-    db = config.source.db('test_invoice_pg', implementation='postgresql')
+    db = config.source.db('test_invoice_pg', implementation='postgres')
     db.connection('main', database='test_invoice_pg',
                   host=EnvResolver('PGHOST', default='localhost'),
                   port=EnvResolver('PGPORT', default=5432, dtype='L'),
@@ -38,23 +37,20 @@ def source(*, current_state=None):
     attachments.options().attachments(master='adm.htmltemplate')
     counter = adm.table('counter', pkey='codekey', pkey_columns='pkg,tbl,code,fld,period')
     counter.options().sys_fields(id=False, user_upd=False)
-    counter.options().tenant()
     counter.column('codekey', size=':80')
     for name, size in (('pkg', ':12'), ('tbl', ':30'), ('code', ':12'),
                        ('fld', ':30'), ('period', ':10')):
         counter.column(name, size=size)
 
     customer = invc.table('customer', pkey='id', name_long='Cliente',
-                         name_short='Cli.', name_plural='Clienti', caption_field='account_name')
+                         name_short='Cli.', name_plural='Clienti', caption_field='account_name',
+                         partition_state='invc_state')
     customer.options().sys_fields(id={'type': 'uuid'}, draft=True,
                                   user_upd=False)
-    state = (BagCbResolver(current_state) if current_state is not None
-             else EnvResolver('INVC_STATE'))
-    customer.options().partition('state', field='state', value=state)
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     customer.column('state', size=':5').relation(
-        'invc.state.code', foreign_key=True, inverse='clients',
-        on_delete='raise', on_update_sql='CASCADE')
+        'invc.state.code', foreign_key=True, relation_name='clients',
+        onDelete='raise', onUpdate_sql='cascade')
     customer.column('bank_account').encryption(mode='R')
 
     product_type = invc.table('product_type', pkey='id', name_long='Tipo prodotto',
@@ -67,16 +63,16 @@ def source(*, current_state=None):
     product_type.column('description', size=':50')
 
     invoice = invc.table('invoice', pkey='id', name_long='Fattura',
-                        name_short='Fatt.', name_plural='Fatture', caption_field='inv_number')
+                        name_short='Fatt.', name_plural='Fatture', caption_field='inv_number',
+                        partition_customer_state='invc_state')
     invoice.options().sys_fields(user_upd=False)
     invoice.options().numbering('inv_number', parameters={
         'format': '$K$YY/$NNNNNN', 'code': 'A', 'period': 'YY',
         'date_field': 'date', 'showOnLoad': True, 'recycle': True})
-    invoice.options().partition('customer_state', field='customer_state', value=state)
     invoice.column('inv_number', size='10', unique=True)
     invoice.column('customer_id', size='22').relation(
-        'invc.customer.id', foreign_key=True, inverse='invoices',
-        on_delete='raise', on_update_sql='CASCADE')
+        'invc.customer.id', foreign_key=True, relation_name='invoices',
+        onDelete='raise', onUpdate_sql='cascade')
     # Legacy defaultValues supplies workdate during writes, outside this example.
     invoice.column('date', dtype='D', validate_notnull=True)
     invoice.column('total', dtype='money')
@@ -93,14 +89,14 @@ def source(*, current_state=None):
     row.options().sys_fields(user_upd=False)
     row.options().auto_counter('invoice_id')
     row.column('invoice_id', size='22').relation(
-        'invc.invoice.id', foreign_key=True, inverse='rows',
-        on_delete='cascade', on_update_sql='CASCADE')
+        'invc.invoice.id', foreign_key=True, relation_name='rows',
+        onDelete='cascade', onUpdate_sql='cascade')
     row.column('product_id', size='22').relation(
-        'invc.product.id', foreign_key=True, on_delete='raise', on_update_sql='CASCADE')
+        'invc.product.id', foreign_key=True, onDelete='raise', onUpdate_sql='cascade')
     row.column('quantity', dtype='I')
     row.column('unit_price', dtype='money')
     row.aliasColumn('product_name', relation_path='@product_id.description')
-    row.formulaColumn('line_total', expression='$quantity * $unit_price', dtype='N')
+    row.formulaColumn('line_total', sql_formula='$quantity * $unit_price', dtype='N')
     row.virtualRelation('customer', relation='@invoice_id.@customer_id')
 
     config.validate_source()

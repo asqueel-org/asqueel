@@ -1,19 +1,24 @@
 # Insert, update and delete records
 
-Table writes execute immediately and return `QueryResult`. They join the
-application database's pending transaction; they do not commit independently.
-Use `db.commit()` / `db.rollback()` for each unit of work. Examples below use the
-[tutorial model](tutorial.md) and are independent operations, not another seed
-script to run against the same identifiers.
+`insert`, `update` and `delete` run the GenroPy write cycle: table triggers,
+column triggers, `protect_*` checks and the actions on related records, in the
+legacy order. `insert` and `update` modify the caller's record in place and
+return it. Every command joins the pending transaction of the selected
+connection; none commits. Use `db.commit()` / `db.rollback()` for each unit of
+work. Examples below use the [tutorial model](tutorial.md) and are independent
+operations, not another seed script.
 
-## Insert a record and read returned values
+A table that declares something the cycle does not execute yet (for example
+`sys_fields`, or a column `default`) is refused with `UnsupportedFeatureError`
+before any trigger or SQL. The list, with its issues, is in
+[current status](limitations.md#what-the-write-cycle-refuses).
+
+## Insert a record
 
 ```python
 try:
-    result = db.table("sales.customer").insert(
-        {"id": 3, "name": "Katherine"}, returning="$id, $name",
-    )
-    saved = result.rows[0]
+    customer = db.table("sales.customer")
+    record = customer.insert({"id": 3, "name": "Katherine"})
     db.commit()
 except Exception:
     db.rollback()
@@ -22,27 +27,35 @@ except Exception:
 ```
 
 Mapping keys are logical column names without `$`. Values are data, not SQL
-expressions. Unknown columns, aliases and formulas are rejected in write values.
-The mapping is copied before hooks run; editing it after the call does not save
-another change.
+expressions. Only physical columns become SQL columns: alias, formula and
+`@path` keys, and unknown names, are ignored without error. Columns whose value
+is `None` are left out of the INSERT, so database defaults apply.
 
-`returning='*'` is the default and returns **physical columns only**. Unlike
-SELECT `*`, it excludes virtual columns. Use `returning=None` when returned rows
-are unnecessary. A simple SQL formula can be explicitly requested, but a
-relation-dependent or structured subquery formula requires a separate SELECT.
+The cycle runs in this order: key assignment, `protect_validate`, column
+`onInserting` triggers, `trigger_onInserting`, `trigger_assignCounters`,
+`protect_draft`, the INSERT, column `onInserted` triggers, `trigger_onInserted`.
+See [hooks](hooks.md) for the methods a table subclass can override.
 
-Database constraints and server defaults still apply. An empty insert mapping
-requests DEFAULT VALUES, with any required partition values filled first. Asqueel
-does not automatically generate keys from a `pkey` declaration; define and
-manage the database's generation strategy explicitly if keys are not supplied.
+A key that is `None` or `''` is generated before the triggers: `max(key)+1`
+for an integer key, a 22-character UUID for a text key with size 22 or no size,
+or the value of the
+table's `newPkeyValue()` when it is overridden. `max(key)+1` is not safe under
+concurrent inserts; use a `serial` column or your own `newPkeyValue()` there.
 
-## Update by primary key
+On PostgreSQL, the INSERT reads back with RETURNING the columns whose value the
+database decides (`sql_value`, generated columns, omitted columns declaring
+`sql_default`) and writes them into the record. A database default the model does
+not declare is applied but not read back: read the row again to see it. SQLite has no RETURNING in the write
+cycle. There is no `returning=` argument.
+
+## Update a record
 
 ```python
 try:
-    result = db.table("sales.customer").update(
-        {"id": 3, "name": "Katherine Johnson"}, returning="$id, $name",
-    )
+    customer = db.table("sales.customer")
+    old_record = dict(customer.query(where="$id = :id", id=3, for_update=True).fetchRecord())
+    record = dict(old_record, name="Katherine Johnson")
+    customer.update(record, old_record)
     db.commit()
 except Exception:
     db.rollback()
@@ -50,24 +63,34 @@ except Exception:
 
 ```
 
-Without `where`, the mapping must contain the complete declared primary key.
-For composite keys, supply every component. Zero is a valid key; `None` is not.
-Ordinary update locks one record and merges the supplied values into its
-complete physical row before running the write lifecycle. The before-hook
-receives that merged record. This behavior does not depend on overriding hooks.
+`update(record, old_record=None, pkey=None)` takes the key of the row to change
+from `old_record`, then from `pkey`, then from the record itself. To change a
+key, pass the old row as `old_record` and the new key in the record.
+`old_record` is never read from the database: read it yourself, with
+`for_update=True` when the row must stay locked until commit.
 
-Do not pass a full SELECT result containing virtual columns back to `update()`.
-Choose the writable columns explicitly. UI metadata such as a read-only hint
-is display information; it is not write authorization.
+Every physical column present in the record is written, `None` included. Pass
+the complete row, as above, or only the columns to change with their key:
+`customer.update({"id": 3, "name": "Katherine Johnson"})`. Without `old_record`
+the update raises `ValueError` when a relation pointing to this table declares
+`onUpdate`: the cycle needs the old key to apply it. The UPDATE does not check
+how many rows it changed.
 
-## Raw update using a predicate
+`insertOrUpdate(record)` reads the row of the record's key with
+`for_update=True` and the query's default filters. Without a row it runs
+`insert(record)`; with a row it runs `update(record, old_record=<that row>)`.
+It returns the record in both cases.
+
+The cycle runs `protect_update`, `protect_validate`, column `onUpdating`
+triggers, `trigger_onUpdating`, `protect_draft`, `trigger_assignCounters`, the
+UPDATE, then the `onUpdate` actions of the relations pointing to this table when
+its key changed, column `onUpdated` triggers and `trigger_onUpdated`.
+
+## Delete a record
 
 ```python
 try:
-    result = db.table("sales.invoice").raw_update(
-        {"note": "Reviewed"}, where="$total >= :minimum",
-        sqlparams={"minimum": 100}, returning="$id, $note",
-    )
+    db.table("sales.line").delete({"id": 101})
     db.commit()
 except Exception:
     db.rollback()
@@ -75,29 +98,61 @@ except Exception:
 
 ```
 
-`raw_update` performs one SQL UPDATE over all matching rows in the partition
-scope, without Python table triggers. `result.rowcount` reports affected rows;
-zero is a normal outcome. Shared DB hooks run once for the operation, even if
-multiple rows match. Database triggers and constraints still apply.
+`delete()` accepts a key string or a record. A key string is read again, with a
+lock, and its row enters the cycle; a missing key string returns without error.
+A record is deleted as given, without reading it again. The DELETE must remove exactly one row, otherwise it
+raises `RecordNotFoundError`. A table declared with `deletable=False` refuses
+every delete.
 
-Ordinary `update(..., where=...)` instead requires exactly one matching record:
-zero raises `RecordNotFoundError`, multiple matches raise `RecordMultipleRowsError`,
-before write hooks run. A declared primary key is required, regardless of hooks.
+Before the DELETE, the cycle applies the `onDelete` action of each relation
+pointing to this table: `raise` refuses the delete while related rows exist,
+`cascade` deletes them through their own cycle, `setnull` clears their foreign
+key through an update, `ignore` (the default) does nothing.
 
-To change a key, use an explicit predicate selecting the old key and a mapping
-containing the new value. Database foreign-key constraints may prevent that
-change. Define related-record behavior explicitly through constraints and
-application lifecycle rules.
+`delete()` is always a physical DELETE, also on a table with a logical-deletion
+policy. To mark a row as deleted, write its logical-deletion column with
+`update()`.
 
-A nonempty selector is required. For raw commands, use `where='TRUE'` only when every row in the
-active partition scope is intended. Values are bound data: a value such as
-`{'total': '$total + 1'}` is a string, not an increment expression.
+### Logical-deletion cascade
 
-## Delete physically
+An `update()` on a table with a `logicalDeletionField` that receives
+`old_record` and changes that field writes the same value into the
+logical-deletion field of the child rows. The children are those of the
+relations with `onDelete='cascade'` whose table has its own
+`logicalDeletionField`; each child is updated through its own cycle, so the
+cascade continues on its children. Setting the field archives, clearing it
+restores. Relations with `setnull` or `raise`, and children without the field,
+are untouched. The cascade runs after the `onUpdating` triggers and before the
+UPDATE. An `update()` without `old_record` does not cascade.
+
+```python
+invoice = db.table("sales.invoice")
+old = dict(invoice.query(columns="*", where="$id=:pk", pk="o1").fetchRecord())
+invoice.update({**old, "__del_ts": datetime.now()}, old_record=old)
+```
+
+## Write the rows of a query
+
+A query writes the rows it selects in two ways:
+
+- record by record, through the triggers: `query(...).update(updater)` and
+  `query(...).delete()`;
+- in bulk, one statement without triggers: `query(...).sql_update(values)`
+  and `query(...).sql_delete()` (see below).
+
+`query(...).delete()` reruns the query with every physical column, the `X`
+columns and `for_update=True`, then calls `delete(row)` for each row, and
+returns the rows. `query(...).update(updater)` reads the rows the same way;
+`updater` is a dict merged into each row or a callable `updater(row)` that
+changes the row in place; each row is then written with
+`update(row, old_record=<the row as read>)`. It returns the list of the
+updated keys. A query with `group_by` or `having` is refused.
 
 ```python
 try:
-    result = db.table("sales.customer").delete(3, returning="$id")
+    pkeys = db.table("sales.invoice").query(
+        where="$total >= :minimum", minimum=100,
+    ).update({"note": "Reviewed"})
     db.commit()
 except Exception:
     db.rollback()
@@ -105,94 +160,88 @@ except Exception:
 
 ```
 
-A complete key mapping or a full record containing the key can also identify
-the row. For a predicate, use `delete(where=..., sqlparams=...)`. As with ordinary update,
-exactly one row and a declared primary key are required, with or without hooks.
-Use `raw_delete(where=..., sqlparams=...)` for a predicate matching zero or more rows;
-it bypasses Python table triggers and invokes shared DB hooks once. Foreign keys and database deletion actions still apply.
+## Write without triggers
 
-`delete()` always issues a physical DELETE, including on a table with a logical
-deletion policy. It does not switch behavior based on that policy.
-
-## Soft-delete and restore explicitly
-
-For a table declaring `x_logical_deletion_field='deleted_at'`:
-
-```python
-from datetime import datetime, timezone
-
-try:
-    document = db.table("app.document")
-    document.soft_delete(
-        value=datetime.now(timezone.utc),
-        where="$id=:wanted", sqlparams={"wanted": 100},
-    )
-    document.restore(where="$id=:wanted", sqlparams={"wanted": 100})
-    db.commit()
-except Exception:
-    db.rollback()
-    raise
-
-```
-
-These operations update the marker and follow update hooks. Soft deletion requires
-a non-NULL marker; restoration writes NULL. Ordinary SELECT excludes marked
-rows by default. See [row policies](row-policies.md) for the model and visibility
-options, including how to query deleted rows.
-
-## Raw insertion of one or more records
+The `sql_*` commands write the statement directly, without triggers,
+`protect_*` checks or related-record actions:
 
 ```python
 try:
-    customers = db.table("sales.customer")
-    customers.raw_insert({"id": 10, "name": "Ada"})
-    result = customers.raw_insert([
+    customer = db.table("sales.customer")
+    customer.sql_insert([
         {"id": 11, "name": "Grace"},
         {"id": 12, "name": "Alan"},
     ])
-    assert result.rowcount == 2
+    customer.sql_update({"id": 11, "name": "Grace Hopper"})
+    customer.sql_delete({"id": 12})
     db.commit()
 except Exception:
     db.rollback()
     raise
+
 ```
 
-`insert` accepts one mapping and runs Python table triggers. `raw_insert` accepts
-one mapping or a list of mappings and skips those triggers. No separate
-`insertMany`, `insert_many`, `updateMany` or `deleteMany` method is needed.
+- `sql_insert(record)` accepts one record or a list. A missing key is
+  assigned first, as `checkPkey` does; in a list each further integer key is
+  the next integer. A key the database generates (`serial`, `sql_default`) is
+  not assigned, by `sql_insert` as by `insert`. A list runs one `executemany` per group of consecutive records
+  with the same columns, without RETURNING.
+- `sql_update(record, old_record=None, pkey=None)` takes the key like `update`.
+- `sql_delete(record)` deletes by the record's key and does not check the row count.
 
-A list executes parameterized INSERTs in input order through the common
-`db.execute()` path. Records may supply different columns; omitted columns retain
-their database defaults. This is not a COPY or executemany optimization. Shared
-DB hooks run for each inserted record with the raw flag. Inputs are copied.
+A query can write the rows it selects. Its filters, order and limit decide the
+rows; the result is the affected row count:
 
-The returned `QueryResult` concatenates returned rows and sums rowcount.
-`returning=None` returns no rows but keeps the affected count. An empty list is a
-no-op returning zero rows/count and empty column metadata, with no write hooks.
+```python
+try:
+    changed = db.table("sales.invoice").query(
+        where="$total >= :minimum", minimum=100,
+    ).sql_update({"note": "Reviewed"})
+    db.commit()
+except Exception:
+    db.rollback()
+    raise
 
-The entire list participates in the selected connection's current transaction;
-there is no intermediate commit. A SQL error rolls back all pending work,
-including earlier writes. A Python hook error requires rollback before reuse.
-There is no automatic per-list savepoint or partial-success result.
+```
 
-Raw update/delete do not load per-row snapshots. Shared DB hooks receive the
-update values or, for delete-by-key, the supplied record/key mapping. For
-predicate deletion they receive `record=None`; `old_record` is always absent
-for raw commands. These hooks must not assume a complete record or one event
-per affected row. See [the hook contract](hooks.md).
+`query(...).sql_delete()` deletes the selected rows in the same way. A query
+with `group_by` or `having` is refused. The query's parameter names and the
+value names must differ.
+
+## Composite keys
+
+A table whose `pkey` is a compositeColumn identifies a row by the serialized
+key: the JSON list of the members, with dates, timestamps, times and decimals
+as typed text (`'["a", "2026-01-01::D"]'`). `insert` assigns it to the
+compositeColumn of the record when it is None or ''. It is the same string the
+compositeColumn returns when read. `update(record, pkey=...)` and
+`delete(...)` take it as a string; a tuple or mapping raises `ValueError`.
+
+## Bag values
+
+A `genro_bag.Bag` written to a column becomes its XML (`to_xml()`); an empty
+Bag becomes NULL. A read returns the XML string; `#BAG` in the query columns
+turns it back into a Bag.
+
+## Lock a table
+
+`table.lock(mode='ACCESS EXCLUSIVE', nowait=False)` locks the table in the
+current transaction. On PostgreSQL it runs `LOCK <table> IN <mode> MODE`, with
+`NOWAIT` when asked; `mode` is one of the PostgreSQL lock modes, another value
+raises `ValueError`. On SQLite it takes the write reservation, as a
+`for_update` query does. The lock ends at commit or rollback.
 
 ## Understand the write boundary
 
-Partition rules restrict affected rows and validate new partition values. Draft
-and logical-deletion **read** filters do not automatically restrict writes. An
-ordinary update/deletion reads the physical row with those read filters disabled,
-while keeping partition restrictions.
-
-An ordinary SQL execution error automatically rolls back the pending transaction.
-A Python write-hook failure instead requires explicit rollback before reuse.
-Handle errors around the complete unit of work and use `db.rollback()` for
-application-owned recovery. Do not interpret zero affected rows as an access
-exception or silently retry an unknown commit outcome.
+- Partitions filter reads only. `insert` does not fill the partition column and
+  `update`/`delete` do not check the row's partition, as in GenroPy
+  ([#15](https://github.com/asqueel-org/asqueel/issues/15)).
+- Draft and logical-deletion read filters do not restrict writes.
+- An SQL execution error rolls back the pending transaction of the selected
+  connection. A Python error inside the cycle makes the connection
+  rollback-only: call `db.rollback()` before reusing it.
+- Do not read zero affected rows as an access error, and do not retry an
+  unknown commit outcome silently.
 
 Next: [transactions](transactions.md), [business hooks](hooks.md), and
 [troubleshooting](troubleshooting.md).

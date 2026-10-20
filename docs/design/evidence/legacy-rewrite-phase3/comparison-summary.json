@@ -1,0 +1,52 @@
+{
+  "supported": 334,
+  "exact_sql_kwargs_after_layout_alias_quoting": 332,
+  "local_bindings_canonical_equivalent": [
+    "sqlite",
+    "postgresql"
+  ],
+  "sqlite_results_equal": 18,
+  "unchanged_oracles": true,
+  "runtime_exclusions": [
+    {
+      "test": "test_original_assertions_on_tree[TestGreatest.test_price_floor_sqlite]",
+      "reason": "GREATEST function not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestIntervalArithmetic.test_due_date_sqlite]",
+      "reason": "INTERVAL not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestEnvWorkdate.test_is_recent_sqlite]",
+      "reason": "INTERVAL not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestFormulaSelect.test_exists_has_invoices_sqlite]",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestBooleanFormulas.test_is_active_valuable_sqlite]",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestExistsOr.test_has_activity_sqlite]",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestWhereOrderBy.test_where_exists_sqlite]",
+      "reason": "EXISTS formula not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestExistsDict.test_has_expensive_rows_sqlite]",
+      "reason": "EXISTS not supported on SQLite"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestSubQueryColumn.test_notes_xml_distinct_pg]",
+      "reason": "Outer DISTINCT remains in phase 4"
+    },
+    {
+      "test": "test_original_assertions_on_tree[TestSubQueryColumn.test_rows_json_distinct_pg]",
+      "reason": "Outer DISTINCT remains in phase 4"
+    }
+  ]
+}

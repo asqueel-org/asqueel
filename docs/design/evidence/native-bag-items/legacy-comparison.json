@@ -1,0 +1,811 @@
+{
+  "legacy": {
+    "commit": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "17f4577347198f344964511206aff0d37099afb94b59dbc5293b283c433183dc"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "baseDtype",
+        "line": 93,
+        "sha256": "dacac814568b211e05d7f3075bf667b18cbffc749de1d30902a4642881d37cee"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1131,
+        "sha256": "bfc56d1e03ae41e60b67afc7504dc95e893516234e1c9750527ea1797a634cc1"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 744,
+        "sha256": "0b9690e60a75db5a4b88718102bfdc57db7bb252db7f505aaf0e7e88ff66cad5"
+      }
+    ],
+    "historical_tests": [
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_weight_no_crash_pg",
+        "line": 1276,
+        "sha256": "11a2da2e94e7e8a31572e4b1f69e0df7aff5f576950d8c23c3919234609868f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_color_no_crash_pg",
+        "line": 1283,
+        "sha256": "0fb157063a50c2c0520fdde3057b15fe49ee83bef77b931c8c373a9d610e1f52"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_with_physical_pg",
+        "line": 1289,
+        "sha256": "3545b7a3522c1928d7854217c1595562abf7a08e36c91e7a74eaf5fad9561b0d"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_custom_dtype_pg",
+        "line": 1299,
+        "sha256": "293d0d3633fccf224b063515e37bec199c9807a1290d4f1593f6736d34f1fbf3"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bag_item_column",
+        "line": 225,
+        "sha256": "1e36e90bbab6889492daaafd3205baa2f0053e09f629ea4fa610f8f591e685ee"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula",
+        "line": 484,
+        "sha256": "517b46da8c3fd68d6b5162a7d55b40ccdeca097e6f12167cd7ae9d2515ae882e"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_text",
+        "line": 916,
+        "sha256": "4fb40df09f8c4c26441add39c790543b473485dce3173f048ee11f87caa8f5c0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_numeric",
+        "line": 923,
+        "sha256": "0a6d5e413d923408cb710488bf410f08190ea3d67fedf3bc0878ece98a2654f5"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_positional_index",
+        "line": 928,
+        "sha256": "d1a96743fd907812a1934e31ba568bc288666d67cc7efb7ea7765e3dcc60f9b0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_xml_attribute",
+        "line": 933,
+        "sha256": "ae64f4fb2c7f1b63d92b22ce7097e84cac86962ed4b487ecbaf625d8a52cba42"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_integer",
+        "line": 938,
+        "sha256": "e4ddea8945bd9288544287bfec04cbedae1f0c452d913d0fc3fb02d09d8f47f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_timestamp",
+        "line": 943,
+        "sha256": "7b624a5573a51a2db50283a15692abed17523eda7605378f69caece214ba5609"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "line": 948,
+        "sha256": "83c47152d27a3fc41f7bb02ec585a7d1c2f33b895ec2bcb88ad86de56896872a"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemColumn_custom_dtype",
+        "line": 963,
+        "sha256": "feb4465d7fa4f74862a205bfd0dc520d3f133b5f7c9e217797a168c5592d9beb"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_tableobj_bagItemFormula_custom_dtype",
+        "line": 972,
+        "sha256": "c7dc4d6826148c1ab16394a8b2f9d5b25ffafdc69540aa5cbec000ae471c84ad"
+      }
+    ],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "passed"
+      }
+    ]
+  },
+  "compound": {
+    "commit": "4c075f7adac55c05f2dad555b2b1277449388944",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel.py",
+        "name": "bagItemFormula",
+        "line": 40,
+        "sha256": "ecec4e4bd54d1926c611cbb9263e752a2365ae369f1000ac3c0658e69fcdd5df"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel.py",
+        "name": "bagItemColumn",
+        "line": 740,
+        "sha256": "e372908fecb3aaf697ea4a192b2cb3e23666e7cf377ba79a691f5fef18e4d725"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel.py",
+        "name": "bagItemFormula",
+        "line": 1542,
+        "sha256": "125fa243a9c3b9e720230d69da17dff27ab82dfb130354e94f923ce8c9fff800"
+      }
+    ],
+    "historical_tests": [],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "failed",
+        "message": "KeyError: 'I'"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "failed",
+        "message": "KeyError: 'DH'"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "failed",
+        "message": "KeyError: 'money'"
+      }
+    ]
+  },
+  "v2": {
+    "commit": "68f35b99c440df3658d275f3403f10962a953be6",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "65ab60ee3635925d786af7eb34cde6a96040890bea6fc4bab32280b1dc36a4b9"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1091,
+        "sha256": "e6d9f18f97c4b2ee41f5317249259301a9c183e4c853866d3889738b130ea502"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 733,
+        "sha256": "d9e6fa9b648028b653220bfda1846567ec494347c9da6812c472c670afcbb064"
+      }
+    ],
+    "historical_tests": [],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "failed",
+        "message": "KeyError: 'I'"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "failed",
+        "message": "KeyError: 'DH'"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "failed",
+        "message": "KeyError: 'money'"
+      }
+    ]
+  },
+  "v3": {
+    "commit": "67bba0e59183f6df2b3463064c9feb2c21be225e",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "65ab60ee3635925d786af7eb34cde6a96040890bea6fc4bab32280b1dc36a4b9"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1091,
+        "sha256": "e6d9f18f97c4b2ee41f5317249259301a9c183e4c853866d3889738b130ea502"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 798,
+        "sha256": "d9e6fa9b648028b653220bfda1846567ec494347c9da6812c472c670afcbb064"
+      }
+    ],
+    "historical_tests": [],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "failed",
+        "message": "KeyError: 'I'"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "failed",
+        "message": "KeyError: 'DH'"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "failed",
+        "message": "KeyError: 'money'"
+      }
+    ]
+  },
+  "v3_merged": {
+    "commit": "19da337f4632cc69897c9373aa263dcb49abc293",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "65ab60ee3635925d786af7eb34cde6a96040890bea6fc4bab32280b1dc36a4b9"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1092,
+        "sha256": "e6d9f18f97c4b2ee41f5317249259301a9c183e4c853866d3889738b130ea502"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 809,
+        "sha256": "d9e6fa9b648028b653220bfda1846567ec494347c9da6812c472c670afcbb064"
+      }
+    ],
+    "historical_tests": [
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_weight_no_crash_pg",
+        "line": 1240,
+        "sha256": "11a2da2e94e7e8a31572e4b1f69e0df7aff5f576950d8c23c3919234609868f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_color_no_crash_pg",
+        "line": 1247,
+        "sha256": "0fb157063a50c2c0520fdde3057b15fe49ee83bef77b931c8c373a9d610e1f52"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_with_physical_pg",
+        "line": 1253,
+        "sha256": "3545b7a3522c1928d7854217c1595562abf7a08e36c91e7a74eaf5fad9561b0d"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bag_item_column",
+        "line": 224,
+        "sha256": "1e36e90bbab6889492daaafd3205baa2f0053e09f629ea4fa610f8f591e685ee"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula",
+        "line": 483,
+        "sha256": "517b46da8c3fd68d6b5162a7d55b40ccdeca097e6f12167cd7ae9d2515ae882e"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_text",
+        "line": 905,
+        "sha256": "4fb40df09f8c4c26441add39c790543b473485dce3173f048ee11f87caa8f5c0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_numeric",
+        "line": 912,
+        "sha256": "0a6d5e413d923408cb710488bf410f08190ea3d67fedf3bc0878ece98a2654f5"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_positional_index",
+        "line": 917,
+        "sha256": "d1a96743fd907812a1934e31ba568bc288666d67cc7efb7ea7765e3dcc60f9b0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_xml_attribute",
+        "line": 922,
+        "sha256": "ae64f4fb2c7f1b63d92b22ce7097e84cac86962ed4b487ecbaf625d8a52cba42"
+      }
+    ],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "failed",
+        "message": "KeyError: 'I'"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "failed",
+        "message": "KeyError: 'DH'"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "failed",
+        "message": "KeyError: 'money'"
+      }
+    ]
+  },
+  "v4": {
+    "commit": "38d210c376abaa390619c2b16985318921d6dd1d",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "65ab60ee3635925d786af7eb34cde6a96040890bea6fc4bab32280b1dc36a4b9"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1092,
+        "sha256": "e6d9f18f97c4b2ee41f5317249259301a9c183e4c853866d3889738b130ea502"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 809,
+        "sha256": "d9e6fa9b648028b653220bfda1846567ec494347c9da6812c472c670afcbb064"
+      }
+    ],
+    "historical_tests": [
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_weight_no_crash_pg",
+        "line": 1240,
+        "sha256": "11a2da2e94e7e8a31572e4b1f69e0df7aff5f576950d8c23c3919234609868f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_color_no_crash_pg",
+        "line": 1247,
+        "sha256": "0fb157063a50c2c0520fdde3057b15fe49ee83bef77b931c8c373a9d610e1f52"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_with_physical_pg",
+        "line": 1253,
+        "sha256": "3545b7a3522c1928d7854217c1595562abf7a08e36c91e7a74eaf5fad9561b0d"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bag_item_column",
+        "line": 224,
+        "sha256": "1e36e90bbab6889492daaafd3205baa2f0053e09f629ea4fa610f8f591e685ee"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula",
+        "line": 483,
+        "sha256": "517b46da8c3fd68d6b5162a7d55b40ccdeca097e6f12167cd7ae9d2515ae882e"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_text",
+        "line": 905,
+        "sha256": "4fb40df09f8c4c26441add39c790543b473485dce3173f048ee11f87caa8f5c0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_numeric",
+        "line": 912,
+        "sha256": "0a6d5e413d923408cb710488bf410f08190ea3d67fedf3bc0878ece98a2654f5"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_positional_index",
+        "line": 917,
+        "sha256": "d1a96743fd907812a1934e31ba568bc288666d67cc7efb7ea7765e3dcc60f9b0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_xml_attribute",
+        "line": 922,
+        "sha256": "ae64f4fb2c7f1b63d92b22ce7097e84cac86962ed4b487ecbaf625d8a52cba42"
+      }
+    ],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "failed",
+        "message": "KeyError: 'I'"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "failed",
+        "message": "KeyError: 'DH'"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "failed",
+        "message": "KeyError: 'money'"
+      }
+    ]
+  },
+  "simplify": {
+    "commit": "13b891883487e8948921eb6694e14f8e51bc464d",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "65ab60ee3635925d786af7eb34cde6a96040890bea6fc4bab32280b1dc36a4b9"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1092,
+        "sha256": "e6d9f18f97c4b2ee41f5317249259301a9c183e4c853866d3889738b130ea502"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 744,
+        "sha256": "d9e6fa9b648028b653220bfda1846567ec494347c9da6812c472c670afcbb064"
+      }
+    ],
+    "historical_tests": [
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_weight_no_crash_pg",
+        "line": 1240,
+        "sha256": "11a2da2e94e7e8a31572e4b1f69e0df7aff5f576950d8c23c3919234609868f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_color_no_crash_pg",
+        "line": 1247,
+        "sha256": "0fb157063a50c2c0520fdde3057b15fe49ee83bef77b931c8c373a9d610e1f52"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_with_physical_pg",
+        "line": 1253,
+        "sha256": "3545b7a3522c1928d7854217c1595562abf7a08e36c91e7a74eaf5fad9561b0d"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bag_item_column",
+        "line": 224,
+        "sha256": "1e36e90bbab6889492daaafd3205baa2f0053e09f629ea4fa610f8f591e685ee"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula",
+        "line": 483,
+        "sha256": "517b46da8c3fd68d6b5162a7d55b40ccdeca097e6f12167cd7ae9d2515ae882e"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_text",
+        "line": 905,
+        "sha256": "4fb40df09f8c4c26441add39c790543b473485dce3173f048ee11f87caa8f5c0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_numeric",
+        "line": 912,
+        "sha256": "0a6d5e413d923408cb710488bf410f08190ea3d67fedf3bc0878ece98a2654f5"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_positional_index",
+        "line": 917,
+        "sha256": "d1a96743fd907812a1934e31ba568bc288666d67cc7efb7ea7765e3dcc60f9b0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_xml_attribute",
+        "line": 922,
+        "sha256": "ae64f4fb2c7f1b63d92b22ce7097e84cac86962ed4b487ecbaf625d8a52cba42"
+      }
+    ],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "failed",
+        "message": "KeyError: 'I'"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "failed",
+        "message": "KeyError: 'DH'"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "failed",
+        "message": "KeyError: 'money'"
+      }
+    ]
+  },
+  "next": {
+    "commit": "12cfdcce86337119591b6c8247e7166d831c08b9",
+    "algorithms": [
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "bagItemFormula",
+        "line": 34,
+        "sha256": "17f4577347198f344964511206aff0d37099afb94b59dbc5293b283c433183dc"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/helpers.py",
+        "name": "baseDtype",
+        "line": 93,
+        "sha256": "dacac814568b211e05d7f3075bf667b18cbffc749de1d30902a4642881d37cee"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/model.py",
+        "name": "bagItemColumn",
+        "line": 1144,
+        "sha256": "bfc56d1e03ae41e60b67afc7504dc95e893516234e1c9750527ea1797a634cc1"
+      },
+      {
+        "path": "gnrpy/gnr/sql/gnrsqlmodel/table.py",
+        "name": "bagItemFormula",
+        "line": 744,
+        "sha256": "0b9690e60a75db5a4b88718102bfdc57db7bb252db7f505aaf0e7e88ff66cad5"
+      }
+    ],
+    "historical_tests": [
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_weight_no_crash_pg",
+        "line": 1276,
+        "sha256": "11a2da2e94e7e8a31572e4b1f69e0df7aff5f576950d8c23c3919234609868f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_detail_color_no_crash_pg",
+        "line": 1283,
+        "sha256": "0fb157063a50c2c0520fdde3057b15fe49ee83bef77b931c8c373a9d610e1f52"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_with_physical_pg",
+        "line": 1289,
+        "sha256": "3545b7a3522c1928d7854217c1595562abf7a08e36c91e7a74eaf5fad9561b0d"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_compiler_coverage.py",
+        "name": "test_bagitem_custom_dtype_pg",
+        "line": 1299,
+        "sha256": "293d0d3633fccf224b063515e37bec199c9807a1290d4f1593f6736d34f1fbf3"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bag_item_column",
+        "line": 225,
+        "sha256": "1e36e90bbab6889492daaafd3205baa2f0053e09f629ea4fa610f8f591e685ee"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula",
+        "line": 484,
+        "sha256": "517b46da8c3fd68d6b5162a7d55b40ccdeca097e6f12167cd7ae9d2515ae882e"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_text",
+        "line": 916,
+        "sha256": "4fb40df09f8c4c26441add39c790543b473485dce3173f048ee11f87caa8f5c0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_numeric",
+        "line": 923,
+        "sha256": "0a6d5e413d923408cb710488bf410f08190ea3d67fedf3bc0878ece98a2654f5"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_positional_index",
+        "line": 928,
+        "sha256": "d1a96743fd907812a1934e31ba568bc288666d67cc7efb7ea7765e3dcc60f9b0"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_xml_attribute",
+        "line": 933,
+        "sha256": "ae64f4fb2c7f1b63d92b22ce7097e84cac86962ed4b487ecbaf625d8a52cba42"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_integer",
+        "line": 938,
+        "sha256": "e4ddea8945bd9288544287bfec04cbedae1f0c452d913d0fc3fb02d09d8f47f2"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_timestamp",
+        "line": 943,
+        "sha256": "7b624a5573a51a2db50283a15692abed17523eda7605378f69caece214ba5609"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "line": 948,
+        "sha256": "83c47152d27a3fc41f7bb02ec585a7d1c2f33b895ec2bcb88ad86de56896872a"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_bagItemColumn_custom_dtype",
+        "line": 963,
+        "sha256": "feb4465d7fa4f74862a205bfd0dc520d3f133b5f7c9e217797a168c5592d9beb"
+      },
+      {
+        "path": "gnrpy/tests/sql/test_model_structure.py",
+        "name": "test_tableobj_bagItemFormula_custom_dtype",
+        "line": 972,
+        "sha256": "c7dc4d6826148c1ab16394a8b2f9d5b25ffafdc69540aa5cbec000ae471c84ad"
+      }
+    ],
+    "replay": [
+      {
+        "name": "test_bagItemFormula_text",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_numeric",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_positional_index",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_xml_attribute",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_integer",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_timestamp",
+        "status": "passed"
+      },
+      {
+        "name": "test_bagItemFormula_unknown_dtype_falls_back_to_text",
+        "status": "passed"
+      }
+    ]
+  }
+}

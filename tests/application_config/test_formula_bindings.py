@@ -1,6 +1,6 @@
 import pytest
 
-from asqueel import SqlDatabaseConfig, UnsupportedFeatureError, build_database
+from asqueel import SqlDatabaseConfig, UnusedQueryParameterWarning, build_database
 
 
 def recipe(local=None):
@@ -21,26 +21,36 @@ def recipe(local=None):
 
 
 def test_query_keyword_consumed_only_in_child_scope_is_recognized():
-    with build_database(recipe()) as db:
-        compiled = db.table('invoice').query(columns='$total', floor=5).compiled
+    db = build_database(recipe())
+    try:
+        compiled = db.table('app.invoice').query(columns='$total', floor=5).compiled
         assert compiled.input_parameters == ('floor',)
         assert list(compiled.params.values()) == [5]
-        assert 'floor' not in compiled.params
+        assert compiled.params['floor'] == 5  # External values keep their caller name, as in legacy.
+    finally:
+        db.closeConnection()
 
 
 def test_local_parameter_shadow_does_not_consume_unused_caller_keyword():
-    with build_database(recipe({'floor': 7})) as db:
-        with pytest.raises(UnsupportedFeatureError, match='unused keyword'):
-            db.table('invoice').query(columns='$total', floor=5).compiled
-        compiled = db.table('invoice').query(columns='$total', sqlparams={'floor': 5}).compiled
-        assert list(compiled.params.values()) == [7]
+    db = build_database(recipe({'floor': 7}))
+    try:
+        with pytest.warns(UnusedQueryParameterWarning, match="query keyword 'floor' is not used by the query"):
+            db.table('app.invoice').query(columns='$total', floor=5).compiled
+        compiled = db.table('app.invoice').query(columns='$total', sqlparams={'floor': 5}).compiled
+        assert compiled.params['floor'] == 5
+        assert sorted(compiled.params.values()) == [5, 7]  # Local binding is mangled independently.
         assert compiled.input_parameters == ()
+    finally:
+        db.closeConnection()
 
 
 def test_generated_binding_cannot_capture_explicit_caller_name():
-    with build_database(recipe()) as db:
-        compiled = db.table('invoice').query(
+    db = build_database(recipe())
+    try:
+        compiled = db.table('app.invoice').query(
             columns='$total', where='$id=:s1_floor', floor=5, s1_floor=99).compiled
         assert compiled.input_parameters == ('floor', 's1_floor')
         assert compiled.params['s1_floor'] == 99
         assert sorted(compiled.params.values()) == [5, 99]
+    finally:
+        db.closeConnection()

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="14" time="2.573" timestamp="2026-10-14T15:06:08.874998+02:00" hostname="MacBook-Pro-di-Giovanni.local"><testcase classname="tests.sql.test_compiler_coverage.TestPhysicalColumns" name="test_star_expansion_pg" time="1.840" /><testcase classname="tests.sql.test_compiler_coverage.TestPhysicalColumns" name="test_star_expansion_sqlite" time="0.397" /><testcase classname="tests.sql.test_compiler_coverage.TestDraftField" name="test_is_confirmed_pg" time="0.001"><failure message="psycopg2.errors.UndefinedColumn: column t0.is_confirmed does not exist&#10;LINE 3: &quot;t0&quot;.&quot;is_confirmed&quot; AS &quot;is_confirmed&quot;,&#10;        ^">self = &lt;sql.test_compiler_coverage.TestDraftField object at 0x10de3c890&gt;
+db_pg = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10deca960&gt;
+
+    def test_is_confirmed_pg(self, db_pg):
+        rows = db_pg.table('invc.customer').query(
+            columns='$account_name, $is_confirmed',
+            limit=10
+&gt;       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:2099: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;cursor object at 0x1141e5e50; closed: 0&gt;
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 2096, "function_name": "test_is_confirmed_pg", "module_name":...ey"\n FROM "invc"."invc_customer" AS t0\nWHERE ("t0"."__del_ts" IS NULL) AND ("t0"."__is_draft" IS NOT TRUE)\nLIMIT 10'
+vars = {'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+&gt;       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.is_confirmed does not exist
+E       LINE 3: "t0"."is_confirmed" AS "is_confirmed",
+E               ^
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestDraftField" name="test_is_confirmed_sqlite" time="0.001"><failure message="sqlite3.OperationalError: no such column: t0.is_confirmed">self = &lt;sql.test_compiler_coverage.TestDraftField object at 0x10de3cb90&gt;
+db_sqlite = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10dfd8da0&gt;
+
+    def test_is_confirmed_sqlite(self, db_sqlite):
+        rows = db_sqlite.table('invc.customer').query(
+            columns='$account_name, $is_confirmed',
+            limit=10
+&gt;       ).fetch()
+          ^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:2108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:245: in fetch
+    cursor = self.cursor()
+             ^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:240: in cursor
+    cursor = self.db.execute(self.sqltext, self.sqlparams, dbtable=self.dbtable.fullname,storename=self.storename)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:521: in execute
+    raise e
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;gnr.sql.adapters.gnrsqlite.GnrSqliteCursor object at 0x114585fd0&gt;
+sql = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 2105, "function_name": "test_is_confirmed_sqlite", "module_na..._customer" AS t0\nWHERE ("t0"."__del_ts" IS NULL) AND (("t0"."__is_draft" IS NULL OR "t0"."__is_draft" !=1))\nLIMIT 10'
+params = {'jc_kwargs': {}}, args = ({'jc_kwargs': {}},), kwargs = {}
+
+    def execute(self, sql, params=None, *args, **kwargs):
+        if params:
+            if isinstance(params, str):
+                params = str(params)
+            elif isinstance(params, list):
+                params = [str(s) if isinstance(s, str) else s for s in params]
+            elif isinstance(params,dict):
+                for k,v in list(params.items()):
+                    if isinstance(v, str):
+                        params[k] = str(v)
+            args = (params, ) + args
+    
+        if not sql.startswith('ATTACH'):
+            logger.debug(u"gnrsqlite.execute()\n" + sql)
+            if params:
+                logger.debug(u"Parameters:\n" + pprint.pformat(params)+"\n")
+    
+        self._index = None
+        try:
+&gt;           return pysqlite.Cursor.execute(self, sql, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           sqlite3.OperationalError: no such column: t0.is_confirmed
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:509: OperationalError</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestDraftField" name="test_draft_filter_count_pg" time="0.002" /><testcase classname="tests.sql.test_compiler_coverage.TestDraftField" name="test_draft_filter_count_sqlite" time="0.002" /><testcase classname="tests.sql.test_compiler_coverage.TestPartitionCurrentState" name="test_customer_partition_nsw_pg" time="0.001" /><testcase classname="tests.sql.test_compiler_coverage.TestPartitionCurrentState" name="test_customer_partition_nsw_sqlite" time="0.001" /><testcase classname="tests.sql.test_compiler_coverage.TestPartitionCurrentState" name="test_invoice_partition_nsw_pg" time="0.001"><failure message="psycopg2.errors.UndefinedColumn: column t0.state does not exist&#10;LINE 4: WHERE (&quot;t0&quot;.&quot;state&quot; ='NSW') AND (&quot;t0&quot;.&quot;__del_ts&quot; IS NULL)&#10;               ^&#10;HINT:  Perhaps you meant to reference the column &quot;t0.date&quot;.">self = &lt;sql.test_compiler_coverage.TestPartitionCurrentState object at 0x10de3dc70&gt;
+db_pg = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10deca960&gt;
+
+    def test_invoice_partition_nsw_pg(self, db_pg):
+        db_pg.currentEnv['current_invc_state'] = 'NSW'
+        try:
+&gt;           count = db_pg.table('invc.invoice').query().count()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:2319: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:552: in count
+    cursor = self.db.execute(compiledQuery.get_sqltext(self.db), self.sqlparams,
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;cursor object at 0x1141e6e50; closed: 0&gt;
+query = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 2319, "function_name": "test_invoice_partition_nsw_pg", "modu...nt"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."state" =%(env_current_invc_state)s) AND ("t0"."__del_ts" IS NULL)'
+vars = {'env_current_invc_state': 'NSW', 'jc_kwargs': {}}, async_ = 0
+
+    def execute(self, query, vars=None, async_=0):
+        self.index = {}
+        self._query_executed = 1
+        if psycopg2.__version__.startswith('2.0'):
+            return super(GnrDictCursor, self).execute(query, vars, async_)
+&gt;       return super(GnrDictCursor, self).execute(query, vars)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       psycopg2.errors.UndefinedColumn: column t0.state does not exist
+E       LINE 4: WHERE ("t0"."state" ='NSW') AND ("t0"."__del_ts" IS NULL)
+E                      ^
+E       HINT:  Perhaps you meant to reference the column "t0.date".
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrpostgres.py:397: UndefinedColumn</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestPartitionCurrentState" name="test_invoice_partition_nsw_sqlite" time="0.001"><failure message="sqlite3.OperationalError: no such column: t0.state">self = &lt;sql.test_compiler_coverage.TestPartitionCurrentState object at 0x10de3dfd0&gt;
+db_sqlite = &lt;gnr.app.gnrapp.GnrSqlAppDb object at 0x10dfd8da0&gt;
+
+    def test_invoice_partition_nsw_sqlite(self, db_sqlite):
+        db_sqlite.currentEnv['current_invc_state'] = 'NSW'
+        try:
+&gt;           count = db_sqlite.table('invc.invoice').query().count()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+gnrpy/tests/sql/test_compiler_coverage.py:2327: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsqldata/query.py:552: in count
+    cursor = self.db.execute(compiledQuery.get_sqltext(self.db), self.sqlparams,
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/helpers.py:108: in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/gnrsql/execute.py:144: in execute
+    cursor.execute(sql, sqlargs)
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:521: in execute
+    raise e
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;gnr.sql.adapters.gnrsqlite.GnrSqliteCursor object at 0x114585fd0&gt;
+sql = '-- GNRCOMMENT - {"user": "gporcari@cli", "line_number": 2327, "function_name": "test_invoice_partition_nsw_sqlite", "...count"\n FROM "invc"."invc_invoice" AS t0\nWHERE ("t0"."state" =:env_current_invc_state) AND ("t0"."__del_ts" IS NULL)'
+params = {'env_current_invc_state': 'NSW', 'jc_kwargs': {}}
+args = ({'env_current_invc_state': 'NSW', 'jc_kwargs': {}},), kwargs = {}
+
+    def execute(self, sql, params=None, *args, **kwargs):
+        if params:
+            if isinstance(params, str):
+                params = str(params)
+            elif isinstance(params, list):
+                params = [str(s) if isinstance(s, str) else s for s in params]
+            elif isinstance(params,dict):
+                for k,v in list(params.items()):
+                    if isinstance(v, str):
+                        params[k] = str(v)
+            args = (params, ) + args
+    
+        if not sql.startswith('ATTACH'):
+            logger.debug(u"gnrsqlite.execute()\n" + sql)
+            if params:
+                logger.debug(u"Parameters:\n" + pprint.pformat(params)+"\n")
+    
+        self._index = None
+        try:
+&gt;           return pysqlite.Cursor.execute(self, sql, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           sqlite3.OperationalError: no such column: t0.state
+
+/tmp/asqueel-formula-baseline/simplify/gnrpy/gnr/sql/adapters/gnrsqlite.py:509: OperationalError</failure></testcase><testcase classname="tests.sql.test_compiler_coverage.TestPartitionCurrentState" name="test_partition_ignore_pg" time="0.002" /><testcase classname="tests.sql.test_compiler_coverage.TestPartitionCurrentState" name="test_partition_ignore_sqlite" time="0.001" /><testcase classname="tests.sql.test_compiler_coverage.TestPartitionAllowedStates" name="test_no_partition_full_count_pg" time="0.001" /><testcase classname="tests.sql.test_compiler_coverage.TestPartitionAllowedStates" name="test_no_partition_full_count_sqlite" time="0.186" /></testsuite></testsuites>

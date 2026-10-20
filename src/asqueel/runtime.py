@@ -2,14 +2,20 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import replace
+from importlib import import_module
+import re
 from threading import Thread, current_thread, local
-from typing import Any, TypedDict
+from typing import Any, Iterator, TypedDict
 from uuid import uuid4
+from weakref import WeakSet
 
-from .contracts import CompiledQuery, QueryResult, UnsupportedFeatureError
-from .environment import ApplicationEnvironment
-from .drivers.base import SyncDriver
-from .errors import DatabaseClosedError, DeferredCommitError, TransactionStateError
+from genro_bag import Bag
+from genro_toolbox import NamedList
+
+from .contracts import CompiledQuery, UnsupportedFeatureError, not_available, refused_property
+from .environment import ApplicationEnvironment, environment_arguments
+from .errors import DeferredCommitError, TransactionStateError
 from .triggers import TriggerStack
 
 
@@ -23,21 +29,17 @@ class _ConnectionState(TypedDict):
     connection_name: str
     failed: bool
     executing: bool
-    closed: bool
     execution_error: BaseException | None
     execution_count: int
-    deferred: dict[str, dict[str, dict[tuple[int, str], tuple[Any, tuple, dict]]]]
-    pending_exceptions: list[BaseException]
-    outcome: str
+    write_depth: int
+    cursors: WeakSet[SqlCursor]
 
 
 class _ThreadState(local):
     def __init__(self) -> None:
         self.connections: dict[str, _ConnectionState] = {}
-        self.write_depth = 0
         self.trigger_stack = TriggerStack()
-        self.closed = False
-        self.acquired = False
+        self.session_open = False
 
 
 class Database:
@@ -47,15 +49,41 @@ class Database:
     connections. Use tempEnv for context selection, never automatic completion.
     """
 
-    def __init__(self, conninfo='', *, driver: SyncDriver, connect_kwargs=None, environment=None):
+    @property
+    def tableMixin(self):
+        raise not_available('tableMixin')
+
+    @property
+    def packageMixin(self):
+        raise not_available('packageMixin')
+
+    query = refused_property('db.query')
+    whereTranslator = refused_property('db.whereTranslator')
+
+
+    def __init__(self, conninfo='', *, implementation='sqlite', connect_kwargs=None, environment=None):
         self._ready = True
         self._thread_state = _ThreadState()
-        self.driver = driver
+        # Legacy adapter loading: 'name' or 'name:module'; the module exposes SqlDbAdapter.
+        if ':' in implementation:
+            implementation, module = implementation.split(':')
+        else:
+            module = f'asqueel.adapters.{implementation}'
+        self.implementation = implementation
+        self.adapters: dict[str, Any] = {implementation: import_module(module).SqlDbAdapter(self)}
         self.conninfo = conninfo
         self.connect_kwargs = dict(connect_kwargs or {})
         if self.connect_kwargs.get('autocommit'):
             raise ValueError('autocommit is incompatible with explicit transactions')
         self.environment = environment if environment is not None else ApplicationEnvironment()
+
+    @property
+    def adapter(self):
+        """The adapter of the current implementation; ``currentImplementation`` overrides it."""
+        implementation = self.environment.currentEnv.get('currentImplementation') or self.implementation
+        if implementation not in self.adapters:
+            self.adapters[implementation] = import_module(f'asqueel.adapters.{implementation}').SqlDbAdapter(self)
+        return self.adapters[implementation]
 
     def _connection_settings(self):
         return self.conninfo, self.connect_kwargs
@@ -63,8 +91,6 @@ class Database:
     def _check_open(self) -> None:
         if not self._ready:
             raise TransactionStateError('Database object graph is not ready')
-        if self._closed:
-            raise DatabaseClosedError('Database is closed')
 
     @property
     def _connections(self) -> dict[str, _ConnectionState]:
@@ -77,19 +103,11 @@ class Database:
 
     @property
     def _write_depth(self):
-        return self._thread_state.write_depth
+        """Table writes in progress on the selected named connection."""
+        return self._connection_state['write_depth']
 
-    @_write_depth.setter
-    def _write_depth(self, value):
-        self._thread_state.write_depth = value
-
-    @property
-    def _closed(self):
-        return self._thread_state.closed
-
-    @_closed.setter
-    def _closed(self, value):
-        self._thread_state.closed = value
+    def _writing(self) -> bool:
+        return any(state['write_depth'] for state in self._connections.values())
 
     @property
     def currentConnectionName(self) -> str:
@@ -105,7 +123,7 @@ class Database:
     def _check_store(self) -> None:
         store = self.environment.currentEnv.get('storename')
         if store and store != '_main_db':
-            raise UnsupportedFeatureError('Database stores are not implemented in this profile')
+            raise UnsupportedFeatureError(f'environment key storename={store!r}: database stores are not available in this release')
 
     @property
     def _connection_state(self) -> _ConnectionState:
@@ -116,9 +134,8 @@ class Database:
             self._connections[name] = dict(
                 owner=current_thread(), connection=None, pending=False,
                 committing=False, completion_failed=False, connection_name=name,
-                failed=False, executing=False, closed=False, execution_error=None,
-                execution_count=0, deferred={'before': {}, 'after': {}},
-                pending_exceptions=[], outcome='not_started',
+                failed=False, executing=False, execution_error=None,
+                execution_count=0, write_depth=0, cursors=WeakSet(),
             )
         return self._connections[name]
 
@@ -137,25 +154,16 @@ class Database:
         self._check_open()
         self.environment.currentEnv = values
 
+    @property
+    def currentUser(self):
+        return self.currentEnv.get('user')
+
     def updateEnv(self, _excludeNoneValues=False, **values):
         self.currentEnv.update({key: value for key, value in values.items()
                                 if not _excludeNoneValues or value is not None})
 
     def clearCurrentEnv(self):
         self.currentEnv = {}
-
-    def acquire(self):
-        """Take this database for the current call and return it.
-
-        The first take on a thread clears ``currentEnv``, so a call never sees
-        the context of the previous call on the same thread; ``closeConnection``
-        ends the take, and the next one belongs to the next call.
-        """
-        self._check_open()
-        if not self._thread_state.acquired:
-            self.clearCurrentEnv()
-            self._thread_state.acquired = True
-        return self
 
     @property
     def workdate(self):
@@ -184,29 +192,45 @@ class Database:
     def tempEnv(self, **values: Any):
         return self.temp_env(**values)
 
-    @property
-    def outcome(self) -> str:
-        """Most recent named connection transaction outcome, including uncertain commit."""
-        name = self.environment.currentEnv.get('connectionName') or '_main_connection'
-        state = self._connections.get(name)
-        return state['outcome'] if state is not None else 'not_started'
+    def execute(self, sql: CompiledQuery | str, sqlargs=None, cursor=None, cursorname=None,
+                autocommit=False, dbtable=None, storename=None, _adaptArguments=True) -> SqlCursor:
+        """Execute a statement in this DB's unit of work and return its open cursor, as legacy.
 
-    def execute(self, query: CompiledQuery | str, sqlargs=None) -> QueryResult:
-        """Execute a compiled statement in this DB's shared unit of work."""
+        ``cursorname`` asks for a server-side cursor (``'*'`` generates the name);
+        ``autocommit`` commits after the statement; ``dbtable`` only names the table.
+        """
         self._check_open()
-        if isinstance(query, str):
-            return self._execute_on_connection(self._connection_state, self._prepare_sql(query, sqlargs))
+        for name, refused in (('storename', storename not in (None, False)), ('cursor', cursor is not None),
+                              ('_adaptArguments', not _adaptArguments)):
+            if refused:
+                raise UnsupportedFeatureError(f'{name} is not available in this release')
+        if isinstance(sql, str):
+            sql = self._prepare_sql(sql, sqlargs)
         elif sqlargs is not None:
             raise TypeError('Parameters are already part of a CompiledQuery')
-        return self._execute_on_connection(self._connection_state, query)
+        if cursorname == '*':
+            cursorname = 'c' + uuid4().hex
+        result = self._execute_on_connection(self._connection_state, sql, cursorname=cursorname)
+        if autocommit:
+            self.commit()
+        return result
+
+    def executemany(self, query: CompiledQuery, params_seq) -> SqlCursor:
+        """Execute one compiled statement once per parameter mapping, as DB-API executemany."""
+        self._check_open()
+        return self._execute_on_connection(self._connection_state, query, many=tuple(params_seq))
+
+    def cursor(self, query: CompiledQuery, cursorname=None) -> SqlCursor:
+        """Execute a compiled SELECT and return its open cursor; ``cursorname`` asks for a server-side cursor."""
+        return self.execute(query, cursorname=cursorname)
 
     def _prepare_sql(self, sql, sqlargs) -> CompiledQuery:
-        query: CompiledQuery = self.driver.prepare_sql(sql, sqlargs, self.environment.snapshot())
+        query: CompiledQuery = self.adapter.prepare_sql(sql, sqlargs, self.environment.snapshot())
         return query
 
     @property
     def currentTrigger(self):
-        """Current write operation, including its causal parent and level."""
+        """Current write operation; ``parent`` is the operation that caused it."""
         self._check_open()
         return self._trigger_stack.parentItem
 
@@ -220,12 +244,12 @@ class Database:
     def deferToCommit(self, callback, *args, **kwargs):
         """Run a callback before committing the selected named connection."""
         self._check_open()
-        return self._defer(self._connection_state, 'before', callback, *args, **kwargs)
+        return self._defer(self._connection_state, 'to_commit_defer_calls', callback, *args, **kwargs)
 
     def deferAfterCommit(self, callback, *args, **kwargs):
         """Run a callback after committing the selected named connection."""
         self._check_open()
-        return self._defer(self._connection_state, 'after', callback, *args, **kwargs)
+        return self._defer(self._connection_state, 'after_commit_defer_calls', callback, *args, **kwargs)
 
     def deferredRaise(self, exception):
         """Make the selected named connection fail at its next commit."""
@@ -235,11 +259,39 @@ class Database:
     def _check_boundary(self) -> None:
         self._check_open()
         if self._write_depth:
-            raise TransactionStateError('Cannot finish a transaction inside a table write or hook')
+            raise TransactionStateError('Cannot finish the transaction of a table write or hook in progress')
 
     def commit(self) -> None:
         self._check_boundary()
         self._commit_connection(self._connection_state)
+        self.onDbCommitted()
+
+    def onDbCommitted(self) -> None:
+        """Called once at the end of every commit, as legacy; subclasses override it."""
+
+    def setLocale(self) -> None:
+        """Hand the environment locale to the adapter, as legacy."""
+        locale = self.currentEnv.get('locale')
+        if locale:
+            self.adapter.setLocale(locale)
+
+    def setConstraintsDeferred(self) -> None:
+        """Defer the deferrable constraints until the commit of the current transaction."""
+        self.adapter.setConstraintsDeferred()
+
+    def analyze(self) -> None:
+        """Update the planner statistics, in the current transaction."""
+        self.adapter.analyze()
+
+    def vacuum(self, table: str = '', full: bool = False) -> None:
+        """Reclaim storage of the database or of ``table`` (its SQL name), on a separate connection.
+
+        The work pending on this thread would hold the locks the separate connection waits for.
+        """
+        self._check_open()
+        if any(state['pending'] for state in self._connections.values()):
+            raise TransactionStateError('vacuum requires no pending work on this thread; commit or rollback first')
+        self.adapter.vacuum(table=table, full=full)
 
     def rollback(self) -> None:
         self._check_boundary()
@@ -251,7 +303,7 @@ class Database:
         state = self._connection_state
         self._check_connection_usable(state)
         execution_count = state['execution_count']
-        self._write_depth += 1
+        state['write_depth'] += 1
         try:
             yield
         except BaseException as error:
@@ -263,18 +315,22 @@ class Database:
                 self._mark_connection_failed(state)
             raise
         finally:
-            self._write_depth -= 1
+            state['write_depth'] -= 1
 
     def closeConnection(self) -> None:
-        """Release the current thread's named connections, keeping it usable."""
-        self._check_boundary()
+        """Roll back and close every named connection of the current thread, as legacy.
+
+        The database stays usable: the next statement opens a new connection.
+        """
+        self._check_open()
+        if self._writing():
+            raise TransactionStateError('Cannot close connections inside a table write or hook')
         for state in self._connections.values():
             self._check_connection_completion(state)
         try:
             self._close_connections()
         finally:
             self._connections.clear()
-            self._thread_state.acquired = False
 
     def _close_connections(self) -> None:
         error = None
@@ -289,20 +345,14 @@ class Database:
         if error is not None:
             raise error
 
-    def close(self) -> None:
-        """Close this thread's DB state; other threads remain usable."""
-        if self._write_depth:
-            raise TransactionStateError('Cannot close the database inside a table write or hook')
-        if self._closed:
-            return
-        # Preflight all scopes before closing anything; then clean every named
-        # connection even when one driver rollback/close fails.
-        for state in self._connections.values():
-            self._check_connection_completion(state)
-        try:
-            self._close_connections()
-        finally:
-            self._closed = True
+    def _deferred_key(self, state: _ConnectionState, queue: str) -> str:
+        """The currentEnv key of a deferred queue or of the pending exceptions of ``state``.
+
+        Legacy keys the queues ``f'{queue}_{connectionKey()}'`` and keeps one
+        global ``_pendingExceptions``; here the pending exceptions are per named
+        connection too.
+        """
+        return f"{queue}__main_db_{state['connection_name']}"
 
     def _defer(self, state: _ConnectionState, queue: str, callback, *args, **kwargs):
         self._check_connection_usable(state)
@@ -310,8 +360,11 @@ class Database:
         deferred_id = kwargs.pop('_deferredId', None)
         if not deferred_id:
             deferred_id = uuid4().hex
-        entries = state['deferred'][queue].setdefault(block, {})
-        key = (id(callback), str(deferred_id))
+        blocks = self.environment.currentEnv.setdefault(self._deferred_key(state, queue), Bag())
+        if block not in blocks:
+            blocks[block] = Bag()
+        entries = blocks[block]
+        key = f'{id(callback)}/{deferred_id}'
         if key not in entries:
             entries[key] = (callback, args, kwargs)
             return kwargs
@@ -321,7 +374,7 @@ class Database:
         self._check_connection_usable(state)
         if not isinstance(exception, BaseException):
             raise TypeError('deferred_raise requires an exception instance')
-        state['pending_exceptions'].append(exception)
+        self.environment.currentEnv.setdefault(self._deferred_key(state, '_pendingExceptions'), []).append(exception)
 
     def _invoke_deferred(self, state: _ConnectionState, queue: str) -> None:
         context: dict[str, Any] = {'onCommittingStep': True}
@@ -331,12 +384,13 @@ class Database:
             self._drain_deferred(state, queue)
 
     def _drain_deferred(self, state: _ConnectionState, queue: str) -> None:
-        blocks = state['deferred'][queue]
+        blocks = self.environment.currentEnv.get(self._deferred_key(state, queue))
         while blocks:
-            block_name = sorted(blocks)[0]
+            # GenroPy Bag.sort('#k:a'): labels in lowercase, stable on ties.
+            block_name = min(blocks.keys(), key=str.lower)
             entries = blocks[block_name]
             while entries:
-                key = next(iter(entries))
+                key = next(iter(entries.keys()))
                 callback, args, kwargs = entries.pop(key)
                 callback(*args, **kwargs)
                 self._check_connection_usable(state)
@@ -344,22 +398,25 @@ class Database:
                     entries.pop(key, None)
             blocks.pop(block_name, None)
 
+    def _pop_transaction_key(self, key: str) -> Any:
+        """Pop a deferred queue or the pending exceptions from currentEnv.
+
+        The read-only snapshot of a ``SqlEnvironment`` holds none of them.
+        """
+        current = self.environment.currentEnv
+        return current.pop(key, None) if isinstance(current, dict) else None
+
     def _clear_deferred(self, state: _ConnectionState) -> None:
-        state['deferred']['before'].clear()
-        state['deferred']['after'].clear()
-        state['pending_exceptions'].clear()
+        self._pop_transaction_key(self._deferred_key(state, 'to_commit_defer_calls'))
+        self._pop_transaction_key(self._deferred_key(state, 'after_commit_defer_calls'))
+        self._pop_transaction_key(self._deferred_key(state, '_pendingExceptions'))
 
     def _check_connection_owner(self, state: _ConnectionState) -> None:
         if current_thread() is not state['owner']:
             raise TransactionStateError('Connection operations must run on the constructing thread')
 
-    def _check_connection_open(self, state: _ConnectionState) -> None:
-        self._check_connection_owner(state)
-        if state['closed']:
-            raise DatabaseClosedError('Connection is closed')
-
     def _check_connection_available(self, state: _ConnectionState) -> None:
-        self._check_connection_open(state)
+        self._check_connection_owner(state)
         if state['executing']:
             raise TransactionStateError('Connection is already executing an operation')
 
@@ -373,11 +430,21 @@ class Database:
         if state['failed'] or state['completion_failed']:
             raise TransactionStateError('Connection is rollback-only; call rollback before reuse')
 
-    def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery) -> QueryResult:
+    def _check_environment_keys(self) -> None:
+        """Refuse the legacy environment keys whose effect this release does not have."""
+        for key in self.environment.currentEnv:
+            if key in ('sql_comment', 'sql_details') or re.fullmatch(r'env_\w+_condition_\w+', key):
+                raise UnsupportedFeatureError(f'environment key {key!r} is not available in this release')
+
+    def _execute_on_connection(self, state: _ConnectionState, query: CompiledQuery, many=None,
+                               cursorname=None) -> SqlCursor:
         self._check_connection_usable(state)
-        self.driver.validate(query)
-        if query.environment is not None:
-            query.environment.validate(self.environment.snapshot())
+        self._check_environment_keys()
+        adapter = self.adapter
+        adapter.validate(query)
+        if query.environment_keys:
+            query = replace(query, params={**query.params, **environment_arguments(
+                query.environment_keys, self.environment.snapshot())})
         state['execution_count'] += 1
         state['executing'] = True
         state['execution_error'] = None
@@ -386,49 +453,58 @@ class Database:
                 conninfo, connect_kwargs = self._connection_settings()
                 if connect_kwargs.get('autocommit'):
                     raise ValueError('autocommit is incompatible with explicit transactions')
-                state['connection'] = self.driver.connect(
-                    conninfo, **connect_kwargs)
+                state['connection'] = adapter.connect(conninfo, **connect_kwargs)
             state['pending'] = True
-            state['outcome'] = 'active'
-            return self.driver.execute(state['connection'], query)
+            cursor = (adapter.executemany(state['connection'], query, many) if many is not None
+                      else adapter.execute(state['connection'], query, cursorname))
+            result = SqlCursor(self, state, cursor, query.columns)
+            state['cursors'].add(result)
+            return result
         except BaseException as error:
-            state['execution_error'] = error
-            state['completion_failed'] = state['committing']
-            try:
-                self._finish(state, False)
-            except BaseException as cleanup_error:
-                # The original execution error must remain catchable by callers.
-                error.add_note(f'Automatic rollback failed: {type(cleanup_error).__name__}')
-                raise error from cleanup_error
+            self._execution_failed(state, error)
             raise
         finally:
             state['executing'] = False
 
+    def _execution_failed(self, state: _ConnectionState, error: BaseException) -> None:
+        """The automatic rollback after an error raised by execute or by a fetch."""
+        state['execution_error'] = error
+        state['completion_failed'] = state['committing']
+        try:
+            self._finish(state, False)
+        except BaseException as cleanup_error:
+            # The original execution error must remain catchable by callers.
+            error.add_note(f'Automatic rollback failed: {type(cleanup_error).__name__}')
+            raise error from cleanup_error
+
     def _mark_connection_failed(self, state: _ConnectionState) -> None:
         """Mark a failed domain operation even when no SQL has run yet."""
-        self._check_connection_open(state)
+        self._check_connection_owner(state)
         state['failed'] = True
 
     def _discard_connection(self, state: _ConnectionState) -> None:
+        # A cursor still referenced keeps its statement alive; on SQLite it keeps the file locked.
+        # The record is weak: a cursor nobody references is released by the driver.
+        for cursor in tuple(state['cursors']):
+            cursor.close()
         connection, state['connection'] = state['connection'], None
         if connection is not None:
-            self.driver.close(connection)
+            self.adapter.close(connection)
 
     def _finish(self, state: _ConnectionState, commit: bool) -> None:
         if not state['pending']:
-            if state['outcome'] != 'unknown':
-                state['failed'] = False
+            state['failed'] = False
             if not commit:
                 self._clear_deferred(state)
             return
         state['executing'] = True
+        uncertain = False
         try:
-            operation = self.driver.commit if commit else self.driver.rollback
+            operation = self.adapter.commit if commit else self.adapter.rollback
             operation(state['connection'])
-            state['outcome'] = 'committed' if commit else 'rolled_back'
             state['failed'] = False
         except BaseException as error:
-            state['outcome'] = 'unknown'
+            uncertain = True
             state['failed'] = True
             try:
                 self._discard_connection(state)
@@ -438,7 +514,7 @@ class Database:
         finally:
             state['pending'] = False
             state['executing'] = False
-            if not commit or state['outcome'] == 'unknown':
+            if not commit or uncertain:
                 self._clear_deferred(state)
 
     def _commit_pending(self, state: _ConnectionState) -> None:
@@ -449,18 +525,18 @@ class Database:
         try:
             while state['pending']:
                 try:
-                    self._invoke_deferred(state, 'before')
+                    self._invoke_deferred(state, 'to_commit_defer_calls')
                     self._check_connection_usable(state)
-                    if state['pending_exceptions']:
-                        messages = '\n'.join(str(error) for error in state['pending_exceptions'])
+                    pending_exceptions = self._pop_transaction_key(self._deferred_key(state, '_pendingExceptions'))
+                    if pending_exceptions:
+                        messages = '\n'.join(str(error) for error in pending_exceptions)
                         raise DeferredCommitError(messages)
                 except BaseException:
                     state['failed'] = True
                     raise
-                state['pending_exceptions'].clear()
                 self._finish(state, True)
                 try:
-                    self._invoke_deferred(state, 'after')
+                    self._invoke_deferred(state, 'after_commit_defer_calls')
                 except BaseException:
                     # The preceding transaction is committed and cannot be undone.
                     # A callback may have opened a new transaction: retain its
@@ -486,9 +562,6 @@ class Database:
         state['failed'] = False
 
     def _close_connection(self, state: _ConnectionState) -> None:
-        self._check_connection_owner(state)
-        if state['closed']:
-            return
         self._check_connection_completion(state)
         error: BaseException | None = None
         state['executing'] = True
@@ -507,31 +580,112 @@ class Database:
                     error.add_note(f'Connection cleanup also failed: {type(failure).__name__}')
         finally:
             state['executing'] = False
-            state['closed'] = True
         if error is not None:
             raise error
 
-    def __enter__(self) -> Database:
-        self._check_open()
-        return self
+class SqlCursor:
+    """The open cursor returned by ``db.execute``: rows read by name, as the legacy dict cursor.
 
-    def __exit__(self, exc_type: Any, error: Any, traceback: Any) -> None:
+    A driver error raised by a fetch rolls the connection back, as one raised by execute.
+    """
+
+    def __init__(self, db: Database, state: _ConnectionState, cursor, columns=()):
+        self._db = db
+        self._state = state
+        self._connection = state['connection']
+        self._cursor = cursor
+        self._index: dict[str, int] = {}
+        if cursor.description is None:
+            if columns:
+                raise ValueError('Compiled result columns supplied for a statement without a result set')
+            return
+        names = [column[0] for column in cursor.description]
+        if len(set(names)) != len(names):
+            raise ValueError('Result columns must have unique names; use explicit aliases')
+        if columns and [column.name for column in columns] != names:
+            raise ValueError('Compiled result columns do not match cursor column names and order')
+        self._index = {name: position for position, name in enumerate(names)}
+
+    @property
+    def description(self):
+        return self._cursor.description
+
+    @property
+    def rowcount(self) -> int:
+        rowcount: int = self._cursor.rowcount
+        return rowcount
+
+    @property
+    def arraysize(self) -> int:
+        arraysize: int = self._cursor.arraysize
+        return arraysize
+
+    @arraysize.setter
+    def arraysize(self, value: int) -> None:
+        self._cursor.arraysize = value
+
+    def close(self) -> None:
+        self._cursor.close()
+        self._state['cursors'].discard(self)
+
+    def _fetch(self, method, *args):
         try:
-            self.close()
-        except BaseException as cleanup_error:
-            if error is None:
-                raise
-            error.add_note(f'Database cleanup failed: {type(cleanup_error).__name__}')
-            raise error from cleanup_error
+            return method(*args)
+        except BaseException as error:
+            # Roll back only the transaction this cursor belongs to, not one opened after it.
+            state = self._state
+            if (self._db._connections.get(state['connection_name']) is state
+                    and state['connection'] is self._connection):
+                self._db._execution_failed(state, error)
+            raise
+
+    def fetchone(self) -> NamedList | None:
+        row = self._fetch(self._cursor.fetchone)
+        return None if row is None else NamedList(self._index, row)
+
+    def fetchmany(self, size: int | None = None) -> list[NamedList]:
+        rows = self._fetch(self._cursor.fetchmany, *(() if size is None else (size,)))
+        return [NamedList(self._index, row) for row in rows]
+
+    def fetchall(self) -> list[NamedList]:
+        return [NamedList(self._index, row) for row in self._fetch(self._cursor.fetchall)]
+
+    def __iter__(self) -> Iterator[NamedList]:
+        while (row := self.fetchone()) is not None:
+            yield row
 
 
 class PostgresDatabase(Database):
-    """Driver-selecting facade using the shared, explicitly completed runtime."""
+    """The shared, explicitly completed runtime on the PostgreSQL adapter."""
 
-    def __init__(self, conninfo='', *, connect_kwargs=None, driver=None, environment=None):
-        from .drivers.psycopg import PsycopgDriver
-        driver = driver if driver is not None else PsycopgDriver()
-        if (driver.dialect, driver.binding) != ('postgresql', 'psycopg_named'):
-            raise ValueError('PostgresDatabase requires the postgresql/psycopg_named driver profile')
-        super().__init__(conninfo, driver=driver, connect_kwargs=connect_kwargs,
+    def __init__(self, conninfo='', *, connect_kwargs=None, environment=None):
+        super().__init__(conninfo, implementation='postgres', connect_kwargs=connect_kwargs,
                          environment=environment)
+
+
+@contextmanager
+def session(db: Database, **env: Any) -> Iterator[Database]:
+    """The unit of work outside a request, as a legacy page request.
+
+    Entry clears ``currentEnv`` and applies ``env``; exit, also when the body
+    raises, calls ``closeConnection()``, which rolls back what was not
+    committed. One session at a time per database and thread.
+    """
+    if not isinstance(db.environment, ApplicationEnvironment):
+        raise TransactionStateError('session(db) requires a writable environment')
+    if db._thread_state.session_open:
+        raise TransactionStateError('a session is already open on this thread for this database')
+    db.clearCurrentEnv()
+    db.updateEnv(**env)
+    db._thread_state.session_open = True
+    try:
+        yield db
+    except BaseException as error:
+        db._thread_state.session_open = False
+        try:
+            db.closeConnection()
+        except BaseException as cleanup:
+            error.add_note(f'Connection cleanup failed: {type(cleanup).__name__}')
+        raise
+    db._thread_state.session_open = False
+    db.closeConnection()

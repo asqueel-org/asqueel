@@ -28,11 +28,12 @@ attributes, ``foreign_key`` relations, ``constraint``, ``index``. The
 node attributes the migration projection ignores; the compiler and the GUI
 read it.
 
-Signatures are **semi-closed**: every element declares its physical AND its
-enumerated semantic parameters, typed, and accepts ``**extra`` on top. The
-grammar takes any extra key; the domain validator requires it to start with
-``x_``, so a typo (``dtypo=``) is a loud error naming the declared set
-instead of a silently stored attribute.
+Signatures are **closed**: every element declares its physical AND its
+enumerated semantic parameters, typed. An element with ``**extra`` accepts
+only the attribute families its ``_meta['attribute_families']`` names
+(``validate_*`` on column, ``var_*``/``select_*``/``exists_*`` on formulaColumn), so a
+typo (``dtypo=``) is a loud error naming the declared set instead of a
+silently stored attribute.
 
 Every repeated family has an author-visible fixed-label collection. Children
 are keyed by name inside their own collection, so unrelated SQL namespaces do
@@ -51,6 +52,8 @@ from typing import Literal
 
 from genro_builders.builder import element
 
+from .common import SQL_DIALECTS
+
 #: asqueel normalized type codes. Mirrors
 #: ``asqueel_migration.structures.DTYPE_CODES`` plus the additive serial4
 #: declaration on older engine versions — declared locally because
@@ -63,7 +66,6 @@ DTYPE = Literal[
 
 #: Referential actions a foreign key may declare. ``NO ACTION`` is absent on
 #: purpose: it is the SQL default and the migration structure strips it.
-FK_ACTION = Literal["CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT"]
 
 #: Table constraint kinds. Single-column uniqueness is the ``unique`` column
 #: attribute, not a constraint entity.
@@ -76,9 +78,9 @@ class DbElements:
     """Database-level grammar: the root and its collections."""
 
     @element(sub_tags="schemas[:1], packages[:1], extensions[:1], options[:1]", node_label="db")
-    def db(self, name: str, implementation: str = 'postgresql',
+    def db(self, name: str, implementation: str = 'sqlite',
            name_long: str | None = None, name_short: str | None = None,
-           comment: str | None = None, **extra):
+           comment: str | None = None):
         """Database root, one per model.
 
         Args:
@@ -112,8 +114,7 @@ class DbElements:
 
     @element(parent_tags="extensions", sub_tags="")
     def extension(self, name: str, name_long: str | None = None,
-                  name_short: str | None = None, comment: str | None = None,
-                  **extra):
+                  name_short: str | None = None, comment: str | None = None):
         """A PostgreSQL extension.
 
         Rendered ``CREATE EXTENSION IF NOT EXISTS`` and never dropped.
@@ -130,7 +131,7 @@ class SchemaElements:
     @element(parent_tags="schemas", sub_tags="tables[:1], options[:1]")
     def schema(self, name: str, comment: str | None = None,
                sqlname: str | None = None, name_long: str | None = None,
-               name_short: str | None = None, **extra):
+               name_short: str | None = None):
         """A physical database schema, separate from logical packages.
 
         Args:
@@ -158,20 +159,27 @@ class TableElements:
         parent_tags="tables",
         sub_tags=(
             "columns[:1], virtual_columns[:1], composites[:1], "
-            "constraints[:1], indexes[:1], options[:1], colgroup, subtable, virtualRelation"
+            "constraints[:1], indexes[:1], options[:1], colgroup, virtualRelation"
         ),
+        _meta={"attribute_families": ["partition_"]},
     )
     def table(self, name: str, pkey: str | None = None,
               comment: str | None = None,
               caption_field: str | None = None,
               name_long: str | None = None,
               name_plural: str | None = None,
-              name_short: str | None = None, rowcaption: str | None = None,
+              name_short: str | None = None, name_full: str | None = None,
+              rowcaption: str | None = None,
               newrecord_caption: str | None = None, order_by: str | None = None,
               lookup: bool = False, tabletype: str | None = None,
               sqlname: str | None = None, sqlschema: str | None = None,
               pkey_columns: str | None = None,
-              pkey_columns_joiner: str | None = None, **extra):
+              pkey_columns_joiner: str | None = None, deletable: bool = True,
+              lastTS: str | None = None, logicalDeletionField: str | None = None,
+              draftField: str | None = None, protectionColumn: str | None = None,
+              x_table_class: type | None = None,
+              x_expanded_legacy: bool | None = None, x_logical_pkey: str | None = None,
+              **extra):
         """A table.
 
         Args:
@@ -187,6 +195,15 @@ class TableElements:
                 single textual primary key; not SQL primary-key members.
             pkey_columns_joiner: semantic; legacy separator for that textual key.
                 Absent or empty, the legacy uses underscore. Declaration only.
+            deletable: False refuses every delete of the table's records, as in GenroPy.
+            lastTS: the column holding the last modification timestamp.
+            logicalDeletionField: the column marking a row as logically deleted;
+                queries exclude those rows.
+            draftField: the boolean column marking a draft row; queries exclude drafts.
+            protectionColumn: the column whose value protects a row.
+            partition_<field>: ``'<path>'`` partitions the table on ``<field>``, as in
+                GenroPy: env ``current_<path>`` filters on it, else env
+                ``allowed_<path>`` filters on its values or NULL. The first counts.
         """
         ...
 
@@ -241,20 +258,27 @@ class TableElements:
         ...
 
     @element(parent_tags="columns", sub_tags="relation, validation[:1], encryption[:1], dynamic_fields[:1]",
-             _meta={"projects_column": True, "projects_relation": True})
+             _meta={"projects_column": True, "projects_relation": True,
+                    "attribute_families": ["validate_", *(f"sql_{d}_" for d in SQL_DIALECTS)]})
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
-               notnull: bool = False, unique: bool = False,
-               indexed: bool = False, sqldefault: str | None = None,
-               extra_sql: str | None = None,
-               generated_expression: str | None = None,
+               notnull: bool = False, unique: bool | str = False,
+               indexed: bool | str | dict = False, sql_default: str | None = None,
+               sql_extra: str | None = None,
+               sql_generatedExpression: str | None = None,
                comment: str | None = None,
                name_long: str | None = None,
-               name_short: str | None = None,
+               name_short: str | None = None, name_full: str | None = None,
+               format: str | None = None, print_width: int | None = None,
                group: str | None = None, sqlname: str | None = None,
                default: object = None,
                default_from: str | None = None, sql_value: str | None = None,
-               read_only: bool = False, unmodifiable: bool = False, **extra):
+               read_only: bool = False, unmodifiable: bool = False,
+               onInserting: object = None, onUpdating: object = None, onDeleting: object = None,
+               onInserted: object = None, onUpdated: object = None, onDeleted: object = None,
+               trigger_table: str | None = None,
+               x_identity: str | None = None, x_generation: dict | None = None,
+               **extra):
         """A physical column — the only element that projects as a column.
 
         Args:
@@ -265,30 +289,48 @@ class TableElements:
             notnull: NOT NULL. Pkey members get it from their pkey
                 membership, not from this flag.
             unique: single-column UNIQUE. A redundant one on a
-                single-column pkey is dropped by the renderer.
+                single-column pkey is dropped by the renderer. A string is
+                read as in GenroPy: ``n``, ``no``, ``f``, ``false``, ``0`` are false.
             indexed: sugar — the renderer materializes a real index item
                 (``structure-1.0`` has no ``indexed`` column attribute).
-                A column carrying a foreign key is always indexed.
-            sqldefault: SQL DEFAULT expression.
-            extra_sql: verbatim tail of the column definition.
-            generated_expression: GENERATED ALWAYS AS expression.
+                A column carrying a relation is always indexed. A string
+                is read as ``unique``. A dict carries the index options, as
+                legacy ``fill_json_column_index``: ``method``, ``where``,
+                ``tablespace``, ``sorting`` (comma-separated, one direction
+                per column), ``with_<name>`` (a ``WITH`` storage option) and
+                ``unique`` (without ``where`` it makes the column unique and
+                creates no index; with ``where`` a partial unique index).
+            sql_default: SQL DEFAULT expression.
+            sql_extra: verbatim tail of the column definition.
+            sql_generatedExpression: GENERATED ALWAYS AS expression.
+            sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra:
+                the same for one dialect (``pg``, ``sqlite``); they win on it.
             comment: physical; the column comment.
             name_long: semantic; human label.
             name_short: semantic; human label, short form.
+            name_full: semantic; human label, full form.
+            format: semantic; display format.
+            print_width: semantic; print width.
             group: semantic; field-group key.
+            onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted:
+                field triggers, as in GenroPy: a method name, called as
+                ``trigger_<name>(record, fldname=, tblname=)`` on the table or
+                on ``trigger_table``, or a callable ``f(record, fldname)``.
+                They run at every write, in column declaration order.
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def aliasColumn(self, name: str, relation_path: str,
                     dtype: str | None = None,
                     name_long: str | None = None,
                     group: str | None = None, name_short: str | None = None,
-                    comment: str | None = None, static: bool = False, **extra):
+                    comment: str | None = None, static: bool = False,
+                    x_identity: str | None = None):
         """A virtual column projecting a related column. Never physical.
 
-        An alias reads through a relation that already exists, so it never
-        carries one of its own.
+        An alias inherits the target column's relation as a weak relation during
+        model rendering, unless it declares an explicit relation of its own.
 
         Args:
             name: the alias name.
@@ -299,16 +341,15 @@ class TableElements:
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="relation")
-    def formulaColumn(self, name: str, sql_formula: str | bool | None = None,
-                      expression: str | None = None, parameters: dict | None = None,
-                      subqueries: dict | None = None, handler: str | None = None, static: bool = False,
+    @element(parent_tags="virtual_columns", sub_tags="relation",
+             _meta={"attribute_families": ["var_", "select_", "exists_"]})
+    def formulaColumn(self, name: str, sql_formula: str | bool | None = None, static: bool = False,
                       select: dict | str | None = None,
                       exists: dict | str | None = None,
                       dtype: str | None = None,
                       name_long: str | None = None,
                       group: str | None = None, name_short: str | None = None,
-                      comment: str | None = None, **extra):
+                      comment: str | None = None, x_identity: str | None = None, **extra):
         """A virtual column defined by SQL. Never physical.
 
         Args:
@@ -316,38 +357,40 @@ class TableElements:
             sql_formula: an expression over the row's own columns.
             select: a scalar sub-select.
             exists: an EXISTS predicate.
-            dtype: the resulting type code.
+            dtype: the resulting type code; ``A`` when omitted.
             name_long: semantic; human label.
             group: semantic; field-group key.
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation",
+             _meta={"attribute_families": ["var_"]})
     def subQueryColumn(self, name: str, query: str | dict | None = None,
-                       mode: str | None = None, dtype: str | None = None,
+                       aggr: str | None = None, mode: str | None = None, dtype: str | None = None,
                        name_long: str | None = None,
                        group: str | None = None, name_short: str | None = None,
-                       comment: str | None = None, **extra):
+                       comment: str | None = None, x_identity: str | None = None, **extra):
         """A virtual column defined by a sub-query. Never physical.
 
         Args:
             name: the column name.
             query: the sub-query declaration; may be supplied by a later contribution.
-            mode: None, ``json``, ``xml`` or a legacy aggregate name; preserved
-                without expansion or execution by the grammar.
+            aggr: one call of the ``.aggr()`` grammar (count, sum, avg, min,
+                max, join, to_json, to_xml); it replaces the query columns.
+            mode: None, ``json`` or ``xml``, as legacy; not together with ``aggr``.
             dtype: the declared result type.
             name_long: semantic; human label.
             group: semantic; field-group key.
         """
         ...
 
-    @element(parent_tags="virtual_columns", sub_tags="")
+    @element(parent_tags="virtual_columns", sub_tags="relation")
     def pyColumn(self, name: str, py_method: str | None = None,
                  method: str | None = None, required_columns: str | tuple | list | None = None, static: bool = False,
                  dtype: str | None = None,
                  name_long: str | None = None,
                  group: str | None = None, name_short: str | None = None,
-                 comment: str | None = None, **extra):
+                 comment: str | None = None, x_identity: str | None = None):
         """A virtual column computed in Python. Never physical.
 
         Args:
@@ -365,7 +408,7 @@ class TableElements:
     def compositeColumn(self, name: str, columns: str, unique: bool = False,
                         name_long: str | None = None,
                         group: str | None = None, name_short: str | None = None,
-                        comment: str | None = None, **extra):
+                        comment: str | None = None):
         """N physical columns packed as one navigable key.
 
         Not a column of its own — it projects no column, only what its
@@ -387,7 +430,7 @@ class TableElements:
     @element(parent_tags="constraints", sub_tags="")
     def constraint(self, name: str, constraint_type: CONSTRAINT_TYPE,
                    columns: str | None = None,
-                   check_clause: str | None = None, **extra):
+                   check_clause: str | None = None):
         """A table constraint.
 
         Args:
@@ -400,16 +443,17 @@ class TableElements:
         ...
 
     @element(parent_tags="indexes", sub_tags="")
-    def index(self, name: str | None = None, columns: object | None = None,
-              unique: bool = False, method: str | None = None,
+    def index(self, columns: object | None = None, name: str | None = None,
+              unique: bool | None = None, method: str | None = None,
               where: str | None = None, tablespace: str | None = None,
-              with_options: dict | None = None, **extra):
+              with_options: dict | None = None):
         """A table index.
 
         Args:
-            name: the index name.
-            columns: comma-joined names, or a ``{name: None | 'DESC'}``
-                dict when per-column ordering matters.
+            columns: comma-joined names, a list or tuple of names, or a
+                ``{name: None | 'DESC'}`` dict when per-column ordering matters.
+            name: the index name; ``<table>_<columns joined by _>_key``
+                when absent, as in GenroPy.
             unique: a UNIQUE index.
             method: access method (``btree``, ``gin``, …).
             where: partial-index predicate.
@@ -422,21 +466,24 @@ class TableElements:
 class ColumnElements:
     """Column-level grammar: the relation."""
 
-    @element(parent_tags="column, compositeColumn, formulaColumn", sub_tags="")
+    @element(parent_tags="column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn", sub_tags="")
     def relation(self, to: str, foreign_key: bool = False,
-                 on_delete: FK_ACTION | str | None = None,
-                 on_update: FK_ACTION | str | None = None,
+                 onDelete: str | None = None, onUpdate: str | None = None,
+                 onDelete_sql: str | None = None, onUpdate_sql: str | None = None,
                  deferred: bool = False, deferrable: bool = False,
                  initially_deferred: bool = False, indexed: bool = True,
-                 back_reference: str | None = None,
                  one_name: str | None = None,
                  many_name: str | None = None,
-                 one_one: bool = False, case_insensitive: bool = False,
-                 name: str | None = None, inverse: str | None = None,
-                 on_delete_sql: str | None = None, on_update_sql: str | None = None,
-                 on_duplicate: str | bool | None = None, constraint_name: str | None = None,
+                 one_one: bool | Literal['*'] = False, case_insensitive: bool = False,
+                 name: str | None = None, relation_name: str | None = None,
+                 onDuplicate: str | bool | None = None, constraint_name: str | None = None,
                  one_group: str | None = None, many_group: str | None = None,
-                 **extra):
+                 many_order_by: str | None = None, eager_one: bool | None = None,
+                 eager_many: bool | None = None, external_relation: bool | None = None,
+                 resolver_kwargs: dict | None = None, join_on: str | None = None,
+                 cnd: str | None = None, between: str | None = None,
+                 x_weak: bool | None = None, x_canonical: bool | None = None,
+                 x_name: str | None = None):
         """A relation on a column. Navigable by default, physical on demand.
 
         At most one per local structural key: the grammar accepts the insertion
@@ -447,20 +494,39 @@ class ColumnElements:
             to: the target, ``schema.table.column`` or ``schema.table``
                 (target columns default to the target pkey).
             foreign_key: emit a physical FK. Only these relations project
-                into the migration JSON.
-            on_delete: referential action on delete.
-            on_update: referential action on update.
-            deferred: compatibility sugar for DEFERRABLE INITIALLY DEFERRED.
+                a foreign key into the migration JSON; every relation on a
+                physical column indexes it.
+            onDelete: semantic; Python action on delete of the target row,
+                as in GenroPy: ``raise``, ``cascade``, ``setnull``, ``ignore``,
+                optionally followed by ``:message``.
+            onUpdate: semantic; Python action on update, same values.
+            onDelete_sql: SQL action of the foreign key on delete:
+                ``cascade``, ``restrict``, ``no action``, ``setnull``,
+                ``setdefault`` (any case; ``set null``/``set default`` too),
+                or the legacy abbreviations ``C``, ``R``, ``N``, ``SN``, ``SD``.
+            onUpdate_sql: SQL action of the foreign key on update, same
+                values; ``cascade`` when absent, as in GenroPy.
+            deferred: DEFERRABLE INITIALLY DEFERRED. True by default when
+                ``onDelete`` or ``onDelete_sql`` is ``setnull``, as in GenroPy.
             deferrable: make the foreign key DEFERRABLE. Without
                 ``initially_deferred`` it is initially immediate.
             initially_deferred: start a deferrable foreign key deferred.
-            indexed: the supporting index of the foreign key. On by
-                default (GenroPy parity, D3); ``False`` states that the
-                columns are deliberately left unindexed.
-            back_reference: semantic; navigable path of the many side.
+            indexed: the index of the relation columns, with or without a
+                foreign key. On by default, as legacy; ``False`` states that
+                the columns are deliberately left unindexed.
+            relation_name: semantic; name of the inverse relation on the target
+                (``@<relation_name>``), as in GenroPy.
             one_name: semantic; human label of the one side.
             many_name: semantic; human label of the many side.
-            one_one: semantic; the relation is 1:1.
+            one_one: semantic; the relation is 1:1. ``'*'`` without
+                ``relation_name`` names the inverse after the many table and
+                makes it public, as in GenroPy.
             case_insensitive: semantic; join case-insensitively.
+            join_on: semantic; the ON condition in place of the key
+                equality. Wins over ``cnd``.
+            cnd: semantic; the ON condition in place of the key equality.
+                The relation projects no foreign key (GenroPy ``mode='custom'``).
+            between: semantic; ``'value;low;high'``, a range condition in
+                place of the key equality.
         """
         ...

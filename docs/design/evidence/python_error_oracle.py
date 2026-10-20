@@ -108,7 +108,6 @@ def legacy_factory(root, dsn):
         def stack_depth(self):
             return len(self.currentEnv.get('_trigger_stack', ()))
 
-        close = ns['ConnectionMixin'].closeConnection
 
     return Legacy, {'commit': subprocess.check_output(
         ['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip(), 'sha256': sources}
@@ -124,13 +123,13 @@ def native_factory(dsn):
         def __init__(self, schema):
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    columns = root.db('oracle', conninfo=dsn).schemas().schema(
-                        'app', x_sql_schema=schema).tables().table(
+                    columns = root.db('oracle', implementation='postgres', conninfo=dsn).schemas().schema(
+                        'app', sqlname=schema).tables().table(
                             'item', pkey='id', x_table_class=item_class).columns()
                     columns.column('id', dtype='I')
                     columns.column('name', dtype='T')
             self.db = build_database(Recipe)
-            self.item = self.db.table('item')
+            self.item = self.db.table('app.item')
 
         def __getattr__(self, name):
             return getattr(self.db, name)
@@ -174,7 +173,7 @@ def fixture(factory, dsn):
         finally:
             try:
                 if db is not None:
-                    db.close()
+                    db.closeConnection()
             finally:
                 observer.execute(f'DROP SCHEMA "{schema}" CASCADE')
 
@@ -212,7 +211,7 @@ def scenarios(factory, dsn):
                     result['callbacks'] = trace[:]
                     # Recovery uses connection closure: legacy rollback alone does
                     # not clear its deferred queues, unlike native rollback.
-                    db.close()
+                    db.closeConnection()
                     results[f'{hook}/{completion}'] = result
     for queue in ('before', 'after'):
         for new_write in (False, True):

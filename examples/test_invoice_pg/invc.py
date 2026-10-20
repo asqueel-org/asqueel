@@ -2,22 +2,21 @@
 
 No GenroPy imports or expanded legacy fixtures are needed.
 """
-from genro_bag.resolvers import EnvResolver
 
 
 # projects/test_invoice/packages/invc/model/customer.py
 # SHA256: f3f76a6c57c6682502afabe328b5e18d9ff418efabdb56e36b7623c2ce5c45b4
 def customer(pkg):
-    tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name', group_b_address='Address', group_c_contacts='Contacts', group_d_billing='Billing', group_e_activity='Invoice activity', group_y_other='Other', group_z_relations='Relations')
-    tbl.options().partition('state', field='state', value=EnvResolver('INVC_STATE'))
+    tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name',
+                    partition_state='invc_state')
     tbl.options().sys_fields(draft=True, user_upd=False, group_name='!![en]System')
     tbl.column('account_name', name_long='!!Account name', name_short='Account name', validate_notnull=True, validate_len='2:40', group='001')
     tbl.column('street_address', name_long='!!Street Address', name_short='St.Address', group='b_address.01')
     tbl.column('suburb', name_long='!!Suburb', name_short='!!Suburb', group='b_address.02')
-    tbl.column('state', size=':5', name_long='!!State', name_short='Pr.', group='b_address.04').relation('invc.state.code', inverse='clients', on_delete='raise', one_group='b_address.04', foreign_key=True)
+    tbl.column('state', size=':5', name_long='!!State', name_short='Pr.', group='b_address.04').relation('invc.state.code', relation_name='clients', onDelete='raise', one_group='b_address.04', foreign_key=True)
     tbl.column('postcode', size=':5', name_long='!!Postcode', name_short='Postcode', group='b_address.03')
-    tbl.column('customer_type_code', size=':5', name_long='!!Customer type code', name_short='!!Cust type', group='002').relation('customer_type.code', inverse='customers', on_delete='raise', one_group='002', foreign_key=True)
-    tbl.column('payment_type_code', size=':10', name_long='!!Payment type code', name_short='!!Pay type', group='d_billing.01').relation('payment_type.code', inverse='customers', on_delete='raise', one_group='d_billing.01', foreign_key=True)
+    tbl.column('customer_type_code', size=':5', name_long='!!Customer type code', name_short='!!Cust type', group='002').relation('customer_type.code', relation_name='customers', onDelete='raise', one_group='002', foreign_key=True)
+    tbl.column('payment_type_code', size=':10', name_long='!!Payment type code', name_short='!!Pay type', group='d_billing.01').relation('payment_type.code', relation_name='customers', onDelete='raise', one_group='d_billing.01', foreign_key=True)
     tbl.column('notes', name_long='!!Notes', group='y_other.01')
     tbl.column('email', name_long='!!Email', group='c_contacts.01')
     tbl.column('phone', name_long='!!Phone', group='c_contacts.02')
@@ -29,7 +28,7 @@ def customer(pkg):
     tbl.column('registration_id').encryption(mode='Q')
     tbl.formulaColumn('n_invoices', select=dict(table='invc.invoice', columns='COUNT(*)', where='$customer_id=#THIS.id'), dtype='L', name_long='N.Invoices', group='e_activity.01')
     tbl.formulaColumn('invoiced_total', select=dict(table='invc.invoice', columns='SUM($total)', where='$customer_id=#THIS.id'), dtype='N', name_long='Invoiced Total', group='e_activity.02')
-    tbl.formulaColumn('last_invoice_id', select=dict(table='invc.invoice', columns='$id', where='$customer_id=#THIS.id', order_by='$date DESC', limit=1), dtype='T', name_long='Last Invoice', group='e_activity.04').weak_relation('invoice.id', inverse='last_invoice', one_group='e_activity.04')
+    tbl.formulaColumn('last_invoice_id', select=dict(table='invc.invoice', columns='$id', where='$customer_id=#THIS.id', order_by='$date DESC', limit=1), dtype='T', name_long='Last Invoice', group='e_activity.04').weak_relation('invoice.id', relation_name='last_invoice', one_group='e_activity.04')
     tbl.formulaColumn('full_address', sql_formula="$street_address || ', ' || $suburb", dtype='T', name_long='Full Address', group='b_address.05')
     tbl.formulaColumn('has_invoices', exists=dict(table='invc.invoice', where='$customer_id=#THIS.id'), dtype='B', name_long='Has Invoices', group='e_activity.06')
     tbl.formulaColumn('customer_rank', sql_formula="CASE WHEN $n_invoices = 0 THEN 'Inactive' WHEN $n_invoices < 5 THEN 'Occasional' ELSE 'Regular' END", dtype='A', name_long='Customer Rank', group='005')
@@ -45,10 +44,6 @@ def customer(pkg):
     tbl.formulaColumn('invoice_numbers', sql_formula="array_to_string(ARRAY(#inv_nums), ', ')", select_inv_nums=dict(table='invc.invoice', columns='$inv_number', where='$customer_id=#THIS.id', order_by='$date DESC', limit=5), dtype='T', name_long='Invoice Numbers', group='e_activity.05')
     tbl.formulaColumn('avg_invoice_value', sql_formula='$invoiced_total / NULLIF($n_invoices, 0)', dtype='N', name_long='Avg Invoice Value', group='e_activity.03')
     tbl.formulaColumn('has_activity', sql_formula='$has_invoices OR EXISTS(SELECT 1 FROM invc.invc_invoice_note AS n INNER JOIN invc.invc_invoice AS i ON n.invoice_id = i.id WHERE i.customer_id = #THIS.id)', dtype='B', name_long='Has Activity', group='e_activity.07')
-    tbl.subtable('residential', condition="$customer_type_code = 'RES'")
-    tbl.subtable('commercial', condition="$customer_type_code = 'COM'")
-    tbl.subtable('government', condition="$customer_type_code = 'GOV'")
-    tbl.subtable('trade', condition="$customer_type_code = 'TRD'")
     tbl.formulaColumn('is_confirmed', sql_formula='$__is_draft IS NOT TRUE', dtype='B', name_long='Is Confirmed', group='006')
 
 
@@ -66,7 +61,7 @@ def customer_type(pkg):
 def discount_tier(pkg):
     tbl = pkg.table('discount_tier', pkey='id', name_long='!!Discount Tier', name_plural='!!Discount Tiers')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('customer_type_code', size=':5', name_long='!!Customer Type').relation('customer_type.code', inverse='discount_tiers', on_delete='cascade', foreign_key=True)
+    tbl.column('customer_type_code', size=':5', name_long='!!Customer Type').relation('customer_type.code', relation_name='discount_tiers', onDelete='cascade', foreign_key=True)
     tbl.column('min_amount', dtype='N', name_long='!!Min Amount')
     tbl.column('max_amount', dtype='N', name_long='!!Max Amount')
     tbl.column('discount_rate', dtype='perc', name_long='!!Discount Rate')
@@ -76,18 +71,18 @@ def discount_tier(pkg):
 # projects/test_invoice/packages/invc/model/invoice.py
 # SHA256: 71f1ef0b6ad9cc20ddc37383ae08744e94b83fcf4a594204ef11d4947b6fbd8b
 def invoice(pkg):
-    tbl = pkg.table('invoice', pkey='id', name_long='!!Invoice', name_plural='!!Invoice', caption_field='inv_number')
-    tbl.options().partition('customer_state', field='customer_state', value=EnvResolver('INVC_STATE'))
+    tbl = pkg.table('invoice', pkey='id', name_long='!!Invoice', name_plural='!!Invoice', caption_field='inv_number',
+                    partition_customer_state='invc_state')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.column('inv_number', size='10', name_long='!!Invoice number', name_short='Inv N', unique=True)
-    tbl.column('customer_id', size='22', group='_', name_long='!!Customer').relation('customer.id', inverse='invoices', on_delete='raise', many_group='z_relations.01', foreign_key=True)
+    tbl.column('customer_id', size='22', group='_', name_long='!!Customer').relation('customer.id', relation_name='invoices', onDelete='raise', many_group='z_relations.01', foreign_key=True)
     tbl.column('date', dtype='D', name_long='!!Date', validate_notnull=True)
     tbl.column('total', dtype='money', name_long='!!Total')
     tbl.column('vat_total', dtype='money', name_long='!!VAT total')
     tbl.column('gross_total', dtype='money', name_long='!!Gross total')
     tbl.column('invoice_time', dtype='H', name_long='!!Invoice Time')
     tbl.formulaColumn('row_count', select=dict(table='invc.invoice_row', columns='COUNT(*)', where='$invoice_id=#THIS.id'), dtype='L', name_long='Row Count')
-    tbl.formulaColumn('first_product_id', select=dict(table='invc.invoice_row', columns='$product_id', where='$invoice_id=#THIS.id', order_by='$_row_count', limit=1), dtype='T', name_long='First Product').weak_relation('product.id', inverse='first_in_invoice')
+    tbl.formulaColumn('first_product_id', select=dict(table='invc.invoice_row', columns='$product_id', where='$invoice_id=#THIS.id', order_by='$_row_count', limit=1), dtype='T', name_long='First Product').weak_relation('product.id', relation_name='first_in_invoice')
     tbl.aliasColumn('customer_name', relation_path='@customer_id.account_name', name_long='Customer Name')
     tbl.aliasColumn('customer_state', relation_path='@customer_id.state', name_long='Customer State')
     tbl.formulaColumn('anno', sql_formula='EXTRACT(YEAR FROM $date)', dtype='T', name_long='Anno')
@@ -123,7 +118,7 @@ def invoice(pkg):
 def invoice_note(pkg):
     tbl = pkg.table('invoice_note', pkey='id', name_long='!!Invoice Note', name_plural='!!Invoice Notes')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('invoice_id', size='22', group='_', name_long='!!Invoice').relation('invoice.id', inverse='notes', on_delete='cascade', foreign_key=True)
+    tbl.column('invoice_id', size='22', group='_', name_long='!!Invoice').relation('invoice.id', relation_name='notes', onDelete='cascade', foreign_key=True)
     tbl.column('note_type', size=':20', name_long='!!Note Type')
     tbl.column('note_text', name_long='!!Note Text')
     tbl.column('priority', dtype='I', name_long='!!Priority')
@@ -139,15 +134,15 @@ def invoice_row(pkg):
     tbl = pkg.table('invoice_row', pkey='id', name_long='!!Invoice row', name_plural='!!Invoice rows')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
     tbl.options().auto_counter('invoice_id')
-    tbl.column('invoice_id', size='22', group='_', name_long='!!Invoice').relation('invoice.id', inverse='rows', on_delete='cascade', foreign_key=True)
-    tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', inverse='invoice_rows', on_delete='raise', foreign_key=True)
+    tbl.column('invoice_id', size='22', group='_', name_long='!!Invoice').relation('invoice.id', relation_name='rows', onDelete='cascade', foreign_key=True)
+    tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', relation_name='invoice_rows', onDelete='raise', foreign_key=True)
     tbl.column('quantity', dtype='I', name_long=u'!![it]Quantity', name_short='Q.')
     tbl.column('unit_price', dtype='money', name_long='!!Unit price', name_short='U.Pr.')
     tbl.column('tot_price', dtype='money', name_long='!!Total price', name_short='T.Pr.')
     tbl.column('vat', dtype='money', name_long='VAT', name_short='VAT')
     tbl.column('vat_rate', dtype='perc', name_long='!![it]Vat rate')
     tbl.aliasColumn('customer_name', relation_path='@invoice_id.@customer_id.account_name', name_long='Customer name')
-    tbl.aliasColumn('customer_id', relation_path='@invoice_id.customer_id', name_long='Customer id', x_legacy_relation_related_column='customer.id', x_legacy_relation_relation_name='invoice_rows_by_customer', x_legacy_relation_many_group='z_relations.02')
+    tbl.aliasColumn('customer_id', relation_path='@invoice_id.customer_id', name_long='Customer id')
     tbl.aliasColumn('product_name', relation_path='@product_id.description', name_long='Product Name')
     tbl.aliasColumn('customer_state', relation_path='@invoice_id.@customer_id.@state.name', name_long='Customer State')
     tbl.formulaColumn('line_total', sql_formula='$quantity * $unit_price', dtype='N', name_long='Line Total')
@@ -186,11 +181,11 @@ def payment_type(pkg):
 def postcode(pkg):
     tbl = pkg.table('postcode', name_long='Postcode', name_plural='Postcodes', pkey='id', caption_field='postcode', lookup=False)
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('postcode', size=':10', name_long='postcode', legacy_name='postcode', unique=False, indexed=True)
-    tbl.column('suburb', size=':100', name_long='suburb', legacy_name='suburb')
-    tbl.column('state', size=':5', name_long='state', legacy_name='state').relation('state.code', inverse='postcodes', foreign_key=True)
-    tbl.column('lat', name_long='lat', legacy_name='lat')
-    tbl.column('lon', name_long='lon', legacy_name='lon')
+    tbl.column('postcode', size=':10', name_long='postcode', unique=False, indexed=True)
+    tbl.column('suburb', size=':100', name_long='suburb')
+    tbl.column('state', size=':5', name_long='state').relation('state.code', relation_name='postcodes', foreign_key=True)
+    tbl.column('lat', name_long='lat')
+    tbl.column('lon', name_long='lon')
 
 
 # projects/test_invoice/packages/invc/model/price_year.py
@@ -198,7 +193,7 @@ def postcode(pkg):
 def price_year(pkg):
     tbl = pkg.table('price_year', pkey='id', name_long='!!Price Year', name_plural='!!Price Years')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', inverse='price_years', on_delete='cascade', foreign_key=True)
+    tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', relation_name='price_years', onDelete='cascade', foreign_key=True)
     tbl.column('year', dtype='L', name_long='!!Year')
     tbl.column('unit_price', dtype='money', name_long='!!Unit Price')
     tbl.column('note', name_long='!!Note')
@@ -212,9 +207,9 @@ def price_year(pkg):
 def price_year_note(pkg):
     tbl = pkg.table('price_year_note', pkey='id', name_long='!!Price Year Note', name_plural='!!Price Year Notes')
     tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', inverse='price_year_notes', on_delete='cascade', foreign_key=True)
+    tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', relation_name='price_year_notes', onDelete='cascade', foreign_key=True)
     tbl.column('year', dtype='L', name_long='!!Year')
-    tbl.compositeColumn('product_year_ref', columns='product_id,year').weak_relation('price_year.product_year_key', inverse='notes')
+    tbl.compositeColumn('product_year_ref', columns='product_id,year').weak_relation('price_year.product_year_key', relation_name='notes')
     tbl.column('note_text', name_long='!!Note Text')
     tbl.column('importance', dtype='I', name_long='!!Importance')
     tbl.aliasColumn('price_year_price', relation_path='@product_year_ref.unit_price', name_long='Price Year Price')
@@ -230,13 +225,13 @@ def product(pkg):
     tbl.column('code', size=':10', name_long='!!Code')
     tbl.column('description', size=':80', name_long='!!Description')
     tbl.column('presentation_txt', name_long='!!Presentation')
-    tbl.column('vat_type_code', size=':5', group='_', name_long='!![it]VAT type').relation('vat_type.code', inverse='products', on_delete='raise', foreign_key=True)
-    tbl.column('product_type_id', size='22', group='_', name_long='!!Product type', name_short='Type').relation('product_type.id', inverse='products', on_delete='raise', foreign_key=True)
+    tbl.column('vat_type_code', size=':5', group='_', name_long='!![it]VAT type').relation('vat_type.code', relation_name='products', onDelete='raise', foreign_key=True)
+    tbl.column('product_type_id', size='22', group='_', name_long='!!Product type', name_short='Type').relation('product_type.id', relation_name='products', onDelete='raise', foreign_key=True)
     tbl.column('unit_price', dtype='money', name_long='!!Price', name_short='Price')
     tbl.column('image_url', dtype='P', name_long='!!Image url', name_short='Img')
     tbl.column('details', dtype='X', name_long='!!Details')
     tbl.column('details').dynamic_fields(source='product_type_id')
-    tbl.formulaColumn('picture', 'image_url', dtype='P', name_long='!!Picture', name_short='Img', cell_format='auto:.5')
+    tbl.formulaColumn('picture', 'image_url', dtype='P', name_long='!!Picture', name_short='Img')
     tbl.formulaColumn('total_sold', select=dict(table='invc.invoice_row', columns='SUM($quantity)', where='$product_id=#THIS.id'), dtype='N', name_long='Total Sold')
     tbl.formulaColumn('price_range', sql_formula="CASE WHEN $unit_price > 500 THEN 'Premium' WHEN $unit_price > 100 THEN 'Mid' ELSE 'Budget' END", dtype='A', name_long='Price Range')
     tbl.formulaColumn('code_and_desc', sql_formula="$code || ' - ' || $description", dtype='T', name_long='Code and Description')
@@ -296,9 +291,9 @@ def staff(pkg):
     tbl.column('last_name', name_long='!!Last Name', validate_notnull=True)
     tbl.column('email', name_long='!!Email')
     tbl.column('hire_date', dtype='D', name_long='!!Hire Date')
-    tbl.column('state', size=':5', name_long='!!State').relation('invc.state.code', inverse='staff_members', on_delete='raise', foreign_key=True)
-    tbl.column('role_code', size=':5', name_long='!!Role').relation('staff_role.code', inverse='staff_members', on_delete='raise', foreign_key=True)
-    tbl.column('user_id', size='22', name_long='!!User').relation('adm.user.id', inverse='staff_member', on_delete='set_null', foreign_key=True)
+    tbl.column('state', size=':5', name_long='!!State').relation('invc.state.code', relation_name='staff_members', onDelete='raise', foreign_key=True)
+    tbl.column('role_code', size=':5', name_long='!!Role').relation('staff_role.code', relation_name='staff_members', onDelete='raise', foreign_key=True)
+    tbl.column('user_id', size='22', name_long='!!User').relation('adm.user.id', relation_name='staff_member', onDelete='setnull', foreign_key=True)
     tbl.formulaColumn('full_name', sql_formula="$first_name || ' ' || $last_name", dtype='T', name_long='Full Name')
     tbl.aliasColumn('state_name', relation_path='@state.name', name_long='State Name')
     tbl.aliasColumn('role_description', relation_path='@role_code.description', name_long='Role Description')
@@ -322,7 +317,7 @@ def state(pkg):
     tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':5', name_long='!!Code')
     tbl.column('name', size=':100', name_long='!!Name')
-    tbl.column('region_code', size=':5', name_long='!!Region').relation('region.code', inverse='states', on_delete='raise', foreign_key=True)
+    tbl.column('region_code', size=':5', name_long='!!Region').relation('region.code', relation_name='states', onDelete='raise', foreign_key=True)
 
 
 # projects/test_invoice/packages/invc/model/vat_type.py

@@ -49,9 +49,12 @@ def test_cli_creates_database_and_reuses_registered_configuration(tmp_path, monk
                 db.table('sales.customer').insert({'id': 3, 'name': 'Pending on exit'})
             monkeypatch.setattr('asqueel.cli.code.interact', console)
             assert main(['shell', 'gestionale']) == 0
-            with build_database('gestionale') as db:
+            db = build_database('gestionale')
+            try:
                 rows = db.table('sales.customer').query(columns='$id', order_by='$id').fetch()
                 assert [row['id'] for row in rows] == [1, 2]
+            finally:
+                db.closeConnection()
             capsys.readouterr()
             assert main(['db', 'plan', 'gestionale']) == 0
             assert capsys.readouterr().out.strip() == 'No changes.'

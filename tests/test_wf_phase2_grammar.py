@@ -26,7 +26,7 @@ def _recipe():
             author_columns.column(name="id", dtype="serial")
             author_columns.column(
                 name="name", dtype="A", size="0:120", notnull=True,
-                name_long="Author name", x_custom="free",
+                name_long="Author name",
             )
 
             recipe = tables.table(name="recipe", pkey="id")
@@ -39,7 +39,7 @@ def _recipe():
                 name="author_id", dtype="L", notnull=True,
             )
             author_id.relation(to="public.author.id", foreign_key=True,
-                               on_delete="CASCADE", back_reference="recipes")
+                               onDelete_sql="cascade", relation_name="recipes")
             recipe.composites().compositeColumn(
                 name="author_title", columns="author_id,title", unique=True,
             )
@@ -88,15 +88,13 @@ def test_duplicate_table_name_raises():
 
 
 def test_unknown_physical_attribute_rejected_at_grammar_or_validation():
-    # wf:contract: a typo like dtypo= must NOT silently become a semantic
-    # wf:contract: attribute: either the element signature rejects it at call
-    # wf:contract: time, or (D2 semi-closed) the Phase 3 validator rejects any
-    # wf:contract: **extra key not starting with x_. At Phase 2 the grammar
-    # wf:contract: must at least ACCEPT x_-prefixed extras and carry them on
-    # wf:contract: the node attributes.
+    # A typo like dtypo= or a free x_custom= never becomes an attribute: the
+    # element signature rejects it at call time, naming attribute and element.
     model = _recipe()
-    name_node = model.source["db.schemas.public.tables.author.columns.name"]
-    assert name_node.get_attr("x_custom") == "free"
+    columns = model.source["db.schemas.public.tables.author.columns"]
+    for key in ("dtypo", "x_custom"):
+        with pytest.raises(ValueError, match=f"Element 'column' does not accept '{key}'"):
+            columns.column(name="other", dtype="A", **{key: "free"})
 
 
 def test_unknown_tag_raises():

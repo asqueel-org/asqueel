@@ -1,0 +1,34 @@
+..........F.......                                                       [100%]
+=================================== FAILURES ===================================
+________________ test_unicode_values_escapes_and_types[sqlite] _________________
+
+database = (<asqueel.drivers.sqlite.SqliteDriver object at 0x10cf4f0b0>, <sqlite3.Connection object at 0x10cf49210>)
+
+    def test_unicode_values_escapes_and_types(database):
+>       result = run(database, "SELECT :soglia_è AS amount, :value AS value, :day AS day, :nothing AS nothing", {
+            'soglia_è': Decimal('12.50'), 'value': b'\\$id', 'day': date(2026, 10, 14), 'nothing': None})
+
+tests/adapter_integration/test_legacy_preparation.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/adapter_integration/test_legacy_preparation.py:29: in run
+    return driver.execute(connection, query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <asqueel.drivers.sqlite.SqliteDriver object at 0x10cf4f0b0>
+connection = <sqlite3.Connection object at 0x10cf49210>
+query = CompiledQuery(sql='SELECT :soglia_è AS amount, :value AS value, :day AS day, :nothing AS nothing', params=mappingproxy..., dialect='sqlite', binding='sqlite_named', environment=None, input_parameters=('day', 'nothing', 'soglia_è', 'value'))
+
+    def execute(self, connection, query):
+        self.validate(query)
+        if not connection.in_transaction:
+            connection.execute('BEGIN IMMEDIATE')
+        params = {name: self._value(value) for name, value in query.params.items()}
+>       cursor = connection.execute(query.sql, params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       sqlite3.OperationalError: near "nothing": syntax error
+
+src/asqueel/drivers/sqlite.py:89: OperationalError
+=========================== short test summary info ============================
+FAILED tests/adapter_integration/test_legacy_preparation.py::test_unicode_values_escapes_and_types[sqlite]
+1 failed, 17 passed in 0.17s

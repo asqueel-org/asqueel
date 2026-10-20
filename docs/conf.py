@@ -68,7 +68,7 @@ html_context = {
 html_logo = "../assets/asqueel/svg/asqueel-wordmark-inverse.svg"
 html_favicon = "../assets/asqueel/icons/favicon.ico"
 html_static_path = ["_static"]
-html_css_files = ["readability.css", "brand.css"]
+html_css_files = ["readability.css", "brand.css", "differences.css"]
 language = "en"
 
 intersphinx_mapping = {

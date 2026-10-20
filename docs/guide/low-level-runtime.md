@@ -8,11 +8,12 @@ from asqueel import AsqueelDb
 
 db = AsqueelDb('myapp')
 try:
-    result = db.execute('SELECT :value AS value', {'value': 42})
-    assert result.rows == [{'value': 42}]
+    cursor = db.execute('SELECT :value AS value', {'value': 42})
+    assert cursor.fetchone()['value'] == 42
+    cursor.close()
     db.commit()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 Direct SQL is trusted application code. Bind data through named parameters;
@@ -21,14 +22,26 @@ without altering placeholders inside strings, comments or quoted identifiers.
 `:env_name` can resolve a value from the current environment unless an explicit
 parameter overrides it. SQL expressions and functions must fit the backend.
 
+`db.execute(sql, sqlargs=None, cursor=None, cursorname=None, autocommit=False,
+dbtable=None, storename=None, _adaptArguments=True)` has the legacy signature
+and returns the open cursor of the statement: `description`, `rowcount`,
+`arraysize`, `fetchone()`, `fetchmany(size)`, `fetchall()`, iteration and
+`close()`. Rows are `NamedList`, read by name or position, like the legacy dict
+cursor. `cursorname` opens a server-side cursor on PostgreSQL (`'*'` generates
+the name); SQLite ignores it. `autocommit=True` calls `db.commit()` after the
+statement. `dbtable` is accepted. `storename`, `cursor` and
+`_adaptArguments=False` raise `UnsupportedFeatureError`. A driver error raised
+by execute or by a fetch rolls the connection back and is re-raised; the
+database stays usable.
+
 `db.execute(compiled_query)` also accepts a `CompiledQuery`, including the one
 produced by `db.table(...).query(...).compiled`. Compiled queries already contain
-their parameters and dialect/binding profile; do not pass a separate parameter
+their parameters and adapter profile (`dialect`, `binding`); do not pass a separate parameter
 mapping. Environment bindings are checked before execution.
 
 ## Execution without a model
 
-`Database(driver=...)` and `PostgresDatabase(...)` remain available for callers
+`Database(implementation=...)` and `PostgresDatabase(...)` remain available for callers
 that only execute statements. Their implementation is the same execution base
 used by the configured DB: lazy named connections, thread-local state, and
 explicit `commit()` / `rollback()`.
@@ -38,10 +51,10 @@ from asqueel import PostgresDatabase
 
 db = PostgresDatabase('dbname=example')
 try:
-    rows = db.execute('SELECT :value AS value', {'value': 42}).rows
+    rows = db.execute('SELECT :value AS value', {'value': 42}).fetchall()
     db.commit()
 finally:
-    db.close()
+    db.closeConnection()
 ```
 
 There is no `transaction()` API. Unlike the former low-level runtime, `execute()`
@@ -50,8 +63,22 @@ migrating from that API must add explicit completion.
 
 An explicitly supplied `SqlEnvironment` can be shared between a standalone
 compiler and this execution facade. `AsqueelDb` instead copies its supplied
-environment into per-thread defaults. Result rows are eagerly materialized;
-streaming, savepoints and automatic retry are not provided.
+environment into per-thread defaults. Savepoints and automatic retry are not
+provided.
+
+## Maintenance calls
+
+- `db.analyze()` runs `ANALYZE` in the current transaction.
+- `db.vacuum(table='', full=False)` reclaims storage on a separate connection:
+  `VACUUM [FULL] ANALYZE [table]` on PostgreSQL; `VACUUM` then
+  `ANALYZE [table]` on SQLite, where `full` adds nothing. `table` is the SQL
+  table name. With pending work on any named connection of the thread,
+  `vacuum` raises `TransactionStateError`: commit or roll back first.
+- `db.setConstraintsDeferred()` defers the deferrable constraints until the
+  commit of the current transaction (`SET CONSTRAINTS ALL DEFERRED` on
+  PostgreSQL, `PRAGMA defer_foreign_keys = ON` on SQLite).
+- `db.setLocale()` hands `currentEnv['locale']` to the adapter; neither adapter
+  changes the connection.
 
 See [transactions and database access](transactions.md) for errors, callbacks,
 cleanup and connection selection.

@@ -1,4 +1,4 @@
-"""Verify the interfaces between planner, dialect, binding and structure."""
+"""Verify the interfaces between planner, adapter, binding and structure."""
 import ast
 from pathlib import Path
 import subprocess
@@ -7,10 +7,8 @@ import sys
 import pytest
 
 from asqueel.compiler import PostgresCompiler
-from asqueel.contracts import Column, CompiledQuery, ResolvedModel, Table
-from asqueel.dialects.postgres import PostgresDialect
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.query_plan import Parameter, SqlStatement
+from asqueel.contracts import CompiledQuery
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.runtime import Database
 
 
@@ -24,15 +22,14 @@ def no_clients(name, *args, **kwargs):
     return original(name, *args, **kwargs)
 builtins.__import__ = no_clients
 from asqueel.compiler import PostgresCompiler, QueryCompiler
-from asqueel.contracts import Column, ResolvedModel, Table
-from asqueel.dialects.postgres import PostgresDialect
-from asqueel.drivers.psycopg import PsycopgDriver
-from asqueel.runtime import Database
-table = Table('sample', columns={'id': Column('id', 'L')})
-model = ResolvedModel({table.key: table})
-facade = PostgresCompiler(model).select('sample', where='$id = :id', sqlparams={'id': 7})
-generic = QueryCompiler(model, PostgresDialect(), PsycopgDriver()).select(
-    'sample', where='$id = :id', sqlparams={'id': 7})
+from asqueel import SqlDatabaseConfig, resolve_model
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+source = SqlDatabaseConfig()
+source.source.db('demo').packages().package('app').table('sample', pkey='id').column('id', dtype='L')
+model = resolve_model(source)
+facade = PostgresCompiler(model).select('app.sample', where='$id = :id', sqlparams={'id': 7})
+generic = QueryCompiler(model, PostgresAdapter(None)).select(
+    'app.sample', where='$id = :id', sqlparams={'id': 7})
 assert facade == generic
 assert dict(generic.params) == {'id': 7}
 '''
@@ -44,34 +41,33 @@ assert dict(generic.params) == {'id': 7}
 def test_data_and_structure_share_sql_quoting_but_not_driver_escaping(name):
     from asqueel_migration.writers.pg_writer import PgWriter
 
-    dialect = PostgresDialect()
-    quoted = dialect.quote_identifier(name)
+    quoted = PostgresAdapter(None).adaptSqlName(name)
     assert quoted == PgWriter.quote_identifier(name)
-    prepared = PsycopgDriver().prepare(SqlStatement(('SELECT ', quoted)))
-    assert prepared.sql == 'SELECT ' + quoted.replace('%', '%%')
+    prepared = PostgresAdapter(None).prepare_sql('SELECT ' + quoted, {}, {})
+    assert prepared.sql == 'SELECT ' + quoted
 
 
-def test_no_db_connection_for_binding_and_no_textual_replacement_of_fake_placeholders():
-    statement = SqlStatement((
-        "SELECT '%(trap)s :fake 50%' AS text, ", Parameter('actual'),
-        ' /* %(trap)s */',
-    ), {'actual': "Robert'); DROP TABLE sample; --", 'unused': 1})
-    query = PsycopgDriver().prepare(statement)
-    assert query.sql == "SELECT '%%(trap)s :fake 50%%' AS text, %(actual)s /* %%(trap)s */"
-    assert dict(query.params) == {'actual': "Robert'); DROP TABLE sample; --"}
+def test_no_db_connection_for_binding():
+    value = "Robert'); DROP TABLE sample; --"
+    query = PostgresAdapter(None).prepare_sql('SELECT :actual AS value', {'actual': value}, {})
+    assert query.sql == 'SELECT %(actual)s AS value'
+    assert dict(query.params) == {'actual': value}
 
 
 @pytest.mark.parametrize('field,value', [('dialect', 'other'), ('binding', 'qmark')])
-def test_incompatible_statement_is_rejected_before_connection(field, value):
-    class NoConnect(PsycopgDriver):
-        def connect(self, *args, **kwargs):
-            raise AssertionError('A mismatched statement must not open a connection')
+def test_incompatible_statement_is_rejected_before_connection(field, value, monkeypatch):
+    def connect(*args, **kwargs):
+        raise AssertionError('A mismatched statement must not open a connection')
+    monkeypatch.setattr(PostgresAdapter, 'connect', connect)
 
     def scenario():
-        with Database(driver=NoConnect()) as db:
+        db = Database(implementation='postgres')
+        try:
             query = CompiledQuery('SELECT 1', **{field: value})
             with pytest.raises(ValueError):
                 db.execute(query)
+        finally:
+            db.closeConnection()
     scenario()
 
 
@@ -86,16 +82,18 @@ def test_runtime_has_no_client_or_sql_compiler_dependency():
         elif isinstance(node, ast.ImportFrom):
             imports.append(node.module or '')
     assert not any(name == 'psycopg' or name.startswith('psycopg.') for name in imports)
-    assert not any(name == 'compiler' or name.startswith('dialects') for name in imports)
+    assert not any(name == 'compiler' or name.startswith('adapters') for name in imports)
 
 
 def test_facade_keeps_existing_compiled_query_binding_contract():
-    table = Table('sample', sql_name='50%', columns={'odd name': Column('odd name')})
-    model = ResolvedModel({table.key: table})
-    compiler = PostgresCompiler(model)
-    query = compiler.select('sample', where='$"odd name" = :value', sqlparams={'value': '50%'})
-    assert '"50%%"' in query.sql
+    from asqueel import SqlDatabaseConfig, resolve_model
+    source = SqlDatabaseConfig()
+    table = source.source.db('demo').packages().package('app').table('sample', sqlname='50%')
+    table.column('name')
+    query = PostgresCompiler(resolve_model(source)).select(
+        'app.sample', '$name', where='$name = :value', sqlparams={'value': '50%'})
+    assert '"50%"' in query.sql
     assert '%(value)s' in query.sql
     assert query.binding == 'psycopg_named'
-    assert query.dialect == 'postgresql'
+    assert query.dialect == 'postgres'
     assert query.params['value'] == '50%'

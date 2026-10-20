@@ -1,0 +1,402 @@
+[
+  {
+    "name": "quoted_numeric_parameter",
+    "source_sql": "SELECT ':id' AS value, :id::integer AS bound",
+    "params": {
+      "id": 1
+    },
+    "prepared_sql": "SELECT '%(id)s' AS value, %(id)s::integer AS bound",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            "1",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            "$1",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            "1",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "ordinary_numeric_parameter",
+    "source_sql": "SELECT :id::integer AS value",
+    "params": {
+      "id": 1
+    },
+    "prepared_sql": "SELECT %(id)s::integer AS value",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            1
+          ]
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            1
+          ]
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            1
+          ]
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "escaped_literal",
+    "source_sql": "SELECT '\\:id' AS value, :id::integer AS bound",
+    "params": {
+      "id": 1
+    },
+    "prepared_sql": "SELECT ':id' AS value, %(id)s::integer AS bound",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            ":id",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            ":id",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            ":id",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "ordinary_text_parameter",
+    "source_sql": "SELECT :text::text AS value",
+    "params": {
+      "text": "O'Reilly"
+    },
+    "prepared_sql": "SELECT %(text)s::text AS value",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            "O'Reilly"
+          ]
+        ],
+        "types": [
+          [
+            "str"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            "O'Reilly"
+          ]
+        ],
+        "types": [
+          [
+            "str"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            "O'Reilly"
+          ]
+        ],
+        "types": [
+          [
+            "str"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "percent_escape",
+    "source_sql": "SELECT '10%%' AS value, :id::integer AS bound",
+    "params": {
+      "id": 1
+    },
+    "prepared_sql": "SELECT '10%%' AS value, %(id)s::integer AS bound",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            "10%",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            "10%",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            "10%",
+            1
+          ]
+        ],
+        "types": [
+          [
+            "str",
+            "int"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "typed_parameters",
+    "source_sql": "SELECT :d::date, :amount::numeric, :flag::boolean",
+    "params": {
+      "d": "2026-01-02",
+      "amount": "12.50",
+      "flag": true
+    },
+    "prepared_sql": "SELECT %(d)s::date, %(amount)s::numeric, %(flag)s::boolean",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            "2026-01-02",
+            "12.50",
+            true
+          ]
+        ],
+        "types": [
+          [
+            "date",
+            "Decimal",
+            "bool"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            "2026-01-02",
+            "12.50",
+            true
+          ]
+        ],
+        "types": [
+          [
+            "date",
+            "Decimal",
+            "bool"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            "2026-01-02",
+            "12.50",
+            true
+          ]
+        ],
+        "types": [
+          [
+            "date",
+            "Decimal",
+            "bool"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "null_parameter",
+    "source_sql": "SELECT :value::integer",
+    "params": {
+      "value": null
+    },
+    "prepared_sql": "SELECT %(value)s::integer",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            null
+          ]
+        ],
+        "types": [
+          [
+            "NoneType"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            null
+          ]
+        ],
+        "types": [
+          [
+            "NoneType"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            null
+          ]
+        ],
+        "types": [
+          [
+            "NoneType"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "name": "repeated_parameter",
+    "source_sql": "SELECT :id::integer + :id::integer",
+    "params": {
+      "id": 1
+    },
+    "prepared_sql": "SELECT %(id)s::integer + %(id)s::integer",
+    "engines": {
+      "psycopg2": {
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_server": {
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      },
+      "psycopg3_client_proposal": {
+        "rows": [
+          [
+            2
+          ]
+        ],
+        "types": [
+          [
+            "int"
+          ]
+        ]
+      }
+    }
+  }
+]

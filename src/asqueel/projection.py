@@ -4,10 +4,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from .builder import SqlBuilder
+from .common import sql_column_attributes
 from .contracts import ResolvedModel, UnsupportedFeatureError
+from .object_tree import DbModel
 
 
-_ACTIONS = {'a': None, 'r': 'RESTRICT', 'c': 'CASCADE', 'n': 'SET NULL', 'd': 'SET DEFAULT'}
+_ACTIONS = {'a': 'no action', 'r': 'restrict', 'c': 'cascade', 'n': 'setnull', 'd': 'setdefault'}
 
 
 def _package_storage(dtype, attributes):
@@ -28,13 +30,70 @@ def _package_storage(dtype, attributes):
     return dtype
 
 
-def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) -> SqlBuilder:
+def _column_storage(column, *, path, packaged, implementation=None):
+    metadata = column.attributes
+    if metadata.get('identity_kind') or metadata.get('generated'):
+        raise UnsupportedFeatureError(f'{path}: identity/generated DDL')
+    if metadata.get('default_collation') is False:
+        raise UnsupportedFeatureError(f'{path}: custom column collation')
+    if metadata.get('owned_sequence') or metadata.get('sequence_default'):
+        raise UnsupportedFeatureError(f'{path}: sequence ownership/default not modeled')
+    raw = metadata.get('raw_type', '')
+    if raw in {'smallint', 'real'} or (raw.startswith(('time', 'timestamp')) and '(' in raw):
+        raise UnsupportedFeatureError(f'{path}: lossy type projection {raw}')
+    kwargs = {k: metadata[k] for k in ('size', 'notnull', 'unique', 'indexed', 'comment')
+              if metadata.get(k) is not None}
+    kwargs.update(sql_column_attributes(metadata, implementation))
+    if metadata.get('default') is not None and metadata.get('raw_type'):
+        kwargs['sql_default'] = metadata['default']
+    dtype = (_package_storage(column.dtype, kwargs)
+             if packaged else column.dtype)
+    return dtype, kwargs
+
+
+def _constraint_index_feature(item):
+    """The first introspected property of a constraint-owned index the builder cannot declare."""
+    checks = [
+        ('storage options', item.get('options')),
+        ('a tablespace', item.get('tablespace')),
+        ('included columns', len(item.get('columns', ())) != item.get('key_count')),
+        (f'method {item.get("method")}', item.get('method') != 'btree'),
+        ('non-default operator classes', item.get('default_opclasses') is False),
+        ('non-default collations', item.get('default_collations') is False),
+        ('non-default ordering', any(v != 0 for v in item.get('ordering', ()))),
+        ('NOT VALID', item.get('valid') is False),
+        ('NULLS NOT DISTINCT', item.get('nulls_not_distinct')),
+    ]
+    return next((name for name, present in checks if present), None)
+
+
+def _index_feature(item):
+    """The first introspected property of an index the builder cannot declare."""
+    columns = item['columns']
+    checks = [
+        ('expression columns', not all(columns)),
+        ('included columns', len(columns) != item['key_count']),
+        ('NULLS FIRST/LAST ordering', any(v not in (0, 3) for v in item['ordering'])),
+        ('non-default operator classes', not item['default_opclasses']),
+        ('non-default collations', not item['default_collations']),
+        ('NOT VALID', not item['valid']),
+        ('NULLS NOT DISTINCT', item['nulls_not_distinct']),
+        ('storage options', item['options']),
+        ('a tablespace', item['tablespace']),
+    ]
+    return next((name for name, present in checks if present), None)
+
+
+def to_physical_builder(model: ResolvedModel | DbModel, *, allow_constraint_rename=False) -> SqlBuilder:
     """Project supported physical semantics, rejecting anything lossy.
 
     Arbitrary imported PK/FK/UNIQUE names are not representable by the current
     emitter. Opt in only when the migration comparison ignores constraint names.
     Views/formulas/UI are semantic and deliberately excluded from physical DDL.
     """
+    if isinstance(model, DbModel):
+        from .object_tree_projection import project_tree
+        return project_tree(model)
     if model.warnings:
         raise UnsupportedFeatureError('Incomplete model with import warnings cannot be projected: ' + '; '.join(model.warnings))
 
@@ -67,24 +126,8 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                 for column in table.columns.values():
                     if column.is_virtual:
                         continue
-                    metadata = column.attributes
-                    if metadata.get('identity_kind') or metadata.get('generated'):
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: identity/generated DDL')
-                    if metadata.get('default_collation') is False:
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: custom column collation')
-                    if metadata.get('owned_sequence') or metadata.get('sequence_default'):
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: sequence ownership/default not modeled')
-                    raw = metadata.get('raw_type', '')
-                    if raw in {'smallint', 'real'} or (raw.startswith(('time', 'timestamp')) and '(' in raw):
-                        raise UnsupportedFeatureError(f'{table.key}.{column.name}: lossy type projection {raw}')
-                    kwargs = {k: metadata[k] for k in (
-                        'size', 'notnull', 'unique', 'indexed', 'sqldefault',
-                        'extra_sql', 'generated_expression', 'comment',
-                    ) if metadata.get(k) is not None}
-                    if metadata.get('default') is not None and metadata.get('raw_type'):
-                        kwargs['sqldefault'] = metadata['default']
-                    dtype = (_package_storage(column.dtype, kwargs)
-                             if table.package_name else column.dtype)
+                    dtype, kwargs = _column_storage(
+                        column, path=f'{table.key}.{column.name}', packaged=bool(table.package_name))
                     column_nodes[(table.key, column.name)] = cols.column(
                         column.physical_name, dtype=dtype, **kwargs)
                 constraints_node = None
@@ -95,9 +138,14 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                         if kind in {'p', 'u', 'f'} and not allow_constraint_rename:
                             raise UnsupportedFeatureError(
                                 f'{table.key}: imported constraint names require allow_constraint_rename=True')
-                        if (kind in {'p', 'u'} and constraint.get('deferrable')
-                                or 'NULLS NOT DISTINCT' in constraint.get('definition', '')):
-                            raise UnsupportedFeatureError(f'{table.key}: advanced unique/primary constraint')
+                        if kind in {'p', 'u'} and constraint.get('deferrable'):
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{constraint["name"]}: DEFERRABLE primary/unique constraint '
+                                'is not available in this release')
+                        if 'NULLS NOT DISTINCT' in constraint.get('definition', ''):
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{constraint["name"]}: NULLS NOT DISTINCT constraint '
+                                'is not available in this release')
                         if not constraint.get('validated', True):
                             raise UnsupportedFeatureError(f'{table.key}: NOT VALID constraint')
                         if kind == 'f' and constraint['name'] not in table.relations:
@@ -106,8 +154,6 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                             continue
                         if kind != 'u':
                             raise UnsupportedFeatureError(f'{table.key}: constraint kind {kind}')
-                        if constraint.get('deferrable'):
-                            raise UnsupportedFeatureError(f'{table.key}: deferrable UNIQUE')
                         data = {'constraint_type': 'UNIQUE',
                                 'columns': mapped(constraint['columns'])}
                     else:
@@ -119,31 +165,26 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                             raise UnsupportedFeatureError(f'{table.key}: CHECK with remapped columns')
                     if constraints_node is None:
                         constraints_node = node.constraints()
-                    constraints_node.constraint(constraint.get('name') or f'unique_{index}',
-                                                x_auto_name=constraint.get('x_auto_name', False), **data)
+                    constraints_node.constraint(constraint.get('name') or f'unique_{index}', **data)
                 indexes = table.attributes.get('indexes', ())
                 idx_node = None
                 for item in indexes:
                     if item.get('primary') or item.get('constraint_owned'):
-                        if (item.get('options') or item.get('tablespace')
-                                or len(item.get('columns', ())) != item.get('key_count')
-                                or item.get('method') != 'btree'
-                                or item.get('default_opclasses') is False
-                                or item.get('default_collations') is False
-                                or any(v != 0 for v in item.get('ordering', ()))
-                                or item.get('valid') is False or item.get('nulls_not_distinct')):
-                            raise UnsupportedFeatureError(f'{table.key}.{item["name"]}: advanced constraint index')
+                        feature = _constraint_index_feature(item)
+                        if feature:
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{item["name"]}: constraint index with {feature} '
+                                'is not available in this release')
                         continue
                     if idx_node is None:
                         idx_node = node.indexes()
                     if 'definition' in item:
                         columns = item['columns']
                         ordering = list(item['ordering'])
-                        if (not all(columns) or len(columns) != item['key_count']
-                                or any(v not in (0, 3) for v in ordering)
-                                or not item['default_opclasses'] or not item['default_collations'] or not item['valid']
-                                or item['nulls_not_distinct'] or item['options'] or item['tablespace']):
-                            raise UnsupportedFeatureError(f'{table.key}.{item["name"]}: advanced index semantics')
+                        feature = _index_feature(item)
+                        if feature:
+                            raise UnsupportedFeatureError(
+                                f'{table.key}.{item["name"]}: index with {feature} is not available in this release')
                         data = {'columns': {n: 'DESC' if o == 3 else None
                                             for n, o in zip(columns, ordering)},
                                 'unique': item['unique'], 'method': None if item['method'] == 'btree' else item['method'],
@@ -156,7 +197,7 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                                            if isinstance(names, Mapping) else mapped(names.split(',')))
                         if data.get('where') and any(c.physical_name != c.name for c in table.columns.values()):
                             raise UnsupportedFeatureError(f'{table.key}: partial index with remapped columns')
-                    idx_node.index(item['name'], x_auto_name=item.get('x_auto_name', False), **data)
+                    idx_node.index(name=item['name'], **data)
             def composite(table, names):
                 key = (table.key, names)
                 if key not in composite_keys:
@@ -192,16 +233,14 @@ def to_physical_builder(model: ResolvedModel, *, allow_constraint_rename=False) 
                                       else composite(target, relation.target_columns)[0])
                         target_ref += '.' + target_col
                     kwargs = {k: declaration[k] for k in (
-                        'on_delete', 'on_update', 'deferrable', 'initially_deferred', 'deferred', 'indexed', 'constraint_name'
+                        'onDelete_sql', 'onUpdate_sql', 'deferrable', 'initially_deferred', 'deferred', 'indexed', 'constraint_name'
                     ) if k in declaration}
                     if imported:
                         if declaration.get('delete_set_columns'):
                             raise UnsupportedFeatureError(f'{table.key}.{relation.name}: column subset SET NULL/DEFAULT')
                         kwargs['indexed'] = False
-                        for field in ('on_delete', 'on_update'):
-                            action = _ACTIONS[declaration[field + '_code']]
-                            if action:
-                                kwargs[field] = action
+                        for field, code in (('onDelete_sql', 'on_delete_code'), ('onUpdate_sql', 'on_update_code')):
+                            kwargs[field] = _ACTIONS[declaration[code]]
                     if len(relation.columns) == 1:
                         owner = column_nodes[(table.key, relation.columns[0])]
                     else:

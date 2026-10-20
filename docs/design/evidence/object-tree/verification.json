@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-14",
+  "scope": "Alternative structural renderer; existing compiler not modified in this increment",
+  "legacy_reference": "fa35e5adfa6ad1b269f3a22a9b12c4c1ee6513ea",
+  "native": {
+    "tables": 74,
+    "physical_columns": 789,
+    "virtual_columns": 526,
+    "ordinary_relation_entries": 144
+  },
+  "checks": [
+    {
+      "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts= tests/object_tree",
+      "passed": 161,
+      "failed": 0
+    },
+    {
+      "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m pytest -q -o addopts=",
+      "passed": 2135,
+      "skipped": 13,
+      "failed": 0
+    },
+    {
+      "command": "venv/bin/python -m ruff check src tests scripts docs/design/probes/object_tree_legacy.py",
+      "result": "passed"
+    },
+    {
+      "command": "venv/bin/python -m mypy src/asqueel",
+      "result": "passed",
+      "files": 55
+    },
+    {
+      "command": "PYTHONPATH=src:../asqueel-migration/src venv/bin/python -m sphinx -E -W --keep-going -b html docs /tmp/asqueel-object-tree-docs",
+      "result": "passed with network access for Python inventory"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "remaining": [
+    "Physical JSON projection from the new object tree (plan phase 5)",
+    "Operational database/table binding and compiler integration"
+  ]
+}

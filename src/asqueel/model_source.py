@@ -5,6 +5,7 @@ from copy import deepcopy
 import inspect
 from genro_toolbox import extract_kwargs
 
+from .common import in_attribute_family
 from .configuration import _copy_recipe, _validate_source_shape
 from .model_sections import Declaration, Option, Package, Schema
 
@@ -37,7 +38,23 @@ def options(node):
     return {child.label: Option(child.node_tag, attributes(child)) for child in container.value or ()}
 
 
-def prepare_source(builder):
+def generate_attributes(builder, node, attributes):
+    """Write attributes for ``node``; those outside its grammar are recorded as generated.
+
+    The domain validator accepts a key outside the grammar only when it is
+    recorded here: a user who writes the same key by hand still gets the error.
+    """
+    declared = builder._get_schema_info(node.node_tag).get('declared_names') or set()
+    node.attr.update(attributes)
+    generated = {key for key in attributes if key not in declared
+                 and not in_attribute_family(builder, node.node_tag, key)}
+    if generated:
+        meta = dict(node.attr.get('_meta') or {})
+        meta['generated_attributes'] = sorted(set(meta.get('generated_attributes', ())) | generated)
+        node.attr['_meta'] = meta
+
+
+def prepare_source(builder, *, options_first=False):
     builder = _copy_recipe(builder)
     _validate_source_shape(builder)
     for _, node in builder.source.query('#p,#n', deep=True):
@@ -62,7 +79,7 @@ def prepare_source(builder):
                 node.attr.setdefault('_meta', {}).setdefault('signature_defaults', []).append(key)
     resolve_source_types(builder)
     from .model_expansion import expand_options
-    expand_options(builder)
+    expand_options(builder, options_first=options_first)
     resolve_source_references(builder)
     return builder
 
@@ -120,13 +137,14 @@ def resolve_source_types(builder):
 def resolve_source_references(builder):
     """Resolve references after all option-generated structures are present."""
     from .catalog import SqlModelCatalog
-    from .common import split_names
+    from .common import SQL_ACTIONS, split_names
     resolve_source_types(builder)
     catalog = SqlModelCatalog(builder)
-    sql_actions = {'cascade': 'CASCADE', 'restrict': 'RESTRICT', 'no_action': None,
-                   'set_null': 'SET NULL', 'set_default': 'SET DEFAULT'}
     for (namespace, table_name), entry in catalog.tables.items():
         pkey = entry['node'].get_attr('pkey')
+        if (namespace in catalog.packages and isinstance(pkey, str) and ',' in pkey
+                and pkey not in entry['composites']):
+            raise ValueError(f"{namespace}.{table_name}: pkey {pkey!r} is not a column or a compositeColumn")
         if pkey in entry['composites']:
             entry['node'].attr['x_logical_pkey'] = pkey
             entry['node'].attr['pkey'] = entry['composites'][pkey].get_attr('columns')
@@ -134,8 +152,6 @@ def resolve_source_references(builder):
             attrs = relation.attr
             if attrs.get('name'):
                 attrs['x_name'] = attrs['name']
-            if attrs.get('inverse'):
-                attrs['back_reference'] = attrs['inverse']
             target = attrs['to'].split('.')
             if len(target) == 2 and target[0] not in catalog.packages and (namespace, target[0]) in catalog.tables:
                 attrs['to'] = namespace + '.' + attrs['to']
@@ -146,27 +162,13 @@ def resolve_source_references(builder):
                     # DbModelSrc.relation moves the FK display group to the
                     # one-side relation unless one_group was supplied.
                     attrs['one_group'] = group
-                    column.attr.update(group='_', one_group=group)
-                for action in ('on_delete', 'on_update'):
-                    value = attrs.get(action)
-                    if value is not None and value not in ('CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT'):
-                        if value not in ('raise', 'cascade', 'set_null', 'ignore'):
-                            raise ValueError(f'{path}: invalid application action {value!r}')
-                        attrs['x_app_' + action] = attrs.pop(action)
-                    sql_key = action + '_sql'
-                    sql_value = attrs.get(sql_key)
-                    if action == 'on_update' and sql_key not in attrs and attrs.get('foreign_key'):
-                        sql_value = 'cascade'
-                    if sql_value is not None:
-                        normalized_action = sql_value.lower().replace(' ', '_')
-                        if normalized_action not in sql_actions:
-                            raise ValueError(f'{path}: invalid SQL action {sql_value!r}')
-                        attrs[action] = sql_actions[normalized_action]
-                # onDuplicate is opaque legacy data (including False and recursive).
-                defaults = (attrs.get('_meta') or {}).get('signature_defaults', ())
-                if ('deferred' not in attrs or 'deferred' in defaults) and (
-                        attrs.get('x_app_on_delete') == 'set_null' or attrs.get('on_delete') == 'SET NULL'):
-                    attrs['deferred'] = True
+                    generate_attributes(builder, column, {'group': '_', 'one_group': group})
+            # onDuplicate is opaque legacy data (including False and recursive).
+            defaults = (attrs.get('_meta') or {}).get('signature_defaults', ())
+            if ('deferred' not in attrs or 'deferred' in defaults) and (
+                    str(attrs.get('onDelete') or '').lower().startswith('setnull')
+                    or SQL_ACTIONS.get(str(attrs.get('onDelete_sql')).lower()) == 'SET NULL'):
+                attrs['deferred'] = True
     # Repeat for chains of inferred foreign-key columns (forward references).
     for _ in range(len(catalog.relations) + 1):
         changed = False
@@ -227,16 +229,29 @@ def resolve_source_references(builder):
 
 
 def require_write_capabilities(table):
-    """Fail before hooks/I/O while execution of these declarations is deferred."""
+    """Refuse the write cycle, before hooks and I/O, while a declaration is not executed.
+
+    ``table`` is a DbTableObj. Each implementation step removes what it executes.
+    """
     from .contracts import UnsupportedFeatureError
-    fields = table.options.get('sys_fields')
-    pending = bool(fields and fields.enabled) or table.attributes.get('x_expanded_legacy')
-    pending = pending or any(option.enabled for option in table.options.values())
-    pending = pending or any(any(d.kind != 'relation' for d in column.declarations) or any(column.attributes.get(key) is not None
-        for key in ('default', 'default_from', 'sql_value', 'x_generation'))
-        or column.attributes.get('read_only') or column.attributes.get('unmodifiable')
-        for column in table.columns.values())
-    pending = pending or any(any(key.startswith('x_app_') for key in relation.attributes)
-                            for relation in table.relations.values())
+    executed = {'sys_fields', 'hierarchical'}
+    enabled = [name for name, option in table.options.items() if option.attributes.get('enabled', True)]
+    if 'hierarchical' in enabled:
+        # trigger_hierarchical_before assigns _row_count; no setRowCounter.
+        executed.add('auto_counter')
+    pending = [f'option {name}' for name in enabled if name not in executed]
+    if table.attributes.get('x_expanded_legacy'):
+        pending.append('legacy expansion')
+    for name, column in table.columns.items():
+        pending.extend(f'{name}.{child.tag}' for child in column.values() if child.tag != 'relation')
+        attributes = column.attributes
+        # checkPkey generates the sys_fields key.
+        sys_key = ('sys_fields' in enabled and name == 'id'
+                   and attributes.get('x_generation') == {'type': 'uuid', 'algorithm': 'legacy22'})
+        pending.extend(f'{name}.{key}' for key in ('default', 'default_from', 'x_generation')
+                       if attributes.get(key) is not None and not (sys_key and key == 'x_generation'))
+        pending.extend(f'{name}.{key}' for key in ('read_only', 'unmodifiable')
+                       if attributes.get(key) and not (sys_key and key == 'read_only'))
     if pending:
-        raise UnsupportedFeatureError(f'{table.key}: write execution for these declarations is not implemented')
+        raise UnsupportedFeatureError(
+            f'{table.fullname}: write execution of {", ".join(pending)} is not available in this release')

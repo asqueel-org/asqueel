@@ -69,10 +69,10 @@ def test_foreign_key_forbidden_on_virtual_columns():
         t.columns().column(name="id", dtype="serial")
         t.virtual_columns().formulaColumn(name="calc", sql_formula="1+1")
 
-    # grammar itself must forbid relation under formulaColumn (sub_tags="")
+    # Virtual columns accept weak relations, but never a physical FK.
     model = _build(main)
     node = model.source["db.schemas.s.tables.t.virtual_columns.calc"]
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match='foreign_key'):
         node.relation(to="s.t.id", foreign_key=True)
 
 
@@ -133,31 +133,31 @@ def test_check_requires_clause_unique_requires_columns():
     assert "ck" in msg and "uq" in msg
 
 
-def test_extra_attributes_must_be_namespaced():
+def test_undeclared_attribute_is_reported_by_the_validator():
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         t = tables.table(name="t", pkey="id")
-        t.columns().column(name="id", dtype="serial", dtypo="A")
+        t.columns().column(name="id", dtype="serial").attr["dtypo"] = "A"
 
     msg = _errors(main)
-    assert "dtypo" in msg and "namespace" in msg
+    assert "unknown attribute 'dtypo' on <column>" in msg
 
 
 def test_all_errors_reported_together():
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         t = tables.table(name="t", pkey="ghost")
-        t.columns().column(name="id", dtype="serial", dtypo="A")
+        t.columns().column(name="id", dtype="serial").attr["dtypo"] = "A"
         t.indexes().index(name="ix", columns="nope")
 
     msg = _errors(main)
     assert "ghost" in msg and "dtypo" in msg and "nope" in msg
 
 
-def test_duplicate_back_reference_on_same_target():
+def test_duplicate_relation_name_on_same_target():
     # wf:contract: two foreign_key relations from different columns whose
-    # wf:contract: back_reference collide on the same target table are a
-    # wf:contract: validation error naming the duplicated back_reference.
+    # wf:contract: relation_name collide on the same target table are a
+    # wf:contract: validation error naming the duplicated relation_name.
     def main(root):
         tables = root.db(name="d").schemas().schema(name="s").tables()
         target = tables.table(name="target", pkey="x")
@@ -166,9 +166,9 @@ def test_duplicate_back_reference_on_same_target():
         columns = t.columns()
         columns.column(name="a", dtype="serial")
         c1 = columns.column(name="one", dtype="L")
-        c1.relation(to="s.target.x", foreign_key=True, back_reference="rows")
+        c1.relation(to="s.target.x", foreign_key=True, relation_name="rows")
         c2 = columns.column(name="two", dtype="L")
-        c2.relation(to="s.target.x", foreign_key=True, back_reference="rows")
+        c2.relation(to="s.target.x", foreign_key=True, relation_name="rows")
 
     msg = _errors(main)
     assert "rows" in msg

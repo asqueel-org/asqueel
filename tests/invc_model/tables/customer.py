@@ -9,5 +9,5 @@ def config_db(tables):
     columns.column("name", dtype="A", size="0:120", notnull=True)
     columns.column("vat_number", dtype="A", size="0:24")
     indexes = table.indexes()
-    indexes.index("ix_customer_name", columns="name")
+    indexes.index(name="ix_customer_name", columns="name")
     return table

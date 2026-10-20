@@ -1,0 +1,882 @@
+[
+  {
+    "snapshot": "legacy",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "435d408b4e77f53896c4d79d000564026a9faf695e5ecc87b65b6c1f08de8861",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 46,
+        "ast_sha256": "b8dbffba78cd647d518be2b7c68e79628e3323d4f3594f92382ace2c46ceec82"
+      }
+    ]
+  },
+  {
+    "snapshot": "legacy",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "0bd51adf7acfcf433982a0613f745dfe08255c92638ae158dd3c7dc02dfaa7d7",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 208,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 442,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 762,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "legacy",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "b10a56bcf10d6a34a2b68a8b036a5d971422f39b7ad6705cbe4f1f9b2d71cd90",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 147,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 157,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 398,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "legacy",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "ee9e8d0cbcf00494fb5eeae3e8ddb5905a1a426250ae815cf32341385d7d2df3",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 74,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 101,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 341,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "legacy",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "34d8afffcfb68ea378da5772dc99f4737f1cffdf7e7873fe83ea44481d3c1c28",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 66,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 111,
+        "ast_sha256": "34c0ca61524d359ddcbda54c9a9651ef4a428182e67b8788930e46e9ecfeaed3"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 119,
+        "ast_sha256": "74b9b1aab79a9060f4d0a6c529dd9a001991317f4877ac83bf131a6fb0a5485c"
+      },
+      {
+        "name": "execute",
+        "line": 150,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 490,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "compound",
+    "path": "gnrsql.py",
+    "file_sha256": "756c9efb74820d8ced11c9ec5e214217701a4fb99e51f9b40caf1c3a0390fd1b",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 573,
+        "ast_sha256": "2123984b4a827353141a201847c2747e43b2d22a2f2a288e7d5a7536d9b1cb01"
+      }
+    ]
+  },
+  {
+    "snapshot": "compound",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "63e5ec93469b31b1dfcf8737798bdcd73ab9c788859c957cf817709a44a3c3b7",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 184,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 390,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 705,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "compound",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "f851305a944b92ddf21cf1c8bed875b77754b7ead7b5308f22172f420cc17eab",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 145,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 155,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 392,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "compound",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "ff6521b6d67566e95e6645d6a79014cdf0f59c5602b61adf3b9b63b0eef7dee6",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 72,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 99,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 335,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "compound",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "8ee78e1c99bd123f3f3998bf419956ece30ea82aa6e08f0c09068c0adaad81d6",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 66,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 111,
+        "ast_sha256": "46bfdf2e811f59ef930afa7d70199d05d34310d37216847ce2ccada648c1dd7c"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 119,
+        "ast_sha256": "17713aebc0511321b7fc04074669b08cdff3128a0b99aa6a1ef685cb4587bcfc"
+      },
+      {
+        "name": "execute",
+        "line": 138,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 478,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "v2",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "645a6a8704a9f3cab52d038eb98fcd3514f469a6125828f524836e1ec5ef2f62",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 45,
+        "ast_sha256": "1d5305f60f046bcda6844d9efcd2c85bf872fde5694020327a267a9955d1ae5e"
+      }
+    ]
+  },
+  {
+    "snapshot": "v2",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "63e5ec93469b31b1dfcf8737798bdcd73ab9c788859c957cf817709a44a3c3b7",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 184,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 390,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 705,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "v2",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "f851305a944b92ddf21cf1c8bed875b77754b7ead7b5308f22172f420cc17eab",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 145,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 155,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 392,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "v2",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "ff6521b6d67566e95e6645d6a79014cdf0f59c5602b61adf3b9b63b0eef7dee6",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 72,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 99,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 335,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "v2",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "db96eb48638353ea0f5add5e64d03bc0eee168b923cbc1b64eedd398347e822b",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 70,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 115,
+        "ast_sha256": "46bfdf2e811f59ef930afa7d70199d05d34310d37216847ce2ccada648c1dd7c"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 123,
+        "ast_sha256": "17713aebc0511321b7fc04074669b08cdff3128a0b99aa6a1ef685cb4587bcfc"
+      },
+      {
+        "name": "execute",
+        "line": 148,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 488,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "645a6a8704a9f3cab52d038eb98fcd3514f469a6125828f524836e1ec5ef2f62",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 45,
+        "ast_sha256": "1d5305f60f046bcda6844d9efcd2c85bf872fde5694020327a267a9955d1ae5e"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "63e5ec93469b31b1dfcf8737798bdcd73ab9c788859c957cf817709a44a3c3b7",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 184,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 390,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 705,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "f851305a944b92ddf21cf1c8bed875b77754b7ead7b5308f22172f420cc17eab",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 145,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 155,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 392,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "ff6521b6d67566e95e6645d6a79014cdf0f59c5602b61adf3b9b63b0eef7dee6",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 72,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 99,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 335,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "db96eb48638353ea0f5add5e64d03bc0eee168b923cbc1b64eedd398347e822b",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 70,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 115,
+        "ast_sha256": "46bfdf2e811f59ef930afa7d70199d05d34310d37216847ce2ccada648c1dd7c"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 123,
+        "ast_sha256": "17713aebc0511321b7fc04074669b08cdff3128a0b99aa6a1ef685cb4587bcfc"
+      },
+      {
+        "name": "execute",
+        "line": 148,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 488,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3_merged",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "9cbec5f9046690f298717cd612cc6c44406846347cdcd58889360ce52d9525e0",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 45,
+        "ast_sha256": "b8dbffba78cd647d518be2b7c68e79628e3323d4f3594f92382ace2c46ceec82"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3_merged",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "718adca86e15433cec686d82c35539e3048c8bb26ee5bc384bf6868c758624ca",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 184,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 390,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 705,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3_merged",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "2be48e3582a0dd5f6dcb659273b05a9b7321de5dc30e61a1633649ef7a8d5395",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 145,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 155,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 392,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3_merged",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "aa8c36875fb579f32ffc140d8a5dad7b4fe6b6362d6e306c93c631e649096c15",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 72,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 99,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 335,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "v3_merged",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "6938eb2f62694d39038562e38f5ec32bc3cfeea62c309047d602fee6022538b2",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 66,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 111,
+        "ast_sha256": "34c0ca61524d359ddcbda54c9a9651ef4a428182e67b8788930e46e9ecfeaed3"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 119,
+        "ast_sha256": "74b9b1aab79a9060f4d0a6c529dd9a001991317f4877ac83bf131a6fb0a5485c"
+      },
+      {
+        "name": "execute",
+        "line": 150,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 490,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "v4",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "9cbec5f9046690f298717cd612cc6c44406846347cdcd58889360ce52d9525e0",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 45,
+        "ast_sha256": "b8dbffba78cd647d518be2b7c68e79628e3323d4f3594f92382ace2c46ceec82"
+      }
+    ]
+  },
+  {
+    "snapshot": "v4",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "718adca86e15433cec686d82c35539e3048c8bb26ee5bc384bf6868c758624ca",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 184,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 390,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 705,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "v4",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "2be48e3582a0dd5f6dcb659273b05a9b7321de5dc30e61a1633649ef7a8d5395",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 145,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 155,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 392,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "v4",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "aa8c36875fb579f32ffc140d8a5dad7b4fe6b6362d6e306c93c631e649096c15",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 72,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 99,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 335,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "v4",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "6938eb2f62694d39038562e38f5ec32bc3cfeea62c309047d602fee6022538b2",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 66,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 111,
+        "ast_sha256": "34c0ca61524d359ddcbda54c9a9651ef4a428182e67b8788930e46e9ecfeaed3"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 119,
+        "ast_sha256": "74b9b1aab79a9060f4d0a6c529dd9a001991317f4877ac83bf131a6fb0a5485c"
+      },
+      {
+        "name": "execute",
+        "line": 150,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 490,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "simplify",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "9cbec5f9046690f298717cd612cc6c44406846347cdcd58889360ce52d9525e0",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 45,
+        "ast_sha256": "b8dbffba78cd647d518be2b7c68e79628e3323d4f3594f92382ace2c46ceec82"
+      }
+    ]
+  },
+  {
+    "snapshot": "simplify",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "718adca86e15433cec686d82c35539e3048c8bb26ee5bc384bf6868c758624ca",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 184,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 390,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 705,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "simplify",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "2be48e3582a0dd5f6dcb659273b05a9b7321de5dc30e61a1633649ef7a8d5395",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 145,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 155,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 392,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "simplify",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "aa8c36875fb579f32ffc140d8a5dad7b4fe6b6362d6e306c93c631e649096c15",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 72,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 99,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 335,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "simplify",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "6938eb2f62694d39038562e38f5ec32bc3cfeea62c309047d602fee6022538b2",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 66,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 111,
+        "ast_sha256": "34c0ca61524d359ddcbda54c9a9651ef4a428182e67b8788930e46e9ecfeaed3"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 119,
+        "ast_sha256": "74b9b1aab79a9060f4d0a6c529dd9a001991317f4877ac83bf131a6fb0a5485c"
+      },
+      {
+        "name": "execute",
+        "line": 150,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 490,
+        "ast_sha256": "17204e37994e71333a33826d77f1f1dc6e2f162124b3d2035cd14be6056b2011"
+      }
+    ]
+  },
+  {
+    "snapshot": "next",
+    "path": "gnrsql/execute.py",
+    "file_sha256": "461481b9a6169780dba7f5aa6abf9801094f78a8bb2ef35e6133da6a213d2a70",
+    "methods": [
+      {
+        "name": "execute",
+        "line": 47,
+        "ast_sha256": "a00be863a0d3dd64a282339bf78d9b5b438aaa6165df541fe853d9160f4640f7"
+      }
+    ]
+  },
+  {
+    "snapshot": "next",
+    "path": "adapters/_gnrbaseadapter.py",
+    "file_sha256": "656b0878b1c2dbeff3642b5b7dd4658d91f0e7bea7c9cb5dd0bb07b8a906cca8",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 208,
+        "ast_sha256": "0d170ab883ced686dbae6e3fe07189ec5ce399a972463144a62a60a0644c964d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 442,
+        "ast_sha256": "348d8a64dfd46169259fc1b72082eca7ea00c42649de88de5ca66d8c7bff88ce"
+      },
+      {
+        "name": "execute",
+        "line": 762,
+        "ast_sha256": "67504b6181e7d9e88f17144e4ee50e09386ad5be53d54ea2275df157bee43fda"
+      }
+    ]
+  },
+  {
+    "snapshot": "next",
+    "path": "adapters/gnrpostgres.py",
+    "file_sha256": "b10a56bcf10d6a34a2b68a8b036a5d971422f39b7ad6705cbe4f1f9b2d71cd90",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 147,
+        "ast_sha256": "9bbe697931ed10c63f8a3cc69e10d9e2a70fa60d6023f9206ffc4be75f63610c"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 157,
+        "ast_sha256": "9327fea289e8fc9b9512e65da69a127c48a554d134ea192ebc06513318bff0bf"
+      },
+      {
+        "name": "execute",
+        "line": 398,
+        "ast_sha256": "e802878bf7bfda8003d14b2875953fd3c59171774ea546ae662dfcfe8b02ad59"
+      }
+    ]
+  },
+  {
+    "snapshot": "next",
+    "path": "adapters/gnrpostgres3.py",
+    "file_sha256": "09658a2d08109ed51c24aaf3a1157e0e5738264ade2e9ed047b53c83b9466249",
+    "methods": [
+      {
+        "name": "adaptTupleListSet",
+        "line": 65,
+        "ast_sha256": "94e17e7f2859b9464d6d91a745a495cab38e1f6fc4385ff8196d0d8c589e8e5d"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 92,
+        "ast_sha256": "c6a8829dc7e26d225d30511d1a0bc35099609f6a7ba1f286a3f3074d6a23a9d4"
+      },
+      {
+        "name": "execute",
+        "line": 332,
+        "ast_sha256": "b4edc392d7766ce5dfb2d031b70227435d1a11cba012317d0dc822cf102741ee"
+      }
+    ]
+  },
+  {
+    "snapshot": "next",
+    "path": "adapters/gnrsqlite.py",
+    "file_sha256": "f3e836b025883b9aef2f1d6495259214403f7ffa9cf090ef2c3b35d040694cac",
+    "methods": [
+      {
+        "name": "_regexp",
+        "line": 66,
+        "ast_sha256": "dfaf2a3ccf7b039519a6de15f3d251c667e8ed07ab91f8334fb9966755da3e93"
+      },
+      {
+        "name": "prepareSqlText",
+        "line": 111,
+        "ast_sha256": "34c0ca61524d359ddcbda54c9a9651ef4a428182e67b8788930e46e9ecfeaed3"
+      },
+      {
+        "name": "_booleanSubCb",
+        "line": 119,
+        "ast_sha256": "74b9b1aab79a9060f4d0a6c529dd9a001991317f4877ac83bf131a6fb0a5485c"
+      },
+      {
+        "name": "execute",
+        "line": 150,
+        "ast_sha256": "418c369c8f6d4c7294f5470eb451f887cba5267c86a8bf708597fa0c99f621aa"
+      },
+      {
+        "name": "execute",
+        "line": 490,
+        "ast_sha256": "7154344b0e8cdcb0e34948eeaf05cac49e14a8fc063ecad627e103550e5affc9"
+      }
+    ]
+  }
+]
