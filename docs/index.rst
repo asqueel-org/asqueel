@@ -58,6 +58,7 @@ Choose your starting point
    guide/models
    guide/queries
    guide/writes
+   guide/data-files
    guide/transactions
    guide/hooks
    guide/formulas

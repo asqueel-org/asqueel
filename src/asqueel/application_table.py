@@ -19,7 +19,38 @@ from genro_toolbox.uid import get_uuid
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
 from .hierarchical import HierarchicalHandler
 from .table_crud import _INTEGER_DTYPES, CrudMixin
+from .table_io import read_records, write_rows
 from .table_triggers import TriggersMixin
+from .write_compiler import _TYPED_TEXT_PARSERS
+
+
+#: Rows read or written per block by file import and export.
+_DATA_BLOCK = 1000
+_TRUE_TEXTS = frozenset({'TRUE', 'YES', 'Y', '1'})
+_FALSE_TEXTS = frozenset({'FALSE', 'NO', 'N', '0'})
+
+
+def _adapt_text(name, text, dtype):
+    """A text value converted to ``dtype``; text dtypes keep it, an empty text is None."""
+    if dtype in ('serial', 'serial4'):
+        dtype = 'L'
+    if dtype == 'B':
+        word = text.strip().upper()
+        if word in _TRUE_TEXTS or word in _FALSE_TEXTS:
+            return word in _TRUE_TEXTS
+    else:
+        parser = _TYPED_TEXT_PARSERS.get(dtype)
+        if parser is None:
+            return text
+        if text.strip() == '':
+            return None
+        try:
+            return parser(text.strip())
+        except (ValueError, ArithmeticError):
+            pass
+    if dtype == 'B' and text.strip() == '':
+        return None
+    raise ValueError(f'column {name!r}: {text!r} is not a {dtype} value')
 
 
 class RecordNotFoundError(LookupError):
@@ -131,9 +162,19 @@ class SqlQuery:
     def execute(self):
         return self.db.execute(self.compiled)
 
-    def fetch(self):
-        """Execute again and return mutable Toolbox NamedList rows, without caching."""
-        return self.handleBagColumns(self._fetchall(self.compiled), self.compiled)
+    def fetch(self, destination=None, format=None):
+        """Execute again and return mutable Toolbox NamedList rows, without caching.
+
+        With ``destination`` (a path or an open text stream) the rows are
+        written there in blocks from a server-side cursor, as CSV, JSON or
+        TYTX by ``format`` or by the file extension, and the row count is
+        returned instead of the rows.
+        """
+        if destination is None:
+            if format is not None:
+                raise ValueError('format= needs destination=')
+            return self.handleBagColumns(self._fetchall(self.compiled), self.compiled)
+        return write_rows(destination, self.iterfetch(arraysize=_DATA_BLOCK), format)
 
     def _fetchall(self, compiled):
         self.table.db
@@ -434,12 +475,25 @@ class SqlTable(CrudMixin, TriggersMixin):
         """Current write operation; ``parent`` is the operation that caused it."""
         return getattr(self.db, 'currentTrigger', None)
 
-    def sql_insert(self, record):
+    def sql_insert(self, record, adapt=None, format=None):
         """Insert without triggers (legacy raw_insert); a list runs one executemany per column set.
 
         Missing keys are assigned first (checkPkey); in a list each further
         integer key is the next integer. A key the database generates is left out.
+
+        ``record`` can also be an open CSV, JSON or TYTX text file (``format``
+        or the extension of its name): it is read and inserted in blocks and
+        the row count is returned. ``adapt`` passes every record through
+        :meth:`adaptRecord`; by default it is on for a file and off for a
+        record or a list.
         """
+        if hasattr(record, 'read'):
+            return self._sql_insert_file(record, True if adapt is None else adapt, format)
+        if format is not None:
+            raise ValueError('format= is for a file; a record or a list has no format')
+        if adapt:
+            record = ([self._adapted(item, index) for index, item in enumerate(record, 1)]
+                      if isinstance(record, list) else self._adapted(record, 1))
         writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
         self._assign_keys(record if isinstance(record, list) else [record])
         if isinstance(record, list):
@@ -451,6 +505,40 @@ class SqlTable(CrudMixin, TriggersMixin):
         cursor.close()
         if rows:
             record.update(dict(rows[0]))
+        return record
+
+    def _sql_insert_file(self, stream, adapt, format):
+        count, block = 0, []
+        for count, record in enumerate(read_records(stream, format), 1):
+            block.append(self._adapted(record, count) if adapt else record)
+            if len(block) == _DATA_BLOCK:
+                self.sql_insert(block)
+                block = []
+        if block:
+            self.sql_insert(block)
+        return count
+
+    def _adapted(self, record, index):
+        try:
+            return self.adaptRecord(record)
+        except ValueError as error:
+            raise ValueError(f'{self.fullname} record {index}: {error}') from error
+
+    def adaptRecord(self, record):
+        """Convert the text values of ``record`` to the dtype of their column and return it.
+
+        Generic conversion for untyped sources such as CSV and JSON; a table
+        class can override it. Values that already have a type are left as
+        they are. A key that is not a column, or a text that does not convert,
+        raises ``ValueError``.
+        """
+        columns = self.model.columns
+        for key, value in record.items():
+            column = columns.get(key)
+            if column is None:
+                raise ValueError(f'{key!r} is not a column of {self.fullname}')
+            if isinstance(value, str):
+                record[key] = _adapt_text(key, value, column.dtype)
         return record
 
     def _assign_keys(self, records):

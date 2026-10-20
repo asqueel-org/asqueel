@@ -2,6 +2,11 @@
 
 ## 0.6.0 — Unreleased
 
+- Data files: `query(...).fetch(destination=)` writes the rows to a CSV, JSON
+  or TYTX file in blocks and returns the row count; `table.sql_insert(file)`
+  inserts such a file in blocks. The format comes from the extension or
+  `format=`. `adapt=` (default on for files) converts untyped values through
+  the overridable `table.adaptRecord(record)`.
 - SQLite `:memory:` migrations reuse the application's connection, preserving
   tables and data across planning, DDL and verification without creating files.
   `reloadModel(source)` lets an idle, exclusively used in-memory REPL session
