@@ -37,8 +37,10 @@ class WriteMixin:
             tblobj.trigger_assignCounters(record=record)
             self._protect_draft(tblobj, record)
             tblobj._finish_behaviors(record, prepared)
+            before_sql = deepcopy(record)
             self._write(tblobj, record, self.write_compiler.insert(
                 tblobj.model, record, self.environment.snapshot(), ignore_partition=ignore_partition))
+            tblobj._complete_linked_insert(record, before_sql, ignore_partition=ignore_partition)
             tblobj._doFieldTriggers('onInserted', record)
             tblobj.trigger_onInserted(record)
 

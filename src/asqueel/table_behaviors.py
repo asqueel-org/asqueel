@@ -123,7 +123,10 @@ class TableBehaviors:
 
     def trigger_insertLinkedHierarchicalRoot(self, record, fldname, **kwargs):
         target = self._related_target(fldname)
-        key = record[self.model.pkey]
+        key = record.get(self.model.pkey)
+        if key is None:
+            record.pop(fldname, None)
+            return  # The INSERT must return the database-generated master key first.
         values = {f'{self.model.name}_{self.model.pkey}': key,
                   'id': str(key).rstrip().ljust(22, '_')}
         values.update({name: record[name] for name in target.model.attributes['x_legacy_hierarchical'].split(',')
@@ -131,12 +134,26 @@ class TableBehaviors:
         target.insert(values)
         record[fldname] = values['id']
 
+    def _complete_linked_insert(self, record, before_sql, *, ignore_partition=False):
+        for name, column in self.model.columns.items():
+            if column.attributes.get('onInserting') != 'insertLinkedHierarchicalRoot':
+                continue
+            if record.get(name) is not None:
+                self.trigger_updateLinkedHierarchicalRoot(record, name, old_record=before_sql)
+                continue
+            self.trigger_insertLinkedHierarchicalRoot(record, name)
+            if record.get(name) is None:
+                raise ValueError('The database did not return the linked hierarchy master key')
+            self.sql_update({self.model.pkey: record[self.model.pkey], name: record[name]},
+                            ignore_partition=ignore_partition)
+
     def trigger_updateLinkedHierarchicalRoot(self, record, fldname, old_record=None, **kwargs):
         target = self._related_target(fldname)
         if fldname in record and record[fldname] != old_record.get(fldname):
             raise ValueError('Linked hierarchy roots are unmodifiable')
         values = {name: record[name] for name in target.model.attributes['x_legacy_hierarchical'].split(',')
                   if name != 'pkey' and name in record and record[name] != old_record.get(name)}
-        if values:
-            old = target._reread(record.get(fldname, old_record[fldname]))
+        root = record.get(fldname, old_record.get(fldname))
+        if values and root is not None:
+            old = target._reread(root)
             target.update(dict(old, **values), old_record=old)

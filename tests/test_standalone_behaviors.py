@@ -374,3 +374,26 @@ def test_delete_hook_cannot_redirect_subtree_cascade(implementation, tmp_path):
         assert table._reread(other['id']) is not None
         db.rollback()
         assert table._reread(child['id']) is not None
+
+
+@pytest.mark.parametrize('serial', [True, False])
+def test_linked_root_with_database_generated_master_key(implementation, tmp_path, serial):
+    def declare(package):
+        master = package.table('master', pkey='id')
+        if serial:
+            master.column('id', dtype='serial')
+        else:
+            master.options().sys_fields()
+        master.column('code', sql_default="'from database'")
+        tree = package.table('item')
+        tree.options().sys_fields()
+        tree.options().hierarchical('code', linked_to='app.master')
+        tree.column('code')
+    with migrated_db(implementation, tmp_path, declare) as db:
+        master = db.table('app.master').insert({})
+        root = row(db.table('app.item'), master['root_item_id'])
+        assert root['master_id'] == master['id']
+        assert root['hierarchical_code'] == 'from database'
+        db.commit()
+        db.table('app.master').delete(master)
+        assert db.table('app.item')._behavior_rows() == []
