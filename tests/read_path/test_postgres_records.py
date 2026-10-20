@@ -17,7 +17,8 @@ def test_fetch_record_uses_owning_transaction_and_postgres_row_lock(db_pg):  # n
     assert query.for_update
     assert record.fetchRecord()['id'] == key
     connection = db._connection_state['connection']
-    with psycopg.connect(connection.info.dsn, autocommit=True) as other:
+    # ConnectionInfo.dsn deliberately omits the password used by CI.
+    with psycopg.connect(connection.info.dsn, password=connection.info.password, autocommit=True) as other:
         other.execute("SET lock_timeout='100ms'")
         with pytest.raises(psycopg.errors.LockNotAvailable):
             other.execute('UPDATE invc.invc_customer SET id=id WHERE id=%s', (key,))
