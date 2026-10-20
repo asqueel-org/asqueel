@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.6.0 — Unreleased
+## 0.6.0 — 2026-10-20
 
 - Data files: `query(...).fetch(destination=)` writes the rows to a CSV, JSON
   or TYTX file in blocks and returns the row count; `table.sql_insert(file)`
