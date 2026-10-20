@@ -10,3 +10,13 @@
 - Code that contradicts a recorded user decision, reported in the rows: `update()` ignores storename and extra kwargs (A5.2); X projected as text on SQLite (A8.22); TSV on SQLite gives KeyError (A7.21); legacy adapters raise ModuleNotFoundError (A8.23).
 - Guide pages contradicting the code (Phase 2 must follow the code, not them): docs/guide/queries.md (limit=0, default order, auto names), docs/guide/limitations.md, docs/guide/sqlite.md:81-82 (ILIKE), docs/guide/environment.md:78-82, docs/guide/legacy-features.md section 8.
 - Some Motivazione cells cite `decisione utente 2026-10-15/16/18` taken from design docs and earlier plans, not from decisioni.md.
+
+## Phase 2
+
+- The four blocks were written in parallel by four read-only agents (one per block, same brief: card format, checker rules), then assembled with intro, To implement, Migration, API levels and Proposals; the planned batches were not committed separately.
+- Cards follow the code where guide pages disagree (already recorded in the inventory): A8.5 ILIKE, A8.21 limit=0, A2.5/A2.11/A2.13/A2.15/A2.16/A2.18 queries.md, A5.9 hooks.md `level`, A5.16 RETURNING on SQLite, A3.12 pyColumn message.
+- A5.2: the card describes the code (storename and extra kwargs accepted and ignored), which contradicts the recorded decision to raise.
+- A1.10: table-level `variant`/`mixin` errors print `app.None:` instead of the table name; the card quotes only the column example.
+- A4.6: the `'C'` → `'c'` proof holds for `onDelete_sql`; `onDelete='C'` is rejected by the validator. Card uses `onDelete_sql`.
+- A5.26 and some GenroPy snippets are illustrative, built on legacy signatures at 95da66ee, not taken from a test.
+- docs/guide/legacy.md link text follows the new title.
