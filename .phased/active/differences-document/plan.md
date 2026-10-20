@@ -1,0 +1,74 @@
+# Context: plan/write-cycle
+Parent: codex/core-release-0.6
+Mode: autonomous
+Theme: differences doc
+Must not break: src/ and tests/ unchanged — this workflow writes documentation only
+Must not break: docs/review/asqueel-vs-genropy-it.html and docs/review/asqueel-vs-genropy-0.6-it.html stay byte-identical (user decision 2026-10-17: a new page, never an edit of an old one)
+Must not break: `venv/bin/python -m sphinx -E -W -q -b html docs docs/_build/html` passes after every phase
+Must not break: no later macro consumes this output — Macro 8 is the last of the roadmap; the readers are external users (Sphinx chapter) and the team (review page)
+
+## Objective
+Describe asqueel against GenroPy legacy in the form the user agreed (decisioni.md, «Formato del documento», 2026-10-17): blocks Model / Query / Read-Write / Adapters, each split into Missing (labelled temporary / removed / replaced), Different, New, Same; "To implement" as a branch of its own; one card per item with the GenroPy side above and the asqueel side below. The source is the inventory, re-verified on the code as it stands after Macros 1-7. From it, an English Sphinx chapter for external users and a new Italian review page for the team.
+
+## Work Plan
+- [ ] **Phase 1**: inventory re-verified and reclassified in the agreed form  `vast`
+  > Batches: 1 areas 1-4 | 2 areas 5-8, Righe tolte, Riepilogo, Fonti, docs/api.rst
+  - Pattern reference: `.phased/done/legacy-inventory/plan.md` Phases 1-2 (how the inventory was built: legacy read with `git -C ~/Sviluppo/Genropy/genropy show 95da66ee:<path>`, one row per feature a project calls or declares, file:line citations); the current rows of `docs/design/112-legacy-inventory.md`
+  - Files: `docs/design/112-legacy-inventory.md`, `docs/api.rst`
+  - Decisions:
+    - Italian, as now. Legacy reference unchanged: GenroPy commit `95da66ee64b0c789dbb6b35254011d83ce1911c5`, scope `gnrpy/gnr/sql/` (plus `gnrpy/gnr/app/gnrdbo.py` where a project calls it in the model).
+    - Every row is re-verified on HEAD: the `Asqueel` column and every `src|tests|docs/<path>:<line>` citation describe the code as it stands now. `## Fonti` cites the full 40-hex asqueel commit the rows were verified at and drops the old one (4361e769...).
+    - Table header becomes `ID | Funzione | Legacy | Asqueel | Stato | Blocco | Motivazione | Alternative`. Area headings stay, area 8 is renamed: `## 8 Adapter` (user decision 2026-10-20: "adapters", not "dialects").
+    - Stato values, derived from the user's decisions in `temp/audit-invenzioni/decisioni.md` (local, untracked, readable in this worktree) and the roadmap: `uguale` (as legacy), `diverso` (same feature, different syntax or behaviour), `nuovo` (no legacy counterpart), `mancante-sostituita` (the legacy feature is absent and something else takes its place: e.g. sysFields → `options()`, `record()` → `fetchRecord()`, deleteSelection → `query().delete()`, DDL administration → asqueel-migration), `mancante-eliminata` (decided not to exist: e.g. `record.refresh()`), `mancante-temporanea` (absent now, deferred or out of scope, no decision to implement it yet: "rimandato", "fuori perimetro per ora", "da valutare", "da decidere"), `da-implementare` (a recorded decision says it will be implemented: "da implementare", "da includere", "prossimo step", e.g. `selection()`).
+    - Blocco, fixed by area (user decisions 2026-10-20): A1, A4 → `Model`; A2 → `Query`; A3.1-A3.15 (virtual-column declarations) → `Model`; A3.16-A3.20 (expression syntax and macros) → `Query`; A5, A6 → `Read-Write`; A7 → `Migration`; A8 → `Adapters`. New A3 rows: `Model` for a declaration, `Query` for expression syntax.
+    - IDs are stable. A feature added by Macros 1-7 with no row gets a new ID at the end of its area (e.g. `fetchRecord()`, `session(db)`, `query().update()/delete()`, `foreignKeys=` migration option); discovery rule: the objectives of Macros 1-7 in `.phased/roadmap.md` and the plans under `.phased/done/`. A row whose subject no longer exists on either side (e.g. a `nuovo` asqueel feature later removed, such as the CHECK constraint A7.24) is deleted and listed under `## Righe tolte` as `- A<n>.<m>: <reason>`; the section exists even when empty.
+    - Every Stato other than `uguale` cites its source in Motivazione: `#<issue>`, `nessuna issue`, `docs/<path>`, or `decisione utente YYYY-MM-DD`.
+    - `## Riepilogo` counts rows per Blocco and Stato in the exact line format the checker prints on mismatch.
+    - `docs/api.rst`: remove `SqlRecord` (line 18) and `EnvironmentMismatchError` (line 45) from the `:members:` lists — both names were removed by Macros 5-6 and make the full Sphinx build fail today.
+  - Details: re-read each row's asqueel side at HEAD, correct the Asqueel column and citations, reclassify Stato with the rules above, add Blocco, add the rows of features Macros 1-7 introduced, delete rows with no subject, rewrite Fonti and Riepilogo. Contract test: `.phased/active/differences-document/tests/phase-1/check_inventory.py`, run in place from the repo root (tests/ must stay unchanged, so it is not copied into the test tree); read-only.
+  - Done: `venv/bin/python .phased/active/differences-document/tests/phase-1/check_inventory.py` exits 0; `venv/bin/python -m sphinx -E -W -q -b html docs docs/_build/html` exits 0; `git diff --stat "$(git log -1 --diff-filter=A --format=%H -- .phased/active/differences-document/plan.md)" -- src tests docs/review` is empty.
+
+- [ ] **Phase 2**: English Sphinx chapter "Differences from GenroPy"  `vast`
+  > Batches: 1 skeleton, intro, CSS, Model | 2 Query, Read-Write | 3 Adapters, To implement, Migration, API levels, Proposals
+  - Pattern reference: `docs/guide/legacy-features.md` (current tone, issue-link form `https://github.com/asqueel-org/asqueel/issues/<n>`, intro on how to read the page); `docs/guide/limitations.md` (status-page tone); card markup proven with `sphinx -W` at planning: `(a1-4)=` label line, `#### <title> <span class="asq-label asq-label-replaced">replaced</span>`, body, `<details><summary>Files</summary> ... </details>`
+  - Files: `docs/guide/legacy-features.md` (rewritten in place), `docs/_static/differences.css` (new), `docs/conf.py` (add `differences.css` to `html_css_files`), `docs/guide/legacy.md` and `docs/index.rst` only if a link text must follow the new title
+  - Decisions:
+    - English; derived only from the Phase 1 inventory, no new claim. The file keeps its name so existing links keep working; first line `# Differences from GenroPy`.
+    - `##` headings exactly, in order: Model, Query, Read-Write, Adapters, To implement, Migration, Low-level and high-level API, Proposals. Under each of the four blocks, `###` exactly: Missing, Different, New, Same (a branch with no item says so in one line). Under To implement, one `###` per block that has `da-implementare` rows, in block order.
+    - Missing / Different / New / To implement items are cards: a `(a<area>-<n>)=` label line, then a `####` title; Missing cards carry exactly one label span after the title, `asq-label-temporary|removed|replaced` (from mancante-temporanea|eliminata|sostituita); no other card carries a label. Different and replaced cards show "In GenroPy you wrote" / "you got" above and "In asqueel you write" / "you get" below, with code; New cards show the asqueel side only; temporary/removed cards show the GenroPy side and what asqueel does instead (the error it raises, or nothing). Other notes at the bottom; the cited files in a closed `<details>` block. Same items are one bullet each, ending with `(A<n>.<m>)`.
+    - asqueel code in a card is taken from, or checked against, the test or guide the inventory row cites; the GenroPy code from the legacy source it cites.
+    - Migration (A7) rows are neither carded nor cited (user decision 2026-10-20: migration lives in its own repo). The Migration section says, in a few lines: asqueel uses asqueel-migration for DDL; `project_tree()` translates the model into the format asqueel-migration reads; `db.migration_plan()` / `db.migrate()` take `allow_removals`, `foreignKeys`, `force`, `backup`; the CLI `asqueel db plan` / `db apply`.
+    - Low-level and high-level API: from decisioni.md Gruppo 6 — this release is the low level (fetch and derivatives, `fetchRecord()`, `query().update()/delete()`, `sql_update`/`sql_delete`); `record()`, `selection()` (the next step), batchUpdate, recordToUpdate, check_updatable/check_deletable are high level and come later.
+    - Proposals, a short paragraph each, from decisioni.md and `xmldocs/proposal/`: sqlglot transpilation, `.sql(...)` child element grouping a column's `sql_*` attributes, capability catalogue, async connection modes (note on A6.22). No link to files outside the published docs.
+    - The CSS styles `.asq-label` (three colours) and the card spacing; light and dark readable with the rtd theme.
+  - Details: rewrite the page block by block from the inventory; every non-Migration row appears exactly once. Contract test: `.phased/active/differences-document/tests/phase-2/check_chapter.py`, run in place; read-only.
+  - Done: `venv/bin/python .phased/active/differences-document/tests/phase-2/check_chapter.py` exits 0; the Phase 1 checker still exits 0; `venv/bin/python -m sphinx -E -W -q -b html docs docs/_build/html` exits 0; `git diff --stat "$(git log -1 --diff-filter=A --format=%H -- .phased/active/differences-document/plan.md)" -- src tests docs/review docs/design` is empty.
+
+- [ ] **Phase 3**: new Italian review page for the team
+  - Pattern reference: `docs/review/asqueel-vs-genropy-0.6-it.html` (CSS variables, light/dark theme, sticky table of contents, layout at phone width) — copy the style, not the content
+  - Files: `docs/review/differenze-asqueel-genropy-it.html` (new)
+  - Decisions:
+    - Italian; technical terms stay in English (Model, Query, Read-Write, Adapters, push, ...). Self-contained HTML: `<html lang="it">`, inline CSS, no `<script>`, no `<link>`, no external resource; well-formed — every non-void tag closed explicitly. Derived from the Phase 1 inventory and the Phase 2 chapter, no new claim. It describes asqueel as it is against GenroPy; it never compares with earlier asqueel versions.
+    - Top-level `<section id>` exactly, in order: `model`, `query`, `read-write`, `adapters`, `da-implementare`, `migrazione`, `api`, `proposte`. Inside each block: `<section id="<block>-manca">`, `-diverso`, `-nuovo`, `-uguale`, in this order. Inside `da-implementare`: `da-implementare-<block>` for each block with such rows, in block order. A sticky nested table of contents mirrors this tree.
+    - Cards are `<article data-id="A<n>.<m>">`: title; Missing cards carry one `<span class="etichetta etichetta-temporanea|eliminata|sostituita">`; "In GenroPy scrivevi / ottenevi" above, "In asqueel" below (Different and sostituita), notes at the bottom, files in a closed `<details>`. Same items are `<li data-id="...">`. Migration rows neither carded nor cited; the `migrazione` section gives the same few lines as the chapter. `api` and `proposte` as in the chapter, in Italian.
+    - The header states the date and both reference commits (legacy `95da66ee`, the asqueel commit of the inventory's Fonti).
+  - Details: write the page from the inventory, block by block. Contract test: `.phased/active/differences-document/tests/phase-3/check_page.py`, run in place; read-only.
+  - Done: `venv/bin/python .phased/active/differences-document/tests/phase-3/check_page.py` exits 0; the Phase 1 and Phase 2 checkers still exit 0; `venv/bin/python -m sphinx -E -W -q -b html docs docs/_build/html` exits 0; `git diff --stat "$(git log -1 --diff-filter=A --format=%H -- .phased/active/differences-document/plan.md)" -- src tests docs/design docs/review/asqueel-vs-genropy-it.html docs/review/asqueel-vs-genropy-0.6-it.html` is empty.
+  - Verify: now — open docs/review/differenze-asqueel-genropy-it.html in a browser, light and dark theme and phone width: the tree navigates, cards read GenroPy above and asqueel below, labels are legible.
+
+## Notes
+- Adopted branch plan/write-cycle, worktree worktrees/write-cycle, as Macros 1-7. Commits carry no AI attribution.
+- The three checkers are the executable contract, authored and smoke-tested at planning (green on a minimal correct fixture, red on a wrong Blocco). They live in the plan directory and run in place: tests/ must stay unchanged. A premise in them that cannot hold is a plan-defect claim, never a local edit.
+- Phases 2 and 3 import the inventory parser from the Phase 1 checker; the inventory format is therefore fixed after Phase 1.
+- Reading the legacy outside the repo uses only `git -C ~/Sviluppo/Genropy/genropy show|ls-tree|grep` at the fixed commit; no checkout or fetch there.
+- `temp/audit-invenzioni/decisioni.md` is local and untracked: read it, never cite its path in the published chapter or the team page; cite decisions as `decisione utente YYYY-MM-DD` in the inventory.
+- The full Sphinx build (`-E`) failed at planning on `docs/api.rst` (SqlRecord, EnvironmentMismatchError); Phase 1 fixes it. Incremental builds hid it in earlier macros.
+- Test environment: venv/ in the worktree (memory note asqueel-test-environment).
+
+## Suggested execution config
+| Phase | Effort | Model |
+|-------|--------|-------|
+| Phase 1 | high | opus |
+| Phase 2 | medium | opus |
+| Phase 3 | medium | opus |
+| Repair | high | opus |
