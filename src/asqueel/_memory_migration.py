@@ -10,23 +10,6 @@ from asqueel_migration.readers.sqlite_reader import SqliteReader
 from .errors import MigrationError, TransactionStateError
 
 
-def check_idle(db):
-    """Do not commit, roll back or bypass an application's unfinished work."""
-    db._check_open()
-    if not db.usingMainConnection() or db.adapter.dialect != 'sqlite':
-        raise MigrationError('In-memory migration requires the main SQLite connection')
-    for state in db._connections.values():
-        db._check_connection_usable(state)
-        db._check_connection_completion(state)
-        deferred = any(db.currentEnv.get(db._deferred_key(state, key)) for key in (
-            'to_commit_defer_calls', 'after_commit_defer_calls', '_pendingExceptions'))
-        connection = state['connection']
-        if (state['pending'] or state['write_depth'] or deferred
-                or (connection is not None and connection.in_transaction)):
-            raise TransactionStateError(
-                'In-memory schema changes require no pending work; commit or rollback first')
-
-
 class _BorrowedReader(SqliteReader):
     def __init__(self, connection, schemas):
         super().__init__({'dbname': ':memory:'}, schemas=schemas)
@@ -63,7 +46,7 @@ class MemoryDatabase(SqliteDatabase):
     """Migration facade over a borrowed, idle, application-owned connection."""
 
     def __init__(self, db, schemas):
-        check_idle(db)
+        db._check_idle()
         state = db._connection_state
         conninfo, kwargs = db._connection_settings()
         if (kwargs.get('dbname') or conninfo) != ':memory:':

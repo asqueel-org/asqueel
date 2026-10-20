@@ -1,6 +1,6 @@
 """A complete SQLite session without configuration or database files.
 
-Run with the experimental branch and its migration extra:
+Run with the migration extra installed:
     python examples/sqlite_memory.py
 """
 import csv
@@ -29,7 +29,7 @@ def main():
 
         product.column("category", size=":30")
         product.column("stock", dtype="I")
-        db.reload_model(model)
+        db.reloadModel(model)
         print(db.migrate().commands)
         products = db.table("shop.product")
         products.update({"category": "Drinks", "stock": 8}, pkey="TEA")

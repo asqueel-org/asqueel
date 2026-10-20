@@ -49,6 +49,7 @@ from asqueel_migration.structures import (
 from .catalog import SqlModelCatalog
 from .configuration import connection_settings
 from .errors import MigrationError
+from ._memory_migration import MemoryDatabase
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
 from .common import default_index_name, indexed_attributes
 from .common import SQL_ACTIONS, SQL_COLUMN_KEYS, sql_column_attributes
@@ -441,7 +442,6 @@ def _prepared_migrator(db, *, allow_removals, foreignKeys, force, backup):
     if not schemas or not db.model.tables:
         raise MigrationError('Declare at least one nonempty managed schema before migrating')
     if implementation == 'sqlite' and params['dbname'] == ':memory:':
-        from ._memory_migration import MemoryDatabase
         database = MemoryDatabase(db, schemas)
     else:
         database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase

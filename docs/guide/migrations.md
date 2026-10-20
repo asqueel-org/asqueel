@@ -117,7 +117,7 @@ builder, explicitly reload the model, then migrate the same database:
 ```python
 product.column("category", size=":30")
 product.column("stock", dtype="I")
-db.reload_model(model)
+db.reloadModel(model)
 print(db.migrate().commands)
 
 products = db.table("shop.product")  # Fresh handle for the new model.
@@ -154,13 +154,19 @@ also in memory. There are no database files to persist between processes:
 exiting Python, closing the connection, or constructing a different `AsqueelDb`
 creates a different database.
 
-This experimental `reload_model(source, parents=None)` API is for an exclusively
+`reloadModel(source, parents=None)` is for an exclusively
 used, single-threaded SQLite `:memory:` session with only the main connection
 open. It validates the replacement
 before swapping models, keeps the connection, and refuses changes to connection
 settings or SQL schemas. It changes the model only; `migrate()` applies the DDL.
 Obtain fresh table and query handles after reloading: old handles are invalid.
 The original builder is not watched for changes.
+
+A relation added to a table that already exists needs
+`migrate(foreignKeys=False)`: SQLite cannot add a foreign key to an existing
+table, so the migration creates the column and its index without the
+constraint. The relation works in queries (`@category_code.name`) because
+joins come from the model.
 
 Both in-memory migration methods and model reload require an idle session.
 Commit or roll back pending work first, including after reads, and finish any
