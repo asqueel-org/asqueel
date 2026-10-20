@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!-- generated from capability-catalogue.xml by xmldocs: do not edit, edit the XML -->
+<html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Catalogo delle capability dei dialetti</title><style>
+:root {
+  --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --line: #e2dfd8; --panel: #f3f1ec;
+  --code-bg: #f0eee8; --accent: #2f5d8a;
+  --ok: #2e7d4f; --warn: #a86b00; --bad: #b23b3b; --info: #2f5d8a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18181a; --fg: #e8e6e1; --muted: #9a9890; --line: #33332f; --panel: #212123;
+    --code-bg: #26262a; --accent: #8fb4dc;
+    --ok: #6cc28f; --warn: #e0a940; --bad: #e57373; --info: #8fb4dc;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18181a; --fg: #e8e6e1; --muted: #9a9890; --line: #33332f; --panel: #212123;
+  --code-bg: #26262a; --accent: #8fb4dc;
+  --ok: #6cc28f; --warn: #e0a940; --bad: #e57373; --info: #8fb4dc;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 4px 0 8px; }
+h2 { font-size: 1.35rem; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.12rem; margin: 28px 0 8px; }
+h4 { font-size: 1rem; margin: 20px 0 6px; }
+a { color: var(--accent); }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg);
+  padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; overflow-x: auto; }
+pre code { display: block; padding: 12px 14px; background: none; }
+figure { margin: 16px 0; }
+figure.code { background: var(--code-bg); border-radius: 8px; }
+figure.code figcaption { font-size: 0.8rem; color: var(--muted); padding: 8px 14px 0; }
+figure.diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+figure.embed { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+figure.embed figcaption { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 8px; }
+figure.embed svg { max-width: 100%; height: auto; }
+.tag-script { color: var(--bad); }
+figure.diagram figcaption { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 8px; }
+.doc-type { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem; color: var(--muted); }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 0.9rem; }
+.muted { color: var(--muted); font-size: 0.9em; }
+.box { border: 1px solid var(--line); border-left: 4px solid var(--line); background: var(--panel);
+  border-radius: 6px; padding: 10px 14px; margin: 12px 0; }
+.box-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.box-foot { margin-top: 6px; }
+.box.fact { border-left-color: var(--info); }
+.box.rule-must { border-left-color: var(--ok); }
+.box.rule-must-not { border-left-color: var(--bad); }
+.box.rule-should { border-left-color: var(--warn); }
+.box.limit { border-left-color: var(--warn); }
+.box.decision-open, .box.decision-proposed { border-left-color: var(--warn); }
+.box.decision-decided { border-left-color: var(--ok); }
+.box.decision-rejected { border-left-color: var(--bad); }
+.box.example { border-left-color: var(--accent); }
+.box.done { border-left-color: var(--ok); }
+.tag-done { color: var(--ok); }
+.tag-doing, .tag-in-progress { color: var(--info); }
+.tag-todo { color: var(--muted); }
+.tag-approved { color: var(--ok); }
+.source { font-size: 0.8rem; }
+.why { margin-top: 4px; }
+.tag { display: inline-block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 1px 7px; border-radius: 10px; border: 1px solid currentColor; color: var(--muted); }
+.tag-test, .tag-run, .tag-must, .tag-decided, .tag-accepted { color: var(--ok); }
+.tag-read, .tag-review { color: var(--info); }
+.tag-should, .tag-open, .tag-proposed, .tag-draft { color: var(--warn); }
+.tag-must-not, .tag-rejected { color: var(--bad); }
+.options li { margin: 6px 0; }
+.options li.chosen b { color: var(--ok); }
+.choice { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.step-num { color: var(--muted); font-weight: 400; margin-right: 6px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; color: var(--muted); padding-bottom: 6px; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: var(--panel); }
+  </style></head><body><main><header class="doc-head"><div class="doc-type">Proposal</div><h1>Catalogo delle capability dei dialetti</h1><div class="doc-meta"><span>proposal/capability-catalogue</span><span>2026-10-20</span><span>Giovanni Porcari</span><span class="tag tag-draft">draft</span></div></header><section class="part problem"><h2>Problem</h2>
+    <p>I dialetti SQL non offrono le stesse funzioni. PostgreSQL ha RETURNING, <code>FOR UPDATE</code> con le sue varianti, <code>jsonb_agg</code>, <code>xmlagg</code>, <code>tsvector</code>, gli indici gin, gli schemi e <code>LISTEN</code>/<code>NOTIFY</code>. SQLite ne ha una parte.</p>
+    <p>Quando un utente chiede una funzione che il dialetto non ha, deve ricevere un errore. L'errore deve nominare la funzione mancante. Non deve essere un errore generico del driver o un <code>KeyError</code>.</p>
+    <p>Serve quindi un elenco delle capability. Ogni dialetto dichiara quelle che ha. Questo documento propone l'elenco e il modo di usarlo. Va discusso prima dell'implementazione.</p>
+  </section><section class="part current"><h2>Current state</h2>
+    <section class="section"><h3>GenroPy</h3>
+      <p>Fonte: il ramo <code>origin/develop</code> della repo genropy al commit <code>5c72f3fbd7</code> del 2026-10-19. I file citati sono sotto <code>gnrpy/gnr/</code>.</p>
+      <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">sql/__init__.py:14</code><span class="muted">2026-10-20</span></div><div>GenroPy definisce l'enum <code>AdapterCapabilities</code> con quattro valori: <code>MIGRATIONS</code>, <code>VECTOR</code>, <code>SCHEMAS</code>, <code>ADMINISTER</code>.</div></div>
+      <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">sql/adapters/_gnrbaseadapter.py:343</code><span class="muted">2026-10-20</span></div><div>L'adapter base offre due metodi di classe: <code>has_capability(capability)</code> e <code>not_capable(capability)</code>. Leggono l'insieme <code>CAPABILITIES</code> della classe, vuoto nell'adapter base.</div></div>
+      <div class="table-wrap"><table><caption>Capability dichiarate dagli adapter GenroPy</caption>
+        <tr><th>Adapter</th><th>CAPABILITIES</th><th>Fonte</th></tr>
+        <tr><td>PostgreSQL</td><td><code>MIGRATIONS</code>, <code>VECTOR</code>, <code>SCHEMAS</code></td><td><code>sql/adapters/_gnrbasepostgresadapter.py:114</code></td></tr>
+        <tr><td>SQLite</td><td><code>SCHEMAS</code></td><td><code>sql/adapters/gnrsqlite.py:56</code></td></tr>
+        <tr><td>MySQL</td><td><code>SCHEMAS</code></td><td><code>sql/adapters/gnrmysql.py:64</code></td></tr>
+        <tr><td>SQL Server</td><td><code>SCHEMAS</code></td><td><code>sql/adapters/gnrmssql.py:115</code></td></tr>
+      </table></div>
+      <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">db/cli/gnrmigrate.py:199</code><span class="muted">2026-10-20</span></div><div>Il comando di migrazione controlla <code>MIGRATIONS</code> e termina con un errore se l'adapter non la dichiara.</div></div>
+      <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">sql/gnrsqlmodel/table.py:176</code><span class="muted">2026-10-20</span></div><div>Il nome SQL completo di una table usa lo schema solo se l'adapter dichiara <code>SCHEMAS</code>.</div></div>
+      <p>Nessun adapter dichiara <code>ADMINISTER</code>, e nessun codice sotto <code>gnrpy/gnr/</code> la legge.</p>
+      <div class="box fact"><div class="box-head"><span class="tag tag-read">read</span><code class="source">sql/adapters/gnrsqlite.py:61</code><span class="muted">2026-10-20</span></div><div>GenroPy ha anche capability fuori dall'enum: l'attributo di classe <code>allowAlterColumn</code>, <code>True</code> nell'adapter base e <code>False</code> in SQLite, letto da <code>sql/gnrsqlutils.py:319</code>.</div></div>
+      <p>Le altre differenze tra dialetti non hanno una capability. Un adapter che non implementa un metodo solleva <code>AdapterMethodNotImplemented</code>, che non nomina la funzione chiesta dall'utente.</p>
+    </section>
+  </section><section class="part solution"><h2>Proposed solution</h2>
+    <p>Il catalogo elenca le capability per tema. Ogni dialetto dichiara l'insieme delle capability che ha. Quando una richiesta usa una capability che il dialetto non dichiara, asqueel solleva un errore che nomina la capability. L'errore arriva prima di inviare SQL al database.</p>
+    <p>Il catalogo parte dai quattro valori GenroPy e li conserva con lo stesso nome. Aggiunge le capability analitiche dei temi qui sotto.</p>
+
+    <section class="section"><h3>Query</h3>
+      <ul>
+        <li>RETURNING su INSERT, UPDATE e DELETE.</li>
+        <li><code>FOR UPDATE</code> e le sue varianti: <code>NOWAIT</code>, <code>SKIP LOCKED</code>, <code>FOR SHARE</code>, <code>FOR NO KEY UPDATE</code>, <code>FOR KEY SHARE</code>.</li>
+        <li>Aggregati JSON (<code>jsonb_agg</code>, <code>json_agg</code>) e XML (<code>xmlagg</code>).</li>
+        <li>Ricerca full-text con colonne <code>tsvector</code>.</li>
+        <li>Vettori: corrisponde a <code>VECTOR</code> di GenroPy.</li>
+      </ul>
+    </section>
+
+    <section class="section"><h3>Schema</h3>
+      <ul>
+        <li>Schemi SQL: corrisponde a <code>SCHEMAS</code> di GenroPy.</li>
+        <li>ALTER COLUMN: corrisponde a <code>allowAlterColumn</code> di GenroPy.</li>
+        <li>Foreign key deferrable.</li>
+        <li>Metodi di indice oltre al default, per esempio gin. Una colonna TSV con indice gin è rifiutata sui dialetti che non dichiarano le due capability.</li>
+      </ul>
+    </section>
+
+    <section class="section"><h3>Migrazione</h3>
+      <ul>
+        <li>Migrazione del database: corrisponde a <code>MIGRATIONS</code> di GenroPy.</li>
+      </ul>
+    </section>
+
+    <section class="section"><h3>Amministrazione</h3>
+      <ul>
+        <li>Operazioni di amministrazione del database: corrisponde a <code>ADMINISTER</code> di GenroPy. L'elenco delle operazioni coperte è da definire, perché in GenroPy la capability non ha usi.</li>
+      </ul>
+    </section>
+
+    <section class="section"><h3>Notifiche</h3>
+      <ul>
+        <li><code>LISTEN</code> e <code>NOTIFY</code> di PostgreSQL. <code>db.listen</code> e <code>db.notify</code> sono rimandati e arriveranno come capability dell'adapter PostgreSQL.</li>
+      </ul>
+    </section>
+
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Ogni funzione che dipende dal dialetto appartiene a una capability del catalogo.</div></div>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>Una richiesta che usa una capability non dichiarata dal dialetto solleva un errore che nomina la capability. L'errore non è mai un <code>KeyError</code> o un errore del driver.</div></div>
+    <div class="box rule rule-must"><div class="box-head"><span class="tag tag-must">must</span></div><div>I quattro nomi GenroPy restano: <code>MIGRATIONS</code>, <code>VECTOR</code>, <code>SCHEMAS</code>, <code>ADMINISTER</code>.</div></div>
+    <div class="box rule rule-should"><div class="box-head"><span class="tag tag-should">should</span></div><div>Una capability copre una funzione che l'utente può chiedere, non un dettaglio interno del compilatore.</div></div>
+  </section><section class="part decisions"><h2>Decisions</h2>
+    <div class="box decision decision-open" id="dn-granularity"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-granularity</span></div><div class="question">Quanto è fine una capability?</div><ol class="options"><li id="dn-granularity-theme"><b>Una capability per tema</b><p>Esempio: una sola capability per tutte le varianti di <code>FOR UPDATE</code>. L'elenco è corto. Un dialetto che ha solo una parte del tema non si può descrivere.</p></li><li id="dn-granularity-feature"><b>Una capability per funzione</b><p>Esempio: <code>FOR UPDATE NOWAIT</code> e <code>FOR UPDATE SKIP LOCKED</code> sono due capability. L'errore nomina esattamente la funzione chiesta. L'elenco è lungo.</p></li></ol></div>
+    <div class="box decision decision-open" id="dn-declaration"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-declaration</span></div><div class="question">Come dichiara un dialetto le sue capability?</div><ol class="options"><li id="dn-declaration-set"><b>Un insieme sulla classe dell'adapter</b><p>Come GenroPy: un attributo di classe <code>CAPABILITIES</code> con i valori di un enum. Gli attributi separati come <code>allowAlterColumn</code> entrano nell'enum.</p></li><li id="dn-declaration-config"><b>Una dichiarazione nella configurazione del dialetto</b><p>L'elenco sta in un file di configurazione del dialetto, letto all'avvio. Un dialetto nuovo si aggiunge senza scrivere una classe.</p></li></ol></div>
+    <div class="box decision decision-open" id="dn-error"><div class="box-head"><span class="tag tag-open">open</span><span class="muted">dn-error</span></div><div class="question">Come nomina la capability l'errore?</div><ol class="options"><li id="dn-error-class"><b>Una classe di errore dedicata</b><p>Un'eccezione con due campi: la capability e il dialetto. Il messaggio dice, per esempio, che SQLite non ha <code>FOR UPDATE</code>.</p></li><li id="dn-error-existing"><b>L'errore di funzione non supportata</b><p>Il messaggio dell'errore già usato per le funzioni non supportate nomina la capability. Nessuna classe nuova.</p></li></ol></div>
+  </section><section class="part consequences"><h2>Consequences</h2>
+    <p>Ogni dialetto deve dichiarare tutte le capability del catalogo che ha. Una capability dimenticata produce un rifiuto su una funzione che il dialetto avrebbe.</p>
+    <p>Il catalogo serve anche alla proposta di traduzione con sqlglot: le funzioni che sqlglot non sa tradurre restano capability del dialetto.</p>
+  </section><section class="part related"><h2>Related documents</h2><ul>
+    <li><a href="../proposal/sqlglot-transpilation.html">proposal/sqlglot-transpilation</a> — Traduzione dei dialetti con sqlglot</li>
+  </ul></section></main></body></html>

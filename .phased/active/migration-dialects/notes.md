@@ -14,3 +14,9 @@
 - A target index is skipped also when a UNIQUE constraint covers exactly the target columns (legacy `fill_json_column_index` returns on a unique composite); `test_grammar.py::test_composite_target_resolves_to_its_member_columns` needs it.
 - Weak relations (`x_weak`, no foreign key) add no index in the renderer: `model_source.py` already marks their columns `indexed`.
 - Realignments: `test_legacy_model_query.py` used `onUpdate_sql='C'` as an invalid value, now `'X'`; `test_wf_phase20_strict_edges.py` no longer expects `indexed=False` refused on a `foreign_key=False` relation; `docs/grammar.md` regenerated.
+
+## Phase 3
+
+- Legacy facts cite genropy `origin/develop` at `5c72f3fbd7` (2026-10-19). `ADMINISTER` is declared in the enum but no adapter declares it and no code reads it; the catalogue keeps the name and leaves its scope to define.
+- `allowAlterColumn` (legacy adapter class attribute, False on SQLite) is a capability outside the enum; the catalogue lists it under ALTER COLUMN and the declaration decision proposes folding it into the enum.
+- The sqlglot proposal has one open decision (run the trial or not); the earlier SQLGlot trial is described without naming the internal design document, which is not part of the public xmldocs tree.
