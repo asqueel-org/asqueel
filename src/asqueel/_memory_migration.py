@@ -5,12 +5,12 @@ introspection and DDL. A private :memory: database must use the application's
 connection for both, including the post-apply comparison.
 """
 from asqueel_migration.adapters.sqlite_adapter import SqliteAdapter, SqliteDatabase
-from asqueel_migration.readers.sqlite_reader import SqliteReader
+from .sqlite_migration import GeneratedColumnReader
 
 from .errors import MigrationError, TransactionStateError
 
 
-class _BorrowedReader(SqliteReader):
+class _BorrowedReader(GeneratedColumnReader):
     def __init__(self, connection, schemas):
         super().__init__({'dbname': ':memory:'}, schemas=schemas)
         self._borrowed = connection

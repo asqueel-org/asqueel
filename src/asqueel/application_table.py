@@ -18,6 +18,7 @@ from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
 from .hierarchical import HierarchicalHandler
+from .table_behaviors import TableBehaviors
 from .table_crud import _INTEGER_DTYPES, CrudMixin
 from .table_io import read_records, write_rows
 from .table_triggers import TriggersMixin
@@ -285,11 +286,11 @@ class SqlQuery:
             raise RecordMultipleRowsError(f'Multiple visible records in {self.table.fullname}')
         return rows[0]
 
-    def sql_delete(self):
+    def sql_delete(self, *, ignore_partition=False):
         """DELETE the rows this query selects, without triggers; returns the row count."""
         table = self.table.model
         plan = self._key_plan(table)
-        compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot())
+        compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot(), ignore_partition=ignore_partition)
         return self._rowcount(compiled)
 
     def _rowcount(self, compiled):
@@ -298,11 +299,11 @@ class SqlQuery:
         cursor.close()
         return rowcount
 
-    def sql_update(self, values):
+    def sql_update(self, values, *, ignore_partition=False):
         """UPDATE the rows this query selects with ``values``, without triggers; returns the row count."""
         table = self.table.model
         plan = self._key_plan(table)
-        compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot())
+        compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot(), ignore_partition=ignore_partition)
         return self._rowcount(compiled)
 
     def delete(self):
@@ -370,7 +371,7 @@ class SqlQuery:
         return len(rows)
 
 
-class SqlTable(CrudMixin, TriggersMixin):
+class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
     """Database-bound application table with stable column/relation handles."""
 
     def __init__(self, db, model):
@@ -475,7 +476,7 @@ class SqlTable(CrudMixin, TriggersMixin):
         """Current write operation; ``parent`` is the operation that caused it."""
         return getattr(self.db, 'currentTrigger', None)
 
-    def sql_insert(self, record, adapt=None, format=None):
+    def sql_insert(self, record, adapt=None, format=None, *, ignore_partition=False):
         """Insert without triggers (legacy raw_insert); a list runs one executemany per column set.
 
         Missing keys are assigned first (checkPkey); in a list each further
@@ -488,7 +489,7 @@ class SqlTable(CrudMixin, TriggersMixin):
         record or a list.
         """
         if hasattr(record, 'read'):
-            return self._sql_insert_file(record, True if adapt is None else adapt, format)
+            return self._sql_insert_file(record, True if adapt is None else adapt, format, ignore_partition)
         if format is not None:
             raise ValueError('format= is for a file; a record or a list has no format')
         if adapt:
@@ -497,25 +498,25 @@ class SqlTable(CrudMixin, TriggersMixin):
         writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
         self._assign_keys(record if isinstance(record, list) else [record])
         if isinstance(record, list):
-            for compiled, params in writer.insert_many(self.model, record, snapshot):
+            for compiled, params in writer.insert_many(self.model, record, snapshot, ignore_partition=ignore_partition):
                 self.db.executemany(compiled, params).close()
             return record
-        cursor = self.db.execute(writer.insert(self.model, record, snapshot))
+        cursor = self.db.execute(writer.insert(self.model, record, snapshot, ignore_partition=ignore_partition))
         rows = cursor.fetchall() if cursor.description is not None else []
         cursor.close()
         if rows:
             record.update(dict(rows[0]))
         return record
 
-    def _sql_insert_file(self, stream, adapt, format):
+    def _sql_insert_file(self, stream, adapt, format, ignore_partition=False):
         count, block = 0, []
         for count, record in enumerate(read_records(stream, format), 1):
             block.append(self._adapted(record, count) if adapt else record)
             if len(block) == _DATA_BLOCK:
-                self.sql_insert(block)
+                self.sql_insert(block, ignore_partition=ignore_partition)
                 block = []
         if block:
-            self.sql_insert(block)
+            self.sql_insert(block, ignore_partition=ignore_partition)
         return count
 
     def _adapted(self, record, index):
@@ -558,11 +559,11 @@ class SqlTable(CrudMixin, TriggersMixin):
             if integer and record.get(pkey) is not None:
                 next_integer = max(next_integer or 0, record[pkey] + 1)
 
-    def sql_update(self, record, old_record=None, pkey=None):
+    def sql_update(self, record, old_record=None, pkey=None, *, ignore_partition=False):
         """Update without triggers (legacy raw_update); the key comes from old_record, pkey or record."""
         self.db.execute(self.db.write_compiler.update(
-            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record)).close()
+            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record, ignore_partition=ignore_partition)).close()
 
-    def sql_delete(self, record):
+    def sql_delete(self, record, *, ignore_partition=False):
         """Delete without triggers or related actions (legacy raw_delete)."""
-        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot())).close()
+        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot(), ignore_partition=ignore_partition)).close()

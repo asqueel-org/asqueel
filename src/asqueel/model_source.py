@@ -234,11 +234,8 @@ def require_write_capabilities(table):
     ``table`` is a DbTableObj. Each implementation step removes what it executes.
     """
     from .contracts import UnsupportedFeatureError
-    executed = {'sys_fields', 'hierarchical'}
+    executed = {'sys_fields', 'hierarchical', 'auto_counter', 'relative_index'}
     enabled = [name for name, option in table.options.items() if option.attributes.get('enabled', True)]
-    if 'hierarchical' in enabled:
-        # trigger_hierarchical_before assigns _row_count; no setRowCounter.
-        executed.add('auto_counter')
     pending = [f'option {name}' for name in enabled if name not in executed]
     if table.attributes.get('x_expanded_legacy'):
         pending.append('legacy expansion')
@@ -248,10 +245,8 @@ def require_write_capabilities(table):
         # checkPkey generates the sys_fields key.
         sys_key = ('sys_fields' in enabled and name == 'id'
                    and attributes.get('x_generation') == {'type': 'uuid', 'algorithm': 'legacy22'})
-        pending.extend(f'{name}.{key}' for key in ('default', 'default_from', 'x_generation')
+        pending.extend(f'{name}.{key}' for key in ('default_from', 'x_generation')
                        if attributes.get(key) is not None and not (sys_key and key == 'x_generation'))
-        pending.extend(f'{name}.{key}' for key in ('read_only', 'unmodifiable')
-                       if attributes.get(key) and not (sys_key and key == 'read_only'))
     if pending:
         raise UnsupportedFeatureError(
             f'{table.fullname}: write execution of {", ".join(pending)} is not available in this release')

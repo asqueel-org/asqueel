@@ -227,7 +227,7 @@ class _TableExpansion:
         spec = self.spec('hierarchical')
         if spec is None:
             return
-        for name in ('linked_to', 'depth'):
+        for name in ('depth',):
             if spec.get(name):
                 raise UnsupportedFeatureError(f'{self.key}: hierarchical {name} is not available in this release')
         id_column = self.node('id')
@@ -253,10 +253,6 @@ class _TableExpansion:
         columns = split_names(columns) if isinstance(columns, str) else columns
         fields = []
         counter = self.spec('auto_counter')
-        if counter and counter.get('field', '_row_count') != '_row_count':
-            # The legacy hierarchical counter is always _row_count.
-            raise UnsupportedFeatureError(
-                f"{self.key}: hierarchical auto_counter field {counter['field']!r} is not available in this release")
         for item in columns:
             name = item['name'] if isinstance(item, Mapping) else item
             if name == 'pkey':
@@ -336,6 +332,28 @@ def _attachments(owner, spec, expansions):
     owner.add('full_external_url', 'T', kind='pyColumn', method='pyColumn_full_external_url', name_long='Full external url')
 
 
+def _linked_hierarchy(owner, spec, expansions):
+    master = _target(expansions, spec['linked_to'], owner)
+    pkey = master.table.get_attr('pkey')
+    column = master.node(pkey) if pkey else None
+    if column is None or column.node_tag != 'column':
+        raise ValueError(f'{owner.key}: linked hierarchy master needs a physical primary key')
+    dtype = column.get_attr('dtype') or ('A' if column.get_attr('size') else 'T')
+    dtype = {'serial': 'L', 'serial4': 'I'}.get(dtype, dtype)
+    required = {'size': column.get_attr('size')} if column.get_attr('size') else {}
+    name = master.table.get_attr('name')
+    col = owner.add(f'{name}_{pkey}', dtype, required=required, group='_',
+                    name_long=master.table.get_attr('name_long'), **_legacy(copyFromParent=True, fkeyToMaster=True))
+    owner.relation(col, master.key + '.' + pkey, relation_name=owner.table.get_attr('name') + 's',
+                   onDuplicate=False, deferred=True, onDelete='cascade')
+    root = master.add('root_' + owner.table.get_attr('name') + '_id', 'A', required={'size': '22'},
+                      name_long=f"{owner.table.get_attr('name_long')} root",
+                      **_legacy(onInserting='insertLinkedHierarchicalRoot', onUpdating='updateLinkedHierarchicalRoot'))
+    master.relation(root, owner.key + '.id', one_one='*', onDuplicate=False, onDelete_sql='setnull',
+                    deferred=True)
+    owner.table_default(hierarchical_linked_to=master.key)
+
+
 def _relative_index(owner, spec, expansions):
     name = spec['relation'].lstrip('@')
     col = owner.node(name)
@@ -379,6 +397,9 @@ def expand_options(builder, *, options_first=False):
         for owner in expansions.values():
             owner.hierarchy()
         for owner in expansions.values():
+            hierarchy = owner.spec('hierarchical')
+            if hierarchy and hierarchy.get('linked_to'):
+                _linked_hierarchy(owner, hierarchy, expansions)
             spec = owner.spec('attachments')
             if spec is not None:
                 _attachments(owner, spec, expansions)

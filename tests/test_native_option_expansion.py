@@ -303,8 +303,13 @@ def test_linked_hierarchy_and_legacy_variants(option, value):
     tree.column('code')
     master = pkg.table('master', name_long='Master')
     master.options().sys_fields()
-    with pytest.raises(UnsupportedFeatureError, match=f'app.tree: hierarchical {option} is not available'):
-        resolve_model(builder)
+    if option == 'linked_to':
+        model = resolve_model(builder)
+        assert model.table('app.tree').column('@master_id.id').table.fullname == 'app.master'
+        assert model.table('app.master').column('root_tree_id').attributes['onInserting'] == 'insertLinkedHierarchicalRoot'
+    else:
+        with pytest.raises(UnsupportedFeatureError, match=f'app.tree: hierarchical {option} is not available'):
+            resolve_model(builder)
 
 
 def test_protection_tag_preserves_the_legacy_formula_without_execution():

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Execute standalone `auto_counter` and `relative_index` options, column
+  defaults and `read_only`/`unmodifiable` checks in the ordinary write cycle.
+- Maintain hierarchies with custom parent/counter fields and linked master
+  roots; serialize structural changes, reject cycles and refresh paths after
+  before-hooks. Preserve cascade rollback and skip descendants already deleted.
+- Apply physical `partition_<field>` scopes to insert/update/delete, including
+  direct SQL APIs, with an explicit `ignore_partition=True` bypass.
+- Introspect SQLite generated columns (including in-memory databases), keep
+  generated values out of ordinary UPDATE assignments, and refuse migration
+  plans that would silently ignore changed generated expressions.
+
 ## 0.6.0 — 2026-10-20
 
 - Data files: `query(...).fetch(destination=)` writes the rows to a CSV, JSON

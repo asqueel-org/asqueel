@@ -61,7 +61,7 @@ def test_a_stored_position_beyond_the_bound_does_not_block_other_changes(tmp_pat
         assert row(table, legacy['id'], '$description')['description'] == 'still writable'
 
 
-def test_a_hierarchical_counter_other_than_row_count_raises(tmp_path):
+def test_a_hierarchical_counter_can_use_a_custom_field(tmp_path):
     def declare(package):
         table = package.table('category', name_long='Category')
         table.options().sys_fields()
@@ -69,9 +69,9 @@ def test_a_hierarchical_counter_other_than_row_count_raises(tmp_path):
         table.options().auto_counter(field='pos')
         table.column('code')
 
-    with pytest.raises(UnsupportedFeatureError, match="hierarchical auto_counter field 'pos'"):
-        with migrated_db('sqlite', tmp_path, declare):
-            pass
+    with migrated_db('sqlite', tmp_path, declare) as db:
+        item = db.table('app.category').insert({'code': 'first'})
+        assert (item['pos'], item['_h_count']) == (1, '01')
 
 
 def test_the_refused_options_are_named_in_declaration_order(tmp_path):

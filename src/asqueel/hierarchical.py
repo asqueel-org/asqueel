@@ -32,43 +32,55 @@ class HierarchicalHandler:
     def __init__(self, tblobj):
         self.tblobj = tblobj
 
-    def trigger_before(self, record, old_record=None):
+    def trigger_before(self, record, old_record=None, *, allocate=True):
         tblobj = self.tblobj
         pkeyfield = tblobj.model.pkey
         # asqueel updates accept a partial record: an absent key keeps its stored value.
         current = dict(old_record or {}, **record)
-        parent_id = current.get('parent_id')
-        moved = old_record is not None and _changed(('parent_id',), current, old_record)
-        has_counter = '_row_count' in tblobj.model.columns
+        spec = tblobj._behavior('hierarchical')
+        parent_field = spec.get('parent', 'parent_id')
+        counter_field = (tblobj._behavior('auto_counter') or {}).get('field', '_row_count')
+        key = str(current[pkeyfield]).rstrip()
+        if '/' in key:
+            raise ValueError('Hierarchical primary keys cannot contain /')
+        if old_record and key != str(old_record[pkeyfield]).rstrip():
+            raise ValueError('Hierarchical primary keys are unmodifiable')
+        parent_id = current.get(parent_field)
+        if parent_id is not None and str(parent_id).rstrip() == key:
+            raise tblobj.exception('business_logic', msg='A node cannot be moved under itself or one of its descendants')
+        moved = old_record is not None and _changed((parent_field,), current, old_record)
+        has_counter = counter_field in tblobj.model.columns
         # doc 36 §10.2: a moved node takes the last position among its new siblings.
-        next_position = has_counter and (moved or (old_record is None and record.get('_row_count') is None))
+        next_position = allocate and has_counter and (moved or (old_record is None and record.get(counter_field) is None))
         parent_record = None
         if parent_id:
             # Locking the parent serializes max + 1 among its children.
             rows = tblobj.query(where=f'${pkeyfield}=:pid', pid=parent_id, for_update=next_position,
-                                excludeLogicalDeleted=False, excludeDraft=False).fetch()
+                                excludeLogicalDeleted=False, excludeDraft=False, ignorePartition=True).fetch()
             parent_record = rows[0] if rows else None
         elif next_position:
             self.lock_roots()
-        if parent_record and moved and record[pkeyfield] in parent_record['hierarchical_pkey'].split('/'):
+        if parent_id is not None and parent_record is None:
+            raise ValueError('Unknown hierarchical parent')
+        if parent_record and key in parent_record['hierarchical_pkey'].split('/'):
             raise tblobj.exception('business_logic', msg='A node cannot be moved under itself or one of its descendants')
         if next_position:
             # Assigned before the paths: '_row_count' can be a hierarchical field.
-            where, params = ('$parent_id =:p_id', {'p_id': parent_id}) if parent_id else ('$parent_id IS NULL', {})
-            rows = tblobj.query(columns='$_row_count', where=where, sqlparams=params,
-                                order_by='$_row_count desc', limit=1,
-                                excludeLogicalDeleted=False, excludeDraft=False).fetch()
-            record['_row_count'] = current['_row_count'] = ((rows[0]['_row_count'] if rows else None) or 0) + 1
+            record[counter_field] = current[counter_field] = tblobj._next_counter(counter_field, [parent_field], current)
         # doc 36 §10.2: the bound applies to a position being written, not to a stored one.
-        positioned = old_record is None or _changed(('_row_count',), current, old_record)
-        if has_counter and positioned and (current.get('_row_count') or 0) > _MAX_SIBLINGS:
+        positioned = old_record is None or _changed((counter_field,), current, old_record)
+        if has_counter and positioned and (current.get(counter_field) or 0) > _MAX_SIBLINGS:
             raise tblobj.exception('business_logic', msg=f'at most {_MAX_SIBLINGS} siblings under one parent')
+        if has_counter and (type(current.get(counter_field)) is not int or current[counter_field] < 0):
+            raise ValueError('Hierarchical counters require a nonnegative integer')
         for fld in tblobj.model.attributes['x_legacy_hierarchical'].split(','):
             parent_h_fld = '_parent_h_%s' % fld
             h_fld = 'hierarchical_%s' % fld
-            v = current.get(pkeyfield if fld == 'pkey' else fld)
+            v = key if fld == 'pkey' else current.get(fld)
             record[parent_h_fld] = parent_record[h_fld] if parent_record else None
             record[h_fld] = '%s/%s' % (parent_record[h_fld], v) if parent_record else v
+        if spec.get('root_id'):
+            record['root_id'] = record['hierarchical_pkey'].split('/')[0]
         if parent_record:
             for field, colobj in tblobj.model.columns.items():
                 if colobj.attributes.get('x_legacy_copyFromParent'):
@@ -76,8 +88,8 @@ class HierarchicalHandler:
         if not has_counter:
             return
         record['_parent_h_count'] = current['_parent_h_count'] = parent_record['_h_count'] if parent_record else None
-        if old_record is None or _changed(('_row_count', '_parent_h_count'), current, old_record):
-            record['_h_count'] = '%s%s' % (record['_parent_h_count'] or '', encode36(current['_row_count'], 2))
+        if old_record is None or _changed((counter_field, '_parent_h_count'), current, old_record):
+            record['_h_count'] = '%s%s' % (record['_parent_h_count'] or '', encode36(current[counter_field], 2))
 
     def lock_roots(self):
         """Serialize max + 1 among the roots."""
@@ -90,28 +102,13 @@ class HierarchicalHandler:
         if old_record is None:
             raise tblobj.exception('standard', msg='Updating a hierarchical record requires old_record')
         current = dict(old_record, **record)
-        hfields = tblobj.model.attributes['x_legacy_hierarchical'].split(',')
-        changed_hfields = [fld for fld in hfields
-                           if record.get('hierarchical_%s' % fld) != old_record.get('hierarchical_%s' % fld)]
-        order_by = None
-        changed_counter = False
-        if '_row_count' in current:
-            order_by = '$_row_count'
-            changed_counter = _changed(('_row_count', '_parent_h_count'), current, old_record)
-        if not (changed_hfields or changed_counter):
+        fields = [name for name, column in tblobj.model.columns.items()
+                  if name.startswith('hierarchical_') or name == '_h_count'
+                  or column.attributes.get('x_legacy_copyFromParent')]
+        if not _changed(fields, current, old_record):
             return
-        columns = ','.join(f'${name}' for name in tblobj.model.columns)
-        fetch = tblobj.query(columns=columns, where='$parent_id=:curr_id', addPkeyColumn=False, for_update=True,
-                             curr_id=record[tblobj.model.pkey], order_by=order_by, bagFields=True,
-                             excludeLogicalDeleted=False, excludeDraft=False).fetch()
-        for k, row in enumerate(fetch):
-            row = dict(row)
-            new_row = dict(row)
-            for fld in changed_hfields:
-                new_row['_parent_h_%s' % fld] = record['hierarchical_%s' % fld]
-            if changed_counter:
-                if new_row.get('_row_count') is None:
-                    new_row['_row_count'] = k + 1
-                new_row['_parent_h_count'] = current['_h_count']
-                new_row['_h_count'] = '%s%s' % (new_row['_parent_h_count'] or '', encode36(new_row['_row_count'], 2))
-            tblobj.update(new_row, row)
+        parent = tblobj._behavior('hierarchical').get('parent', 'parent_id')
+        children = tblobj._behavior_rows(where=f'${parent}=:parent', sqlparams={'parent': current[tblobj.model.pkey]})
+        for row in children:
+            old = dict(row)
+            tblobj.update(dict(old), old_record=old, ignore_partition=True)

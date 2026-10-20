@@ -52,7 +52,9 @@ class CrudMixin:
         A key string is reread with a lock; a missing one returns without error.
         """
         if isinstance(record, str):
-            record = self._reread(record)
+            with self.db._write_operation():
+                self._lock_behaviors()
+                record = self._reread(record)
             if record is None:
                 return
         self.db.delete(self, record, **kwargs)
@@ -111,7 +113,8 @@ class CrudMixin:
     def _pkey_from_database(self):
         """Whether the pkey column declares ``sql_default``: the database assigns it."""
         column = self.model.columns.get(self.model.pkey)
-        return column is not None and sql_attribute_declared(column.attributes, 'default')
+        return column is not None and (column.dtype in ('serial', 'serial4')
+                                       or sql_attribute_declared(column.attributes, 'default'))
 
     def newPkeyValue(self, record=None):
         """Override to generate keys; the default follows ``pkeyValue``."""
@@ -191,6 +194,20 @@ class CrudMixin:
                 continue
             ofld = joiner['one_relation'].split('.')[2]
             related, mfld, rows = self._related_rows(joiner, record[ofld])
+            remaining = []
+            for row in rows:
+                parent = self.currentTrigger
+                scheduled = False
+                while parent:
+                    original = parent.old_record if parent.old_record is not None else parent.record
+                    if parent.event == 'delete' and parent.table == related.fullname and original:
+                        if all(original.get(name) == row.get(name) for name in related.pkeys):
+                            scheduled = True
+                            break
+                    parent = parent.parent
+                if not scheduled:
+                    remaining.append(row)
+            rows = remaining
             if not rows:
                 continue
             if action == 'raise':
@@ -199,12 +216,13 @@ class CrudMixin:
                                      reltable=related.fullname)
             if action == 'cascade':
                 for row in rows:
-                    related.delete(row)
+                    if related._reread(related._record_key(row)) is not None:
+                        related.delete(row, ignore_partition=True)
             elif action == 'setnull':
                 for row in rows:
                     old = dict(row)
                     row[mfld] = None
-                    related.update(row, old)
+                    related.update(row, old, ignore_partition=True)
 
     def archiveRelatedRecords(self, record, archive_ts):
         """Set ``archive_ts`` on the logical-deletion field of the cascade children that have one."""

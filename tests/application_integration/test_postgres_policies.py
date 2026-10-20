@@ -85,7 +85,6 @@ def test_application_partition_draft_deletion_and_scoped_writes(policy_database)
                             .format(sql.Identifier(schema))).fetchone() == ('eleven',)
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#15: insert does not fill the partition field from the environment')
 def test_application_insert_fills_the_partition_field(policy_database):
     db, observer, schema = policy_database
     item = db.table('app.item')

@@ -36,7 +36,6 @@ def test_dml_partition_guards_autofill_and_no_draft_or_deleted_filters():
         db.closeConnection()
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#15: partition autofill and guard on write')
 def test_dml_partition_guards_and_autofill():
     snapshot = {'current_organization': 0, 'allowed_organization': [0]}
     db = database()
@@ -56,7 +55,6 @@ def test_dml_partition_guards_and_autofill():
         db.closeConnection()
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#15: allowed-only partition refuses inserts outside the allowed values')
 def test_allowed_only_insert_requires_value_and_empty_allowed_refuses_insert():
     db = database()
     try:
