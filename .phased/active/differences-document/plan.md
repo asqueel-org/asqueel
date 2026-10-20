@@ -52,7 +52,10 @@ Describe asqueel against GenroPy legacy in the form the user agreed (decisioni.m
   - Details: rewrite the page block by block from the inventory; every non-Migration row appears exactly once. Contract test: `.phased/active/differences-document/tests/phase-2/check_chapter.py`, run in place; read-only.
   - Done: `venv/bin/python .phased/active/differences-document/tests/phase-2/check_chapter.py` exits 0; the Phase 1 checker still exits 0; `venv/bin/python -m sphinx -E -W -q -b html docs docs/_build/html` exits 0; `git diff --stat "$(git log -1 --diff-filter=A --format=%H -- .phased/active/differences-document/plan.md)" -- src tests docs/review` is empty; `git diff --stat 98312f1 -- docs/design` is empty.
 
-- [ ] **Phase 3**: new Italian review page for the team
+- [x] **Phase 3**: new Italian review page for the team
+  > Done: docs/review/differenze-asqueel-genropy-it.html written (self-contained, lang="it", sticky nested TOC, 136 cards + Same lists, Migration rows not cited); text from the inventory cells, code and Files from the chapter. check_page.py 212 rows 0 errors, check_inventory.py and check_chapter.py 0 errors, sphinx -E -W exit 0, both diffs empty; pytest 5259 passed, ruff clean.
+  > Files: docs/review/differenze-asqueel-genropy-it.html
+  > Verify: now — open docs/review/differenze-asqueel-genropy-it.html in a browser, light and dark theme and phone width: the tree navigates, cards read GenroPy above and asqueel below, labels are legible.
   - Pattern reference: `docs/review/asqueel-vs-genropy-0.6-it.html` (CSS variables, light/dark theme, sticky table of contents, layout at phone width) — copy the style, not the content
   - Files: `docs/review/differenze-asqueel-genropy-it.html` (new)
   - Decisions:

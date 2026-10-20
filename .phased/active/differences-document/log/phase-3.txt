@@ -1,0 +1,13 @@
+✓ Phase 3 completata: nuova pagina di review in italiano per il team.
+
+- **Pagina:** `docs/review/differenze-asqueel-genropy-it.html`, commit `b942a96`. Contiene 136 schede più gli elenchi Uguale. Le righe di Migration non sono citate.
+- **Verifiche eseguite:**
+  - il checker della Phase 3 dà 0 errori;
+  - i checker delle Phase 1 e 2 danno 0 errori;
+  - `sphinx -E -W` esce con 0;
+  - i diff su `src`, `tests`, sulle due vecchie pagine di review e su `docs/design` sono vuoti;
+  - pytest: 5259 passed;
+  - ruff: nessun errore.
+- **Testo:** viene dalle celle dell'inventario. Codice e file vengono dalle schede del capitolo.
+- **Unica modifica al testo dell'inventario:** la Motivazione di A6.26 cita la riga di migrazione A7.21. Il checker vieta di citare gli ID di Migration, quindi lì la pagina scrive «una riga di migrazione».
+- **Da fare:** apri la pagina nel browser con tema chiaro, tema scuro e larghezza da telefono. È il controllo `Verify: now` del piano. Nessun test lo copre.
