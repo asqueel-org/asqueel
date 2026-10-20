@@ -1,7 +1,7 @@
 # Release Asqueel
 
 Distribution: `asqueel`. Python package: `asqueel`.
-Repository: `asqueel-org/asqueel`. Prepared version: `0.6.0` (unreleased).
+Repository: `asqueel-org/asqueel`. Release version: `0.6.1`.
 See [CHANGELOG.md](CHANGELOG.md) for compatibility notes. Preparing and verifying
 the artifacts does not publish them.
 
@@ -40,7 +40,7 @@ or a `PYTHONPATH` pointing to either repository:
 
 ```sh
 python -m venv /tmp/asqueel-release-check
-/tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.6.0-py3-none-any.whl[dev]' pytest-cov
+/tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.6.1-py3-none-any.whl[dev]' pytest-cov
 /tmp/asqueel-release-check/bin/python -m pip check
 env -u PYTHONPATH /tmp/asqueel-release-check/bin/python scripts/check_installed.py
 ```
@@ -64,22 +64,25 @@ contents have been reviewed. Uploaded PyPI files cannot be replaced in place.
 
 ## Dependency baseline
 
-The wheel requires `genro-bag>=0.27.0,<0.28` and
-`genro-builders>=0.27.0,<0.28`. Bag 0.28 no longer accepts the
-`Bag(xml_string)` constructor used by the legacy XML importer; Builders 0.28
-requires Bag 0.28. Keep the tested 0.27 APIs until their upgrade is addressed
-separately. Toolbox requires `>=0.18.0` for mutable NamedList result rows.
+The wheel requires `genro-bag>=0.28.0,<0.29`,
+`genro-builders>=0.29.0,<0.30` and `genro-toolbox>=0.18.0`.
+The `migration` and `dev` extras require `asqueel-migration>=0.3.1,<0.4`.
+Verify the resolved versions with the installed wheel; tests against a sibling
+checkout do not certify PyPI packages.
 
-The `migration` and `dev` extras require `asqueel-migration>=0.2.2,<0.3`;
-development/CI requirements pin `0.2.2`. An allowed dependency range and a fixed
-CI baseline have different purposes. Verify the resolved versions with the
-installed wheel; tests against the sibling checkout do not certify PyPI packages.
+Migration 0.3.1 was published on 2026-10-20. Verify SQLite (file and memory) and
+PostgreSQL creation, introspection, empty second diff and schema evolution using
+the package downloaded from PyPI. Include generated columns, `serial4`, indexes,
+foreign keys, refused unsupported changes and DDL rollback.
 
-Migration 0.2.2 was published on 2026-10-15. It includes UNIQUE removal using
-real constraint/index names and `serial4` support; these are the reasons for the
-new minimum. Verify the release against the package downloaded from PyPI, not
-against the migration checkout or a locally built migration wheel. Earlier
-compatibility checks with 0.1.2–0.2.1 do not cover these fixes.
+## Publish and confirm
+
+Check both Git tags and PyPI before selecting a version: a successful tag-triggered
+publication does not create a GitHub Release automatically. Never reuse a version
+already uploaded to PyPI. After the release commit passes CI and is merged, tag
+that commit, push the tag, and wait for `publish.yml` to succeed. Create the GitHub
+Release from the same tag and changelog. Finally install the published package
+with its `migration` extra in a fresh environment and repeat the migration checks.
 
 Read the Docs project/account
 configuration is independent of the checked-in Sphinx configuration.
