@@ -75,3 +75,6 @@ The migration and the SQLite dialect behave as GenroPy legacy (decisioni.md, Gru
 | Phase 2 | medium | opus |
 | Phase 3 | medium | opus |
 | Repair | high | opus |
+
+## Quality check
+> Quality check: 2026-10-20T06:25:52Z — commit a9456b6 — review panel, QA done, findings 12 confirmed, 0 dismissed, final touch 12 corrections

@@ -28,3 +28,25 @@
 - Phase 2 baseline: two full-suite runs exceeded the 600 s Bash limit and went to background; the second hung in `test_python_errors_postgres.py` while sources were edited under it. The executor took the baseline from a clean detached worktree (5221 passed).
 - Phase 2 `migrate(backup=True)` writes `migrator.db._connection` (a private attribute of asqueel-migration) to avoid the `verifyConversionBackups()` deadlock on PostgreSQL; the fix belongs in asqueel-migration. Focus point for the quality check.
 - Phase 1 and Phase 2 touched files outside their `Files:` (`model_elements.py`, `builder.py`, `object_tree.py`, `docs/grammar.md`, realigned tests), each recorded in its notes.
+
+## Final touch
+
+Reviewed revision 752aa79 (review panel: one whole-diff reviewer, one migration specialist; QA: the Mermaid check of the sqlglot proposal run in the browser, diagram drawn, no syntax error). Correction commit a9456b6. Before it, asqueel-migration 0.3.1 was published (fix of the `verifyConversionBackups()` deadlock on PostgreSQL) so the private `migrator.db._connection` workaround could leave.
+
+| # | Finding (evidence) | Root cause | Fix | Verification |
+|---|---|---|---|---|
+| 1 | Configured databases (AsqueelDb): a relation without foreign key indexed neither its column nor a non-pkey target; reproduced, no CREATE INDEX | `object_tree_relations.py` skipped on the column's own `indexed` (default False) | the relation's `indexed=False` is the only opt-out | tests/test_migration_legacy_paths.py |
+| 2 | `migrate(backup=True, allow_removals=True)` with lost values: DDL committed, then MigrationError (re-check wanted to drop the kept backup column) | re-check with removals | re-check without removals when a backup column is kept | test_migration_legacy_paths.py (PostgreSQL) |
+| 3 | `indexed={...}` options dropped silently under an explicit `index()` on the same columns | `setdefault` kept the explicit index | `_refuse_uncovered` raises when the options differ | test_migration_legacy_paths.py |
+| 4 | Target index of a relation dropped silently under a partial explicit index | target loop had no refusal | same refusal as auto indexes | test_migration_legacy_paths.py |
+| 5 | DDL error at apply surfaced as SqlMigrationError (CLI traceback) | only preparation was wrapped | apply and verification wrapped as MigrationError | test_migration_legacy_paths.py (PostgreSQL, NOT NULL on a NULL row) |
+| 6 | Backup warning lost the verification error text | `report.get('lost_values', 'unverified')` | warning carries `report['error']` | review |
+| 7 | Relation on a member of a composite pkey got an index; legacy skips any pkey member | comparison with the whole pkey only | skip a single pkey member on both paths | test_migration_legacy_paths.py |
+| 8 | `SqlMigrationRenderer(foreign_keys=)` snake_case in public API | naming | `foreignKeys` | grep, suite |
+| 9 | legacy-features.md A4.6 and A6.29/A8.18 stale | not rewritten in the phases | rewritten | read |
+| 10 | Proposals described current asqueel (earlier sqlglot trial, listen/notify "rimandati", "l'errore già usato"); "capability analitiche" vague | team rule | passages removed or compared with GenroPy; xmldocs check and render | xmldocs check valid |
+| 11 | Undocumented: shared `<schema>.db` files in one folder; `foreignKeys=False` keeps existing FKs; new CREATE INDEX on upgrade | docs | sqlite.md, migrations.md, legacy-features.md, release-notes.md | read |
+| 12 | Markers `wf:phase-2:new` on `unknown_indexed_keys`, `indexed_attributes` | autonomous run | names kept (accept all), markers removed | grep empty |
+
+Also: pin `asqueel-migration>=0.3.1,<0.4` (pyproject, migrations.md, test_wf_phase21_delivery.py); `_connection` workaround removed.
+Checks run: full suite 5259 passed, 42 skipped, 27 xfailed; ruff and mypy clean; Light re-check over the batch: no findings. Rows on the phase road: none. Accepted risk: none.
