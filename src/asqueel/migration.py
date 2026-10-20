@@ -49,6 +49,7 @@ from asqueel_migration.structures import (
 from .catalog import SqlModelCatalog
 from .configuration import connection_settings
 from .errors import MigrationError
+from ._memory_migration import MemoryDatabase
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
 from .common import default_index_name, indexed_attributes
 from .common import SQL_ACTIONS, SQL_COLUMN_KEYS, sql_column_attributes
@@ -426,8 +427,6 @@ def _prepared_migrator(db, *, allow_removals, foreignKeys, force, backup):
     if implementation == 'sqlite':
         params = dict(kwargs or {})
         params.setdefault('dbname', conninfo)
-        if params['dbname'] == ':memory:':
-            raise MigrationError('Migrations require persistent SQLite files')
     elif implementation in ('postgres', 'postgres3'):
         # psycopg is the PostgreSQL extra: a SQLite-only install does not have it.
         from psycopg.conninfo import conninfo_to_dict
@@ -442,8 +441,11 @@ def _prepared_migrator(db, *, allow_removals, foreignKeys, force, backup):
     schemas = sorted(desired['root']['schemas'])
     if not schemas or not db.model.tables:
         raise MigrationError('Declare at least one nonempty managed schema before migrating')
-    database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase
-    database = database_class(params, application_schemas=schemas)
+    if implementation == 'sqlite' and params['dbname'] == ':memory:':
+        database = MemoryDatabase(db, schemas)
+    else:
+        database_class = SqliteDatabase if implementation == 'sqlite' else PgDatabase
+        database = database_class(params, application_schemas=schemas)
     migrator = SqlMigrator(database, ignore_constraint_name=True, removeDisabled=not allow_removals,
                            force=force, backup=backup)
     migrator.ormStructure = desired

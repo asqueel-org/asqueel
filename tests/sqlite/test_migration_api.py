@@ -85,11 +85,18 @@ def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
     assert ('name', 'TEXT') in item_columns(path)
 
 
-def test_an_in_memory_sqlite_database_cannot_be_migrated():
+def test_an_in_memory_sqlite_database_can_be_migrated_without_files(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     db = AsqueelDb(recipe(':memory:'))
     try:
-        with pytest.raises(MigrationError, match='persistent SQLite files'):
-            db.migration_plan()
+        plan = db.migration_plan()
+        assert 'CREATE TABLE' in plan.commands
+        assert db.migrate().commands == plan.commands
+        assert db.migration_plan().empty
+        db.table('app.item').insert({'id': 1, 'name': 'memory'})
+        db.commit()
+        assert db.table('app.item').query(columns='$name').fetch()[0]['name'] == 'memory'
+        assert list(tmp_path.iterdir()) == []
     finally:
         db.closeConnection()
 

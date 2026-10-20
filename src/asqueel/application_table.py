@@ -92,11 +92,13 @@ class SqlQuery:
     @property
     def compiled(self):
         """The compiled query, built on first access and kept: its SQL text is the one of that compilation."""
+        self.table.db  # Reject handles invalidated by an explicit model reload.
         if self._compiled is None:
             self._compiled = self._compile(self.db.compiler.select)
         return self._compiled
 
     def _compile(self, terminal, options=None):
+        self.table.db
         self.db._check_open()
         query = terminal(self.table.fullname, sqlparams=_copy(self._params),
                          **_copy(self._options if options is None else options))
@@ -134,6 +136,7 @@ class SqlQuery:
         return self.handleBagColumns(self._fetchall(self.compiled), self.compiled)
 
     def _fetchall(self, compiled):
+        self.table.db
         cursor = self.db.execute(compiled)
         rows = cursor.fetchall()
         cursor.close()

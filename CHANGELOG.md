@@ -2,6 +2,12 @@
 
 ## 0.6.0 — Unreleased
 
+- SQLite `:memory:` migrations reuse the application's connection, preserving
+  tables and data across planning, DDL and verification without creating files.
+  `reloadModel(source)` lets an idle, exclusively used in-memory REPL session
+  adopt an updated model before migrating again; a relation added to an
+  existing table migrates with `foreignKeys=False`. Old table/query
+  handles are invalidated; pending work must be committed or rolled back first.
 - Native model source, option expansion and migration JSON cover the 74 included
   `test_invoice_pg` models. The hierarchical object renderer and its query
   compiler coexist with the previous renderer/compiler.

@@ -6,11 +6,13 @@ from typing import Any
 
 from .application_table import SqlTable
 from .compiler import QueryCompiler
-from .configuration import SqlDatabaseConfig
+from .configuration import SqlDatabaseConfig, _owned_handler, connection_settings
 from .contracts import UnsupportedFeatureError
+from .errors import MigrationError, TransactionStateError
 from .environment import ApplicationEnvironment, SqlEnvironment
 from .runtime import Database
 from .object_tree import DbModel
+from .object_tree_renderer import render_model
 from .write_compiler import WriteCompiler
 from .db_write import WriteMixin
 
@@ -131,3 +133,50 @@ class AsqueelDb(SqlDatabase):
         config = _owned_handler(source, parents)
         model = render_model(config)
         super().__init__(model=model, config=config, environment=environment)
+
+    def reloadModel(self, source, *, parents=None):
+        """Replace the model of an idle SQLite :memory: database, keeping its connection and rows.
+
+        Does not migrate or reconnect: call migrate() afterwards, then take
+        fresh tables and queries, because those of the previous model are
+        invalidated. Requires exclusive use of this database (no concurrent
+        threads), the same connection settings and the same SQL schemas.
+        """
+        self._check_idle()
+        if len(self._connections) > 1:
+            raise MigrationError('reloadModel requires a single main connection')
+        old_settings = connection_settings(self.config)
+        implementation, conninfo, kwargs = old_settings
+        if implementation != 'sqlite' or ((kwargs or {}).get('dbname') or conninfo) != ':memory:':
+            raise MigrationError('reloadModel is only supported for SQLite :memory: databases')
+        config = _owned_handler(source, parents)
+        if connection_settings(config) != old_settings:
+            raise MigrationError('reloadModel cannot change connection settings')
+        model = render_model(config)
+        if {t.sqlschema for t in model.tables.values()} != {t.sqlschema for t in self.model.tables.values()}:
+            raise MigrationError('reloadModel cannot change SQL schemas')
+        old_model = self.model
+        model._bind_db(self)
+        self.config, self.model = config, model
+        self._compilers.clear()
+        self._write_compilers.clear()
+        env = self.currentEnv
+        for key in [key for key in env if key.startswith('_virtual_columns_')]:
+            del env[key]
+        old_model._operational_db = None
+
+    def _check_idle(self):
+        """Refuse to commit, roll back or bypass the unfinished work of a connection."""
+        self._check_open()
+        if not self.usingMainConnection() or self.adapter.dialect != 'sqlite':
+            raise MigrationError('In-memory migration requires the main SQLite connection')
+        for state in self._connections.values():
+            self._check_connection_usable(state)
+            self._check_connection_completion(state)
+            deferred = any(self.currentEnv.get(self._deferred_key(state, key)) for key in (
+                'to_commit_defer_calls', 'after_commit_defer_calls', '_pendingExceptions'))
+            connection = state['connection']
+            if (state['pending'] or state['write_depth'] or deferred
+                    or (connection is not None and connection.in_transaction)):
+                raise TransactionStateError(
+                    'In-memory schema changes require no pending work; commit or rollback first')

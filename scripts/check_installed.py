@@ -63,9 +63,10 @@ def main():
         )
         assert query.params == {'id': 7}
         assert '"public"."customer"' in query.sql
-        generic = package.QueryCompiler(
-            resolved, package.PostgresDialect(), package.PsycopgDriver(),
-        ).select('public.customer', where='$id = :id', sqlparams={'id': 7})
+        adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
+        generic = package.QueryCompiler(resolved, adapter).select(
+            'public.customer', where='$id = :id', sqlparams={'id': 7},
+        )
         assert generic == query
         print('Core-only build, validation, emission, model and adapter pipeline passed')
         return
