@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.3 — 2026-10-21
 
 - Remove upper version bounds on internal tools (Builders, Bag and Migration).
   Run the complete CI matrix with the latest published ecosystem dependencies
