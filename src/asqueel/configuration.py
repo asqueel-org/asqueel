@@ -435,7 +435,10 @@ def _effective_model_builder(config):
             node.attr[name] = deepcopy(default)
             signature_defaults.append(name)
         if signature_defaults:
-            node.attr.setdefault('_meta', {})['signature_defaults'] = signature_defaults
+            # Builders may share grammar metadata between nodes of the same tag.
+            # Default provenance belongs to this declaration, not to its siblings.
+            node.attr['_meta'] = {**(node.attr.get('_meta') or {}),
+                                  'signature_defaults': signature_defaults}
         # Administrative root attributes belong to connection_settings, not the model.
         if node.node_tag == 'db':
             for name in ('conninfo', 'connect_kwargs'):

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Preserve explicit column and relation defaults independently of other
+  declarations. In particular, `sys_fields()` keeps `indexed=False` after
+  unrelated columns are added, including in migration output.
+
 ## 0.6.1 — 2026-10-20
 
 - Execute standalone `auto_counter` and `relative_index` options, column
