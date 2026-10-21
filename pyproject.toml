@@ -60,6 +60,7 @@ dev = [
     "psycopg[binary]>=3.3.6",
     "pytest>=8.4",
     "pytest-cov>=4.0",
+    "pytest-xdist>=3.8",
     "ruff>=0.1.0",
     "mypy>=1.0",
 ]

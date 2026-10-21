@@ -34,6 +34,7 @@ defaulting to the local trust-authenticated server on 127.0.0.1:5432.
 from __future__ import annotations
 
 import os
+from uuid import uuid4
 
 import psycopg
 import pytest
@@ -143,7 +144,8 @@ def pg_facade_follows_the_recipe(monkeypatch):
 @pytest.fixture
 def pg_database(request, pg_params):
     """PgDatabase on a dedicated empty test database, dropped in teardown."""
-    dbname = f"{DB_PREFIX}{request.function.__name__}"[:63]
+    # Separate parametrizations/workers and concurrent local invocations too.
+    dbname = f"{DB_PREFIX}{request.function.__name__[:20]}_{uuid4().hex[:16]}"
     _drop_pg_database(pg_params, dbname)
     with psycopg.connect(dbname="postgres", autocommit=True, **pg_params) as conn:
         conn.execute(f'CREATE DATABASE "{dbname}"')

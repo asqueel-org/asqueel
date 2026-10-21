@@ -26,6 +26,8 @@ dictdiffer==0.10.0
     # via asqueel-migration
 editables==0.6
     # via -r requirements/core.in
+execnet==2.1.2
+    # via pytest-xdist
 genro-bag==0.28.0
     # via
     #   -r requirements/core.in
@@ -94,7 +96,10 @@ pytest==9.1.1
     # via
     #   -r requirements/core.in
     #   pytest-cov
+    #   pytest-xdist
 pytest-cov==7.1.0
+    # via -r requirements/core.in
+pytest-xdist==3.8.0
     # via -r requirements/core.in
 referencing==0.37.0
     # via
