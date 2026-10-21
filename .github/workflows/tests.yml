@@ -1,5 +1,17 @@
 name: Tests
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    # PRs cover topic branches; release tags only run publish.yml.
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # Only superseded revisions of the same PR cancel each other.
+  # Main and manual runs each get an independent group.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:
