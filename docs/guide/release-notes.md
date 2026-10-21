@@ -1,6 +1,19 @@
 # Release notes
 
-## Unreleased
+## 0.6.1
+
+- Execute standalone `auto_counter` and `relative_index` options, column
+  defaults and `read_only`/`unmodifiable` checks in the ordinary write cycle.
+- Maintain hierarchies with custom parent/counter fields and linked master
+  roots; serialize structural changes, reject cycles and refresh paths after
+  before-hooks. Preserve cascade rollback and skip descendants already deleted.
+- Apply physical `partition_<field>` scopes to insert/update/delete, including
+  direct SQL APIs, with an explicit `ignore_partition=True` bypass.
+- Introspect SQLite generated columns (including in-memory databases), keep
+  generated values out of ordinary UPDATE assignments, and refuse migration
+  plans that would silently ignore changed generated expressions.
+
+## 0.6.0
 
 - `onDelete_sql`/`onUpdate_sql` accept the legacy abbreviations `C`, `R`, `N`,
   `SN`, `SD`, in any case.
@@ -46,8 +59,6 @@
 - `AsqueelDbMixin` enters `session(db)` at the first take of a database during
   a call and leaves it in `release_databases()`.
 
-## 0.6.0
-
 This release completes the structural path from native package configuration to
 live model objects and migration JSON. Package schemas follow the legacy rules;
 table and column declarations retain labels, captions and the other attributes
@@ -74,13 +85,8 @@ declarations does not implement their formula compilation, hooks, validation or
 record-write behavior. The existing low-level compiler/runtime keeps its own
 supported profile; see [current status](limitations.md).
 
-Validation: 1278 tests passed, 1 skipped, including PostgreSQL application,
-introspection and an empty second diff, repeated after controlled schema changes.
-Ruff, mypy, the strict Sphinx build and wheel/source-distribution checks passed.
-The installed wheel with published dependencies (`asqueel-migration` 0.2.1)
-passed 1276 tests with 3 skipped and 95% coverage, including native corpus
-migrations. Two additional skips concern `serial4`, which requires migration
-engine support unavailable in that published version.
+The published 0.6.0 dependency baseline is `asqueel-migration>=0.3.1,<0.4`,
+`genro-bag>=0.28.0,<0.29` and `genro-builders>=0.29.0,<0.30`.
 See [native package migrations](migrations.md#native-package-models) for reproduction.
 
 ## 0.5.2

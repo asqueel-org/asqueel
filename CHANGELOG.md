@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.1 — 2026-10-20
 
 - Execute standalone `auto_counter` and `relative_index` options, column
   defaults and `read_only`/`unmodifiable` checks in the ordinary write cycle.
@@ -38,12 +38,8 @@
   `embedFieldPars` behavior; the previous compiler binds those strings literally.
   See [the parameter guide](docs/guide/queries.md#symbolic-parameters-and-external-values)
   for external values and the legacy escape convention.
-- Bag and Builders are constrained to the 0.27 series to preserve the legacy XML
-  importer. The source distribution and installed-wheel verification include
-  the hierarchical invoice migration JSON fixture.
+- Dependency baseline: `genro-bag>=0.28.0,<0.29`,
+  `genro-builders>=0.29.0,<0.30` and optional
+  `asqueel-migration>=0.3.1,<0.4`. See [RELEASING.md](RELEASING.md).
 
-Migration remains a separate optional dependency, now requiring the published
-`asqueel-migration>=0.2.2,<0.3`. CI pins 0.2.2, which includes UNIQUE removal
-using real constraint/index names and `serial4` support. See
-[RELEASING.md](RELEASING.md) for dependency and publication checks.
-Asqueel core 0.6.0 itself remains unreleased.
+Published on PyPI on 2026-10-20 from tag `v0.6.0`.
