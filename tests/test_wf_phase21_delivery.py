@@ -1,6 +1,7 @@
 # Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
 """Phase 21 contract — safe physical names and reproducible test setup."""
 from pathlib import Path
+import tomllib
 
 from asqueel_migration.writers.mssql_writer import MssqlWriter
 from asqueel_migration.writers.mysql_writer import MysqlWriter
@@ -30,9 +31,11 @@ def test_documented_development_extra_can_collect_the_complete_suite():
     # wf:contract: the README development command installs every dependency that
     # wf:contract: tests/conftest.py imports at collection, including migration
     # wf:contract: validation and PostgreSQL support.
-    metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert 'asqueel-migration[postgresql,validation]>=0.3.1,<0.4' in metadata
+    assert "asqueel-migration[postgresql,validation]>=0.3.1" in (
+        metadata["project"]["optional-dependencies"]["dev"]
+    )
     assert (
         'pip install -e "../asqueel-migration[postgresql,validation]" '
         '-e ".[dev]"'
