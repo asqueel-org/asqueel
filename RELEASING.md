@@ -1,7 +1,7 @@
 # Release Asqueel
 
 Distribution: `asqueel`. Python package: `asqueel`.
-Repository: `asqueel-org/asqueel`. Release version: `0.6.1`.
+Repository: `asqueel-org/asqueel`. Release version: `0.6.2`.
 See [CHANGELOG.md](CHANGELOG.md) for compatibility notes. Preparing and verifying
 the artifacts does not publish them.
 
@@ -40,7 +40,7 @@ or a `PYTHONPATH` pointing to either repository:
 
 ```sh
 python -m venv /tmp/asqueel-release-check
-/tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.6.1-py3-none-any.whl[dev]' pytest-cov
+/tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.6.2-py3-none-any.whl[dev]' pytest-cov
 /tmp/asqueel-release-check/bin/python -m pip check
 env -u PYTHONPATH /tmp/asqueel-release-check/bin/python scripts/check_installed.py --workers 2
 ```

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.2 — 2026-10-21
 
 - Preserve explicit column and relation defaults independently of other
   declarations. In particular, `sys_fields()` keeps `indexed=False` after
