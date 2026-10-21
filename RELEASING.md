@@ -69,11 +69,18 @@ it uploads to PyPI only when the selected ref is a matching `v*` version tag.
 Do not create the release tag until the publisher configuration and release
 contents have been reviewed. Uploaded PyPI files cannot be replaced in place.
 
-## Dependency baseline
+## Dependency policy
 
-The wheel requires `genro-bag>=0.28.0,<0.29`,
-`genro-builders>=0.29.0,<0.30` and `genro-toolbox>=0.18.0`.
-The `migration` and `dev` extras require `asqueel-migration>=0.3.1,<0.4`.
+The wheel requires `genro-bag>=0.28.0`,
+`genro-builders>=0.29.0` and `genro-toolbox>=0.18.0`.
+The `migration` and `dev` extras require `asqueel-migration>=0.3.1`.
+Internal tools have minimum versions only: do not add upper bounds to hide
+regressions. Fix incompatibilities with the latest published versions instead.
+The full CI matrix installs `requirements/*.in` with eager upgrades, including
+transitive dependencies, so new releases are exercised by the existing suites.
+The `requirements/*.txt` files are reproducible snapshots for diagnosis only;
+they do not select CI dependencies.
+
 Verify the resolved versions with the installed wheel; tests against a sibling
 checkout do not certify PyPI packages.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Remove upper version bounds on internal tools (Builders, Bag and Migration).
+  Run the complete CI matrix with the latest published ecosystem dependencies
+  so incompatibilities surface instead of being hidden by frozen versions.
+
 ## 0.6.2 — 2026-10-21
 
 - Preserve explicit column and relation defaults independently of other
