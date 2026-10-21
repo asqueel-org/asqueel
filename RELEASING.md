@@ -42,7 +42,7 @@ or a `PYTHONPATH` pointing to either repository:
 python -m venv /tmp/asqueel-release-check
 /tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.6.1-py3-none-any.whl[dev]' pytest-cov
 /tmp/asqueel-release-check/bin/python -m pip check
-env -u PYTHONPATH /tmp/asqueel-release-check/bin/python scripts/check_installed.py
+env -u PYTHONPATH /tmp/asqueel-release-check/bin/python scripts/check_installed.py --workers 2
 ```
 
 Run this against the same source snapshot used to build the wheel. The script
@@ -52,6 +52,13 @@ source archive also includes these fixtures. Some existing integration fixtures
 access PostgreSQL even without the `postgresql` marker; provide the disposable
 test service configured through `GNR_TEST_PG_*`. Use `--postgresql` to include
 the explicitly marked PostgreSQL tests as well.
+
+`--workers 2` uses pytest-xdist to distribute whole test files between two
+processes. This retains module-scoped fixtures and runs every selected test;
+pytest-cov combines both workers into the same coverage report. Temporary
+PostgreSQL database names are unique per fixture invocation. Omit `--workers`
+(or use `--workers 0`) to reproduce a serial run. The checker prints the twenty
+slowest test phases to make performance regressions visible in CI logs.
 
 Before tagging, ensure all required source modules and artifacts are tracked by
 Git: a local build may include untracked files that a fresh CI checkout cannot

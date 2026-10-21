@@ -16,7 +16,13 @@ def main():
     parser.add_argument('--postgresql', action='store_true', help='include the dedicated PostgreSQL tests')
     parser.add_argument('--core-only', action='store_true', help='verify installation without migration')
     parser.add_argument('--coverage-xml', type=Path, help='save coverage with repository source paths')
+    parser.add_argument('--workers', type=int, default=0,
+                        help='pytest workers (0 runs serially; requires pytest-xdist)')
     args = parser.parse_args()
+    if args.workers < 0:
+        parser.error('--workers must be non-negative')
+    if args.core_only and args.workers:
+        parser.error('--workers requires the test suite')
     if args.core_only and args.coverage_xml:
         parser.error('--coverage-xml requires the test suite')
     repository = Path(__file__).resolve().parents[1]
@@ -73,7 +79,8 @@ def main():
     with tempfile.TemporaryDirectory(prefix='asqueel-wheel-') as directory:
         destination = Path(directory)
         for name in ('tests', 'docs', 'examples'):
-            shutil.copytree(repository / name, destination / name)
+            shutil.copytree(repository / name, destination / name,
+                            ignore=shutil.ignore_patterns('__pycache__', '.pytest_cache'))
         for name in ('migration.json', 'native/migration.json', 'objects_tree/migration.json'):
             artifact = Path('artifacts/test_invoice_pg') / name
             (destination / artifact).parent.mkdir(parents=True, exist_ok=True)
@@ -83,7 +90,10 @@ def main():
         environment = dict(os.environ)
         environment.pop('PYTHONPATH', None)
         command = [sys.executable, '-m', 'pytest', 'tests', '-q', '-ra', '-o', 'addopts=',
-                   '--cov=asqueel', '--cov-report=term-missing']
+                   '--cov=asqueel', '--cov-report=term-missing', '--durations=20']
+        if args.workers:
+            # Keep module fixtures together; pytest-cov combines every worker's data.
+            command += ['-n', str(args.workers), '--dist=loadfile']
         if args.coverage_xml:
             command += [f'--cov-report=xml:{destination / "coverage.xml"}']
         if not args.postgresql:
