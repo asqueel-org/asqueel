@@ -9,9 +9,10 @@ import runpy
 import pytest
 from genro_bag import Bag
 
-from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
+from asqueel import SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.configuration import build_database
 from asqueel.model import resolve_model
+from asqueel.model_source import prepare_source
 from asqueel.projection import to_physical_builder
 from asqueel.model_codec import model_from_json, model_to_json
 from asqueel.contracts import UnsupportedFeatureError
@@ -358,6 +359,34 @@ def test_sysfield_generation_does_not_treat_signature_defaults_as_explicit_overr
         db.closeConnection()
 
 
+@pytest.mark.parametrize('field', ['__ins_ts', '__mod_ts', '__del_ts'])
+@pytest.mark.parametrize('indexed', [None, False, True], ids=['omitted', 'false', 'true'])
+@pytest.mark.parametrize('extra_position', ['before', 'after'])
+def test_sysfield_index_override_survives_other_columns(field, indexed, extra_position):
+    builder = SqlBuilder()
+    table = builder.source.db('demo', implementation='postgres').packages().package('app').table('item')
+    table.options().sys_fields()
+    if extra_position == 'before':
+        table.column('name')
+    declared = table.column(field, **({} if indexed is None else {'indexed': indexed}))
+    expected = True if indexed is None else indexed
+
+    def check():
+        before = builder.source.to_json()
+        assert resolve_model(builder).table('app.item').column(field).attributes['indexed'] is expected
+        physical = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']['app_item']
+        assert any(field in i['attributes']['columns'] for i in physical['indexes'].values()) is expected
+        assert builder.source.to_json() == before
+        assert ('indexed' in declared.attr) is (indexed is not None)
+        if indexed is not None:
+            assert declared.attr['indexed'] is indexed
+
+    check()
+    if extra_position == 'after':
+        table.column('name')
+    check()
+
+
 @pytest.mark.parametrize('name,kwargs', [('system_records', {'records': {'x': {}}}), ('release', {'handlers': {'1': 'upgrade'}})])
 def test_deferred_families_stay_out_of_object_creation(name, kwargs):
     builder, packages = source()
@@ -378,6 +407,25 @@ def test_option_columns_indexes_and_foreign_keys_reach_physical_projection():
     assert '__protecting_reasons' not in table['columns']
     assert any(r['attributes'].get('on_delete') == 'CASCADE' for r in table['relations'].values())
     assert table['indexes']
+
+
+@pytest.mark.parametrize('explicit_first', [False, True])
+def test_relation_default_provenance_is_specific_to_each_declaration(explicit_first):
+    builder, packages = source()
+    pkg = packages.package('app')
+    pkg.table('master', pkey='id').column('id', dtype='L')
+    detail = pkg.table('detail', pkey='id')
+    detail.column('id', dtype='L')
+    declarations = [('explicit_id', {'deferred': False}), ('omitted_id', {})]
+    for name, kwargs in declarations if explicit_first else reversed(declarations):
+        detail.column(name).relation('app.master.id', onDelete='setnull', **kwargs)
+    before = builder.source.to_json()
+    prepared = prepare_source(builder)
+    relations = {node.parent_node.label: node.attr['deferred']
+                 for _, node in prepared.source.query('#p,#n', deep=True)
+                 if node.node_tag == 'relation'}
+    assert relations == {'explicit_id': False, 'omitted_id': True}
+    assert builder.source.to_json() == before
 
 
 @pytest.mark.parametrize('objects', [False, True])

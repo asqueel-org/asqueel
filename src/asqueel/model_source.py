@@ -76,7 +76,9 @@ def prepare_source(builder, *, options_first=False):
                 if node.node_tag == 'relation' and key == 'indexed' and not node.get_attr('foreign_key'):
                     continue
                 node.attr[key] = deepcopy(default)
-                node.attr.setdefault('_meta', {}).setdefault('signature_defaults', []).append(key)
+                meta = node.attr.get('_meta') or {}
+                node.attr['_meta'] = {**meta, 'signature_defaults': [
+                    *meta.get('signature_defaults', ()), key]}
     resolve_source_types(builder)
     from .model_expansion import expand_options
     expand_options(builder, options_first=options_first)
