@@ -84,5 +84,19 @@ that commit, push the tag, and wait for `publish.yml` to succeed. Create the Git
 Release from the same tag and changelog. Finally install the published package
 with its `migration` extra in a fresh environment and repeat the migration checks.
 
+## CI events
+
+The full test matrix runs once per pull request revision and again after a merge
+or direct push to `main`, to verify the integrated commit. Topic-branch pushes do
+not start a second copy. A newer revision cancels the previous run of that same
+PR; main and manual runs remain independent. The required job names and test
+coverage are unchanged.
+
+Version tags trigger only `publish.yml`, which builds, validates and smoke-tests
+the distributions before uploading them. They do not restart the full test
+matrix. Publish from the verified release commit. Use `workflow_dispatch` only
+when an additional full test run is deliberately needed; prefer rerunning a
+failed job instead of starting a duplicate run on the same commit.
+
 Read the Docs project/account
 configuration is independent of the checked-in Sphinx configuration.
