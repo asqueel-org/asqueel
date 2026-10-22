@@ -17,7 +17,7 @@ from .application_table import (
     SqlTable, SqlQuery,
     RecordNotFoundError, RecordMultipleRowsError,
 )
-from .configuration import SqlDatabaseConfig, ConfigurationView, build_database
+from .configuration import SqlDatabaseConfig, build_database
 from .emitter import SqlPythonEmitter
 from .renderer import SqlRenderer
 from .compiler import PostgresCompiler, QueryCompiler
@@ -26,7 +26,6 @@ from .contracts import (
     UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
 )
 from .environment import SqlEnvironment
-from .model_sections import Schema, Package, Option, Declaration
 from .model import resolve_model
 from .object_tree import DbModel
 from .projection import to_physical_builder
@@ -41,8 +40,7 @@ from .triggers import TriggerStack, TriggerStackItem
 __version__ = "0.7.0"
 
 __all__ = [
-    "Schema", "Package", "Option", "Declaration",
-    "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
+    "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "build_database",
     "SqlTable", "SqlQuery",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",

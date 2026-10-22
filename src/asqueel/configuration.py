@@ -6,7 +6,6 @@ from contextlib import contextmanager
 import inspect
 from pathlib import Path
 import sys
-from typing import Any, Callable
 
 from genro_builders.builder import BuilderBase, element
 from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
@@ -16,38 +15,6 @@ from .builder import SqlBuilder
 from .package_layout import load_package_layouts
 
 _MISSING = object()
-
-
-class ConfigurationView:
-    """A relative read view over a configuration reader."""
-
-    def __init__(self, handler: Callable[..., Any], prefix: str = '', *, fallback=None):
-        self.handler = handler
-        self.prefix = prefix.strip('.')
-        self._fallback = fallback
-
-    def __call__(self, path: str, default=_MISSING):
-        if not isinstance(path, str) or not path:
-            raise ValueError('configuration path must be a non-empty string')
-        fullpath = f'{self.prefix}.{path}' if self.prefix else path
-        if self._fallback is None and default is not _MISSING:
-            return self.handler(fullpath, default=default)
-        try:
-            return self.handler(fullpath)
-        except KeyError:
-            if self._fallback is not None:
-                try:
-                    return self._fallback()(path)
-                except KeyError:
-                    pass
-            if default is _MISSING:
-                raise
-            return default
-
-    def scope(self, prefix: str) -> ConfigurationView:
-        fallback = (lambda: self._fallback().scope(prefix)) if self._fallback is not None else None
-        return ConfigurationView(self.handler, '.'.join(filter(None, (self.prefix, prefix))),
-                                 fallback=fallback)
 
 
 class SqlDatabaseElements:
@@ -65,7 +32,7 @@ class SqlDatabaseElements:
                    port: int | BagResolver | None = None,
                    user: str | BagResolver | None = None,
                    password: str | BagResolver | None = None,
-                   options: dict | None = None, database: str | BagResolver | None = None,
+                   database: str | BagResolver | None = None,
                    dsn: str | BagResolver | None = None, name_long: str | None = None,
                    name_short: str | None = None, comment: str | None = None):
         """Named connection; legacy declarations without database/dsn keep name as database."""
@@ -105,7 +72,6 @@ def _owned_handler(source, parents=None):
         for index, layer in enumerate(layers[1:], 1):
             with handler.builder.contribution(f'layer[{index}]'):
                 _compose_source(handler.builder, handler.builder.source, layer.builder.source)
-        _normalize_connection_options(handler)
         load_package_layouts(handler.builder)
         _validate_source_shape(handler.builder)
         return handler
@@ -147,19 +113,6 @@ def _validate_source_shape(builder):
                         raise ValueError(f'{node.fullpath}.{child.label}: conflicting element kinds '
                                          f'{names[child.label]!r} and {child.node_tag!r}')
                     names[child.label] = child.node_tag
-
-
-def _normalize_connection_options(handler):
-    """Translate the 0.5 connection dictionary on an owned administrative source."""
-    for _, node in list(handler.builder.source.query('#p,#n', deep=True)):
-        if node.node_tag != 'connection' or node.get_attr('options') is None:
-            continue
-        values = deepcopy(node.get_attr('options'))
-        existing = node.value.get_node('options.driver') if isinstance(node.value, Bag) else None
-        if existing is not None:
-            raise ValueError('Use connection.options().driver() or legacy options, not both')
-        del node.attr['options']
-        node.options().driver(**values)
 
 
 class SqlConfigHandler(ConfigHandler):
@@ -348,18 +301,10 @@ def _connection_settings(config, prefix):
         implementation = config('implementation', default='sqlite')
     if config('conninfo', default='') or config('connect_kwargs', default=None):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
-    options = dict(read('options') or {})
     fields = ('connect_timeout', 'application_name', 'sslmode', 'sslrootcert',
               'options', 'timeout', 'cached_statements', 'foreignKeys')
-    driver_options = {field: value for field in fields
-                      if (value := read(f'options.driver.{field}')) is not None}
-    if driver_options:
-        if options:
-            raise ValueError('Use connection.options().driver() or legacy options, not both')
-        options = driver_options
-    reserved = {'dbname', 'host', 'port', 'user', 'password'} & options.keys()
-    if reserved:
-        raise ValueError('Connection fields must be declared directly, not inside options')
+    options = {field: value for field in fields
+               if (value := read(f'options.driver.{field}')) is not None}
     database = read('database')
     dsn = read('dsn')
     connection_node = (config.builder.source.get_node(f'{config.root_label}.{prefix}')

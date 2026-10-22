@@ -21,7 +21,9 @@ def _recipe(path, options=None):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
             db = root.db()
-            db.connection(name=str(path), implementation='sqlite', options=options)
+            connection = db.connection(name=str(path), implementation='sqlite')
+            if options:
+                connection.options().driver(**options)
             tables = db.schemas().schema('app').tables()
             tables.table('customer', pkey='id').columns().column('id', dtype='L')
             invoice = tables.table('invoice', pkey='id').columns()
@@ -107,7 +109,7 @@ def test_the_foreign_keys_option_is_refused_on_postgresql_before_connecting():
     class WithOption(SqlDatabaseConfig):
         def main(self, root):
             db = root.db(implementation='postgres')
-            db.connection(name='unused', implementation='postgres', options={'foreignKeys': False})
+            db.connection(name='unused', implementation='postgres').options().driver(foreignKeys=False)
             db.schemas().schema('app').tables().table('t', pkey='id').columns().column('id', dtype='L')
 
     db = None

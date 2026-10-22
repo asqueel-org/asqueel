@@ -3498,8 +3498,8 @@ In GenroPy you got: `timeout=20.0` and `detect_types`. No `PRAGMA foreign_keys`:
 In asqueel you write:
 
 ```python
-db.connection(name='/data/shop.db', implementation='sqlite',
-              options={'foreignKeys': False, 'timeout': 5})
+db.connection(name='/data/shop.db', implementation='sqlite').options().driver(
+    foreignKeys=False, timeout=5)
 ```
 
 In asqueel you get: `detect_types` as in GenroPy. `timeout` is 20 seconds by default; `timeout` and `cached_statements` can be set. Each connection runs `PRAGMA foreign_keys = ON`. `foreignKeys=False` runs `PRAGMA foreign_keys = OFF`. PostgreSQL refuses `foreignKeys` with `ValueError`.

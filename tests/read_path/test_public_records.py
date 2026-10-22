@@ -11,7 +11,7 @@ from asqueel.object_tree import DbModel
 def recipe(filename):
     source = SqlDatabaseConfig()
     root = source.source.db('records', implementation='sqlite')
-    root.connection('main', database=str(filename), options={'timeout': 0.05})
+    root.connection('main', database=str(filename)).options().driver(timeout=0.05)
     table = root.packages().package('app', sqlschema='main', sqlprefix=False).table('item', pkey='id')
     table.column('id', dtype='L')
     table.column('name', dtype='T')

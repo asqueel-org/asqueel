@@ -451,13 +451,9 @@ class DbModel:
         return self.obj if self.obj.tag == 'packages' else {}
 
     @property
-    def namespaces(self):
-        return self.obj
-
-    @property
     def tables(self):
         # This index exposes the very same objects; it is not a second model.
-        return {table.fullname: table for pkg in self.namespaces.values() for table in pkg.tables.values()}
+        return {table.fullname: table for pkg in self.obj.values() for table in pkg.tables.values()}
 
     def package(self, name):
         return self.packages.get(name)
@@ -467,7 +463,7 @@ class DbModel:
             pkg, name = name.split('.')[:2]
         if pkg is None:
             raise ValueError(f'table() requires package.table: {name!r}')
-        namespace = self.namespaces.get(pkg)
+        namespace = self.obj.get(pkg)
         return namespace.table(name) if namespace is not None else None
 
     def column(self, name):

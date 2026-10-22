@@ -9,7 +9,7 @@ Application configuration and objects
 -------------------------------------
 
 .. automodule:: asqueel.configuration
-   :members: SqlDatabaseConfig, ConfigurationView, build_database
+   :members: SqlDatabaseConfig, build_database
 
 .. automodule:: asqueel.application
    :members: AsqueelDb, SqlDatabase

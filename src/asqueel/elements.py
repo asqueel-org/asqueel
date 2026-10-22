@@ -52,6 +52,7 @@ from typing import Literal
 
 from genro_builders.builder import element
 
+from .catalog import _VIRTUAL_COLUMN_TAGS
 from .common import SQL_DIALECTS
 
 #: asqueel normalized type codes. Mirrors
@@ -70,8 +71,6 @@ DTYPE = Literal[
 #: Table constraint kinds. Single-column uniqueness is the ``unique`` column
 #: attribute, not a constraint entity.
 CONSTRAINT_TYPE = Literal["UNIQUE", "CHECK"]
-
-_VIRTUAL_TAGS = "aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn"
 
 
 class DbElements:
@@ -219,7 +218,7 @@ class TableElements:
 
     @element(
         parent_tags="table",
-        sub_tags=_VIRTUAL_TAGS,
+        sub_tags=", ".join(_VIRTUAL_COLUMN_TAGS),
         collection_key="name",
         node_label="virtual_columns",
     )

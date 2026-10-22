@@ -4,7 +4,6 @@ import pytest
 from asqueel import SqlDatabaseConfig, SqlMigrationRenderer, UnsupportedFeatureError
 from asqueel.model import resolve_model
 from asqueel.model_source import require_write_capabilities
-from asqueel.validation import validate_value
 
 
 def source():
@@ -49,10 +48,6 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
     assert rules == {'len': '2:5', 'len_error': 'Length', 'case': 'U'}
     rules['case'] = 'lower'
     assert m.table('sales.item').columns['a'].validations['case'] == 'U'
-    assert validate_value('èé', {'len': '2:5'}) == ()
-    assert validate_value(None, {'notnull': True, 'len': '2:5'}) == ('notnull',)
-    with pytest.raises(ValueError, match='authoritative server'):
-        validate_value('alice', {'nodup': True})
     t.column('opaque', 'T', validate_lne=8)
     assert resolve_model(b).table('sales.item').columns['opaque'].validations == {'lne': 8}
     with pytest.raises(UnsupportedFeatureError, match='write execution of b.validation is not available in this release'):

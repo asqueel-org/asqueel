@@ -370,8 +370,7 @@ class WriteCompiler:
             if attributes.get('sql_value') is not None or sql_attribute_declared(attributes, 'generatedExpression'):
                 names.append(name)
             elif missing and (sql_attribute_declared(attributes, 'default')
-                              or attributes.get('dtype') in _GENERATED_KEY_DTYPES
-                              or attributes.get('identity_kind')):
+                              or attributes.get('dtype') in _GENERATED_KEY_DTYPES):
                 names.append(name)
         return names
 

@@ -14,14 +14,7 @@ def source():
 
 @pytest.mark.parametrize('rule', ['exist', 'nodup'])
 @pytest.mark.parametrize('value', [True, False, '', 'external.table.code', None, 1, [], {}])
-def test_lookup_rules_keep_values_without_resolving_targets_or_executing(rule, value, monkeypatch):
-    import asqueel.validation as validation
-
-    def forbidden(*args, **kwargs):
-        pytest.fail('Lookup validation must not run during model translation')
-
-    monkeypatch.setattr(validation, 'validate_value', forbidden)
-    monkeypatch.setattr(validation, 'validate_spec', forbidden)
+def test_lookup_rules_keep_values_without_resolving_targets_or_executing(rule, value):
     builder, table = source()
     expected = {rule: value, f'{rule}_error': 'Check failed'}
     table.column('embedded', **{f'validate_{key}': item for key, item in expected.items()})

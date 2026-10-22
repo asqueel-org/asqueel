@@ -1,34 +1,16 @@
-"""Compose defaults and collect semantic sections before model resolution."""
+"""Compose defaults and resolve source types and references before model resolution."""
 from __future__ import annotations
 
 from copy import deepcopy
 import inspect
-from genro_toolbox import extract_kwargs
 
 from .common import in_attribute_family
 from .configuration import _copy_recipe, _validate_source_shape
-from .model_sections import Declaration, Option, Package, Schema
+from .model_sections import Option
 
 
 def attributes(node):
     return deepcopy({key: value for key, value in node.attr.items() if key != '_meta'})
-
-
-def declaration(node):
-    return Declaration(node.node_tag, node.get_attr('name') or node.label, attributes(node),
-                       tuple(declaration(child) for child in node.value or ()))
-
-
-@extract_kwargs(validate=True)
-def column_declarations(node, *, validate_kwargs=None, **attrs):
-    """Extract flat validation attributes only when translating the source."""
-    children = tuple(declaration(child) for child in node.value or ())
-    rules = dict(validate_kwargs)
-    for child in children:
-        if child.kind == 'validation':
-            rules.update(child.attributes)
-    result = tuple(child for child in children if child.kind != 'validation')
-    return result + ((Declaration('validation', 'validation', rules),) if rules else ())
 
 
 def options(node):
@@ -84,34 +66,6 @@ def prepare_source(builder, *, options_first=False):
     expand_options(builder, options_first=options_first)
     resolve_source_references(builder)
     return builder
-
-
-def sections(catalog):
-    default_schema = 'main' if catalog.database.get_attr('implementation') == 'sqlite' else 'public'
-    schemas = {name: Schema(name, node.get_attr('sqlname'), attributes(node), options(node))
-               for name, node in catalog.schemas.items()}
-    physical_names = [schema.physical_name for schema in schemas.values()]
-    if len(set(physical_names)) != len(physical_names):
-        raise ValueError('Duplicate physical schema name')
-    packages = {}
-    for name, node in catalog.packages.items():
-        schema = node.get_attr('sqlschema') or default_schema
-        schemas.setdefault(schema, Schema(schema, attributes={'implicit': True}))
-        configured = options(node)
-        requires = configured.get('requires')
-        if requires:
-            required = requires.attributes['packages']
-            required = [required] if isinstance(required, str) else required
-            missing = set(required) - catalog.packages.keys()
-            if missing:
-                raise ValueError(f'package {name}: missing required packages {sorted(missing)}')
-        packages[name] = Package(name, schema, node.get_attr('sqlprefix'), attributes(node), configured,
-                                 tuple(f'{p}.{t}' for p, t in catalog.tables if p == name))
-    for (package, name), entry in catalog.tables.items():
-        override = entry['node'].get_attr('sqlschema')
-        if package in packages and override and override not in schemas:
-            raise ValueError(f'{package}.{name}: sqlschema {override!r} is not derived from a package')
-    return schemas, packages
 
 
 def resolve_source_types(builder):

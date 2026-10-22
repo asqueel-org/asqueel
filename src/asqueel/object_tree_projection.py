@@ -70,7 +70,7 @@ def project_tree(model) -> SqlBuilder:
             container.extension(extension.name)
     schemas = db.schemas()
     schema_nodes = {}
-    for package in model.namespaces.values():
+    for package in model.obj.values():
         if package.sqlschema not in schema_nodes:
             schema_nodes[package.sqlschema] = schemas.schema(package.sqlschema).tables()
     owners = {}

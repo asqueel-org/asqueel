@@ -114,7 +114,6 @@ class CrudMixin:
         """Whether the pkey column declares ``sql_default``: the database assigns it."""
         column = self.model.columns.get(self.model.pkey)
         return column is not None and (column.dtype in ('serial', 'serial4')
-                                       or bool(column.attributes.get('identity_kind'))
                                        or sql_attribute_declared(column.attributes, 'default'))
 
     def newPkeyValue(self, record=None):

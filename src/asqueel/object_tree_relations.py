@@ -73,7 +73,7 @@ def _register_relation(model, table, column, attrs):
     if virtual:
         attrs.update(virtual=True, one_name=attrs.get('one_name') or column.name_long)
     target = attrs['to'].split('.')
-    if len(target) == 2 and target[0] not in model.namespaces:
+    if len(target) == 2 and target[0] not in model.obj:
         target.insert(0, table.pkg.name)
     if len(target) == 2:
         target_table = model.table('.'.join(target))

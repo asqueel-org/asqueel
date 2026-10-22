@@ -85,11 +85,10 @@ def test_missing_database_resolver_never_falls_back_to_logical_name(monkeypatch)
         connection_settings(ConfigHandler(builder))
 
 
-def test_old_and_new_driver_options_are_not_implicitly_merged():
+def test_the_connection_options_dictionary_is_refused():
     _, db = recipe()
-    connection = db.connection(name='invoice', options={'connect_timeout': 2})
-    with pytest.raises(ValueError, match='not both'):
-        connection.options().driver(application_name='invoice')
+    with pytest.raises(ValueError, match="does not accept 'options'"):
+        db.connection(name='invoice', options={'connect_timeout': 2})
 
 
 def test_named_connection_contributions_keep_omitted_settings():
@@ -121,17 +120,6 @@ def test_missing_main_connection_does_not_select_an_implicit_database():
     db.connection('reporting', database='replica')
     with pytest.raises(ValueError, match='explicit main connection'):
         connection_settings(ConfigHandler(builder))
-
-
-def test_legacy_options_normalize_to_driver_on_an_owned_source():
-    builder, db = recipe()
-    original = db.connection(name='invoice', options={'connect_timeout': 2})
-    config = _owned_handler(builder)
-    connection = config.builder.source['db.connection']
-    assert 'options' not in connection.attr
-    assert config('connection.options.driver.connect_timeout') == 2
-    assert original.get_attr('options') == {'connect_timeout': 2}
-    assert connection_settings(config)[2] == {'dbname': 'invoice', 'connect_timeout': 2}
 
 
 def test_driver_options_do_not_prevent_building_the_existing_runtime_profile():

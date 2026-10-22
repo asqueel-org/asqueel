@@ -1,7 +1,7 @@
 from genro_builders.builder import element
 import pytest
 
-from asqueel.configuration import ConfigurationView, SqlDatabaseConfig, build_database
+from asqueel.configuration import SqlDatabaseConfig, build_database
 from asqueel.elements import ColumnElements, SchemaElements, TableElements
 
 
@@ -50,17 +50,6 @@ def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
     database.closeConnection()
 
 
-def test_scoped_configuration_defaults_and_missing_values():
-    database = build_database(Recipe)
-    view = ConfigurationView(database.config, 'schemas.sales.tables.customer')
-    assert view('pkey') == 'id'
-    assert view.scope('columns.id')('dtype') == 'I'
-    assert view('missing', default=False) is False
-    with pytest.raises(KeyError):
-        view('missing')
-    database.closeConnection()
-
-
 class MountedColumns(TableElements, ColumnElements):
     @element(parent_tags='columns', _meta={'projects_column': True})
     def column(self, name: str, dtype: str = 'I', ui_hint: str = 'mounted default'):
@@ -96,9 +85,8 @@ class MountedRecipe(SqlDatabaseConfig):
 
 def test_mounted_grammar_validation_and_signature_default():
     database = build_database(MountedRecipe)
-    view = ConfigurationView(database.config, 'schemas.sales.tables.customer.columns')
-    assert view('id.ui_hint') == 'explicit'
-    assert view('label.ui_hint') == 'mounted default'
+    assert database.config('schemas.sales.tables.customer.columns.id.ui_hint') == 'explicit'
+    assert database.config('schemas.sales.tables.customer.columns.label.ui_hint') == 'mounted default'
     assert database.config.builder.source.get_item(
         'db.schemas.sales.tables.customer.columns.label?dtype') is None
     assert database.model.table('sales.customer').columns['label'].dtype == 'I'

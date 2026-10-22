@@ -82,10 +82,6 @@ class SqlDbAdapter:
             raise ValueError('SQL identifiers must be nonempty strings without NUL')
         return '"' + name.replace('"', '""') + '"'
 
-    def empty_collection(self, negated: bool) -> str:
-        """Operand-free replacement of ``IN`` / ``NOT IN`` for an empty collection."""
-        return "<> ALL('{}')" if negated else "= ANY('{}')"
-
     def string_join(self, expressions: list[str], separator: str) -> str:
         """Legacy string_join: skip NULL terms, keep empty strings."""
         literal = "'" + separator.replace("'", "''") + "'"
