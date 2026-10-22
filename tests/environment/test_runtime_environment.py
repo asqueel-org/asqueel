@@ -5,7 +5,7 @@ import threading
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.environment import SqlEnvironment
-from asqueel.runtime import PostgresDatabase, Database
+from asqueel.runtime import Database
 
 
 # Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
@@ -33,8 +33,8 @@ class SqlDbAdapter(PostgresAdapter):
         result = dict(self.environment.snapshot())
         result.update(query.params)
         # A nested adapter scope restores the caller context on normal exit.
-        with self.environment.temp_env(driver_local=True):
-            assert self.environment.current_env['driver_local']
+        with self.environment.tempEnv(driver_local=True):
+            assert self.environment.currentEnv['driver_local']
         return FakeCursor([result])
 
     def commit(self, connection):
@@ -58,7 +58,7 @@ def test_reused_query_reads_the_environment_of_every_execution():
     query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
     db = Database(implementation=FAKE, environment=env)
     try:
-        with db.temp_env(company=2):
+        with db.tempEnv(company=2):
             assert db.execute(query).fetchone()['env_company'] == 2
         assert db.execute(query).fetchone()['env_company'] == 1
     finally:
@@ -72,9 +72,9 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
         driver = db.adapter
         assert db.environment is env
         with db.tempEnv(company=2):
-            assert db.currentEnv == db.current_env == {'company': 2}
+            assert db.currentEnv == {'company': 2}
             with completed(db) as tx:
-                with db.temp_env(company=3):
+                with db.tempEnv(company=3):
                     assert [dict(row) for row in tx.execute(CompiledQuery('select')).fetchall()] == [{'company': 3}]
         assert [dict(row) for row in db.execute(CompiledQuery('select')).fetchall()] == [{'company': 1}]
     finally:
@@ -83,29 +83,29 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
         ('connect', 3), ('execute', 3), ('commit', 2),
         ('execute', 1), ('rollback', 1), ('close', 1)]
     assert {thread for _, _, thread in driver.calls} == {threading.get_ident()}
-    assert env.current_env == {'company': 1}
+    assert env.currentEnv == {'company': 1}
 
 
 def test_separate_sync_databases_share_explicit_environment_without_leaking_scopes():
     env = SqlEnvironment({'company': 0})
     first, second = Database(implementation=FAKE, environment=env), Database(implementation=FAKE, environment=env)
     try:
-        with first.temp_env(company=1):
-            assert second.current_env == {'company': 1}
+        with first.tempEnv(company=1):
+            assert second.currentEnv == {'company': 1}
             first_query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
             assert [dict(row) for row in first.execute(first_query).fetchall()] == [{'company': 1, 'env_company': 1}]
-        with second.temp_env(company=2):
+        with second.tempEnv(company=2):
             assert second.execute(first_query).fetchone()['env_company'] == 2
             assert [dict(row) for row in second.execute(CompiledQuery('select')).fetchall()] == [{'company': 2}]
-        assert env.current_env == {'company': 0}
+        assert env.currentEnv == {'company': 0}
     finally:
         first.closeConnection()
         second.closeConnection()
 
 
 def test_runtime_default_environments_are_independent():
-    first, second = PostgresDatabase(), PostgresDatabase()
+    first, second = Database(implementation='postgres'), Database(implementation='postgres')
     assert first.environment is not second.environment
-    with first.temp_env(company=1):
-        assert first.current_env == {'company': 1}
-        assert second.current_env == {}
+    with first.tempEnv(company=1):
+        assert first.currentEnv == {'company': 1}
+        assert second.currentEnv == {}

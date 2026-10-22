@@ -144,7 +144,7 @@ authorization.
 
 ## Transaction and value boundaries
 
-`AsqueelDb`, `SqlDatabase`, `Database` and `PostgresDatabase` share one execution
+`AsqueelDb`, `SqlDatabase` and `Database` share one execution
 implementation. Table operations and `db.execute()` use the current thread's
 selected named connection until explicit commit or rollback. Connections open
 lazily and are retained for reuse. `execute()` never commits automatically;
@@ -168,7 +168,7 @@ custom environment values must support `deepcopy` correctly.
 ## Migration boundaries
 
 Producing a migration structure is different from applying a migration.
-Neither application rendering, `PostgresDatabase`, nor compiler construction creates tables. Use the
+Neither application rendering, `Database`, nor compiler construction creates tables. Use the
 separate migration integration for supported structures and review the generated
 plan before applying it. Do not treat unrepresented native objects as objects
 the application may drop.

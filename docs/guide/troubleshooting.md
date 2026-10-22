@@ -17,7 +17,7 @@ print(dict(compiled.params))
 print([column.name for column in compiled.columns])
 ```
 
-If the table has a partition policy, enter the required `db.temp_env(...)` scope
+If the table has a partition policy, enter the required `db.tempEnv(...)` scope
 before compiling. Parameters may contain private data; do not blindly publish
 logs. Use the SQL and parameter mapping together when reproducing a statement;
 do not interpolate the mapping into SQL yourself.

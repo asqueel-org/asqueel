@@ -39,7 +39,6 @@ Nested `tempEnv` blocks are supported; they do not create savepoints.
 With explicit named connection declarations, the selected name must be declared
 in the [configuration](cli.md#connection-declaration). Older single-target
 recipes allow additional runtime names using the same physical settings.
-`temp_env` is the alternative spelling of the same method.
 
 The default connection name is `_main_connection`. Each thread/name pair owns
 an independent connection, deferred-callback queues and error state. Changing names
@@ -146,8 +145,8 @@ another thread's connections: every worker must perform its own cleanup,
 directly or through `session(db)`. Cleanup attempts all local connections, even
 if one fails.
 
-The lower-level `Database` and `PostgresDatabase` facades share this execution
-implementation and explicit completion rules. They do not offer a second
+The lower-level `Database` facade shares this execution
+implementation and explicit completion rules. It does not offer a second
 transaction API. See [direct execution](low-level-runtime.md),
 [write hooks](hooks.md), and [legacy adaptations](../adattamenti-legacy.md).
 

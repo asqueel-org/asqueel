@@ -168,7 +168,7 @@ def test_guards_run_before_connect_and_environment_is_read_at_execution():
         db.execute(CompiledQuery('wrong', dialect='other'))
     assert not driver.calls
     query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
-    with environment.temp_env(company=2):
+    with environment.tempEnv(company=2):
         db.execute(query)
     assert driver.executed_params == [{'env_company': 2}]
     db.rollback()

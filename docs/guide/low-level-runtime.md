@@ -41,15 +41,15 @@ mapping. Environment bindings are checked before execution.
 
 ## Execution without a model
 
-`Database(implementation=...)` and `PostgresDatabase(...)` remain available for callers
+`Database(implementation=...)` remains available for callers
 that only execute statements. Their implementation is the same execution base
 used by the configured DB: lazy named connections, thread-local state, and
 explicit `commit()` / `rollback()`.
 
 ```python
-from asqueel import PostgresDatabase
+from asqueel import Database
 
-db = PostgresDatabase('dbname=example')
+db = Database('dbname=example', implementation='postgres')
 try:
     rows = db.execute('SELECT :value AS value', {'value': 42}).fetchall()
     db.commit()

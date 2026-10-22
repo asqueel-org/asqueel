@@ -6,13 +6,13 @@ import sys
 
 import pytest
 
-from asqueel.compiler import PostgresCompiler
+from asqueel.compiler import QueryCompiler
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.runtime import Database
 
 
-def test_offline_postgres_facade_and_generic_pipeline_without_optional_dependencies():
+def test_offline_postgres_pipeline_without_optional_dependencies():
     script = '''
 import builtins
 original = builtins.__import__
@@ -21,17 +21,15 @@ def no_clients(name, *args, **kwargs):
         raise ModuleNotFoundError(name=name)
     return original(name, *args, **kwargs)
 builtins.__import__ = no_clients
-from asqueel.compiler import PostgresCompiler, QueryCompiler
+from asqueel.compiler import QueryCompiler
 from asqueel import SqlDatabaseConfig, resolve_model
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 source = SqlDatabaseConfig()
 source.source.db('demo').packages().package('app').table('sample', pkey='id').column('id', dtype='L')
 model = resolve_model(source)
-facade = PostgresCompiler(model).select('app.sample', where='$id = :id', sqlparams={'id': 7})
-generic = QueryCompiler(model, PostgresAdapter(None)).select(
+query = QueryCompiler(model, PostgresAdapter(None)).select(
     'app.sample', where='$id = :id', sqlparams={'id': 7})
-assert facade == generic
-assert dict(generic.params) == {'id': 7}
+assert dict(query.params) == {'id': 7}
 '''
     result = subprocess.run([sys.executable, '-c', script], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
@@ -85,12 +83,12 @@ def test_runtime_has_no_client_or_sql_compiler_dependency():
     assert not any(name == 'compiler' or name.startswith('adapters') for name in imports)
 
 
-def test_facade_keeps_existing_compiled_query_binding_contract():
+def test_postgres_compiler_keeps_existing_compiled_query_binding_contract():
     from asqueel import SqlDatabaseConfig, resolve_model
     source = SqlDatabaseConfig()
     table = source.source.db('demo').packages().package('app').table('sample', sqlname='50%')
     table.column('name')
-    query = PostgresCompiler(resolve_model(source)).select(
+    query = QueryCompiler(resolve_model(source), PostgresAdapter(None)).select(
         'app.sample', '$name', where='$name = :value', sqlparams={'value': '50%'})
     assert '"50%"' in query.sql
     assert '%(value)s' in query.sql

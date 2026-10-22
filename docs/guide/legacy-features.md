@@ -2613,10 +2613,10 @@ In asqueel you write:
 
 ```python
 db.currentEnv = {"user": "ada"}
-snapshot = db.current_env
+snapshot = db.environment.snapshot()
 ```
 
-In asqueel you get: a dict per thread. The setter raises `TypeError` "currentEnv must be a dictionary" for another value. `current_env` returns a read-only copy without the deferred queues and `_pendingExceptions`.
+In asqueel you get: a dict per thread. The setter raises `TypeError` "currentEnv must be a dictionary" for another value. `db.environment.snapshot()` returns a read-only copy without the deferred queues and `_pendingExceptions`, with the workdate/locale defaults resolved.
 
 <details><summary>Files</summary>
 
@@ -3186,7 +3186,7 @@ In asqueel you get: entry runs `clearCurrentEnv` and `updateEnv(**env)`. Exit ru
 - **`protect_update`, `protect_delete`, `protect_validate`**: same methods, called in the same positions. (A5.6)
 - **Record data in a write**: `@`, virtual and unknown keys are ignored, `None` is left out of INSERT, UPDATE writes every present column. (A5.14)
 - **Row policies in writes**: DELETE is physical; partition, draft and logical-deletion filters do not apply to writes. (A5.28)
-- **`tempEnv` / `temp_env`**: same restore rule on exit. (A6.1)
+- **`tempEnv`**: same restore rule on exit. (A6.1)
 - **`setLocale()`**: called when `currentEnv` has a locale; the adapters have no effect. (A6.4)
 - **`connectionName`, `currentConnectionName`, `usingMainConnection`**: same default `'_main_connection'`. (A6.5)
 - **`deferToCommit` / `deferAfterCommit`**: same blocks, deduplication and queue keys in `currentEnv`. (A6.12)

@@ -123,10 +123,10 @@ def test_query_compiles_in_terminal_environment_and_fetch_record_reads_again(app
         db.table('app.item').insert({'id': 1, 'name': 'same'})
         db.table('app.item').insert({'id': 2, 'name': 'same'})
     query = db.table('app.item').query(where='$id=:env_item')
-    with db.temp_env(item=1):
+    with db.tempEnv(item=1):
         compiled = query.compiled
         assert [dict(row) for row in query.fetch()] == [{'id': 1, 'name': 'same'}]
-    with db.temp_env(item=2):
+    with db.tempEnv(item=2):
         assert [dict(row) for row in query.fetch()] == [{'id': 2, 'name': 'same'}]
         assert [dict(row) for row in db.execute(compiled).fetchall()] == [{'id': 2, 'name': 'same'}]
     record = db.table('app.item').query(where='$id=1')

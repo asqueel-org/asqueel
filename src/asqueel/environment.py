@@ -40,7 +40,7 @@ def environment_arguments(keys, snapshot):
 class SqlEnvironment:
     """An isolated context variable holding the current SQL environment.
 
-    ``temp_env`` overlays values until the scope exits. ``None`` is a value,
+    ``tempEnv`` overlays values until the scope exits. ``None`` is a value,
     not a deletion marker. Child tasks inherit the context at task creation;
     snapshots and subsequent scopes remain independent.
     """
@@ -60,16 +60,11 @@ class SqlEnvironment:
         return MappingProxyType(_copy_values(self._values.get(), 'snapshot'))
 
     @property
-    def current_env(self) -> Mapping[str, Any]:
+    def currentEnv(self) -> Mapping[str, Any]:
         return self.snapshot()
 
-    @property
-    def currentEnv(self) -> Mapping[str, Any]:
-        """Compatibility spelling of ``current_env`` (also a snapshot)."""
-        return self.current_env
-
     @contextmanager
-    def temp_env(self, **values: Any) -> Iterator[SqlEnvironment]:
+    def tempEnv(self, **values: Any) -> Iterator[SqlEnvironment]:
         """Overlay values for the current context and restore them in finally."""
         merged = dict(self._values.get())
         merged.update(values)
@@ -80,30 +75,18 @@ class SqlEnvironment:
         finally:
             self._values.reset(token)
 
-    def tempEnv(self, **values: Any):
-        """Compatibility spelling of ``temp_env``."""
-        return self.temp_env(**values)
-
 
 class ApplicationEnvironment(SqlEnvironment):
     """Mutable synchronous application context with legacy tempEnv semantics.
 
-    Each thread owns a live mapping. ``current_env`` is a detached snapshot;
+    Each thread owns a live mapping. ``snapshot()`` is a detached copy;
     ``currentEnv`` must not be passed to another thread or async task.
     Compiler snapshots include workdate/locale defaults only.
     """
 
     def __init__(self, source: SqlEnvironment | None = None):
-        self._defaults = _copy_values(source.current_env if source is not None else {}, 'initialization')
+        self._defaults = _copy_values(source.snapshot() if source is not None else {}, 'initialization')
         self._local = local()
-
-    @property
-    def current_env(self) -> Mapping[str, Any]:
-        # The deferred-call queues and pending exceptions live in currentEnv as
-        # legacy; they are transaction state, not SQL values, and are not copied.
-        values = {key: value for key, value in self.currentEnv.items()
-                  if not _TRANSACTION_KEYS.fullmatch(key)}
-        return MappingProxyType(_copy_values(values, 'snapshot'))
 
     @property
     def currentEnv(self) -> dict[str, Any]:
@@ -134,13 +117,16 @@ class ApplicationEnvironment(SqlEnvironment):
         return configured or 'en_GB'
 
     def snapshot(self) -> Mapping[str, Any]:
-        values = dict(self.current_env)
+        # The deferred-call queues and pending exceptions live in currentEnv as
+        # legacy; they are transaction state, not SQL values, and are not copied.
+        values = _copy_values({key: value for key, value in self.currentEnv.items()
+                               if not _TRANSACTION_KEYS.fullmatch(key)}, 'snapshot')
         values['workdate'] = self.workdate
         values['locale'] = self.locale
         return MappingProxyType(values)
 
     @contextmanager
-    def temp_env(self, **values: Any) -> Iterator[ApplicationEnvironment]:
+    def tempEnv(self, **values: Any) -> Iterator[ApplicationEnvironment]:
         current = self.currentEnv
         saved = {key: current[key] for key in values if key in current}
         added = {key: value for key, value in values.items() if key not in current}

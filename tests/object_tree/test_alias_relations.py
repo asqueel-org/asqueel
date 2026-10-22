@@ -4,7 +4,8 @@ from uuid import uuid4
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.compiler import PostgresCompiler
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.compiler import QueryCompiler
 from tests.native_support import postgres_dsn
 
 
@@ -63,7 +64,7 @@ def test_explicit_relation_wins_and_is_inherited_by_the_next_alias():
         attrs = model.table('app.invoice_row').relations.get_node('@' + name).attr['joiner']
         assert attrs['one_relation'] == 'app.other_customer.id'
         assert not attrs['foreignkey']
-    sql = PostgresCompiler(model).select('app.invoice_row', '@customer_copy.name').sql
+    sql = QueryCompiler(model, PostgresAdapter(None)).select('app.invoice_row', '@customer_copy.name').sql
     assert '"other_customer"' in sql
 
 
@@ -74,7 +75,7 @@ def test_alias_cycle_does_not_recurse_during_inheritance():
     model = config.render(mode='objects_tree')
     assert model.table('app.invoice_row').relations.get_node('@cycle_a') is None
     with pytest.raises(ValueError, match='Cyclic'):
-        PostgresCompiler(model).select('app.invoice_row', '$cycle_a')
+        QueryCompiler(model, PostgresAdapter(None)).select('app.invoice_row', '$cycle_a')
 
 
 @pytest.fixture(params=[('sqlite', False), ('sqlite', True),
@@ -137,7 +138,7 @@ def test_alias_path_can_traverse_another_inherited_relation():
     joiner = model.table('app.invoice_row').relations.get_node('@manager_id').attr['joiner']
     assert joiner['one_relation'] == 'app.customer.id'
     assert not joiner['foreignkey']
-    sql = PostgresCompiler(model).select('app.invoice_row', '@manager_id.name').sql
+    sql = QueryCompiler(model, PostgresAdapter(None)).select('app.invoice_row', '@manager_id.name').sql
     assert sql.count('LEFT JOIN') == 3
 
 

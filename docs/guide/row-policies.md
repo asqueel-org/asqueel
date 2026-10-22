@@ -67,7 +67,7 @@ shared environment:
 
 ```python
 # db comes from a recipe declaring the app.document policy above.
-with db.temp_env(current_organization=10):
+with db.tempEnv(current_organization=10):
     try:
         documents = db.table('app.document').query(columns='$id, $title', order_by='$id').fetch()
         db.commit()
@@ -96,7 +96,7 @@ by their truth value, as in GenroPy.
 | Neither true | No restriction. `0`, `False`, `''`, `None` and an empty collection add no filter. |
 
 ```python
-with db.temp_env(allowed_organization=[10, 20]):
+with db.tempEnv(allowed_organization=[10, 20]):
     # organization_id IS NULL OR organization_id IN (10, 20).
     query = db.table('app.document').query(columns='$id')
     print(query.sqltext)

@@ -62,7 +62,7 @@ logical names without `$`. `delete` must remove exactly one row. See
 ```python
 db = AsqueelDb(Recipe)
 try:
-    with db.temp_env(organization=10):     # Context only; does not open a connection.
+    with db.tempEnv(organization=10):     # Context only; does not open a connection.
         try:
             db.table("app.document").insert({"id": 100, "title": "Example"})
             db.commit()

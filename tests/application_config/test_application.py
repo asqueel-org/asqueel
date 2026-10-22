@@ -22,10 +22,10 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
     assert db.tables['app.item'] is db.table('app.item')
     with pytest.raises(TypeError):
         db.tables['app.item'] = None
-    assert db.current_env == db.currentEnv == {}
+    assert db.currentEnv == {}
     with db.tempEnv(company=0):
-        assert db.current_env == {'company': 0}
-    assert db.current_env == {}
+        assert db.currentEnv == {'company': 0}
+    assert db.currentEnv == {}
     assert not hasattr(db, 'transaction')
     with completed(db):
         pass

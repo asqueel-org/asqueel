@@ -21,13 +21,13 @@ Compiler
 --------
 
 .. automodule:: asqueel.compiler
-   :members: QueryCompiler, PostgresCompiler
+   :members: QueryCompiler
 
 Synchronous runtime
 -------------------
 
 .. automodule:: asqueel.runtime
-   :members: Database, PostgresDatabase, SqlCursor, session, TransactionStateError
+   :members: Database, SqlCursor, session, TransactionStateError
 
 Environment
 -----------

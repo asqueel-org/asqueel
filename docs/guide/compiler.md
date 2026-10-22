@@ -38,8 +38,9 @@ parameter manglers or table aliases between compilations.
 4. `db.execute(compiled)` executes on the owning connection and transaction.
 
 `QueryCompiler.select()` combines steps 1–3. `plan_count()` and `count()` use the
-legacy count algorithm. `PostgresCompiler(model)` selects PostgreSQL and psycopg
-adapters for the same compiler; it is not another compilation path.
+legacy count algorithm. `QueryCompiler(model, SqlDbAdapter(None))` with the
+adapter from `asqueel.adapters.postgres` compiles for PostgreSQL and psycopg
+without a database.
 
 There is no `QueryPlan`, SQL `Fragment`, scanner-based SELECT compiler or
 `driver.prepare(SqlStatement)` path. DML is developed separately and does not

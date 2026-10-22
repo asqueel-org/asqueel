@@ -20,7 +20,7 @@ from .application_table import (
 from .configuration import SqlDatabaseConfig, build_database
 from .emitter import SqlPythonEmitter
 from .renderer import SqlRenderer
-from .compiler import PostgresCompiler, QueryCompiler
+from .compiler import QueryCompiler
 from .contracts import (
     CompiledQuery, ResultColumn,
     UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
@@ -30,7 +30,7 @@ from .model import resolve_model
 from .object_tree import DbModel
 from .projection import to_physical_builder
 from .runtime import (
-    Database, PostgresDatabase, SqlCursor,
+    Database, SqlCursor,
     TransactionStateError, session,
 )
 from .errors import DeferredCommitError, MigrationError
@@ -45,8 +45,8 @@ __all__ = [
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
     "CompiledQuery",
-    "ResultColumn", "UnsupportedFeatureError", "PostgresCompiler",
-    "PostgresDatabase", "SqlCursor", "session",
+    "ResultColumn", "UnsupportedFeatureError",
+    "SqlCursor", "session",
     "TransactionStateError", "resolve_model", "DbModel",
     "to_physical_builder",
     "QueryCompiler", "Database",

@@ -81,7 +81,7 @@ def hooked_database():
 
             db = build_database(Recipe)
             try:
-                with db.temp_env(current_org=0):
+                with db.tempEnv(current_org=0):
                     db.table('app.item').events = []
                     yield db, observer, schema
             finally:

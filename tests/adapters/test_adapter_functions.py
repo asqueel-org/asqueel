@@ -9,7 +9,7 @@ import pytest
 from asqueel import SqlDatabaseConfig, SqlTable, UnsupportedFeatureError, build_database
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
-from asqueel.runtime import Database, PostgresDatabase
+from asqueel.runtime import Database
 from tests.native_support import postgres_dsn
 
 
@@ -18,7 +18,7 @@ BACKENDS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)]
 
 @pytest.fixture(params=BACKENDS)
 def db(request):
-    database = (PostgresDatabase(postgres_dsn()) if request.param == 'postgres'
+    database = (Database(postgres_dsn(), implementation='postgres') if request.param == 'postgres'
                 else Database(':memory:', implementation='sqlite'))
     try:
         yield database
@@ -68,7 +68,7 @@ def test_age_at_date_raises_on_sqlite():
 
 @pytest.mark.postgresql
 def test_age_at_date_runs_on_postgres():
-    db = PostgresDatabase(postgres_dsn())
+    db = Database(postgres_dsn(), implementation='postgres')
     try:
         age = db.adapter.ageAtDate("DATE '2026-01-01'", 'refdate')
         assert value(db, age, {'refdate': date(2026, 1, 11)}) == 10

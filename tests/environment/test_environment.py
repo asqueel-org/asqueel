@@ -15,37 +15,37 @@ def test_defaults_snapshots_and_scope_arguments_are_detached():
     with pytest.raises(TypeError):
         first['name'] = 'mutated'
     first['settings']['allowed'].append(3)
-    assert env.current_env == {'settings': {'allowed': [1]}, 'name': 'base'}
+    assert env.currentEnv == {'settings': {'allowed': [1]}, 'name': 'base'}
     scope = {'allowed': [4]}
-    with env.temp_env(settings=scope):
+    with env.tempEnv(settings=scope):
         scope['allowed'].append(5)
-        snapshot = env.current_env
+        snapshot = env.currentEnv
         snapshot['settings']['allowed'].append(6)
-        assert env.current_env['settings'] == {'allowed': [4]}
-    assert env.current_env['settings'] == {'allowed': [1]}
+        assert env.currentEnv['settings'] == {'allowed': [4]}
+    assert env.currentEnv['settings'] == {'allowed': [1]}
 
 
 def test_nested_scopes_restore_and_none_is_explicit():
     env = SqlEnvironment({'name': 'base'})
-    assert 'optional' not in env.current_env
+    assert 'optional' not in env.currentEnv
     with env.tempEnv(name='outer', optional=None) as scoped:
         assert scoped is env
         assert env.currentEnv == {'name': 'outer', 'optional': None}
-        with env.temp_env(name='inner', extra=7):
-            assert env.current_env == {'name': 'inner', 'optional': None, 'extra': 7}
-        assert env.current_env == {'name': 'outer', 'optional': None}
-    assert env.current_env == {'name': 'base'}
-    assert 'optional' not in env.current_env
+        with env.tempEnv(name='inner', extra=7):
+            assert env.currentEnv == {'name': 'inner', 'optional': None, 'extra': 7}
+        assert env.currentEnv == {'name': 'outer', 'optional': None}
+    assert env.currentEnv == {'name': 'base'}
+    assert 'optional' not in env.currentEnv
 
 
 def test_exception_restores_and_instances_are_isolated():
     left = SqlEnvironment({'name': 'left'})
     right = SqlEnvironment({'name': 'right'})
     with pytest.raises(RuntimeError):
-        with left.temp_env(name='changed'):
-            assert right.current_env['name'] == 'right'
+        with left.tempEnv(name='changed'):
+            assert right.currentEnv['name'] == 'right'
             raise RuntimeError('scope failed')
-    assert left.current_env['name'] == 'left'
+    assert left.currentEnv['name'] == 'left'
 
 
 def test_child_tasks_inherit_then_isolate_scopes_and_snapshots():
@@ -54,26 +54,26 @@ def test_child_tasks_inherit_then_isolate_scopes_and_snapshots():
         ready = asyncio.Event()
 
         async def child(name):
-            inherited = env.current_env
+            inherited = env.currentEnv
             await ready.wait()
             inherited['settings']['allowed'].append(name)
-            with env.temp_env(name=name):
+            with env.tempEnv(name=name):
                 await asyncio.sleep(0)
-                assert env.current_env['name'] == name
-                assert env.current_env['settings']['allowed'] == [1]
-            assert env.current_env['name'] == 'parent'
+                assert env.currentEnv['name'] == name
+                assert env.currentEnv['settings']['allowed'] == [1]
+            assert env.currentEnv['name'] == 'parent'
             return env.snapshot()
 
-        with env.temp_env(name='parent'):
+        with env.tempEnv(name='parent'):
             first = asyncio.create_task(child('first'))
             second = asyncio.create_task(child('second'))
             await asyncio.sleep(0)
         # Existing child tasks retain their inherited context after parent reset.
-        assert 'name' not in env.current_env
+        assert 'name' not in env.currentEnv
         ready.set()
         results = await asyncio.gather(first, second)
         assert all(result == {'name': 'parent', 'settings': {'allowed': [1]}} for result in results)
-        assert env.current_env == {'settings': {'allowed': [1]}}
+        assert env.currentEnv == {'settings': {'allowed': [1]}}
     asyncio.run(scenario())
 
 
@@ -85,11 +85,11 @@ def test_async_cancellation_restores_scope_before_propagating():
 
         async def worker():
             try:
-                with env.temp_env(name='worker'):
+                with env.tempEnv(name='worker'):
                     started.set()
                     await asyncio.Event().wait()
             except asyncio.CancelledError:
-                restored.append(env.current_env)
+                restored.append(env.currentEnv)
                 raise
 
         task = asyncio.create_task(worker())
@@ -98,14 +98,14 @@ def test_async_cancellation_restores_scope_before_propagating():
         with pytest.raises(asyncio.CancelledError):
             await task
         assert restored == [{'name': 'base'}]
-        assert env.current_env == {'name': 'base'}
+        assert env.currentEnv == {'name': 'base'}
     asyncio.run(scenario())
 
 
 def test_threads_need_explicit_context_propagation_and_do_not_leak():
     env = SqlEnvironment({'name': 'base'})
     with ThreadPoolExecutor(max_workers=1) as executor:
-        with env.temp_env(name='request'):
+        with env.tempEnv(name='request'):
             context = copy_context()
             assert executor.submit(context.run, env.snapshot).result() == {'name': 'request'}
             assert executor.submit(env.snapshot).result() == {'name': 'base'}
@@ -122,15 +122,15 @@ def test_uncopyable_values_fail_descriptively_without_changing_context():
     assert isinstance(error.value.__cause__, TypeError)
     env = SqlEnvironment({'name': 'base'})
     with pytest.raises(ValueError, match='scope entry'):
-        with env.temp_env(value=Uncopyable()):
+        with env.tempEnv(value=Uncopyable()):
             raise AssertionError('scope must never start')
-    assert env.current_env == {'name': 'base'}
+    assert env.currentEnv == {'name': 'base'}
 
 
 def test_empty_environment_and_repeated_scopes():
     env = SqlEnvironment()
     assert env.snapshot() == {}
     for value in range(3):
-        with env.temp_env(value=value):
+        with env.tempEnv(value=value):
             assert env.snapshot()['value'] == value
         assert env.snapshot() == {}

@@ -994,11 +994,3 @@ class QueryCompiler:
                                                   ignore_partition=ignore_partition,
                                                   for_update=for_update, distinct=distinct,
                                                   group_by=group_by, having=having, **options))
-
-
-class PostgresCompiler(QueryCompiler):
-    """The hierarchical compiler on the PostgreSQL adapter, without a database."""
-
-    def __init__(self, model, *, environment=None):
-        from .adapters.postgres import SqlDbAdapter
-        super().__init__(model, SqlDbAdapter(None), environment=environment)

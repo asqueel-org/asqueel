@@ -59,7 +59,7 @@ def test_legacy_environment_scope_preserves_unrelated_changes():
     assert db.currentEnv is original
     assert db.currentEnv == {'user': 'original', 'options': ['keep'],
                              'introduced': 2, 'unrelated': 'keep'}
-    snapshot = db.current_env
+    snapshot = db.environment.snapshot()
     snapshot['options'].append('detached')
     assert db.currentEnv['options'] == ['keep']
     db.updateEnv(_excludeNoneValues=True, user=None, zero=0, flag=False)

@@ -80,7 +80,7 @@ def test_close_connection_rolls_back_and_the_database_stays_usable(db):
     assert count(db) == 1
 
 
-def test_deferred_calls_live_in_current_env_per_connection_key(db):
+def test_deferred_calls_live_in_currentEnv_per_connection_key(db):
     calls = []
     db.deferToCommit(calls.append, 'before')
     db.deferAfterCommit(calls.append, 'after')
@@ -91,7 +91,7 @@ def test_deferred_calls_live_in_current_env_per_connection_key(db):
     assert calls == ['before', 'after']
 
 
-def test_clear_current_env_drops_the_pending_deferred_calls(db):
+def test_clearCurrentEnv_drops_the_pending_deferred_calls(db):
     calls = []
     db.table('app.note').insert({'id': 'n1', 'text': 'a'})
     db.deferToCommit(calls.append, 'before')

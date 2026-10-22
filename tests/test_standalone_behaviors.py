@@ -244,7 +244,7 @@ def test_partition_autofill_raw_guards_and_explicit_bypass(implementation, tmp_p
         table = db.table('app.item')
         other = table.insert({'organization': 2, 'value': 10})
         db.commit()
-        with db.temp_env(current_organization=1):
+        with db.tempEnv(current_organization=1):
             own = table.insert({'value': 1})
             assert own['organization'] == 1
             raw = table.sql_insert({'value': 2})
@@ -263,7 +263,7 @@ def test_partition_autofill_raw_guards_and_explicit_bypass(implementation, tmp_p
             with pytest.raises(ValueError, match='outside'):
                 table.sql_insert({'organization': 2})
             db.rollback()
-        with db.temp_env(allowed_organization=[]):
+        with db.tempEnv(allowed_organization=[]):
             table.sql_delete({'id': own['id']})
             assert table._reread(own['id']) is not None
             with pytest.raises(ValueError, match='outside'):
@@ -325,7 +325,7 @@ def test_partition_refuses_cross_scope_before_hooks(implementation, tmp_path):
         db.commit()
         table.trigger_onUpdating = Observed.trigger_onUpdating.__get__(table)
         table.trigger_onDeleting = Observed.trigger_onDeleting.__get__(table)
-        with db.temp_env(current_organization=1):
+        with db.tempEnv(current_organization=1):
             for operation in (lambda: table.update({'id': item['id'], 'value': 2}), lambda: table.delete(item)):
                 with pytest.raises(ValueError, match='outside'):
                     operation()
@@ -416,7 +416,7 @@ def test_allowed_only_partition_filters_sql_updates_and_deletes(implementation, 
         global_row = table.insert({'organization': None, 'value': 2})
         excluded = table.insert({'organization': 2, 'value': 3})
         db.commit()
-        with db.temp_env(allowed_organization=[1]):
+        with db.tempEnv(allowed_organization=[1]):
             assert table.query(ignorePartition=True).sql_update({'value': 9}) == 2
             assert table._reread(permitted['id'])['value'] == 9
             assert table._reread(global_row['id'])['value'] == 9

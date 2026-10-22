@@ -140,11 +140,6 @@ class Database:
         return self._connections[name]
 
     @property
-    def current_env(self):
-        self._check_open()
-        return self.environment.current_env
-
-    @property
     def currentEnv(self):
         self._check_open()
         return self.environment.currentEnv
@@ -184,13 +179,10 @@ class Database:
         self.currentEnv['locale'] = value
 
     @contextmanager
-    def temp_env(self, **values: Any):
-        self._check_open()
-        with self.environment.temp_env(**values):
-            yield self
-
     def tempEnv(self, **values: Any):
-        return self.temp_env(**values)
+        self._check_open()
+        with self.environment.tempEnv(**values):
+            yield self
 
     def execute(self, sql: CompiledQuery | str, sqlargs=None, cursor=None, cursorname=None,
                 autocommit=False, dbtable=None, storename=None, _adaptArguments=True) -> SqlCursor:
@@ -380,7 +372,7 @@ class Database:
         context: dict[str, Any] = {'onCommittingStep': True}
         if state['connection_name'] is not None:
             context['connectionName'] = state['connection_name']
-        with self.environment.temp_env(**context):
+        with self.environment.tempEnv(**context):
             self._drain_deferred(state, queue)
 
     def _drain_deferred(self, state: _ConnectionState, queue: str) -> None:
@@ -653,14 +645,6 @@ class SqlCursor:
     def __iter__(self) -> Iterator[NamedList]:
         while (row := self.fetchone()) is not None:
             yield row
-
-
-class PostgresDatabase(Database):
-    """The shared, explicitly completed runtime on the PostgreSQL adapter."""
-
-    def __init__(self, conninfo='', *, connect_kwargs=None, environment=None):
-        super().__init__(conninfo, implementation='postgres', connect_kwargs=connect_kwargs,
-                         environment=environment)
 
 
 @contextmanager
