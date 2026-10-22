@@ -54,7 +54,7 @@ def build_relations(model):
     for table in model.tables.values():
         owners = (*table.columns.values(), *table.virtual_columns.values(), *table.composites.values())
         for column in owners:
-            declarations = [child for child in column.values() if child.tag in ('relation', 'weak_relation')]
+            declarations = [child for child in column.values() if child.tag == 'relation']
             if len(declarations) > 1:
                 raise ValueError(f'Multiple relations on {table.fullname}.{column.name}')
             for declaration in declarations:

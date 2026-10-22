@@ -95,7 +95,7 @@ def _validate_source_shape(builder):
             if node.attr.get('table') and (condition is None or
                     isinstance(condition, str) and not condition.strip()):
                 raise ValueError('virtualRelation: table requires a nonempty condition')
-        if (node.node_tag in builder.table_options or node.node_tag == 'encryption') and 'provider' in node.attr:
+        if node.node_tag in builder.table_options and 'provider' in node.attr:
             raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
         if builder.option_levels(node.node_tag) is not None:
             if node.node_tag in builder.table_options:
@@ -149,8 +149,6 @@ def _compose_source(builder, target, incoming):
             added = target.set_item(node.label, None if isinstance(value, Bag) else deepcopy(value),
                                     _attributes=deepcopy(dict(node.attr)), _remove_null_attributes=False,
                                     node_tag=node.node_tag)
-            for other, key in builder._validation_overrides(added, dict(node.attr)):
-                other.attr.pop(key, None)
             builder._attribute_origins.update({(builder._node_path(added), key): builder._contribution
                                                for key in added.attr if key != '_meta'})
             if isinstance(value, Bag):
@@ -369,8 +367,7 @@ def _effective_model_builder(config):
         info = owner._get_schema_info(node.node_tag)
         signature_defaults = []
         for name, (_, _, default) in (info.get('call_args_validations') or {}).items():
-            if (name in node.attr or default is inspect.Parameter.empty or default is None
-                    or node.node_tag == 'validation'):
+            if name in node.attr or default is inspect.Parameter.empty or default is None:
                 continue
             # indexed is a physical-FK default. Materializing it on a logical
             # relation would turn an omitted option into a forbidden declaration.

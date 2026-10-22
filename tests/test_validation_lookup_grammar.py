@@ -18,10 +18,8 @@ def test_lookup_rules_keep_values_without_resolving_targets_or_executing(rule, v
     builder, table = source()
     expected = {rule: value, f'{rule}_error': 'Check failed'}
     table.column('embedded', **{f'validate_{key}': item for key, item in expected.items()})
-    table.column('explicit').validation(**expected)
     model = resolve_model(builder)
     assert model.table('app.item').columns['embedded'].validations == expected
-    assert model.table('app.item').columns['explicit'].validations == expected
     restored = resolve_model(_copy_recipe(builder))
     assert restored.table('app.item').columns['embedded'].validations == expected
     physical = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']['app_item']
@@ -40,9 +38,9 @@ def test_legacy_lookup_parameters_survive_composition_and_round_trip():
         'nodup_if': 'value != null', 'nodup_duplicated_value': 'Duplicate',
         'exist': True, 'exist_if': 'value != null', 'exist_warning': 'Not found',
     }
-    column = table.column('code', **{f'validate_{key}': value for key, value in expected.items()})
+    table.column('code', **{f'validate_{key}': value for key, value in expected.items()})
     with builder.contribution('application'):
-        column.validation(nodup_relative='account_id', exist=False)
+        table.column('code', validate_nodup_relative='account_id', validate_exist=False)
     expected.update(nodup_relative='account_id', exist=False)
     builder.validate_source()
     model = resolve_model(_copy_recipe(builder))
@@ -58,10 +56,9 @@ def test_legacy_lookup_parameters_survive_composition_and_round_trip():
 def test_validation_data_survives_all_source_forms_without_vocabulary_checks(key, value):
     builder, table = source()
     table.column('embedded', **{f'validate_{key}': value})
-    table.column('explicit').validation(**{key: value})
-    node = table.column('imported').validation()
-    node.attr[key] = value
+    node = table.column('imported')
+    node.attr[f'validate_{key}'] = value
     builder.validate_source()
     model = resolve_model(_copy_recipe(builder))
-    for name in ('embedded', 'explicit', 'imported'):
+    for name in ('embedded', 'imported'):
         assert model.table('app.item').columns[name].validations == {key: value}

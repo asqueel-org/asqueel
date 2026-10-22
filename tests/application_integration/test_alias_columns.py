@@ -69,7 +69,7 @@ def alias_database():
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
-def test_aliases_are_read_only_and_default_dml_returning_is_physical(alias_database):
+def test_aliases_are_not_written_and_default_dml_returning_is_physical(alias_database):
     db = alias_database
     table = db.table('app.invoice')
     table.insert({'id': 4, 'customer_name': 'bad'})

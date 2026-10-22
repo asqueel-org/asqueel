@@ -40,7 +40,6 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
     # Unselected administrative connections must not be evaluated as model nodes.
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Unused connection read')))
     assert 'validate_len' in column.attr
-    assert column.value is None or column.value.get_node('validation') is None
     owned = _owned_handler(source)
     assert calls == []
     assert owned.builder is not source
@@ -106,19 +105,11 @@ def test_render_defaults_follow_composition_and_failure_publishes_nothing():
     assert not broken.materialized
 
 
-@pytest.mark.parametrize('explicit_first', [True, False])
-def test_validation_spellings_share_contribution_order(explicit_first):
+def test_validation_attributes_follow_contribution_order():
     source, _, customer = recipe()
-    column = customer.column('code')
-    if explicit_first:
-        column.validation(len='2:4')
-    else:
-        customer.column('code', validate_len='2:4')
+    customer.column('code', validate_len='2:4')
     with source.contribution('later'):
-        if explicit_first:
-            customer.column('code', validate_len='3:8')
-        else:
-            column.validation(len='3:8')
+        customer.column('code', validate_len='3:8')
     assert resolve_model(source).table('invc.customer').columns['code'].validations == {'len': '3:8'}
 
 

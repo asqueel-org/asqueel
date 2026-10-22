@@ -353,11 +353,7 @@ class DbColumnObj(DbModelObj):
         @extract_kwargs(validate=True)
         def collect(*, validate_kwargs=None, **attrs):
             return validate_kwargs
-        result = collect(**self.attributes)
-        explicit = self.get('validation')
-        if explicit is not None:
-            result.update(explicit.attributes)
-        return deepcopy(result)
+        return deepcopy(collect(**self.attributes))
 
 
 class DbVirtualColumnObj(DbColumnObj):
@@ -370,7 +366,7 @@ class DbVirtualColumnObj(DbColumnObj):
         return super().dtype
 
     def afterChildrenCreation(self):
-        if any(child.tag in ('relation', 'weak_relation') for child in self.values()):
+        if any(child.tag == 'relation' for child in self.values()):
             self.attributes['virtual'] = True
 
 

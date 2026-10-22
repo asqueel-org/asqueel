@@ -51,7 +51,7 @@ def prepare_source(builder, *, options_first=False):
             continue
         owner = node.parent_bag._builder if node._get_meta('subbuilder') else node._resolve_builder()
         info = owner._get_schema_info(node.node_tag)
-        if node.node_tag in ('table', 'column', 'validation'):
+        if node.node_tag in ('table', 'column'):
             continue
         for key, (_, _, default) in (info.get('call_args_validations') or {}).items():
             if key not in node.attr and default is not inspect.Parameter.empty and default is not None:

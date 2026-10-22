@@ -1073,7 +1073,7 @@ In asqueel you write:
 tbl.column('customer_id').relation('customer.id', foreign_key=True)
 ```
 
-In asqueel you get: inside a package `foreign_key` is `True` by default and `False` with `cnd`. `weak_relation` creates no foreign key. `mode=` raises `ValueError`: `Element 'relation' does not accept 'mode'`. `case_insensitive=True` produces no `lower()` in the join, as in GenroPy.
+In asqueel you get: inside a package `foreign_key` is `True` by default and `False` with `cnd`. `relation(..., foreign_key=False)` creates no foreign key. `mode=` raises `ValueError`: `Element 'relation' does not accept 'mode'`. `case_insensitive=True` produces no `lower()` in the join, as in GenroPy.
 
 <details><summary>Files</summary>
 

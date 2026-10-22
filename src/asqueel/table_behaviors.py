@@ -53,10 +53,10 @@ class TableBehaviors:
                 continue
             attrs = column.attributes
             if old_record is None:
-                if attrs.get('read_only') and not (name == self.model.pkey and self._behavior('sys_fields') is not None
+                if attrs.get('readOnly') and not (name == self.model.pkey and self._behavior('sys_fields') is not None
                                                  and attrs.get('x_generation') == {'type': 'uuid', 'algorithm': 'legacy22'}):
                     raise ValueError(f'{self.fullname}.{name} is read-only')
-            elif attrs.get('read_only') or attrs.get('unmodifiable') or sql_attribute_declared(attrs, 'generatedExpression'):
+            elif attrs.get('readOnly') or attrs.get('unmodifiable') or sql_attribute_declared(attrs, 'generatedExpression'):
                 value, previous = record[name], old_record.get(name)
                 if column.dtype == 'A' and isinstance(value, str) and isinstance(previous, str):
                     value, previous = value.rstrip(), previous.rstrip()

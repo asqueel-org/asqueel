@@ -22,7 +22,7 @@ def ranked(package):
     table.column('group_id', dtype='L')
     table.column('value', dtype='L', default=5)
     table.column('fixed', unmodifiable=True)
-    table.column('system', default='internal', read_only=True)
+    table.column('system', default='internal', readOnly=True)
 
 
 def hierarchy(package, linked=False, table_class=SqlTable):

@@ -1,7 +1,6 @@
 """Contracts added on the path from package source to complete migration JSON."""
-import pytest
 
-from asqueel import SqlDatabaseConfig, SqlMigrationRenderer, UnsupportedFeatureError
+from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
 from asqueel.model import resolve_model
 from asqueel.model_source import require_write_capabilities
 
@@ -35,14 +34,11 @@ def test_custom_types_forward_fk_inference_inverse_and_application_sql_actions()
     assert require_write_capabilities(m.table('sales.invoice')) is None
 
 
-def test_validation_embedding_and_explicit_form_match_and_remain_detached():
+def test_validation_attributes_remain_detached():
     b, pkg = source()
     t = pkg.table('item')
     t.column('a', 'T', validate_len='2:5', validate_len_error='Length', validate_case='U')
-    c = t.column('b', 'T')
-    c.validation(len='2:5', len_error='Length', case='U')
     m = resolve_model(b)
-    assert m.table('sales.item').columns['a'].validations == m.table('sales.item').columns['b'].validations
     rules = m.table('sales.item').columns['a'].validations
     assert type(rules) is dict
     assert rules == {'len': '2:5', 'len_error': 'Length', 'case': 'U'}
@@ -50,5 +46,3 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
     assert m.table('sales.item').columns['a'].validations['case'] == 'U'
     t.column('opaque', 'T', validate_lne=8)
     assert resolve_model(b).table('sales.item').columns['opaque'].validations == {'lne': 8}
-    with pytest.raises(UnsupportedFeatureError, match='write execution of b.validation is not available in this release'):
-        require_write_capabilities(m.table('sales.item'))

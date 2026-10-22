@@ -49,7 +49,7 @@ def assert_legacy_attributes(column, expected):
         elif key == 'size':
             actual, value = column.attributes.get(key), str(value)
         elif key == 'readOnly':
-            actual = column.attributes.get('read_only')
+            actual = column.attributes.get('readOnly')
             value = value in (True, 'y', 'true')
         elif key.startswith('validate_'):
             actual = column.validations.get(key.removeprefix('validate_'))
@@ -130,6 +130,6 @@ def test_attachment_base_and_sys_fields_compose_the_same_source_node(monkeypatch
     assert column.attributes['size'] == '22'
     assert column.attributes['name_long'] == 'Id'
     assert column.attributes['group'] == '_'
-    assert column.attributes['read_only'] is True
+    assert column.attributes['readOnly'] is True
     assert column.attributes['x_legacy__sendback'] is True
     assert column.attributes['x_generation']['algorithm'] == 'legacy22'

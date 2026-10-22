@@ -51,7 +51,6 @@ def source():
     customer.column('state', size=':5').relation(
         'invc.state.code', foreign_key=True, relation_name='clients',
         onDelete='raise', onUpdate_sql='cascade')
-    customer.column('bank_account').encryption(mode='R')
 
     product_type = invc.table('product_type', pkey='id', name_long='Tipo prodotto',
                              name_short='Tipo', name_plural='Tipi prodotto',

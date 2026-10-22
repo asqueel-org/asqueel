@@ -1,33 +1,10 @@
 """Column rules and non-DDL declarations in the model grammar."""
 from __future__ import annotations
 
-from typing import Literal
 from genro_builders.builder import element
 
 
 class SemanticElements:
-    @element(parent_tags='column', sub_tags='', node_label='validation')
-    def validation(self, **rules):
-        """Preserve column validation declarations without interpreting rules.
-
-        Embedded validate_* attributes produce the same dictionary, stripping
-        only the prefix. Names and values are retained without vocabulary or
-        rule-specific type checks. Translation never executes these rules.
-        """
-        ...
-
-    @element(parent_tags='column', sub_tags='', node_label='encryption')
-    def encryption(self, mode: Literal['X', 'R', 'Q']):
-        ...
-
-    @element(parent_tags='column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn', sub_tags='')
-    def weak_relation(self, to: str, name: str | None = None, relation_name: str | None = None,
-                      indexed: bool = True, one_one: bool = False, onDelete: str | None = None,
-                      onUpdate: str | None = None, onDuplicate: str | bool | None = None,
-                      one_name: str | None = None, many_name: str | None = None,
-                      one_group: str | None = None, many_group: str | None = None):
-        ...
-
     @element(parent_tags='virtual_columns', sub_tags='relation')
     def bagItemColumn(self, name: str, bagcolumn: str, itempath: str,
                       dtype: str | None = None, group: str | None = None,

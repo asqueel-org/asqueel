@@ -78,8 +78,8 @@ def test_flat_resolvers_validation_options_and_source_ownership(monkeypatch):
         return '3:40'
     monkeypatch.setenv('TREE_COLOR', 'blue')
     declared = customer.column('label', default=EnvResolver('TREE_COLOR'),
-                               validate_len=BagCbResolver(length, cache_time=-1))
-    declared.validation(notnull=True)
+                               validate_len=BagCbResolver(length, cache_time=-1),
+                               validate_notnull=True)
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Connection evaluated')))
     customer.options().sys_fields(id=False, syscode=True)
     customer.options().audit(mode='lazy')

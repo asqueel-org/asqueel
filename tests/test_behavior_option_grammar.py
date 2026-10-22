@@ -214,18 +214,6 @@ def test_existing_resolvers_survive_build_clone_and_composition_without_running(
             'invalid', parameters={'value': forbidden})
 
 
-def test_encryption_rejects_provider_in_calls_and_imported_source():
-    b, _, table = source()
-    column = table.column('secret')
-    node = column.encryption(mode='R')
-    b.validate_source()
-    with pytest.raises(ValueError, match='does not accept'):
-        column.encryption(mode='R', provider='app.crypto')
-    node.attr['provider'] = 'app.crypto'
-    with pytest.raises(ValueError, match='provider removed'):
-        b.validate_source()
-
-
 def test_review_example_uses_only_real_inventory_tables():
     import json
     b = complete_example()

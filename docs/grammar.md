@@ -2,7 +2,7 @@
 
 Generated from the live grammar by `asqueel.grammar_doc.generate_grammar_md()`. Do not edit by hand: regenerate with `python -m asqueel.grammar_doc`.
 
-Element signatures are **closed**: an attribute the signature does not declare raises. An element accepts only the attribute families its declaration names (`validate_*`, `var_*`, `select_*`, `col_*`), and `validation(**rules)` keeps its rules as data.
+Element signatures are **closed**: an attribute the signature does not declare raises. An element accepts only the attribute families its declaration names (`validate_*`, `var_*`, `select_*`, `col_*`).
 
 ## Hierarchy
 
@@ -208,8 +208,8 @@ The explicit collection of table indexes.
 
 A physical column — the only element that projects as a column.
 
-- Contains: relation, validation[:1], encryption[:1], dynamic_fields[:1]
-- Child addressing: ordered internal labels for relation, validation, encryption, dynamic_fields
+- Contains: relation, dynamic_fields[:1]
+- Child addressing: ordered internal labels for relation, dynamic_fields
 - Projection flags: `projects_column`, `projects_relation`
 - Extra keys: `validate_*`, `sql_pg_*`, `sql_sqlite_*`
 
@@ -235,7 +235,7 @@ A physical column — the only element that projects as a column.
 | default | `object` | `None` | physical |  |
 | default_from | `str \| None` | `None` | physical |  |
 | sql_value | `str \| None` | `None` | physical |  |
-| read_only | `bool` | `False` | physical |  |
+| readOnly | `bool` | `False` | physical |  |
 | unmodifiable | `bool` | `False` | physical |  |
 | onInserting | `object` | `None` | physical |  |
 | onUpdating | `object` | `None` | physical |  |
@@ -593,59 +593,6 @@ It adds no system-record behavior, virtual columns or generated values.
 | group_name | `str` | `'System'` | physical |  |
 | enabled | `bool` | `True` | physical |  |
 | syscode | `bool` | `False` | physical |  |
-
-### `validation`
-
-Preserve column validation declarations without interpreting rules.
-
-Embedded validate_* attributes produce the same dictionary, stripping
-only the prefix. Names and values are retained without vocabulary or
-rule-specific type checks. Translation never executes these rules.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: preserved as validation data without rule-specific checks
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-
-### `encryption`
-
-
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| mode | `Literal['X', 'R', 'Q']` | *required* | physical |  |
-
-### `weak_relation`
-
-
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| to | `str` | *required* | physical |  |
-| name | `str \| None` | `None` | physical |  |
-| relation_name | `str \| None` | `None` | physical |  |
-| indexed | `bool` | `True` | physical |  |
-| one_one | `bool` | `False` | physical |  |
-| onDelete | `str \| None` | `None` | physical |  |
-| onUpdate | `str \| None` | `None` | physical |  |
-| onDuplicate | `str \| bool \| None` | `None` | physical |  |
-| one_name | `str \| None` | `None` | physical |  |
-| many_name | `str \| None` | `None` | physical |  |
-| one_group | `str \| None` | `None` | physical |  |
-| many_group | `str \| None` | `None` | physical |  |
 
 ### `bagItemColumn`
 

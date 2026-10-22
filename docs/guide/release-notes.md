@@ -16,6 +16,7 @@
   parameters and collection expansion with regression and live database tests.
 - Correct the alias handle, zero limit, missing environment value and SQL/application
   cascade documentation (#27, #37).
+- `read_only` is spelled `readOnly`, as in GenroPy.
 
 ## 0.6.1
 

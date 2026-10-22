@@ -22,9 +22,9 @@ def test_options_are_consumed_once_before_columns(position, monkeypatch):
     table.column('name')
     if position == 'between':
         options()
-    # A declaration of an option-generated field contributes attributes and
-    # children, but is consumed with the option rather than emitted twice.
-    table.column('id', size='22', name_long='Identifier').validation(notnull=True)
+    # A declaration of an option-generated field contributes attributes,
+    # but is consumed with the option rather than emitted twice.
+    table.column('id', size='22', name_long='Identifier', validate_notnull=True)
     table.column('description')
     if position == 'after':
         options()

@@ -106,8 +106,6 @@ class SqlModelValidator:
         for path, node in self._catalog.nodes:
             owner = (node.parent_bag._builder if node._get_meta("subbuilder")
                      else node._resolve_builder())
-            if node.node_tag == 'validation':
-                continue
             declared = owner._get_schema_info(node.node_tag).get("declared_names") or set()
             meta = node.attr.get(_META_KEY) or {}
             accepted = (set(declared) | set(meta.get('type_defaults', ()))
@@ -304,10 +302,11 @@ class SqlModelValidator:
             value = node.get_attr(action + "_sql")
             if value is not None and value.lower() not in SQL_ACTIONS:
                 self._error(path, f"invalid {action}_sql {value!r}")
-        if not node.get_attr("foreign_key") and not node.get_attr("x_weak"):
+        if not node.get_attr("foreign_key"):
+            # deferred stays: GenroPy derives it from onDelete='setnull' also without FK.
             physical = [
                 name for name in (
-                    "onDelete_sql", "onUpdate_sql", "deferred", "deferrable",
+                    "onDelete_sql", "onUpdate_sql", "deferrable",
                     "initially_deferred",
                 )
                 if node.get_attr(name)

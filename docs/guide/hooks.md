@@ -152,7 +152,7 @@ until commit/rollback. Use short transactions; callers own deadlock retries.
 Concurrency tests use PostgreSQL's default READ COMMITTED isolation.
 
 A column's `default` fills omitted values, leaving explicit None unchanged.
-`read_only` rejects caller assignments on insert (except a `sys_fields` ID)
+`readOnly` rejects caller assignments on insert (except a `sys_fields` ID)
 and changes on update. `unmodifiable` allows insert and rejects later changes.
 Database-generated columns are omitted from ordinary UPDATE assignments;
 changing their value or explicitly assigning them through SQL APIs raises.

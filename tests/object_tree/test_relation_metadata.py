@@ -52,7 +52,7 @@ def test_virtual_relation_publishes_its_own_effective_dtype(attributes, dtype, e
     item.column('target_id', dtype=dtype)
     item.column('last_physical', dtype='X', name_long='Unrelated field')
     item.formulaColumn('computed_ref', sql_formula='$target_id', name_long='Computed reference',
-                       **attributes).weak_relation('app.target.id')
+                       **attributes).relation('app.target.id', foreign_key=False)
     table = source.render(mode='objects_tree').table('app.item')
     node = table.relations.get_node('@computed_ref')
 

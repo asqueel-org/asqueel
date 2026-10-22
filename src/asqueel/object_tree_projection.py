@@ -113,7 +113,7 @@ def project_tree(model) -> SqlBuilder:
                     raise UnsupportedFeatureError(f'{local_name}.{local_column}: physical FK on virtual column')
                 column = table.column(local_column)
                 declaration = next(child for child in column.values()
-                                   if child.tag in ('relation', 'weak_relation'))
+                                   if child.tag == 'relation')
                 target = remote.composites.get(remote_column) or remote.columns.get(remote_column)
                 if target is None:
                     raise UnsupportedFeatureError(f'{remote_name}.{remote_column}: physical FK to virtual column')

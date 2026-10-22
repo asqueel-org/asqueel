@@ -53,7 +53,7 @@ class WriteMixin:
                 raise tblobj.exception('standard', msg='Updating a hierarchical record requires old_record')
             active_partition = self.write_compiler._partition(tblobj.model, self.environment.snapshot(), ignore_partition)
             needs_snapshot = active_partition is not None or tblobj._behavior('hierarchical') is not None or any(
-                column.attributes.get('read_only') or column.attributes.get('unmodifiable')
+                column.attributes.get('readOnly') or column.attributes.get('unmodifiable')
                 or sql_attribute_declared(column.attributes, 'generatedExpression')
                 for column in tblobj.model.columns.values())
             if needs_snapshot:
