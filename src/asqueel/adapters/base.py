@@ -6,19 +6,15 @@ Backend modules override what differs.
 """
 from __future__ import annotations
 
-import re
-
 from ..contracts import CompiledQuery, UnsupportedFeatureError
 from ..environment import environment_arguments
+from .._sql_parameters import parameter_matches, substitute_parameters
 
 
-SQL_PARAMS = re.compile(r'(?<!:):(?!:)(\S\w*)(\W|$)')
-ENV_PARAMS = re.compile(r':env_(\S\w*)(\W|$)')
-
-
-def prepare_arguments(sql, sqlargs, snapshot):
+def prepare_arguments(sql, sqlargs, snapshot, dialect='postgres'):
     """The value preparation from legacy execute, without connection/store lifecycle."""
-    keys = {key for key, _ in ENV_PARAMS.findall(sql)}
+    keys = {m['parameter'][4:] for m in parameter_matches(sql, dialect)
+            if m['parameter'].startswith('env_')}
     params = environment_arguments(keys, snapshot)
     if snapshot.get('storename'):
         params['env_storename'] = snapshot['storename']
@@ -144,10 +140,10 @@ class SqlDbAdapter:
     # ------------------------------------------------------------------
 
     def prepare_sql(self, sql, sqlargs, snapshot) -> CompiledQuery:
-        params, keys = prepare_arguments(sql, sqlargs, snapshot)
+        params, keys = prepare_arguments(sql, sqlargs, snapshot, self.dialect)
         # execute shields escaped colons before adapter.prepareSqlText, then restores.
         sql = sql.replace(r'\:', chr(1))
-        used = {name for name, _ in SQL_PARAMS.findall(sql)}
+        used = {m['parameter'] for m in parameter_matches(sql, self.dialect)}
         # GenroPy 5ddb6813dc defaults missing bindings to None. Materialize them
         # before CompiledQuery freezes the mapping and execution copies it to a dict.
         for name in sorted(used):
@@ -168,7 +164,8 @@ class SqlDbAdapter:
             placeholders = '(%s) ' % ','.join(':%s%i' % (key, i) for i, _ in enumerate(values))
             sqlargs.pop(key)
             sqlargs.update(('%s%i' % (key, i), value) for i, value in enumerate(values))
-            sql = re.sub(r':%s(\W|$)' % key, placeholders + r'\1', sql)
+            sql = substitute_parameters(
+                sql, lambda m: placeholders if m['parameter'] == key else m[0], self.dialect)
         return sql
 
     # ------------------------------------------------------------------

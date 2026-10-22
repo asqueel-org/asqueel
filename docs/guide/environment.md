@@ -99,8 +99,7 @@ with db.temp_env(minimum_total=100):
 ```
 
 A normal `:minimum_total` parameter does not fall back to the environment; the
-`env_` prefix activates that convention. Missing values raise `ValueError` during
-compilation. Context values are bound data, never SQL fragments. The same lookup
+`env_` prefix activates that convention. Missing values are bound as `None` (SQL NULL). Context values are bound data, never SQL fragments. The same lookup
 works in projections, formulas, ordering and write predicates.
 
 Overriding a placeholder does not change the environment or bypass a separate

@@ -157,9 +157,9 @@ For multiple relations, both legacy `@customer_id.@country_id.name` and
 accepted as a native convenience. Cycles and missing targets raise errors.
 
 With a rendered application, `db.table('sales.invoice').column('customer_name')`
-is a stable live handle. Its `originalColumn` links to the target column and its
-`relation_path` preserves the declaration. Configuration reads fall back to the
-target when no local value is declared.
+returns the live hierarchical column object. Its `attributes['relation_path']`
+preserves the declaration. Effective dtype and metadata are resolved from the
+target when no local value is declared; there is no `originalColumn` handle.
 Inherited `notnull` metadata describes the target column; a LEFT JOIN can still
 produce NULL when the source record has no related row.
 

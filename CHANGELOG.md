@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.4 — Consolidation candidate
+
+- Preserve parameter-like text inside SQL strings, quoted identifiers and comments,
+  including scoped formula bindings and environment parameters (#35).
+- Cover PostgreSQL dollar/E strings, nested comments, SQLite quoting, adjacent
+  parameters and collection expansion with regression and live database tests.
+- Correct the alias handle, zero limit, missing environment value and SQL/application
+  cascade documentation (#27, #37).
+- Keep the published model and JSON contracts; the unified model is reserved for 0.7.
+
 ## 0.6.3 — 2026-10-21
 
 - Remove upper version bounds on internal tools (Builders, Bag and Migration).

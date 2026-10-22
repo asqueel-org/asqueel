@@ -124,7 +124,7 @@ write to the database. Selection and Python-column evaluation remain separate.
 | `where` | Trusted SQL predicate using model references and value parameters. |
 | keyword bindings | Bound values as keyword arguments (`minimum=100`), or the `sqlparams={...}` mapping. |
 | `order_by` | SQL ordering expression using model references. Tables have no default ordering: without `order_by` the row order is not guaranteed. |
-| `limit`, `offset` | Nonnegative integers; `limit=0` returns no rows. |
+| `limit`, `offset` | Nonnegative integers; `limit=0` omits LIMIT and returns all matching rows. |
 | `for_update` | `False`; `True`, `'NOWAIT'` or `'SKIP LOCKED'` lock base-table rows until transaction completion. |
 | `exclude_draft` | `True`; applies a declared draft policy. |
 | `exclude_logical_deleted` | `True`; also accepts `False` or `'mark'`. |

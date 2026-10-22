@@ -16,6 +16,7 @@ from .object_tree import DbModel
 from .common import split_names
 from .model import column_ui, _formula_definition, _formula_parameters, _subquery_definition, _parse_row_policies
 from ._sql_bindings import SqlBindings
+from ._sql_parameters import parameter_matches
 from ._many_aggregates import aggregate_columns
 from .sql_compiled_query import SqlCompiledQuery
 
@@ -106,7 +107,7 @@ class _TreeContext:
                  alias_prefix='t', bindings=None):
         self.model, self.table = model, table
         self.adapter, self.snapshot = adapter, snapshot
-        self.bindings = bindings if bindings is not None else SqlBindings(params)
+        self.bindings = bindings if bindings is not None else SqlBindings(params, dialect=adapter.dialect)
         self.params = self.bindings.params
         self.input_origins = self.bindings.inputs
         self.consumed_inputs = self.bindings.consumed
@@ -789,8 +790,11 @@ class _TreeContext:
         self.cpl.limit, self.cpl.offset = limit, offset
         for clause in (self.cpl.columns, self.cpl.where, self.cpl.order_by,
                        self.cpl.group_by, self.cpl.having, *self.cpl.joins):
-            for name, _ in re.findall(r':env_(\S\w*)(\W|$)', clause):
-                parameter = 'env_' + name
+            for match in parameter_matches(clause, self.adapter.dialect):
+                parameter = match['parameter']
+                if not parameter.startswith('env_'):
+                    continue
+                name = parameter[4:]
                 if parameter not in self.params:
                     self.environment_keys.add(name)
                     self.params[parameter] = self.snapshot.get(name)

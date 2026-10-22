@@ -82,3 +82,12 @@ provided.
 
 See [transactions and database access](transactions.md) for errors, callbacks,
 cleanup and connection selection.
+
+### Parameter recognition in 0.6.4
+
+A colon inside a SQL string, quoted identifier or comment is literal text:
+`'doc:xyz' || :value` binds only `value`. The same rule applies inside formula
+scopes and to `:env_name`. PostgreSQL dollar-quoted and `E` strings and nested
+block comments are recognized; SQLite bracket/backtick identifiers are recognized.
+Ordinary PostgreSQL strings assume `standard_conforming_strings=on`; use `E` for
+backslash escapes. The historical `\:` escape remains supported.

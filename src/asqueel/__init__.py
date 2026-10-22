@@ -40,7 +40,7 @@ from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.6.3"
+__version__ = "0.6.4"
 
 __all__ = [
     "Schema", "Package", "Option", "Declaration", "model_to_json", "model_from_json",

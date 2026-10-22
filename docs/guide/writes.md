@@ -251,3 +251,12 @@ reread the persisted record with a lock before update validation and hooks.
 Hierarchical updates still require `old_record`. Standalone defaults, counters,
 relative indices and hierarchy maintenance run only through the ordinary cycle;
 see [standalone behaviors](hooks.md#standalone-table-behaviors).
+
+### Application and SQL update actions
+
+`onUpdate_sql` defaults to `cascade`. The database applies that action during
+UPDATE, before the application calls `updateRelated`: matching child rows may
+already have moved, so their application hooks need not run. When application
+propagation and child hooks are required, explicitly use `onUpdate='cascade'`,
+`onUpdate_sql='no action'` and a deferred foreign key on a backend that supports
+it. Composite application cascades remain limited (issue #49).
