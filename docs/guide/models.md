@@ -205,9 +205,15 @@ model. The operational `db.table('sales.invoice').model` is that same object.
 and `relations` is the legacy relation Bag. Descriptive attributes and option
 nodes remain in this hierarchy. `pkey` is the logical key name.
 
-The catalog DTO codec is separate: `model_to_json`/`model_from_json` serialize
-catalog snapshots, not the live `DbModel`. Use the source for a configuration
-recipe, and `SqlMigrationRenderer(to_physical_builder(model))` for migration JSON.
+`model_to_json(model)` and `model_from_json(document)` save and restore the
+hierarchy as version 2 `asqueel-model` JSON. The restored model is unbound and
+can be passed to `SqlDatabase(model=model, config=config)`, a compiler or physical
+projection. Connections are not included. Attributes must contain JSON values;
+Python classes, callbacks and other executable/runtime objects raise `TypeError`.
+Keep those in the source recipe. Loading never imports classes or executes code.
+The old descriptor JSON format is rejected explicitly.
+
+Use `SqlMigrationRenderer(to_physical_builder(model))` for migration JSON.
 
 `SqlPythonEmitter` emits an editable Python module from a built recipe:
 

@@ -210,10 +210,22 @@ class WriteCompiler:
                 groups.append((compiled, [compiled.params]))
         return groups
 
+    @staticmethod
+    def _binding(name, data):
+        # Catalog names may contain spaces/punctuation; SQL identifiers and
+        # binding identifiers have different grammars. Keep ordinary names stable.
+        if re.fullmatch(r'[A-Za-z_]\w*', name):
+            return ':' + name
+        parameter = '__write_' + str(len(data))
+        while parameter in data:
+            parameter += '_'
+        data[parameter] = data[name]
+        return ':' + parameter
+
     def _insert_sql(self, table, data):
         quote = self.adapter.adaptSqlName
         names, values = [], []
-        for key, value in data.items():
+        for key, value in list(data.items()):
             column = table.columns.get(key)
             if column is None:
                 continue
@@ -221,7 +233,7 @@ class WriteCompiler:
             if value is not None or sql_value is not None:
                 names.append(quote(column.sqlname))
                 # A newline ends a line comment inside sql_value before the next token.
-                values.append(f'{sql_value}\n' if sql_value else f':{key}')
+                values.append(f'{sql_value}\n' if sql_value else self._binding(key, data))
         target = self.sql_fullname(table)
         if names:
             return f'INSERT INTO {target}({",".join(names)}) VALUES ({",".join(values)})'
@@ -242,7 +254,7 @@ class WriteCompiler:
             if column is None:
                 continue
             sql_value = column.attributes.get('sql_value')
-            assignments.append(f'{quote(column.sqlname)}=' + (f'{sql_value}\n' if sql_value else f':{key}'))
+            assignments.append(f'{quote(column.sqlname)}=' + (f'{sql_value}\n' if sql_value else self._binding(key, data)))
         if not assignments:
             raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
         keys = self.pkeys(table)
@@ -282,7 +294,7 @@ class WriteCompiler:
             if column is None:
                 continue
             sql_value = column.attributes.get('sql_value')
-            assignments.append(f'{quote(column.sqlname)}=' + (f'{sql_value}\n' if sql_value else f':{key}'))
+            assignments.append(f'{quote(column.sqlname)}=' + (f'{sql_value}\n' if sql_value else self._binding(key, data)))
         if not assignments:
             raise ValueError(f'{table.fullname}: UPDATE requires at least one column')
         where = self._selection_where(table, plan, data)
@@ -358,7 +370,8 @@ class WriteCompiler:
             if attributes.get('sql_value') is not None or sql_attribute_declared(attributes, 'generatedExpression'):
                 names.append(name)
             elif missing and (sql_attribute_declared(attributes, 'default')
-                              or attributes.get('dtype') in _GENERATED_KEY_DTYPES):
+                              or attributes.get('dtype') in _GENERATED_KEY_DTYPES
+                              or attributes.get('identity_kind')):
                 names.append(name)
         return names
 

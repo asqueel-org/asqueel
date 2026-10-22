@@ -1,17 +1,18 @@
 """Read-only PostgreSQL catalog import for the native profile."""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 import re
 from typing import Any
 
-from .contracts import Column, Relation, ResolvedModel, Table
+from .object_tree import DbModel
+from .catalog_model import catalog_model
 from .model import column_ui
 
 
 @dataclass(frozen=True)
 class ImportResult:
-    model: ResolvedModel
+    model: DbModel
     warnings: tuple[str, ...]
 
 
@@ -65,7 +66,7 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
             continue
         if obj['row_security']:
             warnings.append(f'{key}: row security is enforced by PostgreSQL, not modeled')
-        tables[key] = Table(obj['table_name'], obj['schema_name'], attributes={
+        tables[key] = dict(name=obj['table_name'], schema=obj['schema_name'], columns={}, pkey=(), attributes={
             'provenance': {'kind': 'postgres', 'schema': obj['schema_name'], 'table': obj['table_name']},
             'constraints': (), 'indexes': (),
         }, identity=key)
@@ -110,9 +111,9 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
             attrs['size'] = size
         if dtype == row['dtype'] and dtype != 'jsonb':
             warnings.append(f'{path}: type {dtype} has no asqueel code; raw type preserved')
-        column = Column(name, dtype, ui=column_ui(path, path, ui),
+        column = dict(name=name, dtype=dtype, ui=column_ui(path, path, ui),
                         identity=path, attributes=attrs)
-        tables[key] = replace(tables[key], columns={**tables[key].columns, name: column})
+        tables[key]['columns'][name] = column
     constraints = _query(connection, '''
         SELECT n.nspname AS schema_name,c.relname AS table_name,k.conname AS name,
                k.contype AS kind, k.condeferrable AS deferrable,
@@ -140,10 +141,9 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
         if key not in tables:
             continue
         table = tables[key]
-        attrs = dict(table.attributes)
-        attrs['constraints'] = (*attrs['constraints'], row)
-        tables[key] = replace(table, attributes=attrs,
-                              pkey=tuple(row['columns']) if row['kind'] == 'p' else table.pkey)
+        table['attributes']['constraints'] += (row,)
+        if row['kind'] == 'p':
+            table['pkey'] = tuple(row['columns'])
     for row in constraints:
         key = f"{row['schema_name']}.{row['table_name']}"
         if key not in tables or row['kind'] != 'f':
@@ -152,10 +152,6 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
         if target not in tables:
             warnings.append(f'{key}.{row["name"]}: foreign key target {target} is outside imported tables')
             continue
-        # Constraint names preserve multiple FKs between the same two tables.
-        name = row['name']
-        relation = Relation(name, target, tuple(row['columns']), tuple(row['target_columns']))
-        tables[key] = replace(tables[key], relations={**tables[key].relations, name: relation})
     indexes = _query(connection, '''
         SELECT n.nspname AS schema_name,t.relname AS table_name,i.relname AS name,
                x.indisunique AS "unique",x.indisprimary AS "primary",
@@ -186,9 +182,7 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
     for row in indexes:
         key = f"{row['schema_name']}.{row['table_name']}"
         if key in tables:
-            attrs = dict(tables[key].attributes)
-            attrs['indexes'] = (*attrs['indexes'], row)
-            tables[key] = replace(tables[key], attributes=attrs)
+            tables[key]['attributes']['indexes'] += (row,)
     unmanaged = _query(connection, '''
         SELECT n.nspname AS schema_name,t.tgname AS name,'trigger' AS kind
         FROM pg_catalog.pg_trigger t
@@ -204,7 +198,7 @@ def _inspect_postgres(connection, schemas, *, ui=None) -> ImportResult:
     """, schemas)
     warnings.extend(f'{r["schema_name"]}.{r["name"]}: unmanaged {r["kind"]}'
                     for r in [*unmanaged, *routines])
-    return ImportResult(ResolvedModel(tables, name=connection.info.dbname, warnings=tuple(warnings)), tuple(warnings))
+    return ImportResult(catalog_model(tables, name=connection.info.dbname, warnings=warnings), tuple(warnings))
 
 
 def normalize_postgres_type(raw_type: str) -> tuple[str, str | None]:

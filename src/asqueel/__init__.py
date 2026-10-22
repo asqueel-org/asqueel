@@ -23,14 +23,15 @@ from .renderer import SqlRenderer
 from .compiler import PostgresCompiler, QueryCompiler
 from .catalog_provider import CatalogProvider, PostgresCatalogProvider
 from .contracts import (
-    Column, CompiledQuery, Relation, ResolvedModel, ResultColumn,
-    Table, UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
+    CompiledQuery, ResultColumn,
+    UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
 )
 from .environment import SqlEnvironment
 from .importers import ImportResult, inspect_postgres
 from .model_sections import Schema, Package, Option, Declaration
 from .model_codec import model_to_json, model_from_json
 from .model import resolve_model
+from .object_tree import DbModel
 from .projection import to_physical_builder
 from .runtime import (
     Database, PostgresDatabase, SqlCursor,
@@ -40,7 +41,7 @@ from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.6.4"
+__version__ = "0.7.0"
 
 __all__ = [
     "Schema", "Package", "Option", "Declaration", "model_to_json", "model_from_json",
@@ -48,10 +49,10 @@ __all__ = [
     "SqlTable", "SqlQuery",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
-    "Column", "CompiledQuery", "Relation", "ResolvedModel",
-    "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",
+    "CompiledQuery",
+    "ResultColumn", "UnsupportedFeatureError", "PostgresCompiler",
     "PostgresDatabase", "SqlCursor", "session",
-    "TransactionStateError", "resolve_model", "ImportResult", "inspect_postgres",
+    "TransactionStateError", "resolve_model", "DbModel", "ImportResult", "inspect_postgres",
     "to_physical_builder",
     "QueryCompiler", "Database",
     "CatalogProvider", "PostgresCatalogProvider",

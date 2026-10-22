@@ -85,7 +85,8 @@ opens a second connection or changes a row as part of lock acquisition.
 hierarchical model without binding an operational database. They use the same
 walk/finalize construction as the default operational render.
 
-`ResolvedModel` remains only as the catalog import/serialization snapshot used
-by `inspect_postgres`, `model_to_json` and `model_from_json`. It is not accepted
-by the live database or SELECT compiler. Migration projection supports both the
-live hierarchy and catalog snapshots without constructing a parallel live model.
+`inspect_postgres`, `model_from_json` and authored recipes all return `DbModel`.
+The SELECT and write compilers and physical migration projection consume that
+same hierarchy. There is no descriptor graph or alternative projection path.
+Operational rendering wraps the model in `SqlDatabase`; model-only rendering
+leaves it unbound. These are two outputs of the same model construction.

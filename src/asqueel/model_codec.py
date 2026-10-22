@@ -1,63 +1,82 @@
-"""Versioned JSON data for the semantic model; never connection configuration."""
+"""Portable hierarchical model data, without connections or executable objects."""
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import fields, is_dataclass
 import json
 
-from .contracts import Column, Relation, Table, ResolvedModel, RowPolicies
-from .model_sections import Schema, Package, Option, Declaration
+from genro_bag import Bag, BagNode
 
-_TYPES = {cls.__name__: cls for cls in (
-    Column, Relation, Table, ResolvedModel, RowPolicies,
-    Schema, Package, Option, Declaration)}
+from .object_tree import DbModel, DbColumnObj, _Fragment
 
 
-def _encode(value):
-    if is_dataclass(value) and type(value).__name__ in _TYPES:
-        return {'kind': type(value).__name__, 'fields': {
-            field.name: _encode(getattr(value, field.name)) for field in fields(value)}}
+def _value(value):
     if isinstance(value, Mapping):
         if any(not isinstance(key, str) for key in value):
-            raise ValueError('Model mappings require string keys')
-        return {'mapping': {key: _encode(item) for key, item in value.items()}}
-    if isinstance(value, list):
-        return {'list': [_encode(item) for item in value]}
-    if isinstance(value, tuple):
-        return {'sequence': [_encode(item) for item in value]}
+            raise TypeError('Model mappings require string keys')
+        return {key: _value(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_value(item) for item in value]
     if value is None or isinstance(value, (str, bool, int, float)):
         return value
-    raise TypeError(f'Model export requires symbolic references, not {type(value).__name__}')
+    raise TypeError(f'Model export requires symbolic data, not {type(value).__name__}')
 
 
-def _decode(value):
-    if not isinstance(value, dict):
-        if value is None or isinstance(value, (str, bool, int, float)):
-            return value
-        raise ValueError('Invalid model value')
-    if set(value) == {'mapping'} and isinstance(value['mapping'], dict):
-        return {key: _decode(item) for key, item in value['mapping'].items()}
-    if set(value) == {'list'} and isinstance(value['list'], list):
-        return [_decode(item) for item in value['list']]
-    if set(value) == {'sequence'} and isinstance(value['sequence'], list):
-        return tuple(_decode(item) for item in value['sequence'])
-    if set(value) == {'kind', 'fields'} and value['kind'] in _TYPES:
-        cls = _TYPES[value['kind']]
-        return cls(**{key: _decode(item) for key, item in value['fields'].items()})
-    raise ValueError('Unknown semantic model record')
+def _node(node):
+    defaults = ((node.structnode.attr.get('_meta') or {}).get('signature_defaults', ())
+                if node.structnode is not None else ())
+    return dict(name=node.name, tag=node.tag, attributes=_value(node.attributes),
+                children=[_node(child) for child in node.values()],
+                signatureDefaults=list(defaults), generated=node.structnode is None,
+                physicalColumn=type(node) is DbColumnObj)
 
 
-def model_to_json(model: ResolvedModel, *, indent=2) -> str:
-    return json.dumps({'format': 'asqueel.model', 'version': 1, 'model': _encode(model)},
-                      ensure_ascii=False, allow_nan=False, indent=indent) + '\n'
+def _relations(model):
+    return [dict(path=f'{package.label}.{table.label}.{relation.label}',
+                 attributes=_value(dict(relation.attr)))
+            for package in model.relations for table in package.value for relation in table.value]
 
 
-def model_from_json(document: str) -> ResolvedModel:
-    envelope = json.loads(document)
-    if (set(envelope) != {'format', 'version', 'model'} or
-            envelope['format'] != 'asqueel.model' or envelope['version'] != 1):
-        raise ValueError('Unsupported semantic model format/version')
-    model = _decode(envelope['model'])
-    if not isinstance(model, ResolvedModel):
-        raise ValueError('Expected a resolved database model')
+def model_to_json(model: DbModel, *, indent=2) -> str:
+    if not isinstance(model, DbModel):
+        raise TypeError('model_to_json requires DbModel')
+    document = dict(format='asqueel-model', version=2,
+                    database=_node(model._database), namespaces=_node(model.obj),
+                    relations=_relations(model))
+    # Configuration (including credentials) never enters this envelope.
+    for key in ('conninfo', 'connect_kwargs'):
+        document['database']['attributes'].pop(key, None)
+    return json.dumps(document, ensure_ascii=False, allow_nan=False, indent=indent) + '\n'
+
+
+def _fragment(data):
+    required = {'name', 'tag', 'attributes', 'children', 'signatureDefaults', 'generated', 'physicalColumn'}
+    if (not isinstance(data, dict) or set(data) != required
+            or not isinstance(data['name'], str) or not isinstance(data['tag'], str)
+            or not isinstance(data['attributes'], dict) or not isinstance(data['children'], list)
+            or not isinstance(data['signatureDefaults'], list)
+            or any(not isinstance(x, str) for x in data['signatureDefaults'])
+            or type(data['generated']) is not bool or type(data['physicalColumn']) is not bool):
+        raise ValueError('Invalid hierarchical model node')
+    attributes = data['attributes']
+    if any(key in attributes for key in ('x_table_class', 'conninfo', 'connect_kwargs')):
+        raise ValueError('Runtime classes and connection configuration are not model data')
+    node = None if data['generated'] else BagNode(None, data['name'], attr={
+        **attributes, '_meta': {'signature_defaults': data['signatureDefaults']}}, node_tag=data['tag'])
+    return _Fragment(data['name'], data['tag'], attributes,
+                     tuple(_fragment(child) for child in data['children']), node, data['physicalColumn'])
+
+
+def model_from_json(document: str) -> DbModel:
+    data = json.loads(document, parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f'Invalid number: {value}')))
+    if (not isinstance(data, dict) or set(data) != {'format', 'version', 'database', 'namespaces', 'relations'}
+            or data['format'] != 'asqueel-model' or type(data['version']) is not int or data['version'] != 2):
+        raise ValueError('Unsupported hierarchical model format/version')
+    database, namespaces = _fragment(data['database']), _fragment(data['namespaces'])
+    if database.tag != 'db' or namespaces.tag not in ('schemas', 'packages'):
+        raise ValueError('Expected a database and its namespaces')
+    root = _Fragment(database.name, database.tag, database.attributes,
+                     (*database.children, namespaces), database.node)
+    model = DbModel(root, source=Bag())
+    if _relations(model) != data['relations']:
+        raise ValueError('Relation registry does not match the model declarations')
     return model

@@ -29,15 +29,19 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
                                    ).format(sql.Identifier(schema), sql.Identifier(schema)))
         overlay = {f'{schema}.parent.label': {'label': 'Caption'}}
         result = inspect_postgres(connection, [schema], ui=overlay)
-        parent = result.model.table('parent')
-        assert parent.pkey == ('first', 'second')
-        assert parent.columns['label'].attributes['default'] == "'hello'::text"
-        assert parent.columns['label'].ui['label'] == 'Caption'
+        parent = result.model.table(f'{schema}.parent')
+        assert result.model.physical_columns(parent, parent.pkey) == ('first', 'second')
+        assert parent.columns['label'].attributes['catalog_default'] == "'hello'::text"
+        assert parent.columns['label'].attributes['ui']['label'] == 'Caption'
         assert any('DESC' in i['definition'] and i['predicate'] for i in parent.attributes['indexes'])
-        relation = result.model.table('child').relations['pair_fk']
-        assert relation.columns == relation.target_columns == ('first', 'second')
+        relation = result.model.table(f'{schema}.child').relations.get_node('@pair_fk').attr['joiner']
+        assert relation['many_relation'].startswith(f'{schema}.child.')
+        assert relation['one_relation'].startswith(f'{schema}.parent.')
         assert any('labels' in w and 'unmanaged' in w for w in result.warnings)
-        assert inspect_postgres(connection, [schema], ui=overlay).model == result.model
+        from asqueel import model_to_json, model_from_json
+        document = model_to_json(result.model)
+        assert model_to_json(inspect_postgres(connection, [schema], ui=overlay).model) == document
+        assert model_to_json(model_from_json(document)) == document
         from asqueel.projection import to_physical_builder
         from asqueel import SqlMigrationRenderer
         from asqueel.contracts import UnsupportedFeatureError

@@ -1,7 +1,8 @@
 # Build a model from PostgreSQL
 
 `inspect_postgres(connection, schemas, *, ui=None)` reads selected PostgreSQL
-schemas and returns `ImportResult(model, warnings)`. It does not create, alter
+schemas and returns `ImportResult(model, warnings)` with the same hierarchical
+`DbModel` used by authored recipes. It does not create, alter
 or delete database objects and does not commit, roll back or close the supplied
 connection. The connection must be a synchronous psycopg connection.
 The importer requires PostgreSQL 15 or newer: its catalog queries read
@@ -70,9 +71,10 @@ The catalog inspection records:
 | Catalog information | Location in the model |
 |---|---|
 | Ordinary tables and columns | `model.tables`, `table.columns` |
-| Primary-key columns, including composite keys | `table.pkey` |
-| Foreign keys whose targets were imported | `table.relations` |
-| Defaults, nullability, identity/generated information and column comments | `column.attributes` |
+| Primary-key columns, including composite keys | `model.physical_columns(table, table.pkey)` |
+| Foreign keys whose targets were imported | `table.relations` (relation Bag, names prefixed by `@`) |
+| Nullability, identity/generated information and column comments | `column.attributes` |
+| Database default expression | `column.attributes["catalog_default"]`, translated to `sql_default` or `sql_generatedExpression` |
 | Original PostgreSQL type | `column.attributes['raw_type']` |
 | Constraint details and definitions | `table.attributes['constraints']` |
 | Index definitions, ordering, predicates and options used by validation | `table.attributes['indexes']` |
@@ -139,3 +141,7 @@ def inspect_catalog(connection):
 is PostgreSQL-specific; it is separate from the [data dialect](adapters.md)
 that renders SELECT and DML. Importing legacy application packages is a separate
 path: it must recover declarations and application contributions, not just catalogs.
+
+UI overlays are stored in `column.attributes["ui"]`. Table lookup uses the
+qualified `schema.table` name. Composite primary keys have a generated logical
+key name in `table.pkey`, with components available through `physical_columns`.

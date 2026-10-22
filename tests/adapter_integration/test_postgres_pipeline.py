@@ -44,4 +44,4 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
     scenario()
     imported = PostgresCatalogProvider().inspect(connection, [schema])
     assert not imported.warnings
-    assert imported.model.table('crm_customer').columns['display name'].dtype == 'T'
+    assert imported.model.table(f'{schema}.crm_customer').columns['display name'].dtype == 'T'

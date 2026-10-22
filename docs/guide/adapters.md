@@ -38,8 +38,8 @@ def execute_sql(db, sql, kwargs):
 There are no structured `SqlStatement` or `Parameter` nodes. The existing legacy
 text preparation handles bindings; it does not validate untrusted SQL.
 
-Catalog providers perform read-only introspection. Their serialized snapshots
-are distinct from the live model; migration uses the physical projection and
+Catalog providers perform read-only introspection. They return the same
+`DbModel` as authored recipes; migration uses its physical projection and
 asqueel-migration. The adapter does not implement schema migration.
 
 ## SQL functions of the adapter

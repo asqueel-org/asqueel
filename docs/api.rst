@@ -42,7 +42,10 @@ Model and query contracts
    :members: resolve_model
 
 .. automodule:: asqueel.contracts
-   :members: Column, Relation, Table, ResolvedModel, RowPolicies, CompiledQuery, ResultColumn
+   :members: RowPolicies, CompiledQuery, ResultColumn
+
+.. automodule:: asqueel.model_codec
+   :members: model_to_json, model_from_json
 
 Database inspection
 -------------------

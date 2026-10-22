@@ -126,11 +126,9 @@ def test_native_model_compiler_runtime_and_import(native_database):
         f'{schema}.crm_customer.display name': {'label': 'Cliente'},
     })
     assert not imported.warnings
-    assert imported.model.table(f'{schema}.crm_customer').columns['display name'].ui['label'] == 'Cliente'
+    assert imported.model.table(f'{schema}.crm_customer').columns['display name'].attributes['ui']['label'] == 'Cliente'
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#22: inspect_postgres returns the removed contracts.ResolvedModel, '
-                                       'which the compiler rejects')
 def test_imported_model_compiles_selects(native_database):
     _, schema, connection = native_database
     connection.execute(sql.SQL("INSERT INTO {}.crm_customer VALUES (1, 'x')").format(sql.Identifier(schema)))
@@ -178,3 +176,59 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
     finally:
         first.closeConnection()
         second.closeConnection()
+
+
+def test_imported_json_model_uses_the_ordinary_database_and_write_cycle(native_database):
+    from asqueel import SqlDatabase, model_to_json, model_from_json
+    params, schema, connection = native_database
+    model = model_from_json(model_to_json(inspect_postgres(connection, [schema]).model))
+
+    def config(path, default=None):
+        return {'implementation': 'postgres', 'connect_kwargs': params}.get(path, default)
+
+    db = SqlDatabase(model=model, config=config)
+    try:
+        customer = db.table(f'{schema}.crm_customer')
+        invoice = db.table(f'{schema}.crm_invoice')
+        customer.insert({'id': 1, 'display name': 'Imported'})
+        customer.update({'id': 1, 'display name': 'Updated'})
+        invoice.insert({'id': 11, 'customer_id': 1, 'total': 15})
+        assert invoice.query(columns='$id,@customer_fk.id AS customer').fetch()[0]['customer'] == 1
+        invoice.update({'id': 11, 'total': 25})
+        assert invoice.query(where='$id = :key', key=11).fetchRecord()['total'] == 25
+        invoice.delete({'id': 11})
+        assert invoice.query().fetch() == []
+        db.rollback()
+    finally:
+        db.closeConnection()
+
+
+def test_imported_defaults_and_generated_columns_stay_database_expressions(native_database):
+    from asqueel import SqlDatabase, inspect_postgres, model_to_json, model_from_json
+    params, schema, connection = native_database
+    connection.execute(sql.SQL('''CREATE TABLE {}.defaults (
+        id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        label text DEFAULT 'hello', amount integer DEFAULT 3,
+        doubled integer GENERATED ALWAYS AS (amount * 2) STORED)''').format(sql.Identifier(schema)))
+    model = model_from_json(model_to_json(inspect_postgres(connection, [schema]).model))
+
+    def config(path, default=None):
+        return {'implementation': 'postgres', 'connect_kwargs': params}.get(path, default)
+
+    db = SqlDatabase(model=model, config=config)
+    try:
+        record = {'id': 1}  # Identity columns cannot be assigned explicitly.
+        table = db.table(f'{schema}.defaults')
+        with pytest.raises(psycopg.errors.GeneratedAlways):
+            table.sql_insert(record)
+        db.rollback()
+        inserted = {'amount': 5}
+        table.insert(inserted)
+        assert isinstance(inserted['id'], int)
+        assert inserted['label'] == 'hello' and inserted['doubled'] == 10
+        row = table.query().fetchRecord()
+        assert row['label'] == 'hello'
+        assert row['amount'] == 5 and row['doubled'] == 10
+        db.rollback()
+    finally:
+        db.closeConnection()

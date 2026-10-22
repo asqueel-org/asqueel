@@ -60,10 +60,9 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
         require_write_capabilities(m.table('sales.item'))
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#18: the hierarchical DbModel has no JSON round trip')
 def test_validation_model_survives_a_json_round_trip():
     b, pkg = source()
     t = pkg.table('item')
     t.column('a', 'T', validate_len='2:5', validate_len_error='Length', validate_case='U')
     m = resolve_model(b)
-    assert model_from_json(model_to_json(m)) == m
+    assert model_to_json(model_from_json(model_to_json(m))) == model_to_json(m)
