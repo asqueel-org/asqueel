@@ -44,15 +44,6 @@ Model and query contracts
 .. automodule:: asqueel.contracts
    :members: RowPolicies, CompiledQuery, ResultColumn
 
-.. automodule:: asqueel.model_codec
-   :members: model_to_json, model_from_json
-
-Database inspection
--------------------
-
-.. automodule:: asqueel.importers
-   :members: inspect_postgres, ImportResult
-
 .. automodule:: asqueel.projection
    :members: to_physical_builder
 

@@ -2,7 +2,6 @@
 
 import pytest
 
-from asqueel.catalog_provider import PostgresCatalogProvider
 from asqueel.compiler import QueryCompiler
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
@@ -16,7 +15,7 @@ from tests.native_integration.test_postgres_vertical import (
 pytestmark = pytest.mark.postgresql
 
 
-def test_explicit_pipeline_and_catalog_provider(native_database):
+def test_explicit_pipeline(native_database):
     params, schema, connection = native_database
     adapter = PostgresAdapter(None)
     model = resolve_model(recipe(schema))
@@ -42,6 +41,3 @@ def test_explicit_pipeline_and_catalog_provider(native_database):
         finally:
             db.closeConnection()
     scenario()
-    imported = PostgresCatalogProvider().inspect(connection, [schema])
-    assert not imported.warnings
-    assert imported.model.table(f'{schema}.crm_customer').columns['display name'].dtype == 'T'

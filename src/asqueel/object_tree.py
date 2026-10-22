@@ -447,10 +447,6 @@ class DbModel:
         self.db = db
 
     @property
-    def warnings(self):
-        return tuple(self._database.attributes.get('catalog_warnings', ()))
-
-    @property
     def packages(self):
         return self.obj if self.obj.tag == 'packages' else {}
 

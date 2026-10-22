@@ -91,6 +91,6 @@ Pass external values through `params` or write value mappings. SQL fragments,
 including formulas and WHERE expressions, are trusted application code.
 
 Next, follow the complete [invoice tutorial](tutorial.md), or explore [configuration](configuration.md), [models and relations](models.md),
-[transactions](transactions.md), or [database inspection](importing.md).
+or [transactions](transactions.md).
 The separate [compiler](compiler.md) and [driver APIs](adapters.md) remain available
 when integrating at a lower level.

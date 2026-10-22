@@ -60,9 +60,6 @@ value `<path>` names two [environment keys](environment.md): `current_<path>`
 and `allowed_<path>`. Only the first `partition_*` attribute of a table counts,
 as in GenroPy.
 
-Inspection does not infer policies from suggestive database column names. Add
-application policies explicitly to an imported model. See [importing](importing.md).
-
 ## Query within an environment scope
 
 Application tables apply these policies automatically through the database's

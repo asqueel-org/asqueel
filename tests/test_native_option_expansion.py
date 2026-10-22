@@ -14,7 +14,6 @@ from asqueel.configuration import build_database
 from asqueel.model import resolve_model
 from asqueel.model_source import prepare_source
 from asqueel.projection import to_physical_builder
-from asqueel.model_codec import model_from_json, model_to_json
 from asqueel.contracts import UnsupportedFeatureError
 
 ORACLE = Path(__file__).parent / 'oracles/test_invoice_pg/source.xml'
@@ -207,18 +206,6 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
         assert item.model.options['retention'].attributes['days'] == 60
         with pytest.raises(UnsupportedFeatureError):
             item.insert({'id': 1})
-    finally:
-        db.closeConnection()
-
-
-def test_declarative_options_survive_a_json_round_trip():
-    builder, packages = source()
-    table = packages.package('invc').table('customer', pkey='id')
-    table.column('id', dtype='L')
-    table.options().retention(field='id', days=60)
-    db = build_database(builder)
-    try:
-        assert model_to_json(model_from_json(model_to_json(db.model))) == model_to_json(db.model)
     finally:
         db.closeConnection()
 

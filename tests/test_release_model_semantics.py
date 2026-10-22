@@ -3,7 +3,6 @@ import pytest
 
 from asqueel import SqlDatabaseConfig, SqlMigrationRenderer, UnsupportedFeatureError
 from asqueel.model import resolve_model
-from asqueel.model_codec import model_from_json, model_to_json
 from asqueel.model_source import require_write_capabilities
 from asqueel.validation import validate_value
 
@@ -58,11 +57,3 @@ def test_validation_embedding_and_explicit_form_match_and_remain_detached():
     assert resolve_model(b).table('sales.item').columns['opaque'].validations == {'lne': 8}
     with pytest.raises(UnsupportedFeatureError, match='write execution of b.validation is not available in this release'):
         require_write_capabilities(m.table('sales.item'))
-
-
-def test_validation_model_survives_a_json_round_trip():
-    b, pkg = source()
-    t = pkg.table('item')
-    t.column('a', 'T', validate_len='2:5', validate_len_error='Length', validate_case='U')
-    m = resolve_model(b)
-    assert model_to_json(model_from_json(model_to_json(m))) == model_to_json(m)

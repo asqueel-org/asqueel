@@ -2,18 +2,14 @@
 
 ## 0.7.0 — Consolidation and unified model candidate
 
-- Use the hierarchical `DbModel` for authored models, PostgreSQL catalog imports,
-  JSON loading, SELECT/write compilation and physical migration projection.
+- Use the hierarchical `DbModel` for authored models, SELECT/write compilation
+  and physical migration projection.
 - Remove the disconnected `ResolvedModel`, `Column`, `Table` and `Relation`
-  descriptors and their separate migration projection. Imported models now use
-  qualified table names and the same key/relation API as authored models.
-- `model_to_json` and `model_from_json` round-trip the live hierarchy using the
-  version 2 `asqueel-model` format. Connections and executable Python objects
-  are excluded; the former descriptor format is not accepted. Re-export from
-  the source recipe or inspect the catalog again.
-- Preserve catalog warnings and all refusals of lossy physical projections.
-  No query features or optimizations are added in this release.
-
+  descriptors and their separate migration projection.
+- Remove the catalog import (`inspect_postgres`, `CatalogProvider`) and the model
+  JSON codec (`model_to_json`, `model_from_json`). Reading a model from a database
+  belongs to asqueel-migration; the recipe source will be saved as TYTX.
+- No query features or optimizations are added in this release.
 - Preserve parameter-like text inside SQL strings, quoted identifiers and comments,
   including scoped formula bindings and environment parameters (#35).
 - Cover PostgreSQL dollar/E strings, nested comments, SQLite quoting, adjacent

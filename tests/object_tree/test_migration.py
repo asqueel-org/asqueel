@@ -174,3 +174,8 @@ def test_hierarchical_json_apply_introspect_rediff_and_evolution(pg_database, st
     assert all(name in changes for name in ('__full_mod_ts', 'probe_product', 'probe_code', 'probe_account'))
     migration.applyChanges()
     assert prepared(pg_database, evolved).getChanges() == ''
+
+
+def test_projection_requires_a_hierarchical_model():
+    with pytest.raises(TypeError, match='requires DbModel'):
+        to_physical_builder(object())

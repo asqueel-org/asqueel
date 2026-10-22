@@ -85,7 +85,7 @@ def project_tree(model) -> SqlBuilder:
         columns = node.columns()
         for column in table.columns.values():
             dtype, attrs = _column_storage(
-                column, path=column.fullname, packaged=table.pkg.tag == 'package',
+                column, packaged=table.pkg.tag == 'package',
                 implementation=model.implementation)
             owners[(table.fullname, column.name)] = columns.column(column.sqlname, dtype=dtype, **attrs)
         if table.composites:

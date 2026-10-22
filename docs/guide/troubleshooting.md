@@ -69,15 +69,12 @@ Driver exceptions such as `psycopg.errors.UniqueViolation` propagate unchanged.
 Catch those you can handle **outside** the transaction block. A Python hook's
 external side effects are not undone by a SQL rollback.
 
-## Import or migration refuses a model
+## Migration refuses a model
 
-Read the warnings in `result.warnings` and `model.warnings`. Querying supported imported tables and reproducing the complete
-schema are different guarantees. A migration projection rejects warnings and
-structures it cannot faithfully represent. Do not remove metadata or clear
-warnings merely to get past validation.
+A migration projection rejects structures it cannot faithfully represent. Do not
+remove metadata merely to get past validation.
 
-Check [importing](importing.md) for catalog coverage and [migrations](migrations.md)
-for naming fidelity, projection limits and command preparation.
+Check [migrations](migrations.md) for projection limits and command preparation.
 
 ## Prepare a useful bug report
 

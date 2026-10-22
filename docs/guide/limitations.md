@@ -165,12 +165,7 @@ dictionary, buffer or custom mutable parameter values while using a compiled
 query. Environment snapshots and environment bindings copy their values deeply;
 custom environment values must support `deepcopy` correctly.
 
-## Import and migration boundaries
-
-A database catalog contains physical structure, not the full application model.
-Review `ImportResult.warnings` and maintain UI/application enrichment explicitly.
-The importer reports unsupported objects rather than promising that the model
-can reproduce every object or behavioral rule in an existing database.
+## Migration boundaries
 
 Producing a migration structure is different from applying a migration.
 Neither application rendering, `PostgresDatabase`, nor compiler construction creates tables. Use the
@@ -327,19 +322,10 @@ Generated API and grammar reference pages reflect the checked-out code; conceptu
 guides also explain the delivery design. Use documentation matching your installed
 version when checking exact signatures.
 
-### Import and migration coverage
+### Migration coverage
 
-Views, materialized views, foreign tables, inherited/partitioned tables and
-partitions are not imported as queryable tables in this checkout. Sequences,
-triggers, routines, row-level security and external FK targets are reported as
-unsupported or unmanaged. Roles, grants and extended dependencies are not modeled.
-The catalog importer does not import legacy application packages.
-
-Migration projection rejects model warnings, identity/generated columns,
-sequence ownership/dependent defaults, custom collations, known lossy type
-conversions, unsupported/unvalidated constraints and external foreign keys.
-Expression indexes, INCLUDE columns, custom opclasses, advanced index options
-and column-subset SET NULL/SET DEFAULT actions are also rejected where their
-semantics cannot be represented. CHECK expressions and partial-index predicates
+Asqueel does not read a model from an existing database; that belongs to
+asqueel-migration. Migration projection rejects physical foreign keys on or to
+virtual columns. CHECK expressions and partial-index predicates
 with remapped columns require safe SQL rewriting and otherwise fail projection.
 These are coverage gaps, not a recommendation to remove metadata or database objects.

@@ -142,10 +142,10 @@ an equivalent there.
 
 ## Existing databases and schema evolution
 
-You can approach the model from either direction: declare it in application
-configuration, or inspect an existing database and enrich its physical model
-with application meaning. Legacy package declarations provide another source
-of model information through the compatibility integration.
+You declare the model in application configuration. Asqueel does not read a
+model from an existing database; that belongs to asqueel-migration. Legacy
+package declarations provide another source of model information through the
+compatibility integration.
 
 Rendering a model does not apply DDL. Schema changes are planned and applied
 through the separate `asqueel-migration` integration. The structural model

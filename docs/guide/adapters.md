@@ -1,4 +1,4 @@
-# Adapters and catalog providers
+# Adapters
 
 The SELECT compiler follows the [single hierarchical pipeline](compiler.md).
 `db.adapter` adapts the database to its implementation, as in GenroPy: SQL
@@ -38,9 +38,8 @@ def execute_sql(db, sql, kwargs):
 There are no structured `SqlStatement` or `Parameter` nodes. The existing legacy
 text preparation handles bindings; it does not validate untrusted SQL.
 
-Catalog providers perform read-only introspection. They return the same
-`DbModel` as authored recipes; migration uses its physical projection and
-asqueel-migration. The adapter does not implement schema migration.
+Migration uses the physical projection of `DbModel` and asqueel-migration.
+The adapter does not implement schema migration.
 
 ## SQL functions of the adapter
 

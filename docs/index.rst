@@ -34,7 +34,6 @@ Choose your starting point
   :doc:`guide/quickstart` and the step-by-step :doc:`guide/tutorial`.
 * **Building an application?** Start with :doc:`guide/configuration` and
   :doc:`guide/models`, then use :doc:`guide/queries` and :doc:`guide/writes`.
-* **Already have PostgreSQL tables?** Start with :doc:`guide/importing`.
 * **Coming from Genropy legacy?** Read :doc:`guide/legacy` before porting code.
 * **Diagnosing unexpected behavior?** See :doc:`guide/troubleshooting`.
 
@@ -69,7 +68,6 @@ Choose your starting point
    :maxdepth: 1
    :caption: Work with existing databases
 
-   guide/importing
    guide/migrations
 
 .. toctree::

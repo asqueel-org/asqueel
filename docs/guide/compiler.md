@@ -79,13 +79,13 @@ in an existing transaction the driver issues a zero-row self-update on the
 physical table to acquire the write reservation. Neither path commits,
 opens a second connection or changes a row as part of lock acquisition.
 
-## Model-only rendering and catalog snapshots
+## Model-only rendering
 
 `source.render(mode='objects_tree')` and `resolve_model(source)` return the same
 hierarchical model without binding an operational database. They use the same
 walk/finalize construction as the default operational render.
 
-`inspect_postgres`, `model_from_json` and authored recipes all return `DbModel`.
+Authored recipes return `DbModel`.
 The SELECT and write compilers and physical migration projection consume that
 same hierarchy. There is no descriptor graph or alternative projection path.
 Operational rendering wraps the model in `SqlDatabase`; model-only rendering
