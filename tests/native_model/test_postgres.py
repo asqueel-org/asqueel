@@ -85,6 +85,16 @@ def test_real_catalog_preserves_composite_keys_defaults_and_index_definition(mon
      "ON DELETE SET NULL(parent_id))", 'column subset'),
     ('CREATE TABLE {schema}.t(id integer UNIQUE WITH(fillfactor=70))', 'constraint index with storage options'),
     ('CREATE TABLE {schema}.t(id integer); ALTER TABLE {schema}.t ENABLE ROW LEVEL SECURITY', 'import warnings'),
+    ('CREATE TABLE {schema}.t(id integer UNIQUE DEFERRABLE)', 'DEFERRABLE primary/unique'),
+    ('CREATE TABLE {schema}.t(id integer UNIQUE NULLS NOT DISTINCT)', 'NULLS NOT DISTINCT'),
+    ("CREATE TABLE {schema}.parent(id integer PRIMARY KEY); "
+     "CREATE TABLE {schema}.child(parent_id integer); "
+     "ALTER TABLE {schema}.child ADD FOREIGN KEY(parent_id) REFERENCES {schema}.parent(id) NOT VALID",
+     'NOT VALID'),
+    ("CREATE TABLE {schema}.parent(a integer,b integer,PRIMARY KEY(a,b)); "
+     "CREATE TABLE {schema}.child(a integer,b integer,"
+     "FOREIGN KEY(a,b) REFERENCES {schema}.parent(a,b) MATCH FULL)", 'non-simple FK match'),
+    ('CREATE TABLE {schema}.t(id integer CHECK (id > 0))', 'constraint kind c'),
 ])
 def test_unsupported_catalog_semantics_cannot_become_a_partial_migration(ddl, error):
     import psycopg
@@ -99,6 +109,56 @@ def test_unsupported_catalog_semantics_cannot_become_a_partial_migration(ddl, er
         assert result.model.tables  # Still usable for reading.
         with pytest.raises(UnsupportedFeatureError, match=error):
             to_physical_builder(result.model, allow_constraint_rename=True)
+        connection.rollback()
+
+
+def test_catalog_keys_and_foreign_keys_become_declarations():
+    import psycopg
+    from psycopg import sql
+    from asqueel.projection import to_physical_builder
+    from asqueel.contracts import UnsupportedFeatureError
+    schema = 'v1_model_' + uuid.uuid4().hex[:12]
+    other = 'v1_model_other_' + uuid.uuid4().hex[:12]
+    ddl = '''CREATE TABLE {schema}.pair(_catalog_key_0 text, a integer, b integer, PRIMARY KEY(a,b));
+        CREATE TABLE {schema}.left_side(id integer PRIMARY KEY);
+        CREATE TABLE {schema}.right_side(id integer PRIMARY KEY);
+        CREATE TABLE {other}.outside(id integer PRIMARY KEY);
+        CREATE TABLE {schema}.link(ref integer,
+            CONSTRAINT to_left FOREIGN KEY(ref) REFERENCES {schema}.left_side(id),
+            CONSTRAINT to_right FOREIGN KEY(ref) REFERENCES {schema}.right_side(id),
+            CONSTRAINT to_outside FOREIGN KEY(ref) REFERENCES {other}.outside(id))'''
+    with psycopg.connect(postgres_dsn()) as connection:
+        for name in (schema, other):
+            connection.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(name)))
+        connection.execute(sql.SQL(ddl).format(schema=sql.Identifier(schema), other=sql.Identifier(other)))
+        result = inspect_postgres(connection, [schema])
+        model = result.model
+        # A generated key name never takes the name of a real column.
+        assert model.table(f'{schema}.pair').pkey == '_catalog_key_0_'
+        # Two FKs on one column keep both relations; the FK outside the import is only a warning.
+        link = model.table(f'{schema}.link')
+        for name, target in (('to_left', 'left_side'), ('to_right', 'right_side')):
+            joiner = link.relations.get_node(f'@{name}').attr['joiner']
+            assert joiner['one_relation'] == f'{schema}.{target}.id'
+        assert link.relations.get_node('@to_outside') is None
+        assert any('outside imported tables' in warning for warning in result.warnings)
+        with pytest.raises(UnsupportedFeatureError, match='import warnings'):
+            to_physical_builder(model, allow_constraint_rename=True)
+        connection.rollback()
+
+
+def test_imported_constraint_names_need_explicit_rename_permission():
+    import psycopg
+    from psycopg import sql
+    from asqueel.projection import to_physical_builder
+    from asqueel.contracts import UnsupportedFeatureError
+    schema = 'v1_model_' + uuid.uuid4().hex[:12]
+    with psycopg.connect(postgres_dsn()) as connection:
+        connection.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
+        connection.execute(sql.SQL('CREATE TABLE {}.t(id integer PRIMARY KEY)').format(sql.Identifier(schema)))
+        model = inspect_postgres(connection, [schema]).model
+        with pytest.raises(UnsupportedFeatureError, match='allow_constraint_rename=True'):
+            to_physical_builder(model)
         connection.rollback()
 
 

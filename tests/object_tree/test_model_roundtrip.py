@@ -68,3 +68,27 @@ def test_json_rejects_runtime_code_and_old_descriptor_format():
     data['database']['attributes']['connect_kwargs'] = {'password': 'secret'}
     with pytest.raises(ValueError, match='connection configuration'):
         model_from_json(json.dumps(data))
+
+
+def test_json_and_projection_reject_what_is_not_a_hierarchical_model():
+    model = resolve_model(recipe())
+    model.table('main.owner').attributes['x_lookup'] = {1: 'one'}
+    with pytest.raises(TypeError, match='string keys'):
+        model_to_json(model)
+    with pytest.raises(TypeError, match='requires DbModel'):
+        model_to_json(object())
+    with pytest.raises(TypeError, match='requires DbModel'):
+        to_physical_builder(object())
+    document = json.loads(model_to_json(resolve_model(recipe())))
+    broken = json.loads(json.dumps(document))
+    broken['namespaces']['generated'] = 'no'
+    with pytest.raises(ValueError, match='Invalid hierarchical model node'):
+        model_from_json(json.dumps(broken))
+    broken = json.loads(json.dumps(document))
+    broken['namespaces']['tag'] = 'tables'
+    with pytest.raises(ValueError, match='database and its namespaces'):
+        model_from_json(json.dumps(broken))
+    broken = json.loads(json.dumps(document))
+    broken['relations'] = broken['relations'][1:]
+    with pytest.raises(ValueError, match='Relation registry'):
+        model_from_json(json.dumps(broken))
