@@ -64,16 +64,12 @@ def main():
         rebuilt.create()
         rebuilt.validate_model()
         resolved = package.resolve_model(rebuilt)
-        query = package.PostgresCompiler(resolved).select(
+        adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
+        query = package.QueryCompiler(resolved, adapter).select(
             'public.customer', where='$id = :id', sqlparams={'id': 7},
         )
         assert query.params == {'id': 7}
         assert '"public"."customer"' in query.sql
-        adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
-        generic = package.QueryCompiler(resolved, adapter).select(
-            'public.customer', where='$id = :id', sqlparams={'id': 7},
-        )
-        assert generic == query
         print('Core-only build, validation, emission, model and adapter pipeline passed')
         return
     with tempfile.TemporaryDirectory(prefix='asqueel-wheel-') as directory:

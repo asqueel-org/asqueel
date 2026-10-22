@@ -199,8 +199,7 @@ finally:
 This example requires the repository checkout. To write the JSON artifacts,
 run `PYTHONPATH=.:src python scripts/export_invoice_migration.py` from its root,
 with the migration extra installed. The script writes
-`artifacts/test_invoice_pg/native/migration.json` and the serialized live model
-`artifacts/test_invoice_pg/native/model.json`; it does not connect to a database.
+`artifacts/test_invoice_pg/native/migration.json`; it does not connect to a database.
 
 The native corpus covers 74 tables in sys, adm and invc. Its JSON is checked
 against an independent legacy oracle, excluding the agreed `sys.locked_record`.
