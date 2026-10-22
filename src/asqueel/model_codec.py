@@ -24,7 +24,10 @@ def _value(value):
 def _node(node):
     defaults = ((node.structnode.attr.get('_meta') or {}).get('signature_defaults', ())
                 if node.structnode is not None else ())
-    return dict(name=node.name, tag=node.tag, attributes=_value(node.attributes),
+    excluded = {'conninfo', 'connect_kwargs'} if node.tag == 'db' else set()
+    attributes = {key: value for key, value in node.attributes.items() if key not in excluded}
+    defaults = [key for key in defaults if key not in excluded]
+    return dict(name=node.name, tag=node.tag, attributes=_value(attributes),
                 children=[_node(child) for child in node.values()],
                 signatureDefaults=list(defaults), generated=node.structnode is None,
                 physicalColumn=type(node) is DbColumnObj)
@@ -42,9 +45,6 @@ def model_to_json(model: DbModel, *, indent=2) -> str:
     document = dict(format='asqueel-model', version=2,
                     database=_node(model._database), namespaces=_node(model.obj),
                     relations=_relations(model))
-    # Configuration (including credentials) never enters this envelope.
-    for key in ('conninfo', 'connect_kwargs'):
-        document['database']['attributes'].pop(key, None)
     return json.dumps(document, ensure_ascii=False, allow_nan=False, indent=indent) + '\n'
 
 

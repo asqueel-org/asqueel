@@ -31,6 +31,7 @@ def test_json_restores_compile_projection_identity_and_execution_without_configu
     model = resolve_model(recipe())
     document = model_to_json(model)
     assert 'never-export-this' not in document
+    assert 'conninfo' not in json.loads(document)['database']['signatureDefaults']
     restored = model_from_json(document)
     assert isinstance(restored, DbModel)
     assert restored is not model
