@@ -17,7 +17,7 @@ def recipe():
     owner.column('part', 'I')
     owner.composites().compositeColumn('key', columns='code,part')
     owner.column('label', 'T', indexed=True)
-    owner.formulaColumn('caption', sql_formula="$label || :suffix", var_suffix='!')
+    owner.formulaColumn('caption', sql_formula="'doc:suffix' || $label || :suffix", var_suffix='!')
     child = tables.table('child', pkey='id')
     child.column('id', 'I')
     child.column('code', 'T')
@@ -52,7 +52,7 @@ def test_json_restores_compile_projection_identity_and_execution_without_configu
         db.execute('CREATE TABLE child(id INTEGER PRIMARY KEY,code TEXT,part INTEGER)')
         db.table('main.owner').insert({'code': 'x', 'part': 2, 'label': 'Hello'})
         db.table('main.child').insert({'id': 1, 'code': 'x', 'part': 2})
-        assert db.table('main.child').query(columns='$caption').fetch()[0]['caption'] == 'Hello!'
+        assert db.table('main.child').query(columns='$caption').fetch()[0]['caption'] == 'doc:suffixHello!'
     finally:
         db.closeConnection()
 

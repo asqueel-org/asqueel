@@ -83,7 +83,7 @@ provided.
 See [transactions and database access](transactions.md) for errors, callbacks,
 cleanup and connection selection.
 
-### Parameter recognition in 0.6.4
+### Parameter recognition in 0.7.0
 
 A colon inside a SQL string, quoted identifier or comment is literal text:
 `'doc:xyz' || :value` binds only `value`. The same rule applies inside formula

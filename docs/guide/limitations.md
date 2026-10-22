@@ -22,7 +22,7 @@ step below on both databases.
 | Reads | `query()` with projections, filters, ordering, limit/offset, `distinct`, `group_by`, `having`, `count()`; the legacy fetch terminals (`fetchRecord()` for exactly one row, `fetchPkeys`, `fetchAsDict`, `fetchAsJson`, `fetchAsBag`, `fetchGrouped`, `cursor`, `servercursor`, `iterfetch`, `serverfetch`); `for_update=True` for a locked read. | Rows are Toolbox `NamedList` rows; `fetch()` materializes them, `iterfetch()` reads them in chunks. |
 | Relations | To-one paths such as `@customer_id.name`; inverse paths declared with `relation_name` as LEFT JOIN; `@invoices.aggr(...)` for aggregates over related rows, also through a `virtualRelation`. | A to-many path cannot continue past the to-many step. |
 | Formulas | SQL formula columns, table formula methods, `formulaColumn_<x>()` dynamic columns, `select`/`exists` dictionaries, named `select_*`/`exists_*` subqueries, compositeColumn read as a value, `subQueryColumn` with `aggr=`, `#ENV` in `sql_formula`, `#BAG`/`#BAGCOLS` in the query columns. | Formulas are read-only. JSON/XML `subQueryColumn` modes and `aggr(to_xml(...))` need PostgreSQL; `aggr(to_json(...))` runs on both. |
-| Alias columns | `aliasColumn` through to-one paths, with inherited metadata and `originalColumn`. | Read-only: an alias key in a write mapping is skipped. |
+| Alias columns | `aliasColumn` through to-one paths, with inherited metadata and its declared `relation_path`. | Read-only: an alias key in a write mapping is skipped. |
 | Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `query(...).update()` / `.delete()` write the selected rows record by record; an update changing the logical-deletion field cascades to the children. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
 | Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
 | Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
@@ -52,11 +52,9 @@ Other operations a project may expect and that are missing or fail:
 
 Known defects with an open issue: logical deletion ignores the deletion
 timestamp in read filters ([#16](https://github.com/asqueel-org/asqueel/issues/16));
-the hierarchical model has no JSON round trip ([#18](https://github.com/asqueel-org/asqueel/issues/18));
 a `%` in a physical name is not escaped for psycopg ([#19](https://github.com/asqueel-org/asqueel/issues/19));
 quoted logical names `$"..."` are not supported ([#20](https://github.com/asqueel-org/asqueel/issues/20));
 the write compiler does not check the adapter capabilities ([#21](https://github.com/asqueel-org/asqueel/issues/21));
-`inspect_postgres` returns a removed model type ([#22](https://github.com/asqueel-org/asqueel/issues/22));
 `pkey='a,b'` is accepted on schema-level tables, the form the database reader produces; package tables raise ([#23](https://github.com/asqueel-org/asqueel/issues/23));
 a record key named `__pkey__N` is overwritten without error ([#24](https://github.com/asqueel-org/asqueel/issues/24));
 a schema-tag model cannot set a table prefix ([#25](https://github.com/asqueel-org/asqueel/issues/25)).
