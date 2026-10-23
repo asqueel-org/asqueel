@@ -33,7 +33,7 @@ def test_documented_development_extra_can_collect_the_complete_suite():
     # wf:contract: validation and PostgreSQL support.
     metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "asqueel-migration[postgresql,validation]>=0.3.1" in (
+    assert "asqueel-migration[postgresql,validation]>=0.3.5" in (
         metadata["project"]["optional-dependencies"]["dev"]
     )
     assert (

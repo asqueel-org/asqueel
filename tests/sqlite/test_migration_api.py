@@ -32,12 +32,12 @@ def test_plan_changes_nothing_and_migrate_creates_the_tables(tmp_path):
     db = AsqueelDb(recipe(path))
     try:
         plan = db.migration_plan()
-        assert 'CREATE TABLE' in plan.commands
-        assert plan.skipped == ()
-        assert db.migration_plan().commands == plan.commands
+        assert 'CREATE TABLE' in plan['sql']
+        assert plan['skipped'] == []
+        assert db.migration_plan()['sql'] == plan['sql']
         applied = db.migrate()
-        assert applied.commands == plan.commands
-        assert db.migration_plan().empty
+        assert applied['sql'] == plan['sql']
+        assert db.migration_plan()['empty']
         db.table('app.item').insert({'id': 1, 'name': 'first'})
         db.commit()
         assert [dict(row) for row in db.table('app.item').query(columns='$id, $name').fetch()] == [{'id': 1, 'name': 'first'}]
@@ -49,7 +49,7 @@ def test_migrate_on_an_up_to_date_database_returns_an_empty_plan(tmp_path):
     db = AsqueelDb(recipe(tmp_path / 'sample.db'))
     try:
         db.migrate()
-        assert db.migrate().empty
+        assert db.migrate()['empty']
     finally:
         db.closeConnection()
 
@@ -76,8 +76,8 @@ def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
     changed = AsqueelDb(recipe(path, name_dtype='L'))
     try:
         plan = changed.migration_plan()
-        assert plan.skipped
-        assert all(skipped in plan.warnings for skipped in plan.skipped)
+        assert plan['skipped']
+        assert all(skipped in plan['warnings'] for skipped in plan['skipped'])
         with pytest.raises(MigrationError, match='cannot apply'):
             changed.migrate()
     finally:
@@ -90,9 +90,9 @@ def test_an_in_memory_sqlite_database_can_be_migrated_without_files(tmp_path, mo
     db = AsqueelDb(recipe(':memory:'))
     try:
         plan = db.migration_plan()
-        assert 'CREATE TABLE' in plan.commands
-        assert db.migrate().commands == plan.commands
-        assert db.migration_plan().empty
+        assert 'CREATE TABLE' in plan['sql']
+        assert db.migrate()['sql'] == plan['sql']
+        assert db.migration_plan()['empty']
         db.table('app.item').insert({'id': 1, 'name': 'memory'})
         db.commit()
         assert db.table('app.item').query(columns='$name').fetch()[0]['name'] == 'memory'

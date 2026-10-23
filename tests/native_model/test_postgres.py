@@ -33,7 +33,7 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
 
     db = AsqueelDb(Config)
     try:
-        assert not db.migrate().empty
+        assert not db.migrate()['empty']
         db.table('s.parent').insert({'x': 1, 'y': 2})
         db.table('s.child').insert({'id': 1, 'ax': 1, 'ay': 2})
         db.commit()

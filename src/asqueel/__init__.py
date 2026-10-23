@@ -56,7 +56,6 @@ _MIGRATION_EXTRA = (
 
 _MIGRATION_NAMES = {
     "SqlMigrationRenderer": ".migration",
-    "MigrationPlan": ".migration",
     "SqlModelReader": ".reader",
 }
 

@@ -189,7 +189,7 @@ def test_foreign_keys_false_migrates_without_constraints_and_keeps_the_relation_
     db = AsqueelDb(_sqlite_recipe(tmp_path / 'sample.db'))
     try:
         plan = db.migration_plan(foreignKeys=False)
-        assert 'REFERENCES' not in plan.commands
+        assert 'REFERENCES' not in plan['sql']
         db.migrate(foreignKeys=False)
         assert _rows(db, "PRAGMA app.foreign_key_list('invoice')") == []
         indexed_columns = [
@@ -198,7 +198,7 @@ def test_foreign_keys_false_migrates_without_constraints_and_keeps_the_relation_
             for column in [info[2] for info in _rows(db, f"PRAGMA app.index_info('{index[1]}')")]
         ]
         assert 'customer_id' in indexed_columns
-        assert db.migration_plan(foreignKeys=False).empty
+        assert db.migration_plan(foreignKeys=False)['empty']
     finally:
         db.closeConnection()
 
@@ -292,7 +292,7 @@ def test_force_converts_and_non_matching_values_become_null(pg_schema):
     runtime = AsqueelDb(_pg_recipe(dsn, schema, 'DH'))
     try:
         runtime.migrate(force=True)
-        assert runtime.migration_plan().empty
+        assert runtime.migration_plan()['empty']
     finally:
         runtime.closeConnection()
     rows = connection.execute(sql.SQL('SELECT id, happened IS NULL FROM {}.event ORDER BY id').format(
@@ -311,7 +311,7 @@ def test_backup_keeps_the_backup_column_and_warns_when_values_are_lost(pg_schema
     finally:
         runtime.closeConnection()
     assert _columns(connection, schema) == ['happened', 'happened__T', 'id']
-    assert any('happened__T' in warning for warning in plan.warnings)
+    assert any('happened__T' in warning for warning in plan['warnings'])
 
 
 @pytest.mark.postgresql
@@ -324,7 +324,7 @@ def test_backup_drops_the_backup_column_when_nothing_is_lost(pg_schema):
     finally:
         runtime.closeConnection()
     assert _columns(connection, schema) == ['happened', 'id']
-    assert not any('happened__T' in warning for warning in plan.warnings)
+    assert not any('happened__T' in warning for warning in plan['warnings'])
 
 
 # ---------------------------------------------------------------------------

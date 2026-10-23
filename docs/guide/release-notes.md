@@ -1,5 +1,19 @@
 # Release notes
 
+## Unreleased
+
+- Require `asqueel-migration>=0.3.5`. Its reader introspects generated columns
+  on SQLite and PostgreSQL and borrows a SQLite `:memory:` connection; its
+  service plans and applies the migration with `force`, `backup` and the backup
+  report.
+- `db.migration_plan()` returns the dict of `asqueel_migration.plan_migration()`
+  (`sql`, `warnings`, `skipped`, `empty`, ...); `db.migrate()` returns the dict of
+  `asqueel_migration.apply_migration()`. The `MigrationPlan` class is removed:
+  `plan.commands` becomes `plan['sql']`, `plan.empty` becomes `plan['empty']`.
+- Remove the internal copies of those features: the modules
+  `asqueel.sqlite_migration`, `asqueel.generated_migration` and
+  `asqueel._memory_migration`.
+
 ## 0.7.0 — Consolidation and unified model candidate
 
 - Use the hierarchical `DbModel` for authored models, SELECT/write compilation
@@ -152,7 +166,7 @@ against the coordinated migration engine 0.2.0 wheel.
 Released on PyPI and tagged `v0.5.1`.
 
 - Migrate from Python. `AsqueelDb.migration_plan()` compares the model with the
-  live database and returns a `MigrationPlan` (`commands`, `warnings`,
+  live database and returns a plan (`commands`, `warnings`,
   `skipped`, `empty`) without changing anything; `AsqueelDb.migrate()` applies
   it. `migrate()` refuses before any DDL when the backend cannot apply a change
   (for example a column type change on SQLite) and raises `MigrationError` when

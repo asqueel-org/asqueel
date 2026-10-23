@@ -49,10 +49,10 @@ def test_repl_adds_columns_migrates_writes_and_imports_csv(session):
     definition.column('stock', dtype='I')
     db.reloadModel(model)
     plan = db.migration_plan()
-    assert plan.commands.count('ADD COLUMN') == 2
-    assert 'CREATE TABLE' not in plan.commands
-    assert db.migrate().commands == plan.commands
-    assert db.migration_plan().empty
+    assert plan['sql'].count('ADD COLUMN') == 2
+    assert 'CREATE TABLE' not in plan['sql']
+    assert db.migrate()['sql'] == plan['sql']
+    assert db.migration_plan()['empty']
     assert db._connection_state['connection'] is original_connection
 
     product = db.table('shop.product')
@@ -93,7 +93,7 @@ def test_deferred_work_is_not_lost(session, queue):
         db.migrate()
     assert not called
     db.rollback()
-    assert db.migration_plan().empty
+    assert db.migration_plan()['empty']
 
 
 def test_failed_ddl_rolls_back_all_changes_and_keeps_connection_alive(session):
@@ -110,7 +110,7 @@ def test_failed_ddl_rolls_back_all_changes_and_keeps_connection_alive(session):
     cursor.close()
     assert rows(db.table('shop.product')) == [{'code': 'TEA', 'name': 'Tea'}]
     db.commit()
-    assert db.migration_plan().commands.count('ADD COLUMN') == 2
+    assert db.migration_plan()['sql'].count('ADD COLUMN') == 2
 
 
 @pytest.mark.parametrize('terminal', ['fetch', 'fetchRecord', 'count', 'sql_update', 'sql_delete'])
@@ -175,7 +175,7 @@ def test_unsupported_change_does_not_close_or_modify_memory_database(session):
     table.column('code', size=':10')
     table.column('name', dtype='I')
     db.reloadModel(replacement)
-    assert db.migration_plan().skipped
+    assert db.migration_plan()['skipped']
     with pytest.raises(MigrationError, match='cannot apply'):
         db.migrate()
     assert rows(db.table('shop.product')) == [{'code': 'TEA', 'name': 'Tea'}]
@@ -191,7 +191,7 @@ def test_secondary_connections_cannot_be_migrated_or_reloaded(session):
         db.commit()
     with pytest.raises(MigrationError, match='single main connection'):
         db.reloadModel(model)
-    assert db.migration_plan().empty
+    assert db.migration_plan()['empty']
 
 
 def test_reload_does_not_accept_file_backed_databases(tmp_path):
@@ -211,14 +211,14 @@ def test_two_memory_handles_are_independent_and_close_discards_data(session):
     db.commit()
     other = AsqueelDb(model)
     try:
-        assert not other.migration_plan().empty
+        assert not other.migration_plan()['empty']
         other.migrate()
         assert rows(other.table('shop.product')) == []
     finally:
         other.closeConnection()
     assert rows(db.table('shop.product')) == [{'code': 'TEA', 'name': 'Tea'}]
     db.closeConnection()
-    assert not db.migration_plan().empty
+    assert not db.migration_plan()['empty']
     db.migrate()
     assert rows(db.table('shop.product')) == []
 
@@ -231,7 +231,7 @@ def test_main_schema_uses_memory_too(tmp_path, monkeypatch):
         db.migrate()
         db.table('shop.product').insert({'code': 'TEA', 'name': 'Tea'})
         db.commit()
-        assert db.migration_plan().empty
+        assert db.migration_plan()['empty']
         assert rows(db.table('shop.product')) == [{'code': 'TEA', 'name': 'Tea'}]
         assert not list(tmp_path.iterdir())
     finally:
