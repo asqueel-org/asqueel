@@ -34,11 +34,11 @@ def main():
         if not (installed / filename).is_file():
             raise RuntimeError(f'Installed wheel is missing {filename}')
     for name in ('asqueel', 'genro_builders', 'genro_bag', 'genro_tytx', 'genro_toolbox',
-                 'genro_routes', 'genro_asgi', 'asqueel_migration'):
+                 'asqueel_migration'):
         try:
             version = metadata.version(name)
         except metadata.PackageNotFoundError:
-            if name not in ('genro_routes', 'genro_asgi', 'asqueel_migration'):
+            if name != 'asqueel_migration':
                 raise
             continue
         module = import_module(name)

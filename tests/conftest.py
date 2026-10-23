@@ -46,6 +46,19 @@ APPLICATION_SCHEMAS = ["library_public"]
 DB_PREFIX = "test_asqueel_"
 RECIPE_DB_NAME = "library"
 
+# Fixtures and parameter values that run a test on PostgreSQL, and files that
+# use only PostgreSQL. CI runs `-m "not postgresql"` first, then `-m postgresql`.
+POSTGRES_FIXTURES = {"db_pg", "partition_pg", "postgres"}
+POSTGRES_ONLY_FILES = {"test_bag_item_results.py", "test_tree_phase4_bag_values.py"}
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        callspec = getattr(item, "callspec", None)
+        params = {value for value in callspec.params.values() if isinstance(value, str)} if callspec else set()
+        if POSTGRES_FIXTURES & (params | set(item.fixturenames)) or item.path.name in POSTGRES_ONLY_FILES:
+            item.add_marker(pytest.mark.postgresql)
+
 
 @pytest.fixture
 def sqlite_database(tmp_path, monkeypatch):
