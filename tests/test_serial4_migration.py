@@ -40,9 +40,9 @@ def test_native_serial4_keys_and_legacy_integer_adoption(existing):
             runtime = AsqueelDb(config(dsn, schema))
             try:
                 plan = runtime.migration_plan()
-                assert plan.empty is existing
+                assert plan['empty'] is existing
                 runtime.migrate()
-                assert runtime.migration_plan().empty
+                assert runtime.migration_plan()['empty']
             finally:
                 runtime.closeConnection()
             assert conn.execute("SELECT data_type FROM information_schema.columns WHERE table_schema=%s AND table_name='items' AND column_name='id'", (schema,)).fetchone() == ('integer',)
@@ -50,8 +50,8 @@ def test_native_serial4_keys_and_legacy_integer_adoption(existing):
             for dtype in ('serial4', 'I'):
                 runtime = AsqueelDb(config(dsn, schema, dtype))
                 try:
-                    assert runtime.migration_plan().empty
-                    assert not runtime.migration_plan().skipped
+                    assert runtime.migration_plan()['empty']
+                    assert not runtime.migration_plan()['skipped']
                     runtime.migrate()
                 finally:
                     runtime.closeConnection()

@@ -182,7 +182,7 @@ def test_generated_columns_roundtrip_and_full_record_update(implementation, tmp_
         table.update(dict(old, value=4), old_record=old)
         assert row(table, item['id'])['computed'] == 8
         db.commit()
-        assert db.migration_plan().empty
+        assert db.migration_plan()['empty']
         for write in (table.insert, table.sql_insert, table.sql_update):
             with pytest.raises(ValueError, match='database-generated'):
                 write({'id': item['id'], 'computed': 12})
@@ -282,17 +282,10 @@ def test_generated_expression_changes_require_explicit_migration(implementation,
         db.config.builder.source.get_node('db.packages.app.tables.item.columns.computed').attr[
             'sql_generatedExpression'] = expression
         plan = db.migration_plan()
-        assert not plan.empty and plan.skipped
+        assert not plan['empty'] and plan['skipped']
         with pytest.raises(MigrationError, match='explicit migration required'):
             db.migrate()
         assert table.query('$computed').fetch()[0]['computed'] == 8
-
-
-def test_sqlite_generated_expression_parser_preserves_literals_and_comments():
-    from asqueel.sqlite_migration import generated_expressions
-    expression = "coalesce(\"odd,name\", ') AS (') || '/*text*/'"
-    sql = f'CREATE TABLE x ("odd,name" TEXT, result TEXT AS ({expression}) STORED /* AS (bad) */)'
-    assert generated_expressions(sql) == {'result': expression}
 
 
 def test_generated_columns_on_sqlite_memory():
@@ -306,7 +299,7 @@ def test_generated_columns_on_sqlite_memory():
         db.migrate()
         assert db.table('app.item').insert({'value': 3})['computed'] == 6
         db.commit()
-        assert db.migration_plan().empty
+        assert db.migration_plan()['empty']
     finally:
         db.closeConnection()
 

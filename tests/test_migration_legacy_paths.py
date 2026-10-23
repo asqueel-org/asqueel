@@ -21,7 +21,7 @@ from tests.native_support import postgres_dsn
 def _index_lines(recipe):
     db = AsqueelDb(recipe)
     try:
-        return [line for line in db.migration_plan().commands.splitlines() if 'INDEX' in line]
+        return [line for line in db.migration_plan()['sql'].splitlines() if 'INDEX' in line]
     finally:
         db.closeConnection()
 
@@ -153,7 +153,7 @@ def test_backup_with_removals_keeps_the_backup_column_and_returns_the_warning(pg
     columns = sorted(row[0] for row in connection.execute(
         'SELECT column_name FROM information_schema.columns WHERE table_schema=%s', (schema,)))
     assert columns == ['happened', 'happened__T', 'id']
-    assert any('1 value(s) not converted' in warning and 'happened__T' in warning for warning in plan.warnings)
+    assert any('1 value(s) not converted' in warning and 'happened__T' in warning for warning in plan['warnings'])
 
 
 @pytest.mark.postgresql

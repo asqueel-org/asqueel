@@ -59,12 +59,12 @@ def run_migration(db, operation, *, allow_removals=False, foreignKeys=True, forc
     """Print the plan; on apply, migrate and confirm. Errors reach ``main``."""
     options = dict(allow_removals=allow_removals, foreignKeys=foreignKeys, force=force, backup=backup)
     plan = db.migration_plan(**options) if operation == 'plan' else db.migrate(**options)
-    for warning in plan.warnings:
+    for warning in plan['warnings']:
         write_line(f'Warning: {warning}', file=sys.stderr)
-    if plan.empty:
+    if plan['empty']:
         write_line('No changes.')
         return 0
-    write_line(plan.commands)
+    write_line(plan['sql'])
     if operation == 'apply':
         write_line('Migration applied. No remaining commands under the selected removal policy.')
     return 0

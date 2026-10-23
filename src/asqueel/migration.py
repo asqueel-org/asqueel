@@ -30,10 +30,9 @@ Two grammar conveniences become real entities here:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
 import json
 
-from asqueel_migration import PgDatabase, SqlMigrator, StructureValidator
+from asqueel_migration import StructureValidator, apply_migration, database_for, plan_migration
 from asqueel_migration.exceptions import SqlMigrationError
 from asqueel_migration.structures import (
     COL_JSON_KEYS,
@@ -51,8 +50,6 @@ from genro_builders.renderer import RendererBase
 from .configuration import connection_settings
 from .contracts import UnsupportedFeatureError
 from .errors import MigrationError
-from ._memory_migration import MemoryDatabase
-from .sqlite_migration import SqliteMigrationDatabase
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
 from .common import default_index_name, indexed_attributes, package_sqlschema, table_sqlname
 from .common import SQL_ACTIONS, SQL_COLUMN_KEYS, sql_column_attributes
@@ -373,97 +370,61 @@ __all__ = ["SqlMigrationRenderer"]
 # Plan and apply a migration against the live database
 # ---------------------------------------------------------------------------
 
-#: Prefix asqueel-migration gives a change the backend cannot apply
-#: (``CommandBuilder.unsupported``). Matched as text until asqueel-migration
-#: reports skipped changes as data; the dependency upper bound keeps it stable.
-_SKIPPED_PREFIX = "unsupported '"
-
-
-@dataclass(frozen=True)
-class MigrationPlan:
-    """The DDL that brings a live database to its model, computed against that database.
-
-    ``skipped`` lists the changes the backend cannot apply (for example a
-    column type change on SQLite); ``warnings`` includes them.
-    """
-
-    commands: str
-    warnings: tuple[str, ...]
-    skipped: tuple[str, ...]
-
-    @property
-    def empty(self) -> bool:
-        # Preserve the existing empty-DDL contract for SQLite's serial/I
-        # introspection drift, while generated-expression changes cannot be
-        # reported as aligned merely because the backend emitted no SQL.
-        return not self.commands.strip() and not any('alter_generated_expression' in item for item in self.skipped)
-
-
-def migration_plan(db, *, allow_removals=False, foreignKeys=True, force=False, backup=False) -> MigrationPlan:
+def migration_plan(db, *, allow_removals=False, foreignKeys=True, force=False, backup=False) -> dict:
     """Compare ``db.model`` with the live database and return the plan; change nothing.
 
-    ``foreignKeys=False`` projects no foreign key, the relation indexes stay;
-    ``force`` converts a filled column whose values may not convert (they
-    become NULL) and ``backup`` keeps the old values in ``<column>__<old dtype>``
-    (it implies ``force``), as the legacy migration options.
+    The plan is the dict of :func:`asqueel_migration.plan_migration`:
+    ``sql``, ``warnings``, ``skipped`` (the changes the backend cannot apply,
+    also in ``warnings``) and ``empty``. ``foreignKeys=False`` projects no
+    foreign key, the relation indexes stay; ``force`` converts a filled column
+    whose values may not convert (they become NULL) and ``backup`` keeps the
+    old values in ``<column>__<old dtype>`` (it implies ``force``), as the
+    legacy migration options.
     """
-    migrator = _prepared_migrator(db, allow_removals=allow_removals, foreignKeys=foreignKeys,
-                                  force=force, backup=backup)
+    database, desired = _migration_target(db, foreignKeys)
     try:
-        return _plan_of(migrator)
-    finally:
-        migrator.db.closeConnection()
-
-
-def migrate(db, *, allow_removals=False, foreignKeys=True, force=False, backup=False) -> MigrationPlan:
-    """Apply the plan and return it; the options are those of :func:`migration_plan`.
-
-    Refuses before any DDL when the plan has skipped changes. With ``backup``,
-    every backup column that keeps lost values adds a warning to the returned
-    plan. After applying, compares again and raises :class:`MigrationError` if
-    differences remain.
-    """
-    migrator = _prepared_migrator(db, allow_removals=allow_removals, foreignKeys=foreignKeys,
-                                  force=force, backup=backup)
-    kept_backups = []
-    try:
-        plan = _plan_of(migrator)
-        if plan.skipped:
-            raise MigrationError('The backend cannot apply these changes: ' + '; '.join(plan.skipped))
-        if not plan.empty:
-            migrator.applyChanges()
-            if backup:
-                lost = []
-                for column, report in migrator.verifyConversionBackups().items():
-                    kept_backups.append(report['backup_column'])
-                    if 'error' in report:
-                        lost.append(f"{column}: conversion not verified ({report['error']}), "
-                                    f"kept in backup column {report['backup_column']}")
-                    else:
-                        lost.append(f"{column}: {report['lost_values']} value(s) not converted, "
-                                    f"kept in backup column {report['backup_column']}")
-                plan = replace(plan, warnings=plan.warnings + tuple(lost))
+        return plan_migration(database, desired, allow_removals=allow_removals, force=force, backup=backup)
     except SqlMigrationError as error:
         raise MigrationError(str(error)) from error
     finally:
-        migrator.db.closeConnection()
-    # The removals were applied above; with a backup column kept, the only removal left
-    # would drop it, so the re-check runs without removals.
-    remaining = migration_plan(db, allow_removals=allow_removals and not kept_backups,
-                               foreignKeys=foreignKeys)
-    if not remaining.empty:
-        raise MigrationError('Migration applied, but differences remain:\n' + remaining.commands)
-    return plan
+        database.closeConnection()
 
 
-def _plan_of(migrator) -> MigrationPlan:
-    warnings = tuple(migrator.warnings)
-    skipped = tuple(warning for warning in warnings if warning.startswith(_SKIPPED_PREFIX))
-    return MigrationPlan(migrator.getChanges(), warnings, skipped)
+def migrate(db, *, allow_removals=False, foreignKeys=True, force=False, backup=False) -> dict:
+    """Apply the plan and return the result; the options are those of :func:`migration_plan`.
+
+    The result is the dict of :func:`asqueel_migration.apply_migration`.
+    Refuses before any DDL when the plan has skipped changes. With ``backup``,
+    every backup column that keeps lost values adds a warning to the result.
+    After applying, raises :class:`MigrationError` if differences remain.
+    """
+    database, desired = _migration_target(db, foreignKeys)
+    options = dict(allow_removals=allow_removals, force=force, backup=backup)
+    try:
+        plan = plan_migration(database, desired, **options)
+        if plan['skipped']:
+            raise MigrationError('The backend cannot apply these changes: ' + '; '.join(plan['skipped']))
+        result = apply_migration(database, desired, expected_plan=plan['plan_id'], **options)
+    except SqlMigrationError as error:
+        raise MigrationError(str(error)) from error
+    finally:
+        database.closeConnection()
+    for column, report in result['backups'].items():
+        if 'error' in report:
+            result['warnings'].append(f"{column}: conversion not verified ({report['error']}), "
+                                      f"kept in backup column {report['backup_column']}")
+        else:
+            result['warnings'].append(f"{column}: {report['lost_values']} value(s) not converted, "
+                                      f"kept in backup column {report['backup_column']}")
+    # Not ``verified``: on SQLite a serial pkey reads back as a skipped
+    # alter_column_type with no SQL, which the previous check accepted too.
+    if not result['remaining']['empty']:
+        raise MigrationError('Migration applied, but differences remain:\n' + result['remaining']['sql'])
+    return result
 
 
-def _prepared_migrator(db, *, allow_removals, foreignKeys, force, backup):
-    """Project the model and prepare the backend migrator, its commands computed."""
+def _migration_target(db, foreignKeys):
+    """Render the migration structure and open the database facade of ``db``."""
     implementation, conninfo, kwargs = connection_settings(db.config)
     # 'name:module' names the implementation before the colon, as legacy.
     implementation = implementation.partition(':')[0]
@@ -484,22 +445,13 @@ def _prepared_migrator(db, *, allow_removals, foreignKeys, force, backup):
     schemas = sorted(desired['root']['schemas'])
     if not schemas or not db.model.tables:
         raise MigrationError('Declare at least one nonempty managed schema before migrating')
+    connection = None
     if implementation == 'sqlite' and params['dbname'] == ':memory:':
-        database = MemoryDatabase(db, schemas)
-    else:
-        database_class = SqliteMigrationDatabase if implementation == 'sqlite' else PgDatabase
-        database = database_class(params, application_schemas=schemas)
-    migrator = SqlMigrator(database, ignore_constraint_name=True, removeDisabled=not allow_removals,
-                           force=force, backup=backup)
-    migrator.ormStructure = desired
-    try:
-        migrator.prepareMigrationCommands()
-        from .generated_migration import check_generated_changes
-        check_generated_changes(migrator, implementation)
-    except SqlMigrationError as error:
-        database.closeConnection()
-        raise MigrationError(str(error)) from error
-    except BaseException:
-        database.closeConnection()
-        raise
-    return migrator
+        # A private :memory: database exists only on the application's connection.
+        db._check_idle()
+        state = db._connection_state
+        if state['connection'] is None:
+            app_conninfo, app_kwargs = db._connection_settings()
+            state['connection'] = db.adapter.connect(app_conninfo, **app_kwargs)
+        connection = state['connection']
+    return database_for(implementation, params, application_schemas=schemas, connection=connection), desired

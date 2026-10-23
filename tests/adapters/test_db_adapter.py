@@ -85,7 +85,7 @@ def test_external_module_is_classified_by_its_implementation_name(tmp_path):
         assert isinstance(database.adapter, SqliteAdapter)
         assert database.model.table('app.item').sqlschema == 'main'
         plan = database.migration_plan()
-        assert 'CREATE TABLE' in plan.commands
+        assert 'CREATE TABLE' in plan['sql']
     finally:
         database.closeConnection()
 

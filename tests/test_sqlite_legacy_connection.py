@@ -169,6 +169,6 @@ def test_a_database_created_with_the_earlier_type_names_needs_no_migration(tmp_p
     db = AsqueelDb(_recipe(path))
     try:
         plan = db.migration_plan()
-        assert 'item' not in plan.commands
+        assert 'item' not in plan['sql']
     finally:
         db.closeConnection()

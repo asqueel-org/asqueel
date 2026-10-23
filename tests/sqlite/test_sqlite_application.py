@@ -121,7 +121,7 @@ def test_sqlite_cli_reuses_existing_migrator_and_file_layout(tmp_path):
         db.table('app.item').insert({'id': 1, 'name': 'migrated'})
         db.commit()
         assert observed(path) == [(1, 'migrated')]
-        assert db.migration_plan().empty
+        assert db.migration_plan()['empty']
     finally:
         db.closeConnection()
 

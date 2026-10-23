@@ -22,17 +22,21 @@ from asqueel import AsqueelDb, MigrationError
 db = AsqueelDb(ChatArchive)
 
 plan = db.migration_plan()       # compares the model with the live database; changes nothing
-print(plan.commands)             # the DDL that migrate() would run
-print(plan.warnings)             # backend warnings, including skipped changes
-print(plan.skipped)              # changes the backend cannot apply
+print(plan['sql'])               # the DDL that migrate() would run
+print(plan['warnings'])          # backend warnings, including skipped changes
+print(plan['skipped'])           # changes the backend cannot apply
 
-db.migrate()                     # applies the plan and returns it
+db.migrate()                     # applies the plan and returns the result
 ```
 
-`migrate()` refuses before running any DDL when `plan.skipped` is not empty, for
-example a column type change on SQLite. After applying, it compares the model
-with the database again and raises `MigrationError` if differences remain. On an
-up-to-date database it returns an empty plan (`plan.empty`).
+The plan is the dict of `asqueel_migration.plan_migration()`; the result of
+`migrate()` is the dict of `asqueel_migration.apply_migration()`, with the same
+keys plus `execution`, `backups`, `verified` and `remaining`.
+
+`migrate()` refuses before running any DDL when `plan['skipped']` is not empty,
+for example a column type change on SQLite. After applying, it compares the
+model with the database again and raises `MigrationError` if differences remain.
+On an up-to-date database `plan['empty']` is true.
 
 Both methods work for every way of building an `AsqueelDb`, including a database
 declared in a host configuration (`AsqueelDb(node)`, see
@@ -53,11 +57,11 @@ both methods:
   convert become NULL. Without it, such a conversion raises `MigrationError`.
 - `backup=True` implies `force` and first copies the column into
   `<column>__<old dtype>`. After applying, a backup column without lost values
-  is dropped; a kept one adds a warning to the returned plan.
+  is dropped; a kept one adds a warning to the returned result.
 
 ```python
-plan = db.migrate(backup=True)
-for warning in plan.warnings:
+result = db.migrate(backup=True)
+for warning in result['warnings']:
     print(warning)   # app.event.happened: 1 value(s) not converted, kept in backup column happened__T
 ```
 
@@ -102,7 +106,7 @@ product.column("code", size=":10")
 product.column("name", size=":60")
 
 db = AsqueelDb(model)
-print(db.migrate().commands)
+print(db.migrate()['sql'])
 products = db.table("shop.product")
 products.insert({"code": "TEA", "name": "Tea"})
 db.commit()
@@ -118,7 +122,7 @@ builder, explicitly reload the model, then migrate the same database:
 product.column("category", size=":30")
 product.column("stock", dtype="I")
 db.reloadModel(model)
-print(db.migrate().commands)
+print(db.migrate()['sql'])
 
 products = db.table("shop.product")  # Fresh handle for the new model.
 products.update({"category": "Drinks", "stock": 8}, pkey="TEA")
@@ -304,7 +308,7 @@ See [Models](models.md) for application declarations.
 
 `dtype="serial"` retains its existing 64-bit BIGSERIAL meaning. The additive
 `dtype="serial4"` declaration requests a 32-bit PostgreSQL SERIAL key. Native
-migration requires `asqueel-migration>=0.3.1,<0.4`, required by the core's
+migration requires `asqueel-migration>=0.3.5`, required by the core's
 `migration` and `dev` extras. Published migration 0.2.2 includes `serial4` support.
 
 With the updated migration engine, a populated SERIAL4 column declared as
@@ -315,8 +319,9 @@ separate explicit migration, tracked in
 [asqueel-migration #27](https://github.com/asqueel-org/asqueel-migration/issues/27).
 
 
-SQLite generated columns are introspected through `table_xinfo`, including
-in-memory databases. Changes to an existing generated expression are reported
+asqueel-migration introspects generated columns: on SQLite through
+`table_xinfo`, including in-memory databases, on PostgreSQL through
+`information_schema.columns`. Changes to an existing generated expression are reported
 as skipped work, so the plan is not empty and `migrate()` refuses before DDL.
 Apply an explicit migration for these changes. PostgreSQL compares the actual
 catalog expression with the model through planner normalization.

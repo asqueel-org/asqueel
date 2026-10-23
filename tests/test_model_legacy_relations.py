@@ -54,7 +54,7 @@ def test_cnd_relation_projects_no_foreign_key(tmp_path):
     config, pkg, customer = package()
     config.source.get_node('db').value.get_node('connection').attr['database'] = str(tmp_path / 'cnd.db')
     invoice(pkg, cnd='$ccode = @customer_id.code')
-    commands = AsqueelDb(config).migration_plan().commands
+    commands = AsqueelDb(config).migration_plan()['sql']
     assert 'FOREIGN KEY' not in commands.upper()
 
 

@@ -63,7 +63,8 @@ class AsqueelDb(WriteMixin):
     def migration_plan(self, *, allow_removals=False, foreignKeys=True, force=False, backup=False):
         """The DDL that would bring the live database to this model; changes nothing.
 
-        Needs ``asqueel[migration]``. Returns a :class:`~asqueel.migration.MigrationPlan`.
+        Needs ``asqueel[migration]``. Returns the plan of
+        :func:`asqueel_migration.plan_migration` (``sql``, ``warnings``, ``skipped``, ``empty``).
         ``foreignKeys``, ``force`` and ``backup`` are the legacy migration options
         (:func:`asqueel.migration.migration_plan`).
         """
@@ -73,7 +74,7 @@ class AsqueelDb(WriteMixin):
                               force=force, backup=backup)
 
     def migrate(self, *, allow_removals=False, foreignKeys=True, force=False, backup=False):
-        """Bring the live database to this model and return the applied plan.
+        """Bring the live database to this model and return the result of the applied plan.
 
         Needs ``asqueel[migration]``. Raises :class:`~asqueel.migration.MigrationError`
         before any DDL when the backend cannot apply a change, and after applying
