@@ -3,7 +3,7 @@
 
 from asqueel_migration.structures import json_equal
 
-from asqueel import SqlBuilder, SqlMigrationRenderer, SqlPythonEmitter
+from asqueel import SqlBuilder
 from asqueel.catalog import SqlModelCatalog
 
 
@@ -77,11 +77,11 @@ def test_shared_catalog_preserves_every_existing_boundary():
         "db.schemas.public.tables.invoice.columns.customer_id.relation_0",
     ]
 
-    rendered = SqlMigrationRenderer(model).render()
-    emitted = SqlPythonEmitter(model).emit()
-    assert emitted == SqlPythonEmitter(model).emit()
+    rendered = model.render(mode='migration')
+    emitted = model.render(mode='python')
+    assert emitted == model.render(mode='python')
     namespace = {}
     exec(compile(emitted, "<catalog-recipe>", "exec"), namespace)
     rebuilt = namespace["ImportedDatabase"]()
     rebuilt.create()
-    assert json_equal(rendered, SqlMigrationRenderer(rebuilt).render())
+    assert json_equal(rendered, rebuilt.render(mode='migration'))

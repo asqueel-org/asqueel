@@ -190,8 +190,7 @@ def generate_grammar_md() -> str:
         "",
         "Element signatures are **closed**: an attribute the signature does "
         "not declare raises. An element accepts only the attribute families "
-        "its declaration names (`validate_*`, `var_*`, `select_*`, `col_*`), "
-        "and `validation(**rules)` keeps its rules as data.",
+        "its declaration names (`validate_*`, `var_*`, `select_*`, `col_*`).",
         "",
         "## Hierarchy",
         "",
@@ -240,8 +239,6 @@ def generate_grammar_md() -> str:
                                       if projections else "none declared")
         )
         out.append(
-            "- Extra keys: preserved as validation data without rule-specific checks"
-            if tag == 'validation' else
             "- Extra keys: " + ", ".join(f"`{family}*`" for family in families)
             if families
             else "- Extra keys: not accepted"

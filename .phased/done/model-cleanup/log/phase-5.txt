@@ -1,0 +1,8 @@
+La Phase 5 resta chiusa `[!]` con il commit `92bc96b`, e non faccio un terzo tentativo.
+
+- **Tentativi esauriti:** la skill ammette al massimo due tentativi di correzione e vieta esplicitamente il terzo. Entrambi i tentativi sono registrati in `> Attempted:`.
+- **Plan-defect claim:** il passo 4 della skill dice cosa fare quando i due tentativi falliscono contro una premessa del piano. L'`> Issue:` va scritto come plan-defect claim, con la modifica proposta nella forma testo attuale → testo proposto. Il `> Issue:` è scritto così.
+- **Perché non `[x]`:** chiuderla `[x]` richiederebbe di modificare i 2 test ancora rossi. Il `Done:` lo vieta: ammette solo i riallineamenti legati a `sqlname`.
+- **Perché non un'altra correzione al renderer:** per far passare quei test il renderer dovrebbe non chiamare `prepare_source` e leggere il modello live. Sono due scelte contrarie alle decisioni della fase.
+
+Tocca a chi ha scritto il piano accettare o respingere il claim. Le altre fasi non hanno cambiato stato.

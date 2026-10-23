@@ -4,7 +4,7 @@ import sqlite3
 import psycopg
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from tests.native_support import postgres_dsn
@@ -87,7 +87,7 @@ def model(backend):
         for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
-        database = build_database(config)
+        database = AsqueelDb(config)
         try:
             yield database
             assert database._connections == {}

@@ -40,3 +40,11 @@ class FakeCursor:
 
     def close(self):
         pass
+
+
+def empty_database(conninfo='', *, implementation='sqlite', connect_kwargs=None, environment=None):
+    """An AsqueelDb with a db node and no packages: the execution layer without a model."""
+    from asqueel import AsqueelDb, SqlDatabaseConfig
+    config = SqlDatabaseConfig()
+    config.source.db('db', implementation=implementation, conninfo=conninfo, connect_kwargs=connect_kwargs)
+    return AsqueelDb(config, environment=environment)

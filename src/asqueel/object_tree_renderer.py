@@ -3,40 +3,41 @@ from copy import deepcopy
 
 from genro_builders.renderer import RendererBase
 
-from .configuration import _effective_model_builder, _owned_handler
 from .model_source import prepare_source
 from .object_tree import DbModel, _Fragment
 
 
-class SqlObjectTreeRenderer(RendererBase):
-    mode = 'objects_tree'
+def prepare_render_source(renderer):
+    """The prepared, validated copy of the renderer's composed recipe, without connection nodes.
+
+    Every renderer of the source starts from it, so options and package rules
+    act the same way for the live model and for the migration structure. The
+    composed recipe the database keeps is not mutated.
+    """
+    db = renderer.builder.source.get_node('db')
+    connection = db.value.get_node('connection') if db.value is not None else None
+    implementation = ((connection.get_attr('implementation') if connection is not None else None)
+                      or db.get_attr('implementation') or 'sqlite')
+    prepared = prepare_source(renderer.builder, implementation=implementation, options_first=True)
+    prepared.validate_model()
+    root = prepared.source.get_node('db').value
+    for node in list(root or ()):
+        if node.node_tag == 'connection':
+            root.pop_node(node.label)
+    renderer.add_render(prepared, renderer)
+    # Mounted SQL grammars supply their own defaults and node semantics.
+    # Their nodes are rendered by the same renderer, not by a renderer of their own.
+    for _, node in prepared.source.query('#p,#n', deep=True):
+        renderer.add_render(node.builder, renderer)
+    return prepared.source
+
+
+class SqlObjectRenderer(RendererBase):
+    mode = 'objects'
     render_type = 'object'
 
-    def __init__(self, builder, *, config=None):
-        super().__init__(builder)
-        self.config = config
-
     def preprocess(self, source):
-        # Reuse the agreed source expansions, not resolve_model or SqlDatabase.
-        # Work on an owned recipe: neither render can mutate the authored source.
-        if self.config is None:
-            self.config = _owned_handler(self.builder)
-        builder = _effective_model_builder(self.config)
-        builder.source.get_node('db').attr['implementation'] = (
-            self.config('connection.implementation', default=None)
-            or self.config('implementation', default='sqlite'))
-        self.prepared = prepare_source(builder, options_first=True)
-        self.prepared.validate_model()
-        root = self.prepared.source.get_node('db').value
-        for node in list(root or ()):
-            if node.node_tag == 'connection':
-                root.pop_node(node.label)
-        self.add_render(self.prepared, self)
-        # Mounted SQL grammars supply their own defaults and node semantics.
-        # Their nodes use this object output mode too, not a string renderer.
-        for _, node in self.prepared.source.query('#p,#n', deep=True):
-            self.add_render(node.builder, self)
-        return self.prepared.source
+        return prepare_render_source(self)
 
     def rendered_item(self, node, item, runtime_attrs, *, tag, **opts):
         children = list(item) if isinstance(item, list) else []
@@ -51,20 +52,16 @@ class SqlObjectTreeRenderer(RendererBase):
                          physical_column=bool(node._get_meta('projects_column')))
 
     def finalize(self, result, target=None, **opts):
-        if target is not None:
-            raise ValueError('Object tree rendering returns its model; targets are unsupported')
+        from .application import AsqueelDb
+        if not isinstance(target, AsqueelDb):
+            raise TypeError('Object rendering builds the model into a database: use AsqueelDb(recipe)')
         fragments = result if isinstance(result, list) else [result]
         if len(fragments) != 1 or fragments[0].tag != 'db':
-            raise ValueError('Object tree rendering requires exactly one database root')
+            raise ValueError('Object rendering requires exactly one database root')
         # Objects are constructed here, parent before children. The base walk
         # collected fragments only and has not initialized any model object.
         # Builders may use different renderer instances for materialize/finalize.
         # The fragment retains its owned source; finalize needs no walk state.
-        return DbModel(fragments[0], source=fragments[0].node.parent_bag)
-
-
-def render_model(config):
-    """Build from the already-owned configuration using the generic walk once."""
-    renderer = SqlObjectTreeRenderer(config.builder, config=config)
-    source = renderer.preprocess(config.builder.source)
-    return renderer.finalize(renderer.render_children(source))
+        target.model = DbModel(target)
+        target.model.build(fragments[0])
+        return target

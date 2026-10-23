@@ -7,7 +7,7 @@ from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict
 import pytest
 
-from asqueel import build_database
+from asqueel import AsqueelDb
 from asqueel.cli import main
 from tests.native_support import postgres_dsn
 from tests.documentation.test_examples import python_blocks
@@ -49,7 +49,7 @@ def test_cli_creates_database_and_reuses_registered_configuration(tmp_path, monk
                 db.table('sales.customer').insert({'id': 3, 'name': 'Pending on exit'})
             monkeypatch.setattr('asqueel.cli.code.interact', console)
             assert main(['shell', 'gestionale']) == 0
-            db = build_database('gestionale')
+            db = AsqueelDb('gestionale')
             try:
                 rows = db.table('sales.customer').query(columns='$id', order_by='$id').fetch()
                 assert [row['id'] for row in rows] == [1, 2]

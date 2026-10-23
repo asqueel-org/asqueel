@@ -70,8 +70,6 @@ class _TableExpansion:
                     if key in previous and key in attributes and previous[key] != attributes[key]:
                         raise ValueError(f'{self.key}.{name}: conflicts with {reason} {key}')
         data = {**attributes, **previous, **structure}
-        if kind == 'formulaColumn':
-            data['x_requires_compilation'] = 'formulaColumn'
         declared = self.builder._get_schema_info(kind).get('declared_names') or set()
         generated = {key: data.pop(key) for key in list(data)
                      if key not in declared and not in_attribute_family(self.builder, kind, key)}
@@ -130,7 +128,7 @@ class _TableExpansion:
         if spec['group'] and spec['group_name']:
             self.table_default(**{f'group_{group}': spec['group_name']})
         definitions = {
-            'id': ('id', 'A', 'Id', {'size': '22', 'read_only': True,
+            'id': ('id', 'A', 'Id', {'size': '22', 'readOnly': True,
                 'x_generation': {'type': 'uuid', 'algorithm': 'legacy22'}, **_legacy(_sendback=True)}),
             'ins': ('__ins_ts', 'DHZ', 'Insert date', {'indexed': True, **_legacy(onInserting='setTSNow')}),
             'ldel': ('__del_ts', 'DHZ', 'Logical delete date', {'indexed': True}),

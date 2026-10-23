@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from genro_bag.resolvers import EnvResolver
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.cli import main
 from asqueel.configuration import connection_settings
 from asqueel.registry import DatabaseRegistry
@@ -18,7 +18,7 @@ def test_registry_loads_recipe_from_another_directory_without_secrets(tmp_path, 
     monkeypatch.setenv('PGPORT', '5432')
     assert main(['register', 'demo', str(EXAMPLE)]) == 0
     monkeypatch.chdir(tmp_path)
-    db = build_database('demo')
+    db = AsqueelDb('demo')
     try:
         assert len(db.model.tables) == 6
         assert connection_settings(db.config)[2]['password'] == 'do-not-store-this'
@@ -58,14 +58,14 @@ def test_connection_resolvers_and_override_layer_use_the_same_read_stack(monkeyp
     monkeypatch.setenv('ASQUEEL_TEST_NAME', 'physical')
     monkeypatch.setenv('ASQUEEL_TEST_PORT', '55584')
     monkeypatch.setenv('ASQUEEL_TEST_PASSWORD', 'secret')
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     try:
         _, dsn, kwargs = connection_settings(db.config)
         assert dsn == ''
         assert kwargs == {'dbname': 'physical', 'port': 55584, 'password': 'secret'}
     finally:
         db.closeConnection()
-    db = build_database(Overlay, parents=[Recipe])
+    db = AsqueelDb(Overlay, parents=[Recipe])
     try:
         assert connection_settings(db.config)[2] == {
             'dbname': 'deployment', 'port': 55584, 'password': 'secret'}
@@ -78,7 +78,7 @@ def test_mixed_connection_forms_are_rejected():
         def main(self, root):
             root.db(implementation='postgres', conninfo='dbname=old').connection(name='new')
     with pytest.raises(ValueError, match='not both'):
-        build_database(Recipe)
+        AsqueelDb(Recipe)
 
 
 def test_check_is_offline_and_does_not_expose_invalid_secret(tmp_path, monkeypatch, capsys):
@@ -138,7 +138,7 @@ def test_missing_connection_name_and_invalid_resolved_type_are_rejected(monkeypa
 
     monkeypatch.delenv('ASQUEEL_MISSING_DB_NAME', raising=False)
     with pytest.raises(ValueError, match='nonempty database name'):
-        build_database(Missing)
+        AsqueelDb(Missing)
 
     class Invalid(SqlDatabaseConfig):
         def main(self, root):
@@ -146,12 +146,12 @@ def test_missing_connection_name_and_invalid_resolved_type_are_rejected(monkeypa
 
     monkeypatch.setenv('ASQUEEL_BAD_PORT', 'not-an-integer')
     with pytest.raises(ValueError, match='invalid type'):
-        build_database(Invalid)
+        AsqueelDb(Invalid)
 
 
 def test_asqueel_db_is_a_real_persistent_class_with_owned_handles(tmp_path, monkeypatch):
     import psycopg
-    from asqueel import AsqueelDb, SqlDatabase
+    from asqueel import AsqueelDb
 
     def forbidden(*args, **kwargs):
         raise AssertionError('Constructing AsqueelDb must not connect')
@@ -163,7 +163,7 @@ def test_asqueel_db_is_a_real_persistent_class_with_owned_handles(tmp_path, monk
     db = AsqueelDb('shop')
     try:
         assert type(db) is AsqueelDb
-        assert isinstance(db, SqlDatabase)
+        assert isinstance(db, AsqueelDb)
         assert db.table('sales.invoice').db is db
         assert db.table('sales.invoice').rows_query(7).compiled.params == {'invoice_id': 7}
         assert not db._connections
@@ -180,7 +180,7 @@ def test_asqueel_db_supports_subclassing_and_compatibility_factory(monkeypatch):
 
     monkeypatch.setenv('PGPORT', '5432')
     db = ApplicationDb(EXAMPLE)
-    legacy = build_database(EXAMPLE)
+    legacy = AsqueelDb(EXAMPLE)
     try:
         assert db.customers().db is db
         assert isinstance(legacy, AsqueelDb)

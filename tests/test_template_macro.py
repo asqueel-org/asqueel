@@ -4,7 +4,7 @@ import sqlite3
 import psycopg
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.native_support import postgres_dsn
 
 LABEL = "#TEMPLATE('${n} - ${s} (${c})', $name AS n, $surname AS s, @city_id.name AS c)"
@@ -50,7 +50,7 @@ def connection(backend):
 
 @pytest.fixture(scope='module')
 def model(backend):
-    database = build_database(source(backend))
+    database = AsqueelDb(source(backend))
     try:
         yield database
     finally:

@@ -41,15 +41,16 @@ mapping. Environment bindings are checked before execution.
 
 ## Execution without a model
 
-`Database(implementation=...)` and `PostgresDatabase(...)` remain available for callers
-that only execute statements. Their implementation is the same execution base
-used by the configured DB: lazy named connections, thread-local state, and
-explicit `commit()` / `rollback()`.
+A caller that only executes statements builds an `AsqueelDb` from a recipe
+that declares the `db` node and no package. It has the same lazy named
+connections, thread-local state and explicit `commit()` / `rollback()`.
 
 ```python
-from asqueel import PostgresDatabase
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
-db = PostgresDatabase('dbname=example')
+config = SqlDatabaseConfig()
+config.source.db('example', implementation='postgres', conninfo='dbname=example')
+db = AsqueelDb(config)
 try:
     rows = db.execute('SELECT :value AS value', {'value': 42}).fetchall()
     db.commit()
@@ -61,9 +62,8 @@ There is no `transaction()` API. Unlike the former low-level runtime, `execute()
 does not open, commit and close a separate connection on every call. Callers
 migrating from that API must add explicit completion.
 
-An explicitly supplied `SqlEnvironment` can be shared between a standalone
-compiler and this execution facade. `AsqueelDb` instead copies its supplied
-environment into per-thread defaults. Savepoints and automatic retry are not
+`AsqueelDb(source, environment={...})` copies the supplied mapping into
+per-thread defaults. Savepoints and automatic retry are not
 provided.
 
 ## Maintenance calls
@@ -82,3 +82,12 @@ provided.
 
 See [transactions and database access](transactions.md) for errors, callbacks,
 cleanup and connection selection.
+
+### Parameter recognition in 0.7.0
+
+A colon inside a SQL string, quoted identifier or comment is literal text:
+`'doc:xyz' || :value` binds only `value`. The same rule applies inside formula
+scopes and to `:env_name`. PostgreSQL dollar-quoted and `E` strings and nested
+block comments are recognized; SQLite bracket/backtick identifiers are recognized.
+Ordinary PostgreSQL strings assume `standard_conforming_strings=on`; use `E` for
+backslash escapes. The historical `\:` escape remains supported.

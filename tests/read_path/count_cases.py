@@ -1,10 +1,10 @@
 """Reusable count assertions executed by the public terminal tests."""
 
-def test_count_uses_the_current_environment(shop, statements):
+def test_count_uses_the_environment(shop, statements):
     query = shop.query(columns='$id', where='$customer_id IN :env_customers')
-    with shop.db.temp_env(customers=[1]):
+    with shop.db.tempEnv(customers=[1]):
         assert query.count() == 2
-    with shop.db.temp_env(customers=[1, 2, 3]):
+    with shop.db.tempEnv(customers=[1, 2, 3]):
         assert query.count() == 4
 
 def test_count_does_not_commit(shop, statements):

@@ -1,7 +1,7 @@
 """Compiler contracts proven independently of PostgreSQL SQL and binding syntax."""
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.write_compiler import WriteCompiler
 
 
@@ -17,7 +17,7 @@ def db():
     invoice.column('customer_id').relation('app.customer.id')
     invoice.column('amount', dtype='N')
     invoice.formulaColumn('double', '$amount * 2', dtype='N')
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         yield database
     finally:

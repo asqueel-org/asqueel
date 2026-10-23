@@ -15,7 +15,7 @@ import pytest
 from asqueel_migration import JsonStructureProducer, StructureValidator
 from asqueel_migration.structures import DTYPE_CODES, json_equal
 
-from asqueel import SqlBuilder, SqlMigrationRenderer
+from asqueel import SqlBuilder
 from asqueel import elements
 from asqueel.common import SQL_ACTIONS
 from asqueel.validators import SqlModelValidationError
@@ -119,7 +119,7 @@ GOLDEN_HUMAN_JSON = {
 def _render():
     model = GoldenRecipe()
     model.create()
-    return SqlMigrationRenderer(model).render()
+    return model.render(mode='migration')
 
 
 def test_golden_convergence_with_json_twin():
@@ -142,8 +142,7 @@ def test_semantic_plane_never_reaches_the_json():
 def test_render_returns_a_fresh_structure_each_call():
     model = GoldenRecipe()
     model.create()
-    renderer = SqlMigrationRenderer(model)
-    first, second = renderer.render(), renderer.render()
+    first, second = model.render(mode='migration'), model.render(mode='migration')
     assert first is not second
     assert json_equal(first, second)
 
@@ -162,7 +161,7 @@ def test_virtual_columns_do_not_project():
 
     model = WithVirtuals()
     model.create()
-    cols = SqlMigrationRenderer(model).render()["root"]["schemas"]["s"][
+    cols = model.render(mode='migration')["root"]["schemas"]["s"][
         "tables"]["t"]["columns"]
     assert set(cols) == {"id"}
 
@@ -190,7 +189,7 @@ def test_composite_relation_projects_multicolumn_fk():
 
     model = CompositeFk()
     model.create()
-    rels = SqlMigrationRenderer(model).render()["root"]["schemas"]["geo"][
+    rels = model.render(mode='migration')["root"]["schemas"]["geo"][
         "tables"]["address"]["relations"]
     (rel,) = rels.values()
     assert rel["attributes"]["columns"] == ["c1", "c2"]
@@ -212,7 +211,7 @@ def test_composite_unique_projects_unique_constraint():
 
     model = CompositeUq()
     model.create()
-    constraints = SqlMigrationRenderer(model).render()["root"]["schemas"][
+    constraints = model.render(mode='migration')["root"]["schemas"][
         "s"]["tables"]["t"]["constraints"]
     (cst,) = constraints.values()
     assert cst["attributes"]["constraint_type"] == "UNIQUE"
@@ -230,7 +229,7 @@ def test_indexed_true_materializes_an_index_item():
 
     model = Indexed()
     model.create()
-    table = SqlMigrationRenderer(model).render()["root"]["schemas"]["s"][
+    table = model.render(mode='migration')["root"]["schemas"]["s"][
         "tables"]["t"]
     assert "indexed" not in table["columns"]["email"]["attributes"]
     assert any(
@@ -269,7 +268,7 @@ def test_duplicate_unique_structural_keys_are_loud():
         name="uq_two", constraint_type="UNIQUE", columns="code",
     )
     with pytest.raises(SqlModelValidationError, match="duplicate UNIQUE"):
-        SqlMigrationRenderer(model).render()
+        model.render(mode='migration')
 
 
 def test_duplicate_index_structural_keys_are_loud():
@@ -286,4 +285,4 @@ def test_duplicate_index_structural_keys_are_loud():
     indexes.index(name="ix_one", columns="code")
     indexes.index(name="ix_two", columns="code", where="code IS NOT NULL")
     with pytest.raises(SqlModelValidationError, match="duplicate index"):
-        SqlMigrationRenderer(model).render()
+        model.render(mode='migration')

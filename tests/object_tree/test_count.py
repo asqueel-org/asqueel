@@ -66,7 +66,7 @@ def test_count_environment_and_preparation_are_local(database, monkeypatch):  # 
     query = database.table('invc.invoice').query('$status_label', distinct=True,
         where='$total>:env_minimum', order_by='$total')
     for minimum in (10, 20, 10):
-        with database.temp_env(minimum=minimum):
+        with database.tempEnv(minimum=minimum):
             result = query._compile(compiler.count)
             assert result.params['env_minimum'] == minimum
             assert 'minimum' in result.environment_keys

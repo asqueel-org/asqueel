@@ -4,8 +4,8 @@ import importlib.util
 import json
 
 import pytest
-from asqueel import SqlDatabaseConfig, SqlBuilder, SqlMigrationRenderer
-from asqueel.configuration import _copy_recipe, _owned_handler
+from asqueel import SqlDatabaseConfig, SqlBuilder
+from asqueel.configuration import _copy_recipe, compose_recipe
 
 
 def source():
@@ -24,10 +24,10 @@ def complete_example(**kwargs):
 
 
 def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(monkeypatch):
-    from asqueel import model, model_expansion
+    from asqueel import model_expansion, object_tree_renderer
     def forbidden(*args, **kwargs):
         pytest.fail('Source grammar must not resolve objects or expand options')
-    monkeypatch.setattr(model, 'resolve_model', forbidden)
+    monkeypatch.setattr(object_tree_renderer.SqlObjectRenderer, 'preprocess', forbidden)
     monkeypatch.setattr(model_expansion, 'expand_options', forbidden)
     b = complete_example()
     nodes = [node for _, node in b.source.query('#p,#n', deep=True)]
@@ -36,7 +36,7 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
     assert b.validate_source() == []
     clone = _copy_recipe(b)
     assert clone.source.get_node('db').get_attr('name') == 'test_invoice_pg'
-    _owned_handler(b)  # Configuration composition is also declaration-only.
+    compose_recipe(b)  # Configuration composition is also declaration-only.
 
 
 @pytest.mark.parametrize(('tag', 'kwargs'), [
@@ -141,7 +141,7 @@ def test_attachment_missing_master_cannot_be_silently_omitted_from_migration():
     b, _, table = source()
     table.options().attachments(master='app.parent')
     with pytest.raises(ValueError, match='unknown related table'):
-        SqlMigrationRenderer(b).render()
+        b.render(mode='migration')
 
 
 def test_removed_declarations_are_not_in_the_grammar(tmp_path):
@@ -203,7 +203,7 @@ def test_existing_resolvers_survive_build_clone_and_composition_without_running(
     # Exercise a calculated configuration value, not a per-write default.
     b.source.get_node('db.packages.invc.tables.invoice').column(
         'date', default=BagCbResolver(forbidden))
-    for builder in (b, _copy_recipe(b), _owned_handler(b).builder):
+    for builder in (b, _copy_recipe(b), compose_recipe(b)):
         assert builder.validate_source() == []
         invoice = builder.source.get_node('db.packages.invc.tables.invoice')
         assert isinstance(invoice.value.get_node('columns.date').get_attr('default'), BagCbResolver)
@@ -212,18 +212,6 @@ def test_existing_resolvers_survive_build_clone_and_composition_without_running(
     with pytest.raises(ValueError, match='BagResolver'):
         b.source.get_node('db.packages.invc.tables.customer').options().numbering(
             'invalid', parameters={'value': forbidden})
-
-
-def test_encryption_rejects_provider_in_calls_and_imported_source():
-    b, _, table = source()
-    column = table.column('secret')
-    node = column.encryption(mode='R')
-    b.validate_source()
-    with pytest.raises(ValueError, match='does not accept'):
-        column.encryption(mode='R', provider='app.crypto')
-    node.attr['provider'] = 'app.crypto'
-    with pytest.raises(ValueError, match='provider removed'):
-        b.validate_source()
 
 
 def test_review_example_uses_only_real_inventory_tables():
@@ -245,7 +233,7 @@ def test_alias_table_is_deferred_but_virtual_relation_remains():
     with pytest.raises((AttributeError, ValueError)):
         table.aliasTable('customer', relation_path='@invoice_id.@customer_id')
     table.virtualRelation('customer', relation='@invoice_id.@customer_id')
-    for builder in (b, _copy_recipe(b), _owned_handler(b).builder):
+    for builder in (b, _copy_recipe(b), compose_recipe(b)):
         assert builder.validate_source() == []
         node = builder.source.get_node('db.packages.app.tables.item.virtualRelation_customer')
         assert node.get_attr('relation') == '@invoice_id.@customer_id'

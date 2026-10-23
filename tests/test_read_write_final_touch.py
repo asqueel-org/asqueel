@@ -9,9 +9,7 @@ import psycopg
 import pytest
 
 from asqueel import TransactionStateError, session
-from asqueel.environment import SqlEnvironment
 from asqueel.errors import DeferredCommitError
-from asqueel.runtime import Database
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
 
 
@@ -154,10 +152,3 @@ def test_session_propagates_a_cleanup_failure_after_a_successful_body(db):
                 db.closeConnection = failing_close
     finally:
         del db.closeConnection
-
-
-def test_session_requires_a_writable_environment(tmp_path):
-    db = Database(str(tmp_path / 'readonly.sqlite'), environment=SqlEnvironment())
-    with pytest.raises(TransactionStateError, match='requires a writable environment'):
-        with session(db):
-            pass

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.write_compiler import WriteCompiler
 
 def database(*, partition='organization', draft='draft', deleted='deleted_at', environment=None):
@@ -15,7 +15,7 @@ def database(*, partition='organization', draft='draft', deleted='deleted_at', e
     item.column('region')
     item.column('draft', dtype='B')
     item.column('deleted_at', dtype='DHZ', x_identity='tombstone')
-    return build_database(config, environment=environment)
+    return AsqueelDb(config, environment=environment)
 
 
 def writer(db):

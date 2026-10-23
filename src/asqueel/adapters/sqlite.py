@@ -191,10 +191,6 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def aggregate_sql_subquery(self, sql, mode, alias, columns):
         raise UnsupportedFeatureError(f'SQLite does not support legacy subQueryColumn mode={mode!r}')
 
-    def empty_collection(self, negated):
-        # SQLite has no array literal; an empty row source is the portable form.
-        return 'NOT IN (SELECT 1 WHERE 0)' if negated else 'IN (SELECT 1 WHERE 0)'
-
     def string_join(self, expressions, separator):
         # Prefix each non-NULL term, then remove exactly the first separator.
         # Unlike trim(), this preserves separator characters in the values.

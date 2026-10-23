@@ -3,8 +3,8 @@ from copy import deepcopy
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.configuration import compose_recipe
 
 
 def recipe(dialect='sqlite'):
@@ -44,7 +44,7 @@ def test_alias_formula_redefinition(grouped, layered, reverse, dialect):
         destination = overlay_table.colgroup('grp', name_long='Group') if grouped else overlay_table
         incoming = declare(destination, second, name_long='Replacement')
         incoming_before = deepcopy(dict(incoming.attr))
-        config = _owned_handler(overlay, [config]).builder
+        config = compose_recipe(overlay, [config])
         assert original.attr == before
         assert incoming.attr == incoming_before
         node = config.source['db.packages.app.tables.cast.virtual_columns.value']
@@ -60,9 +60,9 @@ def test_alias_formula_redefinition(grouped, layered, reverse, dialect):
     assert obsolete not in node.attr
     assert [n.label for n in node.parent_bag] == ['before', 'value', 'after']
     config.validate_model()
-    model = config.render(mode='objects_tree')
+    db = AsqueelDb(config)
+    model = db.model
     assert model.table('app.cast').virtual_columns['value'].tag == second
-    db = SqlDatabase(model=model, config=_owned_handler(config))
     try:
         compiled = db.table('app.cast').query('$value').compiled
         assert compiled.sql.count('LEFT JOIN') == int(reverse)
@@ -102,7 +102,7 @@ def test_physical_virtual_change_still_rejected(reverse, layered):
     else:
         destination.formulaColumn('value', '1', dtype='L')
     with pytest.raises(ValueError, match='conflicting element kinds'):
-        _owned_handler(overlay, [config] if layered else None)
+        compose_recipe(overlay, [config] if layered else None)
 
 
 def test_same_kind_conflict_rules_are_unchanged():
@@ -145,7 +145,7 @@ def test_native_definition_attributes_follow_the_new_virtual_kind(old, new):
     for key, value in extras.items():
         assert node.get_attr(key) == value
     config.validate_model()
-    assert config.render(mode='objects_tree').table('app.cast').virtual_columns['value'].tag == new
+    assert AsqueelDb(config).model.table('app.cast').virtual_columns['value'].tag == new
 
 
 def test_inherited_attributes_survive_composition_of_an_already_redefined_source():
@@ -154,9 +154,9 @@ def test_inherited_attributes_survive_composition_of_an_already_redefined_source
     overlay, table = recipe()
     table.formulaColumn('value', **DEFINITIONS['formulaColumn'], static=True, var_threshold=7)
     table.aliasColumn('value', '@person_id.name')
-    config = _owned_handler(overlay, [base]).builder
+    config = compose_recipe(overlay, [base])
     config.validate_model()
-    column = config.render(mode='objects_tree').table('app.cast').virtual_columns['value']
+    column = AsqueelDb(config).model.table('app.cast').virtual_columns['value']
     assert column.attributes['static'] is True
     assert column.attributes['select_rows'] == DEFINITIONS['formulaColumn']['select_rows']
     assert column.attributes['var_threshold'] == 7

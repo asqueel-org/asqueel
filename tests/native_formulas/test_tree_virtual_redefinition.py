@@ -1,8 +1,7 @@
 """Execute the legacy alias/formula redefinition contracts on both adapters."""
 import pytest
 
-from asqueel import SqlDatabase
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb
 from examples.test_invoice_pg import source
 
 
@@ -21,7 +20,7 @@ def test_redefined_virtual_returns_the_new_definition(request, backend, grouped,
     getattr(target, first)('redefined_customer', **definitions[first], name_long='Customer')
     with config.contribution('later'):
         getattr(target, second)('redefined_customer', **definitions[second])
-    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    tree = AsqueelDb(config)
     try:
         compiled = tree.table('invc.invoice').query(
             '$redefined_customer AS actual,$customer_name AS expected',

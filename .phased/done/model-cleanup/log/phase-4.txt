@@ -1,0 +1,6 @@
+⚠ La Phase 4 ha dei problemi: è chiusa `[!]` con un plan-defect claim, nel commit `4bb1c9c`.
+
+- **Test rosso:** su sqlite e postgres fallisce solo `tests/test_formula_columns_legacy.py:69-72`. Risultato: 5406 passed, 2 failed, 42 skipped, 20 xfailed. I 3 contract test della fase passano e ruff è pulito.
+- **Causa:** il plan chiede la cache di `virtual_columns` in `currentEnv`, come nel legacy. La `sql_insert` della fixture riempie la cache con `factor=1`. `tempEnv(factor=3)` non svuota la cache, come `TempEnv` del legacy, quindi la formula non viene ricalcolata.
+- **Decisione da prendere:** (a) riallineare il test con `clearCurrentEnv()` prima di `tempEnv`; oppure (b) `tempEnv` scarta le chiavi `_virtual_columns_*`, comportamento che nel legacy non c'è.
+- **Non fatto:** l'aggiornamento della documentazione (`docs/guide/legacy-features.md:226`, `docs/api.rst`). È annotato in `notes.md`.

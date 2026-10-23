@@ -1,8 +1,8 @@
 """Legacy table/model identities, without adapting or invoking the compiler."""
 import pytest
 
-from asqueel import SqlDatabase, SqlTable, UnsupportedFeatureError
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlTable
+from asqueel.configuration import compose_recipe
 from asqueel.object_tree import DbTableObj
 from examples.test_invoice_pg import source as invoice_source
 from tests.application_config.test_render_structure import recipe
@@ -16,34 +16,30 @@ def no_connections():
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr('sqlite3.connect', denied)
         patch.setattr('psycopg.connect', denied)
-        patch.setattr(SqlDatabase, 'execute', denied)
+        patch.setattr(AsqueelDb, 'execute', denied)
         yield
 
 
 def bind(source, **kwargs):
-    config = _owned_handler(source)
-    model = source.render(mode='objects_tree')
-    return SqlDatabase(model=model, config=config, **kwargs)
+    return AsqueelDb(source, **kwargs)
 
 
 def test_creation_precedes_children_and_does_not_load_relations(monkeypatch):
     original = SqlTable.__init__
     seen = []
-    def init(self, db, model):
-        if isinstance(model, DbTableObj):
-            assert model.children == {}
-            assert model._model.relations.keys() == []
-            seen.append(model.fullname)
-        original(self, db, model)
+    def init(self, tblobj):
+        if isinstance(tblobj, DbTableObj):
+            assert tblobj.children == {}
+            assert tblobj._model.relations.keys() == []
+            seen.append(tblobj.fullname)
+        original(self, tblobj)
     monkeypatch.setattr(SqlTable, '__init__', init)
     source, _, _ = recipe()
-    model = source.render(mode='objects_tree')
+    model = AsqueelDb(source).model
     assert set(seen) == set(model.tables)
     for table in model.tables.values():
         assert table.dbtable.model is table
         assert table._relation_tree is None
-        with pytest.raises(UnsupportedFeatureError, match='not bound'):
-            table.dbtable.query()
 
 
 def test_binding_reuses_table_column_and_relation_objects(monkeypatch):
@@ -51,8 +47,8 @@ def test_binding_reuses_table_column_and_relation_objects(monkeypatch):
     customer.aliasColumn('copied_id', relation_path='id')
     customer.formulaColumn('double_id', sql_formula='$id * 2', dtype='L')
     customer.options().audit(mode='lazy')
-    config = _owned_handler(source)
-    model = source.render(mode='objects_tree')
+    db = AsqueelDb(source)
+    model = db.model
     structural = model.table('invc.customer')
     table = structural.dbtable
     relations = table.relations
@@ -60,7 +56,6 @@ def test_binding_reuses_table_column_and_relation_objects(monkeypatch):
         pytest.fail('Binding must not build a compiler or reconstruct tables')
     monkeypatch.setattr('asqueel.application.QueryCompiler', denied)
     monkeypatch.setattr(SqlTable, '__init__', denied)
-    db = SqlDatabase(model=model, config=config)
     try:
         assert db.table('invc.customer') is db.tables['invc.customer'] is table
         assert table.model is db.model.table('invc.customer') is structural
@@ -84,33 +79,13 @@ def test_binding_reuses_table_column_and_relation_objects(monkeypatch):
         db.closeConnection()
 
 
-def test_binding_is_single_owner_and_failure_does_not_rebind():
-    source, _, _ = recipe()
-    db = bind(source)
-    table = db.table('invc.customer')
-    try:
-        with pytest.raises(ValueError, match='already bound'):
-            SqlDatabase(model=db.model, config=db.config)
-        assert table.db is db
-        assert table.model.dbtable is table
-    finally:
-        db.closeConnection()
-
-
 def test_bad_implementation_leaves_tree_unbound():
     source, _, _ = recipe()
-    model = source.render(mode='objects_tree')
-    config = _owned_handler(source)
-    implementation = model.implementation
-    config.builder.source.get_node(config.root_label).attr['implementation'] = 'unsupported'
-    model.implementation = 'unsupported'
+    composed = compose_recipe(source)
+    composed.source.get_node("db").attr['implementation'] = 'unsupported'
     with pytest.raises(ModuleNotFoundError, match='asqueel.adapters.unsupported'):
-        SqlDatabase(model=model, config=config)
-    assert model._operational_db is None
-    config.builder.source.get_node(config.root_label).attr['implementation'] = implementation
-    model.implementation = implementation
-    db = SqlDatabase(model=model, config=config)
-    db.closeConnection()
+        AsqueelDb(composed)
+    AsqueelDb(source).closeConnection()
 
 
 def test_query_compiles_without_execution_or_writes():
@@ -132,7 +107,7 @@ def test_query_compiles_without_execution_or_writes():
 def test_default_renderer_uses_the_same_hierarchy():
     source, _, _ = recipe()
     tree_db = bind(source)
-    old_db = source.render()
+    old_db = AsqueelDb(source)
     try:
         assert source._default_render_mode == 'objects'
         old = old_db.table('invc.customer')

@@ -1,0 +1,10 @@
+✓ Phase 1 completata: il recipe viene composto una sola volta, prima di ogni render. Commit `dfc9a71` sul branch `wf/model-cleanup`; non ho fatto push.
+
+- **Controllo finale superato:** suite completa 5414 passed, 42 skipped, 20 xfailed. Sono i 5408 del baseline più i 6 test di contratto della fase. ruff e `sphinx -E -W` sono puliti. Il grep su `signature_defaults` trova una sola funzione, `prepare_source`.
+- **Codice:**
+  - `compose_recipe(source, parents=None)` sostituisce `_owned_handler`. È in `src/asqueel/configuration.py` e restituisce il recipe composto.
+  - `SqlBuilder.render` compone il recipe una volta, se non è già composto.
+  - I moduli renderer non importano più da `configuration.py`.
+  - `_effective_model_builder` è confluita in `prepare_source`.
+- **Decisione mia, non prevista dal piano:** `SqlDatabase` ora riceve `recipe=` al posto di `config=` e crea da sé il `SqlConfigHandler`. `SqlDatabase` viene rimossa nella Phase 3.
+- **Test cambiati:** due test controllavano `materialized` sul recipe scritto dall'autore. Ora `render()` lavora su una copia composta, quindi controllano che il recipe originale resti vuoto. Altri test chiamavano `_owned_handler` o `SqlDatabase(config=...)` e passano ora per `compose_recipe` e `recipe=`. Le motivazioni sono in `notes.md`, sotto `## Phase 1`.

@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from asqueel import SqlDatabase
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb
 from asqueel.contracts import CompiledQuery
 from examples.test_invoice_pg import source
 from tests.native_formulas.conftest import SQL_TYPES
@@ -17,7 +16,7 @@ def databases(request):
     execution = request.getfixturevalue(request.param)
     config = source()
     config.source.get_node('db').attr['implementation'] = execution.adapter.dialect
-    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    tree = AsqueelDb(config)
     try:
         # The shared fixture already loads eight original CSVs. Add the two
         # composite-key tables used by the legacy composite join contracts.

@@ -4,12 +4,12 @@ from datetime import datetime, timezone
 import pytest
 
 from examples.test_invoice_pg import source
-from asqueel import build_database
+from asqueel import AsqueelDb
 from tests.native_formulas.conftest import SQL_TYPES, TABLES
 
 
 # Collect native table identities without opening a database.
-KEYS = tuple(build_database(source()).model.tables)
+KEYS = tuple(AsqueelDb(source()).model.tables)
 
 
 @pytest.fixture(scope='module', params=['db_pg', 'db_sqlite'])

@@ -3,8 +3,7 @@ import uuid
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -18,12 +17,12 @@ def test_manual_assignment_line_comment_cannot_remove_update_guard():
     table = pkg.table(name, pkey='id')
     table.column('id', dtype='I')
     table.column('value', dtype='I', sql_value='99 -- trailing comment')
-    db = SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    db = AsqueelDb(source)
     try:
         db.execute(f'CREATE TEMP TABLE "{name}" (id integer PRIMARY KEY, value integer)')
         db.execute(f'INSERT INTO "{name}" VALUES (1, 10)')
         model = db.table(f'adapter.{name}').model
-        result = db.execute(db.write_compiler.update(model, {'id': 0}, db.environment.snapshot()))
+        result = db.execute(db.write_compiler.update(model, {'id': 0}, db.environment_snapshot()))
         assert result.rowcount == 0
         assert [tuple(row) for row in db.execute(f'SELECT id, value FROM "{name}"').fetchall()] == [(1, 10)]
         db.rollback()

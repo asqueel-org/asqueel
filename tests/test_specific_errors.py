@@ -3,10 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError, UnusedQueryParameterWarning
+from asqueel import AsqueelDb, SqlDatabaseConfig, UnsupportedFeatureError, UnusedQueryParameterWarning
 from asqueel.adapters.base import SqlDbAdapter
-from asqueel.configuration import _owned_handler
-from asqueel.projection import _constraint_index_feature, _index_feature
 
 
 def config(select=None, **virtual):
@@ -32,7 +30,7 @@ def config(select=None, **virtual):
 
 
 def database(source):
-    return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    return AsqueelDb(source)
 
 
 @pytest.fixture
@@ -94,9 +92,9 @@ def test_aggregate_function(db):
 @pytest.mark.parametrize('key', ['join_on', 'cnd', 'between'])
 def test_aggregate_on_a_relation_with_a_custom_join(key):
     source = config()
-    model = source.render(mode='objects_tree')
+    opened = AsqueelDb(source)
+    model = opened.model
     model.relations.get_node('app.customer.@invoices').attr[key] = '$total>0'
-    opened = SqlDatabase(model=model, config=_owned_handler(source))
     try:
         with pytest.raises(UnsupportedFeatureError,
                            match=f'@invoices: aggr on a relation with {key}= is not available'):
@@ -189,41 +187,3 @@ def test_storename_in_the_environment(tmp_path):
             db.table('main.item').query().fetch()
     finally:
         db.closeConnection()
-
-
-@pytest.mark.parametrize('item, feature', [
-    ({'options': ['fillfactor=70']}, 'storage options'),
-    ({'tablespace': 'fast'}, 'a tablespace'),
-    ({'columns': ['a', 'b'], 'key_count': 1}, 'included columns'),
-    ({'method': 'hash'}, 'method hash'),
-    ({'default_opclasses': False}, 'non-default operator classes'),
-    ({'default_collations': False}, 'non-default collations'),
-    ({'ordering': [3]}, 'non-default ordering'),
-    ({'valid': False}, 'NOT VALID'),
-    ({'nulls_not_distinct': True}, 'NULLS NOT DISTINCT'),
-])
-def test_constraint_index_feature(item, feature):
-    plain = {'columns': ['a'], 'key_count': 1, 'method': 'btree', 'ordering': [0]}
-    assert _constraint_index_feature(plain) is None
-    assert _constraint_index_feature({**plain, **item}) == feature
-
-
-@pytest.mark.parametrize('item, feature', [
-    ({'columns': ['a', None]}, 'expression columns'),
-    ({'key_count': 2}, 'included columns'),
-    ({'ordering': [1]}, 'NULLS FIRST/LAST ordering'),
-    ({'default_opclasses': False}, 'non-default operator classes'),
-    ({'default_collations': False}, 'non-default collations'),
-    ({'valid': False}, 'NOT VALID'),
-    ({'nulls_not_distinct': True}, 'NULLS NOT DISTINCT'),
-    ({'options': ['fillfactor=70']}, 'storage options'),
-    ({'tablespace': 'fast'}, 'a tablespace'),
-])
-def test_index_feature(item, feature):
-    plain = {'columns': ['a'], 'key_count': 1, 'ordering': [0], 'default_opclasses': True,
-             'default_collations': True, 'valid': True, 'nulls_not_distinct': False,
-             'options': None, 'tablespace': None}
-    assert _index_feature(plain) is None
-    if 'columns' in item:
-        plain['key_count'] = len(item['columns'])
-    assert _index_feature({**plain, **item}) == feature

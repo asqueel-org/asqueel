@@ -9,12 +9,8 @@ import runpy
 import pytest
 from genro_bag import Bag
 
-from asqueel import SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.configuration import build_database
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlBuilder, SqlDatabaseConfig
 from asqueel.model_source import prepare_source
-from asqueel.projection import to_physical_builder
-from asqueel.model_codec import model_from_json, model_to_json
 from asqueel.contracts import UnsupportedFeatureError
 
 ORACLE = Path(__file__).parent / 'oracles/test_invoice_pg/source.xml'
@@ -79,9 +75,9 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
         if field != '_row_count':
             table.column(field, name_long='!!' + field.title())
     raw = builder.source.to_json()
-    model = resolve_model(builder)
+    model = AsqueelDb(builder).model
     assert builder.source.to_json() == raw
-    assert physical(resolve_model(builder)) == physical(model)
+    assert physical(AsqueelDb(builder).model) == physical(model)
     resolved = model.table(key)
     names = BASE_PHYSICAL | BASE_VIRTUAL | {'parent_id', 'hierarchical_pkey', '_parent_h_pkey', 'child_count', 'hlevel'}
     for field in fields:
@@ -104,7 +100,7 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
     assert resolved.attributes['logicalDeletionField'] == '__del_ts'
     assert resolved.attributes['lastTS'] == '__mod_ts'
     assert resolved.attributes['order_by'] == ('$_h_sortcol' if counter else '$hierarchical_' + fields[0])
-    assert physical(resolve_model(builder)) == physical(model)
+    assert physical(AsqueelDb(builder).model) == physical(model)
 
 
 @pytest.mark.parametrize('reverse', [False, True])
@@ -119,7 +115,7 @@ def test_attachments_expand_base_options_before_cross_table_link(reverse):
         else:
             table.options().sys_fields(user_upd=False, group_name='!![en]System')
             table.options().attachments(master='adm.htmltemplate')
-    db = build_database(builder)
+    db = AsqueelDb(builder)
     try:
         attachment = db.table('adm.htmltemplate_atc')
         expected = legacy_table('adm.htmltemplate_atc')
@@ -144,7 +140,7 @@ def test_attachment_implicit_options_are_owned_and_default_user_upd_is_preserved
     attachment = pkg.table('master_atc')
     attachment.options().attachments(master='adm.master')
     before = builder.source.to_json()
-    model = resolve_model(builder)
+    model = AsqueelDb(builder).model
     assert '__mod_user' in model.table('adm.master_atc').columns  # approved Asqueel default
     assert model.table('adm.master_atc')['options']['sys_fields'].attributes['enabled']
     assert builder.source.to_json() == before
@@ -164,7 +160,7 @@ def test_counter_audit_hash_full_update_and_dynamic_column_are_structure_only():
     opts.full_update()
     opts.record_hash()
     opts.dynamic_fields(templates='compact')
-    model = resolve_model(builder).table('app.item')
+    model = AsqueelDb(builder).model.table('app.item')
     assert model.columns['__version'].dtype == 'L'
     assert model.columns['__full_mod_ts'].dtype == 'DHZ'
     assert model.columns['__full_mod_ts'].attributes['indexed'] is True
@@ -182,7 +178,7 @@ def test_record_hash_matches_user_legacy_declaration():
     table = packages.package('adm').table('user')
     table.options().sys_fields(user_upd=False, group_name='!![en]System')
     table.options().record_hash()
-    assert_legacy_columns(resolve_model(builder).table('adm.user'), {'__rec_md5'}, 'adm.user')
+    assert_legacy_columns(AsqueelDb(builder).model.table('adm.user'), {'__rec_md5'}, 'adm.user')
 
 
 def test_declarative_options_are_preserved_without_new_columns_or_runtime_effects(monkeypatch):
@@ -197,7 +193,7 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
     opts.enabled_when(preference='adm.dev.connection_log_enabled')
     opts.numbering('id', parameters={'format': '$YYYY$NNNNN', 'starting_value': 1})
     opts.protection(rules=['protect_validate'])
-    db = build_database(builder)
+    db = AsqueelDb(builder)
     try:
         item = db.table('invc.customer')
         assert set(item.columns) == {'id', 'state'}
@@ -207,19 +203,6 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
         assert item.model.options['retention'].attributes['days'] == 60
         with pytest.raises(UnsupportedFeatureError):
             item.insert({'id': 1})
-    finally:
-        db.closeConnection()
-
-
-@pytest.mark.xfail(strict=True, reason='asqueel#18: the hierarchical DbModel has no JSON round trip')
-def test_declarative_options_survive_a_json_round_trip():
-    builder, packages = source()
-    table = packages.package('invc').table('customer', pkey='id')
-    table.column('id', dtype='L')
-    table.options().retention(field='id', days=60)
-    db = build_database(builder)
-    try:
-        assert model_from_json(model_to_json(db.model)) == db.model
     finally:
         db.closeConnection()
 
@@ -234,7 +217,7 @@ def test_disabled_options_remain_data_and_generate_nothing(name, kwargs):
     table = packages.package('app').table('item')
     table.column('explicit', dtype='L')
     getattr(table.options(), name)(enabled=False, **kwargs)
-    resolved = resolve_model(builder).table('app.item')
+    resolved = AsqueelDb(builder).model.table('app.item')
     assert set(resolved.columns) == {'explicit'}
     assert resolved['options'][name].attributes['enabled'] is False
 
@@ -250,7 +233,7 @@ def test_relative_index_contributes_to_existing_master_extension(reverse, qualif
         if name == 'detail':
             tbl.column('master_id', dtype='L').relation('app.master.id' if qualified else 'master.id')
             tbl.options().relative_index('master_id')
-    model = resolve_model(builder)
+    model = AsqueelDb(builder).model
     assert model.table('app.detail').columns['_relidx'].dtype == 'L'
     assert model.table('app.master_xtd').columns['app_detail_relidx'].dtype == 'L'
     assert model.table('app.detail').columns['_relidx'].attributes['x_legacy_format'] == '0000'
@@ -268,7 +251,7 @@ def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch
     product.options().sys_fields(user_upd=False)
     product.column('description', size=':80')
     before = config.source.to_json()
-    db = build_database(config)
+    db = AsqueelDb(config)
     try:
         assert len(db.model.tables) == 10
         assert db.table('adm.htmltemplate_atc').column('@maintable_id.id') is db.table('adm.htmltemplate').column('id')
@@ -287,7 +270,7 @@ def test_hierarchy_root_id_and_virtual_roots():
     tree.options().hierarchical([{'name': 'code', 'unique': True}], root_id=True, virtual_roots=True,
                                 caption_field='hierarchical_code')
     tree.column('code')
-    tree = resolve_model(builder).table('app.tree')
+    tree = AsqueelDb(builder).model.table('app.tree')
     assert tree.columns['hierarchical_code'].attributes['unique'] is True
     assert tree.columns['_virtual_node'].dtype == 'B'
     assert tree.columns['root_id'].attributes['sql_value'] == 'substr(:hierarchical_pkey,1,22)'
@@ -305,19 +288,19 @@ def test_linked_hierarchy_and_legacy_variants(option, value):
     master = pkg.table('master', name_long='Master')
     master.options().sys_fields()
     if option == 'linked_to':
-        model = resolve_model(builder)
+        model = AsqueelDb(builder).model
         assert model.table('app.tree').column('@master_id.id').table.fullname == 'app.master'
         assert model.table('app.master').column('root_tree_id').attributes['onInserting'] == 'insertLinkedHierarchicalRoot'
     else:
         with pytest.raises(UnsupportedFeatureError, match=f'app.tree: hierarchical {option} is not available'):
-            resolve_model(builder)
+            AsqueelDb(builder).model
 
 
 def test_protection_tag_preserves_the_legacy_formula_without_execution():
     builder, packages = source()
     table = packages.package('app').table('item')
     table.options().protection(tag='staff')
-    resolved = resolve_model(builder).table('app.item')
+    resolved = AsqueelDb(builder).model.table('app.item')
     assert set(resolved.columns) | set(resolved.virtual_columns) == {'__protection_tag', '__protected_by_tag'}
     assert resolved.virtual_columns['__protected_by_tag'].dtype == 'B'
     assert ':env_userTags' in resolved.virtual_columns['__protected_by_tag'].attributes['sql_formula']
@@ -340,7 +323,7 @@ def test_structural_conflicts_fail_without_modifying_source(kind):
         table.options().auto_counter('another_id')
     before = builder.source.to_json()
     with pytest.raises(ValueError):
-        build_database(builder)
+        AsqueelDb(builder)
     assert builder.source.to_json() == before
 
 
@@ -350,7 +333,7 @@ def test_sysfield_generation_does_not_treat_signature_defaults_as_explicit_overr
     table.column('__syscode', name_long='Code')
     table.column('__ins_ts', name_long='Created')
     table.options().sys_fields(syscode=True)
-    db = build_database(builder)
+    db = AsqueelDb(builder)
     try:
         assert db.table('app.item').column('__syscode').attributes['unique'] is True
         assert db.table('app.item').column('__syscode').attributes['name_long'] == 'Code'
@@ -373,8 +356,8 @@ def test_sysfield_index_override_survives_other_columns(field, indexed, extra_po
 
     def check():
         before = builder.source.to_json()
-        assert resolve_model(builder).table('app.item').column(field).attributes['indexed'] is expected
-        physical = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']['app_item']
+        assert AsqueelDb(builder).model.table('app.item').column(field).attributes['indexed'] is expected
+        physical = builder.render(mode='migration')['root']['schemas']['public']['tables']['app_item']
         assert any(field in i['attributes']['columns'] for i in physical['indexes'].values()) is expected
         assert builder.source.to_json() == before
         assert ('indexed' in declared.attr) is (indexed is not None)
@@ -392,7 +375,7 @@ def test_deferred_families_stay_out_of_object_creation(name, kwargs):
     builder, packages = source()
     getattr(packages.package('app').table('item').options(), name)(**kwargs)
     with pytest.raises(UnsupportedFeatureError, match='deferred'):
-        resolve_model(builder)
+        AsqueelDb(builder).model
 
 
 def test_option_columns_indexes_and_foreign_keys_reach_physical_projection():
@@ -400,7 +383,7 @@ def test_option_columns_indexes_and_foreign_keys_reach_physical_projection():
     pkg = packages.package('app')
     pkg.table('master').options().sys_fields()
     pkg.table('master_atc').options().attachments(master='app.master')
-    table = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']['app_master_atc']
+    table = builder.render(mode='migration')['root']['schemas']['public']['tables']['app_master_atc']
     assert '_row_count' in table['columns']
     assert 'info' in table['columns']
     assert 'adapted_url' not in table['columns']
@@ -440,9 +423,9 @@ def test_package_types_precede_expansion_and_legacy_setnull_defaults(objects):
     detail.column('id', dtype='L')
     detail.column('master_id').relation('app.master.id', onDelete='setnull', onDuplicate='recursive')
     detail.column('other_id').relation('app.master.id', onDelete='setnull', deferred=False)
-    db = build_database(builder) if objects else None
+    db = AsqueelDb(builder) if objects else None
     try:
-        model = db.model if db is not None else resolve_model(builder)
+        model = db.model if db is not None else AsqueelDb(builder).model
         assert model.table('app.master').columns['id'].attributes['size'] == '22'
         relation = model.table('app.detail').relations.get_node('@master_id').attr['joiner']
         assert relation['deferred'] is True
@@ -463,7 +446,7 @@ def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
     table.options().sys_fields()
     table.options().audit('full')
     table.options().record_hash()
-    db = build_database(builder)
+    db = AsqueelDb(builder)
     try:
         assert db.table('app.item').column('__rec_md5').attributes['onInserting'] == 'setRecordMd5'
         assert db.table('app.item').model['options']['audit'].attributes['mode'] == 'full'
@@ -472,4 +455,4 @@ def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
 
 
 def physical(model):
-    return SqlMigrationRenderer(to_physical_builder(model)).render()
+    return model.db.config.builder.render(mode='migration')

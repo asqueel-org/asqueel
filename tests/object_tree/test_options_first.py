@@ -1,7 +1,7 @@
 """Options precede ordinary declarations without mutating the authored recipe."""
 import pytest
 
-from asqueel import SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.catalog import SqlModelCatalog
 from asqueel.model_expansion import _TableExpansion
 from examples.test_invoice_pg import source
@@ -22,9 +22,9 @@ def test_options_are_consumed_once_before_columns(position, monkeypatch):
     table.column('name')
     if position == 'between':
         options()
-    # A declaration of an option-generated field contributes attributes and
-    # children, but is consumed with the option rather than emitted twice.
-    table.column('id', size='22', name_long='Identifier').validation(notnull=True)
+    # A declaration of an option-generated field contributes attributes,
+    # but is consumed with the option rather than emitted twice.
+    table.column('id', size='22', name_long='Identifier', validate_notnull=True)
     table.column('description')
     if position == 'after':
         options()
@@ -38,7 +38,7 @@ def test_options_are_consumed_once_before_columns(position, monkeypatch):
 
     monkeypatch.setattr(_TableExpansion, 'sys_fields', sys_fields)
     for _ in range(2):
-        model = config.render(mode='objects_tree')
+        model = AsqueelDb(config).model
         item = model.table('pkg.item')
         assert list(item.columns) == [
             'id', '__ins_ts', '__del_ts', '__mod_ts', '__ins_user', '__syscode',
@@ -59,7 +59,7 @@ def test_disabled_options_do_not_create_or_move_columns():
     table.column('name')
     table.column('id', size='22')
     table.options().sys_fields(enabled=False)
-    model = config.render(mode='objects_tree')
+    model = AsqueelDb(config).model
     assert list(model.table('pkg.item').columns) == ['name', 'id']
     assert model.table('pkg.item').options['sys_fields'].attributes['enabled'] is False
 
@@ -71,8 +71,8 @@ def invoice_models():
     authored = {}
     for package, table, column in SqlModelCatalog(config).physical_columns:
         authored.setdefault(f'{package}.{table}', []).append(column)
-    first = config.render(mode='objects_tree')
-    second = config.render(mode='objects_tree')
+    first = AsqueelDb(config).model
+    second = AsqueelDb(config).model
     assert config.source.to_json() == before
     return first, second, authored
 
@@ -107,7 +107,7 @@ def test_cross_table_options_keep_dependencies_and_relations():
     attachment.column('extra')
     attachment.options().attachments(master='pkg.master')
     before = config.source.to_json()
-    model = config.render(mode='objects_tree')
+    model = AsqueelDb(config).model
     table = model.table('pkg.attachment')
     assert list(table.columns)[-1] == 'extra'
     assert table.column('@maintable_id.name') is model.table('pkg.master').column('name')

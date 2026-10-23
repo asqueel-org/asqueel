@@ -1,8 +1,7 @@
 """Contracts for the new model source, before complete object resolution."""
 import pytest
 
-from asqueel import SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlBuilder, SqlDatabaseConfig
 from asqueel.validators import SqlModelValidationError
 
 
@@ -138,10 +137,10 @@ def test_reset_removes_accumulated_configuration_without_creating_a_runtime_node
 def test_package_source_exports_the_declared_table():
     builder, _, pkg = source()
     pkg.table('customer').column('id', dtype='L')
-    model = resolve_model(builder)
+    model = AsqueelDb(builder).model
     assert len(model.tables) == 1
     table = next(iter(model.tables.values()))
-    physical = SqlMigrationRenderer(builder).render()['root']['schemas']
+    physical = builder.render(mode='migration')['root']['schemas']
     assert physical[table.sqlschema]['tables'][table.sqlname]['columns']['id']['attributes']['dtype'] == 'L'
 
 
@@ -149,7 +148,7 @@ def test_direct_declarations_also_work_on_legacy_schema_tables():
     builder = SqlBuilder()
     table = builder.source.db('d').schemas().schema('public').tables().table('customer', pkey='id')
     table.column('id', dtype='L')
-    assert resolve_model(builder).table('public.customer').pkey == 'id'
+    assert AsqueelDb(builder).model.table('public.customer').pkey == 'id'
 
 
 def test_column_groups_do_not_change_shared_grammar_or_other_columns():

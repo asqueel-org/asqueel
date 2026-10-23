@@ -3,8 +3,7 @@ from copy import deepcopy
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig, UnsupportedFeatureError
 from asqueel.compiler import _TreeContext
 from tests.native_compiler.test_subquery_methods import (
     declare, install, TestLegacySubqueryMethodContract as TestLegacySubqueryMethodContract,
@@ -42,7 +41,7 @@ def db(request, no_io):
                       where='$owner_id=#THIS.id AND $id IN :ids', sqlparams={'ids': [1, 2]}),
         select_b=dict(table='app.line', columns='COUNT(*)',
                       where='$owner_id=#THIS.id AND $id=:ids', sqlparams={'ids': 3}))
-    database = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    database = AsqueelDb(config)
     try:
         database.method_calls = install(database)
         yield database

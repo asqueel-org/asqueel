@@ -7,9 +7,9 @@ from collections import defaultdict
 from typing import Any
 
 
-_VIRTUAL_COLUMN_TAGS = frozenset({
+_VIRTUAL_COLUMN_TAGS = (
     "aliasColumn", "formulaColumn", "subQueryColumn", "pyColumn", "bagItemColumn",
-})
+)
 _COLLECTION_TAGS = frozenset({
     "schemas", "extensions", "tables", "columns", "virtual_columns",
     "composites", "constraints", "indexes",

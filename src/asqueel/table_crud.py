@@ -74,7 +74,7 @@ class CrudMixin:
     def lock(self, mode='ACCESS EXCLUSIVE', nowait=False):
         """Lock the table in the current transaction; on SQLite, take the write reservation."""
         db = self.db
-        db.execute(db.write_compiler.lock_table(self.model, db.environment.snapshot(),
+        db.execute(db.write_compiler.lock_table(self.model, db.environment_snapshot(),
                                                 mode=mode, nowait=nowait)).close()
 
     def _reread(self, pkey):

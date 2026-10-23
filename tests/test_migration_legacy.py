@@ -16,7 +16,7 @@ import psycopg
 import pytest
 from psycopg import sql
 
-from asqueel import AsqueelDb, MigrationError, SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
+from asqueel import AsqueelDb, MigrationError, SqlBuilder, SqlDatabaseConfig
 from asqueel.cli import main
 from tests.native_support import postgres_dsn
 
@@ -40,7 +40,7 @@ def _table(recipe_body):
 
     model = Recipe()
     model.create()
-    return SqlMigrationRenderer(model).render()['root']['schemas']['s']['tables']
+    return model.render(mode='migration')['root']['schemas']['s']['tables']
 
 
 def _indexes_on(table, columns):

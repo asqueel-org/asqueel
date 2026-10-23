@@ -34,11 +34,11 @@ def main():
         if not (installed / filename).is_file():
             raise RuntimeError(f'Installed wheel is missing {filename}')
     for name in ('asqueel', 'genro_builders', 'genro_bag', 'genro_tytx', 'genro_toolbox',
-                 'genro_routes', 'genro_asgi', 'asqueel_migration'):
+                 'asqueel_migration'):
         try:
             version = metadata.version(name)
         except metadata.PackageNotFoundError:
-            if name not in ('genro_routes', 'genro_asgi', 'asqueel_migration'):
+            if name != 'asqueel_migration':
                 raise
             continue
         module = import_module(name)
@@ -57,23 +57,19 @@ def main():
         table = model.source.db('demo').schemas().schema('public').tables().table('customer', pkey='id')
         table.columns().column('id', dtype='L')
         model.validate_model()
-        source = package.SqlPythonEmitter(model).emit()
+        source = model.render(mode='python')
         namespace = {}
         exec(compile(source, '<installed-recipe>', 'exec'), namespace)
         rebuilt = namespace['ImportedDatabase']()
         rebuilt.create()
         rebuilt.validate_model()
-        resolved = package.resolve_model(rebuilt)
-        query = package.PostgresCompiler(resolved).select(
+        resolved = package.AsqueelDb(rebuilt).model
+        adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
+        query = package.QueryCompiler(resolved, adapter).select(
             'public.customer', where='$id = :id', sqlparams={'id': 7},
         )
         assert query.params == {'id': 7}
         assert '"public"."customer"' in query.sql
-        adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
-        generic = package.QueryCompiler(resolved, adapter).select(
-            'public.customer', where='$id = :id', sqlparams={'id': 7},
-        )
-        assert generic == query
         print('Core-only build, validation, emission, model and adapter pipeline passed')
         return
     with tempfile.TemporaryDirectory(prefix='asqueel-wheel-') as directory:
@@ -81,7 +77,7 @@ def main():
         for name in ('tests', 'docs', 'examples'):
             shutil.copytree(repository / name, destination / name,
                             ignore=shutil.ignore_patterns('__pycache__', '.pytest_cache'))
-        for name in ('migration.json', 'native/migration.json', 'objects_tree/migration.json'):
+        for name in ('migration.json', 'native/migration.json'):
             artifact = Path('artifacts/test_invoice_pg') / name
             (destination / artifact).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(repository / artifact, destination / artifact)

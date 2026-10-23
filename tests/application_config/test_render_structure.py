@@ -2,9 +2,8 @@
 import pytest
 from genro_bag.resolvers import BagCbResolver, EnvResolver
 
-from asqueel import SqlDatabaseConfig
-from asqueel.configuration import _owned_handler, build_database
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.configuration import compose_recipe
 
 
 def recipe():
@@ -40,11 +39,10 @@ def test_render_resolves_flat_values_and_detaches_structural_reads(monkeypatch):
     # Unselected administrative connections must not be evaluated as model nodes.
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Unused connection read')))
     assert 'validate_len' in column.attr
-    assert column.value is None or column.value.get_node('validation') is None
-    owned = _owned_handler(source)
+    owned = compose_recipe(source)
     assert calls == []
-    assert owned.builder is not source
-    db = source.render()
+    assert owned is not source
+    db = AsqueelDb(source)
     try:
         handle = db.table('invc.customer').column('label')
         assert handle.attributes['default'] == 'blue'
@@ -77,7 +75,7 @@ def test_callback_cache_semantics_are_owned_by_existing_resolver():
         return 'fixed'
     resolver = BagCbResolver(value, cache_time=-1)
     customer.column('value', default=resolver, onDeleted=resolver)
-    db = build_database(source)
+    db = AsqueelDb(source)
     try:
         col = db.table('invc.customer').column('value')
         assert col.attributes['default'] == col.attributes['onDeleted'] == 'fixed'
@@ -91,7 +89,7 @@ def test_render_defaults_follow_composition_and_failure_publishes_nothing():
     overlay = SqlDatabaseConfig()
     table = overlay.source.db('invoice').packages().package('invc').table('customer')
     table.column('account_name', comment='red')
-    db = build_database(overlay, parents=[base])
+    db = AsqueelDb(overlay, parents=[base])
     try:
         assert db.table('invc.customer').attributes['name_long'] == 'Cliente'
         assert db.table('invc.customer').column('account_name').validations == {'notnull': True, 'len': '2:40'}
@@ -102,24 +100,16 @@ def test_render_defaults_follow_composition_and_failure_publishes_nothing():
     broken, _, customer = recipe()
     customer.column('missing_id', dtype='L').relation('missing.table.id')
     with pytest.raises(ValueError):
-        broken.render()
+        AsqueelDb(broken)
     assert not broken.materialized
 
 
-@pytest.mark.parametrize('explicit_first', [True, False])
-def test_validation_spellings_share_contribution_order(explicit_first):
+def test_validation_attributes_follow_contribution_order():
     source, _, customer = recipe()
-    column = customer.column('code')
-    if explicit_first:
-        column.validation(len='2:4')
-    else:
-        customer.column('code', validate_len='2:4')
+    customer.column('code', validate_len='2:4')
     with source.contribution('later'):
-        if explicit_first:
-            customer.column('code', validate_len='3:8')
-        else:
-            column.validation(len='3:8')
-    assert resolve_model(source).table('invc.customer').columns['code'].validations == {'len': '3:8'}
+        customer.column('code', validate_len='3:8')
+    assert AsqueelDb(source).model.table('invc.customer').columns['code'].validations == {'len': '3:8'}
 
 
 def test_removed_metadata_forms_are_not_part_of_source_grammar():

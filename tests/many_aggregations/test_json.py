@@ -1,7 +1,7 @@
 """JSON collections reuse query projections and correlated SELECT scopes."""
 import pytest
 
-from asqueel import build_database
+from asqueel import AsqueelDb
 from .conftest import source
 from .test_contracts import execute, json_value, query
 
@@ -88,7 +88,7 @@ def test_to_one_prefix_then_json(model, connection):
 
 
 def test_json_without_base_order_does_not_add_a_fallback(backend, connection):
-    model = build_database(source(backend, order_by=None))
+    model = AsqueelDb(source(backend, order_by=None))
     try:
         q = query(model, '@invoices.aggr(to_json($id) AS invoices)')
         assert 'ORDER BY' not in q.compiled.sql

@@ -114,7 +114,7 @@ def legacy_factory(root, dsn):
 
 
 def native_factory(dsn):
-    from asqueel import CompiledQuery, SqlDatabaseConfig, SqlTable, build_database
+    from asqueel import CompiledQuery, SqlDatabaseConfig, SqlTable, AsqueelDb
 
     item_class = type('OracleItem', (SqlTable,),
                       {hook: noop for pair in HOOKS.values() for hook in pair})
@@ -128,7 +128,7 @@ def native_factory(dsn):
                             'item', pkey='id', x_table_class=item_class).columns()
                     columns.column('id', dtype='I')
                     columns.column('name', dtype='T')
-            self.db = build_database(Recipe)
+            self.db = AsqueelDb(Recipe)
             self.item = self.db.table('app.item')
 
         def __getattr__(self, name):

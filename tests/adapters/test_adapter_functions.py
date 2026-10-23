@@ -6,10 +6,10 @@ from datetime import date
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, UnsupportedFeatureError, build_database
+from asqueel import SqlDatabaseConfig, SqlTable, UnsupportedFeatureError, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
-from asqueel.runtime import Database, PostgresDatabase
+from tests.unit_of_work import empty_database
 from tests.native_support import postgres_dsn
 
 
@@ -18,8 +18,8 @@ BACKENDS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)]
 
 @pytest.fixture(params=BACKENDS)
 def db(request):
-    database = (PostgresDatabase(postgres_dsn()) if request.param == 'postgres'
-                else Database(':memory:', implementation='sqlite'))
+    database = (empty_database(postgres_dsn(), implementation='postgres') if request.param == 'postgres'
+                else empty_database(':memory:', implementation='sqlite'))
     try:
         yield database
     finally:
@@ -68,7 +68,7 @@ def test_age_at_date_raises_on_sqlite():
 
 @pytest.mark.postgresql
 def test_age_at_date_runs_on_postgres():
-    db = PostgresDatabase(postgres_dsn())
+    db = empty_database(postgres_dsn(), implementation='postgres')
     try:
         age = db.adapter.ageAtDate("DATE '2026-01-01'", 'refdate')
         assert value(db, age, {'refdate': date(2026, 1, 11)}) == 10
@@ -112,7 +112,7 @@ def test_table_formula_reaches_the_adapter(tmp_path):
     customer.column('id', dtype='L')
     customer.column('email')
     customer.formulaColumn('masked_email', sql_formula=True)
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         database.execute('CREATE TABLE "app_customer" ("id" BIGINT, "email" TEXT)')
         database.execute("INSERT INTO \"app_customer\" VALUES (1, 'ada@example.com')")

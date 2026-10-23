@@ -30,7 +30,7 @@ flowchart LR
    attributes are allowed. Parent recipes and an application or deployment recipe
    can contribute to the same configuration.
 2. **Render live objects.** `AsqueelDb(Recipe)` resolves the configuration,
-   checks the model and constructs a `SqlDatabase`. Tables, columns and relations
+   checks the model and constructs the database. Tables, columns and relations
    are stable objects attached to it. No connection is opened and no DDL is run.
 3. **Execute operations.** `table.query(...)` records intent. `.fetch()` compiles
    it in the current environment, executes PostgreSQL SQL and returns mutable `NamedList` rows.

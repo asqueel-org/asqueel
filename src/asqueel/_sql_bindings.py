@@ -1,15 +1,16 @@
 """Text bindings for the hierarchical compiler, independent of SQL aliases.
 
 The allocator and scope inheritance retain the established binding rules;
-substitution follows the legacy experimental mangle algorithm. No Parameter,
+substitution skips SQL literals, quoted identifiers and comments. No Parameter,
 Fragment, model state or application environment is written here.
 """
 from copy import deepcopy
-import re
+from ._sql_parameters import substitute_parameters
 
 
 class SqlBindings:
-    def __init__(self, values=None, *, parent=None, prefix=''):
+    def __init__(self, values=None, *, parent=None, prefix='', dialect='postgres'):
+        self.dialect = parent.dialect if parent else dialect
         values = deepcopy(dict(values or {}))
         self.available = dict(parent.available) if parent else {}
         self.available.update(values)
@@ -55,12 +56,12 @@ class SqlBindings:
 
     def substitute(self, sql):
         def replace(match):
-            name = match[2]
+            name = match['parameter']
             if name not in self.names:
                 return match[0]
             if name in self.inputs:
                 self.consumed.add(name)
             bound = self.names[name]
             self.params[bound] = self.available[name]
-            return f'{match[1]}{bound}{match[3]}'
-        return re.sub(r'(:)(\w+)(\W|$)', replace, sql)
+            return ':' + bound
+        return substitute_parameters(sql, replace, self.dialect)

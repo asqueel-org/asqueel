@@ -1,12 +1,11 @@
 # Compile queries without executing them
 
-Asqueel has one live model and one SELECT compiler. `AsqueelDb`,
-`build_database()` and the default configuration render construct the hierarchical
-`DbModel`. Its tables own the operational `SqlTable` objects; relations are
+Asqueel has one live model and one SELECT compiler. `AsqueelDb(source)` renders
+the composed recipe into itself and constructs the hierarchical `DbModel`. Its tables own the operational `SqlTable` objects; relations are
 resolved from the model's `relations` branch.
 
 ```python
-from asqueel import SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 source = SqlDatabaseConfig()
 root = source.source.db('example', implementation='sqlite')
@@ -15,7 +14,7 @@ table = root.packages().package('sales', sqlschema='main').table('invoice', pkey
 table.column('id', dtype='L')
 table.column('total', dtype='N')
 
-db = source.render()
+db = AsqueelDb(source)
 query = db.table('sales.invoice').query(
     '$id,$total', where='$total >= :minimum', minimum=100,
 )
@@ -38,8 +37,9 @@ parameter manglers or table aliases between compilations.
 4. `db.execute(compiled)` executes on the owning connection and transaction.
 
 `QueryCompiler.select()` combines steps 1–3. `plan_count()` and `count()` use the
-legacy count algorithm. `PostgresCompiler(model)` selects PostgreSQL and psycopg
-adapters for the same compiler; it is not another compilation path.
+legacy count algorithm. `QueryCompiler(model, SqlDbAdapter(None))` with the
+adapter from `asqueel.adapters.postgres` compiles for PostgreSQL and psycopg
+without a database.
 
 There is no `QueryPlan`, SQL `Fragment`, scanner-based SELECT compiler or
 `driver.prepare(SqlStatement)` path. DML is developed separately and does not
@@ -79,13 +79,12 @@ in an existing transaction the driver issues a zero-row self-update on the
 physical table to acquire the write reservation. Neither path commits,
 opens a second connection or changes a row as part of lock acquisition.
 
-## Model-only rendering and catalog snapshots
+## One model construction
 
-`source.render(mode='objects_tree')` and `resolve_model(source)` return the same
-hierarchical model without binding an operational database. They use the same
-walk/finalize construction as the default operational render.
+`AsqueelDb(source)` is the only way to obtain the model: the database exists
+first, then `recipe.render(target=db)` builds the hierarchical `DbModel` into it
+with the generic walk/finalize construction. `recipe.render()` without a
+database target raises `TypeError`.
 
-`ResolvedModel` remains only as the catalog import/serialization snapshot used
-by `inspect_postgres`, `model_to_json` and `model_from_json`. It is not accepted
-by the live database or SELECT compiler. Migration projection supports both the
-live hierarchy and catalog snapshots without constructing a parallel live model.
+The SELECT and write compilers and physical migration projection consume that
+same hierarchy. There is no descriptor graph or alternative projection path.

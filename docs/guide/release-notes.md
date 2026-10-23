@@ -1,5 +1,51 @@
 # Release notes
 
+## 0.7.0 — Consolidation and unified model candidate
+
+- Use the hierarchical `DbModel` for authored models, SELECT/write compilation
+  and physical migration projection.
+- Remove the disconnected `ResolvedModel`, `Column`, `Table` and `Relation`
+  descriptors and their separate migration projection.
+- Remove the catalog import (`inspect_postgres`, `CatalogProvider`) and the model
+  JSON codec (`model_to_json`, `model_from_json`). Reading a model from a database
+  belongs to asqueel-migration; the recipe source will be saved as TYTX.
+- No query features or optimizations are added in this release.
+- Preserve parameter-like text inside SQL strings, quoted identifiers and comments,
+  including scoped formula bindings and environment parameters (#35).
+- Cover PostgreSQL dollar/E strings, nested comments, SQLite quoting, adjacent
+  parameters and collection expansion with regression and live database tests.
+- Correct the alias handle, zero limit, missing environment value and SQL/application
+  cascade documentation (#27, #37).
+- `read_only` is spelled `readOnly`, as in GenroPy.
+- One object renderer, mode `objects`, declared on `SqlBuilder` and reached only
+  through `AsqueelDb(source)`, which renders the composed recipe into the
+  database (`recipe.render(target=db)`); `recipe.render()` without a database
+  raises `TypeError`. Removed: `build_database` (use `AsqueelDb`),
+  `resolve_model` (use `AsqueelDb(source).model`), the `objects_tree` mode and
+  `renderer_objects_tree`, `SqlRenderer` and `renderer_sql`, the modules
+  `asqueel.model`, `asqueel.renderer` and `asqueel.object_renderer`, and the
+  `objects_tree` migration artifact and its export script.
+- The migration structure is rendered from the source by `SqlMigrationRenderer`,
+  a genro-builders renderer declared as `renderer_migration` on `SqlBuilder`:
+  `recipe.render(mode='migration', foreignKeys=True)`. `sqlname` on schemas,
+  tables and columns is always applied. Removed: `to_physical_builder` and the
+  modules `asqueel.projection` and `asqueel.object_tree_projection`;
+  `SqlMigrationRenderer(builder).render()` becomes `builder.render(mode='migration')`.
+- One database class, built before its model as in GenroPy: `AsqueelDb` exists
+  first, then the objects renderer builds `DbModel(db)` into it with
+  `model.build(fragment)`. `SqlTable(tblobj)` takes the table object only; the
+  database is `tblobj.db`. The environment lives on the database:
+  `AsqueelDb(source, environment=)` takes a mapping of defaults and
+  `db.environment_snapshot()` returns the detached copy. A subclass of `AsqueelDb`
+  may declare `main(self, root)` and is then called without a source. Removed:
+  `Database` (an `AsqueelDb` over a recipe with no package executes statements),
+  `SqlDatabase`, `SqlEnvironment`, `ApplicationEnvironment`, `DbDatabaseObj`,
+  `db.environment`, and the environment-type check of `session(db)`.
+- The Python recipe is rendered from the source by `SqlPythonEmitter`, a
+  genro-builders renderer declared as `renderer_python` on `SqlBuilder`:
+  `recipe.render(mode='python', class_name='ImportedDatabase')`. Removed:
+  the `SqlPythonEmitter.emit` method.
+
 ## 0.6.1
 
 - Execute standalone `auto_counter` and `relative_index` options, column

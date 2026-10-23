@@ -74,7 +74,7 @@ Run it with `python quickstart.py`.
 
 - `SqlDatabaseConfig` combines declaration grammar and connection configuration.
   `AsqueelDb()` validates the model and creates the live object graph.
-- `SqlDatabase` owns the model, compiler, environment and lazy connections. It connects
+- `AsqueelDb` owns the model, compiler, environment and lazy connections. It connects
   on the first executed operation, not during construction or SQL compilation.
 - `db.table()` returns a stable operational table. Its `.model` is the resolved
   descriptor; a column's `attributes` hold its declared attributes, independently of
@@ -91,6 +91,6 @@ Pass external values through `params` or write value mappings. SQL fragments,
 including formulas and WHERE expressions, are trusted application code.
 
 Next, follow the complete [invoice tutorial](tutorial.md), or explore [configuration](configuration.md), [models and relations](models.md),
-[transactions](transactions.md), or [database inspection](importing.md).
+or [transactions](transactions.md).
 The separate [compiler](compiler.md) and [driver APIs](adapters.md) remain available
 when integrating at a lower level.

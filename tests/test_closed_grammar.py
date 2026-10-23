@@ -53,7 +53,7 @@ def test_a_key_the_expansion_generates_still_raises_when_written_by_hand():
     table.column('code', dtype='T')
     table.attr['group_zzz'] = 'System'
     with pytest.raises(ValueError, match="unknown attribute 'group_zzz' on <table>"):
-        config.render(mode='objects_tree')
+        AsqueelDb(config).model
 
 
 def test_option_declared_by_a_mixed_in_grammar_is_accepted():

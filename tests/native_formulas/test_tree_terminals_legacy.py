@@ -3,7 +3,8 @@ import inspect
 
 import pytest
 
-from asqueel import SqlDatabase
+from asqueel import AsqueelDb
+from asqueel.configuration import connection_settings
 from examples.test_invoice_pg import source
 from tests.native_formulas import test_tree_count_legacy, test_legacy_options, legacy_sql_formulas
 from tests.native_formulas.conftest import (db_pg as execution_pg, db_sqlite as execution_sqlite,  # noqa: F401
@@ -17,8 +18,10 @@ def live_database(executor, state=None):
         else:
             patch.setenv('INVC_STATE', state)
         config = source()
-        config.source['db'].attr['implementation'] = executor.adapter.dialect
-        tree = SqlDatabase(model=config.render(mode='objects_tree'), config=executor.config)
+        implementation, conninfo, connect_kwargs = connection_settings(executor.config)
+        config.source['db'].attr.update(implementation=implementation, conninfo=conninfo,
+                                        connect_kwargs=connect_kwargs)
+        tree = AsqueelDb(config)
         try:
             tree.currentEnv.update(dict(executor.currentEnv))
             yield tree

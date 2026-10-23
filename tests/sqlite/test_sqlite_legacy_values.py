@@ -12,7 +12,7 @@ def recipe(path):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
             db = root.db()
-            db.connection(name=str(path), implementation='sqlite', options={'timeout': 0.1})
+            db.connection(name=str(path), implementation='sqlite').options().driver(timeout=0.1)
             columns = db.schemas().schema('app').tables().table('item', pkey='id').columns()
             for name, dtype in (('id', 'I'), ('day', 'D'), ('moment', 'DH'), ('stamp', 'DHZ'),
                                 ('hour', 'H'), ('amount', 'N'), ('flag', 'B')):

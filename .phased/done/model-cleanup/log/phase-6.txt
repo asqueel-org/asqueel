@@ -1,0 +1,10 @@
+La condizione del goal è soddisfatta così com'è scritta. Non cambio nient'altro.
+
+- **Stato della Phase 6:** `[!]`, con le note `> Issue:` e `> Attempted:`. Tutto è nel commit `6f274f1`.
+- **Tentativi di fix:** sono finiti, entro il limite di due.
+  - Il primo ha risolto il fallimento del sotto-albero montato.
+  - Per l'unico fallimento rimasto non esiste un fix nel codice che rispetti le decisioni della fase. Il messaggio di errore nasce nella composizione della Phase 1, dentro genro-builders. Cambiarlo cambierebbe il rifiuto di tutti i render.
+- **Il test non va modificato:** un test non si piega per farlo passare. Lo skill impone di chiudere la fase `[!]` con un `plan-defect claim`. Il `[!]` con claim è l'esito previsto, non una fase sospesa.
+- **Altre fasi:** nessuna ha cambiato stato.
+
+Il passo successivo spetta all'autore del piano. Deve decidere se aggiungere al `Done:` della Phase 6 il riallineamento di `test_empty_model_is_refused_before_invalid_python_is_emitted` sul messaggio `exactly one root element`.

@@ -1,12 +1,11 @@
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.write_compiler import WriteCompiler
 
 
 def bind(source):
-    return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    return AsqueelDb(source)
 
 
 @pytest.fixture

@@ -1,8 +1,7 @@
 """Legacy lookup validations are model data, never database operations."""
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.configuration import _copy_recipe
 
 
@@ -14,24 +13,15 @@ def source():
 
 @pytest.mark.parametrize('rule', ['exist', 'nodup'])
 @pytest.mark.parametrize('value', [True, False, '', 'external.table.code', None, 1, [], {}])
-def test_lookup_rules_keep_values_without_resolving_targets_or_executing(rule, value, monkeypatch):
-    import asqueel.validation as validation
-
-    def forbidden(*args, **kwargs):
-        pytest.fail('Lookup validation must not run during model translation')
-
-    monkeypatch.setattr(validation, 'validate_value', forbidden)
-    monkeypatch.setattr(validation, 'validate_spec', forbidden)
+def test_lookup_rules_keep_values_without_resolving_targets_or_executing(rule, value):
     builder, table = source()
     expected = {rule: value, f'{rule}_error': 'Check failed'}
     table.column('embedded', **{f'validate_{key}': item for key, item in expected.items()})
-    table.column('explicit').validation(**expected)
-    model = resolve_model(builder)
+    model = AsqueelDb(builder).model
     assert model.table('app.item').columns['embedded'].validations == expected
-    assert model.table('app.item').columns['explicit'].validations == expected
-    restored = resolve_model(_copy_recipe(builder))
+    restored = AsqueelDb(_copy_recipe(builder)).model
     assert restored.table('app.item').columns['embedded'].validations == expected
-    physical = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']['app_item']
+    physical = builder.render(mode='migration')['root']['schemas']['public']['tables']['app_item']
     assert not physical.get('relations')
     assert not physical['columns']['embedded']['attributes'].get('unique')
 
@@ -47,12 +37,12 @@ def test_legacy_lookup_parameters_survive_composition_and_round_trip():
         'nodup_if': 'value != null', 'nodup_duplicated_value': 'Duplicate',
         'exist': True, 'exist_if': 'value != null', 'exist_warning': 'Not found',
     }
-    column = table.column('code', **{f'validate_{key}': value for key, value in expected.items()})
+    table.column('code', **{f'validate_{key}': value for key, value in expected.items()})
     with builder.contribution('application'):
-        column.validation(nodup_relative='account_id', exist=False)
+        table.column('code', validate_nodup_relative='account_id', validate_exist=False)
     expected.update(nodup_relative='account_id', exist=False)
     builder.validate_source()
-    model = resolve_model(_copy_recipe(builder))
+    model = AsqueelDb(_copy_recipe(builder)).model
     assert model.table('app.item').columns['code'].validations == expected
 
 
@@ -65,10 +55,9 @@ def test_legacy_lookup_parameters_survive_composition_and_round_trip():
 def test_validation_data_survives_all_source_forms_without_vocabulary_checks(key, value):
     builder, table = source()
     table.column('embedded', **{f'validate_{key}': value})
-    table.column('explicit').validation(**{key: value})
-    node = table.column('imported').validation()
-    node.attr[key] = value
+    node = table.column('imported')
+    node.attr[f'validate_{key}'] = value
     builder.validate_source()
-    model = resolve_model(_copy_recipe(builder))
-    for name in ('embedded', 'explicit', 'imported'):
+    model = AsqueelDb(_copy_recipe(builder)).model
+    for name in ('embedded', 'imported'):
         assert model.table('app.item').columns[name].validations == {key: value}

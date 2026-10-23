@@ -15,9 +15,7 @@ from asqueel_migration.structures import json_equal, nested_defaultdict
 
 from asqueel import (
     SqlBuilder,
-    SqlMigrationRenderer,
     SqlModelReader,
-    SqlPythonEmitter,
 )
 from asqueel.grammar_doc import generate_grammar_md
 from asqueel.reader import SqlModelReadError
@@ -75,7 +73,7 @@ def test_structural_names_have_tag_scoped_namespaces():
     schema = db.schemas().schema(name="shared")
     table = schema.tables().table(name="t", pkey="id")
     table.columns().column(name="id", dtype="serial")
-    rendered = SqlMigrationRenderer(model).render()["root"]
+    rendered = model.render(mode='migration')["root"]
     assert "shared" in rendered["schemas"]
     assert "shared" in rendered["extensions"]
 
@@ -232,7 +230,7 @@ def test_composite_target_resolves_to_its_member_columns():
     relation = builder.source.query(
         "#n", deep=True, condition=lambda n: n.node_tag == "relation")[0]
     assert relation.get_attr("to") == "s.parent.a_b"
-    assert json_equal(normalized, SqlMigrationRenderer(builder).render())
+    assert json_equal(normalized, builder.render(mode='migration'))
 
 
 def test_relation_deferral_forms_project_exactly():
@@ -251,7 +249,7 @@ def test_relation_deferral_forms_project_exactly():
     deferred = child_columns.column(name="deferred_id", dtype="L")
     deferred.relation(to="s.parent.id", foreign_key=True, deferred=True)
 
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     relations = rendered["root"]["schemas"]["s"]["tables"]["child"][
         "relations"
     ].values()
@@ -262,14 +260,14 @@ def test_relation_deferral_forms_project_exactly():
     assert attributes[("deferred_id",)]["deferrable"] is True
     assert attributes[("deferred_id",)]["initially_deferred"] is True
 
-    source = SqlPythonEmitter(model).emit()
+    source = model.render(mode='python')
     assert "deferrable=True" in source
     assert "deferred=True" in source
     namespace = {}
     exec(compile(source, "<phase-13>", "exec"), namespace)  # noqa: S102
     rebuilt = namespace["ImportedDatabase"]()
     rebuilt.create()
-    assert json_equal(rendered, SqlMigrationRenderer(rebuilt).render())
+    assert json_equal(rendered, rebuilt.render(mode='migration'))
 
 
 def test_initially_deferred_requires_effective_deferrability():
@@ -307,7 +305,7 @@ def test_named_multicolumn_unique_remains_explicit():
     assert [node.get_attr("name") for node in constraints] == [
         "uq_account_tenant_email",
     ]
-    assert json_equal(normalized, SqlMigrationRenderer(builder).render())
+    assert json_equal(normalized, builder.render(mode='migration'))
 
 
 def test_reader_translates_builder_name_errors_to_json_paths():
@@ -337,7 +335,7 @@ def test_default_migrator_ignores_fk_name_only_differences():
              }]},
         ]}],
     }).get_json_struct()
-    rendered = SqlMigrationRenderer(SqlModelReader(normalized).to_builder()).render()
+    rendered = SqlModelReader(normalized).to_builder().render(mode='migration')
     migrator = SqlMigrator(object())
     migrator.sqlStructure = deepcopy(normalized)
     migrator.ormStructure = rendered
@@ -358,7 +356,7 @@ def test_dtype_defaults_cover_sized_and_unsized_columns():
     table_columns = table.columns()
     table_columns.column(name="sized", size="0:80")
     table_columns.column(name="unsized")
-    columns = SqlMigrationRenderer(model).render()["root"]["schemas"]["s"][
+    columns = model.render(mode='migration')["root"]["schemas"]["s"][
         "tables"
     ]["t"]["columns"]
     assert columns["sized"]["attributes"]["dtype"] == "A"
@@ -372,14 +370,14 @@ def test_emitter_disambiguates_colliding_python_identifiers():
             {"name": "a_b", "columns": [{"name": "id", "dtype": "L"}]},
         ]}],
     }).get_json_struct()
-    source = SqlPythonEmitter(SqlModelReader(normalized).to_builder()).emit()
+    source = SqlModelReader(normalized).to_builder().render(mode='python')
     assert "a_b = tables.table(" in source
     assert "a_b_2 = tables.table(" in source
     namespace = {}
     exec(compile(source, "<identifier-collision>", "exec"), namespace)  # noqa: S102
     rebuilt = namespace["ImportedDatabase"]()
     rebuilt.create()
-    assert json_equal(normalized, SqlMigrationRenderer(rebuilt).render())
+    assert json_equal(normalized, rebuilt.render(mode='migration'))
 
 
 def test_generated_relation_docs_name_domain_validation():

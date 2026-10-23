@@ -2,10 +2,9 @@
 import pytest
 from genro_builders.builder import element
 
-from asqueel import SqlBuilder, SqlMigrationRenderer, SqlPythonEmitter
+from asqueel import AsqueelDb, SqlBuilder
 from asqueel.catalog import SqlModelCatalog
 from asqueel.elements import ColumnElements, SchemaElements, TableElements
-from asqueel.model import resolve_model
 from asqueel.validators import SqlModelValidationError
 
 
@@ -54,14 +53,14 @@ def test_nested_mount_preserves_named_paths_and_real_consumers():
     catalog = SqlModelCatalog(model)
     assert set(catalog.physical_columns) == {('sales', 'customer', 'id'), ('sales', 'customer', 'label')}
     model.validate_model()
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     assert rendered['root']['schemas']['sales']['tables']['customer']['attributes']['pkeys'] == 'id'
-    assert resolve_model(model).table('sales.customer').columns['label'].dtype == 'T'
+    assert AsqueelDb(model).model.table('sales.customer').columns['label'].dtype == 'T'
 
 
 def test_dynamic_mount_class_configuration_is_not_emittable_python():
     # This is a characterized limitation, not a supported round-trip.
-    source = SqlPythonEmitter(build(MountedModel)).emit()
+    source = build(MountedModel).render(mode='python')
     with pytest.raises(SyntaxError):
         compile(source, '<mounted-model>', 'exec')
 
@@ -92,30 +91,29 @@ class ModularModel(SqlBuilder):
 
 
 def test_modular_recipes_emit_rebuild_and_keep_all_consumer_contracts():
-    from asqueel.projection import to_physical_builder
 
     model = build(ModularModel)
     model.validate_model()
-    source = SqlPythonEmitter(model).emit(class_name='Rebuilt')
+    source = model.render(mode='python', class_name='Rebuilt')
     namespace = {}
     exec(compile(source, '<modular-model>', 'exec'), namespace)
     rebuilt = build(namespace['Rebuilt'])
     rebuilt.validate_model()
-    assert SqlMigrationRenderer(model).render() == SqlMigrationRenderer(rebuilt).render()
+    assert model.render(mode='migration') == rebuilt.render(mode='migration')
     for recipe in (model, rebuilt):
         catalog = SqlModelCatalog(recipe)
         assert set(catalog.tables) == {('sales', 'customer'), ('sales', 'invoice')}
         assert len(catalog.relations) == 1
-        resolved = resolve_model(recipe)
+        resolved = AsqueelDb(recipe).model
         customer = resolved.table('sales.customer')
         assert customer.sqlschema == 'public'
         assert customer.sqlname == 'customer'
         assert customer.columns['label'].sqlname == 'display_name'
         assert customer.columns['label'].attributes['x_identity'] == 'customer-label'
         assert resolved.table('sales.invoice').sqlname == 'documents'
-        physical = to_physical_builder(resolved)
+        physical = resolved.db.config.builder
         physical.validate_model()
-        rendered = SqlMigrationRenderer(physical).render()
+        rendered = physical.render(mode='migration')
         assert set(rendered['root']['schemas']['public']['tables']) == {'customer', 'documents'}
         assert 'display_name' in rendered['root']['schemas']['public']['tables']['customer']['columns']
 
@@ -162,4 +160,4 @@ def test_indirect_mounted_grammar_preserves_its_declared_attribute():
     model = build(CustomMountedModel)
     # An attribute declared by the mounted grammar survives resolution.
     model.validate_model()
-    assert resolve_model(model).table('sales.customer').columns['id'].attributes['domain_hint'] == 'local grammar field'
+    assert AsqueelDb(model).model.table('sales.customer').columns['id'].attributes['domain_hint'] == 'local grammar field'

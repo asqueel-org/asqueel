@@ -2,8 +2,7 @@
 import pytest
 
 import asqueel
-from asqueel import TransactionStateError, session
-from asqueel.runtime import Database
+from asqueel import AsqueelDb, TransactionStateError, session
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
 
 DEFER_KEY = 'to_commit_defer_calls__main_db__main_connection'
@@ -28,7 +27,7 @@ def count(db):
 
 def test_the_connection_api_has_no_close_with_acquire_or_outcome():
     for name in ('close', 'acquire', 'outcome', '__enter__', '__exit__'):
-        assert not hasattr(Database, name), name
+        assert not hasattr(AsqueelDb, name), name
     assert not hasattr(asqueel, 'DatabaseClosedError')
 
 
@@ -80,7 +79,7 @@ def test_close_connection_rolls_back_and_the_database_stays_usable(db):
     assert count(db) == 1
 
 
-def test_deferred_calls_live_in_current_env_per_connection_key(db):
+def test_deferred_calls_live_in_currentEnv_per_connection_key(db):
     calls = []
     db.deferToCommit(calls.append, 'before')
     db.deferAfterCommit(calls.append, 'after')
@@ -91,7 +90,7 @@ def test_deferred_calls_live_in_current_env_per_connection_key(db):
     assert calls == ['before', 'after']
 
 
-def test_clear_current_env_drops_the_pending_deferred_calls(db):
+def test_clearCurrentEnv_drops_the_pending_deferred_calls(db):
     calls = []
     db.table('app.note').insert({'id': 'n1', 'text': 'a'})
     db.deferToCommit(calls.append, 'before')

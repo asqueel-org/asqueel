@@ -2,8 +2,8 @@
 """SqlBuilder — SQL model dialect for genro-builders.
 
 Grammar only: the vocabulary lives in the four mixins of
-:mod:`asqueel.elements`, rendering in :class:`SqlRenderer` exposed
-via the ``renderer_sql`` property.
+:mod:`asqueel.elements`; the live objects are rendered by the
+``objects`` renderer into an :class:`~asqueel.AsqueelDb`.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 from functools import cached_property
-from typing import cast, get_args
+from typing import Any, cast, get_args
 
 from genro_bag import BagNode
 
@@ -24,7 +24,6 @@ from .common import default_index_name, in_attribute_family
 from .semantic_elements import SemanticElements
 from .option_elements import BehaviorOptionElements, NAMED_OPTIONS
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
-from .renderer import SqlRenderer
 from .validators import SqlModelValidator
 
 
@@ -62,7 +61,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     """
 
     _name = "sqlmodel"
-    _default_render_mode = "sql"
+    _source_class = SqlSourceBag
+    _default_render_mode = "objects"
     _name_label_tags = frozenset({
         "schema", "package", "table", "column", "aliasColumn", "formulaColumn",
         "subQueryColumn", "pyColumn", "compositeColumn", "extension",
@@ -73,7 +73,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         "relation": "to",
         'type': 'name',
         'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
-        'connection': 'name', 'weak_relation': 'to', 'virtualRelation': 'name',
+        'connection': 'name', 'virtualRelation': 'name',
         'hierarchical': 'columns', 'index': 'columns',
         'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
         'numbering': 'field', 'broadcast': 'columns',
@@ -98,11 +98,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
 
     def __init__(self, name: str | None = None) -> None:
         super().__init__(name)
-        source = SqlSourceBag(builder=self)
-        self._sourceroot[SOURCE_ROOT] = source
-        self.source = source
+        # BuilderBase reads the payload with brackets, which SqlSourceBag maps to the node.
+        self.source = self._sourceroot.get_item(SOURCE_ROOT)
         self._contribution = 'main'
         self._attribute_origins: dict[tuple[str, str], str] = {}
+        self.composed = False
 
     @staticmethod
     def _node_path(node):
@@ -195,7 +195,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                                  and node_tag in self._virtual_definitions):
             raise ValueError(f'{node.fullpath}: conflicting element kinds '
                              f'{node.node_tag!r} and {node_tag!r}')
-        validation_overrides = self._validation_overrides(node, attributes)
         result = deepcopy(dict(node.attr))
         origins = dict(self._attribute_origins)
         path = self._node_path(node)
@@ -273,33 +272,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         if replace_kind:
             node.node_tag = node_tag
         self._attribute_origins = origins
-        for other, key in validation_overrides:
-            other.attr.pop(key, None)
         return node
-
-    def _validation_overrides(self, node, attributes):
-        """The two existing validation spellings share contribution rules."""
-        if node.node_tag == 'column':
-            other = node.value.get_node('validation') if node.value is not None else None
-            incoming = {key[9:]: value for key, value in attributes.items()
-                        if key.startswith('validate_')}
-        elif node.node_tag == 'validation':
-            other = node.parent_node
-            incoming = {f'validate_{key}': value for key, value in attributes.items() if key != '_meta'}
-        else:
-            return []
-        if other is None:
-            return []
-        overridden = []
-        for key, value in incoming.items():
-            if key not in other.attr:
-                continue
-            origin = self._attribute_origins.get((self._node_path(other), key), 'main')
-            if other.attr[key] != value and origin == self._contribution:
-                raise ValueError(f'{node.fullpath}: conflicting validation {key!r} '
-                                 f'in contribution {self._contribution!r}')
-            overridden.append((other, key))
-        return overridden
 
     @staticmethod
     def _package_ancestor(node):
@@ -358,8 +331,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                             raise ValueError(f'sys_fields.{field}.{key}: expected {expected.__name__}')
 
     def _validate_call_args(self, info, node_value, attr, node_tag=""):
-        if node_tag == 'validation':
-            return super()._validate_call_args(info, node_value, attr, node_tag)
         if info.get('accepts_var_keyword'):
             # An open signature accepts only the attribute families its element declares.
             self._validate_declared_names(
@@ -435,21 +406,19 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             from .elements import DTYPE
             if attr.get('dtype') is not None and attr['dtype'] not in get_args(DTYPE):
                 raise ValueError(f'Unknown dtype: {attr["dtype"]!r}')
-        if node_tag == 'weak_relation':
-            return self.set_child(build_where, 'relation', node_value,
-                                  foreign_key=False, x_weak=True, **attr)
         if node_tag == 'relation' and parent is not None and parent.node_tag in _VIRTUAL_COLUMN_TAGS:
             attr.setdefault('foreign_key', False)
             if attr['foreign_key']:
                 raise ValueError('foreign_key is not allowed on virtual columns')
-            if not attr['foreign_key']:
-                attr['x_weak'] = True
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
             if attr.get('cnd') and attr.get('foreign_key'):
                 raise ValueError(f"relation {attr.get('to')!r}: a relation with cnd= has no foreign key; "
                                  "remove foreign_key=True")
             attr.setdefault('foreign_key', not attr.get('cnd'))
             attr['x_canonical'] = True
+        if node_tag == 'relation' and 'foreign_key' in attr and not attr['foreign_key']:
+            # DbModel.checkRelationIndex: a relation without foreign key indexes its column.
+            attr['x_weak'] = True
         if node_tag == 'virtualRelation':
             node_label = f'{node_tag}_{attr["name"]}'
             existing = build_where.node(node_label)
@@ -462,10 +431,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             if attr.get('name') is None:
                 table = parent if parent.node_tag == 'table' else parent.parent_node
                 attr['name'] = default_index_name(table.label, columns)
-        if node_tag in ('validation', 'encryption'):
-            existing = build_where.node(node_tag)
-            if existing is not None:
-                return self._compose_attributes(existing, attr)
         if node_tag == 'connection':
             if node_label is not None:
                 raise ValueError('connection: node_label is fixed by its name')
@@ -614,10 +579,15 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         # Bag drops None attributes by default; here omission and explicit None
         # are different contributions and must survive composition.
         child.attr.update({key: None for key, value in attr.items() if value is None})
-        for other, key in self._validation_overrides(child, attr):
-            other.attr.pop(key, None)
         self._attribute_origins.update({(self._node_path(child), key): self._contribution for key in attr})
         return child
+
+    def render(self, mode: str | None = None, target: Any = None, **opts: Any) -> Any:
+        """Render the composed recipe: this one when already composed, else its composition."""
+        if not self.composed:
+            from .configuration import compose_recipe
+            return compose_recipe(self).render(mode, target, **opts)
+        return super().render(mode, target, **opts)
 
     def validate_source(self) -> list[tuple[str, list[str]]]:
         """Validate declarations and composition without resolving a live model."""
@@ -635,14 +605,19 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         return SqlModelValidator().validate(self)
 
     @property
-    def renderer_sql(self) -> SqlRenderer:
-        """Fresh ``SqlRenderer`` instance bound to this builder.
+    def renderer_objects(self):
+        """Renderer of the live model, delivered into an :class:`~asqueel.AsqueelDb` target."""
+        from .object_tree_renderer import SqlObjectRenderer
+        return SqlObjectRenderer(self)
 
-        Each access returns a new instance: the renderer is meant to be
-        ephemeral, used for a single ``render`` call and discarded.
+    @property
+    def renderer_migration(self):
+        """Renderer of the ``structure-1.0`` migration JSON of the composed recipe."""
+        from .migration import SqlMigrationRenderer
+        return SqlMigrationRenderer(self)
 
-        Today ``SqlRenderer`` is a placeholder that renders nothing: DDL
-        rendering is out of scope until its own slice lands. Database work
-        goes through :class:`~asqueel.migration.SqlMigrationRenderer`.
-        """
-        return SqlRenderer(builder=self)
+    @property
+    def renderer_python(self):
+        """Renderer of the Python recipe that rebuilds the composed recipe."""
+        from .emitter import SqlPythonEmitter
+        return SqlPythonEmitter(self)

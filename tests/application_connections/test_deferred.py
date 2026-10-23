@@ -2,8 +2,8 @@
 from tests.unit_of_work import completed
 import pytest
 
-from asqueel import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, build_database
-from asqueel.runtime import Database
+from asqueel import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, AsqueelDb
+from tests.unit_of_work import empty_database
 from tests.application_config.test_application import Recipe
 from tests.application_connections.test_connections import FAKE
 
@@ -12,7 +12,7 @@ def database(table_class=SqlTable):
     recipe = Recipe()
     recipe.create()
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = table_class
-    return build_database(recipe)
+    return AsqueelDb(recipe)
 
 
 def test_hooks_can_register_both_queues_and_deferred_errors():
@@ -43,7 +43,7 @@ def test_hooks_can_register_both_queues_and_deferred_errors():
 
 
 def test_precommit_failure_rolls_back_atomic_scope_and_clears_callbacks():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     events = []
 
@@ -66,7 +66,7 @@ def test_precommit_failure_rolls_back_atomic_scope_and_clears_callbacks():
 
 @pytest.mark.parametrize('queue', ['before', 'after'])
 def test_caught_sql_error_cannot_continue_commit_or_callbacks(queue):
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     events = []
     db.execute(CompiledQuery('write'))
@@ -95,7 +95,7 @@ def test_caught_sql_error_cannot_continue_commit_or_callbacks(queue):
 
 
 def test_caught_domain_failure_in_callback_cannot_be_committed():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('write'))
     db.deferToCommit(lambda: db._mark_connection_failed(db._connection_state))
@@ -156,7 +156,7 @@ def test_named_queues_and_pending_exceptions_are_independent():
 
 @pytest.mark.parametrize('completion', ['rollback', 'closeConnection'])
 def test_discard_clears_queues_even_without_sql(completion):
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     events = []
     db.deferToCommit(lambda: events.append('before'))
     db.deferAfterCommit(lambda: events.append('after'))
@@ -169,7 +169,7 @@ def test_discard_clears_queues_even_without_sql(completion):
 
 
 def test_unknown_commit_never_dispatches_after_and_discards_queue():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     events = []
     db.execute(CompiledQuery('write'))
@@ -187,7 +187,7 @@ def test_unknown_commit_never_dispatches_after_and_discards_queue():
 
 
 def test_after_callback_can_start_next_transaction_as_in_legacy():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('first'))
     db.deferAfterCommit(lambda: db.execute(CompiledQuery('second')))
@@ -199,7 +199,7 @@ def test_after_callback_can_start_next_transaction_as_in_legacy():
 
 @pytest.mark.parametrize('action', ['commit', 'rollback', 'closeConnection'])
 def test_callback_cannot_reenter_transaction_completion(action):
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('write'))
     db.deferToCommit(getattr(db, action))
@@ -251,7 +251,7 @@ def test_queue_contracts_match_recorded_original_legacy_oracle():
 
 
 def test_postcommit_python_failure_keeps_commit_and_rolls_back_only_new_work():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
 
     def fail():
@@ -271,7 +271,7 @@ def test_postcommit_python_failure_keeps_commit_and_rolls_back_only_new_work():
 
 
 def test_precommit_error_retains_original_exception_if_cleanup_fails():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     original = ValueError('original')
 
@@ -292,7 +292,7 @@ def test_precommit_error_retains_original_exception_if_cleanup_fails():
 
 @pytest.mark.parametrize('queue', ['before', 'after'])
 def test_callback_can_handle_external_failure_and_continue_queue(queue):
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     events = []
 
@@ -317,7 +317,7 @@ def test_callback_can_handle_external_failure_and_continue_queue(queue):
 
 
 def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     events = []
     original = ValueError('notification failed')
 
@@ -367,7 +367,7 @@ def test_trigger_finishes_another_named_connection_but_not_its_own(action):
 
 
 def test_deferred_blocks_run_in_lowercase_label_order():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     events = []
     for block in ('b', 'C', 'A', 'a'):
         db.deferToCommit(events.append, block, _deferredBlock=block)

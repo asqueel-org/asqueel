@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 
 
 def literal(node):
@@ -54,7 +54,7 @@ def test_legacy_task_formula_select_dictionaries_compile_unchanged():
             for name, attributes in declarations.items():
                 virtuals.formulaColumn(name, **attributes)
 
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     try:
         for name, attributes in declarations.items():
             column = db.table('sys.task').column(name)

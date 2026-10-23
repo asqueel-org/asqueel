@@ -1,34 +1,16 @@
-"""Compose defaults and collect semantic sections before model resolution."""
+"""Compose defaults and resolve source types and references before model resolution."""
 from __future__ import annotations
 
 from copy import deepcopy
 import inspect
-from genro_toolbox import extract_kwargs
 
 from .common import in_attribute_family
-from .configuration import _copy_recipe, _validate_source_shape
-from .model_sections import Declaration, Option, Package, Schema
+from .configuration import _copy_recipe
+from .model_sections import Option
 
 
 def attributes(node):
     return deepcopy({key: value for key, value in node.attr.items() if key != '_meta'})
-
-
-def declaration(node):
-    return Declaration(node.node_tag, node.get_attr('name') or node.label, attributes(node),
-                       tuple(declaration(child) for child in node.value or ()))
-
-
-@extract_kwargs(validate=True)
-def column_declarations(node, *, validate_kwargs=None, **attrs):
-    """Extract flat validation attributes only when translating the source."""
-    children = tuple(declaration(child) for child in node.value or ())
-    rules = dict(validate_kwargs)
-    for child in children:
-        if child.kind == 'validation':
-            rules.update(child.attributes)
-    result = tuple(child for child in children if child.kind != 'validation')
-    return result + ((Declaration('validation', 'validation', rules),) if rules else ())
 
 
 def options(node):
@@ -54,64 +36,54 @@ def generate_attributes(builder, node, attributes):
         node.attr['_meta'] = meta
 
 
-def prepare_source(builder, *, options_first=False):
+def prepare_source(builder, *, implementation=None, options_first=False):
+    """Owned copy of a composed recipe with signature defaults, types, options and references resolved.
+
+    ``implementation``, when given, is written on the ``db`` node before options expand.
+    """
     builder = _copy_recipe(builder)
-    _validate_source_shape(builder)
-    for _, node in builder.source.query('#p,#n', deep=True):
+    for _, node in builder.source.query('#p,#n', deep=True, iter=True):
         current = node
-        administrative = False
-        while current is not None:
-            if current.node_tag == 'connection':
-                administrative = True
-                break
+        while current is not None and current.node_tag != 'connection':
             current = current.parent_node
-        if administrative:
+        if current is not None:
             continue
-        owner = node.parent_bag._builder if node._get_meta('subbuilder') else node._resolve_builder()
+        owner = (node.parent_bag._builder if node._get_meta('subbuilder')
+                 else node._resolve_builder())
         info = owner._get_schema_info(node.node_tag)
-        if node.node_tag in ('table', 'column', 'validation'):
-            continue
-        for key, (_, _, default) in (info.get('call_args_validations') or {}).items():
-            if key not in node.attr and default is not inspect.Parameter.empty and default is not None:
-                if node.node_tag == 'relation' and key == 'indexed' and not node.get_attr('foreign_key'):
-                    continue
-                node.attr[key] = deepcopy(default)
-                meta = node.attr.get('_meta') or {}
-                node.attr['_meta'] = {**meta, 'signature_defaults': [
-                    *meta.get('signature_defaults', ()), key]}
+        signature_defaults = []
+        for name, (_, _, default) in (info.get('call_args_validations') or {}).items():
+            if name in node.attr or default is inspect.Parameter.empty or default is None:
+                continue
+            # indexed is a physical-FK default. Materializing it on a logical
+            # relation would turn an omitted option into a forbidden declaration.
+            if (node.node_tag == 'relation' and name == 'indexed'
+                    and not node.attr.get('foreign_key')):
+                continue
+            node.attr[name] = deepcopy(default)
+            signature_defaults.append(name)
+        if signature_defaults:
+            # Builders may share grammar metadata between nodes of the same tag.
+            # Default provenance belongs to this declaration, not to its siblings.
+            node.attr['_meta'] = {**(node.attr.get('_meta') or {}),
+                                  'signature_defaults': signature_defaults}
+        # Administrative root attributes belong to connection_settings, not the model.
+        if node.node_tag == 'db':
+            for name in ('conninfo', 'connect_kwargs'):
+                node.attr.pop(name, None)
+        _, values = owner.runtime_values(node)
+        meta = node.attr.get('_meta')
+        node.attr.clear()
+        node.attr.update(deepcopy(values))
+        if meta is not None:
+            node.attr['_meta'] = meta
+    if implementation is not None:
+        builder.source.get_node('db').attr['implementation'] = implementation
     resolve_source_types(builder)
     from .model_expansion import expand_options
     expand_options(builder, options_first=options_first)
     resolve_source_references(builder)
     return builder
-
-
-def sections(catalog):
-    default_schema = 'main' if catalog.database.get_attr('implementation') == 'sqlite' else 'public'
-    schemas = {name: Schema(name, node.get_attr('sqlname'), attributes(node), options(node))
-               for name, node in catalog.schemas.items()}
-    physical_names = [schema.physical_name for schema in schemas.values()]
-    if len(set(physical_names)) != len(physical_names):
-        raise ValueError('Duplicate physical schema name')
-    packages = {}
-    for name, node in catalog.packages.items():
-        schema = node.get_attr('sqlschema') or default_schema
-        schemas.setdefault(schema, Schema(schema, attributes={'implicit': True}))
-        configured = options(node)
-        requires = configured.get('requires')
-        if requires:
-            required = requires.attributes['packages']
-            required = [required] if isinstance(required, str) else required
-            missing = set(required) - catalog.packages.keys()
-            if missing:
-                raise ValueError(f'package {name}: missing required packages {sorted(missing)}')
-        packages[name] = Package(name, schema, node.get_attr('sqlprefix'), attributes(node), configured,
-                                 tuple(f'{p}.{t}' for p, t in catalog.tables if p == name))
-    for (package, name), entry in catalog.tables.items():
-        override = entry['node'].get_attr('sqlschema')
-        if package in packages and override and override not in schemas:
-            raise ValueError(f'{package}.{name}: sqlschema {override!r} is not derived from a package')
-    return schemas, packages
 
 
 def resolve_source_types(builder):

@@ -3,9 +3,8 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
 from asqueel.application_table import RecordNotFoundError
-from asqueel.configuration import _owned_handler
 from asqueel.errors import DeleteException, ProtectUpdateException, SaveException
 from tests.native_support import postgres_dsn
 
@@ -100,7 +99,7 @@ def db(request, tmp_path):
     else:
         schema = 'wcy_' + uuid4().hex[:8]
         source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
-    database = SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    database = AsqueelDb(source)
     try:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')

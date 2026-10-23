@@ -85,6 +85,25 @@ def split_names(value) -> list[str]:
     return [name.strip() for name in str(value).split(",") if name.strip()]
 
 
+def package_sqlschema(tag, name, attributes, implementation) -> str:
+    """Physical schema of a ``package`` or ``schema`` node, as legacy ``DbPackageObj.sqlschema``.
+
+    A schema is its ``sqlname`` or name; a package lives in the default
+    schema of the implementation (``main`` on SQLite, ``public`` otherwise).
+    """
+    default = "main" if (implementation or "sqlite").partition(":")[0] == "sqlite" else "public"
+    return attributes.get("sqlschema") or ((attributes.get("sqlname") or name) if tag == "schema" else default)
+
+
+def table_sqlname(package_tag, package_name, package_attributes, table_name, table_attributes) -> str:
+    """Physical table name, as legacy ``DbTableObj.sqlname``: ``sqlname``, else the package prefix and the name."""
+    if table_attributes.get("sqlname"):
+        return str(table_attributes["sqlname"])
+    prefix = package_attributes.get("sqlprefix", package_tag == "package")
+    prefix = package_name if prefix is True else prefix or ""
+    return f"{prefix}_{table_name}" if prefix else table_name
+
+
 def default_index_name(table, columns) -> str:
     """GenroPy's index name when none is given: ``<table>_<columns joined by _>_key``."""
     return f"{table}_{'_'.join(split_names(columns))}_key"

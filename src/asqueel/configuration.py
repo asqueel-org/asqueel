@@ -3,10 +3,8 @@ from __future__ import annotations
 
 from copy import deepcopy
 from contextlib import contextmanager
-import inspect
 from pathlib import Path
 import sys
-from typing import Any, Callable
 
 from genro_builders.builder import BuilderBase, element
 from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
@@ -16,38 +14,6 @@ from .builder import SqlBuilder
 from .package_layout import load_package_layouts
 
 _MISSING = object()
-
-
-class ConfigurationView:
-    """A relative read view over a configuration reader."""
-
-    def __init__(self, handler: Callable[..., Any], prefix: str = '', *, fallback=None):
-        self.handler = handler
-        self.prefix = prefix.strip('.')
-        self._fallback = fallback
-
-    def __call__(self, path: str, default=_MISSING):
-        if not isinstance(path, str) or not path:
-            raise ValueError('configuration path must be a non-empty string')
-        fullpath = f'{self.prefix}.{path}' if self.prefix else path
-        if self._fallback is None and default is not _MISSING:
-            return self.handler(fullpath, default=default)
-        try:
-            return self.handler(fullpath)
-        except KeyError:
-            if self._fallback is not None:
-                try:
-                    return self._fallback()(path)
-                except KeyError:
-                    pass
-            if default is _MISSING:
-                raise
-            return default
-
-    def scope(self, prefix: str) -> ConfigurationView:
-        fallback = (lambda: self._fallback().scope(prefix)) if self._fallback is not None else None
-        return ConfigurationView(self.handler, '.'.join(filter(None, (self.prefix, prefix))),
-                                 fallback=fallback)
 
 
 class SqlDatabaseElements:
@@ -65,7 +31,7 @@ class SqlDatabaseElements:
                    port: int | BagResolver | None = None,
                    user: str | BagResolver | None = None,
                    password: str | BagResolver | None = None,
-                   options: dict | None = None, database: str | BagResolver | None = None,
+                   database: str | BagResolver | None = None,
                    dsn: str | BagResolver | None = None, name_long: str | None = None,
                    name_short: str | None = None, comment: str | None = None):
         """Named connection; legacy declarations without database/dsn keep name as database."""
@@ -75,18 +41,6 @@ class SqlDatabaseElements:
 class SqlDatabaseConfig(SqlDatabaseElements, SqlBuilder, ConfigBuilder):
     """SQL application recipe: model grammar plus connection configuration."""
 
-    _default_render_mode = 'objects'
-
-    @property
-    def renderer_objects(self):
-        from .object_renderer import SqlObjectRenderer
-        return SqlObjectRenderer(self)
-
-    @property
-    def renderer_objects_tree(self):
-        from .object_tree_renderer import SqlObjectTreeRenderer
-        return SqlObjectTreeRenderer(self)
-
 
 def _copy_recipe(recipe):
     # Renderer products and delivery targets are live resources, not declaration
@@ -95,20 +49,24 @@ def _copy_recipe(recipe):
     return deepcopy(recipe, memo)
 
 
-def _owned_handler(source, parents=None):
+def compose_recipe(source, parents=None):
+    """The recipe a database is built from: ``source`` over ``parents``, with package layouts, validated.
+
+    Works on owned copies; the authored recipes are not modified.
+    """
     def own(recipe):
         return _copy_recipe(recipe) if isinstance(recipe, BuilderBase) else recipe
     sources = [configuration_source(item) for item in (*(parents or ()), source)]
     with _recipe_imports(sources):
-        layers = [SqlConfigHandler(own(item)) for item in sources]
-        handler = layers[0]
+        layers = [SqlConfigHandler(own(item)).builder for item in sources]
+        recipe = layers[0]
         for index, layer in enumerate(layers[1:], 1):
-            with handler.builder.contribution(f'layer[{index}]'):
-                _compose_source(handler.builder, handler.builder.source, layer.builder.source)
-        _normalize_connection_options(handler)
-        load_package_layouts(handler.builder)
-        _validate_source_shape(handler.builder)
-        return handler
+            with recipe.contribution(f'layer[{index}]'):
+                _compose_source(recipe, recipe.source, layer.source)
+        load_package_layouts(recipe)
+        _validate_source_shape(recipe)
+        recipe.composed = True
+        return recipe
 
 
 def _validate_source_shape(builder):
@@ -129,7 +87,7 @@ def _validate_source_shape(builder):
             if node.attr.get('table') and (condition is None or
                     isinstance(condition, str) and not condition.strip()):
                 raise ValueError('virtualRelation: table requires a nonempty condition')
-        if (node.node_tag in builder.table_options or node.node_tag == 'encryption') and 'provider' in node.attr:
+        if node.node_tag in builder.table_options and 'provider' in node.attr:
             raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
         if builder.option_levels(node.node_tag) is not None:
             if node.node_tag in builder.table_options:
@@ -147,19 +105,6 @@ def _validate_source_shape(builder):
                         raise ValueError(f'{node.fullpath}.{child.label}: conflicting element kinds '
                                          f'{names[child.label]!r} and {child.node_tag!r}')
                     names[child.label] = child.node_tag
-
-
-def _normalize_connection_options(handler):
-    """Translate the 0.5 connection dictionary on an owned administrative source."""
-    for _, node in list(handler.builder.source.query('#p,#n', deep=True)):
-        if node.node_tag != 'connection' or node.get_attr('options') is None:
-            continue
-        values = deepcopy(node.get_attr('options'))
-        existing = node.value.get_node('options.driver') if isinstance(node.value, Bag) else None
-        if existing is not None:
-            raise ValueError('Use connection.options().driver() or legacy options, not both')
-        del node.attr['options']
-        node.options().driver(**values)
 
 
 class SqlConfigHandler(ConfigHandler):
@@ -196,8 +141,6 @@ def _compose_source(builder, target, incoming):
             added = target.set_item(node.label, None if isinstance(value, Bag) else deepcopy(value),
                                     _attributes=deepcopy(dict(node.attr)), _remove_null_attributes=False,
                                     node_tag=node.node_tag)
-            for other, key in builder._validation_overrides(added, dict(node.attr)):
-                other.attr.pop(key, None)
             builder._attribute_origins.update({(builder._node_path(added), key): builder._contribution
                                                for key in added.attr if key != '_meta'})
             if isinstance(value, Bag):
@@ -248,7 +191,7 @@ def configuration_source(source):
 
 
 def _recipe_from_node(node):
-    """Recipe class that rebuilds a ``db`` subtree written in a host document.
+    """Recipe that rebuilds a ``db`` subtree written in a host document.
 
     A host configuration mounts ``AsqueelDb.grammar`` and writes the database
     under its own node; this replays that subtree, element by element, into a
@@ -257,11 +200,9 @@ def _recipe_from_node(node):
     if node.node_tag != 'db':
         raise TypeError(f"a mounted Asqueel database starts at a 'db' node, not {node.node_tag!r}")
 
-    class MountedDatabase(SqlDatabaseConfig):
-        def main(self, root):
-            _replay_node(node, root)
-
-    return MountedDatabase
+    recipe = SqlDatabaseConfig()
+    _replay_node(node, recipe.source)
+    return recipe
 
 
 def _replay_node(node, target):
@@ -348,18 +289,10 @@ def _connection_settings(config, prefix):
         implementation = config('implementation', default='sqlite')
     if config('conninfo', default='') or config('connect_kwargs', default=None):
         raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
-    options = dict(read('options') or {})
     fields = ('connect_timeout', 'application_name', 'sslmode', 'sslrootcert',
               'options', 'timeout', 'cached_statements', 'foreignKeys')
-    driver_options = {field: value for field in fields
-                      if (value := read(f'options.driver.{field}')) is not None}
-    if driver_options:
-        if options:
-            raise ValueError('Use connection.options().driver() or legacy options, not both')
-        options = driver_options
-    reserved = {'dbname', 'host', 'port', 'user', 'password'} & options.keys()
-    if reserved:
-        raise ValueError('Connection fields must be declared directly, not inside options')
+    options = {field: value for field in fields
+               if (value := read(f'options.driver.{field}')) is not None}
     database = read('database')
     dsn = read('dsn')
     connection_node = (config.builder.source.get_node(f'{config.root_label}.{prefix}')
@@ -402,51 +335,3 @@ def _connection_settings(config, prefix):
     if options.get('autocommit'):
         raise ValueError('Asqueel requires transactional connections, not autocommit')
     return implementation, '', options
-
-
-def build_database(source, *, parents=None, environment=None):
-    """Compatibility factory; new application code can instantiate AsqueelDb."""
-    from .application import AsqueelDb
-    return AsqueelDb(source, parents=parents, environment=environment)
-
-
-def _effective_model_builder(config):
-    """Apply signature defaults and Builders' renderer semantics on an owned source."""
-    builder = _copy_recipe(config.builder)
-    for _, node in builder.source.query('#p,#n', deep=True, iter=True):
-        current = node
-        while current is not None and current.node_tag != 'connection':
-            current = current.parent_node
-        if current is not None:
-            continue
-        owner = (node.parent_bag._builder if node._get_meta('subbuilder')
-                 else node._resolve_builder())
-        info = owner._get_schema_info(node.node_tag)
-        signature_defaults = []
-        for name, (_, _, default) in (info.get('call_args_validations') or {}).items():
-            if (name in node.attr or default is inspect.Parameter.empty or default is None
-                    or node.node_tag == 'validation'):
-                continue
-            # indexed is a physical-FK default. Materializing it on a logical
-            # relation would turn an omitted option into a forbidden declaration.
-            if (node.node_tag == 'relation' and name == 'indexed'
-                    and not node.attr.get('foreign_key')):
-                continue
-            node.attr[name] = deepcopy(default)
-            signature_defaults.append(name)
-        if signature_defaults:
-            # Builders may share grammar metadata between nodes of the same tag.
-            # Default provenance belongs to this declaration, not to its siblings.
-            node.attr['_meta'] = {**(node.attr.get('_meta') or {}),
-                                  'signature_defaults': signature_defaults}
-        # Administrative root attributes belong to connection_settings, not the model.
-        if node.node_tag == 'db':
-            for name in ('conninfo', 'connect_kwargs'):
-                node.attr.pop(name, None)
-        _, values = owner.runtime_values(node)
-        meta = node.attr.get('_meta')
-        node.attr.clear()
-        node.attr.update(deepcopy(values))
-        if meta is not None:
-            node.attr['_meta'] = meta
-    return builder

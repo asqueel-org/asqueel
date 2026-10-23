@@ -4,7 +4,7 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from asqueel import UnsupportedFeatureError, build_database
+from asqueel import UnsupportedFeatureError, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
@@ -47,7 +47,7 @@ def direct_model(backend):
         for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
-        database = build_database(direct_source(backend))
+        database = AsqueelDb(direct_source(backend))
         try:
             yield database
             assert database._connections == {}
@@ -70,7 +70,7 @@ def test_direct_and_ordinary_relations_have_same_results(direct_model, connectio
 def test_no_declared_relation_or_fk_is_needed(backend, connection):
     config = direct_source(backend)
     config.source.get_node('db.packages.app.tables.invoice.columns.customer_id').value.pop_node('relation_0')
-    db = build_database(config)
+    db = AsqueelDb(config)
     try:
         assert db.model.table('app.customer').relations.get_node('@invoices') is None
         q = db.table('app.customer').query('$id,@direct.aggr(count() AS n, sum($total) AS amount)', order_by='$id')

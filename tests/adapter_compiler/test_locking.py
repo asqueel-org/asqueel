@@ -1,7 +1,7 @@
 """Row locking is an explicit plan capability restricted to the root table."""
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.write_compiler import WriteCompiler
 
 
@@ -15,7 +15,7 @@ def db():
     invoice = pkg.table('invoice', pkey='id')
     invoice.column('id')
     invoice.column('customer_id').relation('app.customer.id')
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         yield database
     finally:

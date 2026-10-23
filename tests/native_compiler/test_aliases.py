@@ -2,7 +2,7 @@
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.write_compiler import WriteCompiler
 
 ALIASES = ('customer_code', 'country_name', 'via_alias', 'twice')
@@ -28,7 +28,7 @@ def db():
     invoice.aliasColumn('country_name', '@customer_id.@country_id.name', x_identity='stable-country')
     invoice.aliasColumn('via_alias', '@customer_id.country')
     invoice.aliasColumn('twice', '@customer_id.double')
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         yield database
     finally:

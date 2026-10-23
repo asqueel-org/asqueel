@@ -1073,7 +1073,7 @@ In asqueel you write:
 tbl.column('customer_id').relation('customer.id', foreign_key=True)
 ```
 
-In asqueel you get: inside a package `foreign_key` is `True` by default and `False` with `cnd`. `weak_relation` creates no foreign key. `mode=` raises `ValueError`: `Element 'relation' does not accept 'mode'`. `case_insensitive=True` produces no `lower()` in the join, as in GenroPy.
+In asqueel you get: inside a package `foreign_key` is `True` by default and `False` with `cnd`. `relation(..., foreign_key=False)` creates no foreign key. `mode=` raises `ValueError`: `Element 'relation' does not accept 'mode'`. `case_insensitive=True` produces no `lower()` in the join, as in GenroPy.
 
 <details><summary>Files</summary>
 
@@ -2613,10 +2613,10 @@ In asqueel you write:
 
 ```python
 db.currentEnv = {"user": "ada"}
-snapshot = db.current_env
+snapshot = db.environment_snapshot()
 ```
 
-In asqueel you get: a dict per thread. The setter raises `TypeError` "currentEnv must be a dictionary" for another value. `current_env` returns a read-only copy without the deferred queues and `_pendingExceptions`.
+In asqueel you get: a dict per thread. The setter raises `TypeError` "currentEnv must be a dictionary" for another value. `db.environment_snapshot()` returns a read-only copy without the deferred queues and `_pendingExceptions`, with the workdate/locale defaults resolved.
 
 <details><summary>Files</summary>
 
@@ -3186,7 +3186,7 @@ In asqueel you get: entry runs `clearCurrentEnv` and `updateEnv(**env)`. Exit ru
 - **`protect_update`, `protect_delete`, `protect_validate`**: same methods, called in the same positions. (A5.6)
 - **Record data in a write**: `@`, virtual and unknown keys are ignored, `None` is left out of INSERT, UPDATE writes every present column. (A5.14)
 - **Row policies in writes**: DELETE is physical; partition, draft and logical-deletion filters do not apply to writes. (A5.28)
-- **`tempEnv` / `temp_env`**: same restore rule on exit. (A6.1)
+- **`tempEnv`**: same restore rule on exit. (A6.1)
 - **`setLocale()`**: called when `currentEnv` has a locale; the adapters have no effect. (A6.4)
 - **`connectionName`, `currentConnectionName`, `usingMainConnection`**: same default `'_main_connection'`. (A6.5)
 - **`deferToCommit` / `deferAfterCommit`**: same blocks, deduplication and queue keys in `currentEnv`. (A6.12)
@@ -3244,7 +3244,7 @@ db.listen('orders', timeout=10, onNotify=handle)
 
 In GenroPy you got: PostgreSQL `NOTIFY` and `LISTEN` on the current connection. On SQLite `notify` did nothing and `listen` only waited.
 
-In asqueel: `db.listen`, `db.notify` and the matching adapter methods do not exist. Calling them raises `AttributeError: 'Database' object has no attribute 'listen'`. The write cycle does not handle `NOTIFY`.
+In asqueel: `db.listen`, `db.notify` and the matching adapter methods do not exist. Calling them raises `AttributeError: 'AsqueelDb' object has no attribute 'listen'`. The write cycle does not handle `NOTIFY`.
 
 Possible ways, none chosen yet:
 
@@ -3359,7 +3359,7 @@ In GenroPy you got: the module `gnr.sql.adapters.gnrpostgres` (psycopg2). `'name
 In asqueel you write:
 
 ```python
-db = Database(implementation='postgres')
+db = AsqueelDb(Recipe)  # a recipe with db(implementation='postgres')
 with db.tempEnv(currentImplementation='postgres'):
     adapter = db.adapter
 ```
@@ -3498,8 +3498,8 @@ In GenroPy you got: `timeout=20.0` and `detect_types`. No `PRAGMA foreign_keys`:
 In asqueel you write:
 
 ```python
-db.connection(name='/data/shop.db', implementation='sqlite',
-              options={'foreignKeys': False, 'timeout': 5})
+db.connection(name='/data/shop.db', implementation='sqlite').options().driver(
+    foreignKeys=False, timeout=5)
 ```
 
 In asqueel you get: `detect_types` as in GenroPy. `timeout` is 20 seconds by default; `timeout` and `cached_statements` can be set. Each connection runs `PRAGMA foreign_keys = ON`. `foreignKeys=False` runs `PRAGMA foreign_keys = OFF`. PostgreSQL refuses `foreignKeys` with `ValueError`.
@@ -3996,3 +3996,12 @@ names the capability.
 environment is read again at every execution, and there is no `db.close()`,
 `with db:` or `acquire()`. Alternative connection modes, for example for async
 code, are a possible future study.
+
+### Application and SQL update actions
+
+`onUpdate_sql` defaults to `cascade`. The database applies that action during
+UPDATE, before the application calls `updateRelated`: matching child rows may
+already have moved, so their application hooks need not run. When application
+propagation and child hooks are required, explicitly use `onUpdate='cascade'`,
+`onUpdate_sql='no action'` and a deferred foreign key on a backend that supports
+it. Composite application cascades remain limited (issue #49).

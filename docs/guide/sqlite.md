@@ -25,8 +25,8 @@ is the database file; host, port, user and password are not applicable. Optional
 
 Each connection runs `PRAGMA foreign_keys = ON`. `foreignKeys=False` runs
 `PRAGMA foreign_keys = OFF` instead: SQLite then checks no foreign key on that
-connection. Declare it as `connection(options={'foreignKeys': False})` or as
-`connection.options().driver(foreignKeys=False)`. PostgreSQL refuses the option.
+connection. Declare it as `connection.options().driver(foreignKeys=False)`.
+PostgreSQL refuses the option.
 
 Logical schemas are attached files, as in GenroPy: each schema is the file
 `<schema>.db` in the folder of the main file. `example.db` is the main file and

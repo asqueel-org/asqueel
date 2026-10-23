@@ -13,13 +13,13 @@ import pytest
 from asqueel_migration import JsonStructureProducer
 from asqueel_migration.structures import DTYPE_CODES, json_equal
 
-from asqueel import SqlMigrationRenderer, SqlModelReader
+from asqueel import SqlModelReader
 
 
 def _roundtrip(human_json):
     normalized = JsonStructureProducer(human_json).get_json_struct()
     builder = SqlModelReader(normalized).to_builder()
-    rendered = SqlMigrationRenderer(builder).render()
+    rendered = builder.render(mode='migration')
     assert json_equal(normalized, rendered), (normalized, rendered)
     return builder
 
@@ -150,7 +150,7 @@ def test_composite_name_collision_gets_stable_suffix():
     normalized = JsonStructureProducer(human).get_json_struct()
     builder = SqlModelReader(normalized).to_builder()
     assert builder.source["db.schemas.geo.tables.t.composites.x_y_2"] is not None
-    assert json_equal(normalized, SqlMigrationRenderer(builder).render())
+    assert json_equal(normalized, builder.render(mode='migration'))
 
 
 def test_index_with_sort_where_method_options():

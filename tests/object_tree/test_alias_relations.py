@@ -3,8 +3,9 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.compiler import PostgresCompiler
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
+from asqueel.compiler import QueryCompiler
 from tests.native_support import postgres_dsn
 
 
@@ -34,7 +35,7 @@ def source(*, implementation='postgres', schema='public', conninfo=None, explici
 def test_inherited_relation_is_weak_and_does_not_mutate_source_or_target():
     config, _ = source()
     before = config.source.to_xml()
-    model = config.render(mode='objects_tree')
+    model = AsqueelDb(config).model
     table = model.table('app.invoice_row')
     for name in ('customer_id', 'customer_copy'):
         attrs = table.relations.get_node('@' + name).attr['joiner']
@@ -50,20 +51,20 @@ def test_inherited_relation_is_weak_and_does_not_mutate_source_or_target():
     assert original['relation_name'] == 'invoices' and original['onDelete'] == 'cascade'
     assert original['foreignkey']
     assert config.source.to_xml() == before
-    assert config.render(mode='objects_tree').relations.to_xml() == model.relations.to_xml()
-    migration = SqlMigrationRenderer(config).render()['root']['schemas']['public']['tables']
+    assert AsqueelDb(config).model.relations.to_xml() == model.relations.to_xml()
+    migration = config.render(mode='migration')['root']['schemas']['public']['tables']
     assert len(migration['invoice_row']['relations']) == 1  # only invoice_id
     assert 'customer_id' not in migration['invoice_row']['columns']
 
 
 def test_explicit_relation_wins_and_is_inherited_by_the_next_alias():
     config, _ = source(explicit=True)
-    model = config.render(mode='objects_tree')
+    model = AsqueelDb(config).model
     for name in ('customer_id', 'customer_copy'):
         attrs = model.table('app.invoice_row').relations.get_node('@' + name).attr['joiner']
         assert attrs['one_relation'] == 'app.other_customer.id'
         assert not attrs['foreignkey']
-    sql = PostgresCompiler(model).select('app.invoice_row', '@customer_copy.name').sql
+    sql = QueryCompiler(model, PostgresAdapter(None)).select('app.invoice_row', '@customer_copy.name').sql
     assert '"other_customer"' in sql
 
 
@@ -71,10 +72,10 @@ def test_alias_cycle_does_not_recurse_during_inheritance():
     config, row = source()
     row.aliasColumn('cycle_a', '$cycle_b')
     row.aliasColumn('cycle_b', '$cycle_a')
-    model = config.render(mode='objects_tree')
+    model = AsqueelDb(config).model
     assert model.table('app.invoice_row').relations.get_node('@cycle_a') is None
     with pytest.raises(ValueError, match='Cyclic'):
-        PostgresCompiler(model).select('app.invoice_row', '$cycle_a')
+        QueryCompiler(model, PostgresAdapter(None)).select('app.invoice_row', '$cycle_a')
 
 
 @pytest.fixture(params=[('sqlite', False), ('sqlite', True),
@@ -133,11 +134,11 @@ def test_alias_path_can_traverse_another_inherited_relation():
     customer = package.table('customer')
     customer.column('manager_id', 'L').relation('app.customer.id')
     row.aliasColumn('manager_id', '@customer_id.manager_id')
-    model = config.render(mode='objects_tree')
+    model = AsqueelDb(config).model
     joiner = model.table('app.invoice_row').relations.get_node('@manager_id').attr['joiner']
     assert joiner['one_relation'] == 'app.customer.id'
     assert not joiner['foreignkey']
-    sql = PostgresCompiler(model).select('app.invoice_row', '@manager_id.name').sql
+    sql = QueryCompiler(model, PostgresAdapter(None)).select('app.invoice_row', '@manager_id.name').sql
     assert sql.count('LEFT JOIN') == 3
 
 

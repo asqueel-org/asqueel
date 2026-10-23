@@ -6,7 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, build_database
+from asqueel import SqlDatabaseConfig, SqlTable, AsqueelDb
 from tests.native_support import postgres_dsn
 
 
@@ -61,7 +61,7 @@ def rule_db(request, tmp_path):
     try:
         if admin is not None:
             admin.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
-        db = build_database(config)
+        db = AsqueelDb(config)
         try:
             target = f'"{schema}"."item"'
             db.execute(f'CREATE TABLE {target} (id BIGINT, amount NUMERIC, gate TEXT, flag BOOLEAN)')

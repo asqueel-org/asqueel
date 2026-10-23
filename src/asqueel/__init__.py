@@ -4,7 +4,7 @@
 The source tree is the pivot for migration tooling and round-tripping:
 :class:`SqlMigrationRenderer` projects it to normalized migration JSON,
 :class:`SqlModelReader` reads that structure back, and
-:class:`SqlPythonEmitter` emits an editable Python recipe.
+:class:`SqlPythonEmitter` renders an editable Python recipe (`recipe.render(mode='python')`).
 """
 
 from __future__ import annotations
@@ -12,50 +12,40 @@ from __future__ import annotations
 from importlib import import_module
 
 from .builder import SqlBuilder
-from .application import AsqueelDb, SqlDatabase
+from .application import AsqueelDb
 from .application_table import (
     SqlTable, SqlQuery,
     RecordNotFoundError, RecordMultipleRowsError,
 )
-from .configuration import SqlDatabaseConfig, ConfigurationView, build_database
+from .configuration import SqlDatabaseConfig
 from .emitter import SqlPythonEmitter
-from .renderer import SqlRenderer
-from .compiler import PostgresCompiler, QueryCompiler
-from .catalog_provider import CatalogProvider, PostgresCatalogProvider
+from .compiler import QueryCompiler
 from .contracts import (
-    Column, CompiledQuery, Relation, ResolvedModel, ResultColumn,
-    Table, UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
+    CompiledQuery, ResultColumn,
+    UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
 )
-from .environment import SqlEnvironment
-from .importers import ImportResult, inspect_postgres
-from .model_sections import Schema, Package, Option, Declaration
-from .model_codec import model_to_json, model_from_json
-from .model import resolve_model
-from .projection import to_physical_builder
+from .object_tree import DbModel
 from .runtime import (
-    Database, PostgresDatabase, SqlCursor,
+    SqlCursor,
     TransactionStateError, session,
 )
 from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.6.3"
+__version__ = "0.7.0"
 
 __all__ = [
-    "Schema", "Package", "Option", "Declaration", "model_to_json", "model_from_json",
-    "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "ConfigurationView", "build_database",
+    "AsqueelDb", "AsqueelDbMixin", "SqlDatabaseConfig",
     "SqlTable", "SqlQuery",
     "RecordNotFoundError", "RecordMultipleRowsError",
-    "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
-    "Column", "CompiledQuery", "Relation", "ResolvedModel",
-    "ResultColumn", "Table", "UnsupportedFeatureError", "PostgresCompiler",
-    "PostgresDatabase", "SqlCursor", "session",
-    "TransactionStateError", "resolve_model", "ImportResult", "inspect_postgres",
-    "to_physical_builder",
-    "QueryCompiler", "Database",
-    "CatalogProvider", "PostgresCatalogProvider",
-    "SqlEnvironment", "UnusedQueryParameterWarning", "RowPolicies",
+    "SqlBuilder", "SqlPythonEmitter",
+    "CompiledQuery",
+    "ResultColumn", "UnsupportedFeatureError",
+    "SqlCursor", "session",
+    "TransactionStateError", "DbModel",
+    "QueryCompiler",
+    "UnusedQueryParameterWarning", "RowPolicies",
     "TriggerStack", "TriggerStackItem",
     "DeferredCommitError", "MigrationError",
 ]

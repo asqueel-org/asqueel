@@ -1,8 +1,6 @@
 """Replay native option contracts on the hierarchy; no driver I/O."""
-import pytest
 
-from asqueel import SqlDatabase
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb
 from tests.native_compiler import test_native_options as original
 from tests.native_compiler.test_native_options import (
     STATE,
@@ -16,13 +14,7 @@ from tests.native_compiler.test_native_options import (
 
 
 def tree_database(config, environment=STATE):
-    return SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config),
-                       environment=environment)
-
-
-@pytest.fixture(autouse=True)
-def use_tree(monkeypatch):
-    monkeypatch.setattr(original, 'build_database', tree_database)
+    return AsqueelDb(config, environment=environment)
 
 
 def test_disabled_sys_fields_does_not_activate_read_markers(backend):

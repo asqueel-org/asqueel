@@ -1,8 +1,7 @@
 """GenroPy model and query behaviours: name::dtype, falsy limit/offset."""
 import pytest
 
-from asqueel import AsqueelDb, SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlBuilder, SqlDatabaseConfig
 from tests.native_formulas.conftest import db_pg  # noqa: F401
 
 
@@ -22,7 +21,7 @@ def test_name_dtype_split_on_column_and_virtual_columns():
     t.column('data', 'X')
     t.pyColumn('p::N', py_method='calc')
     t.bagItemColumn('b::N', bagcolumn='$data', itempath='a')
-    table = resolve_model(b).table('sales.invoice')
+    table = AsqueelDb(b).model.table('sales.invoice')
     assert table.columns['n'].dtype == 'N'
     for name in ('f', 'a', 'p', 'b'):
         assert table.virtual_columns[name].dtype == 'N'
@@ -73,7 +72,7 @@ def test_relation_name_names_the_inverse_relation():
     invoice.column('id', 'L')
     invoice.column('customer_id', 'L').relation('customer.id', relation_name='invoices')
     pkg.table('customer', pkey='id').column('id', 'L')
-    model = resolve_model(b)
+    model = AsqueelDb(b).model
     assert model.table('sales.customer').relations.get_node('@invoices').attr['joiner']['mode'] == 'M'
     forward = model.table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
     assert forward['relation_name'] == 'invoices'
@@ -81,7 +80,7 @@ def test_relation_name_names_the_inverse_relation():
 
 
 def fk_attributes(builder, table):
-    tables = SqlMigrationRenderer(builder).render()['root']['schemas']['public']['tables']
+    tables = builder.render(mode='migration')['root']['schemas']['public']['tables']
     return next(iter(tables[table]['relations'].values()))['attributes']
 
 
@@ -95,7 +94,7 @@ def test_sql_actions_reach_the_migration_foreign_key_in_a_package():
     fk = fk_attributes(b, 'sales_invoice')
     assert fk['on_delete'] == 'CASCADE' and fk['on_update'] == 'SET NULL'
     assert fk['deferrable'] and fk['initially_deferred']
-    joiner = resolve_model(b).table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
+    joiner = AsqueelDb(b).model.table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
     assert (joiner['onDelete'], joiner['onDelete_sql'], joiner['onUpdate_sql']) == ('setnull', 'cascade', 'setnull')
 
 
@@ -112,8 +111,8 @@ def test_sql_actions_reach_the_migration_foreign_key_outside_a_package():
     b.create()
     fk = fk_attributes(b, 'invoice')
     assert fk['on_delete'] == 'SET NULL' and fk['on_update'] == 'CASCADE'
-    # The physical layer mirrors the database: deferral is never implied.
-    assert 'deferrable' not in fk
+    # SET NULL implies deferred, as legacy DbModelSrc.relation (gnrsqlmodel/model.py:263).
+    assert fk['deferrable'] is True and fk['initially_deferred'] is True
 
 
 @pytest.mark.parametrize('key,value', [('onDelete_sql', 'set_null'), ('onUpdate_sql', 'X'),
@@ -125,4 +124,4 @@ def test_action_names_outside_the_legacy_ones_raise(key, value):
     invoice.column('customer_id', 'L').relation('customer.id', **{key: value})
     pkg.table('customer', pkey='id').column('id', 'L')
     with pytest.raises(ValueError, match=f'invalid {key} {value!r}'):
-        resolve_model(b)
+        AsqueelDb(b).model

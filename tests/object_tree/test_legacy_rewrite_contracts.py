@@ -11,8 +11,7 @@ import re
 
 import pytest
 
-from asqueel import SqlDatabase, UnsupportedFeatureError
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, UnsupportedFeatureError
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from examples.test_invoice_pg import source
@@ -52,10 +51,10 @@ def database(request, monkeypatch):
     for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
-    monkeypatch.setattr(SqlDatabase, 'execute', forbidden)
+    monkeypatch.setattr(AsqueelDb, 'execute', forbidden)
     config = source()
     config.source.get_node('db').attr['implementation'] = request.param
-    db = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    db = AsqueelDb(config)
     try:
         db.currentEnv['workdate'] = date(2026, 2, 1)
         yield db

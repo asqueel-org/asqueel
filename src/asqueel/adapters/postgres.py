@@ -9,7 +9,8 @@ from typing import Any
 
 from ..contracts import UnsupportedFeatureError
 from ._bag_xml import bag_xml_subquery
-from .base import SQL_PARAMS, SqlDbAdapter as SqlDbBaseAdapter, mask_bounds
+from .._sql_parameters import parameter_matches, substitute_parameters
+from .base import SqlDbAdapter as SqlDbBaseAdapter, mask_bounds
 
 
 class SqlDbAdapter(SqlDbBaseAdapter):
@@ -51,7 +52,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def prepareSqlText(self, sql, kwargs):
         """Named arguments as psycopg ``%(name)s``; ``REGEXP`` as ``~*``."""
         sql = self.adaptTupleListSet(sql, kwargs)
-        return SQL_PARAMS.sub(r'%(\1)s\2', sql).replace('REGEXP', '~*'), kwargs
+        return substitute_parameters(sql, lambda m: '%(' + m['parameter'] + ')s', self.dialect).replace('REGEXP', '~*'), kwargs
 
     def adaptTupleListSet(self, sql, sqlargs):
         """gnrpostgres3.adaptTupleListSet: unroll IN values for psycopg 3.
@@ -66,7 +67,9 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                 values = list(values)
             if not values:
                 pattern = r'''((\"?t\d+)(_t\d+)*\"?.\"?\w+\"?" +)(NOT +)*(IN) *:%s''' % key
-                sql = re.sub(pattern, lambda m: 'TRUE' if m.group(4) else 'FALSE', sql, flags=re.I)
+                positions = {m.start() for m in parameter_matches(sql, self.dialect)}
+                sql = re.sub(pattern, lambda m: ('TRUE' if m.group(4) else 'FALSE')
+                             if m.end() - len(key) - 1 in positions else m[0], sql, flags=re.I)
             else:
                 def unroll(match):
                     sqlargs.pop(key, None)
@@ -77,7 +80,10 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                         names.append(':' + name)
                         sqlargs[name] = value
                     return '%s(%s)' % (match.group(1), ','.join(names))
-                sql = re.sub(r'( *IN) *(?::)(%s)\b' % key, unroll, sql, flags=re.I)
+                positions = {m.start() for m in parameter_matches(sql, self.dialect)}
+                sql = re.sub(r'( *IN) *(?::)(%s)\b' % re.escape(key),
+                             lambda m: unroll(m) if m.start(2) - 1 in positions else m[0],
+                             sql, flags=re.I)
         return sql
 
     def adaptSqlName(self, name: str) -> str:

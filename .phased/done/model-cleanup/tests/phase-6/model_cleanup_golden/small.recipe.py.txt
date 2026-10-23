@@ -1,0 +1,25 @@
+"""SqlBuilder recipe emitted by asqueel.emitter.
+
+Literal projection of a normalized SQL structure: ordinary source, meant
+to be edited by hand from here on.
+"""
+from __future__ import annotations
+
+from asqueel import SqlBuilder
+
+
+class ImportedDatabase(SqlBuilder):
+    """Recipe of a database read from its normalized structure."""
+
+    def main(self, root):
+        db = root.db(name="x")
+
+        schemas = db.schemas()
+
+        s = schemas.schema(name="s", sqlname="phys_s")
+        tables = s.tables()
+
+        t = tables.table(name="t", pkey="id", sqlname="phys_t")
+        columns = t.columns()
+        columns.column(name="id", dtype="I")
+        columns.column(name="name", dtype="A", size="0:20", sqlname="phys_name")

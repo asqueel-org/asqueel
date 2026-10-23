@@ -6,12 +6,11 @@ import pytest
 
 from asqueel import AsqueelDb, TransactionStateError
 from asqueel.contracts import CompiledQuery
-from asqueel.environment import SqlEnvironment
 from tests.application_config.test_application import Recipe
 
 
 def test_simultaneous_threads_isolate_names_environment_hooks_and_completion():
-    db = AsqueelDb(Recipe, environment=SqlEnvironment({'options': []}))
+    db = AsqueelDb(Recipe, environment={'options': []})
     driver = db.adapter
     barrier = Barrier(2)
     callbacks = []

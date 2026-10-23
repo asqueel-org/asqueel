@@ -6,7 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, build_database
+from asqueel import SqlDatabaseConfig, SqlTable, AsqueelDb
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -60,7 +60,7 @@ def alias_database():
                     virtual.aliasColumn('country_chain', relation_path='@customer_id.country_name')
                     virtual.aliasColumn('loud_customer', relation_path='@customer_id.loud_name')
 
-            db = build_database(Recipe)
+            db = AsqueelDb(Recipe)
             try:
                 yield db
             finally:
@@ -69,7 +69,7 @@ def alias_database():
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
-def test_aliases_are_read_only_and_default_dml_returning_is_physical(alias_database):
+def test_aliases_are_not_written_and_default_dml_returning_is_physical(alias_database):
     db = alias_database
     table = db.table('app.invoice')
     table.insert({'id': 4, 'customer_name': 'bad'})

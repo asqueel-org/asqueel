@@ -6,9 +6,8 @@ import pytest
 
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.environment import SqlEnvironment
 from asqueel.runtime import TransactionStateError
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 
 
 # Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
@@ -60,7 +59,7 @@ class SqlDbAdapter(PostgresAdapter):
 
 
 def test_creation_and_empty_context_have_no_io():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     with completed(db) as active:
         assert active is db
@@ -71,7 +70,7 @@ def test_creation_and_empty_context_have_no_io():
 
 
 def test_ambient_operations_share_connection_and_wait_for_commit():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('parent'))
     db.execute(CompiledQuery('child'))
@@ -86,7 +85,7 @@ def test_ambient_operations_share_connection_and_wait_for_commit():
 
 
 def test_context_commits_atomically_or_rolls_back_on_python_error():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     with completed(db):
         db.execute(CompiledQuery('first'))
@@ -101,7 +100,7 @@ def test_context_commits_atomically_or_rolls_back_on_python_error():
 
 
 def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('parent'))
     with pytest.raises(LookupError):
@@ -117,7 +116,7 @@ def test_failed_ambient_connection_rolls_back_immediately_and_is_reusable():
 
 @pytest.mark.parametrize('with_sql', [False, True])
 def test_mark_failed_prevents_silent_context_success(with_sql):
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     with pytest.raises(TransactionStateError, match='rollback-only'):
         with completed(db):
@@ -133,7 +132,7 @@ def test_mark_failed_prevents_silent_context_success(with_sql):
 
 
 def test_mark_failed_without_sql_requires_manual_rollback():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db._mark_connection_failed(db._connection_state)
     with pytest.raises(TransactionStateError):
@@ -148,7 +147,7 @@ def test_mark_failed_without_sql_requires_manual_rollback():
 
 
 def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('pending'))
     db.commit()
@@ -161,14 +160,14 @@ def test_explicit_completion_accepts_pending_work_and_empty_repeated_commit():
 
 
 def test_guards_run_before_connect_and_environment_is_read_at_execution():
-    environment = SqlEnvironment({'company': 1})
-    db = Database(implementation=FAKE, environment=environment)
+    environment = {'company': 1}
+    db = empty_database(implementation=FAKE, environment=environment)
     driver = db.adapter
     with pytest.raises(ValueError, match='profile'):
         db.execute(CompiledQuery('wrong', dialect='other'))
     assert not driver.calls
     query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
-    with environment.temp_env(company=2):
+    with db.tempEnv(company=2):
         db.execute(query)
     assert driver.executed_params == [{'env_company': 2}]
     db.rollback()
@@ -176,7 +175,7 @@ def test_guards_run_before_connect_and_environment_is_read_at_execution():
 
 
 def test_connection_record_ownership_and_repeated_close_connection():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     state = db._connection_state
     with ThreadPoolExecutor(max_workers=1) as executor:
@@ -195,7 +194,7 @@ def test_connection_record_ownership_and_repeated_close_connection():
 
 @pytest.mark.parametrize('operation', ['commit', 'rollback'])
 def test_control_failure_preserves_original_and_attempts_close(operation):
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     error = OSError('control failed')
     setattr(driver, operation + '_error', error)
@@ -209,7 +208,7 @@ def test_control_failure_preserves_original_and_attempts_close(operation):
 
 
 def test_close_connection_closes_the_driver_connection_even_when_rollback_fails():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('pending'))
     driver.rollback_error = OSError('rollback failed')
@@ -225,7 +224,7 @@ def test_close_connection_closes_the_driver_connection_even_when_rollback_fails(
 
 
 def test_driver_callback_cannot_reenter_connection_completion():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     def callback():
         for operation in (db.commit, db.rollback, db.closeConnection,
@@ -240,7 +239,7 @@ def test_driver_callback_cannot_reenter_connection_completion():
 
 
 def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     db.execute(CompiledQuery('before'))
     with pytest.raises(LookupError):
@@ -252,7 +251,7 @@ def test_caught_driver_error_discards_prior_work_even_if_caller_commits():
 
 
 def test_failed_connection_is_not_cached_and_can_be_retried():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     original = driver.connect
     def fail(*args, **kwargs):
@@ -269,7 +268,7 @@ def test_failed_connection_is_not_cached_and_can_be_retried():
 
 
 def test_scope_does_not_clear_unknown_rollback_failure_on_unwind():
-    db = Database(implementation=FAKE)
+    db = empty_database(implementation=FAKE)
     driver = db.adapter
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(LookupError):

@@ -26,7 +26,7 @@ class WriteMixin:
         with self._write_operation(), self._trigger_operation('insert', tblobj, record=record):
             tblobj._lock_behaviors()
             tblobj._check_column_changes(record)
-            self.write_compiler._guard_partition(tblobj.model, record, self.environment.snapshot(),
+            self.write_compiler._guard_partition(tblobj.model, record, self.environment_snapshot(),
                                                    insert=True, ignore_partition=ignore_partition)
             tblobj._insert_defaults(record)
             tblobj.checkPkey(record)
@@ -39,7 +39,7 @@ class WriteMixin:
             tblobj._finish_behaviors(record, prepared)
             before_sql = deepcopy(record)
             self._write(tblobj, record, self.write_compiler.insert(
-                tblobj.model, record, self.environment.snapshot(), ignore_partition=ignore_partition))
+                tblobj.model, record, self.environment_snapshot(), ignore_partition=ignore_partition))
             tblobj._complete_linked_insert(record, before_sql, ignore_partition=ignore_partition)
             tblobj._doFieldTriggers('onInserted', record)
             tblobj.trigger_onInserted(record)
@@ -51,9 +51,9 @@ class WriteMixin:
             tblobj._lock_behaviors()
             if tblobj._behavior('hierarchical') is not None and old_record is None:
                 raise tblobj.exception('standard', msg='Updating a hierarchical record requires old_record')
-            active_partition = self.write_compiler._partition(tblobj.model, self.environment.snapshot(), ignore_partition)
+            active_partition = self.write_compiler._partition(tblobj.model, self.environment_snapshot(), ignore_partition)
             needs_snapshot = active_partition is not None or tblobj._behavior('hierarchical') is not None or any(
-                column.attributes.get('read_only') or column.attributes.get('unmodifiable')
+                column.attributes.get('readOnly') or column.attributes.get('unmodifiable')
                 or sql_attribute_declared(column.attributes, 'generatedExpression')
                 for column in tblobj.model.columns.values())
             if needs_snapshot:
@@ -67,7 +67,7 @@ class WriteMixin:
                 else:
                     old_record.update(stored)
             if old_record is not None:
-                self.write_compiler._guard_partition(tblobj.model, old_record, self.environment.snapshot(),
+                self.write_compiler._guard_partition(tblobj.model, old_record, self.environment_snapshot(),
                                                        ignore_partition=ignore_partition)
                 self.currentTrigger.old_record = old_record
             original = deepcopy(old_record)
@@ -87,7 +87,7 @@ class WriteMixin:
             tblobj._check_column_changes(record, original)
             tblobj._finish_behaviors(record, prepared, original)
             self._write(tblobj, record, self.write_compiler.update(
-                tblobj.model, tblobj._sql_record(record), self.environment.snapshot(), pkey=pkey, old_record=original, ignore_partition=ignore_partition))
+                tblobj.model, tblobj._sql_record(record), self.environment_snapshot(), pkey=pkey, old_record=original, ignore_partition=ignore_partition))
             tblobj.updateRelated(record, old_record=old_record)
             tblobj._doFieldTriggers('onUpdated', record, old_record=old_record)
             tblobj.trigger_onUpdated(record, old_record=old_record)
@@ -97,11 +97,11 @@ class WriteMixin:
         with self._write_operation(), self._trigger_operation('delete', tblobj, record=record, old_record=deepcopy(record)):
             tblobj._lock_behaviors()
             original = deepcopy(record)
-            if self.write_compiler._partition(tblobj.model, self.environment.snapshot(), ignore_partition) is not None:
+            if self.write_compiler._partition(tblobj.model, self.environment_snapshot(), ignore_partition) is not None:
                 original = tblobj._reread(tblobj._record_key(record))
                 if original is None:
                     raise RecordNotFoundError(f'{tblobj.fullname}: no record to delete')
-                self.write_compiler._guard_partition(tblobj.model, original, self.environment.snapshot(),
+                self.write_compiler._guard_partition(tblobj.model, original, self.environment_snapshot(),
                                                        ignore_partition=ignore_partition)
             self.currentTrigger.old_record = deepcopy(original)
             deletable = tblobj.model.attributes.get('deletable', True)
@@ -113,7 +113,7 @@ class WriteMixin:
             tblobj._doFieldTriggers('onDeleting', record)
             tblobj.trigger_onDeleting(record)
             tblobj.deleteRelated(original)
-            cursor = self.execute(self.write_compiler.delete(tblobj.model, original, self.environment.snapshot(), ignore_partition=ignore_partition))
+            cursor = self.execute(self.write_compiler.delete(tblobj.model, original, self.environment_snapshot(), ignore_partition=ignore_partition))
             rowcount = cursor.rowcount
             cursor.close()
             if rowcount != 1:

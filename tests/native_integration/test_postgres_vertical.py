@@ -7,12 +7,10 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig
-from asqueel.compiler import PostgresCompiler
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.compiler import QueryCompiler
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.importers import inspect_postgres
-from asqueel.model import resolve_model
-from asqueel.runtime import PostgresDatabase
+from tests.unit_of_work import empty_database
 from asqueel.write_compiler import WriteCompiler
 
 
@@ -73,14 +71,14 @@ def writer():
     return WriteCompiler(PostgresAdapter(None))
 
 
-def test_native_model_compiler_runtime_and_import(native_database):
+def test_native_model_compiler_and_runtime(native_database):
     params, schema, connection = native_database
-    model = resolve_model(recipe(schema))
-    compiler = PostgresCompiler(model)
+    model = AsqueelDb(recipe(schema)).model
+    compiler = QueryCompiler(model, PostgresAdapter(None))
     write = writer()
 
     def scenario():
-        db = PostgresDatabase(connect_kwargs=params)
+        db = empty_database(implementation='postgres', connect_kwargs=params)
         try:
             with completed(db) as tx:
                 tx.execute(write.insert(model.table('crm.customer'), {
@@ -122,31 +120,13 @@ def test_native_model_compiler_runtime_and_import(native_database):
         finally:
             db.closeConnection()
     scenario()
-    imported = inspect_postgres(connection, [schema], ui={
-        f'{schema}.crm_customer.display name': {'label': 'Cliente'},
-    })
-    assert not imported.warnings
-    assert imported.model.table(f'{schema}.crm_customer').columns['display name'].ui['label'] == 'Cliente'
-
-
-@pytest.mark.xfail(strict=True, reason='asqueel#22: inspect_postgres returns the removed contracts.ResolvedModel, '
-                                       'which the compiler rejects')
-def test_imported_model_compiles_selects(native_database):
-    _, schema, connection = native_database
-    connection.execute(sql.SQL("INSERT INTO {}.crm_customer VALUES (1, 'x')").format(sql.Identifier(schema)))
-    connection.execute(sql.SQL('INSERT INTO {}.crm_invoice VALUES (11, 1, 15)').format(sql.Identifier(schema)))
-    imported = inspect_postgres(connection, [schema])
-    query = PostgresCompiler(imported.model).select(f'{schema}.crm_invoice', columns='$id, $total')
-    with connection.cursor() as cursor:
-        cursor.execute(query.sql, dict(query.params))
-        assert cursor.fetchall() == [(11, 15)]
 
 
 def test_python_error_rolls_back_transaction_and_database_remains_usable(native_database):
     params, schema, connection = native_database
-    model = resolve_model(recipe(schema))
-    compiler, customer = PostgresCompiler(model), model.table('crm.customer')
-    db = PostgresDatabase(connect_kwargs=params)
+    model = AsqueelDb(recipe(schema)).model
+    compiler, customer = QueryCompiler(model, PostgresAdapter(None)), model.table('crm.customer')
+    db = empty_database(implementation='postgres', connect_kwargs=params)
     try:
         with pytest.raises(RuntimeError, match='abort transaction'):
             with completed(db) as tx:
@@ -164,9 +144,9 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
 
 def test_separate_database_transactions_keep_independent_commit_and_rollback(native_database):
     params, schema, _ = native_database
-    model = resolve_model(recipe(schema))
-    compiler, customer = PostgresCompiler(model), model.table('crm.customer')
-    first, second = PostgresDatabase(connect_kwargs=params), PostgresDatabase(connect_kwargs=params)
+    model = AsqueelDb(recipe(schema)).model
+    compiler, customer = QueryCompiler(model, PostgresAdapter(None)), model.table('crm.customer')
+    first, second = empty_database(implementation='postgres', connect_kwargs=params), empty_database(implementation='postgres', connect_kwargs=params)
     try:
         with pytest.raises(RuntimeError, match='abort first'):
             with completed(first) as tx:

@@ -9,8 +9,7 @@ import inspect
 
 import pytest
 
-from asqueel import SqlDatabase
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb
 from examples.test_invoice_pg import source
 from tests.native_formulas import (legacy_sql_formulas, legacy_subqueries,
                                    legacy_method_formulas, legacy_subquery_columns)
@@ -64,7 +63,7 @@ def db_sqlite(request):
 def bound_tree(executor):
     config = source()
     config.source.get_node('db').attr['implementation'] = executor.adapter.dialect
-    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    tree = AsqueelDb(config)
     try:
         tree.currentEnv.update(dict(executor.currentEnv))
         yield Results(tree, executor)

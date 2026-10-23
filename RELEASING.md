@@ -1,7 +1,7 @@
 # Release Asqueel
 
 Distribution: `asqueel`. Python package: `asqueel`.
-Repository: `asqueel-org/asqueel`. Release version: `0.6.3`.
+Repository: `asqueel-org/asqueel`. Release version: `0.7.0`.
 See [CHANGELOG.md](CHANGELOG.md) for compatibility notes. Preparing and verifying
 the artifacts does not publish them.
 
@@ -40,7 +40,7 @@ or a `PYTHONPATH` pointing to either repository:
 
 ```sh
 python -m venv /tmp/asqueel-release-check
-/tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.6.3-py3-none-any.whl[dev]' pytest-cov
+/tmp/asqueel-release-check/bin/python -m pip install --index-url https://pypi.org/simple 'dist/asqueel-0.7.0-py3-none-any.whl[dev]' pytest-cov
 /tmp/asqueel-release-check/bin/python -m pip check
 env -u PYTHONPATH /tmp/asqueel-release-check/bin/python scripts/check_installed.py --workers 2
 ```
@@ -76,10 +76,9 @@ The wheel requires `genro-bag>=0.28.0`,
 The `migration` and `dev` extras require `asqueel-migration>=0.3.1`.
 Internal tools have minimum versions only: do not add upper bounds to hide
 regressions. Fix incompatibilities with the latest published versions instead.
-The full CI matrix installs `requirements/*.in` with eager upgrades, including
-transitive dependencies, so new releases are exercised by the existing suites.
-The `requirements/*.txt` files are reproducible snapshots for diagnosis only;
-they do not select CI dependencies.
+CI is deliberately minimal while asqueel evolves: one job on Python 3.12
+installs `.[dev]`, runs ruff, the SQLite suite, and the PostgreSQL suite only
+after the SQLite one passes.
 
 Verify the resolved versions with the installed wheel; tests against a sibling
 checkout do not certify PyPI packages.

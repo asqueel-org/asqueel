@@ -1,0 +1,159 @@
+{
+  "implementation": "sqlite",
+  "relations": {
+    "contacts": {
+      "attr": {},
+      "value": {
+        "customer": {
+          "attr": {},
+          "value": {
+            "@sales_invoice_customer_id": {
+              "attr": {
+                "case_insensitive": false,
+                "many_relation": "sales.invoice.customer_id",
+                "mode": "M",
+                "onUpdate_sql": "cascade",
+                "one_relation": "contacts.customer.id",
+                "private_relation": true
+              },
+              "value": null
+            }
+          }
+        }
+      }
+    },
+    "sales": {
+      "attr": {},
+      "value": {
+        "invoice": {
+          "attr": {},
+          "value": {
+            "@customer_id": {
+              "attr": {
+                "case_insensitive": false,
+                "foreignkey": false,
+                "many_relation": "sales.invoice.customer_id",
+                "mode": "O",
+                "onUpdate_sql": "cascade",
+                "one_relation": "contacts.customer.id",
+                "private_relation": true,
+                "relation_name": "sales_invoice_customer_id",
+                "resolver_kwargs": {}
+              },
+              "value": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "tables": {
+    "contacts.customer": {
+      "attributes": {
+        "deletable": true,
+        "lookup": false,
+        "name": "customer",
+        "pkey": "id"
+      },
+      "columns": {
+        "id": {
+          "attributes": {
+            "dtype": "I",
+            "indexed": true,
+            "name": "id",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "I",
+          "sqlname": "id"
+        },
+        "name": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "name",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "name"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "customer_id_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "customer",
+      "sqlschema": "contacts",
+      "virtual_columns": {}
+    },
+    "sales.invoice": {
+      "attributes": {
+        "deletable": true,
+        "lookup": false,
+        "name": "invoice",
+        "pkey": "id"
+      },
+      "columns": {
+        "customer_id": {
+          "attributes": {
+            "dtype": "I",
+            "indexed": true,
+            "name": "customer_id",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "I",
+          "sqlname": "customer_id"
+        },
+        "description": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "description",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "description"
+        },
+        "id": {
+          "attributes": {
+            "dtype": "I",
+            "indexed": false,
+            "name": "id",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "I",
+          "sqlname": "id"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "invoice_customer_id_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "invoice",
+      "sqlschema": "sales",
+      "virtual_columns": {}
+    }
+  }
+}

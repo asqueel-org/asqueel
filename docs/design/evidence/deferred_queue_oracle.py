@@ -63,9 +63,9 @@ def scenarios(backend):
 
 
 def native_backend():
-    from asqueel.runtime import Database
     from tests.application_connections.test_connections import FAKE
-    db = Database(implementation=FAKE)
+    from tests.unit_of_work import empty_database
+    db = empty_database(implementation=FAKE)
     db.defer = db.deferToCommit
     db.drain = lambda: db._invoke_deferred(db._connection_state, 'to_commit_defer_calls')
     return db

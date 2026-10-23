@@ -11,7 +11,7 @@ from tests.adapter_integration.test_named_list_rows import (
     test_duplicate_names_rejected_consistently as test_duplicate_names_rejected_consistently,
 )
 from tests.read_path.count_cases import (
-    test_count_uses_the_current_environment as original_environment,
+    test_count_uses_the_environment as original_environment,
     test_count_does_not_commit as original_transaction,
 )
 
@@ -39,11 +39,11 @@ def test_count_returns_legacy_integer(shop, options, expected):  # noqa: F811
     assert type(value) is int and value == expected
 
 
-def test_reuse_fetch_count_current_environment_and_no_cache(shop):  # noqa: F811
+def test_reuse_fetch_count_environment_and_no_cache(shop):  # noqa: F811
     query = shop.query(columns='$id,@customer_id.name AS customer_name,$double_total',
                       where='$customer_id=:env_customer', order_by='$id DESC')
     for customer, ids in [(1, [12, 10]), (2, [11]), (1, [12, 10])]:
-        with shop.db.temp_env(customer=customer):
+        with shop.db.tempEnv(customer=customer):
             before = query.compiled
             rows = query.fetch()
             assert [row['id'] for row in rows] == ids

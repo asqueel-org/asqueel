@@ -52,6 +52,7 @@ from typing import Literal
 
 from genro_builders.builder import element
 
+from .catalog import _VIRTUAL_COLUMN_TAGS
 from .common import SQL_DIALECTS
 
 #: asqueel normalized type codes. Mirrors
@@ -70,8 +71,6 @@ DTYPE = Literal[
 #: Table constraint kinds. Single-column uniqueness is the ``unique`` column
 #: attribute, not a constraint entity.
 CONSTRAINT_TYPE = Literal["UNIQUE", "CHECK"]
-
-_VIRTUAL_TAGS = "aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn"
 
 
 class DbElements:
@@ -219,7 +218,7 @@ class TableElements:
 
     @element(
         parent_tags="table",
-        sub_tags=_VIRTUAL_TAGS,
+        sub_tags=", ".join(_VIRTUAL_COLUMN_TAGS),
         collection_key="name",
         node_label="virtual_columns",
     )
@@ -257,7 +256,7 @@ class TableElements:
         """The explicit collection of table indexes."""
         ...
 
-    @element(parent_tags="columns", sub_tags="relation, validation[:1], encryption[:1], dynamic_fields[:1]",
+    @element(parent_tags="columns", sub_tags="relation, dynamic_fields[:1]",
              _meta={"projects_column": True, "projects_relation": True,
                     "attribute_families": ["validate_", *(f"sql_{d}_" for d in SQL_DIALECTS)]})
     def column(self, name: str, dtype: DTYPE | str | None = None,
@@ -273,7 +272,7 @@ class TableElements:
                group: str | None = None, sqlname: str | None = None,
                default: object = None,
                default_from: str | None = None, sql_value: str | None = None,
-               read_only: bool = False, unmodifiable: bool = False,
+               readOnly: bool = False, unmodifiable: bool = False,
                onInserting: object = None, onUpdating: object = None, onDeleting: object = None,
                onInserted: object = None, onUpdated: object = None, onDeleted: object = None,
                trigger_table: str | None = None,

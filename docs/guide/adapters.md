@@ -1,4 +1,4 @@
-# Adapters and catalog providers
+# Adapters
 
 The SELECT compiler follows the [single hierarchical pipeline](compiler.md).
 `db.adapter` adapts the database to its implementation, as in GenroPy: SQL
@@ -31,16 +31,15 @@ For SQL already constructed by an adapter, the shared boundary is:
 
 ```python
 def execute_sql(db, sql, kwargs):
-    compiled = db.adapter.prepare_sql(sql, kwargs, db.environment.snapshot())
+    compiled = db.adapter.prepare_sql(sql, kwargs, db.environment_snapshot())
     return db.execute(compiled)
 ```
 
 There are no structured `SqlStatement` or `Parameter` nodes. The existing legacy
 text preparation handles bindings; it does not validate untrusted SQL.
 
-Catalog providers perform read-only introspection. Their serialized snapshots
-are distinct from the live model; migration uses the physical projection and
-asqueel-migration. The adapter does not implement schema migration.
+Migration uses the physical projection of `DbModel` and asqueel-migration.
+The adapter does not implement schema migration.
 
 ## SQL functions of the adapter
 

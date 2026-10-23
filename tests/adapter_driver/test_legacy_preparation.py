@@ -57,6 +57,9 @@ def test_original_preparation_oracle(record):
     if (record['kind'], record.get('dialect'), record['name']) == ('prepared', 'sqlite', 'literal_operator'):
         # Approved ILIKE fix: literals stay intact; retain the historical oracle.
         expected['sql'] = record['sql']
+    if (record['kind'], record.get('dialect'), record['name']) == ('prepared', 'postgres', 'literal_binding'):
+        # Issue #35 deliberately differs from the historical interpolation bug.
+        expected['sql'] = record['sql']
     assert actual == expected
     assert params == before
 

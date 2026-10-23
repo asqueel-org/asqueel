@@ -1,0 +1,81 @@
+"""SqlBuilder recipe emitted by asqueel.emitter.
+
+Literal projection of a normalized SQL structure: ordinary source, meant
+to be edited by hand from here on.
+"""
+from __future__ import annotations
+
+from asqueel import SqlBuilder
+
+
+class TwoSchemas(SqlBuilder):
+    """Recipe of a database read from its normalized structure."""
+
+    def main(self, root):
+        db = root.db(name="db")
+
+        schemas = db.schemas()
+
+        identity = schemas.schema(name="identity")
+        tables = identity.tables()
+
+        access = tables.table(name="access", pkey="id")
+        columns = access.columns()
+        columns.column(name="id", dtype="L")
+        columns.column(name="ip_address", dtype="T")
+        columns.column(name="occurred_at", dtype="DHZ")
+        columns.column(name="successful", dtype="B")
+        user_id = columns.column(name="user_id", dtype="L", notnull=True)
+        user_id.relation(to="identity.user.id", foreign_key=True, onUpdate_sql="cascade")
+        indexes = access.indexes()
+        indexes.index(columns={"user_id": None}, name="idx_dd4fe550")
+
+        user = tables.table(name="user", pkey="id")
+        columns_2 = user.columns()
+        columns_2.column(name="active", dtype="B")
+        columns_2.column(name="email", dtype="T")
+        columns_2.column(name="id", dtype="L")
+        columns_2.column(name="username", dtype="T", notnull=True, unique=True)
+
+        sales = schemas.schema(name="sales")
+        tables_2 = sales.tables()
+
+        customer = tables_2.table(name="customer", pkey="id")
+        columns_3 = customer.columns()
+        columns_3.column(name="email", dtype="T")
+        columns_3.column(name="id", dtype="L")
+        columns_3.column(name="name", dtype="T", notnull=True)
+
+        invoice = tables_2.table(name="invoice", pkey="id")
+        columns_4 = invoice.columns()
+        created_by = columns_4.column(name="created_by", dtype="L", notnull=True)
+        created_by.relation(to="identity.user.id", foreign_key=True, onUpdate_sql="cascade")
+        customer_id = columns_4.column(name="customer_id", dtype="L", notnull=True)
+        customer_id.relation(to="sales.customer.id", foreign_key=True, onUpdate_sql="cascade")
+        columns_4.column(name="id", dtype="L")
+        columns_4.column(name="issued_on", dtype="D")
+        columns_4.column(name="number", dtype="T", notnull=True)
+        indexes_2 = invoice.indexes()
+        indexes_2.index(columns={"customer_id": None}, name="idx_42de8ebd")
+        indexes_2.index(columns={"created_by": None}, name="idx_66796c21")
+
+        invoice_row = tables_2.table(name="invoice_row", pkey="id")
+        columns_5 = invoice_row.columns()
+        columns_5.column(name="description", dtype="T", notnull=True)
+        columns_5.column(name="id", dtype="L")
+        invoice_id = columns_5.column(name="invoice_id", dtype="L", notnull=True)
+        invoice_id.relation(to="sales.invoice.id", foreign_key=True, onUpdate_sql="cascade")
+        product_id = columns_5.column(name="product_id", dtype="L", notnull=True)
+        product_id.relation(to="sales.product.id", foreign_key=True, onUpdate_sql="cascade")
+        columns_5.column(name="quantity", dtype="N")
+        columns_5.column(name="unit_price", dtype="N")
+        indexes_3 = invoice_row.indexes()
+        indexes_3.index(columns={"product_id": None}, name="idx_2f2bd856")
+        indexes_3.index(columns={"invoice_id": None}, name="idx_2fd9dec2")
+
+        product = tables_2.table(name="product", pkey="id")
+        columns_6 = product.columns()
+        columns_6.column(name="code", dtype="T", unique=True)
+        columns_6.column(name="description", dtype="T", notnull=True)
+        columns_6.column(name="id", dtype="L")
+        columns_6.column(name="unit_price", dtype="N")

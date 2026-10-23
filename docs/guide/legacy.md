@@ -60,8 +60,7 @@ partition or a logical subtable.
 
 Package and application contributions pass through configuration grammars and
 rendering. This gives the same model to data access, metadata consumers and
-schema tooling. Model inspection from an existing database is complemented by
-application metadata; a catalog cannot recover Python behavior or UI intentions.
+schema tooling.
 
 A future compatibility adapter would translate legacy declarations and application
 conventions. It is not implemented. Its intended contract must preserve observable

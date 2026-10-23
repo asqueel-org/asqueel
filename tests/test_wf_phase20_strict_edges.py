@@ -8,9 +8,7 @@ from asqueel_migration import JsonStructureProducer, StructureValidator
 
 from asqueel import (
     SqlBuilder,
-    SqlMigrationRenderer,
     SqlModelReader,
-    SqlPythonEmitter,
 )
 from asqueel.grammar_doc import generate_grammar_md
 from asqueel.validators import SqlModelValidationError
@@ -79,7 +77,7 @@ def test_schema_comment_is_explicitly_source_only():
     model.validate_model()
 
     assert model.source["db.schemas.s"].get_attr("comment") == "source description"
-    assert "comment" not in SqlMigrationRenderer(model).render()["root"]["schemas"]["s"]
+    assert "comment" not in model.render(mode='migration')["root"]["schemas"]["s"]
     grammar = generate_grammar_md()
     assert "source-only free description" in grammar
     assert "| comment |" in grammar and "| semantic |" in grammar
@@ -96,7 +94,7 @@ def test_emitter_handles_empty_tuples_and_rejects_invalid_class_names():
     table.virtual_columns().pyColumn("p", method="compute", required_columns=())
     model.validate_model()
 
-    emitted = SqlPythonEmitter(model).emit(class_name="TupleRecipe")
+    emitted = model.render(mode='python', class_name="TupleRecipe")
     assert "required_columns=()" in emitted
     namespace = {}
     exec(compile(emitted, "<phase20>", "exec"), namespace)  # noqa: S102
@@ -106,7 +104,7 @@ def test_emitter_handles_empty_tuples_and_rejects_invalid_class_names():
 
     for invalid in ("123Bad", "bad-name", "class"):
         with pytest.raises(ValueError, match="class name"):
-            SqlPythonEmitter(model).emit(class_name=invalid)
+            model.render(mode='python', class_name=invalid)
 
 
 def test_reader_falls_back_for_unnamed_normalized_indexes():
@@ -137,7 +135,7 @@ def test_reader_falls_back_for_unnamed_normalized_indexes():
         f"db.schemas.s.tables.t.indexes.{structural_name}"
     ]
     assert recovered is not None
-    rendered = SqlMigrationRenderer(builder).render()
+    rendered = builder.render(mode='migration')
     assert rendered["root"]["schemas"]["s"]["tables"]["t"]["indexes"][
         structural_name
     ]["attributes"]["index_name"] == structural_name
@@ -152,7 +150,7 @@ def test_nonphysical_relations_reject_physical_fk_options():
         one_one=True, case_insensitive=True,
     )
     semantic.validate_model()
-    table = SqlMigrationRenderer(semantic).render()["root"]["schemas"]["s"][
+    table = semantic.render(mode='migration')["root"]["schemas"]["s"][
         "tables"
     ]["source"]
     assert table["relations"] == {}

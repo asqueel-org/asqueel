@@ -1,8 +1,8 @@
 # Work with a current environment
 
 An environment is a scoped mapping of application context: current organization,
-request language or a value used by several query predicates. `SqlDatabase`
-shares an application environment between its compiler and named connections.
+request language or a value used by several query predicates. `AsqueelDb`
+owns the environment; its compiler and its named connections read it.
 Changing `connectionName` selects a separate connection lazily; other context
 changes do not select a different database. Store selection and tenant routing
 are separate application/database concerns.
@@ -15,7 +15,7 @@ With the [tutorial](tutorial.md) database:
 query = db.table("sales.customer").query(
     columns="$id, $name", where="$id=:env_customer_id",
 )
-with db.temp_env(customer_id=1):
+with db.tempEnv(customer_id=1):
     rows = query.fetch()
     assert rows[0]["name"] == "Ada"
     db.rollback()  # Finish this read-only transaction.
@@ -23,25 +23,25 @@ with db.temp_env(customer_id=1):
 
 The parameter `:env_customer_id` uses the environment key `customer_id`. The query
 was constructed before entering the scope, but compiles inside it at `.fetch()`.
-`tempEnv` is the legacy spelling of `temp_env`. `currentEnv` exposes the live
-mutable mapping; `current_env` returns a detached snapshot.
+`currentEnv` exposes the live mutable mapping; `db.environment_snapshot()`
+returns a detached copy.
 
-For defaults, supply an environment when building your database:
+For defaults, supply a mapping when building your database:
 
 ```python
-from asqueel import SqlEnvironment, AsqueelDb
+from asqueel import AsqueelDb
 
 # Shop is the application recipe from the tutorial.
-configured_db = AsqueelDb(Shop, environment=SqlEnvironment({"language": "en"}))
+configured_db = AsqueelDb(Shop, environment={"language": "en"})
 try:
-    assert configured_db.current_env["language"] == "en"
-    with configured_db.temp_env(language="it", organization=10):
-        assert configured_db.current_env["language"] == "it"
-        with configured_db.temp_env(organization=20):
-            assert configured_db.current_env["organization"] == 20
-        assert configured_db.current_env["organization"] == 10
-    assert configured_db.current_env["language"] == "en"
-    assert "organization" not in configured_db.current_env
+    assert configured_db.currentEnv["language"] == "en"
+    with configured_db.tempEnv(language="it", organization=10):
+        assert configured_db.currentEnv["language"] == "it"
+        with configured_db.tempEnv(organization=20):
+            assert configured_db.currentEnv["organization"] == 20
+        assert configured_db.currentEnv["organization"] == 10
+    assert configured_db.currentEnv["language"] == "en"
+    assert "organization" not in configured_db.currentEnv
 finally:
     configured_db.closeConnection()
 
@@ -86,7 +86,7 @@ midnight. Explicit query parameters take precedence over environment values.
 Explicit parameters take precedence over environment lookup:
 
 ```python
-with db.temp_env(minimum_total=100):
+with db.tempEnv(minimum_total=100):
     query = db.table("sales.invoice").query(
         columns="$id, $total", where="$total >= :env_minimum_total",
     )
@@ -99,8 +99,7 @@ with db.temp_env(minimum_total=100):
 ```
 
 A normal `:minimum_total` parameter does not fall back to the environment; the
-`env_` prefix activates that convention. Missing values raise `ValueError` during
-compilation. Context values are bound data, never SQL fragments. The same lookup
+`env_` prefix activates that convention. Missing values are bound as `None` (SQL NULL). Context values are bound data, never SQL fragments. The same lookup
 works in projections, formulas, ordering and write predicates.
 
 Overriding a placeholder does not change the environment or bypass a separate
@@ -109,24 +108,9 @@ partition policy. Policies read their declared context keys independently.
 ## Live context and detached snapshots
 
 Use `db.currentEnv` when deliberately changing application context, and
-`db.current_env` for a detached snapshot with a read-only outer mapping.
-`db.environment.snapshot()` additionally resolves workdate/locale defaults for
+`db.environment_snapshot()` for a detached snapshot with a read-only outer
+mapping. The snapshot also resolves the workdate/locale defaults for
 compilation. Snapshot nested values are copied.
-
-The standalone `SqlEnvironment` remains a separate low-level API with copied,
-context-local scopes, useful when constructing compiler/executor components
-independently:
-
-```python
-from asqueel import SqlEnvironment
-
-source = [10, 20]
-environment = SqlEnvironment({"allowed_organizations": source})
-source.append(30)
-snapshot = environment.snapshot()
-snapshot["allowed_organizations"].append(40)
-assert environment.current_env["allowed_organizations"] == [10, 20]
-```
 
 Custom values used in snapshots must support `deepcopy`. The mutable application
 mapping and its temporary scopes belong to the calling thread. Each thread gets
@@ -138,9 +122,9 @@ its own mapping; do not pass that mutable mapping to another thread or async tas
 query = db.table("sales.customer").query(
     columns="$id, $name", where="$id=:env_customer_id",
 )
-with db.temp_env(customer_id=1):
+with db.tempEnv(customer_id=1):
     first = query.fetch()   # compiles once, reads customer_id=1
-with db.temp_env(customer_id=2):
+with db.tempEnv(customer_id=2):
     second = query.fetch()  # same SQL text, reads customer_id=2
 db.rollback()
 ```
@@ -166,9 +150,9 @@ For `app.document` from the [row-policy guide](row-policies.md):
 
 ```python
 try:
-    with db.temp_env(organization=10):
+    with db.tempEnv(organization=10):
         db.table("app.document").insert({"id": 100, "title": "First organization"})
-    with db.temp_env(organization=20):
+    with db.tempEnv(organization=20):
         db.table("app.document").insert({"id": 101, "title": "Second organization"})
     db.commit()
 except Exception:
@@ -182,28 +166,11 @@ their respective current organization. Switching context does not switch databas
 The model graph is shared; mutable application environments and named connections
 are isolated per thread. Concurrent async tasks within one thread are unsupported.
 
-## Advanced: share context between independent components
+## Compile without a database
 
-When constructing a compiler and low-level executor yourself, supply the same
-instance to both:
-
-```python
-from asqueel import PostgresCompiler, PostgresDatabase, SqlEnvironment
-
-# model is a resolved model; no database connection is needed for compilation.
-environment = SqlEnvironment()
-compiler = PostgresCompiler(model, environment=environment)
-executor = PostgresDatabase("dbname=example", environment=environment)
-try:
-    with environment.temp_env(customer_id=1):
-        compiled = compiler.select("sales.customer", where="$id=:env_customer_id")
-        rows = executor.execute(compiled).fetchall()
-finally:
-    executor.closeConnection()
-```
-
-Independent default environments do not share values. The low-level executor's
-transaction behavior differs from `SqlDatabase`; see [low-level execution](low-level-runtime.md).
+`QueryCompiler(model, adapter, environment={...})` compiles against a plain
+mapping of defaults. Execution needs an `AsqueelDb`: its compiler reads the
+database's own `currentEnv`.
 
 ## Application-owned request boundary
 

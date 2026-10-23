@@ -1,7 +1,8 @@
 # Modello nativo e importazione PostgreSQL V1
 
 > Historical profile: live queries now use the [single hierarchical path](guide/compiler.md).
-> Catalog snapshot descriptions remain applicable; previous compiler/renderer APIs do not.
+> The descriptor snapshots and APIs below were removed in 0.7.0. See
+> [current import](guide/importing.md) and [model JSON](guide/models.md) documentation.
 
 `resolve_model(builder, *, ui=None)` in `asqueel.model` risolve una ricetta
 `SqlBuilder` già costruita e validata nei contratti `ResolvedModel`, `Table`,

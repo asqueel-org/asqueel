@@ -1,6 +1,6 @@
 """Live application tables and lazy query intent with the legacy fetch terminals.
 
-Application objects execute through their owning SqlDatabase. They do
+Application objects execute through their owning AsqueelDb. They do
 not open connections, commit, or emulate legacy selection result objects.
 """
 from __future__ import annotations
@@ -290,7 +290,7 @@ class SqlQuery:
         """DELETE the rows this query selects, without triggers; returns the row count."""
         table = self.table.model
         plan = self._key_plan(table)
-        compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment.snapshot(), ignore_partition=ignore_partition)
+        compiled = self.db.write_compiler.delete_selection(table, plan, self.db.environment_snapshot(), ignore_partition=ignore_partition)
         return self._rowcount(compiled)
 
     def _rowcount(self, compiled):
@@ -303,7 +303,7 @@ class SqlQuery:
         """UPDATE the rows this query selects with ``values``, without triggers; returns the row count."""
         table = self.table.model
         plan = self._key_plan(table)
-        compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment.snapshot(), ignore_partition=ignore_partition)
+        compiled = self.db.write_compiler.update_selection(table, plan, values, self.db.environment_snapshot(), ignore_partition=ignore_partition)
         return self._rowcount(compiled)
 
     def delete(self):
@@ -374,17 +374,17 @@ class SqlQuery:
 class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
     """Database-bound application table with stable column/relation handles."""
 
-    def __init__(self, db, model):
-        self.model = model
-        self.fullname = model.fullname
-        if model.attributes.get('x_legacy_hierarchical'):
+    def __init__(self, tblobj):
+        self.model = tblobj
+        self.fullname = tblobj.fullname
+        if tblobj.attributes.get('x_legacy_hierarchical'):
             self.hierarchicalHandler = HierarchicalHandler(self)
 
     @property
     def db(self):
-        db = self.model._model._operational_db
+        db = self.model.db
         if db is None:
-            raise UnsupportedFeatureError('Table is not bound to a SqlDatabase')
+            raise UnsupportedFeatureError('Table is not bound to a database: reloadModel replaced its model')
         return db
 
     def __getattr__(self, name):
@@ -454,7 +454,7 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 
     def _key_selector(self, pkey):
-        names = self.model._model.physical_columns(self.model, self.model.pkey) if self.model.pkey else ()
+        names = self.model.physical_columns(self.model.pkey) if self.model.pkey else ()
         if not names:
             raise ValueError(f'{self.fullname} has no declared primary key')
         values = self.db.write_compiler.key_values(self.model, pkey)
@@ -495,7 +495,7 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
         if adapt:
             record = ([self._adapted(item, index) for index, item in enumerate(record, 1)]
                       if isinstance(record, list) else self._adapted(record, 1))
-        writer, snapshot = self.db.write_compiler, self.db.environment.snapshot()
+        writer, snapshot = self.db.write_compiler, self.db.environment_snapshot()
         self._assign_keys(record if isinstance(record, list) else [record])
         if isinstance(record, list):
             for compiled, params in writer.insert_many(self.model, record, snapshot, ignore_partition=ignore_partition):
@@ -562,8 +562,8 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
     def sql_update(self, record, old_record=None, pkey=None, *, ignore_partition=False):
         """Update without triggers (legacy raw_update); the key comes from old_record, pkey or record."""
         self.db.execute(self.db.write_compiler.update(
-            self.model, record, self.db.environment.snapshot(), pkey=pkey, old_record=old_record, ignore_partition=ignore_partition)).close()
+            self.model, record, self.db.environment_snapshot(), pkey=pkey, old_record=old_record, ignore_partition=ignore_partition)).close()
 
     def sql_delete(self, record, *, ignore_partition=False):
         """Delete without triggers or related actions (legacy raw_delete)."""
-        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment.snapshot(), ignore_partition=ignore_partition)).close()
+        self.db.execute(self.db.write_compiler.delete(self.model, record, self.db.environment_snapshot(), ignore_partition=ignore_partition)).close()

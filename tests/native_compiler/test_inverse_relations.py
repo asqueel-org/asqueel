@@ -2,7 +2,7 @@
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.contracts import UnsupportedFeatureError
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
@@ -33,7 +33,7 @@ def db(request, monkeypatch):
     line.column('other_id', dtype='L').relation('app.owner.id', relation_name='other_lines')
     line.column('amount', dtype='N')
     line.formulaColumn('scaled', '$amount * :factor', var_factor=3)
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         yield database
     finally:

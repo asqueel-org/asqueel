@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from asqueel import UnsupportedFeatureError
-from tests.native_compiler import test_native_star as stars
 from tests.native_compiler.test_native_star import (
     table as table,
     test_star_selects_physical_then_static_virtual_columns as test_star_selects_physical_then_static_virtual_columns,
@@ -16,11 +15,6 @@ from tests.native_compiler.test_native_star import (
 from tests.native_compiler.test_bag_items import source
 from tests.object_tree.test_phase4_options import tree_database
 from tests.object_tree.test_minimal_select import no_io as no_io
-
-
-@pytest.fixture(autouse=True)
-def use_tree(monkeypatch, no_io):
-    monkeypatch.setattr(stars, 'build_database', tree_database)
 
 
 def test_unsupported_static_is_not_silently_dropped(table):

@@ -1,0 +1,670 @@
+{
+  "implementation": "postgres",
+  "relations": {
+    "identity": {
+      "attr": {},
+      "value": {
+        "access": {
+          "attr": {},
+          "value": {
+            "@user_id": {
+              "attr": {
+                "case_insensitive": false,
+                "foreignkey": true,
+                "many_relation": "identity.access.user_id",
+                "mode": "O",
+                "onUpdate_sql": "cascade",
+                "one_relation": "identity.user.id",
+                "private_relation": true,
+                "relation_name": "identity_access_user_id",
+                "resolver_kwargs": {}
+              },
+              "value": null
+            }
+          }
+        },
+        "user": {
+          "attr": {},
+          "value": {
+            "@identity_access_user_id": {
+              "attr": {
+                "case_insensitive": false,
+                "many_relation": "identity.access.user_id",
+                "mode": "M",
+                "onUpdate_sql": "cascade",
+                "one_relation": "identity.user.id",
+                "private_relation": true
+              },
+              "value": null
+            },
+            "@sales_invoice_created_by": {
+              "attr": {
+                "case_insensitive": false,
+                "many_relation": "sales.invoice.created_by",
+                "mode": "M",
+                "onUpdate_sql": "cascade",
+                "one_relation": "identity.user.id",
+                "private_relation": true
+              },
+              "value": null
+            }
+          }
+        }
+      }
+    },
+    "sales": {
+      "attr": {},
+      "value": {
+        "customer": {
+          "attr": {},
+          "value": {
+            "@sales_invoice_customer_id": {
+              "attr": {
+                "case_insensitive": false,
+                "many_relation": "sales.invoice.customer_id",
+                "mode": "M",
+                "onUpdate_sql": "cascade",
+                "one_relation": "sales.customer.id",
+                "private_relation": true
+              },
+              "value": null
+            }
+          }
+        },
+        "invoice": {
+          "attr": {},
+          "value": {
+            "@created_by": {
+              "attr": {
+                "case_insensitive": false,
+                "foreignkey": true,
+                "many_relation": "sales.invoice.created_by",
+                "mode": "O",
+                "onUpdate_sql": "cascade",
+                "one_relation": "identity.user.id",
+                "private_relation": true,
+                "relation_name": "sales_invoice_created_by",
+                "resolver_kwargs": {}
+              },
+              "value": null
+            },
+            "@customer_id": {
+              "attr": {
+                "case_insensitive": false,
+                "foreignkey": true,
+                "many_relation": "sales.invoice.customer_id",
+                "mode": "O",
+                "onUpdate_sql": "cascade",
+                "one_relation": "sales.customer.id",
+                "private_relation": true,
+                "relation_name": "sales_invoice_customer_id",
+                "resolver_kwargs": {}
+              },
+              "value": null
+            },
+            "@sales_invoice_row_invoice_id": {
+              "attr": {
+                "case_insensitive": false,
+                "many_relation": "sales.invoice_row.invoice_id",
+                "mode": "M",
+                "onUpdate_sql": "cascade",
+                "one_relation": "sales.invoice.id",
+                "private_relation": true
+              },
+              "value": null
+            }
+          }
+        },
+        "invoice_row": {
+          "attr": {},
+          "value": {
+            "@invoice_id": {
+              "attr": {
+                "case_insensitive": false,
+                "foreignkey": true,
+                "many_relation": "sales.invoice_row.invoice_id",
+                "mode": "O",
+                "onUpdate_sql": "cascade",
+                "one_relation": "sales.invoice.id",
+                "private_relation": true,
+                "relation_name": "sales_invoice_row_invoice_id",
+                "resolver_kwargs": {}
+              },
+              "value": null
+            },
+            "@product_id": {
+              "attr": {
+                "case_insensitive": false,
+                "foreignkey": true,
+                "many_relation": "sales.invoice_row.product_id",
+                "mode": "O",
+                "onUpdate_sql": "cascade",
+                "one_relation": "sales.product.id",
+                "private_relation": true,
+                "relation_name": "sales_invoice_row_product_id",
+                "resolver_kwargs": {}
+              },
+              "value": null
+            }
+          }
+        },
+        "product": {
+          "attr": {},
+          "value": {
+            "@sales_invoice_row_product_id": {
+              "attr": {
+                "case_insensitive": false,
+                "many_relation": "sales.invoice_row.product_id",
+                "mode": "M",
+                "onUpdate_sql": "cascade",
+                "one_relation": "sales.product.id",
+                "private_relation": true
+              },
+              "value": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "tables": {
+    "identity.access": {
+      "attributes": {
+        "deletable": true,
+        "lookup": false,
+        "name": "access",
+        "pkey": "id",
+        "x_table_class": "<class 'examples.two_schemas.schemas.identity.access.AccessLogic'>"
+      },
+      "columns": {
+        "id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "id"
+        },
+        "ip_address": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "ip_address",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "ip_address"
+        },
+        "occurred_at": {
+          "attributes": {
+            "dtype": "DHZ",
+            "indexed": false,
+            "name": "occurred_at",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "DHZ",
+          "sqlname": "occurred_at"
+        },
+        "successful": {
+          "attributes": {
+            "dtype": "B",
+            "indexed": false,
+            "name": "successful",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "B",
+          "sqlname": "successful"
+        },
+        "user_id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "user_id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "user_id"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "access_user_id_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "access",
+      "sqlschema": "identity",
+      "virtual_columns": {}
+    },
+    "identity.user": {
+      "attributes": {
+        "caption_field": "username",
+        "deletable": true,
+        "lookup": false,
+        "name": "user",
+        "pkey": "id",
+        "x_table_class": "<class 'examples.two_schemas.schemas.identity.user.UserLogic'>"
+      },
+      "columns": {
+        "active": {
+          "attributes": {
+            "dtype": "B",
+            "indexed": false,
+            "name": "active",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "B",
+          "sqlname": "active"
+        },
+        "email": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "email",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "email"
+        },
+        "id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "id"
+        },
+        "username": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "username",
+            "notnull": true,
+            "readOnly": false,
+            "unique": true,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "username"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "user_username_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "user",
+      "sqlschema": "identity",
+      "virtual_columns": {}
+    },
+    "sales.customer": {
+      "attributes": {
+        "caption_field": "name",
+        "deletable": true,
+        "lookup": false,
+        "name": "customer",
+        "pkey": "id",
+        "x_table_class": "<class 'examples.two_schemas.schemas.sales.customer.CustomerLogic'>"
+      },
+      "columns": {
+        "email": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "email",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "email"
+        },
+        "id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "id"
+        },
+        "name": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "name",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "name"
+        }
+      },
+      "composites": [],
+      "indexes": [],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "customer",
+      "sqlschema": "sales",
+      "virtual_columns": {}
+    },
+    "sales.invoice": {
+      "attributes": {
+        "caption_field": "number",
+        "deletable": true,
+        "lookup": false,
+        "name": "invoice",
+        "pkey": "id",
+        "x_table_class": "<class 'examples.two_schemas.schemas.sales.invoice_logic.InvoiceLogic'>"
+      },
+      "columns": {
+        "created_by": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "created_by",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "created_by"
+        },
+        "customer_id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "customer_id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "customer_id"
+        },
+        "id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "id"
+        },
+        "issued_on": {
+          "attributes": {
+            "dtype": "D",
+            "indexed": false,
+            "name": "issued_on",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "D",
+          "sqlname": "issued_on"
+        },
+        "number": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "number",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "number"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "invoice_created_by_key",
+        "invoice_customer_id_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "invoice",
+      "sqlschema": "sales",
+      "virtual_columns": {}
+    },
+    "sales.invoice_row": {
+      "attributes": {
+        "caption_field": "description",
+        "deletable": true,
+        "lookup": false,
+        "name": "invoice_row",
+        "pkey": "id",
+        "x_table_class": "<class 'examples.two_schemas.schemas.sales.invoice_row.InvoiceRowLogic'>"
+      },
+      "columns": {
+        "description": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "description",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "description"
+        },
+        "id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "id"
+        },
+        "invoice_id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "invoice_id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "invoice_id"
+        },
+        "product_id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "product_id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "product_id"
+        },
+        "quantity": {
+          "attributes": {
+            "dtype": "N",
+            "indexed": false,
+            "name": "quantity",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "N",
+          "sqlname": "quantity"
+        },
+        "unit_price": {
+          "attributes": {
+            "dtype": "N",
+            "indexed": false,
+            "name": "unit_price",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "N",
+          "sqlname": "unit_price"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "invoice_row_invoice_id_key",
+        "invoice_row_product_id_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "invoice_row",
+      "sqlschema": "sales",
+      "virtual_columns": {
+        "amount": {
+          "attributes": {
+            "dtype": "N",
+            "name": "amount",
+            "sql_formula": "$quantity * $unit_price",
+            "static": false
+          },
+          "tag": "formulaColumn"
+        }
+      }
+    },
+    "sales.product": {
+      "attributes": {
+        "caption_field": "description",
+        "deletable": true,
+        "lookup": false,
+        "name": "product",
+        "pkey": "id",
+        "x_table_class": "<class 'examples.two_schemas.schemas.sales.product.ProductLogic'>"
+      },
+      "columns": {
+        "code": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "code",
+            "notnull": false,
+            "readOnly": false,
+            "unique": true,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "code"
+        },
+        "description": {
+          "attributes": {
+            "dtype": "T",
+            "indexed": false,
+            "name": "description",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "T",
+          "sqlname": "description"
+        },
+        "id": {
+          "attributes": {
+            "dtype": "L",
+            "indexed": false,
+            "name": "id",
+            "notnull": true,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "L",
+          "sqlname": "id"
+        },
+        "unit_price": {
+          "attributes": {
+            "dtype": "N",
+            "indexed": false,
+            "name": "unit_price",
+            "notnull": false,
+            "readOnly": false,
+            "unique": false,
+            "unmodifiable": false
+          },
+          "dtype": "N",
+          "sqlname": "unit_price"
+        }
+      },
+      "composites": [],
+      "indexes": [
+        "product_code_key"
+      ],
+      "pkey": "id",
+      "pkeys": [
+        "id"
+      ],
+      "sqlname": "product",
+      "sqlschema": "sales",
+      "virtual_columns": {}
+    }
+  }
+}

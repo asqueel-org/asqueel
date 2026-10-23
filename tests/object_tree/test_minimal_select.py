@@ -6,8 +6,7 @@ import re
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig, UnusedQueryParameterWarning
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig, UnusedQueryParameterWarning
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from examples.test_invoice_pg import source as invoice_source
@@ -21,7 +20,7 @@ def no_io(monkeypatch):
     for driver in (PostgresAdapter, SqliteAdapter):
         monkeypatch.setattr(driver, 'connect', denied)
         monkeypatch.setattr(driver, 'execute', denied)
-    monkeypatch.setattr(SqlDatabase, 'execute', denied)
+    monkeypatch.setattr(AsqueelDb, 'execute', denied)
 
 
 def recipe(implementation):
@@ -43,7 +42,7 @@ def recipe(implementation):
 
 
 def bind(source):
-    return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    return AsqueelDb(source)
 
 
 @pytest.fixture(params=['postgres', 'sqlite'])
@@ -163,7 +162,6 @@ def test_unused_keyword_warns_and_the_query_compiles(db):
 def test_no_model_conversion_and_no_sql_state_on_objects(db, monkeypatch):
     def denied(*args, **kwargs):
         pytest.fail('Compilation tried to build/use the old descriptor model')
-    monkeypatch.setattr('asqueel.model.resolve_model', denied)
     monkeypatch.setattr('asqueel.compiler.QueryCompiler', denied)
     table = db.table('sales.invoice').model
     attrs = deepcopy(table.attributes)
@@ -212,7 +210,7 @@ def test_implicit_behaviour_and_explicit_bypass(feature):
 def invoice_databases(request):
     source = invoice_source()
     source.source.get_node('db').attr['implementation'] = request.param
-    tree, previous = bind(source), source.render()
+    tree, previous = bind(source), AsqueelDb(source)
     try:
         yield tree, previous
     finally:
@@ -278,6 +276,6 @@ def test_empty_collection_and_legacy_params(db):
 
 
 def test_result_metadata_uses_existing_validation():
-    from asqueel.model import column_ui
+    from asqueel.compiler import column_ui
     with pytest.raises(ValueError, match='UI metadata cannot override column semantics'):
         column_ui('sales.invoice.id', 'sales.invoice.id', {'sales.invoice.id': {'dtype': 'T'}})

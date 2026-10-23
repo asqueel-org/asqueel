@@ -8,7 +8,7 @@ start with the [tutorial](tutorial.md); this page explains the declaration choic
 ## Start with a recipe
 
 ```python
-from asqueel import SqlDatabaseConfig, resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 
 def customer_table(tables):
@@ -50,7 +50,7 @@ class SalesModel(SqlDatabaseConfig):
 
 builder = SalesModel()
 builder.create()
-model = builder.render().model
+model = AsqueelDb(builder).model
 
 assert model.table('sales.invoice').sqlname == 'invoice'
 assert model.table('sales.invoice').sqlschema == 'public'
@@ -88,7 +88,7 @@ dtype = column.dtype
 ```
 
 Use source contributions to override declarations before rendering. The removed
-`resolve_model(..., ui=...)` overlay and separate column `.config` wrapper are
+`ui=` overlay and separate column `.config` wrapper are
 not part of the live model. Declared attributes remain available in
 `attributes`; validation attributes are exposed separately by `validations`.
 An attribute the element does not declare raises, naming the attribute and the
@@ -157,9 +157,9 @@ For multiple relations, both legacy `@customer_id.@country_id.name` and
 accepted as a native convenience. Cycles and missing targets raise errors.
 
 With a rendered application, `db.table('sales.invoice').column('customer_name')`
-is a stable live handle. Its `originalColumn` links to the target column and its
-`relation_path` preserves the declaration. Configuration reads fall back to the
-target when no local value is declared.
+returns a legacy alias view. Its `originalColumn` links to the target column and
+its `relation_path` preserves the declaration. Effective dtype and metadata are
+resolved from the target when no local value is declared.
 Inherited `notnull` metadata describes the target column; a LEFT JOIN can still
 produce NULL when the source record has no related row.
 
@@ -205,16 +205,13 @@ model. The operational `db.table('sales.invoice').model` is that same object.
 and `relations` is the legacy relation Bag. Descriptive attributes and option
 nodes remain in this hierarchy. `pkey` is the logical key name.
 
-The catalog DTO codec is separate: `model_to_json`/`model_from_json` serialize
-catalog snapshots, not the live `DbModel`. Use the source for a configuration
-recipe, and `SqlMigrationRenderer(to_physical_builder(model))` for migration JSON.
+Use `recipe.render(mode='migration')` for migration JSON.
 
-`SqlPythonEmitter` emits an editable Python module from a built recipe:
+`recipe.render(mode='python')` renders an editable Python module from a built
+recipe (renderer `SqlPythonEmitter`):
 
 ```python
-from asqueel import SqlPythonEmitter
-
-source = SqlPythonEmitter(builder).emit(class_name='GeneratedSalesModel')
+source = builder.render(mode='python', class_name='GeneratedSalesModel')
 # Save source in your application if you want to maintain the emitted recipe.
 ```
 

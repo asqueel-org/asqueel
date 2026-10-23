@@ -85,7 +85,7 @@ SQL formulas, ordinary forward/inverse relation paths and aliases through the ex
 `var_*` supplies local bound values. For example:
 
 ```python
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 config = SqlDatabaseConfig()
 pkg = config.source.db('formula_example').packages().package('sales')
@@ -96,7 +96,7 @@ line.formulaColumn('adjusted', '$amount * :factor', var_factor=2, dtype='N')
 line.formulaColumn('combined', '$adjusted + :factor', var_factor=5, dtype='N')
 line.aliasColumn('display_amount', '$combined')
 
-db = build_database(config)
+db = AsqueelDb(config)
 compiled = db.table('sales.line').query('$id, $display_amount').compiled
 sql, kwargs = compiled.sql, dict(compiled.params)
 assert sorted(kwargs.values()) == [2, 5]

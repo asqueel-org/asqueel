@@ -22,7 +22,7 @@ def ranked(package):
     table.column('group_id', dtype='L')
     table.column('value', dtype='L', default=5)
     table.column('fixed', unmodifiable=True)
-    table.column('system', default='internal', read_only=True)
+    table.column('system', default='internal', readOnly=True)
 
 
 def hierarchy(package, linked=False, table_class=SqlTable):
@@ -244,7 +244,7 @@ def test_partition_autofill_raw_guards_and_explicit_bypass(implementation, tmp_p
         table = db.table('app.item')
         other = table.insert({'organization': 2, 'value': 10})
         db.commit()
-        with db.temp_env(current_organization=1):
+        with db.tempEnv(current_organization=1):
             own = table.insert({'value': 1})
             assert own['organization'] == 1
             raw = table.sql_insert({'value': 2})
@@ -263,7 +263,7 @@ def test_partition_autofill_raw_guards_and_explicit_bypass(implementation, tmp_p
             with pytest.raises(ValueError, match='outside'):
                 table.sql_insert({'organization': 2})
             db.rollback()
-        with db.temp_env(allowed_organization=[]):
+        with db.tempEnv(allowed_organization=[]):
             table.sql_delete({'id': own['id']})
             assert table._reread(own['id']) is not None
             with pytest.raises(ValueError, match='outside'):
@@ -278,8 +278,9 @@ def test_generated_expression_changes_require_explicit_migration(implementation,
         table = db.table('app.item')
         table.insert({'value': 4})
         db.commit()
-        # Change the desired model, keeping the real database and its data.
-        table.model.columns['computed'].attributes['sql_generatedExpression'] = expression
+        # Change the desired source, keeping the real database and its data.
+        db.config.builder.source.get_node('db.packages.app.tables.item.columns.computed').attr[
+            'sql_generatedExpression'] = expression
         plan = db.migration_plan()
         assert not plan.empty and plan.skipped
         with pytest.raises(MigrationError, match='explicit migration required'):
@@ -325,7 +326,7 @@ def test_partition_refuses_cross_scope_before_hooks(implementation, tmp_path):
         db.commit()
         table.trigger_onUpdating = Observed.trigger_onUpdating.__get__(table)
         table.trigger_onDeleting = Observed.trigger_onDeleting.__get__(table)
-        with db.temp_env(current_organization=1):
+        with db.tempEnv(current_organization=1):
             for operation in (lambda: table.update({'id': item['id'], 'value': 2}), lambda: table.delete(item)):
                 with pytest.raises(ValueError, match='outside'):
                     operation()
@@ -416,7 +417,7 @@ def test_allowed_only_partition_filters_sql_updates_and_deletes(implementation, 
         global_row = table.insert({'organization': None, 'value': 2})
         excluded = table.insert({'organization': 2, 'value': 3})
         db.commit()
-        with db.temp_env(allowed_organization=[1]):
+        with db.tempEnv(allowed_organization=[1]):
             assert table.query(ignorePartition=True).sql_update({'value': 9}) == 2
             assert table._reread(permitted['id'])['value'] == 9
             assert table._reread(global_row['id'])['value'] == 9

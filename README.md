@@ -143,7 +143,7 @@ transaction examples and disposable-schema cleanup.
 | Add business behavior | [Table hooks](docs/guide/hooks.md) |
 | Define computed values and correlated subqueries | [Formulas](docs/guide/formulas.md) |
 | Scope data by organization, draft or deletion state | [Environment](docs/guide/environment.md) and [row policies](docs/guide/row-policies.md) |
-| Start from an existing database or manage its schema | [Importing](docs/guide/importing.md) and [migrations](docs/guide/migrations.md) |
+| Manage the database schema | [Migrations](docs/guide/migrations.md) |
 | Come from Genropy | [For Genropy users](docs/guide/legacy.md), including agreed differences |
 | Come from SQLAlchemy | [For SQLAlchemy users](docs/guide/for-sqlalchemy.md) |
 | Come from Django | [For Django users](docs/guide/for-django.md) |

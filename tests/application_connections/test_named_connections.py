@@ -3,13 +3,13 @@ from datetime import date
 
 import pytest
 
-from asqueel import build_database
+from asqueel import AsqueelDb
 from asqueel.contracts import CompiledQuery
 from tests.application_config.test_application import Recipe
 
 
 def test_named_transactions_commit_independently_and_reuse_connections():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     db.execute(CompiledQuery('main'))
     with db.tempEnv(connectionName='other') as scoped:
@@ -29,7 +29,7 @@ def test_named_transactions_commit_independently_and_reuse_connections():
 
 
 def test_sql_error_rolls_back_current_name_and_allows_retry():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     db.execute(CompiledQuery('main'))
     with db.tempEnv(connectionName='other'):
@@ -44,7 +44,7 @@ def test_sql_error_rolls_back_current_name_and_allows_retry():
 
 
 def test_legacy_environment_scope_preserves_unrelated_changes():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     db.currentEnv = {'user': 'original', 'options': []}
     original = db.currentEnv
     with pytest.raises(RuntimeError):
@@ -59,7 +59,7 @@ def test_legacy_environment_scope_preserves_unrelated_changes():
     assert db.currentEnv is original
     assert db.currentEnv == {'user': 'original', 'options': ['keep'],
                              'introduced': 2, 'unrelated': 'keep'}
-    snapshot = db.current_env
+    snapshot = db.environment_snapshot()
     snapshot['options'].append('detached')
     assert db.currentEnv['options'] == ['keep']
     db.updateEnv(_excludeNoneValues=True, user=None, zero=0, flag=False)
@@ -77,7 +77,7 @@ def test_legacy_environment_scope_preserves_unrelated_changes():
 
 def test_store_switch_is_explicitly_unsupported_not_silently_same_database():
     from asqueel import UnsupportedFeatureError
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     with db.tempEnv(storename='another_store'):
         with pytest.raises(UnsupportedFeatureError):
@@ -87,7 +87,7 @@ def test_store_switch_is_explicitly_unsupported_not_silently_same_database():
 
 
 def test_close_connection_cleans_every_named_connection_after_one_failure():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     db.execute(CompiledQuery('first'))
     with db.tempEnv(connectionName='other'):
@@ -100,7 +100,7 @@ def test_close_connection_cleans_every_named_connection_after_one_failure():
 
 
 def test_repeated_commits_never_replay_prior_writes():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     db.execute(CompiledQuery('first'))
     db.commit()
@@ -115,7 +115,7 @@ def test_repeated_commits_never_replay_prior_writes():
 
 def test_rollback_failure_preserves_sql_error_and_requires_explicit_recovery():
     from asqueel import TransactionStateError
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     driver.rollback_error = OSError('rollback failed')
     with pytest.raises(LookupError) as error:
@@ -132,7 +132,7 @@ def test_rollback_failure_preserves_sql_error_and_requires_explicit_recovery():
 
 
 def test_close_connection_releases_all_names_and_database_can_reopen():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     db.execute(CompiledQuery('first'))
     with db.tempEnv(connectionName='other'):
@@ -148,7 +148,7 @@ def test_close_connection_releases_all_names_and_database_can_reopen():
 
 
 def test_default_workdate_binding_is_read_again_at_execution():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     query = db.table('app.item').query(columns=':env_workdate AS day').compiled
     assert query.params['env_workdate'] == date.today()
@@ -160,7 +160,7 @@ def test_default_workdate_binding_is_read_again_at_execution():
 
 
 def test_direct_environment_assignment_shares_identity_like_legacy():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     source = {'user': 'a'}
     db.currentEnv = source
     source['user'] = 'b'

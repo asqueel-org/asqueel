@@ -6,12 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import (
-    PostgresCompiler, PostgresDatabase,
-    SqlBuilder, SqlEnvironment, resolve_model,
-)
-from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.write_compiler import WriteCompiler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -33,8 +28,8 @@ def policy_database():
                 (3, 10, true, NULL, 'draft'),
                 (4, 10, false, '2026-01-01T00:00:00Z', 'deleted'),
                 (5, NULL, false, NULL, 'shared')''').format(sql.Identifier(schema)))
-            builder = SqlBuilder()
-            columns = builder.source.db('policy').schemas().schema(
+            builder = SqlDatabaseConfig()
+            columns = builder.source.db('policy', implementation='postgres', conninfo=dsn).schemas().schema(
                 'app', sqlname=schema,
             ).tables().table(
                 'item', pkey='id',
@@ -44,21 +39,19 @@ def policy_database():
             for name, dtype in [('id', 'I'), ('organization', 'I'), ('draft', 'B'),
                                 ('deleted_at', 'DHZ'), ('label', 'T')]:
                 columns.column(name, dtype=dtype)
-            yield dsn, resolve_model(builder)
+            yield AsqueelDb(builder)
         finally:
             connection.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
 def test_scopes_defaults_mark_and_environment_reuse(policy_database):
-    dsn, model = policy_database
-    env = SqlEnvironment()
-    compiler = PostgresCompiler(model, environment=env)
+    db = env = policy_database
+    compiler = db.compiler
 
     def scenario():
-        db = PostgresDatabase(dsn, environment=env)
         try:
             assert [r['id'] for r in db.execute(compiler.select('app.item', order_by='$id')).fetchall()] == [1, 2, 5]
-            with env.temp_env(current_organization=10):
+            with env.tempEnv(current_organization=10):
                 query = compiler.select('app.item', order_by='$id')
                 assert [r['id'] for r in (db.execute(query)).fetchall()] == [1]
                 marked = db.execute(compiler.select(
@@ -68,17 +61,17 @@ def test_scopes_defaults_mark_and_environment_reuse(policy_database):
                 assert [r['id'] for r in marked] == [1, 3, 4]
                 assert marked[0]['_isdeleted'] is None
                 assert marked[2]['_isdeleted'] == datetime(2026, 1, 1, tzinfo=timezone.utc)
-            with env.temp_env(current_organization=11):
+            with env.tempEnv(current_organization=11):
                 fresh = compiler.select('app.item', order_by='$id')
                 assert db.execute(query).fetchall() == db.execute(fresh).fetchall()
-            with env.temp_env(allowed_organization=[]):
+            with env.tempEnv(allowed_organization=[]):
                 assert len(db.execute(compiler.select('app.item')).fetchall()) == 3
-            with env.temp_env(allowed_organization=[10]):
+            with env.tempEnv(allowed_organization=[10]):
                 rows = (db.execute(compiler.select('app.item', order_by='$id'))).fetchall()
                 assert [r['id'] for r in rows] == [1, 5]
-            with env.temp_env(current_organization=10, allowed_organization=[]):
+            with env.tempEnv(current_organization=10, allowed_organization=[]):
                 assert [r['id'] for r in db.execute(compiler.select('app.item')).fetchall()] == [1]
-            with env.temp_env(current_organization=None):
+            with env.tempEnv(current_organization=None):
                 assert len(db.execute(compiler.select('app.item')).fetchall()) == 3
             assert len((db.execute(compiler.select('app.item', ignore_partition=True))).fetchall()) == 3
         finally:
@@ -87,49 +80,45 @@ def test_scopes_defaults_mark_and_environment_reuse(policy_database):
 
 
 def test_writes_soft_delete_restore_and_scope_isolation(policy_database):
-    dsn, model = policy_database
-    env = SqlEnvironment()
-    compiler = PostgresCompiler(model, environment=env)
-    writer, table = WriteCompiler(PostgresAdapter(None)), model.table('app.item')
+    db = env = policy_database
+    model, compiler = db.model, db.compiler
+    writer, table = db.write_compiler, model.table('app.item')
 
     def scenario():
-        db = PostgresDatabase(dsn, environment=env)
         try:
-            with env.temp_env(current_organization=10):
-                db.execute(writer.insert(table, {'id': 6, 'label': 'new', 'organization': 10}, env.snapshot()))
-                changed = db.execute(writer.update(table, {'id': 3, 'label': 'editable draft'}, env.snapshot()))
+            with env.tempEnv(current_organization=10):
+                db.execute(writer.insert(table, {'id': 6, 'label': 'new', 'organization': 10}, env.environment_snapshot()))
+                changed = db.execute(writer.update(table, {'id': 3, 'label': 'editable draft'}, env.environment_snapshot()))
                 assert changed.rowcount == 1
                 tombstone = datetime(2026, 9, 29, tzinfo=timezone.utc)
-                db.execute(writer.update(table, {'id': 6, 'deleted_at': tombstone}, env.snapshot()))
+                db.execute(writer.update(table, {'id': 6, 'deleted_at': tombstone}, env.environment_snapshot()))
                 assert not (db.execute(compiler.select('app.item', where='$id = 6'))).fetchall()
-                db.execute(writer.update(table, {'id': 6, 'deleted_at': None}, env.snapshot()))
+                db.execute(writer.update(table, {'id': 6, 'deleted_at': None}, env.environment_snapshot()))
                 assert [r['id'] for r in db.execute(compiler.select('app.item', where='$id = 6')).fetchall()] == [6]
-                assert db.execute(writer.delete(table, {'id': 6}, env.snapshot())).rowcount == 1
+                assert db.execute(writer.delete(table, {'id': 6}, env.environment_snapshot())).rowcount == 1
 
             def read_scope(value):
-                with env.temp_env(current_organization=value):
+                with env.tempEnv(current_organization=value):
                     return [r['id'] for r in (db.execute(compiler.select('app.item'))).fetchall()]
 
             assert [read_scope(10), read_scope(11)] == [[1], [2]]
-            assert not env.current_env
+            assert not env.currentEnv
         finally:
             db.closeConnection()
     scenario()
 
 
 def test_writes_fill_and_guard_the_partition(policy_database):
-    dsn, model = policy_database
-    env = SqlEnvironment()
-    compiler = PostgresCompiler(model, environment=env)
-    writer, table = WriteCompiler(PostgresAdapter(None)), model.table('app.item')
-    db = PostgresDatabase(dsn, environment=env)
+    db = env = policy_database
+    model, compiler = db.model, db.compiler
+    writer, table = db.write_compiler, model.table('app.item')
     try:
-        with env.temp_env(current_organization=10):
-            db.execute(writer.insert(table, {'id': 6, 'label': 'new'}, env.snapshot()))
+        with env.tempEnv(current_organization=10):
+            db.execute(writer.insert(table, {'id': 6, 'label': 'new'}, env.environment_snapshot()))
             stored = db.execute(compiler.select('app.item', '$organization', where='$id = 6', ignore_partition=True))
             assert stored.fetchall()[0]['organization'] == 10
             with pytest.raises(ValueError):
-                writer.insert(table, {'id': 7, 'organization': 11}, env.snapshot())
-            assert db.execute(writer.update(table, {'id': 2, 'label': 'forbidden'}, env.snapshot())).rowcount == 0
+                writer.insert(table, {'id': 7, 'organization': 11}, env.environment_snapshot())
+            assert db.execute(writer.update(table, {'id': 2, 'label': 'forbidden'}, env.environment_snapshot())).rowcount == 0
     finally:
         db.closeConnection()

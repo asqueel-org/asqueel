@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import build_database
+from asqueel import AsqueelDb
 from tests.native_compiler.test_bag_items import source
 from tests.native_support import postgres_dsn
 
@@ -23,7 +23,7 @@ def db():
     schema = 'bag_items_' + uuid4().hex
     root.packages().package('app', sqlschema=schema)
     root.connection('main', dsn=postgres_dsn())
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         quote = database.adapter.adaptSqlName
         target = quote(schema) + '.app_item'

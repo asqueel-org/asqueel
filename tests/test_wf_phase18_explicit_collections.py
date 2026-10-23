@@ -8,9 +8,7 @@ from asqueel_migration.structures import json_equal
 
 from asqueel import (
     SqlBuilder,
-    SqlMigrationRenderer,
     SqlModelReader,
-    SqlPythonEmitter,
 )
 
 
@@ -130,12 +128,12 @@ def test_explicit_recipe_projects_and_round_trips_without_json_drift():
     # wf:contract: and compile -> exec -> create -> render closes strictly.
     model = _ExplicitRecipe()
     model.create()
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     expected = JsonStructureProducer(_ORACLE).get_json_struct()
     assert json_equal(rendered, expected)
 
     recovered = SqlModelReader(rendered).to_builder()
-    emitted = SqlPythonEmitter(recovered).emit()
+    emitted = recovered.render(mode='python')
     for call in (
         ".schemas()", ".tables()", ".columns()", ".constraints()",
         ".indexes()", ".extensions()",
@@ -145,4 +143,4 @@ def test_explicit_recipe_projects_and_round_trips_without_json_drift():
     exec(compile(emitted, "<explicit-recipe>", "exec"), namespace)
     rebuilt = namespace["ImportedDatabase"]()
     rebuilt.create()
-    assert json_equal(rendered, SqlMigrationRenderer(rebuilt).render())
+    assert json_equal(rendered, rebuilt.render(mode='migration'))

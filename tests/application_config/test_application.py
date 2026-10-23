@@ -5,7 +5,7 @@ import pytest
 
 from asqueel import (
     SqlDatabaseConfig, SqlTable, TransactionStateError,
-    UnsupportedFeatureError, build_database,
+    AsqueelDb,
 )
 from tests.application_connections.test_connections import FAKE, SqlDbAdapter
 
@@ -17,15 +17,15 @@ class Recipe(SqlDatabaseConfig):
 
 
 def test_database_owns_graph_environment_and_lazy_lifetime():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     assert db.tables['app.item'] is db.table('app.item')
     with pytest.raises(TypeError):
         db.tables['app.item'] = None
-    assert db.current_env == db.currentEnv == {}
+    assert db.currentEnv == {}
     with db.tempEnv(company=0):
-        assert db.current_env == {'company': 0}
-    assert db.current_env == {}
+        assert db.currentEnv == {'company': 0}
+    assert db.currentEnv == {}
     assert not hasattr(db, 'transaction')
     with completed(db):
         pass
@@ -36,7 +36,7 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
 
 
 def test_database_and_handles_can_be_used_by_another_thread():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     table = db.table('app.item')
     query = table.query()
@@ -62,17 +62,17 @@ def test_invalid_implementation_and_table_class_fail_before_connection(monkeypat
     recipe.create()
     recipe.source.get_node('db').attr['implementation'] = 'unsupported'
     with pytest.raises(ModuleNotFoundError, match='asqueel.adapters.unsupported'):
-        build_database(recipe)
+        AsqueelDb(recipe)
     recipe.source.get_node('db').attr['implementation'] = FAKE
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = str
     with pytest.raises(TypeError, match='SqlTable subclass'):
-        build_database(recipe)
+        AsqueelDb(recipe)
 
 
 def test_custom_constructor_cannot_execute_on_partially_published_graph(monkeypatch):
     class Premature(SqlTable):
-        def __init__(self, db, model):
-            super().__init__(db, model)
+        def __init__(self, tblobj):
+            super().__init__(tblobj)
             self.query().compiled
 
     recipe = Recipe()
@@ -81,8 +81,8 @@ def test_custom_constructor_cannot_execute_on_partially_published_graph(monkeypa
     def connect(*args, **kwargs):
         pytest.fail('Construction must not connect')
     monkeypatch.setattr(SqlDbAdapter, 'connect', connect)
-    with pytest.raises(UnsupportedFeatureError, match='not bound'):
-        build_database(recipe)
+    with pytest.raises(TransactionStateError, match='not ready'):
+        AsqueelDb(recipe)
 
 
 def test_rollback_only_session_rejects_write_before_calling_hooks():
@@ -96,7 +96,7 @@ def test_rollback_only_session_rejects_write_before_calling_hooks():
     recipe = Recipe()
     recipe.create()
     recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = Failing
-    db = build_database(recipe)
+    db = AsqueelDb(recipe)
     driver = db.adapter
     with pytest.raises(ValueError, match='domain validation'):
         db.table('app.item').insert({'id': 1})

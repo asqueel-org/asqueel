@@ -1,9 +1,8 @@
 """Legacy subQueryColumn signatures preserve source declarations."""
 import pytest
 
-from asqueel import SqlDatabaseConfig
-from asqueel.configuration import _copy_recipe, _owned_handler
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.configuration import _copy_recipe, compose_recipe
 
 
 @pytest.mark.parametrize('mode', [None, 'json', 'xml'])
@@ -18,9 +17,9 @@ def test_subquery_column_keeps_legacy_defaults_and_later_query_contributions(mod
              'where': '$invoice_id=#THIS.id'}
     with b.contribution('definition'):
         table.subQueryColumn('max_row_price', query=query, mode=mode)
-    for builder in (b, _copy_recipe(b), _owned_handler(b).builder):
+    for builder in (b, _copy_recipe(b), compose_recipe(b)):
         assert builder.validate_source() == []
-        model = resolve_model(builder)
+        model = AsqueelDb(builder).model
         result = model.table('invc.invoice').virtual_columns['max_row_price']
         assert result.dtype == 'N'
         assert result.attributes['name_long'] == 'Max Row Price'

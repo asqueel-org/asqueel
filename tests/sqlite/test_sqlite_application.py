@@ -22,7 +22,7 @@ def recipe(path):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
             db = root.db()
-            db.connection(name=str(path), implementation='sqlite', options={'timeout': 0.1})
+            db.connection(name=str(path), implementation='sqlite').options().driver(timeout=0.1)
             tables = db.schemas().schema('app').tables()
             columns = tables.table('item', pkey='id', x_table_class=Item).columns()
             columns.column('id', dtype='I')

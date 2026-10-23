@@ -88,9 +88,9 @@ explicit commit/rollback.
 `connection.implementation` inherits `db.implementation` when omitted; the root
 default is PostgreSQL. Existing declarations without `database` or `dsn` retain
 the older interpretation of `name` as the physical database name. In that form,
-undeclared runtime connection names reuse the same settings. The old `options`
-dictionary is normalized to `connection.options().driver()` on an owned source;
-do not supply both forms. Nested resolvers in a dictionary are not supported.
+undeclared runtime connection names reuse the same settings. Driver options are
+declared with `connection.options().driver()`; `connection(options={...})` raises
+`ValueError`.
 
 Root-level `conninfo` / `connect_kwargs` recipes also remain supported, but must
 not be mixed with `connection` nodes. The CLI and application share the same

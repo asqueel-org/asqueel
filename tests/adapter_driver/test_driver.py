@@ -10,7 +10,7 @@ import pytest
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.base import SqlDbAdapter as SqlDbBaseAdapter
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.runtime import PostgresDatabase, Database
+from tests.unit_of_work import empty_database
 
 # Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
 FAKE = 'fake:tests.adapter_driver.test_driver'
@@ -57,7 +57,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
 def test_generic_runtime_injected_driver_affinity_and_original_errors():
     def scenario():
-        db = Database(implementation=FAKE)
+        db = empty_database(implementation=FAKE)
         try:
             driver = db.adapter
             result = db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
@@ -75,7 +75,7 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
 
 def test_runtime_rejects_profile_before_connect_or_execute():
     def scenario():
-        db = Database(implementation=FAKE)
+        db = empty_database(implementation=FAKE)
         try:
             driver = db.adapter
             with pytest.raises(ValueError, match='profile'):
@@ -91,8 +91,8 @@ def test_runtime_rejects_profile_before_connect_or_execute():
     scenario()
 
 
-def test_postgres_facade_uses_the_postgres_adapter():
-    db = PostgresDatabase()
+def test_postgres_implementation_uses_the_postgres_adapter():
+    db = empty_database(implementation='postgres')
     try:
         assert type(db.adapter) is PostgresAdapter
     finally:
@@ -109,7 +109,7 @@ def guarded(name, *args, **kwargs):
     return original(name, *args, **kwargs)
 builtins.__import__ = guarded
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.runtime import Database, PostgresDatabase
+from tests.unit_of_work import empty_database
 from asqueel.contracts import CompiledQuery
 query = PostgresAdapter(None).prepare_sql('SELECT :x', {'x': 3}, {})
 assert query.sql == 'SELECT %(x)s'
@@ -123,12 +123,12 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def rollback(self, conn): pass
     def close(self, conn): pass
 def main():
-    db = Database(implementation='fake:__main__')
+    db = empty_database(implementation='fake:__main__')
     try:
         db.execute(CompiledQuery('x', dialect='fake', binding='fake'))
     finally:
         db.closeConnection()
-    PostgresDatabase().closeConnection()
+    empty_database(implementation='postgres').closeConnection()
 main()
 '''
     result = subprocess.run([sys.executable, '-c', script], cwd=Path(__file__).parents[2],
