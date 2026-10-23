@@ -1,7 +1,6 @@
 """Contracts added on the path from package source to complete migration JSON."""
 
-from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.model_source import require_write_capabilities
 
 
@@ -20,7 +19,7 @@ def test_custom_types_forward_fk_inference_inverse_and_application_sql_actions()
     invoice.column('customer_id').relation('customer.id', relation_name='invoices', one_one=True,
         onDelete='raise', onDelete_sql='setnull')
     pkg.table('customer', pkey='id').column('id', 'C', size='22')
-    m = resolve_model(b)
+    m = AsqueelDb(b).model
     assert m.table('sales.invoice').columns['customer_id'].dtype == 'C'
     assert m.table('sales.invoice').columns['customer_id'].attributes['size'] == '22'
     assert m.table('sales.invoice').columns['amount'].attributes['size'] == '14,2'
@@ -28,7 +27,7 @@ def test_custom_types_forward_fk_inference_inverse_and_application_sql_actions()
     r = m.table('sales.invoice').relations.get_node('@customer_id').attr['joiner']
     assert r['onDelete'] == 'raise'
     assert r['onDelete_sql'] == 'setnull'
-    physical = SqlMigrationRenderer(b).render()['root']['schemas']['public']['tables']['sales_invoice']
+    physical = b.render(mode='migration')['root']['schemas']['public']['tables']['sales_invoice']
     assert not physical['columns']['customer_id']['attributes'].get('unique')
     assert next(iter(physical['relations'].values()))['attributes']['on_delete'] == 'SET NULL'
     assert require_write_capabilities(m.table('sales.invoice')) is None
@@ -38,11 +37,11 @@ def test_validation_attributes_remain_detached():
     b, pkg = source()
     t = pkg.table('item')
     t.column('a', 'T', validate_len='2:5', validate_len_error='Length', validate_case='U')
-    m = resolve_model(b)
+    m = AsqueelDb(b).model
     rules = m.table('sales.item').columns['a'].validations
     assert type(rules) is dict
     assert rules == {'len': '2:5', 'len_error': 'Length', 'case': 'U'}
     rules['case'] = 'lower'
     assert m.table('sales.item').columns['a'].validations['case'] == 'U'
     t.column('opaque', 'T', validate_lne=8)
-    assert resolve_model(b).table('sales.item').columns['opaque'].validations == {'lne': 8}
+    assert AsqueelDb(b).model.table('sales.item').columns['opaque'].validations == {'lne': 8}

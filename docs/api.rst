@@ -9,10 +9,10 @@ Application configuration and objects
 -------------------------------------
 
 .. automodule:: asqueel.configuration
-   :members: SqlDatabaseConfig, build_database
+   :members: SqlDatabaseConfig
 
 .. automodule:: asqueel.application
-   :members: AsqueelDb, SqlDatabase
+   :members: AsqueelDb
 
 .. automodule:: asqueel.application_table
    :members: SqlTable, SqlQuery, RecordNotFoundError, RecordMultipleRowsError
@@ -27,25 +27,13 @@ Synchronous runtime
 -------------------
 
 .. automodule:: asqueel.runtime
-   :members: Database, SqlCursor, session, TransactionStateError
-
-Environment
------------
-
-.. automodule:: asqueel.environment
-   :members: SqlEnvironment
+   :members: SqlCursor, session, TransactionStateError
 
 Model and query contracts
 -------------------------
 
-.. automodule:: asqueel.model
-   :members: resolve_model
-
 .. automodule:: asqueel.contracts
    :members: RowPolicies, CompiledQuery, ResultColumn
-
-.. automodule:: asqueel.projection
-   :members: to_physical_builder
 
 Hierarchical model
 ------------------

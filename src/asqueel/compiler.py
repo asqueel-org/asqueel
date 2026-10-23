@@ -7,14 +7,16 @@ rows or implicit DISTINCT. Many aggregates use correlated scalar SELECTs.
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
+from types import MappingProxyType
 import re
+from typing import Any
+
+from genro_toolbox import extract_kwargs
 
 from ._legacy_sql import FieldReferences, embed_field_parameters, projection_columns, split_sql, _bag_item_path, _in_range
-from .contracts import ResultColumn, UnsupportedFeatureError
-from .environment import SqlEnvironment
+from .contracts import ResultColumn, RowPolicies, UnsupportedFeatureError
 from .object_tree import DbModel
 from .common import split_names
-from .model import column_ui, _formula_definition, _formula_parameters, _subquery_definition, _parse_row_policies
 from ._sql_bindings import SqlBindings
 from ._sql_parameters import parameter_matches
 from ._many_aggregates import aggregate_columns
@@ -22,6 +24,92 @@ from .sql_compiled_query import SqlCompiledQuery
 
 
 # New, explicitly agreed call boundary. It does not replace legacy field parsing.
+def column_ui(path: str, identity: str,
+              ui: Mapping[str, Mapping[str, Any]] | None) -> dict[str, Any]:
+    """Apply the path overlay, then the stable identity overlay."""
+    result: dict[str, Any] = {}
+    overlays = ui or {}
+    result.update(overlays.get(path, {}))
+    if identity != path:
+        result.update(overlays.get(identity, {}))
+    forbidden = {'dtype', 'formula', 'sql_name', 'notnull', 'unique', 'pkey'} & result.keys()
+    if forbidden:
+        raise ValueError(f'UI metadata cannot override column semantics: {sorted(forbidden)}')
+    return result
+
+
+def _subquery_definition(value, label):
+    if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f'{label}: subquery method reference must be nonempty')
+        return value  # Resolve on the current SELECT's table, only at compilation.
+    if not isinstance(value, Mapping):
+        raise ValueError(f'{label}: subquery must be a mapping')
+    for required in ('table', 'where'):
+        field = value.get(required)
+        if not isinstance(field, str) or not field.strip():
+            raise ValueError(f'{label}: subquery requires nonempty {required}')
+    return deepcopy(dict(value))
+
+
+def _formula_definition(metadata, label):
+    """Legacy formula, select or exists; named select_*/exists_* subqueries map to (definition, exists)."""
+    formula = metadata.get('sql_formula')
+    select, exists = metadata.get('select'), metadata.get('exists')
+    if formula is True:
+        raise UnsupportedFeatureError(f'{label}: SQL formula method callbacks are unsupported')
+    if formula is not None and (not isinstance(formula, str) or not formula.strip()):
+        raise ValueError(f'{label}: sql_formula must be a nonempty string')
+    if formula is not None and (select is not None or exists is not None):
+        raise ValueError(f'{label}: sql_formula cannot be combined with select or exists')
+    if sum(value is not None for value in (formula, select, exists)) != 1:
+        raise ValueError(f'{label}: specify exactly one of sql_formula, select, exists')
+    subqueries = {}
+    for prefix in ('select_', 'exists_'):
+        for key, value in metadata.items():
+            if not key.startswith(prefix):
+                continue
+            name = key[len(prefix):]
+            if name in subqueries:
+                raise ValueError(f'{label}: select_{name} and exists_{name} share the name {name}')
+            subqueries[name] = (_subquery_definition(value, f'{label}.{key}'), prefix == 'exists_')
+    if subqueries and formula is None:
+        raise ValueError(f'{label}: named subqueries require sql_formula')
+    for name in subqueries:
+        if not re.search(r'#' + re.escape(name) + r'\b', formula):
+            raise ValueError(f'{label}: unused named subquery {name!r}')
+    return (formula,
+            _subquery_definition(select, f'{label}.select') if select is not None else None,
+            _subquery_definition(exists, f'{label}.exists') if exists is not None else None,
+            subqueries)
+
+
+@extract_kwargs(var=True)
+def _formula_parameters(label, *, var_kwargs=None, **attributes):
+    """Existing var_* declarations, scoped locally."""
+    local = dict(var_kwargs or {})
+    if any(not isinstance(name, str) or not re.fullmatch(r'[A-Za-z_]\w*', name)
+           for name in local):
+        raise ValueError(f'{label}: formula parameters require valid names')
+    return local
+
+
+def _policy_field(value, label: str) -> str:
+    if not isinstance(value, str) or not value or '\x00' in value:
+        raise ValueError(f'{label} must name a column or forward relation path')
+    if value.startswith('$"'):
+        if not re.fullmatch(r'\$"(?:[^"]|"")+"', value):
+            raise ValueError(f'{label}: malformed quoted field')
+        return value[2:-1].replace('""', '"')
+    return value[1:] if value.startswith('$') else value
+
+
+def _parse_row_policies(attributes: Mapping[str, Any]) -> RowPolicies:
+    return RowPolicies(**{target: _policy_field(attributes[key], key) for key, target in (
+        ('draftField', 'draft_field'), ('logicalDeletionField', 'logical_deletion_field'))
+        if attributes.get(key)})
+
+
 _MANY_CALL = re.compile(r'(@\w+(?:\.@?\w+)*)\.(\w+)\s*\(')
 _CALL_BOUNDARIES = re.compile(r"'[^']*'|\"[^\"]*\"|[()]")
 _THIS = re.compile(r'#THIS\.([\w\.@]+)')
@@ -156,8 +244,6 @@ class _TreeContext:
                 list(pathlist), curr, basealias, [], parent)
         table = self.model.table(curr.tbl_name, pkg=curr.pkg_name)
         column = table.virtual_columns.get(name) or table.composites.get(name)
-        if column is None and name not in table.columns:
-            column = table.dynamic_columns.get(name.lower())
         if column is None:
             return self.field(table, basealias, name)
         key = (table.fullname, name)
@@ -784,7 +870,7 @@ class _TreeContext:
         self.cpl.distinct = 'DISTINCT ' if distinct else ''
         self.cpl.for_update = for_update
         if for_update and self.table.columns:
-            names = (self.model.physical_columns(self.table, self.table.pkey)
+            names = (self.table.physical_columns(self.table.pkey)
                      if self.table.pkey else tuple(self.table.columns))
             self.cpl.lock_column = self.adapter.adaptSqlName(self.table.columns[names[0]].sqlname)
         self.cpl.limit, self.cpl.offset = limit, offset
@@ -924,14 +1010,19 @@ class QueryCompiler:
         if not isinstance(model, DbModel):
             raise TypeError('QueryCompiler requires a hierarchical DbModel')
         self.model, self.adapter = model, adapter
-        self.environment = environment if environment is not None else SqlEnvironment()
+        # The database's own currentEnv, or a plain mapping of defaults without one.
+        self._db = _db
+        self.environment = dict(environment or {})
+
+    def _environment_snapshot(self):
+        return self._db.environment_snapshot() if self._db is not None else MappingProxyType(dict(self.environment))
 
     def _context(self, table, params=None) -> _TreeContext:
         found = self.model.table(table)
         if found is None:
             raise ValueError(f'Unknown package/schema {table.split(".")[0]!r}')
         return _TreeContext(self.model, found, params, self.adapter,
-                            self.environment.snapshot())
+                            self._environment_snapshot())
 
     @staticmethod
     def _check_options(options):
@@ -945,7 +1036,7 @@ class QueryCompiler:
         if plan.dialect != self.adapter.dialect:
             raise ValueError('Query plan belongs to a different adapter dialect')
         sql = plan.get_sqltext(self.adapter)
-        query = self.adapter.prepare_sql(sql, plan.params, self.environment.snapshot())
+        query = self.adapter.prepare_sql(sql, plan.params, self._environment_snapshot())
         environment_inputs = {'env_' + key for key in plan.environment_keys}
         used_inputs = (set(query.input_parameters) - environment_inputs - set(plan.local_parameters)) | set(plan.input_parameters)
         return replace(query, columns=plan.result_columns, environment_keys=plan.environment_keys,

@@ -3,8 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.write_compiler import WriteCompiler
 from tests.native_support import postgres_dsn
 
@@ -37,7 +36,7 @@ def recipe(implementation, conninfo=None, path=None, schema: str | None = 'main'
 
 
 def bind(source):
-    return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    return AsqueelDb(source)
 
 
 @pytest.fixture(params=['postgres', 'sqlite'])

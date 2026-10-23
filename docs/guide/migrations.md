@@ -181,17 +181,17 @@ The complete executable example is
 (native-package-models)=
 ## Native package models
 
-In 0.6.0, the native package configuration is rendered into completed objects
-before migration projection. Options that add columns are expanded once;
-relations and aliases are resolved across packages. Project `db.model`:
+The migration renderer prepares the source as the live model does: options
+that add columns are expanded once and package rules apply. Render the composed
+recipe of the database:
 
 ```python
-from asqueel import AsqueelDb, SqlMigrationRenderer, to_physical_builder
+from asqueel import AsqueelDb
 from examples.test_invoice_pg import source
 
 db = AsqueelDb(source())
 try:
-    migration_data = SqlMigrationRenderer(to_physical_builder(db.model)).render()
+    migration_data = db.config.builder.render(mode='migration')
 finally:
     db.closeConnection()
 ```
@@ -208,31 +208,19 @@ an empty second diff, including after controlled changes to columns, constraints
 and indexes. Application data migration and package formula execution are outside
 this verification.
 
-## Resolve names before producing migration data
+## Physical names in migration data
 
-For a model returned by `resolve_model()`, use
-`to_physical_builder()` before rendering:
-
-```python
-from asqueel import SqlMigrationRenderer, to_physical_builder
-
-
-def desired_structure(model):
-    physical = to_physical_builder(model)
-    return SqlMigrationRenderer(physical).render()
-```
-
-This applies the same physical schema, table prefix, explicit table name and
-column names used by the query compiler. Rendering the original logical recipe
-directly does not perform this resolved-name mapping.
+`recipe.render(mode='migration')` renders the source under its physical names:
+the schema (`sqlschema`, or the default schema of the implementation for a
+package), the table prefix (`sqlprefix`), and the explicit `sqlname` of schemas,
+tables and columns. These are the names used by the query compiler.
+`foreignKeys=False` renders no foreign key; the relation indexes stay. A path,
+a writable or a callable passed as `target` receives the structure as JSON text.
 
 The result is normalized migration data, not SQL. It contains physical columns,
 keys, supported constraints and indexes. UI metadata, formula columns, identities
 used by the application and row policies are excluded from physical DDL. Retain
-the original application model alongside this projection.
-
-`SqlRenderer` is not a DDL generator in the current package. Use the migration
-pipeline rather than expecting `builder.renderer_sql` to create tables.
+the original application model alongside this structure.
 
 ## Prepare commands for an existing database
 
@@ -243,13 +231,12 @@ migrator and its prepared command text:
 
 ```python
 from psycopg.conninfo import conninfo_to_dict
-from asqueel import SqlMigrationRenderer, to_physical_builder
 from asqueel_migration import PgDatabase, SqlMigrator
 
 
-def prepare_migration(dsn, model):
-    physical = to_physical_builder(model)
-    desired = SqlMigrationRenderer(physical).render()
+def prepare_migration(dsn, db):
+    model = db.model
+    desired = db.config.builder.render(mode='migration')
     params = conninfo_to_dict(dsn)
     # The database to create or migrate is the DSN one, not the recipe root label.
     desired['root']['entity_name'] = params['dbname']
@@ -278,14 +265,14 @@ actual change you intend. To apply the prepared commands, call
 from the same desired model and check that `getChanges()` is empty. Do not infer
 idempotence merely from successful execution.
 
-## Handle rejected projections
+## Handle rejected structures
 
-`to_physical_builder()` raises `UnsupportedFeatureError` when it cannot safely
-represent the supplied model. A projection must preserve types, defaults,
-constraints, index semantics and dependencies. Diagnostics identify objects
+The migration renderer raises `UnsupportedFeatureError` when it cannot safely
+represent the source: for example a partial index or a CHECK constraint on a
+table whose columns are renamed by `sqlname`. Diagnostics identify objects
 requiring a richer representation or separate migration ownership.
 
-Do not delete preserved metadata simply to make the projection
+Do not delete preserved metadata simply to make the rendering
 succeed. Resolve the unsupported feature or manage that schema through a tool
 that represents it.
 
@@ -298,12 +285,12 @@ relation on a physical column requests an index on its columns, with or without
 `SqlModelReader` accepts normalized migration data, not a database connection:
 
 ```python
-from asqueel import SqlModelReader, SqlPythonEmitter
+from asqueel import SqlModelReader
 
 
 def recipe_source(normalized_structure):
     builder = SqlModelReader(normalized_structure).to_builder()
-    return SqlPythonEmitter(builder).emit(class_name='ImportedDatabase')
+    return builder.render(mode='python', class_name='ImportedDatabase')
 ```
 
 The returned source is a Python `SqlBuilder` recipe you can save and maintain.

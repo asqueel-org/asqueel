@@ -4,11 +4,11 @@ import sqlite3
 import pytest
 
 from asqueel import CompiledQuery, ResultColumn
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 
 
 def test_adapter_is_loaded_into_the_same_runtime():
-    db = Database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite')
     try:
         db.execute('CREATE TABLE item (id INTEGER PRIMARY KEY, value TEXT)')
         db.commit()
@@ -26,7 +26,7 @@ def test_adapter_is_loaded_into_the_same_runtime():
                                'SELECT :value AS `:identifier`',
                                'SELECT :value AS [:identifier]'])
 def test_binding_protects_sqlite_literals_and_identifiers(sql):
-    db = Database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite')
     try:
         result = db.execute(sql, {'value': "O'Reilly"})
         assert "O'Reilly" in result.fetchall()[0].values()
@@ -35,7 +35,7 @@ def test_binding_protects_sqlite_literals_and_identifiers(sql):
 
 
 def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
-    db = Database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite')
     driver = db.adapter
     with pytest.raises(ValueError, match='profile'):
         db.execute(CompiledQuery('SELECT 1'))
@@ -56,7 +56,7 @@ def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
     ('CREATE TABLE item (id integer)', (ResultColumn('id'),), 'without a result set'),
 ])
 def test_result_metadata_failures_roll_back(sql, columns, message):
-    db = Database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite')
     try:
         with pytest.raises(ValueError, match=message):
             db.execute(CompiledQuery(sql, columns=columns, dialect='sqlite', binding='sqlite_named'))
@@ -66,7 +66,7 @@ def test_result_metadata_failures_roll_back(sql, columns, message):
 
 
 def test_native_foreign_key_failure_rolls_back_prior_work():
-    db = Database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite')
     try:
         db.execute('CREATE TABLE parent (id integer primary key)')
         db.execute('CREATE TABLE child (id integer primary key, parent_id integer references parent(id))')
@@ -80,7 +80,7 @@ def test_native_foreign_key_failure_rolls_back_prior_work():
 
 
 def test_direct_prepared_query_preserves_parameters_and_checks_metadata():
-    db = Database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite')
     driver = db.adapter
     metadata = (ResultColumn('value', 'T', 'app.item.value'),)
     from dataclasses import replace

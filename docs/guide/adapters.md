@@ -31,7 +31,7 @@ For SQL already constructed by an adapter, the shared boundary is:
 
 ```python
 def execute_sql(db, sql, kwargs):
-    compiled = db.adapter.prepare_sql(sql, kwargs, db.environment.snapshot())
+    compiled = db.adapter.prepare_sql(sql, kwargs, db.environment_snapshot())
     return db.execute(compiled)
 ```
 

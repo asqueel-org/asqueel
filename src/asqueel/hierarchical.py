@@ -94,7 +94,7 @@ class HierarchicalHandler:
     def lock_roots(self):
         """Serialize max + 1 among the roots."""
         db = self.tblobj.db
-        db.execute(db.write_compiler.lock_table(self.tblobj.model, db.environment.snapshot(),
+        db.execute(db.write_compiler.lock_table(self.tblobj.model, db.environment_snapshot(),
                                                 mode='SHARE ROW EXCLUSIVE')).close()
 
     def trigger_after(self, record, old_record=None):

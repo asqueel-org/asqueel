@@ -1,7 +1,7 @@
 """Correlated formulas preserve scope, bind values, and visibility policies."""
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.write_compiler import WriteCompiler
 
 VIRTUALS = ('total', 'present', 'named', 'plus', 'local')
@@ -34,7 +34,7 @@ def db():
     wrapper = pkg.table('wrapper')
     wrapper.column('id', dtype='L')
     wrapper.column('owner_id', dtype='L').relation('app.owner.id')
-    database = build_database(config)
+    database = AsqueelDb(config)
     try:
         yield database
     finally:

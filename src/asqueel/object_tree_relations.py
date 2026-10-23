@@ -52,7 +52,7 @@ def _joiner(table, column, target, attrs):
 def build_relations(model):
     """Register both directions after all table/column objects are available."""
     for table in model.tables.values():
-        owners = (*table.columns.values(), *table.virtual_columns.values(), *table.composites.values())
+        owners = (*table.columns.values(), *table['virtual_columns'].values(), *table.composites.values())
         for column in owners:
             declarations = [child for child in column.values() if child.tag == 'relation']
             if len(declarations) > 1:
@@ -91,8 +91,8 @@ def _register_relation(model, table, column, attrs):
     # A virtual scalar is already a key expression. Resolving an alias here
     # would cache a partial relation tree while registration is still running.
     local_fields = ((column.name,) if virtual and column.tag != 'compositeColumn'
-                    else model.physical_columns(table, column.name))
-    remote_fields = model.physical_columns(remote, remote_column.name)
+                    else table.physical_columns(column.name))
+    remote_fields = remote.physical_columns(remote_column.name)
     if len(local_fields) != len(remote_fields):
         raise ValueError(f'Relation key length mismatch: {column.fullname}')
     for local, distant in (() if virtual else zip(local_fields, remote_fields)):
@@ -116,7 +116,7 @@ def _register_relation(model, table, column, attrs):
         # checkRelationIndex: every relation indexes its columns and a non-pkey target;
         # relation(indexed=False) opts out. As legacy, a column of the pkey gets no index.
         for owner, fields in ((table, local_fields), (remote, remote_fields)):
-            pkey_fields = tuple(field for name in split_names(owner.pkey) for field in model.physical_columns(owner, name))
+            pkey_fields = tuple(field for name in split_names(owner.pkey) for field in owner.physical_columns(name))
             if fields == pkey_fields or (len(fields) == 1 and fields[0] in pkey_fields):
                 continue
             if owner is table and attrs.get('indexed') is False:
@@ -132,7 +132,7 @@ def _inherit_alias_relations(model):
     Work on the registry, without resolving/caching incomplete relation trees.
     """
     aliases = {column.fullname: column for table in model.tables.values()
-               for column in table.virtual_columns.values() if column.tag == 'aliasColumn'}
+               for column in table['virtual_columns'].values() if column.tag == 'aliasColumn'}
     forward = {node.attr['many_relation']: node.attr
                for package in model.relations for table in package.value
                for node in table.value if node.attr['mode'] == 'O'}
@@ -154,7 +154,7 @@ def _inherit_alias_relations(model):
             table = model.table(attrs['one_relation'] if attrs['mode'] == 'O'
                                 else attrs['many_relation'])
         name = parts[-1]
-        return table.columns.get(name) or table.virtual_columns.get(name) or table.composites.get(name)
+        return table.columns.get(name) or table['virtual_columns'].get(name) or table.composites.get(name)
 
     def inherit(column):
         key = column.fullname
@@ -209,7 +209,7 @@ class RelationTreeResolver(BagResolver):
         nodes = list(relations) if relations is not None else []
         one = {n.attr['many_relation']: n for n in nodes if n.attr['mode'] == 'O'}
         physical = list(table.columns.values())
-        virtual = [*table.virtual_columns.values(), *table.composites.values()]
+        virtual = [*table['virtual_columns'].values(), *table.composites.values()]
         for column in [*physical, *virtual]:
             attributes = dict(column.attributes, dtype=column.dtype)
             if column in physical:

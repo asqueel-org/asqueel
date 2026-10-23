@@ -4,8 +4,7 @@ import threading
 
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.environment import SqlEnvironment
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 
 
 # Fake adapter loaded as legacy 'name:module': the database builds SqlDbAdapter(db).
@@ -19,10 +18,10 @@ class SqlDbAdapter(PostgresAdapter):
 
     @property
     def environment(self):
-        return self.dbroot.environment
+        return self.dbroot
 
     def record(self, method):
-        self.calls.append((method, dict(self.environment.snapshot()), threading.get_ident()))
+        self.calls.append((method, dict(self.environment.environment_snapshot()), threading.get_ident()))
 
     def connect(self, *args, **kwargs):
         self.record('connect')
@@ -30,7 +29,8 @@ class SqlDbAdapter(PostgresAdapter):
 
     def execute(self, connection, query, cursorname=None):
         self.record('execute')
-        result = dict(self.environment.snapshot())
+        result = {key: value for key, value in self.environment.environment_snapshot().items()
+                  if key not in ('workdate', 'locale')}
         result.update(query.params)
         # A nested adapter scope restores the caller context on normal exit.
         with self.environment.tempEnv(driver_local=True):
@@ -54,9 +54,9 @@ def test_driver_preparation_collects_environment_keys():
 
 
 def test_reused_query_reads_the_environment_of_every_execution():
-    env = SqlEnvironment({'company': 1})
+    env = {'company': 1}
     query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
-    db = Database(implementation=FAKE, environment=env)
+    db = empty_database(implementation=FAKE, environment=env)
     try:
         with db.tempEnv(company=2):
             assert db.execute(query).fetchone()['env_company'] == 2
@@ -66,11 +66,10 @@ def test_reused_query_reads_the_environment_of_every_execution():
 
 
 def test_runtime_aliases_use_current_context_on_the_calling_thread():
-    env = SqlEnvironment({'company': 1})
-    db = Database(implementation=FAKE, environment=env)
+    env = {'company': 1}
+    db = empty_database(implementation=FAKE, environment=env)
     try:
         driver = db.adapter
-        assert db.environment is env
         with db.tempEnv(company=2):
             assert db.currentEnv == {'company': 2}
             with completed(db) as tx:
@@ -83,29 +82,11 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
         ('connect', 3), ('execute', 3), ('commit', 2),
         ('execute', 1), ('rollback', 1), ('close', 1)]
     assert {thread for _, _, thread in driver.calls} == {threading.get_ident()}
-    assert env.currentEnv == {'company': 1}
-
-
-def test_separate_sync_databases_share_explicit_environment_without_leaking_scopes():
-    env = SqlEnvironment({'company': 0})
-    first, second = Database(implementation=FAKE, environment=env), Database(implementation=FAKE, environment=env)
-    try:
-        with first.tempEnv(company=1):
-            assert second.currentEnv == {'company': 1}
-            first_query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
-            assert [dict(row) for row in first.execute(first_query).fetchall()] == [{'company': 1, 'env_company': 1}]
-        with second.tempEnv(company=2):
-            assert second.execute(first_query).fetchone()['env_company'] == 2
-            assert [dict(row) for row in second.execute(CompiledQuery('select')).fetchall()] == [{'company': 2}]
-        assert env.currentEnv == {'company': 0}
-    finally:
-        first.closeConnection()
-        second.closeConnection()
+    assert db.currentEnv == {'company': 1}
 
 
 def test_runtime_default_environments_are_independent():
-    first, second = Database(implementation='postgres'), Database(implementation='postgres')
-    assert first.environment is not second.environment
+    first, second = empty_database(implementation='postgres'), empty_database(implementation='postgres')
     with first.tempEnv(company=1):
         assert first.currentEnv == {'company': 1}
         assert second.currentEnv == {}

@@ -2,8 +2,8 @@
 """SqlBuilder — SQL model dialect for genro-builders.
 
 Grammar only: the vocabulary lives in the four mixins of
-:mod:`asqueel.elements`, rendering in :class:`SqlRenderer` exposed
-via the ``renderer_sql`` property.
+:mod:`asqueel.elements`; the live objects are rendered by the
+``objects`` renderer into an :class:`~asqueel.AsqueelDb`.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 from functools import cached_property
-from typing import cast, get_args
+from typing import Any, cast, get_args
 
 from genro_bag import BagNode
 
@@ -24,7 +24,6 @@ from .common import default_index_name, in_attribute_family
 from .semantic_elements import SemanticElements
 from .option_elements import BehaviorOptionElements, NAMED_OPTIONS
 from .model_elements import ModelElements, OPTION_LEVELS, SYS_FIELDS, SYS_FIELD_KEYS
-from .renderer import SqlRenderer
 from .validators import SqlModelValidator
 
 
@@ -62,7 +61,8 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     """
 
     _name = "sqlmodel"
-    _default_render_mode = "sql"
+    _source_class = SqlSourceBag
+    _default_render_mode = "objects"
     _name_label_tags = frozenset({
         "schema", "package", "table", "column", "aliasColumn", "formulaColumn",
         "subQueryColumn", "pyColumn", "compositeColumn", "extension",
@@ -98,11 +98,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
 
     def __init__(self, name: str | None = None) -> None:
         super().__init__(name)
-        source = SqlSourceBag(builder=self)
-        self._sourceroot[SOURCE_ROOT] = source
-        self.source = source
+        # BuilderBase reads the payload with brackets, which SqlSourceBag maps to the node.
+        self.source = self._sourceroot.get_item(SOURCE_ROOT)
         self._contribution = 'main'
         self._attribute_origins: dict[tuple[str, str], str] = {}
+        self.composed = False
 
     @staticmethod
     def _node_path(node):
@@ -582,6 +582,13 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         self._attribute_origins.update({(self._node_path(child), key): self._contribution for key in attr})
         return child
 
+    def render(self, mode: str | None = None, target: Any = None, **opts: Any) -> Any:
+        """Render the composed recipe: this one when already composed, else its composition."""
+        if not self.composed:
+            from .configuration import compose_recipe
+            return compose_recipe(self).render(mode, target, **opts)
+        return super().render(mode, target, **opts)
+
     def validate_source(self) -> list[tuple[str, list[str]]]:
         """Validate declarations and composition without resolving a live model."""
         from .configuration import _validate_source_shape
@@ -598,14 +605,19 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         return SqlModelValidator().validate(self)
 
     @property
-    def renderer_sql(self) -> SqlRenderer:
-        """Fresh ``SqlRenderer`` instance bound to this builder.
+    def renderer_objects(self):
+        """Renderer of the live model, delivered into an :class:`~asqueel.AsqueelDb` target."""
+        from .object_tree_renderer import SqlObjectRenderer
+        return SqlObjectRenderer(self)
 
-        Each access returns a new instance: the renderer is meant to be
-        ephemeral, used for a single ``render`` call and discarded.
+    @property
+    def renderer_migration(self):
+        """Renderer of the ``structure-1.0`` migration JSON of the composed recipe."""
+        from .migration import SqlMigrationRenderer
+        return SqlMigrationRenderer(self)
 
-        Today ``SqlRenderer`` is a placeholder that renders nothing: DDL
-        rendering is out of scope until its own slice lands. Database work
-        goes through :class:`~asqueel.migration.SqlMigrationRenderer`.
-        """
-        return SqlRenderer(builder=self)
+    @property
+    def renderer_python(self):
+        """Renderer of the Python recipe that rebuilds the composed recipe."""
+        from .emitter import SqlPythonEmitter
+        return SqlPythonEmitter(self)

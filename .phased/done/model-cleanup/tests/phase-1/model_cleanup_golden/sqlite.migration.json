@@ -1,0 +1,117 @@
+{
+  "root": {
+    "entity": "db",
+    "entity_name": "db",
+    "event_triggers": {},
+    "extensions": {},
+    "schemas": {
+      "contacts": {
+        "entity": "schema",
+        "entity_name": "contacts",
+        "schema_name": "contacts",
+        "tables": {
+          "customer": {
+            "attributes": {
+              "pkeys": "id"
+            },
+            "columns": {
+              "id": {
+                "attributes": {
+                  "dtype": "I",
+                  "notnull": "_auto_"
+                },
+                "column_name": "id",
+                "entity": "column",
+                "entity_name": "id",
+                "schema_name": "contacts",
+                "table_name": "customer"
+              },
+              "name": {
+                "attributes": {
+                  "dtype": "T"
+                },
+                "column_name": "name",
+                "entity": "column",
+                "entity_name": "name",
+                "schema_name": "contacts",
+                "table_name": "customer"
+              }
+            },
+            "constraints": {},
+            "entity": "table",
+            "entity_name": "customer",
+            "indexes": {},
+            "relations": {},
+            "schema_name": "contacts",
+            "table_name": "customer"
+          }
+        }
+      },
+      "sales": {
+        "entity": "schema",
+        "entity_name": "sales",
+        "schema_name": "sales",
+        "tables": {
+          "invoice": {
+            "attributes": {
+              "pkeys": "id"
+            },
+            "columns": {
+              "customer_id": {
+                "attributes": {
+                  "dtype": "I"
+                },
+                "column_name": "customer_id",
+                "entity": "column",
+                "entity_name": "customer_id",
+                "schema_name": "sales",
+                "table_name": "invoice"
+              },
+              "description": {
+                "attributes": {
+                  "dtype": "T"
+                },
+                "column_name": "description",
+                "entity": "column",
+                "entity_name": "description",
+                "schema_name": "sales",
+                "table_name": "invoice"
+              },
+              "id": {
+                "attributes": {
+                  "dtype": "I",
+                  "notnull": "_auto_"
+                },
+                "column_name": "id",
+                "entity": "column",
+                "entity_name": "id",
+                "schema_name": "sales",
+                "table_name": "invoice"
+              }
+            },
+            "constraints": {},
+            "entity": "table",
+            "entity_name": "invoice",
+            "indexes": {
+              "idx_42de8ebd": {
+                "attributes": {
+                  "columns": {
+                    "customer_id": null
+                  },
+                  "index_name": "idx_42de8ebd"
+                },
+                "entity": "index",
+                "entity_name": "idx_42de8ebd",
+                "schema_name": "sales",
+                "table_name": "invoice"
+              }
+            },
+            "relations": {},
+            "schema_name": "sales",
+            "table_name": "invoice"
+          }
+        }
+      }
+    }
+  }
+}

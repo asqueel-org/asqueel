@@ -1,7 +1,7 @@
 """Ordered SQL string aggregation uses the existing child SELECT scopes."""
 import pytest
 
-from asqueel import build_database
+from asqueel import AsqueelDb
 from .conftest import source
 from .test_contracts import execute, query
 
@@ -70,7 +70,7 @@ def test_to_one_prefix_then_many_join(model, connection):
 
 def test_no_table_order_does_not_invent_a_fallback(backend, connection):
     config = source(backend, order_by=None)
-    model = build_database(config)
+    model = AsqueelDb(config)
     try:
         q = query(model, "@invoices.aggr(join($code, ',', '-') AS codes)")
         assert 'ORDER BY' not in q.compiled.sql

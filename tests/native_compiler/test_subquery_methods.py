@@ -92,7 +92,7 @@ def install(db):
 
 @pytest.fixture(params=['postgres', 'sqlite'])
 def db(request, monkeypatch):
-    from asqueel import SqlDatabaseConfig, build_database
+    from asqueel import SqlDatabaseConfig, AsqueelDb
     from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
     from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
@@ -104,7 +104,7 @@ def db(request, monkeypatch):
         monkeypatch.setattr(driver, 'execute', forbidden)
     config = SqlDatabaseConfig()
     declare(config.source.db('methods', implementation=request.param).packages().package('app'))
-    db = build_database(config)
+    db = AsqueelDb(config)
     try:
         db.method_calls = install(db)
         yield db

@@ -12,7 +12,7 @@ import pytest
 from asqueel_migration import JsonStructureProducer, SqlMigrator
 from asqueel_migration.structures import json_equal
 
-from asqueel import SqlMigrationRenderer, SqlModelReader, SqlPythonEmitter
+from asqueel import SqlModelReader
 
 
 HUMAN_FIXTURE = {
@@ -68,24 +68,24 @@ def _exec_recipe(source_code, class_name="ImportedDatabase"):
 
 def test_emit_exec_render_closes_the_loop():
     builder, normalized = _builder_from(HUMAN_FIXTURE)
-    source_code = SqlPythonEmitter(builder).emit()
+    source_code = builder.render(mode='python')
     model = _exec_recipe(source_code)
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     assert json_equal(normalized, rendered)
 
 
 def test_emission_is_byte_deterministic():
     builder, _ = _builder_from(HUMAN_FIXTURE)
-    first = SqlPythonEmitter(builder).emit()
-    second = SqlPythonEmitter(builder).emit()
+    first = builder.render(mode='python')
+    second = builder.render(mode='python')
     assert first == second
     rebuilt, _ = _builder_from(HUMAN_FIXTURE)
-    assert SqlPythonEmitter(rebuilt).emit() == first
+    assert rebuilt.render(mode='python') == first
 
 
 def test_emitted_module_shape():
     builder, _ = _builder_from(HUMAN_FIXTURE)
-    source_code = SqlPythonEmitter(builder).emit(class_name="MyDb")
+    source_code = builder.render(mode='python', class_name="MyDb")
     assert source_code.startswith("# ") or source_code.startswith('"""') or \
         source_code.startswith("from ")
     assert "from asqueel import SqlBuilder" in source_code
@@ -105,9 +105,9 @@ def test_sql_names_that_are_not_python_identifiers():
                          {"name": "class", "dtype": "A", "size": "0:10"}]},
         ]}],
     })
-    source_code = SqlPythonEmitter(builder).emit()
+    source_code = builder.render(mode='python')
     model = _exec_recipe(source_code)
-    assert json_equal(normalized, SqlMigrationRenderer(model).render())
+    assert json_equal(normalized, model.render(mode='migration'))
 
 
 @pytest.mark.postgresql
@@ -121,16 +121,16 @@ def test_pg_end_to_end_closure(pg_database):
     # wf:contract: SqlMigrator prepared with it reports no changes).
     builder, normalized = _builder_from(HUMAN_FIXTURE)
     migrator = SqlMigrator(pg_database)
-    migrator.ormStructure = SqlMigrationRenderer(builder).render()
+    migrator.ormStructure = builder.render(mode='migration')
     migrator.prepareMigrationCommands()
     migrator.applyChanges()
 
     introspected = pg_database.get_json_struct()
     recovered = SqlModelReader(introspected).to_builder()
-    source_code = SqlPythonEmitter(recovered).emit()
+    source_code = recovered.render(mode='python')
     model = _exec_recipe(source_code)
 
     check = SqlMigrator(pg_database)
-    check.ormStructure = SqlMigrationRenderer(model).render()
+    check.ormStructure = model.render(mode='migration')
     check.prepareMigrationCommands()
     assert not check.getChanges(), check.getChanges()

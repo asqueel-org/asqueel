@@ -30,11 +30,3 @@ def test_documentation_keeps_parameter_descriptions_and_semantic_plane():
     document = generate_grammar_md()
     assert 'the database name' in document
     assert '| semantic | source-only free description;' in document
-
-
-def test_direct_sql_render_is_explicitly_unimplemented():
-    model = SqlBuilder()
-    model.source.db('demo')
-    assert model.renderer_sql.mode == 'sql'
-    with pytest.raises(NotImplementedError, match='rendered_item'):
-        model.render(target=False)

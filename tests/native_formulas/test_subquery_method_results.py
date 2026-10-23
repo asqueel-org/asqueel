@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from tests.native_compiler.test_subquery_methods import declare, install
 from tests.native_formulas.conftest import SQL_TYPES
 from tests.native_support import postgres_dsn
@@ -25,7 +25,7 @@ def db(request, tmp_path_factory):
             else {'database': str(tmp_path_factory.mktemp('sq_methods') / 'test.db')}
         ),
     )
-    db = build_database(config)
+    db = AsqueelDb(config)
     try:
         install(db)
         quote = db.adapter.adaptSqlName

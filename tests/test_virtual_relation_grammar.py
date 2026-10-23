@@ -1,9 +1,8 @@
 """GEP declarations survive translation without virtual inverse generation."""
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlMigrationRenderer
-from asqueel.configuration import _copy_recipe, _owned_handler
-from asqueel.model import resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.configuration import _copy_recipe, compose_recipe
 
 
 def source():
@@ -30,9 +29,9 @@ def test_gep_bindings_and_filtered_relations_are_preserved():
         condition='$customer_id=:var_customer', var_customer='$id')
     customer.virtualRelation('nested', relation='@direct_invoices',
         condition='$total>0')
-    for builder in (b, _copy_recipe(b), _owned_handler(b).builder):
+    for builder in (b, _copy_recipe(b), compose_recipe(b)):
         assert builder.validate_source() == []
-        model = resolve_model(builder)
+        model = AsqueelDb(builder).model
         attrs = model.table('app.customer')['virtualrelation_selected_invoices'].attributes
         assert attrs['condition'] == '$total>:var_min AND $year=:ask_year'
         assert attrs['var_min'] == '$id + 1'
@@ -42,7 +41,7 @@ def test_gep_bindings_and_filtered_relations_are_preserved():
         # The ordinary inverse remains; no virtual relation appears on the target.
         assert model.table('app.customer').relations.get_node('@invoices').attr['joiner']['mode'] == 'M'
         assert not any(r.tag == 'virtualRelation' for r in model.table('app.invoice').values())
-    physical = SqlMigrationRenderer(b).render()['root']['schemas']['public']['tables']
+    physical = b.render(mode='migration')['root']['schemas']['public']['tables']
     assert not physical['app_customer']['relations']
     assert len(physical['app_invoice']['relations']) == 1
 
@@ -63,7 +62,7 @@ def test_retired_or_unknown_virtual_relation_arguments_are_rejected(key, value):
     with pytest.raises(ValueError, match=f"Element 'virtualRelation' does not accept '{key}'"):
         b.validate_source()
     with pytest.raises(ValueError, match=f"Element 'virtualRelation' does not accept '{key}'"):
-        resolve_model(b)
+        AsqueelDb(b).model
 
 
 @pytest.mark.parametrize('condition', [None, '', '   '])
@@ -73,7 +72,7 @@ def test_direct_table_requires_condition_in_complete_source(condition):
     with pytest.raises(ValueError, match='table.*requires.*condition'):
         b.validate_source()
     with pytest.raises(ValueError, match='table.*requires.*condition'):
-        resolve_model(b)
+        AsqueelDb(b).model
 
 
 def test_direct_condition_can_be_supplied_by_a_contribution():
@@ -82,7 +81,7 @@ def test_direct_condition_can_be_supplied_by_a_contribution():
     with b.contribution('application'):
         customer.virtualRelation('direct', condition='$customer_id=:var_customer', var_customer='$id')
     assert b.validate_source() == []
-    attrs = resolve_model(b).table('app.customer')['virtualrelation_direct'].attributes
+    attrs = AsqueelDb(b).model.table('app.customer')['virtualrelation_direct'].attributes
     assert attrs['table'] == 'app.invoice'
     assert attrs['condition'] == '$customer_id=:var_customer'
 
@@ -92,4 +91,4 @@ def test_imported_direct_condition_cannot_be_removed():
     node = customer.virtualRelation('direct', table='app.invoice', condition='$total>0')
     node.attr.pop('condition')
     with pytest.raises(ValueError, match='table.*requires.*condition'):
-        resolve_model(b)
+        AsqueelDb(b).model

@@ -32,7 +32,7 @@ def test_locale_fallback_without_validation(monkeypatch, configured, system, exp
         for empty in (None, '', False, 0):
             db.locale = empty
             assert db.locale == expected
-        assert db.environment.snapshot()['locale'] == expected
+        assert db.environment_snapshot()['locale'] == expected
     finally:
         db.closeConnection()
 

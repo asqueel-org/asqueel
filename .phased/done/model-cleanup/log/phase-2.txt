@@ -1,0 +1,12 @@
+✓ Phase 2 completata: one object renderer, reached only through `builder.render()` (commit `cfa7d21`).
+
+- **Done gate:** l'ho eseguito in questa conversazione.
+  - Suite: 5409 passed, 42 skipped, 20 xfailed.
+  - `ruff` e `sphinx -E -W` puliti.
+  - I contract test delle fasi 1 e 2 passano.
+- **Grep del `Done:`:** trova ancora `docs/guide/release-notes.md`, e solo quel file. Il piano chiede di elencare lì i nomi rimossi, quindi il grep e la regola si contraddicono. Le voci delle release 0.6.x citano `build_database` come storia e le ho lasciate intatte. Il conflitto è registrato come `> Review:` nel piano.
+- **Test riallineati:**
+  - I test che descrivevano un modello non legato a un database ora usano il modello legato.
+  - Ho cancellato tre test che servivano solo a una strada rimossa: due su `renderer_sql`, uno sulla lettura dei secret della connessione.
+  - Ho cancellato l'artifact `objects_tree/migration.json` e il suo script di export: la struttura è la stessa dell'artifact `native`.
+  - Le motivazioni sono in `notes.md`, sotto `## Phase 2`.

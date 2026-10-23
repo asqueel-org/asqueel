@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import pytest
 
-from asqueel import SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 
 @pytest.mark.parametrize('attributes,dtype', [
@@ -23,7 +23,7 @@ def test_physical_and_related_nodes_publish_effective_dtype(attributes, dtype):
     item.column('ref', name_long='Reference', default={'color': 'blue'},
                 **attributes).relation('app.target.code')
     source_before = source.source.to_json()
-    model = source.render(mode='objects_tree')
+    model = AsqueelDb(source).model
     table = model.table('app.item')
     column = table.column('ref')
     attributes_before = deepcopy(column.attributes)
@@ -53,7 +53,7 @@ def test_virtual_relation_publishes_its_own_effective_dtype(attributes, dtype, e
     item.column('last_physical', dtype='X', name_long='Unrelated field')
     item.formulaColumn('computed_ref', sql_formula='$target_id', name_long='Computed reference',
                        **attributes).relation('app.target.id', foreign_key=False)
-    table = source.render(mode='objects_tree').table('app.item')
+    table = AsqueelDb(source).model.table('app.item')
     node = table.relations.get_node('@computed_ref')
 
     assert node.attr['dtype'] == effective
@@ -76,7 +76,7 @@ def test_composite_keys_publish_json_dtype_at_every_relation_depth():
     item.column('year', dtype='L')
     item.compositeColumn('ref', columns='code,year', name_long='Owner key').relation('app.owner.key')
     pkg.table('detail', pkey='id').column('id', dtype='L').relation('app.item.id')
-    model = source.render(mode='objects_tree')
+    model = AsqueelDb(source).model
     table = model.table('app.item')
     ref = table.composites['ref']
     before = deepcopy(ref.attributes)
@@ -91,6 +91,6 @@ def test_composite_keys_publish_json_dtype_at_every_relation_depth():
         assert relation.attr['joiner']['one_relation'] == 'app.owner.key'
         assert relation.resolver.parentpath[-1] is ref
         assert relation.value.get_node('code').attr['dtype'] == 'T'
-    assert model.physical_columns(table, 'ref') == ('code', 'year')
+    assert table.physical_columns('ref') == ('code', 'year')
     assert 'ref' not in table.relations
     assert ref.attributes == before

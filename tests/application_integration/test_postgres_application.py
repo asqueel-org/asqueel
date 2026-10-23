@@ -6,7 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, TransactionStateError, build_database
+from asqueel import SqlDatabaseConfig, SqlTable, TransactionStateError, AsqueelDb
 from asqueel.application_table import RecordMultipleRowsError, RecordNotFoundError
 from tests.native_support import postgres_dsn
 
@@ -46,7 +46,7 @@ def application():
                 audit.column('id', dtype='I')
                 audit.column('item_id', dtype='I').relation('app.item.id', foreign_key=True)
 
-        db = build_database(Recipe)
+        db = AsqueelDb(Recipe)
 
         def rows(table):
             return observer.execute(sql.SQL('SELECT * FROM {}.{} ORDER BY id').format(

@@ -187,7 +187,7 @@ This independent, compile-only example declares its own DATE column `issued`:
 
 ```python
 from datetime import date
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 period_config = SqlDatabaseConfig()
 period_package = period_config.source.db('period_example').packages().package('sales')
@@ -195,7 +195,7 @@ period_invoice = period_package.table('invoice', pkey='id')
 period_invoice.column('id', dtype='L')
 period_invoice.column('issued', dtype='D')
 
-period_db = build_database(period_config)
+period_db = AsqueelDb(period_config)
 with period_db.tempEnv(workdate=date(2026, 10, 14), locale="it"):
     compiled = period_db.table("sales.invoice").query(
         columns="$id", where="#PERIOD($issued, period)", period="mese scorso",

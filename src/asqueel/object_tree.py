@@ -7,13 +7,13 @@ once every table exists. There is no compiler or connection in this module.
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Any
 
 from genro_bag import Bag
 from genro_toolbox import extract_kwargs
 
-from .common import default_index_name, indexed_attributes, split_names, unknown_indexed_keys
+from .common import default_index_name, indexed_attributes, package_sqlschema, split_names, table_sqlname, unknown_indexed_keys
 
 
 @dataclass(frozen=True)
@@ -127,14 +127,6 @@ class DbModelObj:
         return self.children.items()
 
 
-class DbDatabaseObj(DbModelObj):
-    """The declared database root, without connections or query execution."""
-
-    def doInit(self):
-        self.model = self._model
-        self.model.db = self
-
-
 class DbPackageObj(DbModelObj):
     @property
     def tables(self):
@@ -148,14 +140,10 @@ class DbPackageObj(DbModelObj):
 
     @property
     def sqlschema(self):
-        default = 'main' if self._model.implementation.partition(':')[0] == 'sqlite' else 'public'
-        return (self.attributes.get('sqlschema')
-                or ((self.attributes.get('sqlname') or self.name) if self.tag == 'schema' else default))
+        return package_sqlschema(self.tag, self.name, self.attributes, self._model.implementation)
 
     def tableSqlName(self, table):
-        prefix = self.attributes.get('sqlprefix', self.tag == 'package')
-        prefix = self.name if prefix is True else prefix or ''
-        return f'{prefix}_{table.name}' if prefix else table.name
+        return table_sqlname(self.tag, self.name, self.attributes, table.name, {})
 
 
 class DbTableObj(DbModelObj):
@@ -167,7 +155,7 @@ class DbTableObj(DbModelObj):
         if not isinstance(table_class, type) or not issubclass(table_class, SqlTable):
             raise TypeError(f'{self.fullname}: x_table_class must be a SqlTable subclass')
         self._check_table_methods(table_class)
-        self.dbtable = table_class(self.db, self)
+        self.dbtable = table_class(self)
         self._relation_tree = None
 
     def _check_table_methods(self, table_class):
@@ -215,7 +203,27 @@ class DbTableObj(DbModelObj):
 
     @property
     def virtual_columns(self):
-        return self.get('virtual_columns', {})
+        """Legacy virtual_columns: the declared ones plus the ``formulaColumn_<x>()`` objects, cached per environment."""
+        container = self.get('virtual_columns', {})
+        methods = [name for name in dir(self.dbtable) if name.startswith('formulaColumn_')]
+        if not methods:
+            return container
+        key = '_virtual_columns_' + self.fullname.replace('.', '_')
+        env = self.db.currentEnv
+        if key in env:
+            return env[key]
+        for method in methods:
+            declared = getattr(self.dbtable, method)()
+            for attributes in declared if isinstance(declared, list) else [declared]:
+                attributes = dict(attributes)
+                name = attributes.pop('name')
+                existing = container.get(name)
+                if name in self.columns or name in self.composites or (existing is not None and existing.structnode is not None):
+                    raise ValueError(f'{self.fullname}.{name}: {method}() redefines a declared column')
+                container.children[name.lower()] = DbVirtualColumnObj(_Fragment(name, 'formulaColumn', attributes, ()),
+                                                                      model=self._model, parent=container)
+        env[key] = container
+        return container
 
     @property
     def composites(self):
@@ -223,26 +231,8 @@ class DbTableObj(DbModelObj):
 
     @property
     def dynamic_columns(self):
-        """Legacy dynamic_columns: ``formulaColumn_<x>()`` results, their attributes cached per environment."""
-        methods = [name for name in dir(self.dbtable) if name.startswith('formulaColumn_')]
-        if not methods:
-            return {}
-        key = '_virtual_columns_' + self.fullname.replace('.', '_')
-        env = self.db.currentEnv
-        if key not in env:
-            declarations = {}
-            for method in methods:
-                declared = getattr(self.dbtable, method)()
-                for attributes in declared if isinstance(declared, list) else [declared]:
-                    attributes = dict(attributes)
-                    name = attributes.pop('name')
-                    if name in self.columns or name in self.virtual_columns or name in self.composites:
-                        raise ValueError(f'{self.fullname}.{name}: {method}() redefines a declared column')
-                    declarations[name] = attributes
-            env[key] = declarations
-        return {name.lower(): DbVirtualColumnObj(_Fragment(name, 'formulaColumn', attributes, ()),
-                                                 model=self._model, parent=self.virtual_columns)
-                for name, attributes in env[key].items()}
+        """The ``formulaColumn_<x>()`` objects of ``virtual_columns``, by lowercase name."""
+        return {name: column for name, column in self.virtual_columns.items() if column.structnode is None}
 
     @property
     def indexes(self):
@@ -267,6 +257,13 @@ class DbTableObj(DbModelObj):
             return []
         composite = self.composites.get(pkey)
         return split_names(composite.attributes['columns']) if composite is not None else [pkey]
+
+    def physical_columns(self, name):
+        """Expand already-declared composite keys, preserving their identity."""
+        column = self.column(name)
+        if column.tag == 'compositeColumn':
+            return tuple(split_names(column.attributes['columns']))
+        return (name,)
 
     @property
     def lastTS(self):
@@ -306,8 +303,7 @@ class DbTableObj(DbModelObj):
             joiner = node.attr['joiner']
             target = joiner['one_relation'] if joiner['mode'] == 'O' else joiner['many_relation']
             return self._model.table(target).column(rest, _seen=_seen)
-        column = (self.columns.get(name) or self.virtual_columns.get(name) or self.composites.get(name)
-                  or self.dynamic_columns.get(name.lower()))
+        column = self.columns.get(name) or self.virtual_columns.get(name) or self.composites.get(name)
         if column is None:
             return None
         if column.tag == 'aliasColumn':
@@ -399,8 +395,6 @@ class AliasColumnWrapper:
 
 
 def _object_class(fragment):
-    if fragment.tag == 'db':
-        return DbDatabaseObj
     if fragment.tag in ('package', 'schema'):
         return DbPackageObj
     if fragment.tag == 'table':
@@ -418,29 +412,22 @@ def _object_class(fragment):
 class DbModel:
     """Source-owned hierarchical model; relations are a global Bag, not edges."""
 
-    def __init__(self, fragment, *, source):
-        self.src = source
-        self._operational_db = None
-        self.implementation = fragment.attributes.get('implementation', 'sqlite')
+    def __init__(self, db):
+        self.db = db
         self.relations = Bag()
+
+    def build(self, fragment):
+        """Build the objects of the rendered ``db`` fragment, parent before children, as legacy."""
+        self.src = fragment.node.parent_bag
+        self.implementation = fragment.attributes.get('implementation', 'sqlite')
         # Legacy model.obj is the namespace list, not the authored <db> node.
         # Database options remain on the database declaration, outside that root.
         namespaces = next((c for c in fragment.children if c.tag in ('packages', 'schemas')),
                           _Fragment('packages', 'packages', {}, ()))
-        database = replace(fragment, children=tuple(c for c in fragment.children if c is not namespaces))
-        self.db = DbDatabaseObj(database, model=self)
-        self._database = self.db
         self.obj = DbModelObj(namespaces, model=self)
-        self.name = self.db.attributes.get('name', self.db.name)
+        self.name = fragment.attributes.get('name', fragment.name)
         from .object_tree_relations import build_relations
         build_relations(self)
-
-    def _bind_db(self, db):
-        """Attach one operational database without rebuilding any model objects."""
-        if self._operational_db is not None:
-            raise ValueError('Hierarchical model is already bound to a database')
-        self._operational_db = db
-        self.db = db
 
     @property
     def packages(self):
@@ -469,9 +456,3 @@ class DbModel:
             raise ValueError(f'Unknown package/schema {pkg!r}')
         return found.column(column)
 
-    def physical_columns(self, table, name):
-        """Expand already-declared composite keys, preserving their identity."""
-        column = table.column(name)
-        if column.tag == 'compositeColumn':
-            return tuple(split_names(column.attributes['columns']))
-        return (name,)

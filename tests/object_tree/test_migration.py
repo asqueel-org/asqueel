@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig, SqlMigrationRenderer, to_physical_builder
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel_migration import StructureValidator
 from examples.test_invoice_pg import source
 from tests.object_tree.test_invoice import TABLES
@@ -19,12 +18,12 @@ SAVED = json.loads((ROOT / 'artifacts/test_invoice_pg/native/migration.json').re
 
 
 def physical(model):
-    return SqlMigrationRenderer(to_physical_builder(model)).render()
+    return model.db.config.builder.render(mode='migration')
 
 
 @pytest.fixture(scope='module')
 def tree():
-    return source().render(mode='objects_tree')
+    return AsqueelDb(source()).model
 
 
 @pytest.fixture(scope='module')
@@ -43,9 +42,7 @@ def test_every_table_matches_legacy_and_native_artifact(tree, structure, key):
 def test_whole_json_is_identical_to_both_references_and_current_renderer(tree, structure):
     assert StructureValidator().validate(structure) == structure
     assert structure == LEGACY == SAVED
-    saved_tree = ROOT / 'artifacts/test_invoice_pg/objects_tree/migration.json'
-    assert structure == json.loads(saved_tree.read_text())
-    old = source().render()
+    old = AsqueelDb(source())
     try:
         assert structure == physical(old.model)
     finally:
@@ -59,11 +56,7 @@ def test_whole_json_is_identical_to_both_references_and_current_renderer(tree, s
 
 
 def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
-    import asqueel.model as model_module
-    import asqueel.model_source as model_source
-    import asqueel.model_expansion as expansion
     import asqueel.legacy_source as legacy_source
-    import asqueel.configuration as configuration
     import asqueel.application as application
     from copy import deepcopy
 
@@ -81,22 +74,18 @@ def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
         return original_read(path, *args, **kwargs)
     monkeypatch.setattr(builtins, 'open', checked_open)
     monkeypatch.setattr(Path, 'read_text', checked_read)
-    monkeypatch.setattr(model_module, 'resolve_model', forbidden)
     monkeypatch.setattr(legacy_source, 'from_expanded_legacy_xml', forbidden)
     monkeypatch.setattr(application, 'QueryCompiler', forbidden)
     monkeypatch.setattr('psycopg.connect', forbidden)
     monkeypatch.setattr('sqlite3.connect', forbidden)
     recipe = source()
-    config = _owned_handler(recipe)
     before = recipe.source.to_json()
-    model = recipe.render(mode='objects_tree')
+    db = AsqueelDb(recipe)
+    model = db.model
     assert recipe.source.to_json() == before
     attrs = {key: deepcopy(t.attributes) for key, t in model.tables.items()}
     cols = {c.fullname: deepcopy(c.attributes) for t in model.tables.values() for c in t.columns.values()}
     joiners = model.relations.to_json()
-    monkeypatch.setattr(model_source, 'prepare_source', forbidden)
-    monkeypatch.setattr(expansion, 'expand_options', forbidden)
-    monkeypatch.setattr(configuration, '_effective_model_builder', forbidden)
     baseline = physical(model)
     assert baseline == SAVED
     assert attrs == {key: t.attributes for key, t in model.tables.items()}
@@ -105,10 +94,9 @@ def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
     recipe.source.get_node('db.packages.invc.tables.customer.columns.account_name').attr['size'] = ':999'
     model.src = None
     assert physical(model) == baseline
-    db = SqlDatabase(model=model, config=config)
     try:
         assert physical(db.model) == baseline
-        model.column('invc.customer.account_name').attributes['size'] = ':121'
+        db.config.builder.source.get_node('db.packages.invc.tables.customer.columns.account_name').attr['size'] = ':121'
         changed = physical(model)
         assert changed['root']['schemas']['invc']['tables']['invc_customer']['columns']['account_name']['attributes']['size'] == '0:121'
         assert baseline == SAVED
@@ -134,7 +122,7 @@ def test_physical_names_composite_keys_constraints_and_extensions():
     item.compositeColumn('ref', columns='a,b', unique=True).relation(
         'app.owner.key', foreign_key=True, deferred=True, onDelete_sql='cascade')
     item.index(name='descending', columns={'b': 'DESC'})
-    model = recipe.render(mode='objects_tree')
+    model = AsqueelDb(recipe).model
     result = physical(model)
     assert result['root']['extensions']['pg_trgm']
     assert result['root']['schemas']['storage']['tables']['owners']['attributes']['pkeys'] == 'first,second'
@@ -144,7 +132,7 @@ def test_physical_names_composite_keys_constraints_and_extensions():
     assert fk['related_columns'] == ['first', 'second']
     assert fk['on_delete'] == 'CASCADE'
     assert fk['deferrable'] and fk['initially_deferred']
-    old = recipe.render()
+    old = AsqueelDb(recipe)
     try:
         assert result == physical(old.model)
     finally:
@@ -168,14 +156,9 @@ def test_hierarchical_json_apply_introspect_rediff_and_evolution(pg_database, st
         customer.column('probe_code', size=':20', unique=True)
         customer.index(name='probe_account', columns='account_name')
         customer.column('account_name', size=':120')
-    evolved = physical(recipe.render(mode='objects_tree'))
+    evolved = physical(AsqueelDb(recipe).model)
     migration = prepared(pg_database, evolved)
     changes = migration.getChanges()
     assert all(name in changes for name in ('__full_mod_ts', 'probe_product', 'probe_code', 'probe_account'))
     migration.applyChanges()
     assert prepared(pg_database, evolved).getChanges() == ''
-
-
-def test_projection_requires_a_hierarchical_model():
-    with pytest.raises(TypeError, match='requires DbModel'):
-        to_physical_builder(object())

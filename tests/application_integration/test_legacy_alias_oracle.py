@@ -12,7 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 
 def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype():
@@ -49,7 +49,7 @@ def test_legacy_alias_inherits_attributes_overrides_locally_and_delegates_dtype(
     source = pkg.table('source')
     source.column('customer', dtype='I').relation('app.customer.id')
     source.aliasColumn('identifier', relation_path='@customer.id', name_long='Customer identifier')
-    modern_alias = resolve_model(config).table('app.source').column('identifier')
+    modern_alias = AsqueelDb(config).model.table('app.source').column('identifier')
     assert modern_alias.dtype == alias.dtype
     for key in ('dtype', 'name_long'):
         assert modern_alias.attributes[key] == alias.attributes[key]

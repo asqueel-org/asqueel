@@ -3,6 +3,7 @@ from collections import defaultdict
 
 import pytest
 
+from asqueel import AsqueelDb
 from asqueel.model_expansion import _TableExpansion
 from asqueel.object_tree import DbVirtualColumnObj
 from examples.test_invoice_pg import source
@@ -27,7 +28,7 @@ SHARED = {
 def model():
     config = source()
     before = config.source.to_json()
-    result = config.render(mode='objects_tree')
+    result = AsqueelDb(config).model
     assert config.source.to_json() == before
     return result
 
@@ -121,7 +122,7 @@ def test_attachment_base_and_sys_fields_compose_the_same_source_node(monkeypatch
         return node
 
     monkeypatch.setattr(_TableExpansion, 'add', add)
-    model = source().render(mode='objects_tree')
+    model = AsqueelDb(source()).model
     nodes = emissions['adm.htmltemplate_atc', 'id']
     assert len(nodes) == 2  # sys_fields, then AttachmentTable's id declaration
     assert nodes[0] is nodes[1]

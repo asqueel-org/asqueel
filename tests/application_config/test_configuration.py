@@ -1,7 +1,8 @@
 from genro_builders.builder import element
 import pytest
 
-from asqueel.configuration import SqlDatabaseConfig, build_database
+from asqueel import AsqueelDb
+from asqueel.configuration import SqlDatabaseConfig, compose_recipe
 from asqueel.elements import ColumnElements, SchemaElements, TableElements
 
 
@@ -21,8 +22,8 @@ def test_layering_owns_instances_and_preserves_parent_tree():
     parent.create()
     overlay = Overlay()
     overlay.create()
-    first = build_database(overlay, parents=[parent])
-    second = build_database(parent)
+    first = AsqueelDb(overlay, parents=[parent])
+    second = AsqueelDb(parent)
     assert first.config('conninfo') == 'dbname=overlay'
     assert second.config('conninfo') == ''
     assert parent.source.get_item('db?conninfo') is None
@@ -41,7 +42,7 @@ def test_direct_object_render_uses_defaults_without_connecting(monkeypatch):
     monkeypatch.setattr(psycopg, 'connect', forbidden)
     recipe = Recipe()
     recipe.create()
-    database = recipe.render()
+    database = AsqueelDb(recipe)
     assert database.config('implementation') == 'sqlite'
     assert database.config('conninfo') == ''
     assert database.table('sales.customer').model is database.model.table('sales.customer')
@@ -84,7 +85,7 @@ class MountedRecipe(SqlDatabaseConfig):
 
 
 def test_mounted_grammar_validation_and_signature_default():
-    database = build_database(MountedRecipe)
+    database = AsqueelDb(MountedRecipe)
     assert database.config('schemas.sales.tables.customer.columns.id.ui_hint') == 'explicit'
     assert database.config('schemas.sales.tables.customer.columns.label.ui_hint') == 'mounted default'
     assert database.config.builder.source.get_item(
@@ -94,14 +95,13 @@ def test_mounted_grammar_validation_and_signature_default():
 
 
 def test_repeated_render_does_not_copy_live_products_or_reuse_context():
-    recipe = Recipe()
-    recipe.create()
-    first = recipe.render()
-    second = recipe.render()
-    third = build_database(recipe)
+    recipe = compose_recipe(Recipe)
+    first = AsqueelDb(recipe)
+    second = AsqueelDb(recipe)
+    third = AsqueelDb(recipe)
     assert first is not second and second is not third
     assert first.table('sales.customer') is not second.table('sales.customer')
-    assert recipe.materialized['objects'][0].tag == 'db'
+    assert first.config.builder.materialized['objects'][0].tag == 'db'
     for database in (first, second, third):
         database.closeConnection()
 
@@ -120,7 +120,7 @@ def test_logical_relation_defaults_remain_nonphysical_and_alias_config_inherits(
             source.virtual_columns().aliasColumn(
                 'label', relation_path='@target_id.label', name_long='Local')
 
-    db = build_database(LogicalRecipe)
+    db = AsqueelDb(LogicalRecipe)
     try:
         alias = db.table('app.source').column('label')
         target = db.table('app.target').column('label')
@@ -152,7 +152,7 @@ def test_connection_implementation_inherits_root_unless_explicit(root_impl, conn
             db.connection(name='app.db', **options)
             db.schemas().schema('s').tables().table('t', pkey='id').columns().column('id', dtype='I')
 
-    db = build_database(Config)
+    db = AsqueelDb(Config)
     try:
         implementation, conninfo, options = connection_settings(db.config)
         assert implementation == db.adapter.dialect == expected

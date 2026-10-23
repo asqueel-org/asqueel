@@ -2613,10 +2613,10 @@ In asqueel you write:
 
 ```python
 db.currentEnv = {"user": "ada"}
-snapshot = db.environment.snapshot()
+snapshot = db.environment_snapshot()
 ```
 
-In asqueel you get: a dict per thread. The setter raises `TypeError` "currentEnv must be a dictionary" for another value. `db.environment.snapshot()` returns a read-only copy without the deferred queues and `_pendingExceptions`, with the workdate/locale defaults resolved.
+In asqueel you get: a dict per thread. The setter raises `TypeError` "currentEnv must be a dictionary" for another value. `db.environment_snapshot()` returns a read-only copy without the deferred queues and `_pendingExceptions`, with the workdate/locale defaults resolved.
 
 <details><summary>Files</summary>
 
@@ -3244,7 +3244,7 @@ db.listen('orders', timeout=10, onNotify=handle)
 
 In GenroPy you got: PostgreSQL `NOTIFY` and `LISTEN` on the current connection. On SQLite `notify` did nothing and `listen` only waited.
 
-In asqueel: `db.listen`, `db.notify` and the matching adapter methods do not exist. Calling them raises `AttributeError: 'Database' object has no attribute 'listen'`. The write cycle does not handle `NOTIFY`.
+In asqueel: `db.listen`, `db.notify` and the matching adapter methods do not exist. Calling them raises `AttributeError: 'AsqueelDb' object has no attribute 'listen'`. The write cycle does not handle `NOTIFY`.
 
 Possible ways, none chosen yet:
 
@@ -3359,7 +3359,7 @@ In GenroPy you got: the module `gnr.sql.adapters.gnrpostgres` (psycopg2). `'name
 In asqueel you write:
 
 ```python
-db = Database(implementation='postgres')
+db = AsqueelDb(Recipe)  # a recipe with db(implementation='postgres')
 with db.tempEnv(currentImplementation='postgres'):
     adapter = db.adapter
 ```

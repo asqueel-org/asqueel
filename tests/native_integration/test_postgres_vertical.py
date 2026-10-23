@@ -7,11 +7,10 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.compiler import QueryCompiler
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.model import resolve_model
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 from asqueel.write_compiler import WriteCompiler
 
 
@@ -74,12 +73,12 @@ def writer():
 
 def test_native_model_compiler_and_runtime(native_database):
     params, schema, connection = native_database
-    model = resolve_model(recipe(schema))
+    model = AsqueelDb(recipe(schema)).model
     compiler = QueryCompiler(model, PostgresAdapter(None))
     write = writer()
 
     def scenario():
-        db = Database(implementation='postgres', connect_kwargs=params)
+        db = empty_database(implementation='postgres', connect_kwargs=params)
         try:
             with completed(db) as tx:
                 tx.execute(write.insert(model.table('crm.customer'), {
@@ -125,9 +124,9 @@ def test_native_model_compiler_and_runtime(native_database):
 
 def test_python_error_rolls_back_transaction_and_database_remains_usable(native_database):
     params, schema, connection = native_database
-    model = resolve_model(recipe(schema))
+    model = AsqueelDb(recipe(schema)).model
     compiler, customer = QueryCompiler(model, PostgresAdapter(None)), model.table('crm.customer')
-    db = Database(implementation='postgres', connect_kwargs=params)
+    db = empty_database(implementation='postgres', connect_kwargs=params)
     try:
         with pytest.raises(RuntimeError, match='abort transaction'):
             with completed(db) as tx:
@@ -145,9 +144,9 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
 
 def test_separate_database_transactions_keep_independent_commit_and_rollback(native_database):
     params, schema, _ = native_database
-    model = resolve_model(recipe(schema))
+    model = AsqueelDb(recipe(schema)).model
     compiler, customer = QueryCompiler(model, PostgresAdapter(None)), model.table('crm.customer')
-    first, second = Database(implementation='postgres', connect_kwargs=params), Database(implementation='postgres', connect_kwargs=params)
+    first, second = empty_database(implementation='postgres', connect_kwargs=params), empty_database(implementation='postgres', connect_kwargs=params)
     try:
         with pytest.raises(RuntimeError, match='abort first'):
             with completed(first) as tx:

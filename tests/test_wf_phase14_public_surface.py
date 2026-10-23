@@ -12,9 +12,7 @@ import pytest
 import asqueel
 from asqueel import (
     SqlBuilder,
-    SqlMigrationRenderer,
     SqlModelReader,
-    SqlPythonEmitter,
 )
 from asqueel_migration import JsonStructureProducer
 from asqueel_migration.structures import json_equal
@@ -53,8 +51,8 @@ assert 'SqlMigrationRenderer' not in namespace
 def test_empty_model_is_refused_before_invalid_python_is_emitted():
     model = SqlBuilder()
     model.create()
-    with pytest.raises(ValueError, match="db|database|empty"):
-        SqlPythonEmitter(model).emit()
+    with pytest.raises(ValueError, match="exactly one root element"):
+        model.render(mode='python')
 
 
 def test_emitter_handles_identifiers_and_real_string_escaping():
@@ -67,12 +65,12 @@ def test_emitter_handles_identifiers_and_real_string_escaping():
         ]}],
     }).get_json_struct()
     builder = SqlModelReader(normalized).to_builder()
-    source = SqlPythonEmitter(builder).emit()
+    source = builder.render(mode='python')
     namespace = {}
     exec(compile(source, "<emitted>", "exec"), namespace)
     rebuilt = namespace["ImportedDatabase"]()
     rebuilt.create()
-    assert json_equal(normalized, SqlMigrationRenderer(rebuilt).render())
+    assert json_equal(normalized, rebuilt.render(mode='migration'))
 
 
 def test_package_sources_contain_no_print_calls():

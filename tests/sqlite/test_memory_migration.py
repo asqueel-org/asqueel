@@ -147,6 +147,23 @@ def test_invalid_replacement_keeps_original_graph_and_rows(session):
     assert rows(product) == [{'code': 'TEA', 'name': 'Tea'}]
 
 
+def test_a_failed_model_build_keeps_the_original_model(session, monkeypatch):
+    from asqueel.object_tree import DbModel
+    db, _, _ = session
+    product = db.table('shop.product')
+    model = db.model
+
+    def broken(self, fragment):
+        raise RuntimeError('build failed')
+
+    monkeypatch.setattr(DbModel, 'build', broken)
+    changed, _ = source()
+    with pytest.raises(RuntimeError, match='build failed'):
+        db.reloadModel(changed)
+    assert db.model is model
+    assert db.table('shop.product') is product
+
+
 def test_unsupported_change_does_not_close_or_modify_memory_database(session):
     db, _, _ = session
     db.table('shop.product').insert({'code': 'TEA', 'name': 'Tea'})

@@ -12,8 +12,6 @@ import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.configuration import connection_settings
-from asqueel.projection import to_physical_builder
-from asqueel import SqlMigrationRenderer
 from examples.two_schemas.configure import DatabaseConfiguration
 
 
@@ -67,7 +65,7 @@ def test_mounted_and_standalone_build_the_same_database(tmp_path):
     recipe = AsqueelDb(standalone(path))
     try:
         assert mounted.model is not recipe.model
-        assert SqlMigrationRenderer(to_physical_builder(mounted.model)).render() == SqlMigrationRenderer(to_physical_builder(recipe.model)).render()
+        assert mounted.config.builder.render(mode='migration') == recipe.config.builder.render(mode='migration')
         assert connection_settings(mounted.config) == connection_settings(recipe.config)
     finally:
         mounted.closeConnection()
@@ -81,7 +79,7 @@ def test_replay_keeps_a_rich_recipe_unchanged(monkeypatch):
     original = AsqueelDb(DatabaseConfiguration)
     try:
         assert replayed.model is not original.model
-        assert SqlMigrationRenderer(to_physical_builder(replayed.model)).render() == SqlMigrationRenderer(to_physical_builder(original.model)).render()
+        assert replayed.config.builder.render(mode='migration') == original.config.builder.render(mode='migration')
         assert connection_settings(replayed.config) == connection_settings(original.config)
     finally:
         replayed.closeConnection()

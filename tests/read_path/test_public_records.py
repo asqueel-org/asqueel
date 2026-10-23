@@ -4,7 +4,7 @@ import sqlite3
 import pytest
 from genro_toolbox import NamedList
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, build_database, RecordNotFoundError, RecordMultipleRowsError
+from asqueel import AsqueelDb, SqlDatabaseConfig, RecordNotFoundError, RecordMultipleRowsError
 from asqueel.object_tree import DbModel
 
 
@@ -34,7 +34,7 @@ def db(tmp_path):
         db.closeConnection()
 
 
-@pytest.mark.parametrize('entry', [AsqueelDb, build_database, lambda s: s.render()])
+@pytest.mark.parametrize('entry', [AsqueelDb])
 def test_public_entries_share_one_model(entry, tmp_path):
     source = recipe(tmp_path / 'unused.sqlite')
     before = source.source.to_xml()
@@ -148,14 +148,3 @@ def test_custom_table_class_survives_finalization(tmp_path):
         assert db.table('app.item') is db.model.table('app.item').dbtable
     finally:
         db.closeConnection()
-
-
-def test_model_only_render_does_not_resolve_connection_secrets():
-    from genro_bag.resolvers import BagCbResolver
-
-    source = SqlDatabaseConfig()
-    root = source.source.db('offline', implementation='postgres')
-    root.connection('main', database='offline', password=BagCbResolver(
-        lambda: pytest.fail('Model rendering evaluated a connection password')))
-    root.packages().package('app').table('item', pkey='id').column('id', dtype='L')
-    assert type(source.render(mode='objects_tree')) is DbModel

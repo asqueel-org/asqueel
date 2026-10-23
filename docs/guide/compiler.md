@@ -1,12 +1,11 @@
 # Compile queries without executing them
 
-Asqueel has one live model and one SELECT compiler. `AsqueelDb`,
-`build_database()` and the default configuration render construct the hierarchical
-`DbModel`. Its tables own the operational `SqlTable` objects; relations are
+Asqueel has one live model and one SELECT compiler. `AsqueelDb(source)` renders
+the composed recipe into itself and constructs the hierarchical `DbModel`. Its tables own the operational `SqlTable` objects; relations are
 resolved from the model's `relations` branch.
 
 ```python
-from asqueel import SqlDatabaseConfig
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 source = SqlDatabaseConfig()
 root = source.source.db('example', implementation='sqlite')
@@ -15,7 +14,7 @@ table = root.packages().package('sales', sqlschema='main').table('invoice', pkey
 table.column('id', dtype='L')
 table.column('total', dtype='N')
 
-db = source.render()
+db = AsqueelDb(source)
 query = db.table('sales.invoice').query(
     '$id,$total', where='$total >= :minimum', minimum=100,
 )
@@ -80,14 +79,12 @@ in an existing transaction the driver issues a zero-row self-update on the
 physical table to acquire the write reservation. Neither path commits,
 opens a second connection or changes a row as part of lock acquisition.
 
-## Model-only rendering
+## One model construction
 
-`source.render(mode='objects_tree')` and `resolve_model(source)` return the same
-hierarchical model without binding an operational database. They use the same
-walk/finalize construction as the default operational render.
+`AsqueelDb(source)` is the only way to obtain the model: the database exists
+first, then `recipe.render(target=db)` builds the hierarchical `DbModel` into it
+with the generic walk/finalize construction. `recipe.render()` without a
+database target raises `TypeError`.
 
-Authored recipes return `DbModel`.
 The SELECT and write compilers and physical migration projection consume that
 same hierarchy. There is no descriptor graph or alternative projection path.
-Operational rendering wraps the model in `SqlDatabase`; model-only rendering
-leaves it unbound. These are two outputs of the same model construction.

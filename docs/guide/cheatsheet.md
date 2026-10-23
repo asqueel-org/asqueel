@@ -1,14 +1,14 @@
 # Application API at a glance
 
 This page is a lookup sheet after the [tutorial](tutorial.md). `db` is a live
-`SqlDatabase`; `table = db.table('sales.customer')`. Physical tables must already
+`AsqueelDb`; `table = db.table('sales.customer')`. Physical tables must already
 exist. Calls below are alternatives, not one script to execute in sequence.
 
 ## Objects and execution
 
 | Task | API | Result / timing |
 |---|---|---|
-| Build from configuration | `AsqueelDb(Recipe, parents=[Base])` | `SqlDatabase`; no I/O. |
+| Build from configuration | `AsqueelDb(Recipe, parents=[Base])` | `AsqueelDb`; no I/O. |
 | Get a table | `db.table('sales.customer')` | Stable `SqlTable`; no I/O. |
 | Get a column | `table.column('name')` | Stable `SqlColumn`; no I/O. |
 | Read metadata | `table.column('name').model.ui` | Resolved UI mapping. |

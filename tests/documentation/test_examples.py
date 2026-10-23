@@ -81,9 +81,9 @@ def test_application_environment_examples():
         tutorial['create_tables'](db)
         try:
             tutorial['seed'](db)
-            # First five blocks cover the application API. Later blocks use a
-            # different policy model or the explicitly independent executor.
-            for index, block in enumerate(python_blocks('environment.md')[:5]):
+            # First four blocks cover the application API. Later blocks use a
+            # different policy model.
+            for index, block in enumerate(python_blocks('environment.md')[:4]):
                 namespace = {'db': db, 'Shop': tutorial['Shop']}
                 exec(compile(block, f'environment.md:block-{index + 1}', 'exec'), namespace)
         finally:

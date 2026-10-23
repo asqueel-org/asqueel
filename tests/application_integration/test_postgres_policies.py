@@ -7,7 +7,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -43,7 +43,7 @@ def policy_database():
                                         ('deleted_at', 'DHZ'), ('label', 'T')]:
                         columns.column(name, dtype=dtype)
 
-            db = build_database(Recipe)
+            db = AsqueelDb(Recipe)
             try:
                 yield db, observer, schema
             finally:

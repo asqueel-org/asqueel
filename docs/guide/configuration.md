@@ -1,7 +1,7 @@
 # Configuration and application objects
 
 `SqlDatabaseConfig` declares connection settings and a SQL model in the same
-Builders recipe. `AsqueelDb()` produces a synchronous `SqlDatabase` with
+Builders recipe. `AsqueelDb()` produces a synchronous database with
 stable table, column and relation objects. Construction validates and binds the
 model without connecting, executing SQL, or applying migrations.
 
@@ -12,8 +12,7 @@ connection attributes shown below remain supported.
 
 `AsqueelDb("gestionale")` loads a registered configuration and returns a
 persistent database object. Use `db.commit()`, `db.rollback()` and
-`db.closeConnection()` explicitly. The previous `build_database(...)` function remains available as a
-compatibility factory returning an `AsqueelDb` instance.
+`db.closeConnection()` explicitly.
 
 ## Construct a database or render a recipe
 
@@ -37,15 +36,14 @@ assert db.table("sales.customer").model is db.model.table("sales.customer")
 assert db.table("sales.customer").attributes["name_long"] == "Customers"
 db.closeConnection()
 
-recipe = Shop()
-recipe.create()
-db = recipe.render()
+db = AsqueelDb(Shop())
 print(db.table("sales.customer").query(columns="$id, $name").sqltext)
 db.closeConnection()
 ```
 
-The default renderer is an object renderer. `render()` returns a database, not
-DDL or serialized configuration. Structural changes belong to the migration integration.
+The default renderer is an object renderer: `AsqueelDb` renders the composed
+recipe into itself (`recipe.render(target=db)`); `recipe.render()` without a
+database raises `TypeError`. Rendering produces no DDL or serialized configuration. Structural changes belong to the migration integration.
 
 The root declares `name`, `implementation='sqlite'`, `conninfo=''`, and
 optional `connect_kwargs`. An empty connection string uses the driver's normal
@@ -186,9 +184,9 @@ editing the source or `db.config.builder` does not alter their structural values
 `db.config` retains administrative connection configuration. Editing it does not
 reconfigure an already-open physical connection.
 
-`SqlBuilder`, `resolve_model`, `QueryCompiler` and the low-level `Database` remain
-available independently. `SqlDatabase` binds those responsibilities for application
-use; it does not require a second compiler or an alternative migration system.
+`SqlBuilder` and `QueryCompiler` remain available independently. `AsqueelDb`
+binds those responsibilities for application use; it does not require a second
+compiler or an alternative migration system.
 
 ### Connection implementation inheritance
 

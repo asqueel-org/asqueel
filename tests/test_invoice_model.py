@@ -2,7 +2,6 @@
 
 from asqueel_migration.structures import json_equal
 
-from asqueel import SqlMigrationRenderer, SqlPythonEmitter
 
 from tests.invc_model.schema import InvoiceModel
 
@@ -28,10 +27,10 @@ def test_invoice_schema_is_explicit_and_complete():
 
 def test_invoice_schema_emits_and_rebuilds_strictly():
     model = _model()
-    expected = SqlMigrationRenderer(model).render()
-    source = SqlPythonEmitter(model).emit(class_name="EmittedInvoiceModel")
+    expected = model.render(mode='migration')
+    source = model.render(mode='python', class_name="EmittedInvoiceModel")
     namespace = {}
     exec(compile(source, "<invoice-model>", "exec"), namespace)
     rebuilt = namespace["EmittedInvoiceModel"]()
     rebuilt.create()
-    assert json_equal(expected, SqlMigrationRenderer(rebuilt).render())
+    assert json_equal(expected, rebuilt.render(mode='migration'))

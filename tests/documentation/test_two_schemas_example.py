@@ -1,5 +1,5 @@
 """The composed example resolves cross-schema paths without database I/O."""
-from asqueel import build_database
+from asqueel import AsqueelDb
 from examples.two_schemas.configure import DatabaseConfiguration
 from examples.two_schemas.schemas.sales.invoice_logic import InvoiceLogic
 
@@ -13,7 +13,7 @@ def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
     monkeypatch.setattr(psycopg, 'connect', forbidden)
     monkeypatch.setenv('PGPORT', '5432')
     monkeypatch.setenv('PGDATABASE', 'example_test')
-    db = build_database(DatabaseConfiguration)
+    db = AsqueelDb(DatabaseConfiguration)
     try:
         for name in ('identity.user', 'identity.access', 'sales.customer',
                      'sales.product', 'sales.invoice', 'sales.invoice_row'):

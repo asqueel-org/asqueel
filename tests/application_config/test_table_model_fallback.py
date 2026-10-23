@@ -1,7 +1,7 @@
 """Operational tables delegate missing reads, not method binding or writes."""
 import pytest
 
-from asqueel import SqlTable, build_database
+from asqueel import AsqueelDb, SqlTable
 from types import SimpleNamespace
 from tests.application_config.test_application import Recipe
 
@@ -28,11 +28,11 @@ class StructuralTable:
 
 @pytest.fixture
 def table():
-    return SqlTable(None, StructuralTable())
+    return SqlTable(StructuralTable())
 
 
 def test_database_table_exposes_model_members_without_connecting():
-    db = build_database(Recipe)
+    db = AsqueelDb(Recipe)
     driver = db.adapter
     try:
         table = db.table('app.item')
@@ -84,7 +84,7 @@ def test_fallback_before_model_assignment_does_not_recurse():
 def test_fallback_can_read_hierarchical_model_without_rebinding_its_methods():
     recipe = Recipe()
     recipe.create()
-    model = recipe.render(mode='objects_tree')
+    model = AsqueelDb(recipe).model
     table = SqlTable.__new__(SqlTable)
     table.model = model.table('app.item')
     assert table.parent is table.model.parent

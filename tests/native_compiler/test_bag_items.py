@@ -2,7 +2,7 @@
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
@@ -45,7 +45,7 @@ def no_io(monkeypatch):
 
 @pytest.fixture
 def db():
-    database = build_database(source())
+    database = AsqueelDb(source())
     try:
         yield database
     finally:

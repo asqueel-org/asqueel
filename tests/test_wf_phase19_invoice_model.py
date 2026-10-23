@@ -56,10 +56,10 @@ def test_modular_invoice_model_closes_the_complete_pipeline():
     # wf:contract: build -> validate -> render -> emit -> compile -> exec -> render
     # wf:contract: is strict-equal, with no sysFields or generated system columns.
     model = _model()
-    expected = SqlMigrationRenderer(model).render()
-    source = SqlPythonEmitter(model).emit()
+    expected = model.render(mode='migration')
+    source = model.render(mode='python')
     assert "sysFields" not in source
-    assert json_equal(expected, SqlMigrationRenderer(_exec(source)).render())
+    assert json_equal(expected, _exec(source).render(mode='migration'))
 
 
 @pytest.mark.postgresql
@@ -67,7 +67,7 @@ def test_modular_invoice_model_closes_against_live_postgresql(pg_database):
     # wf:contract: apply -> inspect -> reader -> emitter -> compile -> exec ->
     # wf:contract: render is migration-equivalent over the application schema,
     # wf:contract: reusing the established safe PostgreSQL facade.
-    desired = SqlMigrationRenderer(_model()).render()
+    desired = _model().render(mode='migration')
     migrator = SqlMigrator(pg_database)
     migrator.ormStructure = desired
     migrator.prepareMigrationCommands()
@@ -75,8 +75,8 @@ def test_modular_invoice_model_closes_against_live_postgresql(pg_database):
 
     inspected = pg_database.get_json_struct()
     recovered = SqlModelReader(inspected).to_builder()
-    rebuilt = _exec(SqlPythonEmitter(recovered).emit())
+    rebuilt = _exec(recovered.render(mode='python'))
     check = SqlMigrator(pg_database)
-    check.ormStructure = SqlMigrationRenderer(rebuilt).render()
+    check.ormStructure = rebuilt.render(mode='migration')
     check.prepareMigrationCommands()
     assert not check.getChanges(), check.getChanges()

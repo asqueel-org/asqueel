@@ -1,8 +1,7 @@
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
 from asqueel.application_table import RecordMultipleRowsError, RecordNotFoundError
-from asqueel.configuration import _owned_handler
 from asqueel.runtime import TransactionStateError
 
 
@@ -40,7 +39,7 @@ def make_db(tmp_path):
 
     def make(customer_class=None):
         source = recipe(tmp_path / f'handles{len(opened)}.db', customer_class)
-        database = SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+        database = AsqueelDb(source)
         opened.append(database)
         for statement in DDL:
             database.execute(statement)

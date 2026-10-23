@@ -16,7 +16,7 @@ import pytest
 
 from asqueel_migration import SqlMigrator
 
-from asqueel import SqlBuilder, SqlMigrationRenderer
+from asqueel import SqlBuilder
 
 
 class LibraryV1(SqlBuilder):
@@ -50,7 +50,7 @@ class LibraryV2(SqlBuilder):
 def _desired(recipe_cls):
     model = recipe_cls()
     model.create()
-    return SqlMigrationRenderer(model).render()
+    return model.render(mode='migration')
 
 
 def _prepare(database, structure):

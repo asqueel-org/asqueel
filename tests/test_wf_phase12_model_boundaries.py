@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from asqueel import SqlBuilder, SqlMigrationRenderer
+from asqueel import SqlBuilder
 from asqueel.grammar_doc import generate_grammar_md
 from asqueel.validators import SqlModelValidationError
 
@@ -47,7 +47,7 @@ def test_constraint_and_index_names_do_not_share_the_column_namespace():
         name="title", constraint_type="CHECK", check_clause="(title <> '')",
     )
     table.indexes().index(name="title", columns="title")
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     item = rendered["root"]["schemas"]["s"]["tables"]["t"]
     assert item["constraints"] and item["indexes"]
 
@@ -75,14 +75,14 @@ def test_multiple_relations_are_rejected_by_domain_validation():
     owner.relation(to="s.a.id", foreign_key=True)
     owner.relation(to="s.b.id", foreign_key=True)
     with pytest.raises(SqlModelValidationError, match="at most one"):
-        SqlMigrationRenderer(model).render()
+        model.render(mode='migration')
 
 
 def test_pkey_spacing_and_dtype_default_are_normalized():
     model, _table_node, columns = _table(pkey="id, code")
     columns.column(name="code", dtype="L")
     columns.column(name="description")
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     item = rendered["root"]["schemas"]["s"]["tables"]["t"]
     assert item["attributes"]["pkeys"] == "id,code"
     assert item["columns"]["description"]["attributes"]["dtype"] == "T"
@@ -95,7 +95,7 @@ def test_auto_index_over_the_exact_pkey_is_suppressed():
         name="t", pkey="id",
     )
     table.columns().column(name="id", dtype="serial", indexed=True)
-    rendered = SqlMigrationRenderer(model).render()
+    rendered = model.render(mode='migration')
     item = rendered["root"]["schemas"]["s"]["tables"]["t"]
     assert not item["indexes"]
 

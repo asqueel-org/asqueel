@@ -1,8 +1,7 @@
 """PostgreSQL write and SELECT rendering on the hierarchical model, without a connection."""
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.contracts import UnsupportedFeatureError
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.write_compiler import WriteCompiler
@@ -20,7 +19,7 @@ def db():
     ticket = pkg.table('ticket', pkey='id')
     ticket.column('id', dtype='serial')
     pkg.table('nokey').column('amount', dtype='N')
-    database = SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    database = AsqueelDb(source)
     try:
         yield database
     finally:

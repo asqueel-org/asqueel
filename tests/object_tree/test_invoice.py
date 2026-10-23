@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from asqueel import AsqueelDb
 from examples.test_invoice_pg import source
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,7 +26,7 @@ INHERITED_RELATIONS = {
 
 @pytest.fixture(scope='module')
 def model():
-    return source().render(mode='objects_tree')
+    return AsqueelDb(source()).model
 
 
 @pytest.mark.parametrize('key', TABLES)

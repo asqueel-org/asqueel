@@ -5,8 +5,7 @@ legacy test's dynamic column override. Compile on the tree, execute separately.
 """
 import pytest
 
-from asqueel import SqlDatabase
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb
 from examples.test_invoice_pg import source
 
 
@@ -23,7 +22,7 @@ def test_this_relation_in_sql_formula_returns_related_value(
     config.source['db'].attr['implementation'] = executor.adapter.dialect
     invoice = config.source['db'].packages().package('invc').table('invoice')
     invoice.formulaColumn('this_customer', '#THIS.@customer_id.account_name', dtype='T')
-    tree = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    tree = AsqueelDb(config)
     try:
         tree.currentEnv.update(dict(executor.currentEnv))
         compiled = tree.table(table).query(

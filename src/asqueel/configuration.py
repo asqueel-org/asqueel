@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from contextlib import contextmanager
-import inspect
 from pathlib import Path
 import sys
 
@@ -42,18 +41,6 @@ class SqlDatabaseElements:
 class SqlDatabaseConfig(SqlDatabaseElements, SqlBuilder, ConfigBuilder):
     """SQL application recipe: model grammar plus connection configuration."""
 
-    _default_render_mode = 'objects'
-
-    @property
-    def renderer_objects(self):
-        from .object_renderer import SqlObjectRenderer
-        return SqlObjectRenderer(self)
-
-    @property
-    def renderer_objects_tree(self):
-        from .object_tree_renderer import SqlObjectTreeRenderer
-        return SqlObjectTreeRenderer(self)
-
 
 def _copy_recipe(recipe):
     # Renderer products and delivery targets are live resources, not declaration
@@ -62,19 +49,24 @@ def _copy_recipe(recipe):
     return deepcopy(recipe, memo)
 
 
-def _owned_handler(source, parents=None):
+def compose_recipe(source, parents=None):
+    """The recipe a database is built from: ``source`` over ``parents``, with package layouts, validated.
+
+    Works on owned copies; the authored recipes are not modified.
+    """
     def own(recipe):
         return _copy_recipe(recipe) if isinstance(recipe, BuilderBase) else recipe
     sources = [configuration_source(item) for item in (*(parents or ()), source)]
     with _recipe_imports(sources):
-        layers = [SqlConfigHandler(own(item)) for item in sources]
-        handler = layers[0]
+        layers = [SqlConfigHandler(own(item)).builder for item in sources]
+        recipe = layers[0]
         for index, layer in enumerate(layers[1:], 1):
-            with handler.builder.contribution(f'layer[{index}]'):
-                _compose_source(handler.builder, handler.builder.source, layer.builder.source)
-        load_package_layouts(handler.builder)
-        _validate_source_shape(handler.builder)
-        return handler
+            with recipe.contribution(f'layer[{index}]'):
+                _compose_source(recipe, recipe.source, layer.source)
+        load_package_layouts(recipe)
+        _validate_source_shape(recipe)
+        recipe.composed = True
+        return recipe
 
 
 def _validate_source_shape(builder):
@@ -199,7 +191,7 @@ def configuration_source(source):
 
 
 def _recipe_from_node(node):
-    """Recipe class that rebuilds a ``db`` subtree written in a host document.
+    """Recipe that rebuilds a ``db`` subtree written in a host document.
 
     A host configuration mounts ``AsqueelDb.grammar`` and writes the database
     under its own node; this replays that subtree, element by element, into a
@@ -208,11 +200,9 @@ def _recipe_from_node(node):
     if node.node_tag != 'db':
         raise TypeError(f"a mounted Asqueel database starts at a 'db' node, not {node.node_tag!r}")
 
-    class MountedDatabase(SqlDatabaseConfig):
-        def main(self, root):
-            _replay_node(node, root)
-
-    return MountedDatabase
+    recipe = SqlDatabaseConfig()
+    _replay_node(node, recipe.source)
+    return recipe
 
 
 def _replay_node(node, target):
@@ -345,50 +335,3 @@ def _connection_settings(config, prefix):
     if options.get('autocommit'):
         raise ValueError('Asqueel requires transactional connections, not autocommit')
     return implementation, '', options
-
-
-def build_database(source, *, parents=None, environment=None):
-    """Compatibility factory; new application code can instantiate AsqueelDb."""
-    from .application import AsqueelDb
-    return AsqueelDb(source, parents=parents, environment=environment)
-
-
-def _effective_model_builder(config):
-    """Apply signature defaults and Builders' renderer semantics on an owned source."""
-    builder = _copy_recipe(config.builder)
-    for _, node in builder.source.query('#p,#n', deep=True, iter=True):
-        current = node
-        while current is not None and current.node_tag != 'connection':
-            current = current.parent_node
-        if current is not None:
-            continue
-        owner = (node.parent_bag._builder if node._get_meta('subbuilder')
-                 else node._resolve_builder())
-        info = owner._get_schema_info(node.node_tag)
-        signature_defaults = []
-        for name, (_, _, default) in (info.get('call_args_validations') or {}).items():
-            if name in node.attr or default is inspect.Parameter.empty or default is None:
-                continue
-            # indexed is a physical-FK default. Materializing it on a logical
-            # relation would turn an omitted option into a forbidden declaration.
-            if (node.node_tag == 'relation' and name == 'indexed'
-                    and not node.attr.get('foreign_key')):
-                continue
-            node.attr[name] = deepcopy(default)
-            signature_defaults.append(name)
-        if signature_defaults:
-            # Builders may share grammar metadata between nodes of the same tag.
-            # Default provenance belongs to this declaration, not to its siblings.
-            node.attr['_meta'] = {**(node.attr.get('_meta') or {}),
-                                  'signature_defaults': signature_defaults}
-        # Administrative root attributes belong to connection_settings, not the model.
-        if node.node_tag == 'db':
-            for name in ('conninfo', 'connect_kwargs'):
-                node.attr.pop(name, None)
-        _, values = owner.runtime_values(node)
-        meta = node.attr.get('_meta')
-        node.attr.clear()
-        node.attr.update(deepcopy(values))
-        if meta is not None:
-            node.attr['_meta'] = meta
-    return builder

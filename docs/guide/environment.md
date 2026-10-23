@@ -1,8 +1,8 @@
 # Work with a current environment
 
 An environment is a scoped mapping of application context: current organization,
-request language or a value used by several query predicates. `SqlDatabase`
-shares an application environment between its compiler and named connections.
+request language or a value used by several query predicates. `AsqueelDb`
+owns the environment; its compiler and its named connections read it.
 Changing `connectionName` selects a separate connection lazily; other context
 changes do not select a different database. Store selection and tenant routing
 are separate application/database concerns.
@@ -23,16 +23,16 @@ with db.tempEnv(customer_id=1):
 
 The parameter `:env_customer_id` uses the environment key `customer_id`. The query
 was constructed before entering the scope, but compiles inside it at `.fetch()`.
-`currentEnv` exposes the live mutable mapping; `db.environment.snapshot()`
+`currentEnv` exposes the live mutable mapping; `db.environment_snapshot()`
 returns a detached copy.
 
-For defaults, supply an environment when building your database:
+For defaults, supply a mapping when building your database:
 
 ```python
-from asqueel import SqlEnvironment, AsqueelDb
+from asqueel import AsqueelDb
 
 # Shop is the application recipe from the tutorial.
-configured_db = AsqueelDb(Shop, environment=SqlEnvironment({"language": "en"}))
+configured_db = AsqueelDb(Shop, environment={"language": "en"})
 try:
     assert configured_db.currentEnv["language"] == "en"
     with configured_db.tempEnv(language="it", organization=10):
@@ -108,24 +108,9 @@ partition policy. Policies read their declared context keys independently.
 ## Live context and detached snapshots
 
 Use `db.currentEnv` when deliberately changing application context, and
-`db.environment.snapshot()` for a detached snapshot with a read-only outer
+`db.environment_snapshot()` for a detached snapshot with a read-only outer
 mapping. The snapshot also resolves the workdate/locale defaults for
 compilation. Snapshot nested values are copied.
-
-The standalone `SqlEnvironment` remains a separate low-level API with copied,
-context-local scopes, useful when constructing compiler/executor components
-independently:
-
-```python
-from asqueel import SqlEnvironment
-
-source = [10, 20]
-environment = SqlEnvironment({"allowed_organizations": source})
-source.append(30)
-snapshot = environment.snapshot()
-snapshot["allowed_organizations"].append(40)
-assert environment.currentEnv["allowed_organizations"] == [10, 20]
-```
 
 Custom values used in snapshots must support `deepcopy`. The mutable application
 mapping and its temporary scopes belong to the calling thread. Each thread gets
@@ -181,29 +166,11 @@ their respective current organization. Switching context does not switch databas
 The model graph is shared; mutable application environments and named connections
 are isolated per thread. Concurrent async tasks within one thread are unsupported.
 
-## Advanced: share context between independent components
+## Compile without a database
 
-When constructing a compiler and low-level executor yourself, supply the same
-instance to both:
-
-```python
-from asqueel import Database, QueryCompiler, SqlEnvironment
-from asqueel.adapters.postgres import SqlDbAdapter
-
-# model is a resolved model; no database connection is needed for compilation.
-environment = SqlEnvironment()
-compiler = QueryCompiler(model, SqlDbAdapter(None), environment=environment)
-executor = Database("dbname=example", implementation="postgres", environment=environment)
-try:
-    with environment.tempEnv(customer_id=1):
-        compiled = compiler.select("sales.customer", where="$id=:env_customer_id")
-        rows = executor.execute(compiled).fetchall()
-finally:
-    executor.closeConnection()
-```
-
-Independent default environments do not share values. The low-level executor's
-transaction behavior differs from `SqlDatabase`; see [low-level execution](low-level-runtime.md).
+`QueryCompiler(model, adapter, environment={...})` compiles against a plain
+mapping of defaults. Execution needs an `AsqueelDb`: its compiler reads the
+database's own `currentEnv`.
 
 ## Application-owned request boundary
 

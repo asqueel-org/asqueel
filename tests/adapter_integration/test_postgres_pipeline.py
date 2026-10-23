@@ -2,11 +2,11 @@
 
 import pytest
 
+from asqueel import AsqueelDb
 from asqueel.compiler import QueryCompiler
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.model import resolve_model
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 from asqueel.write_compiler import WriteCompiler
 from tests.native_integration.test_postgres_vertical import (
     native_database as native_database, recipe,
@@ -18,15 +18,15 @@ pytestmark = pytest.mark.postgresql
 def test_explicit_pipeline(native_database):
     params, schema, connection = native_database
     adapter = PostgresAdapter(None)
-    model = resolve_model(recipe(schema))
+    model = AsqueelDb(recipe(schema)).model
     compiler = QueryCompiler(model, adapter)
     writer = WriteCompiler(adapter)
 
     def scenario():
-        db = Database(implementation='postgres', connect_kwargs=params)
+        db = empty_database(implementation='postgres', connect_kwargs=params)
         try:
             db.execute(writer.insert(model.table('crm.customer'), {'id': 1, 'name': "L'impresa 50%"},
-                                     db.environment.snapshot()))
+                                     db.environment_snapshot()))
             # Literal SQL reaches psycopg as written: the author doubles its %.
             plan = compiler.plan_select(
                 'crm.customer', columns="$name, '50%%' AS percent",

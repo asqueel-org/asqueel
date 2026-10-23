@@ -57,13 +57,13 @@ def main():
         table = model.source.db('demo').schemas().schema('public').tables().table('customer', pkey='id')
         table.columns().column('id', dtype='L')
         model.validate_model()
-        source = package.SqlPythonEmitter(model).emit()
+        source = model.render(mode='python')
         namespace = {}
         exec(compile(source, '<installed-recipe>', 'exec'), namespace)
         rebuilt = namespace['ImportedDatabase']()
         rebuilt.create()
         rebuilt.validate_model()
-        resolved = package.resolve_model(rebuilt)
+        resolved = package.AsqueelDb(rebuilt).model
         adapter = import_module('asqueel.adapters.postgres').SqlDbAdapter(None)
         query = package.QueryCompiler(resolved, adapter).select(
             'public.customer', where='$id = :id', sqlparams={'id': 7},
@@ -77,7 +77,7 @@ def main():
         for name in ('tests', 'docs', 'examples'):
             shutil.copytree(repository / name, destination / name,
                             ignore=shutil.ignore_patterns('__pycache__', '.pytest_cache'))
-        for name in ('migration.json', 'native/migration.json', 'objects_tree/migration.json'):
+        for name in ('migration.json', 'native/migration.json'):
             artifact = Path('artifacts/test_invoice_pg') / name
             (destination / artifact).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(repository / artifact, destination / artifact)

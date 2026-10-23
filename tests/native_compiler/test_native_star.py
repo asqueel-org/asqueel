@@ -1,7 +1,7 @@
 """Legacy starColumns ordering and bagFields, shared by root and child SELECTs."""
 import pytest
 
-from asqueel import SqlDatabaseConfig, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 
 
 @pytest.fixture(params=['postgres', 'sqlite'])
@@ -16,7 +16,7 @@ def table(request):
     tbl.formulaColumn('dynamic_value', '$id + 3', dtype='L')
     tbl.formulaColumn('static_xml', "'<r/>'", dtype='X', static=True)
     tbl.formulaColumn('not_implemented', '#PREF(x,1)')
-    return build_database(config).table('sales.item')
+    return AsqueelDb(config).table('sales.item')
 
 
 def names(query):
@@ -55,7 +55,7 @@ def test_static_alias_uses_existing_relation_join():
     item.column('owner_id', dtype='L').relation('sales.owner.id')
     item.aliasColumn('owner_label', '@owner_id.label', static=True)
     item.aliasColumn('dynamic_label', '@owner_id.label')
-    query = build_database(config).table('sales.item').query().compiled
+    query = AsqueelDb(config).table('sales.item').query().compiled
     assert [col.name for col in query.columns] == ['id', 'owner_id', 'owner_label']
     assert query.sql.count('LEFT JOIN') == 1
 
@@ -70,5 +70,5 @@ def test_subquery_star_uses_same_bag_fields_option(backend):
     payload.column('data', dtype='X')
     item.formulaColumn('data', select=dict(table='sales.payload', columns='*', where='TRUE',
                                          limit=1, bagFields=True), dtype='X')
-    sql = build_database(config).table('sales.item').query('$data').compiled.sql
+    sql = AsqueelDb(config).table('sales.item').query('$data').compiled.sql
     assert '"data" AS "data"' in sql

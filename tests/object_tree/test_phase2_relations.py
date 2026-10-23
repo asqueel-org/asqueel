@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from asqueel import SqlDatabase, UnsupportedFeatureError
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, UnsupportedFeatureError
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from asqueel.compiler import _TreeContext
@@ -25,10 +24,10 @@ def db(request):
         for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
-        patch.setattr(SqlDatabase, 'execute', forbidden)
+        patch.setattr(AsqueelDb, 'execute', forbidden)
         config = source()
         config.source.get_node('db').attr['implementation'] = request.param
-        database = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+        database = AsqueelDb(config)
         try:
             yield database
         finally:
@@ -164,13 +163,13 @@ def test_on_references_and_parent_qualification(db, name):
                 and c['request']['name'] == name)
     config = source()
     config.source.get_node('db').attr['implementation'] = db.adapter.dialect
-    model = config.render(mode='objects_tree')
+    database = AsqueelDb(config)
+    model = database.model
     node = model.relations.get_node('invc.invoice.@customer_id')
     node.attr['join_on'] = '$customer_id=@customer_id.id AND $total>:minimum'
     # Fixture-only declaration, before resolving any per-table view. The compiler
     # must read it through the registry, not reconstruct it from the source.
     before = model.relations.to_xml()
-    database = SqlDatabase(model=model, config=_owned_handler(config))
     try:
         request, expected = case['request'], case['expected']
         query = database.table(request['table']).query(

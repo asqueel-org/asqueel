@@ -4,7 +4,7 @@
 The source tree is the pivot for migration tooling and round-tripping:
 :class:`SqlMigrationRenderer` projects it to normalized migration JSON,
 :class:`SqlModelReader` reads that structure back, and
-:class:`SqlPythonEmitter` emits an editable Python recipe.
+:class:`SqlPythonEmitter` renders an editable Python recipe (`recipe.render(mode='python')`).
 """
 
 from __future__ import annotations
@@ -12,25 +12,21 @@ from __future__ import annotations
 from importlib import import_module
 
 from .builder import SqlBuilder
-from .application import AsqueelDb, SqlDatabase
+from .application import AsqueelDb
 from .application_table import (
     SqlTable, SqlQuery,
     RecordNotFoundError, RecordMultipleRowsError,
 )
-from .configuration import SqlDatabaseConfig, build_database
+from .configuration import SqlDatabaseConfig
 from .emitter import SqlPythonEmitter
-from .renderer import SqlRenderer
 from .compiler import QueryCompiler
 from .contracts import (
     CompiledQuery, ResultColumn,
     UnsupportedFeatureError, UnusedQueryParameterWarning, RowPolicies,
 )
-from .environment import SqlEnvironment
-from .model import resolve_model
 from .object_tree import DbModel
-from .projection import to_physical_builder
 from .runtime import (
-    Database, SqlCursor,
+    SqlCursor,
     TransactionStateError, session,
 )
 from .errors import DeferredCommitError, MigrationError
@@ -40,17 +36,16 @@ from .triggers import TriggerStack, TriggerStackItem
 __version__ = "0.7.0"
 
 __all__ = [
-    "AsqueelDb", "AsqueelDbMixin", "SqlDatabase", "SqlDatabaseConfig", "build_database",
+    "AsqueelDb", "AsqueelDbMixin", "SqlDatabaseConfig",
     "SqlTable", "SqlQuery",
     "RecordNotFoundError", "RecordMultipleRowsError",
-    "SqlBuilder", "SqlPythonEmitter", "SqlRenderer",
+    "SqlBuilder", "SqlPythonEmitter",
     "CompiledQuery",
     "ResultColumn", "UnsupportedFeatureError",
     "SqlCursor", "session",
-    "TransactionStateError", "resolve_model", "DbModel",
-    "to_physical_builder",
-    "QueryCompiler", "Database",
-    "SqlEnvironment", "UnusedQueryParameterWarning", "RowPolicies",
+    "TransactionStateError", "DbModel",
+    "QueryCompiler",
+    "UnusedQueryParameterWarning", "RowPolicies",
     "TriggerStack", "TriggerStackItem",
     "DeferredCommitError", "MigrationError",
 ]

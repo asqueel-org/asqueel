@@ -9,17 +9,15 @@ artifacts remain in artifacts/test_invoice_pg; native outputs are in native/.
 from pathlib import Path
 import json
 
-from asqueel import SqlMigrationRenderer
-from asqueel.configuration import build_database
-from asqueel.projection import to_physical_builder
+from asqueel import AsqueelDb
 from examples.test_invoice_pg import source
 
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    db = build_database(source())
+    db = AsqueelDb(source())
     try:
-        structure = SqlMigrationRenderer(to_physical_builder(db.model)).render()
+        structure = db.config.builder.render(mode='migration')
         destination = root / 'artifacts/test_invoice_pg/native'
         destination.mkdir(parents=True, exist_ok=True)
         (destination / 'migration.json').write_text(json.dumps(structure, ensure_ascii=False, indent=2) + '\n')

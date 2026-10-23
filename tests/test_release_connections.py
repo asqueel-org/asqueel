@@ -3,8 +3,8 @@ import pytest
 from genro_bag.resolvers import EnvResolver
 from genro_builders.contrib.config import ConfigHandler
 
-from asqueel import SqlDatabaseConfig
-from asqueel.configuration import connection_settings, configuration_source, _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.configuration import connection_settings, configuration_source, SqlConfigHandler, compose_recipe
 
 
 def recipe(implementation='postgres'):
@@ -107,7 +107,7 @@ def test_named_connection_overlay_is_addressed_by_logical_name():
     db.connection('reporting', database='invoice_replica', host='first')
     overlay, db = recipe()
     db.connection('reporting', host='second')
-    config = _owned_handler(overlay, [base])
+    config = SqlConfigHandler(compose_recipe(overlay, [base]))
     assert connection_settings(config)[2] == {'dbname': 'invoice'}
     assert connection_settings(config, 'reporting')[2] == {
         'dbname': 'invoice_replica', 'host': 'second'}
@@ -123,11 +123,10 @@ def test_missing_main_connection_does_not_select_an_implicit_database():
 
 
 def test_driver_options_do_not_prevent_building_the_existing_runtime_profile():
-    from asqueel import build_database
     builder, db = recipe('sqlite')
     db.connection('main', database=':memory:').options().driver(timeout=1.5)
     db.schemas().schema('public').tables().table('t', pkey='id').column('id', dtype='L')
-    database = build_database(builder)
+    database = AsqueelDb(builder)
     try:
         assert not database._connections
         assert database._connection_settings()[1]['timeout'] == 1.5
@@ -137,7 +136,6 @@ def test_driver_options_do_not_prevent_building_the_existing_runtime_profile():
 
 def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
     import sqlite3
-    from asqueel import build_database
 
     builder, db = recipe('sqlite')
     for name in ('main', 'reporting'):
@@ -148,7 +146,7 @@ def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
         connection.commit()
         connection.close()
         db.connection(name, database=str(path)).options().driver(timeout=1)
-    database = build_database(builder)
+    database = AsqueelDb(builder)
     try:
         assert [dict(row) for row in database.execute('SELECT value FROM marker').fetchall()] == [{'value': 'main'}]
         database.commit()

@@ -1,6 +1,6 @@
 import pytest
 
-from asqueel import SqlDatabaseConfig, UnusedQueryParameterWarning, build_database
+from asqueel import SqlDatabaseConfig, UnusedQueryParameterWarning, AsqueelDb
 
 
 def recipe(local=None):
@@ -21,7 +21,7 @@ def recipe(local=None):
 
 
 def test_query_keyword_consumed_only_in_child_scope_is_recognized():
-    db = build_database(recipe())
+    db = AsqueelDb(recipe())
     try:
         compiled = db.table('app.invoice').query(columns='$total', floor=5).compiled
         assert compiled.input_parameters == ('floor',)
@@ -32,7 +32,7 @@ def test_query_keyword_consumed_only_in_child_scope_is_recognized():
 
 
 def test_local_parameter_shadow_does_not_consume_unused_caller_keyword():
-    db = build_database(recipe({'floor': 7}))
+    db = AsqueelDb(recipe({'floor': 7}))
     try:
         with pytest.warns(UnusedQueryParameterWarning, match="query keyword 'floor' is not used by the query"):
             db.table('app.invoice').query(columns='$total', floor=5).compiled
@@ -45,7 +45,7 @@ def test_local_parameter_shadow_does_not_consume_unused_caller_keyword():
 
 
 def test_generated_binding_cannot_capture_explicit_caller_name():
-    db = build_database(recipe())
+    db = AsqueelDb(recipe())
     try:
         compiled = db.table('app.invoice').query(
             columns='$total', where='$id=:s1_floor', floor=5, s1_floor=99).compiled

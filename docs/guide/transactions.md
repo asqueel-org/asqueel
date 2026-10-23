@@ -145,9 +145,8 @@ another thread's connections: every worker must perform its own cleanup,
 directly or through `session(db)`. Cleanup attempts all local connections, even
 if one fails.
 
-The lower-level `Database` facade shares this execution
-implementation and explicit completion rules. It does not offer a second
-transaction API. See [direct execution](low-level-runtime.md),
+An `AsqueelDb` whose recipe declares no package executes statements with the
+same explicit completion rules. There is no second transaction API. See [direct execution](low-level-runtime.md),
 [write hooks](hooks.md), and [legacy adaptations](../adattamenti-legacy.md).
 
 ### Recovery after a callback exception

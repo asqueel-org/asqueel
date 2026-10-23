@@ -67,6 +67,8 @@ def test_dynamic_formula_columns_come_from_table_methods(db):
 
 
 def test_dynamic_formula_columns_are_evaluated_in_the_environment(db):
+    # tempEnv keeps the virtual columns cached in currentEnv, as legacy TempEnv does.
+    db.clearCurrentEnv()
     with db.tempEnv(factor=3):
         rows = values(db, 'app.customer', '$id,$scaled')
     assert [row['scaled'] for row in rows] == [6075, 6078]

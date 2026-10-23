@@ -41,15 +41,16 @@ mapping. Environment bindings are checked before execution.
 
 ## Execution without a model
 
-`Database(implementation=...)` remains available for callers
-that only execute statements. Their implementation is the same execution base
-used by the configured DB: lazy named connections, thread-local state, and
-explicit `commit()` / `rollback()`.
+A caller that only executes statements builds an `AsqueelDb` from a recipe
+that declares the `db` node and no package. It has the same lazy named
+connections, thread-local state and explicit `commit()` / `rollback()`.
 
 ```python
-from asqueel import Database
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
-db = Database('dbname=example', implementation='postgres')
+config = SqlDatabaseConfig()
+config.source.db('example', implementation='postgres', conninfo='dbname=example')
+db = AsqueelDb(config)
 try:
     rows = db.execute('SELECT :value AS value', {'value': 42}).fetchall()
     db.commit()
@@ -61,9 +62,8 @@ There is no `transaction()` API. Unlike the former low-level runtime, `execute()
 does not open, commit and close a separate connection on every call. Callers
 migrating from that API must add explicit completion.
 
-An explicitly supplied `SqlEnvironment` can be shared between a standalone
-compiler and this execution facade. `AsqueelDb` instead copies its supplied
-environment into per-thread defaults. Savepoints and automatic retry are not
+`AsqueelDb(source, environment={...})` copies the supplied mapping into
+per-thread defaults. Savepoints and automatic retry are not
 provided.
 
 ## Maintenance calls

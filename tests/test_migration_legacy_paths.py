@@ -13,7 +13,7 @@ import psycopg
 import pytest
 from psycopg import sql
 
-from asqueel import AsqueelDb, MigrationError, SqlBuilder, SqlDatabaseConfig, SqlMigrationRenderer
+from asqueel import AsqueelDb, MigrationError, SqlBuilder, SqlDatabaseConfig
 from asqueel.contracts import UnsupportedFeatureError
 from tests.native_support import postgres_dsn
 
@@ -71,7 +71,7 @@ def test_a_relation_on_a_pkey_member_gets_no_index_on_either_path(tmp_path):
 
     model = Built()
     model.create()
-    indexes = SqlMigrationRenderer(model).render()['root']['schemas']['s']['tables']['row']['indexes']
+    indexes = model.render(mode='migration')['root']['schemas']['s']['tables']['row']['indexes']
     assert [list(index['attributes']['columns']) for index in indexes.values()] == []
 
 
@@ -88,7 +88,7 @@ def _render(body):
 
     model = Recipe()
     model.create()
-    return SqlMigrationRenderer(model).render()
+    return model.render(mode='migration')
 
 
 def test_indexed_options_and_an_explicit_index_on_the_same_column_are_refused():

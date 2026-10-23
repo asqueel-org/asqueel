@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytest
 
 from asqueel.contracts import CompiledQuery, ResultColumn
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 
 from tests.native_support import postgres_dsn
 
@@ -14,7 +14,7 @@ pytestmark = pytest.mark.postgresql
 
 def test_real_postgres_crud_rollback_and_returning():
     table = 'v1_runtime_' + uuid4().hex
-    db = Database(postgres_dsn(), implementation='postgres')
+    db = empty_database(postgres_dsn(), implementation='postgres')
     try:
         db.execute(CompiledQuery(f'CREATE TABLE "{table}" (id int PRIMARY KEY, value text)'))
         db.commit()
@@ -40,7 +40,7 @@ def test_real_postgres_crud_rollback_and_returning():
 
 def test_real_postgres_metadata_mismatch_rolls_back_prior_write():
     table = 'v1_runtime_' + uuid4().hex
-    db = Database(postgres_dsn(), implementation='postgres')
+    db = empty_database(postgres_dsn(), implementation='postgres')
     try:
         db.execute(CompiledQuery(f'CREATE TABLE "{table}" (id int PRIMARY KEY)'))
         db.commit()

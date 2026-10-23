@@ -8,7 +8,7 @@ start with the [tutorial](tutorial.md); this page explains the declaration choic
 ## Start with a recipe
 
 ```python
-from asqueel import SqlDatabaseConfig, resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 
 def customer_table(tables):
@@ -50,7 +50,7 @@ class SalesModel(SqlDatabaseConfig):
 
 builder = SalesModel()
 builder.create()
-model = builder.render().model
+model = AsqueelDb(builder).model
 
 assert model.table('sales.invoice').sqlname == 'invoice'
 assert model.table('sales.invoice').sqlschema == 'public'
@@ -88,7 +88,7 @@ dtype = column.dtype
 ```
 
 Use source contributions to override declarations before rendering. The removed
-`resolve_model(..., ui=...)` overlay and separate column `.config` wrapper are
+`ui=` overlay and separate column `.config` wrapper are
 not part of the live model. Declared attributes remain available in
 `attributes`; validation attributes are exposed separately by `validations`.
 An attribute the element does not declare raises, naming the attribute and the
@@ -205,14 +205,13 @@ model. The operational `db.table('sales.invoice').model` is that same object.
 and `relations` is the legacy relation Bag. Descriptive attributes and option
 nodes remain in this hierarchy. `pkey` is the logical key name.
 
-Use `SqlMigrationRenderer(to_physical_builder(model))` for migration JSON.
+Use `recipe.render(mode='migration')` for migration JSON.
 
-`SqlPythonEmitter` emits an editable Python module from a built recipe:
+`recipe.render(mode='python')` renders an editable Python module from a built
+recipe (renderer `SqlPythonEmitter`):
 
 ```python
-from asqueel import SqlPythonEmitter
-
-source = SqlPythonEmitter(builder).emit(class_name='GeneratedSalesModel')
+source = builder.render(mode='python', class_name='GeneratedSalesModel')
 # Save source in your application if you want to maintain the emitted recipe.
 ```
 

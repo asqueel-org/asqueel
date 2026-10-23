@@ -6,7 +6,7 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, build_database
+from asqueel import SqlDatabaseConfig, SqlTable, AsqueelDb
 from tests.native_support import postgres_dsn
 
 pytestmark = pytest.mark.postgresql
@@ -60,7 +60,7 @@ def alias_database():
                     virtual.aliasColumn('country_chain', relation_path='@customer_id.country_name')
                     virtual.aliasColumn('loud_customer', relation_path='@customer_id.loud_name')
 
-            db = build_database(Recipe)
+            db = AsqueelDb(Recipe)
             try:
                 yield db
             finally:

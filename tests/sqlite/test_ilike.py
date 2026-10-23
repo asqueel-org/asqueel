@@ -3,12 +3,11 @@ import sqlite3
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 
-@pytest.fixture(params=['native', 'objects_tree'])
-def database(request, tmp_path):
+@pytest.fixture
+def database(tmp_path):
     path = tmp_path / 'ilike.db'
     with sqlite3.connect(path) as connection:
         connection.execute('CREATE TABLE customer (id INTEGER PRIMARY KEY, name TEXT, ilike_label TEXT)')
@@ -20,8 +19,7 @@ def database(request, tmp_path):
     table.column('id', dtype='L')
     table.column('name', dtype='T')
     table.column('ilike_label', dtype='T')
-    db = (config.render() if request.param == 'native' else
-          SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config)))
+    db = AsqueelDb(config)
     try:
         yield db
     finally:

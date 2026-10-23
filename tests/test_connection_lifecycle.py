@@ -2,8 +2,7 @@
 import pytest
 
 import asqueel
-from asqueel import TransactionStateError, session
-from asqueel.runtime import Database
+from asqueel import AsqueelDb, TransactionStateError, session
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
 
 DEFER_KEY = 'to_commit_defer_calls__main_db__main_connection'
@@ -28,7 +27,7 @@ def count(db):
 
 def test_the_connection_api_has_no_close_with_acquire_or_outcome():
     for name in ('close', 'acquire', 'outcome', '__enter__', '__exit__'):
-        assert not hasattr(Database, name), name
+        assert not hasattr(AsqueelDb, name), name
     assert not hasattr(asqueel, 'DatabaseClosedError')
 
 

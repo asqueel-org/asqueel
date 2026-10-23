@@ -4,7 +4,7 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from asqueel import UnsupportedFeatureError, build_database
+from asqueel import UnsupportedFeatureError, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
@@ -48,7 +48,7 @@ def derived_model(backend):
         for driver in (PostgresAdapter, SqliteAdapter):
             patch.setattr(driver, 'connect', forbidden)
             patch.setattr(driver, 'execute', forbidden)
-        database = build_database(config)
+        database = AsqueelDb(config)
         try:
             yield database
             assert database._connections == {}

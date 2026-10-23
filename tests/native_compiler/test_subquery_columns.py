@@ -3,7 +3,7 @@
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlEnvironment, build_database
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 
@@ -110,7 +110,7 @@ def db(request, monkeypatch):
     for driver in [PostgresAdapter, SqliteAdapter]:
         monkeypatch.setattr(driver, 'connect', forbidden)
         monkeypatch.setattr(driver, 'execute', forbidden)
-    db = build_database(source(request.param), environment=SqlEnvironment({'current_owner': 99}))
+    db = AsqueelDb(source(request.param), environment={'current_owner': 99})
     try:
         yield db
     finally:

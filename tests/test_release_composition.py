@@ -4,7 +4,7 @@ from copy import deepcopy
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel.configuration import SqlConfigHandler, compose_recipe
 from genro_builders.builder import element
 from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
 
@@ -31,7 +31,7 @@ def test_owned_layers_merge_dictionary_keys_and_preserve_explicit_none():
     base.create()
     overlay = Overlay()
     overlay.create()
-    config = _owned_handler(overlay, [base])
+    config = SqlConfigHandler(compose_recipe(overlay, [base]))
     assert config(PATH + '.name_long') is None
     assert config(PATH + '.options.sys_fields.id') == {
         'type': 'uuid', 'indexed': True, 'name_short': 'ID'}
@@ -49,7 +49,7 @@ def test_reset_in_a_later_recipe_erases_only_its_option_before_defaults():
             opts.reset('sys_fields')
             opts.sys_fields(id=False)
 
-    config = _owned_handler(Reset, [Base, Overlay])
+    config = SqlConfigHandler(compose_recipe(Reset, [Base, Overlay]))
     assert config(PATH + '.options.sys_fields.id') is False
     assert config(PATH + '.options.sys_fields.draft') is False
     assert config(PATH + '.comment') == 'green'
@@ -61,9 +61,9 @@ def test_reset_without_reactivation_keeps_the_option_absent():
             opts = root.db('invoice').packages().package('invc').table('customer').options()
             opts.reset('sys_fields')
 
-    config = _owned_handler(Reset, [Base])
+    config = SqlConfigHandler(compose_recipe(Reset, [Base]))
     assert config.builder.source.get_node('db.' + PATH + '.options.sys_fields') is None
-    recomposed = _owned_handler(config.builder, [Base])
+    recomposed = SqlConfigHandler(compose_recipe(config.builder, [Base]))
     assert recomposed.builder.source.get_node('db.' + PATH + '.options.sys_fields') is None
 
 
@@ -79,7 +79,7 @@ def test_copying_a_source_does_not_lose_same_contribution_conflict_detection():
 
 
 def test_omission_does_not_materialize_option_defaults_in_source():
-    config = _owned_handler(Overlay, [Base])
+    config = SqlConfigHandler(compose_recipe(Overlay, [Base]))
     option = config.builder.source['db.' + PATH + '.options.sys_fields']
     assert 'group' not in option.attr
     assert config(PATH + '.options.sys_fields.group') == 'zzz'
@@ -115,8 +115,8 @@ def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
             populate(root)
 
     hosted = ConfigHandler(Host)
-    mounted = _owned_handler(hosted.builder.source.get_node('database_0.db'))
-    standalone = _owned_handler(Standalone)
+    mounted = SqlConfigHandler(compose_recipe(hosted.builder.source.get_node('database_0.db')))
+    standalone = SqlConfigHandler(compose_recipe(Standalone))
 
     def declarations(handler):
         return [(path, node.node_tag, {k: v for k, v in node.attr.items() if k != '_meta'})
@@ -159,7 +159,7 @@ def test_layered_change_of_column_kind_is_rejected_before_model_resolution():
             root.db('d').packages().package('p').table('t').formulaColumn('value', '1')
 
     with pytest.raises(ValueError, match='conflicting element kinds'):
-        _owned_handler(Virtual, [Physical])
+        compose_recipe(Virtual, [Physical])
 
 
 @pytest.mark.parametrize('name', ['', ' ', 'bad.name', 'bad@name', '$name', 'bad/name', 'bad\\name'])

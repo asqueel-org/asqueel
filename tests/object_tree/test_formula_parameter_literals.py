@@ -3,8 +3,7 @@ import sqlite3
 
 import pytest
 
-from asqueel import SqlDatabase, SqlDatabaseConfig
-from asqueel.configuration import _owned_handler
+from asqueel import AsqueelDb, SqlDatabaseConfig
 
 
 @pytest.mark.parametrize('dialect', ['postgres', 'sqlite'])
@@ -18,7 +17,7 @@ def test_literal_formula_with_local_parameters_and_environment(dialect):
     table.formulaColumn('local', "'doc:xyz' || :xyz", var_xyz='bound')
     table.formulaColumn('env_literal', "':env_secret'")
     table.formulaColumn('actual_env', ':env_value')
-    db = SqlDatabase(model=config.render(mode='objects_tree'), config=_owned_handler(config))
+    db = AsqueelDb(config)
     try:
         with db.tempEnv(secret='never bound', value='context'):
             query = db.table('app.document').query('$literal,$local,$env_literal,$actual_env').compiled

@@ -10,7 +10,7 @@ import pytest
 
 from asqueel import (
     RecordMultipleRowsError, RecordNotFoundError, SqlDatabaseConfig, SqlTable,
-    build_database,
+    AsqueelDb,
 )
 from tests.native_support import postgres_dsn
 
@@ -79,7 +79,7 @@ def hooked_database():
                     audit.column('id', dtype='serial')
                     audit.column('event', dtype='T')
 
-            db = build_database(Recipe)
+            db = AsqueelDb(Recipe)
             try:
                 with db.tempEnv(current_org=0):
                     db.table('app.item').events = []

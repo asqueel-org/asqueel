@@ -15,9 +15,7 @@ from asqueel_migration.structures import json_equal
 
 from asqueel import (
     SqlBuilder,
-    SqlMigrationRenderer,
     SqlModelReader,
-    SqlPythonEmitter,
 )
 
 
@@ -104,13 +102,13 @@ def test_real_genropy_orm_json_equals_the_complete_modern_projection():
     assert re.fullmatch(r"[0-9a-f]{40}", provenance["genropy_commit"])
     assert provenance["source"] == "gnrpy/tests/sql/common.py::configurePackage"
     StructureValidator().validate(legacy)
-    modern = SqlMigrationRenderer(_model(GenroPyVideoSubset)).render()
+    modern = _model(GenroPyVideoSubset).render(mode='migration')
     assert json_equal(legacy, modern)
 
 
 @pytest.mark.postgresql
 def test_live_inspection_preserves_descending_order_and_builds_a_recipe(pg_database):
-    desired = SqlMigrationRenderer(_model(DescendingIndexRecipe)).render()
+    desired = _model(DescendingIndexRecipe).render(mode='migration')
     desired_index = next(iter(
         desired["root"]["schemas"]["wfp16"]["tables"]["recipe"]["indexes"].values()
     ))
@@ -132,9 +130,9 @@ def test_live_inspection_preserves_descending_order_and_builds_a_recipe(pg_datab
     }
     assert "ix_recipe_title_id" in indexes, indexes
     index = indexes["ix_recipe_title_id"]
-    source = SqlPythonEmitter(recovered).emit()
+    source = recovered.render(mode='python')
 
     assert index.get_attr("columns") == {"title": None, "id": "DESC"}
     assert 'name="ix_recipe_title_id"' in source
     assert 'columns={"title": None, "id": "DESC"}' in source
-    assert json_equal(inspected, SqlMigrationRenderer(recovered).render())
+    assert json_equal(inspected, recovered.render(mode='migration'))

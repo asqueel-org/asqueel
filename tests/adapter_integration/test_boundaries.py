@@ -9,7 +9,7 @@ import pytest
 from asqueel.compiler import QueryCompiler
 from asqueel.contracts import CompiledQuery
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
-from asqueel.runtime import Database
+from tests.unit_of_work import empty_database
 
 
 def test_offline_postgres_pipeline_without_optional_dependencies():
@@ -22,11 +22,11 @@ def no_clients(name, *args, **kwargs):
     return original(name, *args, **kwargs)
 builtins.__import__ = no_clients
 from asqueel.compiler import QueryCompiler
-from asqueel import SqlDatabaseConfig, resolve_model
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 source = SqlDatabaseConfig()
 source.source.db('demo').packages().package('app').table('sample', pkey='id').column('id', dtype='L')
-model = resolve_model(source)
+model = AsqueelDb(source).model
 query = QueryCompiler(model, PostgresAdapter(None)).select(
     'app.sample', where='$id = :id', sqlparams={'id': 7})
 assert dict(query.params) == {'id': 7}
@@ -59,7 +59,7 @@ def test_incompatible_statement_is_rejected_before_connection(field, value, monk
     monkeypatch.setattr(PostgresAdapter, 'connect', connect)
 
     def scenario():
-        db = Database(implementation='postgres')
+        db = empty_database(implementation='postgres')
         try:
             query = CompiledQuery('SELECT 1', **{field: value})
             with pytest.raises(ValueError):
@@ -84,11 +84,11 @@ def test_runtime_has_no_client_or_sql_compiler_dependency():
 
 
 def test_postgres_compiler_keeps_existing_compiled_query_binding_contract():
-    from asqueel import SqlDatabaseConfig, resolve_model
+    from asqueel import AsqueelDb, SqlDatabaseConfig
     source = SqlDatabaseConfig()
     table = source.source.db('demo').packages().package('app').table('sample', sqlname='50%')
     table.column('name')
-    query = QueryCompiler(resolve_model(source), PostgresAdapter(None)).select(
+    query = QueryCompiler(AsqueelDb(source).model, PostgresAdapter(None)).select(
         'app.sample', '$name', where='$name = :value', sqlparams={'value': '50%'})
     assert '"50%"' in query.sql
     assert '%(value)s' in query.sql

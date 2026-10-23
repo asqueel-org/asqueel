@@ -278,8 +278,9 @@ def test_generated_expression_changes_require_explicit_migration(implementation,
         table = db.table('app.item')
         table.insert({'value': 4})
         db.commit()
-        # Change the desired model, keeping the real database and its data.
-        table.model.columns['computed'].attributes['sql_generatedExpression'] = expression
+        # Change the desired source, keeping the real database and its data.
+        db.config.builder.source.get_node('db.packages.app.tables.item.columns.computed').attr[
+            'sql_generatedExpression'] = expression
         plan = db.migration_plan()
         assert not plan.empty and plan.skipped
         with pytest.raises(MigrationError, match='explicit migration required'):

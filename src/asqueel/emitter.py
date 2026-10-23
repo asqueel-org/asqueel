@@ -7,9 +7,9 @@ JSON becomes a source tree through
 a module a person can open and maintain here. The law is the same one the
 reader answers to, one step further out::
 
-    render(exec(emit(builder)).create()) == render(builder)
+    render(exec(builder.render(mode='python')).create()) == render(builder)
 
-so the emitted module is not a report about the model — it *is* the model,
+so the rendered module is not a report about the model — it *is* the model,
 in the only form a developer edits.
 
 Literal mode: every element of the tree is emitted as the call that built
@@ -40,7 +40,7 @@ import inspect
 import keyword
 import re
 
-from .catalog import SqlModelCatalog
+from genro_builders.renderer import RendererBase
 
 #: Names the emitted ``main`` body must not shadow.
 _RESERVED = frozenset({"self", "root", "db"})
@@ -104,37 +104,46 @@ def _identifier(name: str, taken: set[str]) -> str:
     return unique
 
 
-class SqlPythonEmitter:
-    """Emit the Python recipe that rebuilds a SQL model tree.
+class SqlPythonEmitter(RendererBase):
+    """Render the Python recipe that rebuilds a SQL model tree.
+
+    Reached as ``recipe.render(mode='python', class_name='ImportedDatabase')``.
+    Each node renders to a fragment carrying its tag, name, call arguments
+    and child fragments; ``finalize`` names the variables in tree order and
+    writes the module, so no walk state survives to it.
 
     There is deliberately no ``# TODO`` path for "preserved but
     unrepresentable" features: :class:`~asqueel.reader.SqlModelReader`
     rejects unsupported schema features before they reach the tree. Readable FK
     names are explicitly non-semantic migration metadata, not preserved recipe
     features.
-
-    Args:
-        builder: a created :class:`~asqueel.builder.SqlBuilder`.
     """
 
-    def __init__(self, builder) -> None:
-        self.builder = builder
+    mode = "python"
+    render_type = "string"
 
-    def emit(self, class_name: str = "ImportedDatabase") -> str:
-        """Render the model as an importable module.
+    def get_render(self, builder):
+        # A mounted subtree is written as calls of this same recipe.
+        return self
+
+    def rendered_item(self, node, item, runtime_attrs, *, tag, **opts):
+        return {"tag": node.node_tag, "name": node.get_attr("name"),
+                "arguments": self._arguments(node),
+                "children": item if isinstance(item, list) else []}
+
+    def finalize(self, result, target, class_name: str = "ImportedDatabase", **_opts):
+        """Write the module from the fragments and deliver it to ``target``.
 
         Args:
-            class_name: the name of the emitted ``SqlBuilder`` subclass.
-
-        Returns:
-            The complete module source, newline-terminated.
+            class_name: the name of the rendered ``SqlBuilder`` subclass.
         """
         if (not class_name.isidentifier() or keyword.iskeyword(class_name)
                 or keyword.issoftkeyword(class_name)):
             raise ValueError(f"invalid emitted class name: {class_name!r}")
-        self._taken = set(_RESERVED)
-        self._signatures: dict[str, tuple[str, ...]] = {}
-        self._catalog = SqlModelCatalog(self.builder)
+        database = next((fragment for fragment in result if fragment["tag"] == "db"), None)
+        if database is None:
+            raise ValueError("cannot emit an empty SQL model without a database")
+        taken = set(_RESERVED)
         lines = [
             _HEADER, "",
             f"class {class_name}(SqlBuilder):",
@@ -143,73 +152,21 @@ class SqlPythonEmitter:
             "    def main(self, root):",
         ]
         body: list[str] = []
-        database = self._catalog.database
-        if database is None:
-            raise ValueError("cannot emit an empty SQL model without a database")
-        self._emit_db(database, body)
+        body.append(_statement("db", "root", database))
+        for collection in database["children"]:
+            body.append("")
+            _emit_collection(collection, "db", body, taken)
         for statement in body:
             lines.extend(f"        {line}" if line else ""
                          for line in statement.split("\n"))
-        return "\n".join(lines) + "\n"
-
-    # -- traversal -------------------------------------------------------
-
-    def _emit_db(self, node, body) -> None:
-        body.append(self._statement("db", "root", node))
-        for collection in self._catalog.children(node):
-            body.append("")
-            self._emit_collection(collection, "db", body)
-
-    def _emit_schema(self, node, target, body) -> None:
-        variable = _identifier(node.get_attr("name"), self._taken)
-        body.append(self._statement(variable, target, node))
-        for collection in self._catalog.children(node):
-            self._emit_collection(collection, variable, body)
-
-    def _emit_table(self, node, target, body) -> None:
-        variable = _identifier(node.get_attr("name"), self._taken)
-        body.append(self._statement(variable, target, node))
-        for collection in self._catalog.children(node):
-            self._emit_collection(collection, variable, body)
-
-    def _emit_collection(self, node, target, body) -> None:
-        variable = _identifier(node.node_tag, self._taken)
-        body.append(self._statement(variable, target, node))
-        for child in self._catalog.children(node):
-            if child.node_tag == "schema":
-                body.append("")
-                self._emit_schema(child, variable, body)
-                continue
-            if child.node_tag == "table":
-                body.append("")
-                self._emit_table(child, variable, body)
-                continue
-            descendants = self._catalog.children(child)
-            if not descendants:
-                body.append(self._statement(None, variable, child))
-                continue
-            owner = _identifier(child.get_attr("name"), self._taken)
-            body.append(self._statement(owner, variable, child))
-            for descendant in descendants:
-                body.append(self._statement(None, owner, descendant))
-
-    # -- statements ------------------------------------------------------
-
-    def _statement(self, variable, target, node) -> str:
-        """One call, assigned to ``variable`` when something reads it back."""
-        head = f"{target}.{node.node_tag}("
-        if variable:
-            head = f"{variable} = {head}"
-        arguments = [f"{name}={_literal(value)}"
-                     for name, value in self._arguments(node)]
-        return self._wrap(head, arguments)
+        return super().finalize("\n".join(lines) + "\n", target)
 
     def _arguments(self, node) -> list[tuple[str, object]]:
         """The node's attributes in signature order, extras last.
 
         The element signature is the canonical order — the same order the
         grammar documents — so a renamed or reordered parameter moves the
-        emitted recipe with it instead of drifting from it.
+        rendered recipe with it instead of drifting from it.
         """
         attributes = {key: value for key, value in node.attr.items()
                       if not key.startswith("_")}
@@ -220,33 +177,63 @@ class SqlPythonEmitter:
 
     def _signature(self, tag) -> tuple[str, ...]:
         """Parameter names of an element, in declaration order."""
-        if tag not in self._signatures:
-            marker = getattr(type(self.builder), tag)
-            parameters = inspect.signature(marker._func).parameters.values()
-            self._signatures[tag] = tuple(
-                parameter.name for parameter in parameters
-                if parameter.name != "self"
-                and parameter.kind is not parameter.VAR_KEYWORD
-            )
-        return self._signatures[tag]
+        marker = getattr(type(self.builder), tag)
+        parameters = inspect.signature(marker._func).parameters.values()
+        return tuple(parameter.name for parameter in parameters
+                     if parameter.name != "self"
+                     and parameter.kind is not parameter.VAR_KEYWORD)
 
-    @staticmethod
-    def _wrap(head, arguments) -> str:
-        """The call on one line, or with its arguments packed and indented."""
-        single = f"{head}{', '.join(arguments)})"
-        if len(single) + 8 <= _WIDTH:
-            return single
-        lines, current = [], ""
-        for argument in arguments:
-            candidate = f"{current} {argument}," if current else f"{argument},"
-            if current and len(candidate) + 12 > _WIDTH:
-                lines.append(current)
-                current = f"{argument},"
-            else:
-                current = candidate
-        lines.append(current)
-        packed = "\n".join(f"    {line}" for line in lines)
-        return f"{head}\n{packed}\n)"
+
+def _emit_owner(fragment, target, body, taken) -> None:
+    variable = _identifier(fragment["name"], taken)
+    body.append(_statement(variable, target, fragment))
+    for collection in fragment["children"]:
+        _emit_collection(collection, variable, body, taken)
+
+
+def _emit_collection(fragment, target, body, taken) -> None:
+    variable = _identifier(fragment["tag"], taken)
+    body.append(_statement(variable, target, fragment))
+    for child in fragment["children"]:
+        if child["tag"] in ("schema", "table"):
+            body.append("")
+            _emit_owner(child, variable, body, taken)
+            continue
+        descendants = child["children"]
+        if not descendants:
+            body.append(_statement(None, variable, child))
+            continue
+        owner = _identifier(child["name"], taken)
+        body.append(_statement(owner, variable, child))
+        for descendant in descendants:
+            body.append(_statement(None, owner, descendant))
+
+
+def _statement(variable, target, fragment) -> str:
+    """One call, assigned to ``variable`` when something reads it back."""
+    head = f"{target}.{fragment['tag']}("
+    if variable:
+        head = f"{variable} = {head}"
+    arguments = [f"{name}={_literal(value)}" for name, value in fragment["arguments"]]
+    return _wrap(head, arguments)
+
+
+def _wrap(head, arguments) -> str:
+    """The call on one line, or with its arguments packed and indented."""
+    single = f"{head}{', '.join(arguments)})"
+    if len(single) + 8 <= _WIDTH:
+        return single
+    lines, current = [], ""
+    for argument in arguments:
+        candidate = f"{current} {argument}," if current else f"{argument},"
+        if current and len(candidate) + 12 > _WIDTH:
+            lines.append(current)
+            current = f"{argument},"
+        else:
+            current = candidate
+    lines.append(current)
+    packed = "\n".join(f"    {line}" for line in lines)
+    return f"{head}\n{packed}\n)"
 
 
 __all__ = ["SqlPythonEmitter"]

@@ -1,0 +1,9 @@
+✓ Phase 3 completata: one database class, built before its model, as legacy. Commit `fec2dd8`.
+
+- **Risultato:** `AsqueelDb` è l'unica classe di database. Il database esiste prima, poi `finalize` costruisce `DbModel(db)` e chiama `build(fragment)`. Le note `> Done:`, `> Files:` e `> Review:` sono nel piano.
+- **Verifica eseguita in questa sessione:** la suite completa dà 5405 passed, 42 skipped, 20 xfailed. Skipped e xfailed non superano il baseline. Ruff e sphinx sono puliti. I contract test delle Phase 1-3 passano.
+- **Scostamenti dal `Done:`, registrati in `> Review:`:**
+  - Il grep del `Done:` trova ancora `SqlDatabaseElements` e `SqlDatabaseConfig`, perché il pattern `class SqlDatabase` non ha word boundary. Trova anche le release notes, come nella Phase 2.
+  - Il `Done:` chiede che i test di `session(db)` passino invariati. Un test di `session(db)` è stato cancellato insieme al controllo che verificava, quindi la condizione non vale alla lettera.
+
+La Phase 4 è la prossima eleggibile.

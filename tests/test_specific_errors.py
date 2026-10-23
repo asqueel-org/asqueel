@@ -3,9 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabase, SqlDatabaseConfig, UnsupportedFeatureError, UnusedQueryParameterWarning
+from asqueel import AsqueelDb, SqlDatabaseConfig, UnsupportedFeatureError, UnusedQueryParameterWarning
 from asqueel.adapters.base import SqlDbAdapter
-from asqueel.configuration import _owned_handler
 
 
 def config(select=None, **virtual):
@@ -31,7 +30,7 @@ def config(select=None, **virtual):
 
 
 def database(source):
-    return SqlDatabase(model=source.render(mode='objects_tree'), config=_owned_handler(source))
+    return AsqueelDb(source)
 
 
 @pytest.fixture
@@ -93,9 +92,9 @@ def test_aggregate_function(db):
 @pytest.mark.parametrize('key', ['join_on', 'cnd', 'between'])
 def test_aggregate_on_a_relation_with_a_custom_join(key):
     source = config()
-    model = source.render(mode='objects_tree')
+    opened = AsqueelDb(source)
+    model = opened.model
     model.relations.get_node('app.customer.@invoices').attr[key] = '$total>0'
-    opened = SqlDatabase(model=model, config=_owned_handler(source))
     try:
         with pytest.raises(UnsupportedFeatureError,
                            match=f'@invoices: aggr on a relation with {key}= is not available'):

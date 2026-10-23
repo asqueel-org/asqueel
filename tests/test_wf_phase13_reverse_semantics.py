@@ -9,7 +9,7 @@ import pytest
 from asqueel_migration import JsonStructureProducer
 from asqueel_migration.structures import json_equal
 
-from asqueel import SqlMigrationRenderer, SqlModelReader
+from asqueel import SqlModelReader
 from asqueel.reader import SqlModelReadError
 
 
@@ -30,7 +30,7 @@ def _without_fk_names(structure):
 
 def _roundtrip(structure):
     builder = SqlModelReader(structure).to_builder()
-    return builder, SqlMigrationRenderer(builder).render()
+    return builder, builder.render(mode='migration')
 
 
 def test_deferrable_immediate_and_deferred_sugar_are_distinct():
