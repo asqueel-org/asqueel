@@ -98,7 +98,7 @@ def package_sqlschema(tag, name, attributes, implementation) -> str:
 def table_sqlname(package_tag, package_name, package_attributes, table_name, table_attributes) -> str:
     """Physical table name, as legacy ``DbTableObj.sqlname``: ``sqlname``, else the package prefix and the name."""
     if table_attributes.get("sqlname"):
-        return table_attributes["sqlname"]
+        return str(table_attributes["sqlname"])
     prefix = package_attributes.get("sqlprefix", package_tag == "package")
     prefix = package_name if prefix is True else prefix or ""
     return f"{prefix}_{table_name}" if prefix else table_name

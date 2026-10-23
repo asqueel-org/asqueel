@@ -247,7 +247,8 @@ class SqlMigrationRenderer(RendererBase):
             attributes["notnull"] = "_auto_"
             if len(pkey_columns) == 1:
                 attributes.pop("unique", None)
-        return new_column_item(schema_name, table_name, column_name, attributes=attributes)
+        item: dict = new_column_item(schema_name, table_name, column_name, attributes=attributes)
+        return item
 
     def finalize(self, result, target=None, *, foreignKeys=True, **opts):
         fragments = result if isinstance(result, list) else [result]
