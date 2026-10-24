@@ -144,8 +144,7 @@ Table commands delegate to `db.insert(table, record)`, `db.update(table, record,
 old_record=None, pkey=None)` and `db.delete(table, record)`, which run the cycle
 with the table's hooks. There are no shared database-level hooks: no
 `onWriting`, `onWritten` or `_onDbChange`. Change log, totalizers and package triggers
-are not executed; their mapping is tracked in
-[Adattamenti legacy](../adattamenti-legacy.md).
+are not executed.
 
 
 ## Standalone table behaviors

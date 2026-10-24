@@ -177,7 +177,6 @@ SQLAlchemy Core users can start with the SQLAlchemy guide's separate Core note.
 
 ## Choose your learning path
 
-- [For Genropy users](legacy.md): familiar contracts and deliberate differences.
 - [For SQLAlchemy users](for-sqlalchemy.md): tables, records and transaction ownership.
 - [For Django users](for-django.md): model declarations, queries and app boundaries.
 - [For Peewee users](for-peewee.md): translating a compact class-based data layer.

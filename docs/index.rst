@@ -34,7 +34,6 @@ Choose your starting point
   :doc:`guide/quickstart` and the step-by-step :doc:`guide/tutorial`.
 * **Building an application?** Start with :doc:`guide/configuration` and
   :doc:`guide/models`, then use :doc:`guide/queries` and :doc:`guide/writes`.
-* **Coming from Genropy legacy?** Read :doc:`guide/legacy` before porting code.
 * **Diagnosing unexpected behavior?** See :doc:`guide/troubleshooting`.
 
 .. toctree::
@@ -74,8 +73,6 @@ Choose your starting point
    :maxdepth: 1
    :caption: Coming from another data layer
 
-   guide/legacy
-   guide/legacy-features
    guide/for-sqlalchemy
    guide/for-django
    guide/for-peewee
@@ -111,7 +108,6 @@ Choose your starting point
 
    guide/release-notes
    guide/limitations
-   adattamenti-legacy
 
 The API reference describes Python interfaces. The grammar reference describes
 the declarative vocabulary.

@@ -170,7 +170,7 @@ The `Table` class, combined with `SqlTable`, is the runtime class of
 `db.table('<pkg>.<table>')`: its triggers and methods run on that handle. This
 is the only way to give a table its own class. Layout and recipe packages
 coexist in one database. The layout
-is provisional; see [legacy features](legacy-features.md).
+is provisional.
 
 ```python
 packages = root.packages()

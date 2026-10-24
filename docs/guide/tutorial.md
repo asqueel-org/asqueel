@@ -218,4 +218,3 @@ Tutorial completed; committed writes and rollback verified.
 - Add UI metadata, physical naming and shared model helpers: [models](models.md).
 - Implement business rules using table subclasses: [hooks](hooks.md).
 - Introduce a current organization, drafts and logical deletion: [row policies](row-policies.md).
-- Check differences before porting existing code: [legacy compatibility](legacy.md).

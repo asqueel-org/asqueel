@@ -142,7 +142,6 @@ transaction examples and disposable-schema cleanup.
 | Define computed values and correlated subqueries | [Formulas](docs/guide/formulas.md) |
 | Scope data by organization, draft or deletion state | [Environment](docs/guide/environment.md) and [row policies](docs/guide/row-policies.md) |
 | Manage the database schema | [Migrations](docs/guide/migrations.md) |
-| Come from Genropy | [For Genropy users](docs/guide/legacy.md), including agreed differences |
 | Come from SQLAlchemy | [For SQLAlchemy users](docs/guide/for-sqlalchemy.md) |
 | Come from Django | [For Django users](docs/guide/for-django.md) |
 | Come from Peewee | [For Peewee users](docs/guide/for-peewee.md) |

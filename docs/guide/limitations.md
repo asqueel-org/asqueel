@@ -5,10 +5,6 @@ project can do with this version of asqueel and what it refuses, with the open
 issue for each limit. The rest of the manual describes the delivery model; when
 another page and this one disagree, this page describes the installed code.
 
-Asqueel is not a drop-in replacement for the complete GenroPy legacy runtime.
-For porting guidance, see [legacy compatibility](legacy.md) and
-[legacy adaptations](../adattamenti-legacy.md).
-
 ## What a new project can do
 
 The light version reads, inserts, updates and deletes records, with formulas and
@@ -224,10 +220,7 @@ provider/Python/Bag columns, subtables, Selection/Bag results, application
 integration, legacy-package import and native SQL objects. These belong to the product plan; the availability
 matrix above describes which parts execute in this checkout.
 
-The Genropy guide records agreed differences: removal of aggregateRows and explicit
-partition semantics. Output naming, default ordering, wildcard selection and
-other unapproved divergences in the current implementation are compatibility
-work, not accepted product differences. Queries add no implicit `pkey`
+Queries add no implicit `pkey`
 column. Native query results use Toolbox `NamedList` rows with name and position access; path lookup on live columns is not complete. Collection
 bindings, count, grouping and distinct are implemented; Selection is not.
 
@@ -243,14 +236,11 @@ postcommit failure, unreached callbacks remain pending until rollback/connection
 cleanup or a deliberate later transaction in the same context. There is no
 automatic retry, and failed new work still requires rollback.
 
-The synchronous F1 context/connection/recovery profile is verified; this does
-not certify a complete legacy application port. Workdate/locale identifiers
-are deliberately not validated. Application request cleanup is required before
-reusing a worker for another request. Normal legacy record-cluster
-saves already abort on propagated errors; this is not a difference in normal
-save behavior.
-Six hook positions and pre/post-commit Python failures have been compared on
-PostgreSQL; the difference is described in [legacy compatibility](legacy.md). Deferred callbacks and trigger-stack behavior now have targeted verification;
+The synchronous F1 context/connection/recovery profile is verified. Workdate/locale
+identifiers are deliberately not validated. Application request cleanup is required
+before reusing a worker for another request.
+Six hook positions and pre/post-commit Python failures are verified on
+PostgreSQL. Deferred callbacks and trigger-stack behavior now have targeted verification;
 application event integration remains separate.
 
 ## Verified commit lifecycle

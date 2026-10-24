@@ -145,8 +145,8 @@ directly or through `session(db)`. Cleanup attempts all local connections, even
 if one fails.
 
 An `AsqueelDb` whose recipe declares no package executes statements with the
-same explicit completion rules. There is no second transaction API. See [direct execution](low-level-runtime.md),
-[write hooks](hooks.md), and [legacy adaptations](../adattamenti-legacy.md).
+same explicit completion rules. There is no second transaction API. See [direct execution](low-level-runtime.md)
+and [write hooks](hooks.md).
 
 ### Recovery after a callback exception
 
