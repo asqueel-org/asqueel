@@ -212,5 +212,7 @@ def test_the_handler_exists_once_and_only_on_hierarchical_tables():
     tree.column('code')
     db = AsqueelDb(config)
     assert not hasattr(db.table('app.plain'), 'hierarchicalHandler')
+    with pytest.raises(AttributeError, match="app.plain: no attribute 'hierarchicalHandler'"):
+        db.table('app.plain').hierarchicalHandler
     table = db.table('app.tree')
     assert table.hierarchicalHandler is table.hierarchicalHandler

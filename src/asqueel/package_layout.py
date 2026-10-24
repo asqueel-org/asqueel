@@ -29,7 +29,12 @@ def _module(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        # As importlib: a module that failed to execute is not left importable.
+        del sys.modules[name]
+        raise
     return module
 
 

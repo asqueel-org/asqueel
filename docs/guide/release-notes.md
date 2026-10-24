@@ -43,8 +43,14 @@
   a violation raises the genro_builders `ValueError("Validation failed: ...")`.
 - `column` declares the six `sql_pg_*` and `sql_sqlite_*` parameters
   explicitly; `validate_*` stays the only open attribute family.
-- `SqlModelValidator` keeps only the referential checks: an attribute
-  written by hand outside the grammar is no longer reported by it.
+- `SqlModelValidator` keeps only the referential checks. The composed
+  source is re-validated node by node against the grammar, so an attribute
+  outside it raises even when written after the call: by `set_attr`, by
+  `Package.config_attributes()` or by `custom_type_<dtype>()` of a package layout.
+- A package layout module runs once per model build and is registered in
+  `sys.modules`; `hierarchicalHandler` exists only on hierarchical tables.
+- `SqlModelReader` refuses the logical dtypes `P`, `X` and `Z` in a physical
+  structure.
 - `connection_settings` moves from `asqueel.configuration` to `asqueel.runtime`.
 
 ## 0.7.0 — Consolidation and unified model candidate

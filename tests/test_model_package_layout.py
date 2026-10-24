@@ -1,4 +1,5 @@
 """A package folder in the legacy layout, loaded by the asqueel configuration (Macro 4, Phase 4)."""
+import sys
 import textwrap
 
 import pytest
@@ -129,3 +130,15 @@ def test_a_table_module_runs_once_per_model_and_is_a_real_module(tmp_path):
     table = db.table('sales.customer')
     assert (tmp_path / 'sales' / 'runs.txt').read_text() == 'x'
     assert type(table).__module__.startswith('asqueel_layout_sales_customer_')
+
+
+BROKEN = '''
+raise RuntimeError('broken module')
+'''
+
+
+def test_a_module_that_fails_is_not_left_in_sys_modules(tmp_path):
+    with pytest.raises(RuntimeError, match='broken module'):
+        database(tmp_path, customer=BROKEN).model
+    assert not [name for name in sys.modules if name.startswith('asqueel_layout_sales_customer_')
+                and getattr(sys.modules[name], '__file__', '').startswith(str(tmp_path))]

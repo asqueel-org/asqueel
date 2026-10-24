@@ -15,6 +15,7 @@ from genro_toolbox import extract_kwargs
 
 from .application_table import SqlTable
 from .common import default_index_name, indexed_attributes, package_sqlschema, split_names, table_sqlname, unknown_indexed_keys
+from .hierarchical import HierarchicalHandler
 from .package_layout import table_class as layout_table_class
 
 
@@ -118,7 +119,7 @@ class DbModelObj:
 
     # Lookup is case-insensitive; iteration gives the declared names.
     def __contains__(self, name):
-        return name.lower() in self.children
+        return isinstance(name, str) and name.lower() in self.children
 
     def __iter__(self):
         return iter(self.keys())
@@ -190,6 +191,11 @@ class DbTableObj(DbModelObj):
                 attributes = indexed_attributes([column.name], indexed)
                 if attributes is not None:
                     self._column_index(column.name, **attributes)
+
+        hierarchical = self.options.get('hierarchical')
+        if hierarchical is not None and hierarchical.attributes.get('enabled', True):
+            # Legacy table.py:82-83: the handler exists only on hierarchical tables.
+            self.dbtable.hierarchicalHandler = HierarchicalHandler(self.dbtable)
 
     def _column_index(self, column, **attributes):
         name = default_index_name(self.name, column)

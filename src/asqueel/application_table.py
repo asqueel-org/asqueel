@@ -12,13 +12,11 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 from datetime import datetime
-from functools import cached_property
 
 from genro_bag import Bag
 from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
-from .hierarchical import HierarchicalHandler
 from .table_behaviors import TableBehaviors
 from .table_crud import _INTEGER_DTYPES, CrudMixin
 from .table_io import read_records, write_rows
@@ -379,13 +377,6 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
         self.model = tblobj
         self.fullname = tblobj.fullname
 
-    @cached_property
-    def hierarchicalHandler(self):
-        """The handler of a table declared ``hierarchical``; absent elsewhere, as legacy ``table.py:82-83``."""
-        if self._behavior('hierarchical') is None:
-            raise AttributeError(f"{self.fullname}: 'hierarchicalHandler' exists only on hierarchical tables")
-        return HierarchicalHandler(self)
-
     @property
     def db(self):
         db = self.model.db
@@ -397,7 +388,10 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
         """Read missing members from the model, preserving their original binding."""
         # Bypass this fallback if model is not yet installed (e.g. during construction).
         model = object.__getattribute__(self, 'model')
-        return getattr(model, name)
+        try:
+            return getattr(model, name)
+        except AttributeError:
+            raise AttributeError(f'{model.fullname}: no attribute {name!r}') from None
 
     def column(self, name):
         return self.model.column(name)

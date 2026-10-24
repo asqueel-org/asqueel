@@ -69,3 +69,4 @@ def test_membership_ignores_case_as_lookup_does():
     table = AsqueelDb(config).model.table('app.item')
     assert 'fullname' in table.columns and 'fullName' in table.columns
     assert 'sysfields' in table.options and 'sysFields' in table.options
+    assert None not in table.columns

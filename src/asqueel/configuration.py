@@ -74,11 +74,13 @@ def _validate_source_shape(builder):
     for _, node in builder.source.query('#p,#n', deep=True):
         # Attributes written after the call (layout hooks, set_attr) meet the same signature.
         owner = node._resolve_builder()
-        if owner._schema.get_node(node.node_tag) is None:
-            owner = builder
+        try:
+            info = owner._get_schema_info(node.node_tag)
+        except KeyError:
+            owner, info = builder, builder._get_schema_info(node.node_tag)
         # Attributes kept from a redefined virtual column's previous kind stay valid.
         inherited = set((node.attr.get('_meta') or {}).get('inherited_attributes', ()))
-        owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
+        owner._validate_call_args(info, None,
                                  {key: value for key, value in node.attr.items()
                                   if key != '_meta' and key not in inherited},
                                  node.node_tag)
