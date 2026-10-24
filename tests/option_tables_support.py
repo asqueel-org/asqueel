@@ -13,8 +13,11 @@ IMPLEMENTATIONS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgres
 
 
 @contextmanager
-def migrated_db(implementation, tmp_path, declare):
-    """An AsqueelDb whose package ``app`` is filled by ``declare(package)`` and migrated."""
+def migrated_db(implementation, tmp_path, declare=None, path=None):
+    """An AsqueelDb whose package ``app`` is filled by ``declare(package)`` and migrated.
+
+    ``path`` is the package folder whose ``model/<table>.py`` declare tables with their ``Table`` class.
+    """
     source = SqlDatabaseConfig()
     schema = None
     if implementation == 'sqlite':
@@ -26,7 +29,10 @@ def migrated_db(implementation, tmp_path, declare):
         root = source.source.db('options', implementation='postgres', conninfo=postgres_dsn())
         with psycopg.connect(postgres_dsn(), autocommit=True) as conn:
             conn.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
-    declare(root.packages().package('app', sqlschema=sqlschema, sqlprefix=False))
+    package = root.packages().package(
+        'app', sqlschema=sqlschema, sqlprefix=False, **({} if path is None else {'path': path}))
+    if declare is not None:
+        declare(package)
     db = AsqueelDb(source)
     try:
         db.migrate()

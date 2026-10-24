@@ -181,9 +181,9 @@ def test_no_model_conversion_and_no_sql_state_on_objects(db, monkeypatch):
 def test_implicit_behaviour_and_explicit_bypass(feature):
     source, table = recipe('sqlite')
     if feature == 'draft':
-        table.options().sys_fields(id=False, draft=True, ldel=False)
+        table.options().sysFields(id=False, draft=True, ldel=False)
     elif feature == 'deleted':
-        table.options().sys_fields(id=False, ldel=True)
+        table.options().sysFields(id=False, ldel=True)
     elif feature == 'partition':
         table.attr['partition_customer_id'] = 'customer'
     else:
@@ -278,4 +278,4 @@ def test_empty_collection_and_legacy_params(db):
 def test_result_metadata_uses_existing_validation():
     from asqueel.compiler import column_ui
     with pytest.raises(ValueError, match='UI metadata cannot override column semantics'):
-        column_ui('sales.invoice.id', 'sales.invoice.id', {'sales.invoice.id': {'dtype': 'T'}})
+        column_ui('sales.invoice.id', {'sales.invoice.id': {'dtype': 'T'}})

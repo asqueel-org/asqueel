@@ -14,7 +14,7 @@ def database(*, partition='organization', draft='draft', deleted='deleted_at', e
     item.column('organization', dtype='I')
     item.column('region')
     item.column('draft', dtype='B')
-    item.column('deleted_at', dtype='DHZ', x_identity='tombstone')
+    item.column('deleted_at', dtype='DHZ')
     return AsqueelDb(config, environment=environment)
 
 

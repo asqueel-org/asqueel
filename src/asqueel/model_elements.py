@@ -7,13 +7,13 @@ from __future__ import annotations
 
 from genro_builders.builder import element
 
-from .elements import DTYPE
+from .elements import DTYPE, NON_NEGATIVE_INT, NON_NEGATIVE_NUMBER, SQL_PREFIX
 
 
 OPTION_LEVELS = {
     'requires': {'package'},
     'type': {'package'},
-    'sys_fields': {'table'},
+    'sysFields': {'table'},
     'driver': {'connection'},
 }
 
@@ -36,7 +36,7 @@ class ModelElements:
 
     @element(parent_tags='packages', sub_tags='tables[:1], options[:1]')
     def package(self, name: str, sqlschema: str | None = None,
-                sqlprefix: bool | str = True, name_long: str | None = None,
+                sqlprefix: bool | SQL_PREFIX = True, name_long: str | None = None,
                 name_short: str | None = None, name_full: str | None = None,
                 comment: str | None = None, path: str | None = None):
         """Logical table namespace with an explicit physical placement.
@@ -54,7 +54,7 @@ class ModelElements:
         """
         ...
 
-    @element(parent_tags='db, connection, schema, package, table',
+    @element(parent_tags='db, connection, package, table',
              sub_tags='*',
              node_label='options')
     def options(self):
@@ -67,10 +67,10 @@ class ModelElements:
         ...
 
     @element(parent_tags='options', sub_tags='', node_label='driver')
-    def driver(self, connect_timeout: int | None = None,
+    def driver(self, connect_timeout: NON_NEGATIVE_INT | None = None,
                application_name: str | None = None, sslmode: str | None = None,
                sslrootcert: str | None = None, options: str | None = None,
-               timeout: float | int | None = None, cached_statements: int | None = None,
+               timeout: NON_NEGATIVE_NUMBER | None = None, cached_statements: NON_NEGATIVE_INT | None = None,
                foreignKeys: bool | None = None):
         """Driver options, checked against the connection's configured dialect."""
         ...
@@ -86,13 +86,13 @@ class ModelElements:
         """Package-local column type and its explicit presentation defaults."""
         ...
 
-    @element(parent_tags='options', sub_tags='', node_label='sys_fields')
-    def sys_fields(self, id: bool | dict = True, ins: bool | dict = True,
-                   upd: bool | dict = True, user_ins: bool | dict = True,
-                   user_upd: bool | dict = True, ldel: bool | dict = True,
-                   draft: bool | dict = False,
-                   group: str = 'zzz', group_name: str = 'System', enabled: bool = True,
-                   syscode: bool = False):
+    @element(parent_tags='options', sub_tags='', node_label='sysFields')
+    def sysFields(self, id: bool | dict = True, ins: bool | dict = True,
+                  upd: bool | dict = True, user_ins: bool | dict = True,
+                  user_upd: bool | dict = True, ldel: bool | dict = True,
+                  draft: bool | dict = False,
+                  group: str = 'zzz', group_name: str = 'System', enabled: bool = True,
+                  syscode: bool = False):
         """Describe system fields; expansion happens only during rendering.
 
         syscode opts into __syscode, A size :20, indexed and unique.

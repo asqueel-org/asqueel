@@ -5,8 +5,8 @@ from io import StringIO
 
 import pytest
 
-from asqueel import SqlTable
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
+from tests.package_layout_support import write_layout
 
 ROWS = [
     {'id': 1, 'name': 'Tea', 'price': Decimal('1.50'), 'stock': 8, 'active': True,
@@ -17,16 +17,27 @@ ROWS = [
 COLUMNS = '$id, $name, $price, $stock, $active, $since'
 
 
-class Upper(SqlTable):
+UPPER = '''
+class Table:
+    def config_db(self, pkg):
+        table = pkg.table('upper', pkey='id')
+        table.column('id', dtype='L')
+        table.column('name')
+        table.column('price', dtype='N', size='10,2')
+        table.column('stock', dtype='L')
+        table.column('active', dtype='B')
+        table.column('since', dtype='D')
+
     def adaptRecord(self, record):
         record = super().adaptRecord(record)
         record['name'] = record['name'].upper()
         return record
+'''
 
 
 def declare(pkg):
-    for name, table_class in (('product', SqlTable), ('copy', SqlTable), ('upper', Upper)):
-        table = pkg.table(name, pkey='id', x_table_class=table_class)
+    for name in ('product', 'copy'):
+        table = pkg.table(name, pkey='id')
         table.column('id', dtype='L')
         table.column('name')
         table.column('price', dtype='N', size='10,2')
@@ -37,7 +48,7 @@ def declare(pkg):
 
 @pytest.fixture(params=IMPLEMENTATIONS)
 def db(request, tmp_path):
-    with migrated_db(request.param, tmp_path, declare) as db:
+    with migrated_db(request.param, tmp_path, declare, path=write_layout(tmp_path / 'app', upper=UPPER)) as db:
         db.table('app.product').sql_insert([dict(row) for row in ROWS])
         db.commit()
         yield db

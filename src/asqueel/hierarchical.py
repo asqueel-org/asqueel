@@ -6,6 +6,10 @@ dropped.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
+
+from .common import split_names
+
 _BASE36 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 # Two base-36 digits of _h_count per level.
 _MAX_SIBLINGS = 36 ** 2 - 1
@@ -32,6 +36,26 @@ class HierarchicalHandler:
     def __init__(self, tblobj):
         self.tblobj = tblobj
 
+    @property
+    def fields(self):
+        """Legacy ``tblobj.attributes['hierarchical']``: the declared hierarchical columns, then ``pkey``."""
+        columns = self.tblobj._behavior('hierarchical').get('columns') or ()
+        columns = split_names(columns) if isinstance(columns, str) else columns
+        names = [item['name'] if isinstance(item, Mapping) else item for item in columns]
+        return [name for name in names if name != 'pkey'] + ['pkey']
+
+    @property
+    def copied_from_parent(self):
+        """Legacy ``copyFromParent`` columns: ``_virtual_node`` and the linked master key."""
+        spec = self.tblobj._behavior('hierarchical')
+        names = ['_virtual_node'] if spec.get('virtual_roots') else []
+        linked_to = spec.get('linked_to')
+        if linked_to:
+            key = linked_to if '.' in linked_to else f'{self.tblobj.model.pkg.name}.{linked_to}'
+            master = self.tblobj.db.table(key).model
+            names.append(f'{master.name}_{master.pkey}')
+        return names
+
     def trigger_before(self, record, old_record=None, *, allocate=True):
         tblobj = self.tblobj
         pkeyfield = tblobj.model.pkey
@@ -39,7 +63,7 @@ class HierarchicalHandler:
         current = dict(old_record or {}, **record)
         spec = tblobj._behavior('hierarchical')
         parent_field = spec.get('parent', 'parent_id')
-        counter_field = (tblobj._behavior('auto_counter') or {}).get('field', '_row_count')
+        counter_field = (tblobj._behavior('counter') or {}).get('field', '_row_count')
         key = str(current[pkeyfield]).rstrip()
         if '/' in key:
             raise ValueError('Hierarchical primary keys cannot contain /')
@@ -73,7 +97,7 @@ class HierarchicalHandler:
             raise tblobj.exception('business_logic', msg=f'at most {_MAX_SIBLINGS} siblings under one parent')
         if has_counter and (type(current.get(counter_field)) is not int or current[counter_field] < 0):
             raise ValueError('Hierarchical counters require a nonnegative integer')
-        for fld in tblobj.model.attributes['x_legacy_hierarchical'].split(','):
+        for fld in self.fields:
             parent_h_fld = '_parent_h_%s' % fld
             h_fld = 'hierarchical_%s' % fld
             v = key if fld == 'pkey' else current.get(fld)
@@ -82,9 +106,8 @@ class HierarchicalHandler:
         if spec.get('root_id'):
             record['root_id'] = record['hierarchical_pkey'].split('/')[0]
         if parent_record:
-            for field, colobj in tblobj.model.columns.items():
-                if colobj.attributes.get('x_legacy_copyFromParent'):
-                    record[field] = parent_record[field]
+            for field in self.copied_from_parent:
+                record[field] = parent_record[field]
         if not has_counter:
             return
         record['_parent_h_count'] = current['_parent_h_count'] = parent_record['_h_count'] if parent_record else None
@@ -102,9 +125,9 @@ class HierarchicalHandler:
         if old_record is None:
             raise tblobj.exception('standard', msg='Updating a hierarchical record requires old_record')
         current = dict(old_record, **record)
-        fields = [name for name, column in tblobj.model.columns.items()
-                  if name.startswith('hierarchical_') or name == '_h_count'
-                  or column.attributes.get('x_legacy_copyFromParent')]
+        copied = self.copied_from_parent
+        fields = [name for name in tblobj.model.columns
+                  if name.startswith('hierarchical_') or name == '_h_count' or name in copied]
         if not _changed(fields, current, old_record):
             return
         parent = tblobj._behavior('hierarchical').get('parent', 'parent_id')

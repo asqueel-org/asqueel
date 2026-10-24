@@ -12,6 +12,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 from datetime import datetime
+from functools import cached_property
 
 from genro_bag import Bag
 from genro_toolbox.uid import get_uuid
@@ -377,8 +378,13 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
     def __init__(self, tblobj):
         self.model = tblobj
         self.fullname = tblobj.fullname
-        if tblobj.attributes.get('x_legacy_hierarchical'):
-            self.hierarchicalHandler = HierarchicalHandler(self)
+
+    @cached_property
+    def hierarchicalHandler(self):
+        """The handler of a table declared ``hierarchical``; absent elsewhere, as legacy ``table.py:82-83``."""
+        if self._behavior('hierarchical') is None:
+            raise AttributeError(f"{self.fullname}: 'hierarchicalHandler' exists only on hierarchical tables")
+        return HierarchicalHandler(self)
 
     @property
     def db(self):

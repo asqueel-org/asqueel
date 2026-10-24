@@ -9,7 +9,7 @@ No GenroPy imports or expanded legacy fixtures are needed.
 def customer(pkg):
     tbl = pkg.table('customer', pkey='id', name_long='!!Customer', name_plural='!!Customers', caption_field='account_name',
                     partition_state='invc_state')
-    tbl.options().sys_fields(draft=True, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(draft=True, user_upd=False, group_name='!![en]System')
     tbl.column('account_name', name_long='!!Account name', name_short='Account name', validate_notnull=True, validate_len='2:40', group='001')
     tbl.column('street_address', name_long='!!Street Address', name_short='St.Address', group='b_address.01')
     tbl.column('suburb', name_long='!!Suburb', name_short='!!Suburb', group='b_address.02')
@@ -48,7 +48,7 @@ def customer(pkg):
 # SHA256: 2999028f75bd7f3ce73afbf4fccc8372df69a4aee2ab46836d840a15767cc242
 def customer_type(pkg):
     tbl = pkg.table('customer_type', pkey='code', name_long='!!Customer type', name_plural='!!Customer types', caption_field='description', lookup=True)
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':5', name_long='!!Code')
     tbl.column('description', name_long='Description')
 
@@ -57,7 +57,7 @@ def customer_type(pkg):
 # SHA256: 4a1f004b5eda312a863d13cc9f019ce9bba82f60fdf747e156eeaf23048c4761
 def discount_tier(pkg):
     tbl = pkg.table('discount_tier', pkey='id', name_long='!!Discount Tier', name_plural='!!Discount Tiers')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('customer_type_code', size=':5', name_long='!!Customer Type').relation('customer_type.code', relation_name='discount_tiers', onDelete='cascade', foreign_key=True)
     tbl.column('min_amount', dtype='N', name_long='!!Min Amount')
     tbl.column('max_amount', dtype='N', name_long='!!Max Amount')
@@ -70,7 +70,7 @@ def discount_tier(pkg):
 def invoice(pkg):
     tbl = pkg.table('invoice', pkey='id', name_long='!!Invoice', name_plural='!!Invoice', caption_field='inv_number',
                     partition_customer_state='invc_state')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('inv_number', size='10', name_long='!!Invoice number', name_short='Inv N', unique=True)
     tbl.column('customer_id', size='22', group='_', name_long='!!Customer').relation('customer.id', relation_name='invoices', onDelete='raise', many_group='z_relations.01', foreign_key=True)
     tbl.column('date', dtype='D', name_long='!!Date', validate_notnull=True)
@@ -114,7 +114,7 @@ def invoice(pkg):
 # SHA256: fdf3e7d61cb64e9876bbfa273d7f45e5eebff48a0b23374a0ebca3d7550d55c3
 def invoice_note(pkg):
     tbl = pkg.table('invoice_note', pkey='id', name_long='!!Invoice Note', name_plural='!!Invoice Notes')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('invoice_id', size='22', group='_', name_long='!!Invoice').relation('invoice.id', relation_name='notes', onDelete='cascade', foreign_key=True)
     tbl.column('note_type', size=':20', name_long='!!Note Type')
     tbl.column('note_text', name_long='!!Note Text')
@@ -129,8 +129,8 @@ def invoice_note(pkg):
 # SHA256: efe2006560c1753630a1873a3e33f09c28107c773e9ea82467d6391c355f3dd4
 def invoice_row(pkg):
     tbl = pkg.table('invoice_row', pkey='id', name_long='!!Invoice row', name_plural='!!Invoice rows')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
-    tbl.options().auto_counter('invoice_id')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
+    tbl.options().counter('invoice_id')
     tbl.column('invoice_id', size='22', group='_', name_long='!!Invoice').relation('invoice.id', relation_name='rows', onDelete='cascade', foreign_key=True)
     tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', relation_name='invoice_rows', onDelete='raise', foreign_key=True)
     tbl.column('quantity', dtype='I', name_long=u'!![it]Quantity', name_short='Q.')
@@ -168,7 +168,7 @@ def invoice_row(pkg):
 # SHA256: c5672daa4d420802f7088ad9482368b95713915c23a95e61060367785682eaec
 def payment_type(pkg):
     tbl = pkg.table('payment_type', pkey='code', name_long='!!Payment type', name_plural='!!Payment types', caption_field='description', lookup=True)
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':10', name_long='!!Code')
     tbl.column('description', name_long='Description')
 
@@ -177,7 +177,7 @@ def payment_type(pkg):
 # SHA256: 100df477a120d6e5cd7a18b3e303b9f0cedc38a4b105416181610c298bf985ef
 def postcode(pkg):
     tbl = pkg.table('postcode', name_long='Postcode', name_plural='Postcodes', pkey='id', caption_field='postcode', lookup=False)
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('postcode', size=':10', name_long='postcode', unique=False, indexed=True)
     tbl.column('suburb', size=':100', name_long='suburb')
     tbl.column('state', size=':5', name_long='state').relation('state.code', relation_name='postcodes', foreign_key=True)
@@ -189,7 +189,7 @@ def postcode(pkg):
 # SHA256: 48961724f864f130c2c59b42cf50ba684bbb075c67ae990418a10417d0562983
 def price_year(pkg):
     tbl = pkg.table('price_year', pkey='id', name_long='!!Price Year', name_plural='!!Price Years')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', relation_name='price_years', onDelete='cascade', foreign_key=True)
     tbl.column('year', dtype='L', name_long='!!Year')
     tbl.column('unit_price', dtype='money', name_long='!!Unit Price')
@@ -203,7 +203,7 @@ def price_year(pkg):
 # SHA256: e22bea4fdfce53faf64d1974ad8a3fc826ca613e8c156d1c6804277d3dc7e49f
 def price_year_note(pkg):
     tbl = pkg.table('price_year_note', pkey='id', name_long='!!Price Year Note', name_plural='!!Price Year Notes')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('product_id', size='22', group='_', name_long='!!Product').relation('product.id', relation_name='price_year_notes', onDelete='cascade', foreign_key=True)
     tbl.column('year', dtype='L', name_long='!!Year')
     tbl.compositeColumn('product_year_ref', columns='product_id,year').relation('price_year.product_year_key', foreign_key=False, relation_name='notes')
@@ -218,7 +218,7 @@ def price_year_note(pkg):
 # SHA256: 2225c75ce1cf8fca62c46d8db7b6a3ce0b7ae72c38a71b24919e04382bf767b8
 def product(pkg):
     tbl = pkg.table('product', pkey='id', name_long='!!Product', name_plural='!!Prodocts', caption_field='description')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':10', name_long='!!Code')
     tbl.column('description', size=':80', name_long='!!Description')
     tbl.column('presentation_txt', name_long='!!Presentation')
@@ -227,7 +227,7 @@ def product(pkg):
     tbl.column('unit_price', dtype='money', name_long='!!Price', name_short='Price')
     tbl.column('image_url', dtype='P', name_long='!!Image url', name_short='Img')
     tbl.column('details', dtype='X', name_long='!!Details')
-    tbl.column('details').dynamic_fields(source='product_type_id')
+    tbl.column('details').df(source='product_type_id')
     tbl.formulaColumn('picture', 'image_url', dtype='P', name_long='!!Picture', name_short='Img')
     tbl.formulaColumn('total_sold', select=dict(table='invc.invoice_row', columns='SUM($quantity)', where='$product_id=#THIS.id'), dtype='N', name_long='Total Sold')
     tbl.formulaColumn('price_range', sql_formula="CASE WHEN $unit_price > 500 THEN 'Premium' WHEN $unit_price > 100 THEN 'Mid' ELSE 'Budget' END", dtype='A', name_long='Price Range')
@@ -252,9 +252,9 @@ def product(pkg):
 # SHA256: 843362e819ea035948036f0e4a441fed905998fc60c9693824beec19585fed41
 def product_group(pkg):
     tbl = pkg.table('product_group', pkey='id', name_long='!!Product group', name_plural='!!Product groups', caption_field='hierarchical_code')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.options().hierarchical('code,_row_count')
-    tbl.options().auto_counter()
+    tbl.options().counter()
     tbl.column('code', size=':10', name_long='!!Code')
     tbl.column('description', size=':50', name_long='!!Description')
 
@@ -263,10 +263,10 @@ def product_group(pkg):
 # SHA256: f8a6bc9a38bd27e366a60e3c14367092eb47e15cf119aa280fd64a410916ba0f
 def product_type(pkg):
     tbl = pkg.table('product_type', pkey='id', name_long='!!Product type', name_plural='!!Product types', caption_field='hierarchical_description')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.options().hierarchical('description')
-    tbl.options().auto_counter()
-    tbl.options().dynamic_fields()
+    tbl.options().counter()
+    tbl.options().df()
     tbl.column('description', size=':50', name_long='!!Description')
 
 
@@ -274,7 +274,7 @@ def product_type(pkg):
 # SHA256: 3ad7ed5b7a0e9b00b9bfec034de6b6ac0f79f2c0d4f99ecd00bd6e87e324339d
 def region(pkg):
     tbl = pkg.table('region', pkey='code', name_long='!!Region', name_plural='!!Regions')
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':5', name_long='!!Code')
     tbl.column('name', size=':50', name_long='!!Name')
 
@@ -283,7 +283,7 @@ def region(pkg):
 # SHA256: 4d315c52b346ce233df251ec2f7db514f01dd4e303698cbbd3b31a273e7f08b9
 def staff(pkg):
     tbl = pkg.table('staff', pkey='id', name_long='!!Staff', name_plural='!!Staff Members', caption_field='full_name')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('first_name', name_long='!!First Name', validate_notnull=True)
     tbl.column('last_name', name_long='!!Last Name', validate_notnull=True)
     tbl.column('email', name_long='!!Email')
@@ -302,7 +302,7 @@ def staff(pkg):
 # SHA256: a5b8935b7f165eeddf85d12dd8ecce432e26308b2926fdcbe9560dcabfe2286e
 def staff_role(pkg):
     tbl = pkg.table('staff_role', pkey='code', name_long='!!Staff Role', name_plural='!!Staff Roles', caption_field='description', lookup=True)
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':5', name_long='!!Code')
     tbl.column('description', name_long='!!Description')
 
@@ -311,7 +311,7 @@ def staff_role(pkg):
 # SHA256: 4a85671eba7775a08dbdcba977aed888ea602584ea2184db1e17c5c1e87aa97a
 def state(pkg):
     tbl = pkg.table('state', pkey='code', name_long='!!State', name_plural='!!States', caption_field='code', lookup=True)
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':5', name_long='!!Code')
     tbl.column('name', size=':100', name_long='!!Name')
     tbl.column('region_code', size=':5', name_long='!!Region').relation('region.code', relation_name='states', onDelete='raise', foreign_key=True)
@@ -321,7 +321,7 @@ def state(pkg):
 # SHA256: c67510e283501730f02c50a65a80c68fd6a8c4b97c472b04f260f820c8c73a80
 def vat_type(pkg):
     tbl = pkg.table('vat_type', pkey='code', name_long='!!VAT type', name_plural='!!VAT types', caption_field='description', lookup=True)
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('code', size=':5', name_long='!!Code')
     tbl.column('description', name_long='Description')
     tbl.column('vat_rate', dtype='perc', name_long='!!VAT rate')

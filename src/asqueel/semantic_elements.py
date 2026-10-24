@@ -9,7 +9,7 @@ class SemanticElements:
     def bagItemColumn(self, name: str, bagcolumn: str, itempath: str,
                       dtype: str | None = None, group: str | None = None,
                       name_long: str | None = None, name_short: str | None = None,
-                      comment: str | None = None, x_identity: str | None = None):
+                      comment: str | None = None):
         ...
 
     @element(parent_tags='table', sub_tags='', _meta={'attribute_families': ['var_']})

@@ -5,14 +5,14 @@ Four grammar mixins, one per containment level, composed into
 :class:`~asqueel.builder.SqlBuilder`:
 
 - :class:`DbElements` — ``db``, ``extension``
-- :class:`SchemaElements` — ``schema``
+- :class:`SchemaElements` — ``tables``
 - :class:`TableElements` — ``table`` and everything a table holds
 - :class:`ColumnElements` — ``relation``
 
 Hierarchy::
 
     db
-    ├── schemas → schema → tables → table
+    ├── packages → package → tables → table
     │   ├── columns → column → relation
     │   ├── virtual_columns → aliasColumn / formulaColumn /
     │   │   subQueryColumn / pyColumn
@@ -22,7 +22,7 @@ Hierarchy::
     └── extensions → extension
 
 Two planes. The **physical** plane projects into the asqueel-migration
-JSON (``structure-1.0``): ``db``/``schema``/``table``, physical ``column``
+JSON (``structure-1.0``): ``db``/``package``/``table``, physical ``column``
 attributes, ``foreign_key`` relations, ``constraint``, ``index``. The
 **semantic** plane (``name_*``, ``group``, ``caption_field``, …) travels as
 node attributes the migration projection ignores; the compiler and the GUI
@@ -50,10 +50,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from genro_builders.builder import element
+from genro_builders.builder import CustomTypes, Range, Regex, element
 
 from .catalog import _VIRTUAL_COLUMN_TAGS
-from .common import SQL_DIALECTS
 
 #: asqueel normalized type codes. Mirrors
 #: ``asqueel_migration.structures.DTYPE_CODES`` plus the additive serial4
@@ -72,11 +71,18 @@ DTYPE = Literal[
 #: attribute, not a constraint entity.
 CONSTRAINT_TYPE = Literal["UNIQUE", "CHECK"]
 
+#: Constraints the grammar checks at declaration. An ``int`` base refuses ``bool``.
+CUSTOM_TYPES = CustomTypes()
+NON_NEGATIVE_INT = CUSTOM_TYPES.register("nonNegativeInt", int, Range(ge=0))
+POSITIVE_INT = CUSTOM_TYPES.register("positiveInt", int, Range(ge=1))
+NON_NEGATIVE_NUMBER = CUSTOM_TYPES.register("nonNegativeNumber", float, Range(ge=0))
+SQL_PREFIX = CUSTOM_TYPES.register("sqlPrefix", str, Regex(r"[\s\S]*[^_]"))
+
 
 class DbElements:
     """Database-level grammar: the root and its collections."""
 
-    @element(sub_tags="schemas[:1], packages[:1], extensions[:1], options[:1]", node_label="db")
+    @element(sub_tags="packages[:1], extensions[:1], options[:1]", node_label="db")
     def db(self, name: str, implementation: str = 'sqlite',
            name_long: str | None = None, name_short: str | None = None,
            comment: str | None = None):
@@ -84,20 +90,6 @@ class DbElements:
 
         Args:
             name: the database name — the JSON ``entity_name``.
-        """
-        ...
-
-    @element(
-        parent_tags="db",
-        sub_tags="schema",
-        collection_key="name",
-        node_label="schemas",
-    )
-    def schemas(self):
-        """Physical/legacy source collection, not a package configuration section.
-
-        Package configurations infer schemas from package.sqlschema.
-        This collection remains for physical migration input and older sources.
         """
         ...
 
@@ -125,29 +117,16 @@ class DbElements:
 
 
 class SchemaElements:
-    """Schema-level grammar."""
-
-    @element(parent_tags="schemas", sub_tags="tables[:1], options[:1]")
-    def schema(self, name: str, comment: str | None = None,
-               sqlname: str | None = None, name_long: str | None = None,
-               name_short: str | None = None):
-        """A physical database schema, separate from logical packages.
-
-        Args:
-            name: the schema name — physical, and this node's key.
-            comment: semantic; source-only free description; structure-1.0
-                schemas have no physical attribute slot.
-        """
-        ...
+    """Package-level grammar: the collection of tables."""
 
     @element(
-        parent_tags="schema, package",
+        parent_tags="package",
         sub_tags="table",
         collection_key="name",
         node_label="tables",
     )
     def tables(self):
-        """The explicit collection of a schema's tables."""
+        """The explicit collection of a package's tables."""
         ...
 
 
@@ -176,8 +155,6 @@ class TableElements:
               pkey_columns_joiner: str | None = None, deletable: bool = True,
               lastTS: str | None = None, logicalDeletionField: str | None = None,
               draftField: str | None = None, protectionColumn: str | None = None,
-              x_table_class: type | None = None,
-              x_expanded_legacy: bool | None = None, x_logical_pkey: str | None = None,
               **extra):
         """A table.
 
@@ -256,15 +233,19 @@ class TableElements:
         """The explicit collection of table indexes."""
         ...
 
-    @element(parent_tags="columns", sub_tags="relation, dynamic_fields[:1]",
+    @element(parent_tags="columns", sub_tags="relation, df[:1]",
              _meta={"projects_column": True, "projects_relation": True,
-                    "attribute_families": ["validate_", *(f"sql_{d}_" for d in SQL_DIALECTS)]})
+                    "attribute_families": ["validate_"]})
     def column(self, name: str, dtype: DTYPE | str | None = None,
                size: str | None = None,
                notnull: bool = False, unique: bool | str = False,
                indexed: bool | str | dict = False, sql_default: str | None = None,
                sql_extra: str | None = None,
                sql_generatedExpression: str | None = None,
+               sql_pg_default: str | None = None, sql_pg_extra: str | None = None,
+               sql_pg_generatedExpression: str | None = None,
+               sql_sqlite_default: str | None = None, sql_sqlite_extra: str | None = None,
+               sql_sqlite_generatedExpression: str | None = None,
                comment: str | None = None,
                name_long: str | None = None,
                name_short: str | None = None, name_full: str | None = None,
@@ -276,7 +257,6 @@ class TableElements:
                onInserting: object = None, onUpdating: object = None, onDeleting: object = None,
                onInserted: object = None, onUpdated: object = None, onDeleted: object = None,
                trigger_table: str | None = None,
-               x_identity: str | None = None, x_generation: dict | None = None,
                **extra):
         """A physical column — the only element that projects as a column.
 
@@ -302,8 +282,12 @@ class TableElements:
             sql_default: SQL DEFAULT expression.
             sql_extra: verbatim tail of the column definition.
             sql_generatedExpression: GENERATED ALWAYS AS expression.
-            sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra:
-                the same for one dialect (``pg``, ``sqlite``); they win on it.
+            sql_pg_default: ``sql_default`` on PostgreSQL; wins over it there.
+            sql_pg_extra: ``sql_extra`` on PostgreSQL; wins over it there.
+            sql_pg_generatedExpression: ``sql_generatedExpression`` on PostgreSQL; wins over it there.
+            sql_sqlite_default: ``sql_default`` on SQLite; wins over it there.
+            sql_sqlite_extra: ``sql_extra`` on SQLite; wins over it there.
+            sql_sqlite_generatedExpression: ``sql_generatedExpression`` on SQLite; wins over it there.
             comment: physical; the column comment.
             name_long: semantic; human label.
             name_short: semantic; human label, short form.
@@ -324,8 +308,7 @@ class TableElements:
                     dtype: str | None = None,
                     name_long: str | None = None,
                     group: str | None = None, name_short: str | None = None,
-                    comment: str | None = None, static: bool = False,
-                    x_identity: str | None = None):
+                    comment: str | None = None, static: bool = False):
         """A virtual column projecting a related column. Never physical.
 
         An alias inherits the target column's relation as a weak relation during
@@ -348,7 +331,7 @@ class TableElements:
                       dtype: str | None = None,
                       name_long: str | None = None,
                       group: str | None = None, name_short: str | None = None,
-                      comment: str | None = None, x_identity: str | None = None, **extra):
+                      comment: str | None = None, **extra):
         """A virtual column defined by SQL. Never physical.
 
         Args:
@@ -368,7 +351,7 @@ class TableElements:
                        aggr: str | None = None, mode: str | None = None, dtype: str | None = None,
                        name_long: str | None = None,
                        group: str | None = None, name_short: str | None = None,
-                       comment: str | None = None, x_identity: str | None = None, **extra):
+                       comment: str | None = None, **extra):
         """A virtual column defined by a sub-query. Never physical.
 
         Args:
@@ -389,7 +372,7 @@ class TableElements:
                  dtype: str | None = None,
                  name_long: str | None = None,
                  group: str | None = None, name_short: str | None = None,
-                 comment: str | None = None, x_identity: str | None = None):
+                 comment: str | None = None):
         """A virtual column computed in Python. Never physical.
 
         Args:
@@ -466,23 +449,21 @@ class ColumnElements:
     """Column-level grammar: the relation."""
 
     @element(parent_tags="column, compositeColumn, aliasColumn, formulaColumn, subQueryColumn, pyColumn, bagItemColumn", sub_tags="")
-    def relation(self, to: str, foreign_key: bool = False,
+    def relation(self, related_column: str, foreign_key: bool = False,
                  onDelete: str | None = None, onUpdate: str | None = None,
                  onDelete_sql: str | None = None, onUpdate_sql: str | None = None,
                  deferred: bool = False, deferrable: bool = False,
                  initially_deferred: bool = False, indexed: bool = True,
                  one_name: str | None = None,
                  many_name: str | None = None,
-                 one_one: bool | Literal['*'] = False, case_insensitive: bool = False,
+                 one_one: bool | Literal['*'] = False, insensitive: bool = False,
                  name: str | None = None, relation_name: str | None = None,
                  onDuplicate: str | bool | None = None, constraint_name: str | None = None,
                  one_group: str | None = None, many_group: str | None = None,
                  many_order_by: str | None = None, eager_one: bool | None = None,
                  eager_many: bool | None = None, external_relation: bool | None = None,
                  resolver_kwargs: dict | None = None, join_on: str | None = None,
-                 cnd: str | None = None, between: str | None = None,
-                 x_weak: bool | None = None, x_canonical: bool | None = None,
-                 x_name: str | None = None):
+                 cnd: str | None = None, between: str | None = None):
         """A relation on a column. Navigable by default, physical on demand.
 
         At most one per local structural key: the grammar accepts the insertion
@@ -490,7 +471,7 @@ class ColumnElements:
         reports every conflicting relation together.
 
         Args:
-            to: the target, ``schema.table.column`` or ``schema.table``
+            related_column: the target, ``package.table.column`` or ``package.table``
                 (target columns default to the target pkey).
             foreign_key: emit a physical FK. Only these relations project
                 a foreign key into the migration JSON; every relation on a
@@ -520,7 +501,7 @@ class ColumnElements:
             one_one: semantic; the relation is 1:1. ``'*'`` without
                 ``relation_name`` names the inverse after the many table and
                 makes it public, as in GenroPy.
-            case_insensitive: semantic; join case-insensitively.
+            insensitive: semantic; join case-insensitively.
             join_on: semantic; the ON condition in place of the key
                 equality. Wins over ``cnd``.
             cnd: semantic; the ON condition in place of the key equality.

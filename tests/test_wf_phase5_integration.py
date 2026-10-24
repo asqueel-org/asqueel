@@ -22,7 +22,7 @@ from asqueel import SqlBuilder
 class LibraryV1(SqlBuilder):
     def main(self, root):
         db = root.db(name="library")
-        public = db.schemas().schema(name="library_public")
+        public = db.packages().package(name="library_public", sqlschema="library_public", sqlprefix=False)
         book = public.tables().table(name="book", pkey="id")
         columns = book.columns()
         columns.column(name="id", dtype="serial")
@@ -35,7 +35,7 @@ class LibraryV2(SqlBuilder):
 
     def main(self, root):
         db = root.db(name="library")
-        public = db.schemas().schema(name="library_public")
+        public = db.packages().package(name="library_public", sqlschema="library_public", sqlprefix=False)
         book = public.tables().table(name="book", pkey="id")
         columns = book.columns()
         columns.column(name="id", dtype="serial")

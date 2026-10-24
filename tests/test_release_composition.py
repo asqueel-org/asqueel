@@ -12,14 +12,14 @@ from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
 class Base(SqlDatabaseConfig):
     def main(self, root):
         table = root.db('invoice').packages().package('invc').table('customer', name_long='Cliente')
-        table.options().sys_fields(id={'type': 'uuid', 'indexed': True}, draft=True)
+        table.options().sysFields(id={'type': 'uuid', 'indexed': True}, draft=True)
         table.attr.update(comment='blue', name_short='Cust')
 
 
 class Overlay(SqlDatabaseConfig):
     def main(self, root):
         table = root.db('invoice').packages().package('invc').table('customer', name_long=None)
-        table.options().sys_fields(id={'name_short': 'ID'})
+        table.options().sysFields(id={'name_short': 'ID'})
         table.attr.update(comment='green')
 
 
@@ -33,25 +33,25 @@ def test_owned_layers_merge_dictionary_keys_and_preserve_explicit_none():
     overlay.create()
     config = SqlConfigHandler(compose_recipe(overlay, [base]))
     assert config(PATH + '.name_long') is None
-    assert config(PATH + '.options.sys_fields.id') == {
+    assert config(PATH + '.options.sysFields.id') == {
         'type': 'uuid', 'indexed': True, 'name_short': 'ID'}
-    assert config(PATH + '.options.sys_fields.draft') is True
+    assert config(PATH + '.options.sysFields.draft') is True
     assert config(PATH + '.comment') == 'green'
     assert config(PATH + '.name_short') == 'Cust'
     assert base.source['db.' + PATH].get_attr('name_long') == 'Cliente'
-    assert 'draft' not in overlay.source['db.' + PATH + '.options.sys_fields'].attr
+    assert 'draft' not in overlay.source['db.' + PATH + '.options.sysFields'].attr
 
 
 def test_reset_in_a_later_recipe_erases_only_its_option_before_defaults():
     class Reset(SqlDatabaseConfig):
         def main(self, root):
             opts = root.db('invoice').packages().package('invc').table('customer').options()
-            opts.reset('sys_fields')
-            opts.sys_fields(id=False)
+            opts.reset('sysFields')
+            opts.sysFields(id=False)
 
     config = SqlConfigHandler(compose_recipe(Reset, [Base, Overlay]))
-    assert config(PATH + '.options.sys_fields.id') is False
-    assert config(PATH + '.options.sys_fields.draft') is False
+    assert config(PATH + '.options.sysFields.id') is False
+    assert config(PATH + '.options.sysFields.draft') is False
     assert config(PATH + '.comment') == 'green'
 
 
@@ -59,12 +59,12 @@ def test_reset_without_reactivation_keeps_the_option_absent():
     class Reset(SqlDatabaseConfig):
         def main(self, root):
             opts = root.db('invoice').packages().package('invc').table('customer').options()
-            opts.reset('sys_fields')
+            opts.reset('sysFields')
 
     config = SqlConfigHandler(compose_recipe(Reset, [Base]))
-    assert config.builder.source.get_node('db.' + PATH + '.options.sys_fields') is None
+    assert config.builder.source.get_node('db.' + PATH + '.options.sysFields') is None
     recomposed = SqlConfigHandler(compose_recipe(config.builder, [Base]))
-    assert recomposed.builder.source.get_node('db.' + PATH + '.options.sys_fields') is None
+    assert recomposed.builder.source.get_node('db.' + PATH + '.options.sysFields') is None
 
 
 def test_copying_a_source_does_not_lose_same_contribution_conflict_detection():
@@ -80,16 +80,16 @@ def test_copying_a_source_does_not_lose_same_contribution_conflict_detection():
 
 def test_omission_does_not_materialize_option_defaults_in_source():
     config = SqlConfigHandler(compose_recipe(Overlay, [Base]))
-    option = config.builder.source['db.' + PATH + '.options.sys_fields']
+    option = config.builder.source['db.' + PATH + '.options.sysFields']
     assert 'group' not in option.attr
-    assert config(PATH + '.options.sys_fields.group') == 'zzz'
+    assert config(PATH + '.options.sysFields.group') == 'zzz'
 
 
 def test_nonnullable_options_reject_none():
     source = Base()
     source.create()
     with pytest.raises(ValueError, match='None'):
-        source.source['db.' + PATH].options().sys_fields(group=None)
+        source.source['db.' + PATH].options().sysFields(group=None)
 
 
 def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
@@ -108,7 +108,7 @@ def test_mounted_and_standalone_source_preserve_packages_groups_and_options():
         pkg = db.packages().package('invc', sqlschema='sales')
         table = pkg.table('customer', caption_field='name')
         table.colgroup('details', col_dtype='T').column('name')
-        table.options().sys_fields(id={'type': 'uuid'})
+        table.options().sysFields(id={'type': 'uuid'})
 
     class Standalone(SqlDatabaseConfig):
         def main(self, root):
@@ -140,13 +140,13 @@ def test_field_disable_and_reenable_preserves_configuration_until_reset():
     source.create()
     opts = source.source['db.' + PATH].options()
     with source.contribution('disable'):
-        opts.sys_fields(id=False, enabled=False)
+        opts.sysFields(id=False, enabled=False)
     with source.contribution('enable'):
-        fields = opts.sys_fields(id=True, enabled=True)
+        fields = opts.sysFields(id=True, enabled=True)
     assert fields.get_attr('id') == {'type': 'uuid', 'indexed': True}
     with source.contribution('restart'):
-        opts.reset('sys_fields')
-        assert opts.sys_fields(id=True).get_attr('id') is True
+        opts.reset('sysFields')
+        assert opts.sysFields(id=True).get_attr('id') is True
 
 
 def test_layered_change_of_column_kind_is_rejected_before_model_resolution():

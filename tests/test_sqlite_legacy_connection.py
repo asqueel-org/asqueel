@@ -24,11 +24,11 @@ def _recipe(path, options=None):
             connection = db.connection(name=str(path), implementation='sqlite')
             if options:
                 connection.options().driver(**options)
-            tables = db.schemas().schema('app').tables()
+            tables = db.packages().package('app', sqlschema='app', sqlprefix=False).tables()
             tables.table('customer', pkey='id').columns().column('id', dtype='L')
             invoice = tables.table('invoice', pkey='id').columns()
             invoice.column('id', dtype='L')
-            invoice.column('customer_id', dtype='L').relation(to='app.customer.id', foreign_key=True)
+            invoice.column('customer_id', dtype='L').relation(related_column='app.customer.id', foreign_key=True)
             item = tables.table('item', pkey='id').columns()
             item.column('id', dtype='L')
             item.column('name', dtype='A', size='0:20')
@@ -110,7 +110,7 @@ def test_the_foreign_keys_option_is_refused_on_postgresql_before_connecting():
         def main(self, root):
             db = root.db(implementation='postgres')
             db.connection(name='unused', implementation='postgres').options().driver(foreignKeys=False)
-            db.schemas().schema('app').tables().table('t', pkey='id').columns().column('id', dtype='L')
+            db.packages().package('app', sqlschema='app', sqlprefix=False).tables().table('t', pkey='id').columns().column('id', dtype='L')
 
     db = None
     try:

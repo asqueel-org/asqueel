@@ -11,7 +11,7 @@ from genro_builders.contrib.config import ConfigBuilder, ConfigHandler
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
-from asqueel.configuration import connection_settings
+from asqueel.runtime import connection_settings
 from examples.two_schemas.configure import DatabaseConfiguration
 
 
@@ -33,7 +33,7 @@ class Host(HostElements, ConfigBuilder):
 def chat_archive(db, path):
     """The database module: one function, called on a mounted or a standalone ``db``."""
     db.connection(name=str(path), implementation='sqlite')
-    columns = db.schemas().schema('chat').tables().table('message', pkey='id').columns()
+    columns = db.packages().package('chat', sqlschema='chat', sqlprefix=False).tables().table('message', pkey='id').columns()
     columns.column('id', dtype='L')
     columns.column('text', dtype='T')
 
@@ -109,6 +109,6 @@ def test_a_second_db_under_the_same_host_node_is_refused(tmp_path):
 
 def test_a_mounted_database_starts_at_db(tmp_path):
     source = host_handler(tmp_path / 'chat.db').builder.source
-    schemas = source.get_node('configuration.databases.alfadb.db.schemas')
+    packages = source.get_node('configuration.databases.alfadb.db.packages')
     with pytest.raises(TypeError, match="starts at a 'db' node"):
-        AsqueelDb(schemas)
+        AsqueelDb(packages)

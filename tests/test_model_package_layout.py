@@ -101,3 +101,31 @@ def test_a_layout_package_sits_beside_a_recipe_package(tmp_path):
     model = AsqueelDb(config).model
     assert model.table('crm.contact').column('code').attributes['size'] == '0:10'
     assert model.table('sales.customer').column('balance').attributes['size'] == '12,2'
+
+
+COUNTED = '''
+from __future__ import annotations
+from dataclasses import dataclass
+from pathlib import Path
+
+RUNS = Path(__file__).parents[1] / 'runs.txt'
+RUNS.write_text(RUNS.read_text() + 'x' if RUNS.exists() else 'x')
+
+
+@dataclass
+class Point:
+    x: int
+
+
+class Table:
+    def config_db(self, pkg):
+        tbl = pkg.table('customer', pkey='id')
+        tbl.column('id', dtype='serial')
+'''
+
+
+def test_a_table_module_runs_once_per_model_and_is_a_real_module(tmp_path):
+    db = database(tmp_path, customer=COUNTED)
+    table = db.table('sales.customer')
+    assert (tmp_path / 'sales' / 'runs.txt').read_text() == 'x'
+    assert type(table).__module__.startswith('asqueel_layout_sales_customer_')

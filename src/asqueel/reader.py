@@ -143,11 +143,12 @@ class SqlModelReader:
             "root.entity_name", root_node, "db", name=root.get("entity_name"),
         )
         tables = {}
-        schemas_node = self._mount("root.schemas", db, "schemas")
+        packages_node = self._mount("root.schemas", db, "packages")
         for schema_name, schema in root.get("schemas", {}).items():
             schema_path = f"root.schemas.{schema_name}"
             schema_node = self._mount(
-                schema_path, schemas_node, "schema", name=schema_name,
+                schema_path, packages_node, "package", name=schema_name,
+                sqlschema=schema_name, sqlprefix=False,
             )
             tables_node = self._mount(
                 f"{schema_path}.tables", schema_node, "tables",
@@ -180,12 +181,14 @@ class SqlModelReader:
         attributes = table.get("attributes") or {}
         self._check_keys(path, attributes, _TABLE_KEYS)
         kwargs = {"name": table_name}
-        if attributes.get("pkeys"):
-            kwargs["pkey"] = attributes["pkeys"]
+        pkey = _names(attributes.get("pkeys"))
+        if len(pkey) > 1:
+            kwargs["pkey"] = self._composites[(schema_name, table_name)][tuple(pkey)]["name"]
+        elif pkey:
+            kwargs["pkey"] = pkey[0]
         if attributes.get("comment"):
             kwargs["comment"] = attributes["comment"]
         node = self._mount(path, tables_node, "table", **kwargs)
-        pkey = _names(attributes.get("pkeys"))
         columns = {}
         columns_node = self._mount(f"{path}.columns", node, "columns")
         for column_name, column in table.get("columns", {}).items():
@@ -215,6 +218,12 @@ class SqlModelReader:
         self._check_keys(
             f"{path}.columns.{column_name}", attributes, COL_JSON_KEYS,
         )
+        if attributes.get("dtype") in ("P", "X", "Z"):
+            # Logical types a package stores as text: a physical structure never holds them.
+            raise SqlModelReadError(
+                f"{path}.columns.{column_name}",
+                f"dtype {attributes['dtype']!r} is not a physical type",
+            )
         if column_name in pkey:
             attributes.pop("notnull", None)
         for key, json_key in SQL_COLUMN_KEYS.items():
@@ -248,6 +257,9 @@ class SqlModelReader:
                 self._pkeys[key] = _names(
                     (table.get("attributes") or {}).get("pkeys"),
                 )
+        for key, pkey in self._pkeys.items():
+            if len(pkey) > 1:
+                self._need_composite(key, pkey)
         for schema_name, schema in root.get("schemas", {}).items():
             for table_name, table in schema.get("tables", {}).items():
                 key = (schema_name, table_name)
@@ -335,7 +347,7 @@ class SqlModelReader:
             columns = _names(attributes.get("columns"))
             owner = (table["columns"][columns[0]] if len(columns) == 1
                      else table["composites"][tuple(columns)])
-            kwargs = {"to": self._target(attributes), "foreign_key": True}
+            kwargs = {"related_column": self._target(attributes), "foreign_key": True}
             # The JSON omits NO ACTION; GenroPy onUpdate_sql defaults to cascade.
             if attributes.get("on_delete"):
                 kwargs["onDelete_sql"] = SQL_ACTION_NAMES[attributes["on_delete"]]
@@ -349,7 +361,7 @@ class SqlModelReader:
             self._mount(path, owner, "relation", **kwargs)
 
     def _target(self, attributes) -> str:
-        """``relation.to`` for a foreign key, in its shortest exact form."""
+        """``relation.related_column`` for a foreign key, in its shortest exact form."""
         schema_name = attributes.get("related_schema")
         table_name = attributes.get("related_table")
         columns = _names(attributes.get("related_columns"))

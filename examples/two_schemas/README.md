@@ -1,33 +1,36 @@
-# Explicit database and schema configuration
+# Database configuration with two package folders
 
-A runnable example using the current Asqueel API. There is no folder discovery:
-`configure.py` imports two schema classes, and each schema imports its tables.
+A runnable example using the current Asqueel API. `configure.py` declares two
+packages, each with the path of its folder in the package layout: `main.py`
+holds class `Package`, `model/<table>.py` holds class `Table`.
 
 ```text
 two_schemas/
-├── configure.py                 # DB settings and ordered configuration steps
+├── configure.py                 # DB settings and the two package declarations
 ├── __main__.py                  # Offline query compilation demo
-└── schemas/
+└── packages/
     ├── identity/
-    │   ├── schema.py            # IdentitySchema: explicit table registration
-    │   ├── user.py              # UserModel + UserLogic
-    │   └── access.py            # AccessModel + AccessLogic
+    │   ├── main.py              # Package
+    │   └── model/
+    │       ├── access.py        # Table: identity.access
+    │       └── user.py          # Table: identity.user
     └── sales/
-        ├── schema.py            # SalesSchema: explicit table registration
-        ├── customer.py          # CustomerModel + CustomerLogic
-        ├── product.py           # ProductModel + ProductLogic
-        ├── invoice.py           # InvoiceModel
-        ├── invoice_logic.py     # InvoiceLogic, explicitly imported by the model
-        └── invoice_row.py       # InvoiceRowModel + InvoiceRowLogic
+        ├── main.py              # Package
+        └── model/
+            ├── customer.py      # Table: sales.customer
+            ├── invoice.py       # Table: sales.invoice, with rows_query()
+            ├── invoice_row.py   # Table: sales.invoice_row
+            └── product.py       # Table: sales.product
 ```
 
 `DatabaseConfiguration.main()` calls `database_section()` then
-`schemas_section()`. Schema and table classes expose an ordinary Python
-`configure()` method; these are example conventions, not new framework base
-classes. Each table declaration binds its `Logic` subclass using the supported
-`x_table_class` attribute. Modules can be reorganized by updating explicit imports.
-The default Logic classes retain Asqueel's standard behavior; `InvoiceLogic`
-adds `rows_query(invoice_id)` to illustrate a custom table method.
+`packages_section()`, which declares
+`package(name, path=..., sqlschema=name, sqlprefix=False)` for `identity` and
+`sales`. Each `Table.config_db(self, pkg)` declares its table on the package;
+the package runs the modules in alphabetical order. The `Table` class, combined
+with `SqlTable`, is the runtime class of the table: the sales `invoice` module
+adds `rows_query(invoice_id)` to illustrate a custom table method. The other
+tables keep Asqueel's standard behavior.
 
 ## Model
 
@@ -64,7 +67,7 @@ field uses the standard `EnvResolver`: `PGHOST`, `PGPORT`, `PGDATABASE`,
 `PGUSER`, and optionally `PGPASSWORD`. Defaults are `localhost`, `5432`,
 `two_schemas`, and `app`. Passwords are not embedded or printed. The handler
 resolves attributes when reading configuration; credentials do not belong to
-schema/table contributors.
+the package folders.
 
 ## Register, migrate and open a console
 
@@ -112,6 +115,5 @@ db.closeConnection()
 ```
 
 Deployment customization can also use the existing `AsqueelDb(...,
-parents=[...])` configuration layers. Imported schema/table contributors do not
-own credentials or connections. There is no package/subapplication loader in
-this first example.
+parents=[...])` configuration layers. The package folders do not own
+credentials or connections.

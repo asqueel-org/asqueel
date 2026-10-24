@@ -4,16 +4,25 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from asqueel import (
-    SqlDatabaseConfig, SqlTable, TransactionStateError,
+    SqlDatabaseConfig, TransactionStateError,
     AsqueelDb,
 )
 from tests.application_connections.test_connections import FAKE, SqlDbAdapter
+from tests.package_layout_support import write_layout
 
 
 class Recipe(SqlDatabaseConfig):
     def main(self, root):
-        table = root.db('demo', implementation=FAKE).schemas().schema('app').tables().table('item', pkey='id')
+        table = root.db('demo', implementation=FAKE).packages().package('app', sqlschema='app', sqlprefix=False).tables().table('item', pkey='id')
         table.columns().column('id', dtype='I')
+
+
+def layout_recipe(folder, item):
+    """``Recipe`` with ``app.item`` declared by the package folder ``folder``."""
+    recipe = SqlDatabaseConfig()
+    root = recipe.source.db('demo', implementation=FAKE)
+    root.packages().package('app', sqlschema='app', sqlprefix=False, path=write_layout(folder, item=item))
+    return recipe
 
 
 def test_database_owns_graph_environment_and_lazy_lifetime():
@@ -54,7 +63,7 @@ def test_database_and_handles_can_be_used_by_another_thread():
     assert driver.calls.count('connect') == 2
 
 
-def test_invalid_implementation_and_table_class_fail_before_connection(monkeypatch):
+def test_invalid_implementation_fails_before_connection(monkeypatch):
     def connect(*args, **kwargs):
         pytest.fail('Construction must not connect')
     monkeypatch.setattr(SqlDbAdapter, 'connect', connect)
@@ -63,21 +72,20 @@ def test_invalid_implementation_and_table_class_fail_before_connection(monkeypat
     recipe.source.get_node('db').attr['implementation'] = 'unsupported'
     with pytest.raises(ModuleNotFoundError, match='asqueel.adapters.unsupported'):
         AsqueelDb(recipe)
-    recipe.source.get_node('db').attr['implementation'] = FAKE
-    recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = str
-    with pytest.raises(TypeError, match='SqlTable subclass'):
-        AsqueelDb(recipe)
 
 
-def test_custom_constructor_cannot_execute_on_partially_published_graph(monkeypatch):
-    class Premature(SqlTable):
-        def __init__(self, tblobj):
-            super().__init__(tblobj)
-            self.query().compiled
+def test_custom_constructor_cannot_execute_on_partially_published_graph(monkeypatch, tmp_path):
+    recipe = layout_recipe(tmp_path / 'app', '''
+        class Table:
+            def config_db(self, pkg):
+                pkg.tables().table('item', pkey='id').columns().column('id', dtype='I')
 
-    recipe = Recipe()
-    recipe.create()
-    recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = Premature
+            def __init__(self, *tblobj):
+                # The package loader builds Table() without arguments to run config_db.
+                super().__init__(*tblobj)
+                if tblobj:
+                    self.query().compiled
+    ''')
     def connect(*args, **kwargs):
         pytest.fail('Construction must not connect')
     monkeypatch.setattr(SqlDbAdapter, 'connect', connect)
@@ -85,18 +93,20 @@ def test_custom_constructor_cannot_execute_on_partially_published_graph(monkeypa
         AsqueelDb(recipe)
 
 
-def test_rollback_only_session_rejects_write_before_calling_hooks():
-    calls = []
+def test_rollback_only_session_rejects_write_before_calling_hooks(tmp_path):
+    recipe = layout_recipe(tmp_path / 'app', '''
+        class Table:
+            calls = []
 
-    class Failing(SqlTable):
-        def trigger_onInserting(self, record):
-            calls.append(record['id'])
-            raise ValueError('domain validation failed')
+            def config_db(self, pkg):
+                pkg.tables().table('item', pkey='id').columns().column('id', dtype='I')
 
-    recipe = Recipe()
-    recipe.create()
-    recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = Failing
+            def trigger_onInserting(self, record):
+                self.calls.append(record['id'])
+                raise ValueError('domain validation failed')
+    ''')
     db = AsqueelDb(recipe)
+    calls = db.table('app.item').calls
     driver = db.adapter
     with pytest.raises(ValueError, match='domain validation'):
         db.table('app.item').insert({'id': 1})

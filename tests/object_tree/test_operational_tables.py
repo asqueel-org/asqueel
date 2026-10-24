@@ -46,7 +46,7 @@ def test_binding_reuses_table_column_and_relation_objects(monkeypatch):
     source, _, customer = recipe()
     customer.aliasColumn('copied_id', relation_path='id')
     customer.formulaColumn('double_id', sql_formula='$id * 2', dtype='L')
-    customer.options().audit(mode='lazy')
+    customer.options().archive()
     db = AsqueelDb(source)
     model = db.model
     structural = model.table('invc.customer')

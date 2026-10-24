@@ -6,7 +6,7 @@ import code
 import sys
 
 from .application import AsqueelDb
-from .configuration import connection_settings
+from .runtime import connection_settings
 from .errors import MigrationError
 from .registry import DatabaseRegistry, RegistrationError
 

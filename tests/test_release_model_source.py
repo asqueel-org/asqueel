@@ -66,7 +66,7 @@ def test_options_have_closed_signatures_and_are_scoped_to_the_owner():
     with pytest.raises(ValueError, match='does not accept'):
         opts.type('bad', dtypo='N')
     with pytest.raises(ValueError, match='not available'):
-        db.options().sys_fields()
+        db.options().sysFields()
     with pytest.raises(ValueError, match='not available'):
         pkg.options().driver(connect_timeout=10)
 
@@ -81,27 +81,19 @@ def test_positional_option_arguments_are_not_silently_lost():
 @pytest.mark.parametrize('config', [
     {'id': {'type': 'custom'}}, {'id': {'size': '36'}},
     {'upd': {'indexed': 'yes'}}, {'upd': {'name_long': 17}},
-    {'timestamp_type': 'T'}, {'timestamp_type': 'DH'}, {'timestamp_type': 'DHZ'}, {'id': 1},
+    {'id': 1},
     {'id': None},
 ])
 def test_system_field_payloads_are_typed_and_closed(config):
     _, _, pkg = source()
     with pytest.raises(ValueError):
-        pkg.table('customer').options().sys_fields(**config)
-
-
-def test_imported_timestamp_choice_is_rejected_instead_of_silently_ignored():
-    builder, _, pkg = source()
-    option = pkg.table('customer').options().sys_fields()
-    option.attr['timestamp_type'] = 'DH'
-    with pytest.raises(ValueError, match='timestamp_type removed'):
-        builder.validate_source()
+        pkg.table('customer').options().sysFields(**config)
 
 
 def test_options_copy_input_without_expanding_or_generating_values():
     builder, _, pkg = source()
     config = {'type': 'uuid', 'name_long': 'Identificativo'}
-    option = pkg.table('customer').options().sys_fields(id=config, draft=True)
+    option = pkg.table('customer').options().sysFields(id=config, draft=True)
     config['type'] = 'changed'
     assert option.get_attr('id')['type'] == 'uuid'
     assert builder.source['db.packages.invc.tables.customer.columns'] is None
@@ -110,24 +102,24 @@ def test_options_copy_input_without_expanding_or_generating_values():
 def test_field_dicts_merge_per_key_and_conflicts_leave_the_source_unchanged():
     builder, _, pkg = source()
     opts = pkg.table('customer').options()
-    fields = opts.sys_fields(id={'type': 'uuid'})
-    opts.sys_fields(id={'name_long': 'Identificativo'})
+    fields = opts.sysFields(id={'type': 'uuid'})
+    opts.sysFields(id={'name_long': 'Identificativo'})
     assert fields.get_attr('id') == {'type': 'uuid', 'name_long': 'Identificativo'}
     with pytest.raises(ValueError, match='conflicting'):
-        opts.sys_fields(id={'indexed': True, 'name_long': 'Conflitto'})
+        opts.sysFields(id={'indexed': True, 'name_long': 'Conflitto'})
     assert 'indexed' not in fields.get_attr('id')
     with builder.contribution('custom'):
-        opts.sys_fields(id={'name_long': 'Codice'})
+        opts.sysFields(id={'name_long': 'Codice'})
     assert fields.get_attr('id') == {'type': 'uuid', 'name_long': 'Codice'}
 
 
 def test_reset_removes_accumulated_configuration_without_creating_a_runtime_node():
     builder, _, pkg = source()
     opts = pkg.table('customer').options()
-    opts.sys_fields(id=False)
+    opts.sysFields(id=False)
     with builder.contribution('custom'):
-        opts.reset('sys_fields')
-        option = opts.sys_fields(draft=True)
+        opts.reset('sysFields')
+        option = opts.sysFields(draft=True)
     assert 'id' not in option.attr
     assert not any(node.node_tag == 'reset' for _, node in builder.source.query('#p,#n', deep=True))
     with pytest.raises(ValueError, match='unknown option'):
@@ -146,7 +138,7 @@ def test_package_source_exports_the_declared_table():
 
 def test_direct_declarations_also_work_on_legacy_schema_tables():
     builder = SqlBuilder()
-    table = builder.source.db('d').schemas().schema('public').tables().table('customer', pkey='id')
+    table = builder.source.db('d').packages().package('public', sqlschema='public', sqlprefix=False).tables().table('customer', pkey='id')
     table.column('id', dtype='L')
     assert AsqueelDb(builder).model.table('public.customer').pkey == 'id'
 

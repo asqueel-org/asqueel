@@ -28,7 +28,7 @@ from tests.native_support import postgres_dsn
 def _table(recipe_body):
     class Recipe(SqlBuilder):
         def main(self, root):
-            tables = root.db(name='d').schemas().schema(name='s').tables()
+            tables = root.db(name='d').packages().package(name='s', sqlschema='s', sqlprefix=False).tables()
             target = tables.table(name='target', pkey='id')
             target_columns = target.columns()
             target_columns.column(name='id', dtype='L')
@@ -57,7 +57,7 @@ def _indexes_on(table, columns):
 def test_sql_actions_accept_the_legacy_abbreviations(declared, expected):
     def body(columns):
         columns.column(name='target_id', dtype='L').relation(
-            to='s.target.id', foreign_key=True, onDelete_sql=declared, onUpdate_sql=declared)
+            related_column='s.target.id', foreign_key=True, onDelete_sql=declared, onUpdate_sql=declared)
 
     relation, = _table(body)['item']['relations'].values()
     assert relation['attributes']['on_delete'] == expected
@@ -68,7 +68,7 @@ def test_sql_actions_accept_the_legacy_abbreviations(declared, expected):
 def test_no_action_projects_no_action_clause(declared):
     def body(columns):
         columns.column(name='target_id', dtype='L').relation(
-            to='s.target.id', foreign_key=True, onDelete_sql=declared, onUpdate_sql=declared)
+            related_column='s.target.id', foreign_key=True, onDelete_sql=declared, onUpdate_sql=declared)
 
     relation, = _table(body)['item']['relations'].values()
     assert relation['attributes'].get('on_delete') is None
@@ -78,7 +78,7 @@ def test_no_action_projects_no_action_clause(declared):
 def test_an_unknown_sql_action_is_refused():
     def body(columns):
         columns.column(name='target_id', dtype='L').relation(
-            to='s.target.id', foreign_key=True, onDelete_sql='X')
+            related_column='s.target.id', foreign_key=True, onDelete_sql='X')
 
     with pytest.raises(Exception, match="onDelete_sql 'X'"):
         _table(body)
@@ -86,7 +86,7 @@ def test_an_unknown_sql_action_is_refused():
 
 def test_a_relation_without_foreign_key_is_indexed_and_projects_no_constraint():
     def body(columns):
-        columns.column(name='target_id', dtype='L').relation(to='s.target.id')
+        columns.column(name='target_id', dtype='L').relation(related_column='s.target.id', foreign_key=False)
 
     item = _table(body)['item']
     assert item['relations'] == {}
@@ -95,14 +95,14 @@ def test_a_relation_without_foreign_key_is_indexed_and_projects_no_constraint():
 
 def test_indexed_false_on_a_relation_without_foreign_key_skips_the_index():
     def body(columns):
-        columns.column(name='target_id', dtype='L').relation(to='s.target.id', indexed=False)
+        columns.column(name='target_id', dtype='L').relation(related_column='s.target.id', foreign_key=False, indexed=False)
 
     assert _indexes_on(_table(body)['item'], ['target_id']) == []
 
 
 def test_a_relation_to_a_non_pkey_target_column_indexes_the_target_column():
     def body(columns):
-        columns.column(name='target_code', dtype='T').relation(to='s.target.code')
+        columns.column(name='target_code', dtype='T').relation(related_column='s.target.code')
 
     tables = _table(body)
     assert len(_indexes_on(tables['item'], ['target_code'])) == 1
@@ -145,7 +145,7 @@ def test_indexed_dict_with_unique_and_where_is_a_partial_unique_index():
 def test_indexed_dict_on_a_relation_column_gives_one_index_with_its_options():
     def body(columns):
         columns.column(name='target_id', dtype='L', indexed=dict(sorting='DESC')).relation(
-            to='s.target.id', foreign_key=True)
+            related_column='s.target.id', foreign_key=True)
 
     index, = _indexes_on(_table(body)['item'], ['target_id'])
     assert index['attributes']['columns'] == {'target_id': 'DESC'}
@@ -168,12 +168,12 @@ def _sqlite_recipe(path):
         def main(self, root):
             db = root.db()
             db.connection(name=str(path), implementation='sqlite')
-            tables = db.schemas().schema('app').tables()
+            tables = db.packages().package('app', sqlschema='app', sqlprefix=False).tables()
             customer = tables.table('customer', pkey='id').columns()
             customer.column('id', dtype='L')
             invoice = tables.table('invoice', pkey='id').columns()
             invoice.column('id', dtype='L')
-            invoice.column('customer_id', dtype='L').relation(to='app.customer.id', foreign_key=True)
+            invoice.column('customer_id', dtype='L').relation(related_column='app.customer.id', foreign_key=True)
     return Recipe
 
 
@@ -221,11 +221,11 @@ def test_cli_no_foreign_keys_option(tmp_path, capsys):
         '    def main(self, root):\n'
         '        db = root.db()\n'
         f'        db.connection(name={str(path)!r}, implementation="sqlite")\n'
-        '        tables = db.schemas().schema("app").tables()\n'
+        '        tables = db.packages().package("app", sqlschema="app", sqlprefix=False).tables()\n'
         '        tables.table("customer", pkey="id").columns().column("id", dtype="L")\n'
         '        invoice = tables.table("invoice", pkey="id").columns()\n'
         '        invoice.column("id", dtype="L")\n'
-        '        invoice.column("customer_id", dtype="L").relation(to="app.customer.id", foreign_key=True)\n'
+        '        invoice.column("customer_id", dtype="L").relation(related_column="app.customer.id", foreign_key=True)\n'
     )
     assert main(['db', 'plan', str(source), '--no-foreign-keys']) == 0
     assert 'REFERENCES' not in capsys.readouterr().out
@@ -238,7 +238,7 @@ def test_cli_no_foreign_keys_option(tmp_path, capsys):
 def _pg_recipe(dsn, schema, dtype):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            columns = root.db(implementation='postgres', conninfo=dsn).schemas().schema(schema).tables().table(
+            columns = root.db(implementation='postgres', conninfo=dsn).packages().package(schema, sqlschema=schema, sqlprefix=False).tables().table(
                 'event', pkey='id').columns()
             columns.column('id', dtype='L')
             columns.column('happened', dtype=dtype)
@@ -339,7 +339,7 @@ def test_migrate_still_refuses_skipped_changes_before_any_ddl(tmp_path):
             def main(self, root):
                 db = root.db()
                 db.connection(name=str(path), implementation='sqlite')
-                columns = db.schemas().schema('app').tables().table('item', pkey='id').columns()
+                columns = db.packages().package('app', sqlschema='app', sqlprefix=False).tables().table('item', pkey='id').columns()
                 columns.column('id', dtype='L')
                 columns.column('name', dtype=dtype)
         return Recipe

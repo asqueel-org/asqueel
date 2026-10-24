@@ -37,10 +37,9 @@ written through the cycle.
 
 | Declaration | Issue |
 |---|---|
-| enabled options other than `sys_fields`, `hierarchical`, `auto_counter`, `relative_index` | no issue yet |
-| column `default_from`, `x_generation` (except the `id` declared by `sys_fields`) | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
+| enabled options other than `sysFields`, `hierarchical`, `counter`, `relidx` | no issue yet |
+| column `default_from` | [#28](https://github.com/asqueel-org/asqueel/issues/28) (newrecord with defaults) |
 | a column child other than its relation | no issue yet |
-| a table expanded from a legacy source (`x_expanded_legacy`) | no issue yet |
 
 Other operations a project may expect and that are missing or fail:
 
@@ -191,8 +190,7 @@ when it is written, naming the attribute and the element, for example
 attributes (`group_*`, `cell_*`, `template_*`, ...) are refused the
 same way. The column attribute `encrypted` raises `UnsupportedFeatureError`
 naming it. The partition filter of `partition_<field>` does not port the GenroPy
-fallback on an `__allowed_partition` column. The legacy loader `from_expanded_legacy_xml` raises on the first legacy
-attribute it does not map. `subtable()` and `options().tenant()` are not part of
+fallback on an `__allowed_partition` column. `subtable()` and `options().tenant()` are not part of
 the grammar. A table class defining a package trigger (`trigger_onInserted_<pkg>`)
 raises `UnsupportedFeatureError` when the model is built; the environment keys `sql_comment`, `sql_details` and
 `env_<table>_condition_*` raise it at execution.

@@ -18,7 +18,7 @@ from asqueel import CompiledQuery, SqlDatabaseConfig, AsqueelDb
 # model-start
 class Shop(SqlDatabaseConfig):
     def main(self, root):
-        tables = root.db("shop").schemas().schema("sales").tables()
+        tables = root.db("shop").packages().package("sales", sqlschema="sales", sqlprefix=False).tables()
         self.customer(tables)
         self.invoice(tables)
         self.line(tables)
@@ -34,7 +34,7 @@ class Shop(SqlDatabaseConfig):
         columns = invoice.columns()
         columns.column("id", dtype="L")
         columns.column("customer_id", dtype="L").relation(
-            "sales.customer.id", foreign_key=True, x_name="customer", relation_name="invoices",
+            "sales.customer.id", foreign_key=True, relation_name="invoices",
         )
         columns.column("total", dtype="N", size="12,2", notnull=True)
         columns.column("note", dtype="T")
@@ -52,7 +52,7 @@ class Shop(SqlDatabaseConfig):
         columns = tables.table("line", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("invoice_id", dtype="L").relation(
-            "sales.invoice.id", foreign_key=True, x_name="invoice", relation_name="lines",
+            "sales.invoice.id", foreign_key=True, relation_name="lines",
         )
         columns.column("amount", dtype="N", size="12,2")
 # model-end
@@ -62,8 +62,8 @@ class Shop(SqlDatabaseConfig):
 def open_shop(dsn, physical_schema):
     class Deployment(SqlDatabaseConfig):
         def main(self, root):
-            root.db("shop", implementation="postgres", conninfo=dsn).schemas().schema(
-                "sales", sqlname=physical_schema,
+            root.db("shop", implementation="postgres", conninfo=dsn).packages().package(
+                "sales", sqlschema=physical_schema, sqlprefix=False
             )
 
     return AsqueelDb(Deployment, parents=[Shop])

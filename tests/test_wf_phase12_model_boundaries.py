@@ -22,7 +22,7 @@ def _mount():
 
 def _table(*, pkey="id"):
     model = _mount()
-    tables = model.source.db(name="d").schemas().schema(name="s").tables()
+    tables = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
     table = tables.table(
         name="t", pkey=pkey,
     )
@@ -63,7 +63,7 @@ def test_index_name_defaults_as_legacy_and_columns_are_required():
 
 def test_multiple_relations_are_rejected_by_domain_validation():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="s")
+    schema = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False)
     tables = schema.tables()
     for name in ("a", "b"):
         target = tables.table(name=name, pkey="id")
@@ -72,15 +72,16 @@ def test_multiple_relations_are_rejected_by_domain_validation():
     source_columns = source.columns()
     source_columns.column(name="id", dtype="serial")
     owner = source_columns.column(name="target_id", dtype="L")
-    owner.relation(to="s.a.id", foreign_key=True)
-    owner.relation(to="s.b.id", foreign_key=True)
+    owner.relation(related_column="s.a.id", foreign_key=True)
+    owner.relation(related_column="s.b.id", foreign_key=True)
     with pytest.raises(SqlModelValidationError, match="at most one"):
         model.render(mode='migration')
 
 
 def test_pkey_spacing_and_dtype_default_are_normalized():
-    model, _table_node, columns = _table(pkey="id, code")
+    model, table, columns = _table(pkey="id_code")
     columns.column(name="code", dtype="L")
+    table.composites().compositeColumn(name="id_code", columns="id, code")
     columns.column(name="description")
     rendered = model.render(mode='migration')
     item = rendered["root"]["schemas"]["s"]["tables"]["t"]
@@ -90,7 +91,7 @@ def test_pkey_spacing_and_dtype_default_are_normalized():
 
 def test_auto_index_over_the_exact_pkey_is_suppressed():
     model = _mount()
-    tables = model.source.db(name="d").schemas().schema(name="s").tables()
+    tables = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
     table = tables.table(
         name="t", pkey="id",
     )
@@ -107,7 +108,7 @@ def test_sql_type_and_dotted_address_names_are_rejected():
     dotted = _mount()
     db = dotted.source.db(name="d")
     with pytest.raises(ValueError, match="dot|separator|name"):
-        db.schemas().schema(name="bad.name")
+        db.packages().package(name="bad.name", sqlschema="bad.name", sqlprefix=False)
 
 
 def test_generated_grammar_states_the_real_public_contract():

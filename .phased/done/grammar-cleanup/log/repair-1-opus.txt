@@ -1,0 +1,17 @@
+✓ Phase 1 riparata e chiusa `[x]`, con commit `9650fc5`. Il codice della fase era giusto. Il secondo tentativo aveva esaurito i turni con 40 test ancora da riallineare.
+
+- **Cosa ho cambiato:**
+  - I test che dichiaravano `record_hash`, `audit`, `protection` o `attachments` ora usano opzioni che restano nel grammar.
+  - Ho cancellato i 6 test che verificavano solo l'expansion di una delle opzioni rimosse.
+  - `examples/model_grammar/configure.py` non usa più `attachments`.
+  - `DbModelObj.keys()/items()` ora restituiscono dict views, perché le liste del secondo tentativo rompevano `keys() & {...}`.
+  - Ho rigenerato `test_invoice_pg.objects.json` e aggiunto le release notes.
+  - Ho applicato anche le correzioni del `wf:phase-verifier`.
+- **Done:** tutti i criteri tornano tranne il word-grep, che stampa righe del solo contract test.
+  - Suite completa: 5416 passed, 42 skipped, 20 xfailed. `ruff` è pulito.
+  - I golden di migration sono identici byte per byte.
+  - Il diff del golden objects tocca solo `adm.user`, `adm.htmltemplate`, `adm.htmltemplate_atc` e `sys.widget`. Il dettaglio è in `notes.md`, sotto `## Phase 1`.
+  - Il contract test `tests/test_grammar_cleanup_option_names.py` passa ed è identico alla copia del piano.
+- **Da decidere (note `> Review:` del piano):**
+  - Il word-grep del `Done:` trova righe solo nel contract test. Quel test deve restare identico e contiene i vecchi nomi come dati. Nessun altro file li contiene.
+  - `'sysfields' in table.options` restituisce False, mentre `table.options['sysfields']` trova l'opzione: la ricerca con `in` distingue maiuscole e minuscole, `get()` e `[]` no. Va deciso se `in` deve comportarsi come `get()`.

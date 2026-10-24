@@ -101,7 +101,7 @@ def test_sql_actions_reach_the_migration_foreign_key_in_a_package():
 def test_sql_actions_reach_the_migration_foreign_key_outside_a_package():
     class Recipe(SqlBuilder):
         def main(self, root):
-            tables = root.db(name='d').schemas().schema(name='public').tables()
+            tables = root.db(name='d').packages().package(name='public', sqlschema='public', sqlprefix=False).tables()
             tables.table(name='customer', pkey='id').columns().column(name='id', dtype='L')
             invoice = tables.table(name='invoice', pkey='id').columns()
             invoice.column(name='id', dtype='L')

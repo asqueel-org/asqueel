@@ -11,7 +11,7 @@ _VIRTUAL_COLUMN_TAGS = (
     "aliasColumn", "formulaColumn", "subQueryColumn", "pyColumn", "bagItemColumn",
 )
 _COLLECTION_TAGS = frozenset({
-    "schemas", "extensions", "tables", "columns", "virtual_columns",
+    "packages", "extensions", "tables", "columns", "virtual_columns",
     "composites", "constraints", "indexes",
 })
 
@@ -24,7 +24,6 @@ class SqlModelCatalog:
         self.database = None
         self.db_name = None
         self.nodes: list[tuple[str, Any]] = []
-        self.schemas: dict[str, Any] = {}
         self.packages: dict[str, Any] = {}
         self.extensions: dict[str, Any] = {}
         self.tables: dict[tuple[str, str], dict[str, Any]] = {}
@@ -71,9 +70,6 @@ class SqlModelCatalog:
                 self.database = node
                 self.db_name = node.get_attr("name")
                 continue
-            if tag == "schema":
-                self.schemas[node.get_attr("name")] = node
-                continue
             if tag == 'package':
                 self.packages[node.get_attr('name')] = node
                 continue
@@ -81,7 +77,7 @@ class SqlModelCatalog:
                 self.extensions[node.get_attr("name")] = node
                 continue
 
-            schema = self._ancestor(node, 'package') or self._ancestor(node, "schema")
+            schema = self._ancestor(node, 'package')
             if schema is None:
                 continue
             schema_name = schema.get_attr("name")

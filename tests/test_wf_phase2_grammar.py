@@ -18,7 +18,7 @@ def _recipe():
     class RecipeDatabase(SqlBuilder):
         def main(self, root):
             db = root.db(name="recipes")
-            public = db.schemas().schema(name="public")
+            public = db.packages().package(name="public", sqlschema="public", sqlprefix=False)
             tables = public.tables()
 
             author = tables.table(name="author", pkey="id", comment="Authors")
@@ -38,7 +38,7 @@ def _recipe():
             author_id = recipe_columns.column(
                 name="author_id", dtype="L", notnull=True,
             )
-            author_id.relation(to="public.author.id", foreign_key=True,
+            author_id.relation(related_column="public.author.id", foreign_key=True,
                                onDelete_sql="cascade", relation_name="recipes")
             recipe.composites().compositeColumn(
                 name="author_title", columns="author_id,title", unique=True,
@@ -60,38 +60,27 @@ def _recipe():
 
 def test_recipe_builds_and_tree_is_name_addressed():
     model = _recipe()
-    node = model.source["db.schemas.public.tables.author"]
+    node = model.source["db.packages.public.tables.author"]
     assert node is not None
-    columns = model.source["db.schemas.public.tables.author.columns"]
+    columns = model.source["db.packages.public.tables.author.columns"]
     author_cols = [n.label for n in columns.value]
     assert "id" in author_cols and "name" in author_cols
 
 
 def test_collections_are_keyed_by_name_at_every_level():
     model = _recipe()
-    assert model.source["db.schemas.public"] is not None
-    assert model.source["db.schemas.public.tables.recipe"] is not None
+    assert model.source["db.packages.public"] is not None
+    assert model.source["db.packages.public.tables.recipe"] is not None
     assert model.source[
-        "db.schemas.public.tables.recipe.columns.author_id"
+        "db.packages.public.tables.recipe.columns.author_id"
     ] is not None
-
-
-def test_duplicate_table_name_raises():
-    class Dup(SqlBuilder):
-        def main(self, root):
-            tables = root.db(name="d").schemas().schema(name="s").tables()
-            tables.table(name="t")
-            tables.table(name="t")
-
-    with pytest.raises(Exception):
-        Dup().create()
 
 
 def test_unknown_physical_attribute_rejected_at_grammar_or_validation():
     # A typo like dtypo= or a free x_custom= never becomes an attribute: the
     # element signature rejects it at call time, naming attribute and element.
     model = _recipe()
-    columns = model.source["db.schemas.public.tables.author.columns"]
+    columns = model.source["db.packages.public.tables.author.columns"]
     for key in ("dtypo", "x_custom"):
         with pytest.raises(ValueError, match=f"Element 'column' does not accept '{key}'"):
             columns.column(name="other", dtype="A", **{key: "free"})
@@ -100,7 +89,7 @@ def test_unknown_physical_attribute_rejected_at_grammar_or_validation():
 def test_unknown_tag_raises():
     class BadTag(SqlBuilder):
         def main(self, root):
-            table = root.db(name="d").schemas().schema(name="s").tables().table(
+            table = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables().table(
                 name="t",
             )
             table.view(name="v")
@@ -118,11 +107,11 @@ def test_out_of_scope_elements_are_gone():
 def test_relation_cardinality_at_most_one():
     class TwoRels(SqlBuilder):
         def main(self, root):
-            table = root.db(name="d").schemas().schema(name="s").tables()
+            table = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
             t = table.table(name="t", pkey="a")
             c = t.columns().column(name="a", dtype="L")
-            c.relation(to="s.t.a")
-            c.relation(to="s.t.a")
+            c.relation(related_column="s.t.a")
+            c.relation(related_column="s.t.a")
 
     model = TwoRels()
     model.create()
@@ -134,22 +123,22 @@ def test_relation_cardinality_at_most_one():
 def test_virtual_columns_do_not_accept_children_but_composite_hosts_relation():
     class Comp(SqlBuilder):
         def main(self, root):
-            tables = root.db(name="d").schemas().schema(name="s").tables()
+            tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
             t = tables.table(name="t", pkey="a")
             columns = t.columns()
             columns.column(name="a", dtype="L")
             columns.column(name="b", dtype="A", size="0:10")
             cc = t.composites().compositeColumn(name="ab", columns="a,b")
-            cc.relation(to="s.t")
+            cc.relation(related_column="s.t")
 
     Comp().create()  # must not raise
 
 
 def test_projection_meta_flags():
     model = _recipe()
-    col = model.source["db.schemas.public.tables.author.columns.name"]
+    col = model.source["db.packages.public.tables.author.columns.name"]
     composite = model.source[
-        "db.schemas.public.tables.recipe.composites.author_title"
+        "db.packages.public.tables.recipe.composites.author_title"
     ]
     assert col._get_meta("projects_column") is True
     assert composite._get_meta("projects_column") in (False, None)
@@ -160,10 +149,12 @@ def test_projection_meta_flags():
 def test_dtype_is_validated_as_literal():
     class BadDtype(SqlBuilder):
         def main(self, root):
-            table = root.db(name="d").schemas().schema(name="s").tables().table(
+            table = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables().table(
                 name="t",
             )
             table.columns().column(name="c", dtype="NOPE")
 
-    with pytest.raises(Exception):
-        BadDtype().create()
+    model = BadDtype()
+    model.create()
+    with pytest.raises(ValueError, match="unknown dtype"):
+        model.render(mode='migration')

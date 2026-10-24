@@ -13,7 +13,7 @@ def db():
     customer.column('id')
     customer.column('name')
     invoice = pkg.table('invoice', pkey='id', sqlname='Bills%')
-    invoice.column('id', dtype='L', sqlname='ID%', x_identity='invoice-id')
+    invoice.column('id', dtype='L', sqlname='ID%')
     invoice.column('customer_id').relation('app.customer.id')
     invoice.column('amount', dtype='N')
     invoice.formulaColumn('double', '$amount * 2', dtype='N')

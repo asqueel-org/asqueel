@@ -32,7 +32,7 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
     b = complete_example()
     nodes = [node for _, node in b.source.query('#p,#n', deep=True)]
     assert not any(node.node_tag == 'column' and node.get_attr('name') in (
-        'id', '__ins_ts', 'hierarchical_pkey', 'filepath', '__version') for node in nodes)
+        'id', '__ins_ts', 'hierarchical_pkey') for node in nodes)
     assert b.validate_source() == []
     clone = _copy_recipe(b)
     assert clone.source.get_node('db').get_attr('name') == 'test_invoice_pg'
@@ -40,16 +40,14 @@ def test_invoice_example_is_buildable_without_expansion_or_provider_resolution(m
 
 
 @pytest.mark.parametrize(('tag', 'kwargs'), [
-    ('hierarchical', {'columns': ['code']}), ('auto_counter', {}),
-    ('relative_index', {'relation': 'owner_id'}), ('dynamic_fields', {}),
-    ('record_hash', {}), ('full_update', {}),
-    ('audit', {'mode': 'lazy'}),
-    ('system_records', {'records': {'a': {'title': 'A'}}}),
-    ('protection', {}), ('release', {'handlers': {'1': 'app.upgrade'}}),
+    ('hierarchical', {'columns': ['code']}), ('counter', {}),
+    ('relidx', {'relation': 'owner_id'}), ('df', {}),
+    ('fullUpd', {}),
+    ('sysrecords', {'records': {'a': {'title': 'A'}}}),
+    ('release', {'handlers': {'1': 'app.upgrade'}}),
     ('retention', {'field': 'created', 'days': 30}),
     ('broadcast', {}), ('archive', {}),
     ('enabled_when', {'preference': 'enabled'}),
-    ('attachments', {'master': 'app.item'}),
     ('numbering', {'field': 'code'}),
 ])
 def test_option_signatures_are_closed_and_scoped(tag, kwargs):
@@ -66,21 +64,21 @@ def test_option_signatures_are_closed_and_scoped(tag, kwargs):
 def test_merge_disable_reenable_and_reset_keep_explicit_source_values():
     b, _, table = source()
     opts = table.options()
-    opts.audit('lazy')
+    opts.enabled_when(preference='app.flag')
     opts.numbering('code', parameters={'prefix': 'A'})
     opts.numbering('code', parameters={'yearly': True})
     assert table.value.get_node('options.numbering_code').get_attr('parameters') == {'prefix': 'A', 'yearly': True}
     with b.contribution('disable'):
-        opts.audit(False)
+        opts.enabled_when(False)
     b.validate_source()
     with b.contribution('reenable'):
-        opts.audit(enabled=True)
-    audit = table.value.get_node('options.audit')
-    assert audit.get_attr('mode') == 'lazy'
-    opts.reset('audit')
+        opts.enabled_when(enabled=True)
+    enabled_when = table.value.get_node('options.enabled_when')
+    assert enabled_when.get_attr('preference') == 'app.flag'
+    opts.reset('enabled_when')
     with pytest.raises(ValueError, match='required'):
-        opts.audit(enabled=True)
-    opts.audit('full')
+        opts.enabled_when(enabled=True)
+    opts.enabled_when(preference='app.other')
     assert _copy_recipe(b).validate_source() == []
 
 
@@ -93,17 +91,15 @@ def test_named_options_are_independent_and_broadcast_accepts_positional_columns(
 
 
 @pytest.mark.parametrize(('tag', 'kwargs'), [
-    ('audit', {'mode': 'typo'}),
-    ('audit', {}),
     ('hierarchical', {'columns': [{'name': 'code', 'size': 10}]}),
     ('hierarchical', {'columns': [{'name': 'code', 'unique': 'yes'}]}),
     ('hierarchical', {'depth': True}), ('hierarchical', {'depth': 0}),
     ('retention', {'field': 'date', 'days': -1}),
     ('retention', {'field': 'date', 'days': True}),
-    ('system_records', {'records': {'a': lambda: None}}),
+    ('sysrecords', {'records': {'a': lambda: None}}),
     ('release', {'handlers': {1: 'app.upgrade'}}),
     ('numbering', {'field': 'code', 'parameters': {'bad': float('nan')}}),
-    ('protection', {'rules': [lambda: None]}), ('dynamic_fields', {'source': 'app.t.col'}),
+    ('df', {'source': 'app.t.col'}),
 ])
 def test_invalid_payloads_are_rejected_without_instantiating_providers(tag, kwargs):
     _, _, table = source()
@@ -114,10 +110,10 @@ def test_invalid_payloads_are_rejected_without_instantiating_providers(tag, kwar
 def test_column_dynamic_fields_has_its_own_payload_and_no_implicit_expansion():
     b, _, table = source()
     col = table.column('data', 'X')
-    node = col.dynamic_fields(source='app.template.fields')
+    node = col.df(source='app.template.fields')
     assert node.get_attr('source') == 'app.template.fields'
     with pytest.raises(ValueError, match='not templates'):
-        col.dynamic_fields(templates={})
+        col.df(templates={})
     b.validate_source()
     node.attr['typo'] = True
     with pytest.raises(ValueError, match='does not accept'):
@@ -135,13 +131,6 @@ def test_grammar_export_and_source_json_preserve_declarations(tmp_path):
     for label in ('packages', 'app', 'tables', 'item', 'options', 'hierarchical'):
         node, = (child for child in node['value'] if child['label'] == label)
     assert node['attr']['columns'] == [{'name': 'code', 'unique': True}]
-
-
-def test_attachment_missing_master_cannot_be_silently_omitted_from_migration():
-    b, _, table = source()
-    table.options().attachments(master='app.parent')
-    with pytest.raises(ValueError, match='unknown related table'):
-        b.render(mode='migration')
 
 
 def test_removed_declarations_are_not_in_the_grammar(tmp_path):
@@ -166,32 +155,18 @@ def test_removed_declarations_are_not_in_the_grammar(tmp_path):
     assert '"diagnostics"' not in json.dumps(grammar)
 
 
-@pytest.mark.parametrize('name', ['context', 'generation', 'behavior', 'pkey_from', 'macro', 'normalize', 'diagnostics'])
-def test_old_source_nodes_cannot_silently_survive_composition(name):
-    b, db, _ = source()
-    opts = db.options()
-    opts.value = type(b.source)(builder=b)
-    opts.value.set_item(name, None, node_tag=name)
-    with pytest.raises(ValueError, match='removed'):
-        b.validate_source()
-
-
 @pytest.mark.parametrize(('tag', 'kwargs'), [
-    ('audit', {'mode': 'lazy'}),
     ('retention', {'field': '__ins_ts', 'days': 60}),
     ('broadcast', {'columns': 'objtype'}), ('archive', {}),
     ('enabled_when', {'preference': 'adm.dev.connection_log_enabled'}),
-    ('attachments', {'master': 'adm.htmltemplate'}), ('numbering', {'field': 'inv_number'}),
+    ('numbering', {'field': 'inv_number'}),
 ])
 def test_legacy_options_reject_provider_bindings(tag, kwargs):
     b, _, table = source()
-    node = getattr(table.options(), tag)(**kwargs)
+    getattr(table.options(), tag)(**kwargs)
     b.validate_source()
     with pytest.raises(ValueError, match='does not accept'):
         getattr(table.options(), tag)(**kwargs, provider='app.handler')
-    node.attr['provider'] = 'app.handler'
-    with pytest.raises(ValueError, match='provider removed'):
-        b.validate_source()
 
 
 def test_existing_resolvers_survive_build_clone_and_composition_without_running(monkeypatch):

@@ -6,8 +6,9 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, AsqueelDb
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
 
 @pytest.fixture(params=['db_pg', 'db_sqlite'])
@@ -22,7 +23,24 @@ def test_sys_fields_with_no_rules_return_null_not_false(invoice_db):
     assert all(all(value is None for value in row.values()) for row in rows)
 
 
-class Item(SqlTable):
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        table = pkg.table('item', pkey='id', protectionColumn='gate')
+        for name, dtype in [('id', 'L'), ('amount', 'N'), ('gate', 'T'), ('flag', 'B')]:
+            table.column(name, dtype=dtype)
+        table.formulaColumn('adjusted', sql_formula=True, dtype='N')
+        table.formulaColumn('named', sql_formula=True, dtype='N', select_rows=dict(
+            table='app.item', columns='SUM($adjusted)',
+            where='$id=#THIS.id AND $amount>:factor', sqlparams={'factor': 0}))
+        table.aliasColumn('adjusted_alias', '$adjusted')
+        table.formulaColumn('__protected_by_amount', '$adjusted>:threshold', var_threshold=10, dtype='B')
+        table.formulaColumn("__invalid_by_one", '$flag', dtype='B')
+        table.formulaColumn('__protecting_reasons', sql_formula=True)
+        table.formulaColumn('__invalid_reasons', sql_formula=True)
+        table.formulaColumn('__is_protected_row', "$__protecting_reasons!=''", dtype='B')
+        table.formulaColumn('__is_invalid_row', "$__invalid_reasons!=''", dtype='B')
+
     def sql_formula_adjusted(self, attr):
         attr['var_factor'] = self.db.currentEnv.get('multiplier', 2)
         return '$amount * :factor'
@@ -31,6 +49,7 @@ class Item(SqlTable):
         attr['var_factor'] = 3
         attr['select_rows']['sqlparams']['factor'] = 4
         return 'COALESCE(#rows,0) + :factor'
+'''
 
 
 @pytest.fixture(params=['postgres', 'sqlite'])
@@ -42,21 +61,8 @@ def rule_db(request, tmp_path):
     root.connection(implementation=backend, **(
         {'dsn': postgres_dsn()} if backend == 'postgres'
         else {'database': str(tmp_path / 'rules.db')}))
-    table = root.packages().package('app', sqlschema=schema, sqlprefix=False).table(
-        'item', pkey='id', x_table_class=Item, protectionColumn='gate')
-    for name, dtype in [('id', 'L'), ('amount', 'N'), ('gate', 'T'), ('flag', 'B')]:
-        table.column(name, dtype=dtype)
-    table.formulaColumn('adjusted', sql_formula=True, dtype='N')
-    table.formulaColumn('named', sql_formula=True, dtype='N', select_rows=dict(
-        table='app.item', columns='SUM($adjusted)',
-        where='$id=#THIS.id AND $amount>:factor', sqlparams={'factor': 0}))
-    table.aliasColumn('adjusted_alias', '$adjusted')
-    table.formulaColumn('__protected_by_amount', '$adjusted>:threshold', var_threshold=10, dtype='B')
-    table.formulaColumn("__invalid_by_one", '$flag', dtype='B')
-    table.formulaColumn('__protecting_reasons', sql_formula=True)
-    table.formulaColumn('__invalid_reasons', sql_formula=True)
-    table.formulaColumn('__is_protected_row', "$__protecting_reasons!=''", dtype='B')
-    table.formulaColumn('__is_invalid_row', "$__invalid_reasons!=''", dtype='B')
+    root.packages().package('app', sqlschema=schema, sqlprefix=False,
+                            path=write_layout(tmp_path / 'app', item=ITEM))
     admin = psycopg.connect(postgres_dsn(), autocommit=True) if backend == 'postgres' else None
     try:
         if admin is not None:

@@ -8,7 +8,6 @@ Element signatures are **closed**: an attribute the signature does not declare r
 
 ```
 db
-├── schemas[:1]
 ├── packages[:1]
 ├── extensions[:1]
 └── options[:1]
@@ -20,8 +19,8 @@ db
 
 Database root, one per model.
 
-- Contains: schemas[:1], packages[:1], extensions[:1], options[:1]
-- Child addressing: ordered internal labels for schemas, packages, extensions, options
+- Contains: packages[:1], extensions[:1], options[:1]
+- Child addressing: ordered internal labels for packages, extensions, options
 - Projection flags: none declared
 - Extra keys: not accepted
 
@@ -32,21 +31,6 @@ Database root, one per model.
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
-
-### `schemas`
-
-Physical/legacy source collection, not a package configuration section.
-
-Package configurations infer schemas from package.sqlschema.
-This collection remains for physical migration input and older sources.
-
-- Contains: schema
-- Child addressing: SQL-name labels for schema
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
 
 ### `extensions`
 
@@ -78,26 +62,9 @@ Rendered `CREATE EXTENSION IF NOT EXISTS` and never dropped.
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
 
-### `schema`
-
-A physical database schema, separate from logical packages.
-
-- Contains: tables[:1], options[:1]
-- Child addressing: ordered internal labels for tables, options
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| name | `str` | *required* | physical | the schema name — physical, and this node's key. |
-| comment | `str \| None` | `None` | semantic | source-only free description; structure-1.0 schemas have no physical attribute slot. |
-| sqlname | `str \| None` | `None` | physical |  |
-| name_long | `str \| None` | `None` | physical |  |
-| name_short | `str \| None` | `None` | physical |  |
-
 ### `tables`
 
-The explicit collection of a schema's tables.
+The explicit collection of a package's tables.
 
 - Contains: table
 - Child addressing: SQL-name labels for table
@@ -140,9 +107,6 @@ A table.
 | logicalDeletionField | `str \| None` | `None` | physical | the column marking a row as logically deleted; queries exclude those rows. |
 | draftField | `str \| None` | `None` | physical | the boolean column marking a draft row; queries exclude drafts. |
 | protectionColumn | `str \| None` | `None` | physical | the column whose value protects a row. |
-| x_table_class | `type \| None` | `None` | physical |  |
-| x_expanded_legacy | `bool \| None` | `None` | physical |  |
-| x_logical_pkey | `str \| None` | `None` | physical |  |
 
 ### `columns`
 
@@ -208,10 +172,10 @@ The explicit collection of table indexes.
 
 A physical column — the only element that projects as a column.
 
-- Contains: relation, dynamic_fields[:1]
-- Child addressing: ordered internal labels for relation, dynamic_fields
+- Contains: relation, df[:1]
+- Child addressing: ordered internal labels for relation, df
 - Projection flags: `projects_column`, `projects_relation`
-- Extra keys: `validate_*`, `sql_pg_*`, `sql_sqlite_*`
+- Extra keys: `validate_*`
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
@@ -223,7 +187,13 @@ A physical column — the only element that projects as a column.
 | indexed | `bool \| str \| dict` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a relation is always indexed. A string is read as `unique`. A dict carries the index options, as legacy `fill_json_column_index`: `method`, `where`, `tablespace`, `sorting` (comma-separated, one direction per column), `with_<name>` (a `WITH` storage option) and `unique` (without `where` it makes the column unique and creates no index; with `where` a partial unique index). |
 | sql_default | `str \| None` | `None` | physical | SQL DEFAULT expression. |
 | sql_extra | `str \| None` | `None` | physical | verbatim tail of the column definition. |
-| sql_generatedExpression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. sql_<dialect>_default, sql_<dialect>_generatedExpression, sql_<dialect>_extra: the same for one dialect (`pg`, `sqlite`); they win on it. |
+| sql_generatedExpression | `str \| None` | `None` | physical | GENERATED ALWAYS AS expression. |
+| sql_pg_default | `str \| None` | `None` | physical | `sql_default` on PostgreSQL; wins over it there. |
+| sql_pg_extra | `str \| None` | `None` | physical | `sql_extra` on PostgreSQL; wins over it there. |
+| sql_pg_generatedExpression | `str \| None` | `None` | physical | `sql_generatedExpression` on PostgreSQL; wins over it there. |
+| sql_sqlite_default | `str \| None` | `None` | physical | `sql_default` on SQLite; wins over it there. |
+| sql_sqlite_extra | `str \| None` | `None` | physical | `sql_extra` on SQLite; wins over it there. |
+| sql_sqlite_generatedExpression | `str \| None` | `None` | physical | `sql_generatedExpression` on SQLite; wins over it there. |
 | comment | `str \| None` | `None` | physical | the column comment. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | human label, short form. |
@@ -244,8 +214,6 @@ A physical column — the only element that projects as a column.
 | onUpdated | `object` | `None` | physical |  |
 | onDeleted | `object` | `None` | physical |  |
 | trigger_table | `str \| None` | `None` | physical |  |
-| x_identity | `str \| None` | `None` | physical |  |
-| x_generation | `dict \| None` | `None` | physical |  |
 
 ### `aliasColumn`
 
@@ -269,7 +237,6 @@ model rendering, unless it declares an explicit relation of its own.
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
 | static | `bool` | `False` | semantic | retain the legacy static declaration without executing it. |
-| x_identity | `str \| None` | `None` | physical |  |
 
 ### `formulaColumn`
 
@@ -292,7 +259,6 @@ A virtual column defined by SQL. Never physical.
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
-| x_identity | `str \| None` | `None` | physical |  |
 
 ### `subQueryColumn`
 
@@ -314,7 +280,6 @@ A virtual column defined by a sub-query. Never physical.
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
-| x_identity | `str \| None` | `None` | physical |  |
 
 ### `pyColumn`
 
@@ -337,7 +302,6 @@ A virtual column computed in Python. Never physical.
 | group | `str \| None` | `None` | semantic | field-group key. |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
-| x_identity | `str \| None` | `None` | physical |  |
 
 ### `compositeColumn`
 
@@ -413,7 +377,7 @@ reports every conflicting relation together.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| to | `str` | *required* | physical | the target, `schema.table.column` or `schema.table` (target columns default to the target pkey). |
+| related_column | `str` | *required* | physical | the target, `package.table.column` or `package.table` (target columns default to the target pkey). |
 | foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project a foreign key into the migration JSON; every relation on a physical column indexes it. |
 | onDelete | `str \| None` | `None` | semantic | Python action on delete of the target row, as in GenroPy: `raise`, `cascade`, `setnull`, `ignore`, optionally followed by `:message`. |
 | onUpdate | `str \| None` | `None` | semantic | Python action on update, same values. |
@@ -426,7 +390,7 @@ reports every conflicting relation together.
 | one_name | `str \| None` | `None` | semantic | human label of the one side. |
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
 | one_one | `bool \| Literal['*']` | `False` | semantic | the relation is 1:1. `'*'` without `relation_name` names the inverse after the many table and makes it public, as in GenroPy. |
-| case_insensitive | `bool` | `False` | semantic | join case-insensitively. |
+| insensitive | `bool` | `False` | semantic | join case-insensitively. |
 | name | `str \| None` | `None` | physical |  |
 | relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`), as in GenroPy. |
 | onDuplicate | `str \| bool \| None` | `None` | physical |  |
@@ -441,9 +405,6 @@ reports every conflicting relation together.
 | join_on | `str \| None` | `None` | semantic | the ON condition in place of the key equality. Wins over `cnd`. |
 | cnd | `str \| None` | `None` | semantic | the ON condition in place of the key equality. The relation projects no foreign key (GenroPy `mode='custom'`). |
 | between | `str \| None` | `None` | semantic | `'value;low;high'`, a range condition in place of the key equality. |
-| x_weak | `bool \| None` | `None` | physical |  |
-| x_canonical | `bool \| None` | `None` | physical |  |
-| x_name | `str \| None` | `None` | physical |  |
 
 ### `colgroup`
 
@@ -486,7 +447,7 @@ Logical table namespace with an explicit physical placement.
 | --- | --- | --- | --- | --- |
 | name | `str` | *required* | semantic | package identifier. |
 | sqlschema | `str \| None` | `None` | physical | physical schema name, inferred without a schema declaration; None selects the dialect default. Packages can share a schema. |
-| sqlprefix | `bool \| str` | `True` | physical | True uses the package name, False omits the prefix. |
+| sqlprefix | `bool \| SQL_PREFIX` | `True` | physical | True uses the package name, False omits the prefix. |
 | name_long | `str \| None` | `None` | semantic | human label. |
 | name_short | `str \| None` | `None` | semantic | short label. |
 | name_full | `str \| None` | `None` | physical |  |
@@ -529,13 +490,13 @@ Driver options, checked against the connection's configured dialect.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| connect_timeout | `int \| None` | `None` | physical |  |
+| connect_timeout | `NON_NEGATIVE_INT \| None` | `None` | physical |  |
 | application_name | `str \| None` | `None` | physical |  |
 | sslmode | `str \| None` | `None` | physical |  |
 | sslrootcert | `str \| None` | `None` | physical |  |
 | options | `str \| None` | `None` | physical |  |
-| timeout | `float \| int \| None` | `None` | physical |  |
-| cached_statements | `int \| None` | `None` | physical |  |
+| timeout | `NON_NEGATIVE_NUMBER \| None` | `None` | physical |  |
+| cached_statements | `NON_NEGATIVE_INT \| None` | `None` | physical |  |
 | foreignKeys | `bool \| None` | `None` | physical |  |
 
 ### `requires`
@@ -568,7 +529,7 @@ Package-local column type and its explicit presentation defaults.
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 
-### `sys_fields`
+### `sysFields`
 
 Describe system fields; expansion happens only during rendering.
 
@@ -613,7 +574,6 @@ It adds no system-record behavior, virtual columns or generated values.
 | name_long | `str \| None` | `None` | physical |  |
 | name_short | `str \| None` | `None` | physical |  |
 | comment | `str \| None` | `None` | physical |  |
-| x_identity | `str \| None` | `None` | physical |  |
 
 ### `virtualRelation`
 
@@ -659,11 +619,11 @@ Declare a hierarchy; column entries are names or {name, unique} mappings.
 | root_id | `bool` | `False` | semantic |  |
 | virtual_roots | `bool` | `False` | semantic |  |
 | linked_to | `str \| None` | `None` | semantic |  |
-| depth | `int \| None` | `None` | semantic |  |
+| depth | `POSITIVE_INT \| None` | `None` | semantic |  |
 | caption_field | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
-### `auto_counter`
+### `counter`
 
 Declare a counter and its scope; no value allocation during construction.
 
@@ -678,7 +638,7 @@ Declare a counter and its scope; no value allocation during construction.
 | field | `str` | `'_row_count'` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
-### `relative_index`
+### `relidx`
 
 Declare a relative index; relation required when enabled.
 
@@ -693,7 +653,7 @@ Declare a relative index; relation required when enabled.
 | field | `str` | `'_relidx'` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
-### `dynamic_fields`
+### `df`
 
 Table option uses templates; column declaration requires source.
 
@@ -708,23 +668,7 @@ Table option uses templates; column declaration requires source.
 | source | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
-### `record_hash`
-
-Declare a record comparison hash, independent of SQL defaults.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| field | `str` | `'__rec_md5'` | semantic |  |
-| columns | `str \| list \| tuple \| None` | `None` | semantic |  |
-| algorithm | `Literal['md5']` | `'md5'` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `full_update`
+### `fullUpd`
 
 Declare the timestamp for updates including related content.
 
@@ -738,22 +682,7 @@ Declare the timestamp for updates including related content.
 | field | `str` | `'__full_mod_ts'` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
-### `audit`
-
-Declare audit; mode required when enabled.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| mode | `Literal['full', 'lazy'] \| None` | `None` | semantic |  |
-| version_field | `str` | `'__version'` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `system_records`
+### `sysrecords`
 
 Declare system records or symbolic factories; never insert data at build time.
 
@@ -767,21 +696,6 @@ Declare system records or symbolic factories; never insert data at build time.
 | records | `dict \| None` | `None` | semantic |  |
 | masterfield | `str \| None` | `None` | semantic |  |
 | tag | `str` | `'superadmin'` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `protection`
-
-Declare protection expressions or symbolic rules.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| rules | `list \| tuple \| None` | `None` | semantic |  |
-| tag | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `release`
@@ -810,7 +724,7 @@ Declare retention by field and nonnegative days.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | field | `str \| None` | `None` | semantic |  |
-| days | `int \| None` | `None` | semantic |  |
+| days | `NON_NEGATIVE_INT \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `broadcast`
@@ -852,20 +766,6 @@ Declare a preference condition without evaluating it.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | preference | `str \| None` | `None` | semantic |  |
-| enabled | `bool` | `True` | semantic |  |
-
-### `attachments`
-
-Declare attachment expansion for its master table.
-
-- Contains: *nothing*
-- Child addressing: no children
-- Projection flags: none declared
-- Extra keys: not accepted
-
-| parameter | type | default | plane | description |
-| --- | --- | --- | --- | --- |
-| master | `str \| None` | `None` | semantic |  |
 | enabled | `bool` | `True` | semantic |  |
 
 ### `numbering`

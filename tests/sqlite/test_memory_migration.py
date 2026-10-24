@@ -4,8 +4,9 @@ from io import StringIO
 
 import pytest
 
-from asqueel import AsqueelDb, MigrationError, SqlDatabaseConfig, SqlTable, TransactionStateError
+from asqueel import AsqueelDb, MigrationError, SqlDatabaseConfig, TransactionStateError
 from asqueel.contracts import UnsupportedFeatureError
+from tests.package_layout_support import write_layout
 
 
 def source(filename=':memory:', schema='shop'):
@@ -239,12 +240,12 @@ def test_main_schema_uses_memory_too(tmp_path, monkeypatch):
 
 
 
-def shop(table_class=SqlTable, related=False):
+def shop(related=False):
     model = SqlDatabaseConfig()
     root = model.source.db(implementation='sqlite')
     root.connection(name=':memory:', implementation='sqlite')
     pkg = root.packages().package('shop', sqlschema='shop')
-    product = pkg.table('product', pkey='code', x_table_class=table_class)
+    product = pkg.table('product', pkey='code')
     product.column('code', size=':10')
     product.column('name', size=':60')
     if related:
@@ -270,22 +271,40 @@ def test_a_relation_added_to_an_existing_table_migrates_without_the_constraint(s
         {'code': 'TEA', '_category_code_name': 'Drinks'}]
 
 
-class Loud(SqlTable):
+PRODUCT = '''
+class Table:
+    def config_db(self, pkg):
+        product = pkg.table('product', pkey='code')
+        product.column('code', size=':10')
+        product.column('name', size=':60')
+'''
+
+LOUD = PRODUCT + '''
     def formulaColumn_label(self):
         return dict(name='label', sql_formula='upper($name)', dtype='T')
+'''
 
-
-class Quiet(SqlTable):
+QUIET = PRODUCT + '''
     def formulaColumn_label(self):
         return dict(name='label', sql_formula='lower($name)', dtype='T')
+'''
 
 
-def test_reload_rereads_dynamic_formula_columns(session):
+def layout_shop(folder, product):
+    """``shop()`` whose product comes from the package folder ``folder``; the session's directory stays empty."""
+    model = SqlDatabaseConfig()
+    root = model.source.db(implementation='sqlite')
+    root.connection(name=':memory:', implementation='sqlite')
+    root.packages().package('shop', sqlschema='shop', path=write_layout(folder, product=product))
+    return model
+
+
+def test_reload_rereads_dynamic_formula_columns(session, tmp_path_factory):
     db, _, _ = session
-    db.reloadModel(shop(Loud))
+    db.reloadModel(layout_shop(tmp_path_factory.mktemp('loud'), LOUD))
     db.table('shop.product').insert({'code': 'TEA', 'name': 'Tea'})
     db.commit()
     assert rows(db.table('shop.product'), '$code, $label') == [{'code': 'TEA', 'label': 'TEA'}]
     db.commit()
-    db.reloadModel(shop(Quiet))
+    db.reloadModel(layout_shop(tmp_path_factory.mktemp('quiet'), QUIET))
     assert rows(db.table('shop.product'), '$code, $label') == [{'code': 'TEA', 'label': 'tea'}]

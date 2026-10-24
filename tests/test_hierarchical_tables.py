@@ -3,6 +3,7 @@ import datetime
 
 import pytest
 
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.contracts import UnsupportedFeatureError
 from asqueel.errors import BusinessLogicException, RecordException
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db, row
@@ -10,10 +11,10 @@ from tests.option_tables_support import IMPLEMENTATIONS, migrated_db, row
 
 def category(package, columns: str | None = 'code', counter=False, **options):
     table = package.table('category', name_long='Category', name_plural='Categories')
-    table.options().sys_fields()
+    table.options().sysFields()
     table.options().hierarchical(columns, **options)
     if counter:
-        table.options().auto_counter()
+        table.options().counter()
     table.column('code')
     table.column('description')
 
@@ -180,7 +181,7 @@ def test_virtual_roots_copy_the_flag_from_the_parent(implementation, tmp_path):
 def test_deferred_hierarchical_options_raise_when_the_model_is_built(tmp_path, option, value):
     def declare(package):
         master = package.table('master', name_long='Master')
-        master.options().sys_fields()
+        master.options().sysFields()
         category(package, **{option: value})
 
     with pytest.raises(UnsupportedFeatureError, match=f'hierarchical {option}'):
@@ -191,9 +192,25 @@ def test_deferred_hierarchical_options_raise_when_the_model_is_built(tmp_path, o
 def test_auto_counter_without_hierarchy_allocates_positions(tmp_path):
     def declare(package):
         table = package.table('ranked', name_long='Ranked')
-        table.options().sys_fields()
-        table.options().auto_counter()
+        table.options().sysFields()
+        table.options().counter()
         table.column('title')
 
     with migrated_db('sqlite', tmp_path, declare) as db:
         assert db.table('app.ranked').insert({'title': 'x'})['_row_count'] == 1
+
+
+def test_the_handler_exists_once_and_only_on_hierarchical_tables():
+    config = SqlDatabaseConfig()
+    root = config.source.db('handler', implementation='sqlite')
+    root.connection('main', database=':memory:')
+    pkg = root.packages().package('app', sqlschema='main', sqlprefix=False)
+    pkg.table('plain', pkey='id').column('id', dtype='L')
+    tree = pkg.table('tree', pkey='id')
+    tree.options().sysFields()
+    tree.options().hierarchical('code')
+    tree.column('code')
+    db = AsqueelDb(config)
+    assert not hasattr(db.table('app.plain'), 'hierarchicalHandler')
+    table = db.table('app.tree')
+    assert table.hierarchicalHandler is table.hierarchicalHandler

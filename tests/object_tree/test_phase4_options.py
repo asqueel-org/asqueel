@@ -20,7 +20,7 @@ def tree_database(config, environment=STATE):
 def test_disabled_sys_fields_does_not_activate_read_markers(backend):
     config = original.source(backend)
     table = config.source['db'].packages().package('sales').table('customer', pkey='id')
-    table.options().sys_fields(enabled=False)
+    table.options().sysFields(enabled=False)
     table.column('id')
     db = tree_database(config, environment=None)
     try:

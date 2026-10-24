@@ -1,8 +1,9 @@
-# A database with two explicitly imported schemas
+# A database with two packages in two schemas
 
 The repository's `examples/two_schemas` folder is a complete configuration
-example. It uses the current grammar and runtime, with no folder discovery or
-package loader. It includes six tables:
+example. It uses the current grammar and runtime: each package is a folder in
+the package layout, loaded with `package(name, path=<folder>)`. It includes six
+tables:
 
 | Schema | Tables | Purpose |
 |---|---|---|
@@ -14,28 +15,30 @@ Invoice rows reference an invoice and a product; `amount` is a query-time SQL
 formula. This illustrates composition and relations, not a complete accounting
 or authentication application.
 
-## Files and explicit composition
+## Files and package folders
 
 ```text
 examples/two_schemas/
 ├── configure.py
 ├── __main__.py
-└── schemas/
+└── packages/
     ├── identity/
-    │   ├── schema.py
-    │   ├── user.py
-    │   └── access.py
+    │   ├── main.py
+    │   └── model/
+    │       ├── access.py
+    │       └── user.py
     └── sales/
-        ├── schema.py
-        ├── customer.py
-        ├── product.py
-        ├── invoice.py
-        ├── invoice_logic.py
-        └── invoice_row.py
+        ├── main.py
+        └── model/
+            ├── customer.py
+            ├── invoice.py
+            ├── invoice_row.py
+            └── product.py
 ```
 
 The configuration calls its sections in order: declare the DB connection, then
-import the schemas. This is the actual example source:
+declare the packages, one per SQL schema, each with the path of its folder.
+This is the actual example source:
 
 ```{literalinclude} ../../examples/two_schemas/configure.py
 :language: python
@@ -43,26 +46,17 @@ import the schemas. This is the actual example source:
 
 `EnvResolver` is read through the standard configuration handler. The symbolic
 registration name below is independent of `connection.name`, which names the
-physical PostgreSQL database. Each schema explicitly imports its tables:
+physical PostgreSQL database. Each package folder holds `main.py` with class
+`Package`, and one module per table in `model/`; the package loads the modules
+in alphabetical order. The `Table` class of a module declares its table in
+`config_db(self, pkg)`; its other methods are the table's behavior:
 
-```{literalinclude} ../../examples/two_schemas/schemas/sales/schema.py
+```{literalinclude} ../../examples/two_schemas/packages/sales/model/invoice.py
 :language: python
 ```
 
-The `Model` class declares the table and links its `Logic` class using
-`x_table_class`. These are ordinary Python classes and example conventions;
-there is no new mandatory `SqlTableModel` base class. The two classes may share
-a module, as in `customer.py`, or live in separate modules, as for invoices:
-
-```{literalinclude} ../../examples/two_schemas/schemas/sales/invoice.py
-:language: python
-```
-
-```{literalinclude} ../../examples/two_schemas/schemas/sales/invoice_logic.py
-:language: python
-```
-
-The resulting object is still a single table handle:
+The `Table` class, combined with `SqlTable`, is the runtime class of the table.
+The resulting object is a single table handle:
 `db.table("sales.invoice")`. It exposes both query/write operations and the
 custom `rows_query()` method.
 

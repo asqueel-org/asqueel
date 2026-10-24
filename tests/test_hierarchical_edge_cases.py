@@ -9,10 +9,10 @@ from tests.option_tables_support import IMPLEMENTATIONS, migrated_db, row
 
 def category(package, counter=False):
     table = package.table('category', name_long='Category', name_plural='Categories')
-    table.options().sys_fields()
+    table.options().sysFields()
     table.options().hierarchical('code')
     if counter:
-        table.options().auto_counter()
+        table.options().counter()
     table.column('code')
     table.column('description')
 
@@ -64,9 +64,9 @@ def test_a_stored_position_beyond_the_bound_does_not_block_other_changes(tmp_pat
 def test_a_hierarchical_counter_can_use_a_custom_field(tmp_path):
     def declare(package):
         table = package.table('category', name_long='Category')
-        table.options().sys_fields()
+        table.options().sysFields()
         table.options().hierarchical('code')
-        table.options().auto_counter(field='pos')
+        table.options().counter(field='pos')
         table.column('code')
 
     with migrated_db('sqlite', tmp_path, declare) as db:
@@ -77,11 +77,11 @@ def test_a_hierarchical_counter_can_use_a_custom_field(tmp_path):
 def test_the_refused_options_are_named_in_declaration_order(tmp_path):
     def declare(package):
         table = package.table('hashed', name_long='Hashed')
-        table.options().sys_fields()
-        table.options().record_hash()
-        table.options().audit('lazy')
+        table.options().sysFields()
+        table.options().fullUpd()
+        table.options().archive()
         table.column('title')
 
     with migrated_db('sqlite', tmp_path, declare) as db:
-        with pytest.raises(UnsupportedFeatureError, match='option record_hash, option audit'):
+        with pytest.raises(UnsupportedFeatureError, match='option fullUpd, option archive'):
             db.table('app.hashed').insert({'title': 'x'})

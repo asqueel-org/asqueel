@@ -29,8 +29,8 @@ def policy_database():
                 (4, 10, false, '2026-01-01T00:00:00Z', 'deleted'),
                 (5, NULL, false, NULL, 'shared')''').format(sql.Identifier(schema)))
             builder = SqlDatabaseConfig()
-            columns = builder.source.db('policy', implementation='postgres', conninfo=dsn).schemas().schema(
-                'app', sqlname=schema,
+            columns = builder.source.db('policy', implementation='postgres', conninfo=dsn).packages().package(
+                'app', sqlschema=schema, sqlprefix=False
             ).tables().table(
                 'item', pkey='id',
                 partition_organization='organization',

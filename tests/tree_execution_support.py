@@ -2,7 +2,7 @@
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
-from asqueel.configuration import connection_settings
+from asqueel.runtime import connection_settings
 from tests.query_completion_support import Shop, shop as execution_shop  # noqa: F401
 
 

@@ -12,10 +12,10 @@ def source(backend='postgres'):
     config = SqlDatabaseConfig()
     pkg = config.source.db('options', implementation=backend).packages().package('sales')
     customer = pkg.table('customer', partition_state='state')
-    customer.options().sys_fields(draft=True)
+    customer.options().sysFields(draft=True)
     customer.column('state')
     invoice = pkg.table('invoice', partition_state='state')
-    invoice.options().sys_fields()
+    invoice.options().sysFields()
     invoice.column('customer_id').relation('sales.customer.id')
     invoice.aliasColumn('state', '@customer_id.state')
     invoice.formulaColumn('all_customers', select=dict(table='sales.customer',

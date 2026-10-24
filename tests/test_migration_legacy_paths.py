@@ -31,15 +31,15 @@ def test_relations_without_foreign_key_are_indexed_on_the_configured_path(tmp_pa
         def main(self, root):
             db = root.db()
             db.connection(name=str(tmp_path / 'sample.db'), implementation='sqlite')
-            tables = db.schemas().schema('app').tables()
+            tables = db.packages().package('app', sqlschema='app', sqlprefix=False).tables()
             customer = tables.table('customer', pkey='id').columns()
             customer.column('id', dtype='L')
             customer.column('code', dtype='T')
             invoice = tables.table('invoice', pkey='id').columns()
             invoice.column('id', dtype='L')
-            invoice.column('customer_code', dtype='T').relation(to='app.customer.code')
-            invoice.column('customer_id', dtype='L').relation(to='app.customer.id')
-            invoice.column('other_id', dtype='L').relation(to='app.customer.id', indexed=False)
+            invoice.column('customer_code', dtype='T').relation(related_column='app.customer.code')
+            invoice.column('customer_id', dtype='L').relation(related_column='app.customer.id')
+            invoice.column('other_id', dtype='L').relation(related_column='app.customer.id', indexed=False)
 
     lines = _index_lines(Recipe)
     assert any('"customer" ("code")' in line for line in lines)
@@ -53,20 +53,24 @@ def test_a_relation_on_a_pkey_member_gets_no_index_on_either_path(tmp_path):
         def main(self, root):
             db = root.db()
             db.connection(name=str(tmp_path / 'sample.db'), implementation='sqlite')
-            tables = db.schemas().schema('app').tables()
+            tables = db.packages().package('app', sqlschema='app', sqlprefix=False).tables()
             tables.table('customer', pkey='id').columns().column('id', dtype='L')
-            row = tables.table('row', pkey='customer_id,line').columns()
-            row.column('customer_id', dtype='L').relation(to='app.customer.id', foreign_key=True)
+            row_table = tables.table('row', pkey='row_key')
+            row_table.composites().compositeColumn('row_key', columns='customer_id,line')
+            row = row_table.columns()
+            row.column('customer_id', dtype='L').relation(related_column='app.customer.id', foreign_key=True)
             row.column('line', dtype='L')
 
     assert not any('("customer_id")' in line for line in _index_lines(Recipe))
 
     class Built(SqlBuilder):
         def main(self, root):
-            tables = root.db(name='d').schemas().schema(name='s').tables()
+            tables = root.db(name='d').packages().package(name='s', sqlschema='s', sqlprefix=False).tables()
             tables.table(name='customer', pkey='id').columns().column(name='id', dtype='L')
-            row = tables.table(name='row', pkey='customer_id,line').columns()
-            row.column(name='customer_id', dtype='L').relation(to='s.customer.id', foreign_key=True)
+            row_table = tables.table(name='row', pkey='row_key')
+            row_table.composites().compositeColumn(name='row_key', columns='customer_id,line')
+            row = row_table.columns()
+            row.column(name='customer_id', dtype='L').relation(related_column='s.customer.id', foreign_key=True)
             row.column(name='line', dtype='L')
 
     model = Built()
@@ -78,7 +82,7 @@ def test_a_relation_on_a_pkey_member_gets_no_index_on_either_path(tmp_path):
 def _render(body):
     class Recipe(SqlBuilder):
         def main(self, root):
-            tables = root.db(name='d').schemas().schema(name='s').tables()
+            tables = root.db(name='d').packages().package(name='s', sqlschema='s', sqlprefix=False).tables()
             target = tables.table(name='target', pkey='id')
             target.columns().column(name='id', dtype='L')
             target.columns().column(name='code', dtype='T')
@@ -103,7 +107,7 @@ def test_indexed_options_and_an_explicit_index_on_the_same_column_are_refused():
 def test_a_partial_explicit_index_cannot_replace_a_relation_target_index():
     def body(target, item):
         target.indexes().index(columns='code', where='code IS NOT NULL')
-        item.columns().column(name='target_code', dtype='T').relation(to='s.target.code')
+        item.columns().column(name='target_code', dtype='T').relation(related_column='s.target.code')
 
     with pytest.raises(UnsupportedFeatureError, match='does not cover required full index'):
         _render(body)
@@ -123,7 +127,7 @@ def pg_schema():
 def _pg_recipe(dsn, schema, dtype, notnull=False):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            columns = root.db(implementation='postgres', conninfo=dsn).schemas().schema(schema).tables().table(
+            columns = root.db(implementation='postgres', conninfo=dsn).packages().package(schema, sqlschema=schema, sqlprefix=False).tables().table(
                 'event', pkey='id').columns()
             columns.column('id', dtype='L')
             columns.column('happened', dtype=dtype, notnull=notnull)

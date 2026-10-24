@@ -3,20 +3,28 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.application_table import RecordNotFoundError
 from asqueel.errors import DeleteException, ProtectUpdateException, SaveException
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
 
-class Table(SqlTable):
-    """Application table that records the hook calls."""
-
+LOG = '''
     def log(self, *event):
         self.db.currentEnv.setdefault('events', []).append(event)
+'''
 
+PARENT = '''
+class Table:
+    """Application table that records the hook calls."""
 
-class Parent(Table):
+    def config_db(self, pkg):
+        parent = pkg.table('parent', pkey='id')
+        parent.column('id', size=':22')
+        parent.column('name', onInserting='upper', onUpdating='upper')
+        parent.column('state', sql_default="'new'")
+
     def trigger_upper(self, record, fldname, tblname, **kwargs):
         self.log('field', fldname, tblname, 'old_record' in kwargs)
         if record.get(fldname):
@@ -45,18 +53,27 @@ class Parent(Table):
     def protect_update(self, record, old_record=None):
         if record.get('name') == 'FORBIDDEN':
             raise self.exception('protect_update', record=record, msg='name is reserved')
+''' + LOG
 
+CHILD = '''
+class Table:
+    """Application table that records the hook calls."""
 
-class Child(Table):
+    def config_db(self, pkg):
+        child = pkg.table('child', pkey='id')
+        child.column('id', size=':22')
+        child.column('parent_id', size=':22').relation('sales.parent.id', onDelete='cascade', onUpdate='cascade')
+
     def trigger_onInserted(self, record):
         parent = self.currentTrigger.parent
         self.log('child onInserted', parent.event, parent.table)
 
     def trigger_onDeleted(self, record):
         self.log('child onDeleted', record['id'])
+''' + LOG
 
 
-def recipe(implementation, conninfo=None, path=None, schema=None):
+def recipe(implementation, layout, conninfo=None, path=None, schema=None):
     source = SqlDatabaseConfig()
     kwargs = {'implementation': implementation}
     if conninfo:
@@ -64,21 +81,15 @@ def recipe(implementation, conninfo=None, path=None, schema=None):
     db = source.source.db('cycle', **kwargs)
     if path:
         db.connection(name=str(path), implementation='sqlite')
-    pkg = db.packages().package('sales', sqlschema=schema, sqlprefix=True)
-    parent = pkg.table('parent', pkey='id', x_table_class=Parent)
-    parent.column('id', size=':22')
-    parent.column('name', onInserting='upper', onUpdating='upper')
-    parent.column('state', sql_default="'new'")
-    child = pkg.table('child', pkey='id', x_table_class=Child)
-    child.column('id', size=':22')
-    child.column('parent_id', size=':22').relation('sales.parent.id', onDelete='cascade', onUpdate='cascade')
-    kid = pkg.table('kid', pkey='id', x_table_class=Table)
+    pkg = db.packages().package('sales', sqlschema=schema, sqlprefix=True,
+                                path=write_layout(layout, parent=PARENT, child=CHILD))
+    kid = pkg.table('kid', pkey='id')
     kid.column('id', size=':22')
     kid.column('parent_id', size=':22').relation('sales.parent.id', onDelete='setnull')
-    ref = pkg.table('ref', pkey='id', x_table_class=Table)
+    ref = pkg.table('ref', pkey='id')
     ref.column('id', size=':22')
     ref.column('parent_id', size=':22').relation('sales.parent.id', onDelete='raise:Parent still used by %(reltable)s')
-    lock = pkg.table('locked', pkey='id', x_table_class=Table, deletable=False)
+    lock = pkg.table('locked', pkey='id', deletable=False)
     lock.column('id', size=':22')
     return source
 
@@ -95,10 +106,10 @@ DDL = (
 @pytest.fixture(params=['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)])
 def db(request, tmp_path):
     if request.param == 'sqlite':
-        source, prefix = recipe('sqlite', path=tmp_path / 'cycle.db'), ''
+        source, prefix = recipe('sqlite', tmp_path / 'sales', path=tmp_path / 'cycle.db'), ''
     else:
         schema = 'wcy_' + uuid4().hex[:8]
-        source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
+        source, prefix = recipe('postgres', tmp_path / 'sales', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
     database = AsqueelDb(source)
     try:
         if prefix:

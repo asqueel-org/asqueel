@@ -38,19 +38,19 @@ def test_full_vocabulary_mounts():
     model = _mount()
     db = model.source.db(name="testdb")
     db.extensions().extension(name="unaccent")
-    s = db.schemas().schema(name="public", comment="the default schema")
+    s = db.packages().package(name="public", comment="the default schema", sqlschema="public", sqlprefix=False)
     t = s.tables().table(name="recipe", pkey="id", caption_field="title")
     columns = t.columns()
     columns.column(name="id", dtype="L", notnull=True)
     author = columns.column(name="author_id", dtype="L", indexed=True)
-    author.relation(to="public.author.id", foreign_key=True)
+    author.relation(related_column="public.author.id", foreign_key=True)
     virtual_columns = t.virtual_columns()
     virtual_columns.formulaColumn(name="up", sql_formula="upper($title)")
     virtual_columns.aliasColumn(name="an", relation_path="@author_id.name")
     virtual_columns.subQueryColumn(name="cnt", query="...", mode="json")
     virtual_columns.pyColumn(name="calc")
     cc = t.composites().compositeColumn(name="k2", columns="id,author_id")
-    cc.relation(to="public.other.k2", foreign_key=True)
+    cc.relation(related_column="public.other.k2", foreign_key=True)
     t.constraints().constraint(
         name="uq", constraint_type="UNIQUE", columns="id,author_id",
     )
@@ -60,17 +60,17 @@ def test_full_vocabulary_mounts():
 
 def test_tree_is_addressed_by_name():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t", pkey="c")
     t.columns().column(name="c", dtype="L")
-    assert model.source.get_node("db.schemas.p.tables.t.columns.c") is not None
+    assert model.source.get_node("db.packages.p.tables.t.columns.c") is not None
 
 
 def test_structural_names_have_tag_scoped_namespaces():
     model = _mount()
     db = model.source.db(name="d")
     db.extensions().extension(name="shared")
-    schema = db.schemas().schema(name="shared")
+    schema = db.packages().package(name="shared", sqlschema="shared", sqlprefix=False)
     table = schema.tables().table(name="t", pkey="id")
     table.columns().column(name="id", dtype="serial")
     rendered = model.render(mode='migration')["root"]
@@ -80,7 +80,7 @@ def test_structural_names_have_tag_scoped_namespaces():
 
 def test_dotted_table_and_column_names_are_loud():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="s")
+    schema = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False)
     tables = schema.tables()
     with pytest.raises(ValueError, match="separator"):
         tables.table(name="bad.table")
@@ -91,7 +91,7 @@ def test_dotted_table_and_column_names_are_loud():
 
 def test_column_rejects_non_column_child():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
     col = t.columns().column(name="c", dtype="L")
     with pytest.raises(ValueError):
@@ -101,23 +101,22 @@ def test_column_rejects_non_column_child():
 def test_virtual_column_relation_defaults_to_weak():
     """Virtual columns may declare logical relations without physical FKs."""
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
     fc = t.virtual_columns().formulaColumn(name="f", sql_formula="1")
-    relation = fc.relation(to="p.other.id")
+    relation = fc.relation(related_column="p.other.id")
     assert relation.attr['foreign_key'] is False
-    assert relation.attr['x_weak'] is True
 
 
 def test_relation_is_at_most_one_per_column():
     """The violation is reported by domain validation, not grammar validation."""
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
     col = t.columns().column(name="c", dtype="L")
-    col.relation(to="p.a.id")
+    col.relation(related_column="p.a.id")
     assert model.validate_source() == []
-    col.relation(to="p.b.id")
+    col.relation(related_column="p.b.id")
     assert model.validate_source() == []
     with pytest.raises(ValueError, match="at most one"):
         model.validate_model()
@@ -125,7 +124,7 @@ def test_relation_is_at_most_one_per_column():
 
 def test_relations_with_the_same_local_structural_key_are_loud():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="s")
+    schema = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False)
     tables = schema.tables()
     for name in ("a", "b"):
         target = tables.table(name=name, pkey="x,y")
@@ -140,8 +139,8 @@ def test_relations_with_the_same_local_structural_key_are_loud():
     composites = source.composites()
     first = composites.compositeColumn(name="first", columns="x,y")
     second = composites.compositeColumn(name="second", columns="x,y")
-    first.relation(to="s.a", foreign_key=True)
-    second.relation(to="s.b", foreign_key=True)
+    first.relation(related_column="s.a", foreign_key=True)
+    second.relation(related_column="s.b", foreign_key=True)
     with pytest.raises(SqlModelValidationError, match="at most one"):
         model.validate_model()
 
@@ -156,7 +155,7 @@ def test_undeclared_bare_attribute_is_rejected_on_db():
 @pytest.mark.parametrize("extra", ["x_widget", "group_b_address", "cell_format"])
 def test_extra_attributes_are_rejected_naming_attribute_and_element(extra):
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
     with pytest.raises(ValueError, match=f"Element 'column' does not accept '{extra}'"):
         t.columns().column(name="c", dtype="L", **{extra: "value"})
@@ -164,15 +163,16 @@ def test_extra_attributes_are_rejected_naming_attribute_and_element(extra):
 
 def test_dtype_must_be_a_known_code():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
-    with pytest.raises(ValueError):
-        t.columns().column(name="c", dtype="NOPE")
+    t.columns().column(name="c", dtype="NOPE")
+    with pytest.raises(ValueError, match="unknown dtype"):
+        model.render(mode='migration')
 
 
 def test_constraint_type_must_be_known():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
     with pytest.raises(ValueError):
         t.constraints().constraint(
@@ -182,16 +182,16 @@ def test_constraint_type_must_be_known():
 
 def test_projection_flags_ride_on_the_nodes():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="p")
+    schema = model.source.db(name="d").packages().package(name="p", sqlschema="p", sqlprefix=False)
     t = schema.tables().table(name="t")
     columns = t.columns()
     columns.column(name="a", dtype="L")
     columns.column(name="b", dtype="L")
     t.composites().compositeColumn(name="ab", columns="a,b")
     t.virtual_columns().formulaColumn(name="f", sql_formula="1")
-    col = model.source.get_node("db.schemas.p.tables.t.columns.a")
-    composite = model.source.get_node("db.schemas.p.tables.t.composites.ab")
-    formula = model.source.get_node("db.schemas.p.tables.t.virtual_columns.f")
+    col = model.source.get_node("db.packages.p.tables.t.columns.a")
+    composite = model.source.get_node("db.packages.p.tables.t.composites.ab")
+    formula = model.source.get_node("db.packages.p.tables.t.virtual_columns.f")
     assert col._get_meta("projects_column") is True
     assert col._get_meta("projects_relation") is True
     assert composite._get_meta("projects_column") is None
@@ -229,13 +229,13 @@ def test_composite_target_resolves_to_its_member_columns():
     builder = SqlModelReader(normalized).to_builder()
     relation = builder.source.query(
         "#n", deep=True, condition=lambda n: n.node_tag == "relation")[0]
-    assert relation.get_attr("to") == "s.parent.a_b"
+    assert relation.get_attr("related_column") == "s.parent.a_b"
     assert json_equal(normalized, builder.render(mode='migration'))
 
 
 def test_relation_deferral_forms_project_exactly():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="s")
+    schema = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False)
     tables = schema.tables()
     parent = tables.table(name="parent", pkey="id")
     parent.columns().column(name="id", dtype="serial")
@@ -244,10 +244,10 @@ def test_relation_deferral_forms_project_exactly():
     child_columns.column(name="id", dtype="serial")
     immediate = child_columns.column(name="immediate_id", dtype="L")
     immediate.relation(
-        to="s.parent.id", foreign_key=True, deferrable=True,
+        related_column="s.parent.id", foreign_key=True, deferrable=True,
     )
     deferred = child_columns.column(name="deferred_id", dtype="L")
-    deferred.relation(to="s.parent.id", foreign_key=True, deferred=True)
+    deferred.relation(related_column="s.parent.id", foreign_key=True, deferred=True)
 
     rendered = model.render(mode='migration')
     relations = rendered["root"]["schemas"]["s"]["tables"]["child"][
@@ -272,7 +272,7 @@ def test_relation_deferral_forms_project_exactly():
 
 def test_initially_deferred_requires_effective_deferrability():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="s")
+    schema = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False)
     tables = schema.tables()
     parent = tables.table(name="parent", pkey="id")
     parent.columns().column(name="id", dtype="serial")
@@ -280,7 +280,7 @@ def test_initially_deferred_requires_effective_deferrability():
     child_columns = child.columns()
     child_columns.column(name="id", dtype="serial")
     column = child_columns.column(name="parent_id", dtype="L")
-    column.relation(to="s.parent.id", initially_deferred=True)
+    column.relation(related_column="s.parent.id", initially_deferred=True)
     with pytest.raises(SqlModelValidationError, match="initially_deferred"):
         model.validate_model()
 
@@ -351,7 +351,7 @@ def test_default_migrator_ignores_fk_name_only_differences():
 
 def test_dtype_defaults_cover_sized_and_unsized_columns():
     model = _mount()
-    schema = model.source.db(name="d").schemas().schema(name="s")
+    schema = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False)
     table = schema.tables().table(name="t")
     table_columns = table.columns()
     table_columns.column(name="sized", size="0:80")

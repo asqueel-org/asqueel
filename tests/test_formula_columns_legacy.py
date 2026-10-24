@@ -1,30 +1,34 @@
 """formulaColumn as legacy, formulaColumn_<name>() dynamic columns, compositeColumn read as a value (Macro 5, Phase 3)."""
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
+from tests.package_layout_support import write_layout
 
+CUSTOMER = '''
+class Table:
+    def config_db(self, pkg):
+        customer = pkg.table('customer', pkey='id')
+        customer.column('id', dtype='serial')
+        customer.column('code')
+        customer.column('year', dtype='L')
+        customer.formulaColumn('has_big', sql_formula='#big', dtype='B',
+                               exists_big=dict(table='app.invoice', where='$customer_id=#THIS.id AND $amount > 100'))
+        customer.formulaColumn('big_and_total', sql_formula='#big AND #total > 150', dtype='B',
+                               exists_big=dict(table='app.invoice', where='$customer_id=#THIS.id AND $amount > 100'),
+                               select_total=dict(table='app.invoice', columns='SUM($amount)',
+                                                 where='$customer_id=#THIS.id'))
 
-class Customer(SqlTable):
     def formulaColumn_labels(self):
         return [dict(name='code_twice', sql_formula='$code || $code', dtype='T'),
                 dict(name='scaled', sql_formula=f"$year * {self.db.currentEnv.get('factor', 1)}", dtype='L')]
 
     def formulaColumn_single(self):
         return dict(name='loud', sql_formula='upper($code)', dtype='T')
+'''
 
 
 def declare(pkg):
-    customer = pkg.table('customer', pkey='id', x_table_class=Customer)
-    customer.column('id', dtype='serial')
-    customer.column('code')
-    customer.column('year', dtype='L')
-    customer.formulaColumn('has_big', sql_formula='#big', dtype='B',
-                           exists_big=dict(table='app.invoice', where='$customer_id=#THIS.id AND $amount > 100'))
-    customer.formulaColumn('big_and_total', sql_formula='#big AND #total > 150', dtype='B',
-                           exists_big=dict(table='app.invoice', where='$customer_id=#THIS.id AND $amount > 100'),
-                           select_total=dict(table='app.invoice', columns='SUM($amount)',
-                                             where='$customer_id=#THIS.id'))
     invoice = pkg.table('invoice', pkey='id')
     invoice.column('id', dtype='serial')
     invoice.column('customer_id', dtype='L').relation('app.customer.id', relation_name='invoices')
@@ -37,7 +41,8 @@ def declare(pkg):
 
 @pytest.fixture(params=IMPLEMENTATIONS)
 def db(request, tmp_path):
-    with migrated_db(request.param, tmp_path, declare) as db:
+    path = write_layout(tmp_path / 'app', customer=CUSTOMER)
+    with migrated_db(request.param, tmp_path, declare, path=path) as db:
         customer = db.table('app.customer')
         customer.sql_insert([{'id': 1, 'code': 'a', 'year': 2025}, {'id': 2, 'code': 'b', 'year': 2026}])
         db.table('app.invoice').sql_insert([{'customer_id': 1, 'amount': 120}, {'customer_id': 1, 'amount': 50},

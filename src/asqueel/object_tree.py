@@ -13,7 +13,9 @@ from typing import Any
 from genro_bag import Bag
 from genro_toolbox import extract_kwargs
 
+from .application_table import SqlTable
 from .common import default_index_name, indexed_attributes, package_sqlschema, split_names, table_sqlname, unknown_indexed_keys
+from .package_layout import table_class as layout_table_class
 
 
 @dataclass(frozen=True)
@@ -65,7 +67,7 @@ class DbModelObj:
     @property
     def pkg(self):
         node = self
-        while node is not None and node.tag not in ('package', 'schema'):
+        while node is not None and node.tag != 'package':
             node = node.parent
         return node
 
@@ -114,17 +116,21 @@ class DbModelObj:
     def __len__(self):
         return len(self.children)
 
+    # Lookup is case-insensitive; iteration gives the declared names.
+    def __contains__(self, name):
+        return name.lower() in self.children
+
     def __iter__(self):
-        return iter(self.children)
+        return iter(self.keys())
 
     def keys(self):
-        return self.children.keys()
+        return {obj.name: obj for obj in self.children.values()}.keys()
 
     def values(self):
         return self.children.values()
 
     def items(self):
-        return self.children.items()
+        return {obj.name: obj for obj in self.children.values()}.items()
 
 
 class DbPackageObj(DbModelObj):
@@ -140,20 +146,18 @@ class DbPackageObj(DbModelObj):
 
     @property
     def sqlschema(self):
-        return package_sqlschema(self.tag, self.name, self.attributes, self._model.implementation)
+        return package_sqlschema(self.attributes, self._model.implementation)
 
     def tableSqlName(self, table):
-        return table_sqlname(self.tag, self.name, self.attributes, table.name, {})
+        return table_sqlname(self.name, self.attributes, table.name, {})
 
 
 class DbTableObj(DbModelObj):
     def doInit(self):
-        from .application_table import SqlTable
         # Legacy _getMixinObj creates the operational table before its children.
-        # No mixins are installed here; their composition is still undecided.
-        table_class = self.attributes.get('x_table_class', SqlTable)
-        if not isinstance(table_class, type) or not issubclass(table_class, SqlTable):
-            raise TypeError(f'{self.fullname}: x_table_class must be a SqlTable subclass')
+        # Only the Table class of the package layout is installed.
+        path = self.pkg.attributes.get('path')
+        table_class = layout_table_class(path, self.pkg.name, self.name) if path else SqlTable
         self._check_table_methods(table_class)
         self.dbtable = table_class(self)
         self._relation_tree = None
@@ -240,7 +244,7 @@ class DbTableObj(DbModelObj):
 
     @property
     def pkey(self):
-        return self.attributes.get('x_logical_pkey') or self.attributes.get('pkey')
+        return self.attributes.get('pkey')
 
     @property
     def sqlschema(self):
@@ -395,7 +399,7 @@ class AliasColumnWrapper:
 
 
 def _object_class(fragment):
-    if fragment.tag in ('package', 'schema'):
+    if fragment.tag == 'package':
         return DbPackageObj
     if fragment.tag == 'table':
         return DbTableObj
@@ -422,7 +426,7 @@ class DbModel:
         self.implementation = fragment.attributes.get('implementation', 'sqlite')
         # Legacy model.obj is the namespace list, not the authored <db> node.
         # Database options remain on the database declaration, outside that root.
-        namespaces = next((c for c in fragment.children if c.tag in ('packages', 'schemas')),
+        namespaces = next((c for c in fragment.children if c.tag == 'packages'),
                           _Fragment('packages', 'packages', {}, ()))
         self.obj = DbModelObj(namespaces, model=self)
         self.name = fragment.attributes.get('name', fragment.name)
@@ -453,6 +457,6 @@ class DbModel:
         pkg, table, column = name.split('.', 2)
         found = self.table(table, pkg)
         if found is None:
-            raise ValueError(f'Unknown package/schema {pkg!r}')
+            raise ValueError(f'Unknown package {pkg!r}')
         return found.column(column)
 

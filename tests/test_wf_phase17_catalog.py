@@ -10,7 +10,7 @@ from asqueel.catalog import SqlModelCatalog
 class _CatalogRecipe(SqlBuilder):
     def main(self, root):
         db = root.db(name="catalog")
-        schema = db.schemas().schema(name="public")
+        schema = db.packages().package(name="public", sqlschema="public", sqlprefix=False)
         tables = schema.tables()
         customer = tables.table(name="customer", pkey="id")
         customer_columns = customer.columns()
@@ -21,7 +21,7 @@ class _CatalogRecipe(SqlBuilder):
         invoice_columns = invoice.columns()
         invoice_columns.column(name="id", dtype="serial")
         customer_id = invoice_columns.column(name="customer_id", dtype="L")
-        customer_id.relation(to="public.customer.id", foreign_key=True)
+        customer_id.relation(related_column="public.customer.id", foreign_key=True)
         invoice.virtual_columns().aliasColumn(
             name="customer_name", relation_path="@customer_id.name",
         )
@@ -51,7 +51,7 @@ def test_shared_catalog_preserves_every_existing_boundary():
     catalog = SqlModelCatalog(model)
 
     assert catalog.db_name == "catalog"
-    assert list(catalog.schemas) == ["public"]
+    assert list(catalog.packages) == ["public"]
     assert list(catalog.extensions) == ["pg_trgm"]
     assert list(catalog.tables) == [
         ("public", "customer"),
@@ -74,7 +74,7 @@ def test_shared_catalog_preserves_every_existing_boundary():
         ("public", "invoice", "ix_invoice_customer"),
     ]
     assert [path for path, _node in catalog.relations] == [
-        "db.schemas.public.tables.invoice.columns.customer_id.relation_0",
+        "db.packages.public.tables.invoice.columns.customer_id.relation_0",
     ]
 
     rendered = model.render(mode='migration')

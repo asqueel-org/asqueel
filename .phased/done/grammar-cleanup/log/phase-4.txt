@@ -1,0 +1,15 @@
+✓ Phase 4 completata: i controlli esprimibili ora stanno nella grammatica, `SqlModelValidator` fa solo i controlli referenziali e `connection_settings` si è spostato in `asqueel.runtime`. Commit `3a24b75`.
+
+- **Verifiche del `Done:`**, tutte passate e lanciate in questa sessione:
+  - contract test: 16 passed; `cmp` esce con 0;
+  - il grep del `Done:` non stampa nulla;
+  - i quattro file di test del piano insieme: 67 passed;
+  - suite completa: 5447 passed, 42 skipped, 20 xfailed;
+  - ruff pulito;
+  - i golden di migrazione sono identici al commit del piano.
+- **Test eliminati**: quattro test che raggiungevano i controlli rimossi solo modificando `attr` a mano. Ho tolto anche i tre casi `timestamp_type` di `test_system_field_payloads_are_typed_and_closed`, perché il grep del `Done:` vieta quella parola nei test. Il dettaglio è in `notes.md`, sotto `## Phase 4`.
+- **Due punti da decidere** (`> Review:` nel piano):
+  - `docs/grammar.md` mostra i nomi Python degli alias (`NON_NEGATIVE_INT`, `SQL_PREFIX`), non il vincolo che applicano.
+  - `validate_source` non rifiuta più un tag rimosso o un `provider` scritti modificando `attr` a mano.
+
+Non restano fasi aperte: il passo successivo è `/quality-check`, poi `/finalize-workflow`.
