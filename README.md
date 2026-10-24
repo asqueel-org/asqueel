@@ -17,8 +17,6 @@ reusable across queries, business logic and user interfaces.** Declare tables,
 relationships, calculated fields and UI metadata together, then work with that
 model through a live `db` object.
 
-Asqueel is the port of GenroPy's SQL layer to a standalone library.
-
 It addresses a common source of duplication in database applications: the same
 relationship, calculation or field description gets rewritten in queries,
 service code and screens. In Asqueel, a related customer name or an invoice
@@ -27,7 +25,7 @@ it. UI code can read the field's label and formatting from the same model.
 SQL remains available for expressions; Asqueel resolves model names and relation
 paths and binds query parameters.
 
-Asqueel brings Genropy's approach to database applications into a standalone
+Asqueel is a standalone
 library. The current checkout supports PostgreSQL and SQLite, with explicit writes and transaction
 completion. Start with [What is Asqueel?](docs/guide/overview.md)
 for the approach and an example. The manual also covers planned capabilities;

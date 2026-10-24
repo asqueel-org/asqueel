@@ -49,7 +49,7 @@ The root declares `name`, `implementation='sqlite'`, `conninfo=''`, and
 optional `connect_kwargs`. An empty connection string uses the driver's normal
 connection defaults when an operation is eventually executed. The
 implementations are `sqlite` (see [SQLite](sqlite.md)), `postgres` and
-`postgres3`, as in GenroPy; `<name>:<module>` loads the adapter of another
+`postgres3`; `<name>:<module>` loads the adapter of another
 module (see [Adapters](adapters.md)). `connect_kwargs={'autocommit': True}` is rejected.
 
 `AsqueelDb(source, *, parents=None, environment=None)` accepts a recipe class, an existing builder instance, or a

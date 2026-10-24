@@ -175,7 +175,7 @@ db.closeConnection()
 
 Call `db.closeConnection()` when finished; it rolls back pending work and
 closes the connections. This constructor
-loads the SQL configuration directly; it does not instantiate a Genropy
+loads the SQL configuration directly; it does not instantiate an
 application or load GUI/services.
 
 ## Other configuration sources

@@ -222,7 +222,7 @@ clause it raises `ValueError`.
 ## Bag columns: #BAG and #BAGCOLS
 
 `#BAG($col)`, `#BAG($col) AS alias` and `#BAGCOLS($col)` are expanded in the
-query columns only, as in GenroPy. The macro leaves the SQL; after the fetch:
+query columns only. The macro leaves the SQL; after the fetch:
 
 - `#BAG` turns the value into a `genro_bag.Bag` (`Bag.from_xml`); NULL gives an
   empty Bag;

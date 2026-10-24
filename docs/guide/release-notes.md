@@ -30,7 +30,7 @@
   parameters and collection expansion with regression and live database tests.
 - Correct the alias handle, zero limit, missing environment value and SQL/application
   cascade documentation (#27, #37).
-- `read_only` is spelled `readOnly`, as in GenroPy.
+- `read_only` is spelled `readOnly`.
 - One object renderer, mode `objects`, declared on `SqlBuilder` and reached only
   through `AsqueelDb(source)`, which renders the composed recipe into the
   database (`recipe.render(target=db)`); `recipe.render()` without a database
@@ -45,7 +45,7 @@
   tables and columns is always applied. Removed: `to_physical_builder` and the
   modules `asqueel.projection` and `asqueel.object_tree_projection`;
   `SqlMigrationRenderer(builder).render()` becomes `builder.render(mode='migration')`.
-- One database class, built before its model as in GenroPy: `AsqueelDb` exists
+- One database class, built before its model: `AsqueelDb` exists
   first, then the objects renderer builds `DbModel(db)` into it with
   `model.build(fragment)`. `SqlTable(tblobj)` takes the table object only; the
   database is `tblobj.db`. The environment lives on the database:
@@ -95,7 +95,7 @@
   does an error while applying the DDL. With `backup`, a kept backup column
   adds a warning to the returned plan and does not fail the final re-check.
   `SqlMigrationRenderer` takes `foreignKeys`.
-- SQLite schema files change name, as in GenroPy: each attached schema is
+- SQLite schema files change name: each attached schema is
   `<schema>.db` in the folder of the main file, no longer `<stem>_<schema>.db`.
   An existing SQLite database needs its schema files renamed. A missing main
   file gets its folder created.
@@ -104,7 +104,7 @@
 - `vacuum()` on SQLite runs `VACUUM` on every attached schema, not only `main`.
 - SQLite DDL declares the legacy type names (`character varying`, `character`,
   `timestamp`, `time`); requires asqueel-migration 0.3.1.
-- Connection lifecycle as in GenroPy. `session(db, **env)` is the unit of work
+- Connection lifecycle. `session(db, **env)` is the unit of work
   outside a request: entry clears `currentEnv` and applies `env`, exit calls
   `closeConnection()`, also when the body raises. `closeConnection()` rolls
   back what was not committed and closes every named connection of the
@@ -113,9 +113,10 @@
   `with db:` (also `with build_database(...) as db:`), `acquire()`, the
   `outcome` property and the error class raised by a closed database.
 - `deferToCommit` and `deferAfterCommit` queues live in `currentEnv`, under the
-  GenroPy keys; `clearCurrentEnv()` drops them. `deferredRaise` keeps its
+  keys `to_commit_defer_calls__main_db_<connectionName>` and
+  `after_commit_defer_calls__main_db_<connectionName>`; `clearCurrentEnv()` drops them. `deferredRaise` keeps its
   exceptions in `currentEnv['_pendingExceptions__main_db_<connectionName>']`,
-  one list per named connection (GenroPy keeps one global `_pendingExceptions`).
+  one list per named connection.
 - `AsqueelDbMixin` enters `session(db)` at the first take of a database during
   a call and leaves it in `release_databases()`.
 

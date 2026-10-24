@@ -19,7 +19,7 @@ reached through a relation or an alias.
 
 These are query-time expressions, not stored/generated database columns. They
 are read-only in application writes and excluded from physical schema projection.
-Without `dtype` a formulaColumn has type `A`, as in GenroPy; arbitrary SQL does
+Without `dtype` a formulaColumn has type `A`; arbitrary SQL does
 not infer it. An alias inherits its target dtype and descriptive metadata, as described in [models](models.md).
 
 For a first working example, use the [invoice tutorial](tutorial.md). This page
@@ -155,7 +155,7 @@ RuntimeModel overlays are still pending.
 
 ## Formula columns supplied by formulaColumn_<x>() methods
 
-As in GenroPy, every table method whose name starts with `formulaColumn_` is
+Every table method whose name starts with `formulaColumn_` is
 called without arguments and returns a dict, or a list of dicts, with `name`
 and the attributes of a formulaColumn:
 
@@ -176,8 +176,8 @@ environment untouched. A returned name equal to a declared column raises
 
 ## Read a compositeColumn as a value
 
-A compositeColumn selected or compared as a value compiles to the GenroPy
-formula: its members joined into a string such as `'["A", 2026]'`. A/C/T
+A compositeColumn selected or compared as a value compiles to a
+formula that joins its members into a string such as `'["A", 2026]'`. A/C/T
 members are quoted, L/F/R/B members are written raw, other dtypes are quoted
 with `::<dtype>` (`"2026-01-01::D"`). The value is that string, not decoded;
 its dtype is `JS`. A table whose pkey is a compositeColumn selects and filters
@@ -269,8 +269,8 @@ sql, kwargs = compiled.sql, dict(compiled.params)
 ```
 
 With neither `mode` nor `aggr`, the column is a plain scalar subquery on
-PostgreSQL and SQLite. `mode` accepts only `None`, `json` and `xml`, as in
-GenroPy; any other value raises `ValueError` and points to `aggr`.
+PostgreSQL and SQLite. `mode` accepts only `None`, `json` and `xml`;
+any other value raises `ValueError` and points to `aggr`.
 
 `aggr=` takes exactly one call of the `.aggr()` grammar (`count`, `sum`, `avg`,
 `min`, `max`, `join`, `to_json`, `to_xml`). The aggregate replaces the
@@ -303,7 +303,7 @@ remains unsupported.
 ## #ENV in a formula
 
 `#ENV(name[,fallback])` is expanded in a formulaColumn `sql_formula` only, at
-compilation, as in GenroPy:
+compilation:
 
 - the environment key `name` becomes a quoted literal;
 - otherwise the environment key `fallback` becomes a quoted literal;

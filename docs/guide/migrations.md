@@ -47,8 +47,7 @@ including introspection and the comparison after applying the migration.
 
 `allow_removals=True` enables the supported removals, currently columns only.
 
-Three more options come from the GenroPy migration, with the same keywords on
-both methods:
+Three more options take the same keywords on both methods:
 
 - `foreignKeys=False` creates no foreign key constraint. The indexes of the
   relation columns stay. Foreign keys already in the database are kept: the
@@ -67,7 +66,7 @@ for warning in result['warnings']:
 
 ### Indexes the model implies
 
-The migration creates, as GenroPy:
+The migration creates:
 
 - an index on the columns of every relation declared on a physical column or a
   `compositeColumn`, with or without `foreign_key`, unless the relation says

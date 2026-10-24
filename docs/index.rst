@@ -92,6 +92,12 @@ Choose your starting point
 
 .. toctree::
    :maxdepth: 1
+   :caption: JavaScript
+
+   guide/asqueel-js
+
+.. toctree::
+   :maxdepth: 1
    :caption: Look up and troubleshoot
 
    guide/cheatsheet

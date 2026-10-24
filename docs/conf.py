@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 project = "Asqueel"
 copyright = "2025-2026, Softwell S.r.l."
-author = "Genropy Team"
+author = "Softwell S.r.l."
 try:
     release = _pkg_version("asqueel")
 except PackageNotFoundError:

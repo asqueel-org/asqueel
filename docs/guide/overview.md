@@ -12,7 +12,7 @@ them harder to keep consistent. Asqueel lets the model own that knowledge:
 a related value or SQL calculation can become a named column, and consumers
 can query it or inspect its metadata.
 
-Asqueel is the port of GenroPy's SQL layer to a standalone library. Its
+Asqueel is a standalone library. Its
 purpose is to keep a rich application model reusable while retaining
 SQL expressions, visible query results and explicit control over writes and
 transactions. The current alpha targets PostgreSQL. See
@@ -131,8 +131,7 @@ The [transaction guide](transactions.md) explains those boundaries.
 
 The database layer can be used without a web application. An application-linked
 layer connects it to package contributions, localization, resources, policy
-services and events. A Genropy compatibility adapter supplies conventions of
-legacy applications on top of that integration.
+services and events.
 
 These are separate from the SQL dialect and driver. A dialect generates SQL
 for a backend; a driver handles its connection, parameter binding and execution.
