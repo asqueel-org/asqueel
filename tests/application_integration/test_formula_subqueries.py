@@ -39,7 +39,7 @@ def formula_database(request):
                         tables = database.packages().package(
                             'app', sqlschema=schema, sqlprefix=False).tables()
                     else:
-                        tables = database.schemas().schema('app', sqlname=schema).tables()
+                        tables = database.packages().package('app', sqlschema=schema, sqlprefix=False).tables()
                     invoice = tables.table('invoice', pkey='id')
                     columns = invoice.columns()
                     columns.column('id', dtype='I')
@@ -77,8 +77,7 @@ def formula_database(request):
                     receipt = tables.table('receipt', pkey='id')
                     columns = receipt.columns()
                     columns.column('id', dtype='I')
-                    columns.column('invoice_id', dtype='I').relation('app.invoice.id', foreign_key=True,
-                                                                    x_name='invoice')
+                    columns.column('invoice_id', dtype='I').relation('app.invoice.id', foreign_key=True)
                     receipt.virtual_columns().aliasColumn('invoice_total', relation_path='@invoice_id.total')
 
             db = AsqueelDb(Recipe)

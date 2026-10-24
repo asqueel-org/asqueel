@@ -34,7 +34,7 @@ class GenroPyVideoSubset(SqlBuilder):
         #                 name_long='Person id').relation('people.id')
 
         # Explicit recipe for the same complete model:
-        video = root.db(name="mydb").schemas().schema(name="video")
+        video = root.db(name="mydb").packages().package(name="video", sqlschema="video", sqlprefix=False)
         tables = video.tables()
         people = tables.table(name="video_people", pkey="id")
         people.columns().column(name="id", dtype="L")
@@ -45,12 +45,12 @@ class GenroPyVideoSubset(SqlBuilder):
         person_id = cast_columns.column(
             name="person_id", dtype="L", indexed=True,
         )
-        person_id.relation(to="video.video_people.id", foreign_key=False)
+        person_id.relation(related_column="video.video_people.id", foreign_key=False)
 
 
 class DescendingIndexRecipe(SqlBuilder):
     def main(self, root):
-        schema = root.db(name="inspection").schemas().schema(name="wfp16")
+        schema = root.db(name="inspection").packages().package(name="wfp16", sqlschema="wfp16", sqlprefix=False)
         recipe = schema.tables().table(name="recipe", pkey="id")
         columns = recipe.columns()
         columns.column(name="id", dtype="serial")
@@ -69,24 +69,24 @@ def _model(builder_type):
 
 def test_verbatim_legacy_declaration_builds_the_modern_source_tree():
     model = _model(GenroPyVideoSubset)
-    people = model.source["db.schemas.video.tables.video_people"]
-    cast = model.source["db.schemas.video.tables.video_cast"]
+    people = model.source["db.packages.video.tables.video_people"]
+    cast = model.source["db.packages.video.tables.video_cast"]
     person_id = model.source[
-        "db.schemas.video.tables.video_cast.columns.person_id"
+        "db.packages.video.tables.video_cast.columns.person_id"
     ]
     relation = next(node for node in person_id.value if node.node_tag == "relation")
 
     assert people.get_attr("pkey") == "id"
     assert cast.get_attr("pkey") == "id"
     assert model.source[
-        "db.schemas.video.tables.video_people.columns.id"
+        "db.packages.video.tables.video_people.columns.id"
     ].get_attr("dtype") == "L"
     assert model.source[
-        "db.schemas.video.tables.video_cast.columns.id"
+        "db.packages.video.tables.video_cast.columns.id"
     ].get_attr("dtype") == "L"
     assert person_id.get_attr("dtype") == "L"
     assert person_id.get_attr("indexed") is True
-    assert relation.get_attr("to") == "video.video_people.id"
+    assert relation.get_attr("related_column") == "video.video_people.id"
     assert relation.get_attr("foreign_key") is False
 
 
@@ -122,8 +122,8 @@ def test_live_inspection_preserves_descending_order_and_builds_a_recipe(pg_datab
 
     inspected = pg_database.get_json_struct()
     recovered = SqlModelReader(inspected).to_builder()
-    table = recovered.source["db.schemas.wfp16.tables.recipe"]
-    index_nodes = recovered.source["db.schemas.wfp16.tables.recipe.indexes"]
+    table = recovered.source["db.packages.wfp16.tables.recipe"]
+    index_nodes = recovered.source["db.packages.wfp16.tables.recipe.indexes"]
     indexes = {
         node.get_attr("name"): node
         for node in index_nodes.value

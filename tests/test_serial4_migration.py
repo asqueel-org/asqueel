@@ -13,7 +13,7 @@ from tests.native_support import postgres_dsn
 def config(dsn, schema, dtype='serial4'):
     class Config(SqlDatabaseConfig):
         def main(self, root):
-            root.db(implementation='postgres', conninfo=dsn).schemas().schema(schema).tables().table(
+            root.db(implementation='postgres', conninfo=dsn).packages().package(schema, sqlschema=schema, sqlprefix=False).tables().table(
                 'items', pkey='id',
             ).columns().column('id', dtype=dtype)
     return Config

@@ -1,0 +1,14 @@
+✓ Phase 3 completata: niente più `x_*` nella grammatica, nel source e nel live model; `Table` viene caricata dal package layout.
+
+- **Done gate verificato in questa sessione:**
+  - contract test: 21 passed;
+  - `cmp`: 0;
+  - grep `x_*`: nessun risultato;
+  - ruff: pulito;
+  - migration goldens: identici al commit del plan;
+  - full suite: 5444 passed / 42 skipped / 20 xfailed.
+- **Commit della fase:** `ad102ce`. È preceduto da tre commit parziali, uno per batch.
+- **Tre `> Review:` aperte per `/quality-check`:**
+  - una `Table` di layout con `__init__` personalizzato riceve zero argomenti;
+  - le tabelle del layout vengono dichiarate dopo quelle della recipe;
+  - la Decision sul manifest assumeva un riferimento a `legacy_source` che non esiste: il file è rimasto invariato.

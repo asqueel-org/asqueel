@@ -15,8 +15,8 @@ from asqueel import (
 class _ExplicitRecipe(SqlBuilder):
     def main(self, root):
         db = root.db("recipes")
-        schemas = db.schemas()
-        public = schemas.schema("public")
+        schemas = db.packages()
+        public = schemas.package("public", sqlschema="public", sqlprefix=False)
         tables = public.tables()
 
         author = tables.table("author", pkey="id")
@@ -85,7 +85,7 @@ _ORACLE = {
 
 
 def test_explicit_collections_remain_compatible_with_direct_table_declarations():
-    # wf:contract: the canonical chain is db.schemas().schema(...).tables()
+    # wf:contract: the canonical chain is db.packages().package(...).tables()
     # wf:contract: .table(...).columns().column(...), with equivalent explicit
     # wf:contract: containers for extensions, virtual columns, composites,
     # Historical exclusivity superseded by the approved 0.6 grammar (design 42):
@@ -94,29 +94,27 @@ def test_explicit_collections_remain_compatible_with_direct_table_declarations()
     # wf:contract: remain children of their source owner, never table.relations().
     model = _ExplicitRecipe()
     model.create()
-    assert model.source["db.schemas.public.tables.recipe.columns.author_id"].node_tag == "column"
+    assert model.source["db.packages.public.tables.recipe.columns.author_id"].node_tag == "column"
     assert model.source[
-        "db.schemas.public.tables.recipe.columns.author_id.relation_0"
+        "db.packages.public.tables.recipe.columns.author_id.relation_0"
     ].node_tag == "relation"
     assert model.source[
-        "db.schemas.public.tables.recipe.virtual_columns.author_name"
+        "db.packages.public.tables.recipe.virtual_columns.author_name"
     ].node_tag == "aliasColumn"
     assert model.source[
-        "db.schemas.public.tables.recipe.composites.identity"
+        "db.packages.public.tables.recipe.composites.identity"
     ].node_tag == "compositeColumn"
 
     bare = SqlBuilder()
     db = bare.source.db("d")
     with pytest.raises(ValueError, match="parent_tags"):
-        db.schema("s")
-    schemas = db.schemas()
-    schema = schemas.schema("s")
-    with pytest.raises(ValueError, match="parent_tags"):
-        schema.table("t")
+        db.package("s", sqlschema="s", sqlprefix=False)
+    schemas = db.packages()
+    schema = schemas.package("s", sqlschema="s", sqlprefix=False)
     tables = schema.tables()
     table = tables.table("t")
     column = table.column("id")
-    assert column is bare.source["db.schemas.s.tables.t.columns.id"]
+    assert column is bare.source["db.packages.s.tables.t.columns.id"]
     with pytest.raises(AttributeError):
         table.relations()
 
@@ -135,7 +133,7 @@ def test_explicit_recipe_projects_and_round_trips_without_json_drift():
     recovered = SqlModelReader(rendered).to_builder()
     emitted = recovered.render(mode='python')
     for call in (
-        ".schemas()", ".tables()", ".columns()", ".constraints()",
+        ".packages()", ".tables()", ".columns()", ".constraints()",
         ".indexes()", ".extensions()",
     ):
         assert call in emitted

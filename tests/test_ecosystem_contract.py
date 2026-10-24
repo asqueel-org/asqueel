@@ -11,7 +11,7 @@ from asqueel.grammar_doc import generate_grammar_md
 
 def test_catalog_paths_and_no_extension_metadata():
     model = SqlBuilder()
-    table = model.source.db('demo').schemas().schema('public').tables().table('invoice', pkey='id')
+    table = model.source.db('demo').packages().package('public', sqlschema='public', sqlprefix=False).tables().table('invoice', pkey='id')
     columns = table.columns()
     columns.column('id', dtype='L')
     metadata = {'created': date(2026, 9, 29), 'amount': Decimal('12.50'), 'tags': ['a', 'b']}
@@ -21,7 +21,7 @@ def test_catalog_paths_and_no_extension_metadata():
     model.validate_model()
     catalog = SqlModelCatalog(model)
     node = catalog.physical_columns['public', 'invoice', 'total']
-    assert catalog.path(node) == 'db.schemas.public.tables.invoice.columns.total'
+    assert catalog.path(node) == 'db.packages.public.tables.invoice.columns.total'
     assert catalog.children(columns) == list(columns.value)
     assert list(catalog.tables) == [('public', 'invoice')]
 
@@ -29,4 +29,4 @@ def test_catalog_paths_and_no_extension_metadata():
 def test_documentation_keeps_parameter_descriptions_and_semantic_plane():
     document = generate_grammar_md()
     assert 'the database name' in document
-    assert '| semantic | source-only free description;' in document
+    assert '| semantic | package description.' in document

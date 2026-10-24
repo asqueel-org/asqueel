@@ -7,7 +7,7 @@ from tests.model_cleanup_support import GOLDEN, golden
 
 def small_recipe():
     builder = SqlBuilder()
-    table = (builder.source.db('x').schemas().schema('s', sqlname='phys_s')
+    table = (builder.source.db('x').packages().package('s', sqlschema='phys_s', sqlprefix=False)
              .tables().table('t', pkey='id', sqlname='phys_t'))
     columns = table.columns()
     columns.column('id', dtype='I')

@@ -14,9 +14,9 @@ class ImportedDatabase(SqlBuilder):
     def main(self, root):
         db = root.db(name="x")
 
-        schemas = db.schemas()
+        packages = db.packages()
 
-        s = schemas.schema(name="s", sqlname="phys_s")
+        s = packages.package(name="s", sqlschema="phys_s", sqlprefix=False)
         tables = s.tables()
 
         t = tables.table(name="t", pkey="id", sqlname="phys_t")

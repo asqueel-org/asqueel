@@ -1,0 +1,15 @@
+⚠ Phase 2 chiusa `[!]` con un plan-defect claim, commit `bd8c110` su `wf/grammar-cleanup`.
+
+**Cosa è fatto:**
+- `schemas` e `schema` non esistono più: un modello parte solo da `packages().package(...)`.
+- `relation` prende i nomi legacy: `related_column` al posto di `to`, `insensitive` al posto di `case_insensitive`.
+- Il codice è aggiornato in reader, renderer, esempi, test, guide e `docs/grammar.md`.
+- Suite completa: 5426 passed, 42 skipped, 20 xfailed. ruff pulito.
+- Il contract test passa (12 passed) ed è identico alla copia del plan (`cmp` OK).
+
+**Perché `[!]`:** l'ultimo criterio `Done:` confronta gli `objects.json` con il commit del plan (`9ae1fa8`). Il golden `test_invoice_pg.objects.json` però l'ha rigenerato la Phase 1, come il suo `Done:` richiedeva. Questa fase non cambia nessun golden rispetto a `HEAD`. Il claim propone di confrontare gli `objects.json` con `d8e65da`, il commit di chiusura della Phase 1.
+
+**Cosa devi fare:** decidere sulla modifica del plan proposta nel claim. Nella nota `> Review:` trovi tre punti aperti:
+- `tests/test_model_cleanup_migration.py` dovrebbe passare "unchanged", ma conteneva una chiamata `.schemas()` che il `Done:` vieta. Ho riscritto solo quella chiamata, le asserzioni sono intatte.
+- Il grep su `.schemas()` trova solo il contract test, che deve restare identico. È la stessa situazione della Phase 1.
+- Una colonna fisica `P`, `X` o `Z` letta dal reader torna come `T`, come fa il legacy `convert_colattr`. Va deciso se il reader debba invece sollevare un errore.

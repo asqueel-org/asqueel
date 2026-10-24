@@ -38,7 +38,7 @@ def _joiner(table, column, target, attrs):
         onUpdate_sql=_action(attrs.get('onUpdate_sql') or 'cascade'),
         onDuplicate=attrs.get('onDuplicate'), deferred=attrs.get('deferred'),
         private_relation=not relation_name and attrs.get('one_one') != '*',
-        case_insensitive=attrs.get('case_insensitive', False),
+        case_insensitive=attrs.get('insensitive', False),
         one_group=attrs.get('one_group'), many_group=attrs.get('many_group'),
     )
     # These legacy attributes remain opaque data; their execution is not added.
@@ -72,19 +72,19 @@ def _register_relation(model, table, column, attrs):
     virtual = column.tag != 'column'
     if virtual:
         attrs.update(virtual=True, one_name=attrs.get('one_name') or column.name_long)
-    target = attrs['to'].split('.')
+    target = attrs['related_column'].split('.')
     if len(target) == 2 and target[0] not in model.obj:
         target.insert(0, table.pkg.name)
     if len(target) == 2:
         target_table = model.table('.'.join(target))
         if target_table is None:
-            raise ValueError(f'Unknown package/schema {target[0]!r}')
+            raise ValueError(f'Unknown package {target[0]!r}')
         target.append(target_table.pkey)
     if len(target) != 3 or not target[2]:
-        raise ValueError(f'Invalid relation target: {attrs["to"]!r}')
+        raise ValueError(f'Invalid relation target: {attrs["related_column"]!r}')
     remote = model.table('.'.join(target[:2]))
     if remote is None:
-        raise ValueError(f'Unknown package/schema {target[0]!r}')
+        raise ValueError(f'Unknown package {target[0]!r}')
     remote_column = remote.column(target[2])
     if remote_column is None:
         raise ValueError(f'Unknown column {remote.fullname}.{target[2]}')
@@ -171,7 +171,7 @@ def _inherit_alias_relations(model):
             column.attributes['dtype'] = target.dtype
         if key not in forward and relation is not None:
             _register_relation(model, column.table, column,
-                               dict(to=relation['one_relation'], foreign_key=False))
+                               dict(related_column=relation['one_relation'], foreign_key=False))
             column.attributes['virtual'] = True
             forward[key] = model.relations.get_node(f'{key.rsplit(".", 1)[0]}.@{column.name}').attr
         active.remove(key)

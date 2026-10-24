@@ -6,14 +6,34 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, AsqueelDb
+from asqueel import SqlDatabaseConfig, AsqueelDb
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
 pytestmark = pytest.mark.postgresql
 
+INVOICE = '''
+class Table:
+    def config_db(self, pkg):
+        invoice = pkg.table('invoice', pkey='id')
+        columns = invoice.columns()
+        columns.column('id', dtype='I')
+        columns.column('customer_id', dtype='I').relation('app.customer.id', foreign_key=True)
+        columns.column('amount', dtype='I')
+        virtual = invoice.virtual_columns()
+        virtual.aliasColumn('customer_name', relation_path='@customer_id.name',
+                            name_long='Buyer name', static=True)
+        virtual.aliasColumn('country_name', relation_path='@customer_id.@country_id.name')
+        virtual.aliasColumn('country_chain', relation_path='@customer_id.country_name')
+        virtual.aliasColumn('loud_customer', relation_path='@customer_id.loud_name')
+
+    def trigger_onUpdating(self, record, old_record=None):
+        assert set(record) == set(old_record) == {'id', 'customer_id', 'amount'}
+'''
+
 
 @pytest.fixture
-def alias_database():
+def alias_database(tmp_path):
     schema = 'aliases_' + uuid4().hex
     dsn = postgres_dsn()
     with psycopg.connect(dsn, autocommit=True) as observer:
@@ -29,14 +49,12 @@ def alias_database():
             ]:
                 observer.execute(sql.SQL(ddl).format(sql.Identifier(schema)))
 
-            class Invoice(SqlTable):
-                def trigger_onUpdating(self, record, old_record=None):
-                    assert set(record) == set(old_record) == {'id', 'customer_id', 'amount'}
+            path = write_layout(tmp_path / 'app', invoice=INVOICE)
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    tables = root.db('aliases', implementation='postgres', conninfo=dsn).schemas().schema(
-                        'app', sqlname=schema).tables()
+                    tables = root.db('aliases', implementation='postgres', conninfo=dsn).packages().package(
+                        'app', sqlschema=schema, sqlprefix=False, path=path).tables()
                     country = tables.table('country', pkey='id').columns()
                     country.column('id', dtype='I')
                     country.column('name', dtype='T', name_long='Country')
@@ -44,21 +62,10 @@ def alias_database():
                     columns = customer.columns()
                     columns.column('id', dtype='I')
                     columns.column('name', dtype='T', name_long='Customer')
-                    columns.column('country_id', dtype='I').relation('app.country.id', foreign_key=True, x_name='country')
+                    columns.column('country_id', dtype='I').relation('app.country.id', foreign_key=True)
                     virtual = customer.virtual_columns()
                     virtual.formulaColumn('loud_name', sql_formula='upper($name)', dtype='T')
                     virtual.aliasColumn('country_name', relation_path='@country_id.name')
-                    invoice = tables.table('invoice', pkey='id', x_table_class=Invoice)
-                    columns = invoice.columns()
-                    columns.column('id', dtype='I')
-                    columns.column('customer_id', dtype='I').relation('app.customer.id', foreign_key=True, x_name='customer')
-                    columns.column('amount', dtype='I')
-                    virtual = invoice.virtual_columns()
-                    virtual.aliasColumn('customer_name', relation_path='@customer_id.name',
-                                        name_long='Buyer name', static=True)
-                    virtual.aliasColumn('country_name', relation_path='@customer_id.@country_id.name')
-                    virtual.aliasColumn('country_chain', relation_path='@customer_id.country_name')
-                    virtual.aliasColumn('loud_customer', relation_path='@customer_id.loud_name')
 
             db = AsqueelDb(Recipe)
             try:

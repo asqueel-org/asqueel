@@ -1,4 +1,4 @@
-"""sys_fields columns are written by their legacy field triggers (asqueel#29)."""
+"""sysFields columns are written by their legacy field triggers (asqueel#29)."""
 from datetime import timezone
 
 import pytest
@@ -9,7 +9,7 @@ from tests.option_tables_support import IMPLEMENTATIONS, migrated_db, row
 
 def note(package):
     table = package.table('note', name_long='Note')
-    table.options().sys_fields()
+    table.options().sysFields()
     table.column('title')
 
 
@@ -24,7 +24,7 @@ def test_triggers_are_column_attributes_not_legacy_data(db):
     assert columns['__ins_ts'].attributes['onInserting'] == 'setTSNow'
     assert columns['__mod_ts'].attributes['onUpdating'] == 'setTSNow'
     assert columns['__mod_user'].attributes['onUpdating'] == 'setCurrentUser'
-    assert not any(key.startswith('x_legacy_on') for column in columns.values() for key in column.attributes)
+    assert not any(key.startswith('x_') for column in columns.values() for key in column.attributes)
 
 
 def test_insert_fills_key_timestamps_and_users(db):
@@ -63,10 +63,10 @@ def test_user_is_none_without_user_in_the_environment(db):
 def test_options_not_executed_still_refuse_the_write(tmp_path):
     def hashed(package):
         table = package.table('hashed', name_long='Hashed')
-        table.options().sys_fields()
-        table.options().record_hash()
+        table.options().sysFields()
+        table.options().fullUpd()
         table.column('title')
 
     with migrated_db('sqlite', tmp_path, hashed) as db:
-        with pytest.raises(UnsupportedFeatureError, match='option record_hash'):
+        with pytest.raises(UnsupportedFeatureError, match='option fullUpd'):
             db.table('app.hashed').insert({'title': 'x'})

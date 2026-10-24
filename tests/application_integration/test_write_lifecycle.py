@@ -3,11 +3,17 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable, TransactionStateError
+from asqueel import AsqueelDb, SqlDatabaseConfig, TransactionStateError
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        t = pkg.table('item', pkey='id').columns()
+        t.column('id', dtype='I')
+        t.column('name', dtype='T')
 
-class Logic(SqlTable):
     def trigger_onInserting(self, record):
         self.db.currentEnv['events'].append('table-before')
         record['name'] = record['name'].strip()
@@ -24,6 +30,7 @@ class Logic(SqlTable):
         self.db.currentEnv['events'].append('table-before')
     def trigger_onDeleted(self, record):
         self.db.currentEnv['events'].append('table-after')
+'''
 
 
 class IntegrationDb(AsqueelDb):
@@ -43,11 +50,11 @@ def database(request, tmp_path):
             db = root.db(implementation='postgres', conninfo=dsn) if dsn else root.db()
             if not dsn:
                 db.connection(name=str(tmp_path / 'lifecycle.db'), implementation='sqlite')
-            tables = db.schemas().schema('app', sqlname=physical_schema).tables()
-            for name in ('item', 'audit'):
-                t = tables.table(name, pkey='id', **({'x_table_class': Logic} if name == 'item' else {})).columns()
-                t.column('id', dtype='I')
-                t.column('name', dtype='T')
+            tables = db.packages().package('app', sqlschema=physical_schema, sqlprefix=False,
+                                           path=write_layout(tmp_path / 'app', item=ITEM)).tables()
+            t = tables.table('audit', pkey='id').columns()
+            t.column('id', dtype='I')
+            t.column('name', dtype='T')
     db = IntegrationDb(Recipe)
     if dsn:
         db.execute(f'CREATE SCHEMA "{physical_schema}"')

@@ -24,19 +24,21 @@ def source():
     service = sys.table('service', pkey='service_identifier',
                         pkey_columns='service_type,service_name', name_long='Servizio',
                         name_short='Serv.', name_plural='Servizi', caption_field='service_identifier')
-    service.options().sys_fields(id=False, user_upd=False)
+    service.options().sysFields(id=False, user_upd=False)
     service.column('service_identifier', size=':60')
     service.column('service_type', size=':30')
     service.column('service_name', size=':30')
     service.column('parameters', dtype='X')
 
-    # AttachmentTable belongs to adm, not to a fabricated invc.invoice_atc.
     template = adm.table('htmltemplate', pkey='id')
-    template.options().sys_fields(user_upd=False)
+    template.options().sysFields(user_upd=False)
     attachments = adm.table('htmltemplate_atc', pkey='id')
-    attachments.options().attachments(master='adm.htmltemplate')
+    attachments.options().sysFields(user_upd=False)
+    attachments.options().counter('maintable_id')
+    attachments.column('maintable_id', size='22').relation(
+        'adm.htmltemplate.id', relation_name='atc_attachments', onDelete='cascade')
     counter = adm.table('counter', pkey='codekey', pkey_columns='pkg,tbl,code,fld,period')
-    counter.options().sys_fields(id=False, user_upd=False)
+    counter.options().sysFields(id=False, user_upd=False)
     counter.column('codekey', size=':80')
     for name, size in (('pkg', ':12'), ('tbl', ':30'), ('code', ':12'),
                        ('fld', ':30'), ('period', ':10')):
@@ -45,7 +47,7 @@ def source():
     customer = invc.table('customer', pkey='id', name_long='Cliente',
                          name_short='Cli.', name_plural='Clienti', caption_field='account_name',
                          partition_state='invc_state')
-    customer.options().sys_fields(id={'type': 'uuid'}, draft=True,
+    customer.options().sysFields(id={'type': 'uuid'}, draft=True,
                                   user_upd=False)
     customer.column('account_name', validate_notnull=True, validate_len='2:40')
     customer.column('state', size=':5').relation(
@@ -55,16 +57,16 @@ def source():
     product_type = invc.table('product_type', pkey='id', name_long='Tipo prodotto',
                              name_short='Tipo', name_plural='Tipi prodotto',
                              caption_field='hierarchical_description')
-    product_type.options().sys_fields(user_upd=False)
+    product_type.options().sysFields(user_upd=False)
     product_type.options().hierarchical('description')
-    product_type.options().auto_counter()
-    product_type.options().dynamic_fields()
+    product_type.options().counter()
+    product_type.options().df()
     product_type.column('description', size=':50')
 
     invoice = invc.table('invoice', pkey='id', name_long='Fattura',
                         name_short='Fatt.', name_plural='Fatture', caption_field='inv_number',
                         partition_customer_state='invc_state')
-    invoice.options().sys_fields(user_upd=False)
+    invoice.options().sysFields(user_upd=False)
     invoice.options().numbering('inv_number', parameters={
         'format': '$K$YY/$NNNNNN', 'code': 'A', 'period': 'YY',
         'date_field': 'date', 'showOnLoad': True, 'recycle': True})
@@ -85,8 +87,8 @@ def source():
 
     row = invc.table('invoice_row', pkey='id', name_long='Riga fattura',
                     name_short='Riga', name_plural='Righe fattura', caption_field='product_name')
-    row.options().sys_fields(user_upd=False)
-    row.options().auto_counter('invoice_id')
+    row.options().sysFields(user_upd=False)
+    row.options().counter('invoice_id')
     row.column('invoice_id', size='22').relation(
         'invc.invoice.id', foreign_key=True, relation_name='rows',
         onDelete='cascade', onUpdate_sql='cascade')

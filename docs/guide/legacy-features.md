@@ -96,7 +96,7 @@ In asqueel you write:
 
 ```python
 tbl = pkg.table('note', pkey='id')
-tbl.options().sys_fields()
+tbl.options().sysFields()
 ```
 
 In asqueel you get: the columns `id`, `__ins_ts`, `__mod_ts`, `__del_ts`, `__ins_user`, `__mod_user`, `__is_draft`, `__syscode`. The write fills a 22-character `id`, the timestamps through `trigger_setTSNow` and the users through `trigger_setCurrentUser` from `db.currentUser`.
@@ -124,7 +124,7 @@ In GenroPy you got: a hierarchical table with `parent_id`, the materialized `hie
 In asqueel you write:
 
 ```python
-tbl.options().sys_fields()
+tbl.options().sysFields()
 tbl.options().hierarchical('code')
 ```
 
@@ -153,10 +153,10 @@ In GenroPy you got: a `_row_count` column, the table ordered by it, and a value 
 In asqueel you write:
 
 ```python
-tbl.options().auto_counter()
+tbl.options().counter()
 ```
 
-In asqueel you get: the `_row_count` column and the table `order_by`. The write is refused except on a hierarchical table: an insert raises `UnsupportedFeatureError` with `write execution of option auto_counter is not available in this release`.
+In asqueel you get: the `_row_count` column and the table `order_by`. The write is refused except on a hierarchical table: an insert raises `UnsupportedFeatureError` with `write execution of option counter is not available in this release`.
 
 Notes: the counter value on write is [#31](https://github.com/asqueel-org/asqueel/issues/31). Until then, set the value in `trigger_onInserting`.
 
@@ -180,7 +180,7 @@ In GenroPy you got: the mixin classes (`tableMixin`, `packageMixin`, `_plugins`,
 
 In asqueel: `db.tableMixin` and `db.packageMixin` raise `UnsupportedFeatureError` (`tableMixin is not available in this release`). `mixin=` on a table raises too, and so does a `Table` class in `main.py`. A table has one class only.
 
-Workaround: `x_table_class`, or the `Table` class of the package layout.
+Workaround: the `Table` class of the package layout, in `model/<table>.py`.
 
 <details><summary>Files</summary>
 
@@ -394,7 +394,7 @@ Workaround: declare by hand a `formulaColumn` with `.relation(...)` and an `alia
 <details><summary>Files</summary>
 
 - GenroPy: `gnrpy/gnr/sql/gnrsqlmodel/model.py:1067`, `gnrpy/gnr/sql/gnrsqlmodel/columns.py:273-279`
-- asqueel: `src/asqueel/builder.py:126-129`, `src/asqueel/builder.py:441-446`, `src/asqueel/compiler.py:428`, `src/asqueel/legacy_source.py:77-88`, `src/asqueel/compiler.py:354`
+- asqueel: `src/asqueel/builder.py:126-129`, `src/asqueel/builder.py:441-446`, `src/asqueel/compiler.py:428`, `src/asqueel/compiler.py:354`
 
 </details>
 
@@ -506,7 +506,7 @@ Notes: a recorded decision takes `aliasTable` out of the grammar for now; `virtu
 <details><summary>Files</summary>
 
 - GenroPy: `gnrpy/gnr/sql/gnrsqlmodel/model.py:1305`, `gnrpy/gnr/sql/gnrsqldata/compiler.py:490`
-- asqueel: `src/asqueel/configuration.py:121-123`, `src/asqueel/legacy_source.py:98-100`, `src/asqueel/compiler.py:354`
+- asqueel: `src/asqueel/configuration.py:121-123`, `src/asqueel/compiler.py:354`
 
 </details>
 
@@ -757,7 +757,7 @@ model.table('nope.t')
 model.table('sales.nope')
 ```
 
-In asqueel you get: `None` for an unknown package and for an unknown column, as in GenroPy. An unknown table of a known package raises `ValueError` (`Unknown table sales.nope`). `model.column` with an unknown package raises `ValueError` (`Unknown package/schema 'nope'`). `@` paths and `AliasColumnWrapper` work as in GenroPy.
+In asqueel you get: `None` for an unknown package and for an unknown column, as in GenroPy. An unknown table of a known package raises `ValueError` (`Unknown table sales.nope`). `model.column` with an unknown package raises `ValueError` (`Unknown package 'nope'`). `@` paths and `AliasColumnWrapper` work as in GenroPy.
 
 Notes: the different exception classes have no issue.
 
@@ -1073,12 +1073,12 @@ In asqueel you write:
 tbl.column('customer_id').relation('customer.id', foreign_key=True)
 ```
 
-In asqueel you get: inside a package `foreign_key` is `True` by default and `False` with `cnd`. `relation(..., foreign_key=False)` creates no foreign key. `mode=` raises `ValueError`: `Element 'relation' does not accept 'mode'`. `case_insensitive=True` produces no `lower()` in the join, as in GenroPy.
+In asqueel you get: inside a package `foreign_key` is `True` by default and `False` with `cnd`. `relation(..., foreign_key=False)` creates no foreign key. `mode=` raises `ValueError`: `Element 'relation' does not accept 'mode'`. `insensitive=True` produces no `lower()` in the join, as `mode='insensitive'` in GenroPy.
 
 <details><summary>Files</summary>
 
 - GenroPy: `gnrpy/gnr/sql/gnrsqlmodel/model.py:1357`, `gnrpy/gnr/sql/gnrsqlmodel/model.py:268-269`
-- asqueel: `src/asqueel/elements.py:470`, `src/asqueel/builder.py:447-451`, `src/asqueel/semantic_elements.py:24`, `src/asqueel/builder.py:438-440`, `src/asqueel/legacy_source.py:115-120`, `src/asqueel/compiler.py:422`
+- asqueel: `src/asqueel/elements.py:470`, `src/asqueel/builder.py:447-451`, `src/asqueel/semantic_elements.py:24`, `src/asqueel/builder.py:438-440`, `src/asqueel/compiler.py:422`
 
 </details>
 

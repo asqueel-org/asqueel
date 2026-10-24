@@ -17,7 +17,6 @@ def customer_table(tables):
     columns.column('id', dtype='L')
     columns.column(
         'name', dtype='T', notnull=True,
-        x_identity='customer-name',
         name_long='Customer name',
     )
     return table
@@ -28,7 +27,7 @@ def invoice_table(tables):
     columns = table.columns()
     columns.column('id', dtype='L')
     columns.column('customer_id', dtype='L').relation(
-        'sales.customer.id', foreign_key=True, x_name='customer',
+        'sales.customer.id', foreign_key=True,
     )
     columns.column('total', dtype='N', size='12,2', notnull=True)
     virtuals = table.virtual_columns()
@@ -41,8 +40,8 @@ def invoice_table(tables):
 
 class SalesModel(SqlDatabaseConfig):
     def main(self, root):
-        tables = root.db('sales_app').schemas().schema(
-            'sales', sqlname='public',
+        tables = root.db('sales_app').packages().package(
+            'sales', sqlschema='public', sqlprefix=False
         ).tables()
         customer_table(tables)
         invoice_table(tables)
@@ -97,7 +96,7 @@ element: free extras such as `x_ui_label` are outside this release's grammar.
 ## Declare relations and formulas
 
 The relation above is navigable as `@customer_id.name`: a forward relation is
-named by its owning column. `x_name` does not rename the forward path.
+named by its owning column.
 
 Relations in the native query profile navigate toward a declared primary or
 unique key. `foreign_key=True` also makes the relation part of the physical

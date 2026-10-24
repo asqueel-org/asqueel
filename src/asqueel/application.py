@@ -19,11 +19,11 @@ from genro_bag import Bag
 
 from .application_table import SqlTable
 from .compiler import QueryCompiler
-from .configuration import SqlConfigHandler, SqlDatabaseConfig, compose_recipe, connection_settings
+from .configuration import SqlConfigHandler, SqlDatabaseConfig, compose_recipe
 from .contracts import CompiledQuery, UnsupportedFeatureError, not_available, refused_property
 from .environment import _TRANSACTION_KEYS, _copy_values, environment_arguments
 from .errors import DeferredCommitError, MigrationError, TransactionStateError
-from .runtime import SqlCursor, _ConnectionState
+from .runtime import SqlCursor, _ConnectionState, connection_settings
 from .runtime import _ThreadState
 from .write_compiler import WriteCompiler
 from .db_write import WriteMixin
@@ -729,7 +729,7 @@ class AsqueelDb(WriteMixin):
         self._check_open()
         found = self.model.table(name)
         if found is None:
-            raise ValueError(f'Unknown package/schema {name.split(".")[0]!r}')
+            raise ValueError(f'Unknown package {name.split(".")[0]!r}')
         table: SqlTable = found.dbtable
         return table
 

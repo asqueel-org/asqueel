@@ -6,7 +6,7 @@ from asqueel import SqlDatabaseConfig, UnusedQueryParameterWarning, AsqueelDb
 def recipe(local=None):
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            tables = root.db('bindings').schemas().schema('app').tables()
+            tables = root.db('bindings').packages().package('app', sqlschema='app', sqlprefix=False).tables()
             invoice = tables.table('invoice', pkey='id')
             invoice.columns().column('id', dtype='I')
             lines = tables.table('line', pkey='id').columns()

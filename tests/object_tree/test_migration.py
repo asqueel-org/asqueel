@@ -6,10 +6,9 @@ from pathlib import Path
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
-from asqueel_migration import StructureValidator
+from asqueel_migration import SqlMigrator, StructureValidator
 from examples.test_invoice_pg import source
 from tests.object_tree.test_invoice import TABLES
-from tests.test_release_invoice_migration import prepared
 
 ROOT = Path(__file__).resolve().parents[2]
 LEGACY = json.loads((ROOT / 'tests/oracles/test_invoice_pg/physical.json').read_text())
@@ -19,6 +18,14 @@ SAVED = json.loads((ROOT / 'artifacts/test_invoice_pg/native/migration.json').re
 
 def physical(model):
     return model.db.config.builder.render(mode='migration')
+
+
+def prepared(database, structure):
+    migrator = SqlMigrator(database, removeDisabled=True)
+    migrator.ormStructure = structure
+    migrator.prepareMigrationCommands()
+    assert not migrator.warnings, migrator.warnings
+    return migrator
 
 
 @pytest.fixture(scope='module')
@@ -56,12 +63,11 @@ def test_whole_json_is_identical_to_both_references_and_current_renderer(tree, s
 
 
 def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
-    import asqueel.legacy_source as legacy_source
     import asqueel.application as application
     from copy import deepcopy
 
     def forbidden(*args, **kwargs):
-        pytest.fail('Projection must use completed objects without legacy, compiler or I/O')
+        pytest.fail('Projection must use completed objects without compiler or I/O')
     original_open, original_read = builtins.open, Path.read_text
     def guard(path):
         if isinstance(path, (str, Path)) and 'oracles/test_invoice_pg' in str(path):
@@ -74,7 +80,6 @@ def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
         return original_read(path, *args, **kwargs)
     monkeypatch.setattr(builtins, 'open', checked_open)
     monkeypatch.setattr(Path, 'read_text', checked_read)
-    monkeypatch.setattr(legacy_source, 'from_expanded_legacy_xml', forbidden)
     monkeypatch.setattr(application, 'QueryCompiler', forbidden)
     monkeypatch.setattr('psycopg.connect', forbidden)
     monkeypatch.setattr('sqlite3.connect', forbidden)
@@ -151,7 +156,7 @@ def test_hierarchical_json_apply_introspect_rediff_and_evolution(pg_database, st
     recipe = source()
     with recipe.contribution('hierarchical-migration-check'):
         customer = recipe.source.get_node('db.packages.invc.tables.customer')
-        customer.options().full_update()
+        customer.options().fullUpd()
         customer.column('probe_product', size='22').relation('invc.product.id', onDelete_sql='setnull')
         customer.column('probe_code', size=':20', unique=True)
         customer.index(name='probe_account', columns='account_name')

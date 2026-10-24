@@ -126,12 +126,12 @@ def test_returning_formula_that_requires_join_is_rejected():
         db.closeConnection()
 
 
-def test_result_source_preserves_stable_identity_across_alias_and_physical_names():
+def test_result_source_is_the_column_fullname_across_alias_and_physical_names():
     source = SqlDatabaseConfig()
     pkg = source.source.db('identity', implementation='postgres').packages().package('app')
     customer = pkg.table('customer', pkey='id', sqlname='renamed_customer')
-    customer.column('id', x_identity='stable:customer:id')
-    customer.column('name', sqlname='renamed_name', x_identity='stable:customer:name')
+    customer.column('id')
+    customer.column('name', sqlname='renamed_name')
     invoice = pkg.table('invoice', pkey='customer_id')
     invoice.column('customer_id').relation('app.customer.id')
     db = bind(source)
@@ -139,7 +139,7 @@ def test_result_source_preserves_stable_identity_across_alias_and_physical_names
         direct = db.compiler.select('app.customer', '$name AS display')
         related = db.compiler.select('app.invoice', '@customer_id.name AS display')
         for query in (direct, related):
-            assert query.columns[0].source == 'stable:customer:name'
+            assert query.columns[0].source == 'app.customer.name'
             assert query.columns[0].name == 'display'
             assert query.columns[0].ui == {}
         assert db.compiler.select('app.invoice').columns[0].source == 'app.invoice.customer_id'

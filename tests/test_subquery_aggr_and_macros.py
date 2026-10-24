@@ -2,31 +2,35 @@
 import pytest
 from genro_bag import Bag
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
+from tests.package_layout_support import write_layout
 
 PAYLOAD = '<GenRoBag><value>hello</value><sub><x>one</x></sub></GenRoBag>'
 
+CUSTOMER = '''
+class Table:
+    def config_db(self, pkg):
+        customer = pkg.table('customer', pkey='id')
+        customer.column('id', dtype='L')
+        customer.column('code')
+        customer.column('payload', dtype='X')
+        lines = dict(table='app.invoice', where='$customer_id=#THIS.id')
+        customer.subQueryColumn('total', query=lines, aggr='sum($amount)', dtype='N')
+        customer.subQueryColumn('lines', query=lines, aggr='count()', dtype='L')
+        customer.subQueryColumn('codes', query=dict(lines, order_by='$code DESC'), aggr="join($code, ',')", dtype='T')
+        customer.subQueryColumn('first_code', query=dict(lines, columns='MIN($code)'), dtype='T')
+        customer.formulaColumn('who', sql_formula='#ENV(user)', dtype='T')
+        customer.formulaColumn('nick', sql_formula='#ENV(nick,user)', dtype='T')
+        customer.formulaColumn('region', sql_formula='#ENV(region)', dtype='T')
+        customer.formulaColumn('ghost', sql_formula='#ENV(ghost)', dtype='T')
 
-class Customer(SqlTable):
     def env_region(self):
         return "'north'"
+'''
 
 
 def declare(pkg):
-    customer = pkg.table('customer', pkey='id', x_table_class=Customer)
-    customer.column('id', dtype='L')
-    customer.column('code')
-    customer.column('payload', dtype='X')
-    lines = dict(table='app.invoice', where='$customer_id=#THIS.id')
-    customer.subQueryColumn('total', query=lines, aggr='sum($amount)', dtype='N')
-    customer.subQueryColumn('lines', query=lines, aggr='count()', dtype='L')
-    customer.subQueryColumn('codes', query=dict(lines, order_by='$code DESC'), aggr="join($code, ',')", dtype='T')
-    customer.subQueryColumn('first_code', query=dict(lines, columns='MIN($code)'), dtype='T')
-    customer.formulaColumn('who', sql_formula='#ENV(user)', dtype='T')
-    customer.formulaColumn('nick', sql_formula='#ENV(nick,user)', dtype='T')
-    customer.formulaColumn('region', sql_formula='#ENV(region)', dtype='T')
-    customer.formulaColumn('ghost', sql_formula='#ENV(ghost)', dtype='T')
     invoice = pkg.table('invoice', pkey='id')
     invoice.column('id', dtype='serial')
     invoice.column('customer_id', dtype='L').relation('app.customer.id', relation_name='invoices')
@@ -36,7 +40,7 @@ def declare(pkg):
 
 @pytest.fixture(params=IMPLEMENTATIONS)
 def db(request, tmp_path):
-    with migrated_db(request.param, tmp_path, declare) as db:
+    with migrated_db(request.param, tmp_path, declare, path=write_layout(tmp_path / 'app', customer=CUSTOMER)) as db:
         db.table('app.customer').sql_insert([{'id': 1, 'code': 'a', 'payload': PAYLOAD},
                                              {'id': 2, 'code': 'b', 'payload': None}])
         db.table('app.invoice').sql_insert([{'customer_id': 1, 'code': 'i1', 'amount': 10},

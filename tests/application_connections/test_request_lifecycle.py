@@ -3,14 +3,19 @@ from uuid import uuid4
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        pkg.tables().table('item', pkey='id').columns().column('id', dtype='I')
 
-class Item(SqlTable):
     def trigger_onInserted(self, record):
         if self.db.currentEnv.get('fail_hook'):
             raise ValueError('hook failure')
+'''
 
 
 class Request:
@@ -38,6 +43,7 @@ class Request:
 @pytest.mark.parametrize('failure', ['application', 'hook', 'sql', 'before', 'after'])
 def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, failure):
     schema = 'request_' + uuid4().hex
+    path = write_layout(tmp_path / 'package', item=ITEM)
 
     class Configuration(SqlDatabaseConfig):
         def main(self, root):
@@ -46,8 +52,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 database.connection(name=str(tmp_path / 'requests.db'), implementation='sqlite')
             else:
                 database = root.db(implementation='postgres', conninfo=postgres_dsn())
-            table = database.schemas().schema(schema).tables().table('item', pkey='id', x_table_class=Item)
-            table.columns().column('id', dtype='I')
+            database.packages().package(schema, sqlschema=schema, sqlprefix=False, path=path)
 
     db = AsqueelDb(Configuration)
     trace = []

@@ -4,7 +4,8 @@ from genro_bag.resolvers import EnvResolver
 from genro_builders.contrib.config import ConfigHandler
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
-from asqueel.configuration import connection_settings, configuration_source, SqlConfigHandler, compose_recipe
+from asqueel.configuration import configuration_source, SqlConfigHandler, compose_recipe
+from asqueel.runtime import connection_settings
 
 
 def recipe(implementation='postgres'):
@@ -125,7 +126,7 @@ def test_missing_main_connection_does_not_select_an_implicit_database():
 def test_driver_options_do_not_prevent_building_the_existing_runtime_profile():
     builder, db = recipe('sqlite')
     db.connection('main', database=':memory:').options().driver(timeout=1.5)
-    db.schemas().schema('public').tables().table('t', pkey='id').column('id', dtype='L')
+    db.packages().package('public', sqlschema='public', sqlprefix=False).tables().table('t', pkey='id').column('id', dtype='L')
     database = AsqueelDb(builder)
     try:
         assert not database._connections

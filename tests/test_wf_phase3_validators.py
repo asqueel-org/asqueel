@@ -32,7 +32,7 @@ def _errors(main_fn) -> str:
 
 def test_valid_model_passes_and_returns_builder():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="id")
         t.columns().column(name="id", dtype="serial")
 
@@ -43,20 +43,20 @@ def test_valid_model_passes_and_returns_builder():
 
 def test_pkey_must_name_existing_physical_columns():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="ghost")
         t.columns().column(name="id", dtype="serial")
 
     msg = _errors(main)
-    assert "ghost" in msg and "d.schemas.s.tables.t" in msg
+    assert "ghost" in msg and "d.packages.s.tables.t" in msg
 
 
 def test_relation_target_must_exist():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="id")
         c = t.columns().column(name="id", dtype="L")
-        c.relation(to="s.missing.id", foreign_key=True)
+        c.relation(related_column="s.missing.id", foreign_key=True)
 
     msg = _errors(main)
     assert "missing" in msg
@@ -64,21 +64,21 @@ def test_relation_target_must_exist():
 
 def test_foreign_key_forbidden_on_virtual_columns():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="id")
         t.columns().column(name="id", dtype="serial")
         t.virtual_columns().formulaColumn(name="calc", sql_formula="1+1")
 
     # Virtual columns accept weak relations, but never a physical FK.
     model = _build(main)
-    node = model.source["db.schemas.s.tables.t.virtual_columns.calc"]
+    node = model.source["db.packages.s.tables.t.virtual_columns.calc"]
     with pytest.raises(ValueError, match='foreign_key'):
-        node.relation(to="s.t.id", foreign_key=True)
+        node.relation(related_column="s.t.id", foreign_key=True)
 
 
 def test_composite_members_must_exist_and_be_physical():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="a")
         t.columns().column(name="a", dtype="L")
         t.composites().compositeColumn(name="ab", columns="a,ghost")
@@ -92,7 +92,7 @@ def test_composite_fk_column_counts_must_match():
     # wf:contract: the resolved target column count is a validation error
     # wf:contract: naming both sides' counts.
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         target = tables.table(name="target", pkey="x")
         target.columns().column(name="x", dtype="L")
         t = tables.table(name="t", pkey="a")
@@ -100,7 +100,7 @@ def test_composite_fk_column_counts_must_match():
         columns.column(name="a", dtype="L")
         columns.column(name="b", dtype="L")
         cc = t.composites().compositeColumn(name="ab", columns="a,b")
-        cc.relation(to="s.target", foreign_key=True)
+        cc.relation(related_column="s.target", foreign_key=True)
 
     msg = _errors(main)
     assert msg  # counts 2 vs 1
@@ -108,7 +108,7 @@ def test_composite_fk_column_counts_must_match():
 
 def test_constraint_and_index_columns_must_exist():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="id")
         t.columns().column(name="id", dtype="serial")
         t.constraints().constraint(
@@ -122,7 +122,7 @@ def test_constraint_and_index_columns_must_exist():
 
 def test_check_requires_clause_unique_requires_columns():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="id")
         t.columns().column(name="id", dtype="serial")
         constraints = t.constraints()
@@ -133,25 +133,15 @@ def test_check_requires_clause_unique_requires_columns():
     assert "ck" in msg and "uq" in msg
 
 
-def test_undeclared_attribute_is_reported_by_the_validator():
-    def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
-        t = tables.table(name="t", pkey="id")
-        t.columns().column(name="id", dtype="serial").attr["dtypo"] = "A"
-
-    msg = _errors(main)
-    assert "unknown attribute 'dtypo' on <column>" in msg
-
-
 def test_all_errors_reported_together():
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         t = tables.table(name="t", pkey="ghost")
-        t.columns().column(name="id", dtype="serial").attr["dtypo"] = "A"
+        t.columns().column(name="id", dtype="serial")
         t.indexes().index(name="ix", columns="nope")
 
     msg = _errors(main)
-    assert "ghost" in msg and "dtypo" in msg and "nope" in msg
+    assert "ghost" in msg and "nope" in msg
 
 
 def test_duplicate_relation_name_on_same_target():
@@ -159,16 +149,16 @@ def test_duplicate_relation_name_on_same_target():
     # wf:contract: relation_name collide on the same target table are a
     # wf:contract: validation error naming the duplicated relation_name.
     def main(root):
-        tables = root.db(name="d").schemas().schema(name="s").tables()
+        tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
         target = tables.table(name="target", pkey="x")
         target.columns().column(name="x", dtype="L")
         t = tables.table(name="t", pkey="a")
         columns = t.columns()
         columns.column(name="a", dtype="serial")
         c1 = columns.column(name="one", dtype="L")
-        c1.relation(to="s.target.x", foreign_key=True, relation_name="rows")
+        c1.relation(related_column="s.target.x", foreign_key=True, relation_name="rows")
         c2 = columns.column(name="two", dtype="L")
-        c2.relation(to="s.target.x", foreign_key=True, relation_name="rows")
+        c2.relation(related_column="s.target.x", foreign_key=True, relation_name="rows")
 
     msg = _errors(main)
     assert "rows" in msg

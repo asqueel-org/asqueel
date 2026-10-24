@@ -7,11 +7,11 @@ from genro_bag import BagResolver
 from .option_elements import NAMED_OPTIONS
 
 REQUIRED = {
-    'relative_index': ('relation',),
-    'audit': ('mode',), 'system_records': ('records',),
+    'relidx': ('relation',),
+    'sysrecords': ('records',),
     'release': ('handlers',),
     'retention': ('field', 'days'),
-    'enabled_when': ('preference',), 'attachments': ('master',),
+    'enabled_when': ('preference',),
 }
 
 
@@ -65,15 +65,15 @@ def names(value, path, *, hierarchical=False):
 
 def validate_option(tag, parent, attributes):
     if parent is not None and parent.node_tag == 'column':
-        if tag != 'dynamic_fields':
+        if tag != 'df':
             raise ValueError(f'{tag}: option is not available at this level')
-        existing = parent.value.get_node('dynamic_fields') if parent.value is not None else None
+        existing = parent.value.get_node('df') if parent.value is not None else None
     else:
         existing = parent.value.get_node(option_label(tag, attributes)) if parent.value is not None else None
     spec = {**(existing.attr if existing is not None else {}), **attributes}
     if spec.get('enabled', True):
         required = REQUIRED.get(tag, ())
-        if tag == 'dynamic_fields' and parent.node_tag == 'column':
+        if tag == 'df' and parent.node_tag == 'column':
             required = ('source',)
         for key in required:
             if spec.get(key) is None or spec[key] == '' or spec[key] == [] or spec[key] == ():
@@ -82,12 +82,6 @@ def validate_option(tag, parent, attributes):
                 'field', 'parent', 'version_field', 'relation', 'source', 'caption_field', 'masterfield'):
         if spec.get(key) is not None:
             nonempty(spec[key], f'{tag}.{key}')
-    for key in ('enabled', 'required', 'root_id', 'virtual_roots'):
-        if key in spec and not isinstance(spec[key], bool):
-            raise ValueError(f'{tag}.{key}: expected bool')
-    for key in ('days', 'depth'):
-        if spec.get(key) is not None and (type(spec[key]) is not int or spec[key] < (1 if key == 'depth' else 0)):
-            raise ValueError(f'{tag}.{key}: expected {"positive" if key == "depth" else "nonnegative"} integer')
     for key in ('columns', 'scope'):
         names(spec.get(key), f'{tag}.{key}', hierarchical=tag == 'hierarchical' and key == 'columns')
     if spec.get('rules') is not None:
@@ -98,7 +92,7 @@ def validate_option(tag, parent, attributes):
         for code, record in spec['records'].items():
             nonempty(code, f'{tag}.records')
             if not isinstance(record, (dict, str, BagResolver)):
-                raise ValueError('system_records.records: expected values mapping, reference or BagResolver')
+                raise ValueError('sysrecords.records: expected values mapping, reference or BagResolver')
             if isinstance(record, str):
                 nonempty(record, f'{tag}.records.{code}')
     if spec.get('handlers') is not None:
@@ -107,11 +101,11 @@ def validate_option(tag, parent, attributes):
                 raise ValueError('release.handlers: keys must be version numbers written as strings')
             if not isinstance(handler, BagResolver):
                 nonempty(handler, 'release.handlers')
-    if tag == 'dynamic_fields':
+    if tag == 'df':
         if parent.node_tag == 'column' and spec.get('templates') is not None:
-            raise ValueError('column.dynamic_fields accepts source, not templates')
+            raise ValueError('column.df accepts source, not templates')
         if parent.node_tag == 'options' and spec.get('source') is not None:
-            raise ValueError('table dynamic_fields accepts templates, not source')
+            raise ValueError('table df accepts templates, not source')
     for key, value in spec.items():
         if key != '_meta':
             source_payload(value, f'{tag}.{key}')

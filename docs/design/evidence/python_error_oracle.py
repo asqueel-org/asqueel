@@ -114,20 +114,31 @@ def legacy_factory(root, dsn):
 
 
 def native_factory(dsn):
-    from asqueel import CompiledQuery, SqlDatabaseConfig, SqlTable, AsqueelDb
+    from tempfile import TemporaryDirectory
+    from asqueel import CompiledQuery, SqlDatabaseConfig, AsqueelDb
 
-    item_class = type('OracleItem', (SqlTable,),
-                      {hook: noop for pair in HOOKS.values() for hook in pair})
+    # The package folder's model/item.py gives the table class: every hook a no-op.
+    layout = TemporaryDirectory(prefix='python_error_oracle_')
+    folder = Path(layout.name)
+    (folder / 'model').mkdir()
+    (folder / 'main.py').write_text('class Package:\n    pass\n')
+    hooks = ''.join(f'\n    def {hook}(self, *args, **kwargs):\n        pass\n'
+                    for pair in HOOKS.values() for hook in pair)
+    (folder / 'model' / 'item.py').write_text(
+        'class Table:\n'
+        '    def config_db(self, pkg):\n'
+        "        columns = pkg.tables().table('item', pkey='id').columns()\n"
+        "        columns.column('id', dtype='I')\n"
+        "        columns.column('name', dtype='T')\n" + hooks)
 
     class Native:
+        directory = layout  # the folder lives as long as Native
+
         def __init__(self, schema):
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    columns = root.db('oracle', implementation='postgres', conninfo=dsn).schemas().schema(
-                        'app', sqlname=schema).tables().table(
-                            'item', pkey='id', x_table_class=item_class).columns()
-                    columns.column('id', dtype='I')
-                    columns.column('name', dtype='T')
+                    root.db('oracle', implementation='postgres', conninfo=dsn).packages().package(
+                        'app', sqlschema=schema, sqlprefix=False, path=str(folder))
             self.db = AsqueelDb(Recipe)
             self.item = self.db.table('app.item')
 

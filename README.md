@@ -67,10 +67,10 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 class Shop(SqlDatabaseConfig):
     def main(self, root):
         db = root.db("shop", conninfo="dbname=shop")
-        customer = db.schemas().schema("sales").tables().table("customer", pkey="id")
+        customer = db.packages().package("sales", sqlschema="sales", sqlprefix=False).tables().table("customer", pkey="id")
         columns = customer.columns()
         columns.column("id", dtype="L")
-        columns.column("name", dtype="T", x_ui_label="Customer name")
+        columns.column("name", dtype="T", name_long="Customer name")
 
 
 db = AsqueelDb(Shop)
@@ -101,10 +101,10 @@ rather than SQL interpolation.
 
 ## Configure, migrate and explore a complete example
 
-The [two-schema example](docs/guide/two-schemas.md) separates configuration,
-schemas, table declarations and business logic. It includes users/access logs
-and customers/products/invoices/rows, with explicit imports and `EnvResolver`
-connection settings.
+The [two-schema example](docs/guide/two-schemas.md) separates configuration
+from two package folders, one per SQL schema: each table module declares its
+table and holds its business logic. It includes users/access logs and
+customers/products/invoices/rows, with `EnvResolver` connection settings.
 
 From this source checkout:
 

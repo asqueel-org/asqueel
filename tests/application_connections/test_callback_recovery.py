@@ -20,7 +20,7 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
                 database.connection(name=str(tmp_path / 'callbacks.db'), implementation='sqlite')
             else:
                 database = root.db(implementation='postgres', conninfo=postgres_dsn())
-            database.schemas().schema(schema).tables().table('event', pkey='id').columns().column('id', dtype='I')
+            database.packages().package(schema, sqlschema=schema, sqlprefix=False).tables().table('event', pkey='id').columns().column('id', dtype='I')
 
     db = AsqueelDb(Configuration)
     observer = AsqueelDb(Configuration)

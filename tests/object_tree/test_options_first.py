@@ -14,8 +14,8 @@ def test_options_are_consumed_once_before_columns(position, monkeypatch):
     table = config.source.db('test').packages().package('pkg').table('item')
 
     def options():
-        table.options().sys_fields(user_upd=False, syscode=True)
-        table.options().audit(mode='lazy')
+        table.options().sysFields(user_upd=False, syscode=True)
+        table.options().fullUpd()
 
     if position == 'before':
         options()
@@ -30,25 +30,25 @@ def test_options_are_consumed_once_before_columns(position, monkeypatch):
         options()
     before = config.source.to_json()
     calls = []
-    original = _TableExpansion.sys_fields
+    original = _TableExpansion.system_columns
 
-    def sys_fields(self):
+    def system_columns(self):
         calls.append(self.key)
         return original(self)
 
-    monkeypatch.setattr(_TableExpansion, 'sys_fields', sys_fields)
+    monkeypatch.setattr(_TableExpansion, 'system_columns', system_columns)
     for _ in range(2):
         model = AsqueelDb(config).model
         item = model.table('pkg.item')
         assert list(item.columns) == [
             'id', '__ins_ts', '__del_ts', '__mod_ts', '__ins_user', '__syscode',
-            '__version', 'name', 'description',
+            '__full_mod_ts', 'name', 'description',
         ]
         assert list(item)[0] == 'options'
         assert item.column('id').attributes['name_long'] == 'Identifier'
         assert item.column('id').validations == {'notnull': True}
-        assert item.options['audit'].attributes['mode'] == 'lazy'
-        assert item.options['sys_fields'].attributes['syscode'] is True
+        assert item.options['sysFields'].attributes['syscode'] is True
+        assert item.options['fullUpd'].attributes['field'] == '__full_mod_ts'
         assert config.source.to_json() == before
     assert calls == ['pkg.item', 'pkg.item']
 
@@ -58,10 +58,33 @@ def test_disabled_options_do_not_create_or_move_columns():
     table = config.source.db().packages().package('pkg').table('item')
     table.column('name')
     table.column('id', size='22')
-    table.options().sys_fields(enabled=False)
+    table.options().sysFields(enabled=False)
     model = AsqueelDb(config).model
     assert list(model.table('pkg.item').columns) == ['name', 'id']
-    assert model.table('pkg.item').options['sys_fields'].attributes['enabled'] is False
+    assert model.table('pkg.item').options['sysFields'].attributes['enabled'] is False
+
+
+
+def test_cross_table_options_keep_dependencies_and_relations():
+    config = SqlDatabaseConfig()
+    pkg = config.source.db().packages().package('pkg')
+    master = pkg.table('master')
+    master.column('name')
+    master.options().sysFields()
+    tree = pkg.table('tree')
+    tree.column('code')
+    tree.column('extra')
+    tree.options().sysFields()
+    tree.options().hierarchical('code', linked_to='pkg.master')
+    before = config.source.to_json()
+    model = AsqueelDb(config).model
+    table = model.table('pkg.tree')
+    assert list(table.columns)[-1] == 'extra'
+    assert table.column('@master_id.name') is model.table('pkg.master').column('name')
+    assert config.source.to_json() == before
+
+# Columns the sysFields option declares (model_expansion system_columns).
+SYS_FIELDS = {'id', '__ins_ts', '__del_ts', '__mod_ts', '__ins_user', '__mod_user', '__is_draft', '__syscode'}
 
 
 @pytest.fixture(scope='module')
@@ -87,28 +110,12 @@ def test_every_native_table_retains_options_and_repeatable_order(invoice_models,
     # enriching system fields are consumed with the option, not emitted again.
     names = list(first.columns)
     generated = set(names) - set(authored.get(key, ()))
-    ordinary = [name for name in authored.get(key, ())
-                if not first.column(name).attributes.get('x_legacy__sysfield')]
+    options = first.options.keys() if first.get('options') is not None else ()
+    system = SYS_FIELDS if 'sysFields' in options else set()
+    ordinary = [name for name in authored.get(key, ()) if name not in system]
     if generated and ordinary:
         assert max(names.index(name) for name in generated) < min(names.index(name) for name in ordinary)
     assert [name for name in names if name in ordinary] == ordinary
     if first.get('options') is not None:
         assert list(first)[0] == 'options'
         assert list(first.options) == list(second.options)
-
-
-def test_cross_table_options_keep_dependencies_and_relations():
-    config = SqlDatabaseConfig()
-    pkg = config.source.db().packages().package('pkg')
-    master = pkg.table('master')
-    master.column('name')
-    master.options().sys_fields()
-    attachment = pkg.table('attachment')
-    attachment.column('extra')
-    attachment.options().attachments(master='pkg.master')
-    before = config.source.to_json()
-    model = AsqueelDb(config).model
-    table = model.table('pkg.attachment')
-    assert list(table.columns)[-1] == 'extra'
-    assert table.column('@maintable_id.name') is model.table('pkg.master').column('name')
-    assert config.source.to_json() == before

@@ -27,7 +27,7 @@ do not interpolate the mapping into SQL yourself.
 | Symptom | What to check |
 |---|---|
 | Unknown or ambiguous table | Use its fully qualified logical name; inspect `db.model.tables`. |
-| Unknown column/relation | Use model names rather than physical names. A relation defaults to the owning column's name unless `x_name` overrides it. |
+| Unknown column/relation | Use model names rather than physical names. A forward relation is named by its owning column: `@customer_id.name`. |
 | Duplicate collection or declaration | Reuse the handle returned by `columns()` / `virtual_columns()`; compose before resolving. |
 | Invalid relation target | The target must exist in the complete model and have a recognized primary/unique key. `one_one` is not proof of uniqueness. |
 | Layer does not override the expected value | Layers need the same root label and matching declaration paths. Read through `.config(...)`. |

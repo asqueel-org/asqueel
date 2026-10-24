@@ -81,8 +81,7 @@ def test_flat_resolvers_validation_options_and_source_ownership(monkeypatch):
                                validate_len=BagCbResolver(length, cache_time=-1),
                                validate_notnull=True)
     root.connection('archive', database=BagCbResolver(lambda: pytest.fail('Connection evaluated')))
-    customer.options().sys_fields(id=False, syscode=True)
-    customer.options().audit(mode='lazy')
+    customer.options().sysFields(id=False, syscode=True)
     model = AsqueelDb(source).model
     table = model.table('invc.customer')
     assert calls == [1]
@@ -92,7 +91,7 @@ def test_flat_resolvers_validation_options_and_source_ownership(monkeypatch):
     assert table.column('__syscode').attributes['unique'] is True
     assert table.indexes['customer___syscode_key'].attributes['unique'] is True
     assert table.column('__ins_ts').dtype == 'DHZ'
-    assert table.options['audit'].attributes['mode'] == 'lazy'
+    assert table.options['sysFields'].attributes['syscode'] is True
     assert table.options.parent is table
     assert source.source.get_node('db.packages.invc.tables.customer.columns.__syscode') is None
     assert isinstance(table.virtual_columns['__record_pointer'], DbVirtualColumnObj)
@@ -163,20 +162,6 @@ def test_invalid_relation_and_target_fail_without_database_io():
     source, _, _ = recipe()
     with pytest.raises(TypeError, match='AsqueelDb'):
         source.render(mode='objects', target=object())
-
-
-def test_mounted_grammar_uses_its_own_defaults_and_same_generic_walk():
-    from tests.application_config.test_configuration import MountedRecipe
-    source = MountedRecipe()
-    source.create()
-    model = AsqueelDb(source).model
-    table = model.table('sales.customer')
-    assert model.obj['sales.tables.customer'] is table
-    assert table.column('label').dtype == 'I'
-    assert table.column('label').attributes['ui_hint'] == 'mounted default'
-    assert table.column('id').attributes['ui_hint'] == 'explicit'
-    assert isinstance(table.column('label'), DbColumnObj)
-    assert source.source.get_node('db.schemas.sales.tables.customer.columns.label').attr.get('dtype') is None
 
 
 def test_two_links_to_same_table_remain_distinct_and_collision_is_rejected():

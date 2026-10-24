@@ -215,8 +215,8 @@ this verification.
 ## Physical names in migration data
 
 `recipe.render(mode='migration')` renders the source under its physical names:
-the schema (`sqlschema`, or the default schema of the implementation for a
-package), the table prefix (`sqlprefix`), and the explicit `sqlname` of schemas,
+the schema (the package `sqlschema`, or the default schema of the
+implementation), the table prefix (`sqlprefix`), and the explicit `sqlname` of
 tables and columns. These are the names used by the query compiler.
 `foreignKeys=False` renders no foreign key; the relation indexes stay. A path,
 a writable or a callable passed as `target` receives the structure as JSON text.

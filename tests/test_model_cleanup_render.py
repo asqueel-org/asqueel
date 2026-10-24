@@ -13,7 +13,7 @@ REMOVED_MODULES = ('asqueel.renderer', 'asqueel.object_renderer', 'asqueel.model
 
 class Plain(SqlBuilder):
     def main(self, root):
-        table = root.db('plain').schemas().schema('main').tables().table('item', pkey='id')
+        table = root.db('plain').packages().package('main', sqlschema='main', sqlprefix=False).tables().table('item', pkey='id')
         table.columns().column('id', dtype='I')
 
 

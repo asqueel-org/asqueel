@@ -1,32 +1,44 @@
 """Commit lifecycle contracts, including failures hidden inside callbacks."""
+import textwrap
+
 from tests.unit_of_work import completed
 import pytest
 
-from asqueel import CompiledQuery, DeferredCommitError, SqlTable, TransactionStateError, AsqueelDb
+from asqueel import CompiledQuery, DeferredCommitError, TransactionStateError, AsqueelDb
 from tests.unit_of_work import empty_database
-from tests.application_config.test_application import Recipe
+from tests.application_config.test_application import Recipe, layout_recipe
 from tests.application_connections.test_connections import FAKE
 
+ITEM = '''
+import pytest
 
-def database(table_class=SqlTable):
-    recipe = Recipe()
-    recipe.create()
-    recipe.source.get_node('db.schemas.app.tables.item').attr['x_table_class'] = table_class
-    return AsqueelDb(recipe)
+from asqueel import CompiledQuery, TransactionStateError
 
 
-def test_hooks_can_register_both_queues_and_deferred_errors():
-    events = []
+class Table:
+    def config_db(self, pkg):
+        pkg.tables().table('item', pkey='id').columns().column('id', dtype='I')
+'''
 
-    class Item(SqlTable):
+
+def database(folder, item_methods):
+    """``Recipe`` whose ``app.item`` has the methods ``item_methods``."""
+    item = ITEM + textwrap.indent(textwrap.dedent(item_methods), '    ')
+    return AsqueelDb(layout_recipe(folder, item))
+
+
+def test_hooks_can_register_both_queues_and_deferred_errors(tmp_path):
+    db = database(tmp_path / 'app', '''
+        events = []
+
         def trigger_onInserting(self, record):
             commits = self.db.adapter.calls.count
-            self.db.deferToCommit(lambda: events.append(('before', commits('commit'))))
-            self.db.deferAfterCommit(lambda: events.append(('after', commits('commit'))))
+            self.db.deferToCommit(lambda: self.events.append(('before', commits('commit'))))
+            self.db.deferAfterCommit(lambda: self.events.append(('after', commits('commit'))))
             if record['id'] == 2:
                 self.db.deferredRaise(ValueError('invalid record'))
-
-    db = database(Item)
+    ''')
+    events = db.table('app.item').events
     try:
         db.table('app.item').insert({'id': 1})
         assert events == []
@@ -107,7 +119,7 @@ def test_caught_domain_failure_in_callback_cannot_be_committed():
 
 
 def test_commit_selects_current_name_and_callbacks_restore_environment():
-    db = database()
+    db = AsqueelDb(Recipe)
     try:
         events = []
         with db.tempEnv(connectionName='A', onCommittingStep=False):
@@ -126,7 +138,7 @@ def test_commit_selects_current_name_and_callbacks_restore_environment():
 
 
 def test_named_queues_and_pending_exceptions_are_independent():
-    db = database()
+    db = AsqueelDb(Recipe)
     try:
         events = []
         db.execute(CompiledQuery('main'))
@@ -210,21 +222,21 @@ def test_callback_cannot_reenter_transaction_completion(action):
     db.closeConnection()
 
 
-def test_stack_tracks_nested_writes_and_restores_after_exception():
-    events = []
+def test_stack_tracks_nested_writes_and_restores_after_exception(tmp_path):
+    db = database(tmp_path / 'app', '''
+        events = []
 
-    class Item(SqlTable):
         def trigger_onInserting(self, record):
             current = self.currentTrigger
-            events.append((current.event, current.table,
-                           current.parent.record['id'] if current.parent else None))
+            self.events.append((current.event, current.table,
+                                current.parent.record['id'] if current.parent else None))
             if record['id'] == 1:
                 self.insert({'id': 2})
                 assert self.currentTrigger is current
             elif record['id'] == 3:
                 raise ValueError('hook')
-
-    db = database(Item)
+    ''')
+    events = db.table('app.item').events
     try:
         db.table('app.item').insert({'id': 1})
         assert db.currentTrigger is None
@@ -345,16 +357,18 @@ def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup()
 
 
 @pytest.mark.parametrize('action', ['commit', 'rollback'])
-def test_trigger_finishes_another_named_connection_but_not_its_own(action):
-    class Item(SqlTable):
+def test_trigger_finishes_another_named_connection_but_not_its_own(action, tmp_path):
+    db = database(tmp_path / 'app', '''
+        action = None
+
         def trigger_onInserting(self, record):
             with pytest.raises(TransactionStateError, match='in progress'):
-                getattr(self.db, action)()
+                getattr(self.db, self.action)()
             with self.db.tempEnv(connectionName='system'):
                 self.db.execute(CompiledQuery('log'))
-                getattr(self.db, action)()
-
-    db = database(Item)
+                getattr(self.db, self.action)()
+    ''')
+    db.table('app.item').action = action
     try:
         db.table('app.item').insert({'id': 1})
         assert db.adapter.persisted == (['log'] if action == 'commit' else [])

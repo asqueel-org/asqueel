@@ -195,7 +195,7 @@ def _emit_collection(fragment, target, body, taken) -> None:
     variable = _identifier(fragment["tag"], taken)
     body.append(_statement(variable, target, fragment))
     for child in fragment["children"]:
-        if child["tag"] in ("schema", "table"):
+        if child["tag"] in ("package", "table"):
             body.append("")
             _emit_owner(child, variable, body, taken)
             continue

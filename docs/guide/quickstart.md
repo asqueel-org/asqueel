@@ -26,7 +26,7 @@ schema_name = "genro_example_" + uuid4().hex
 class Shop(SqlDatabaseConfig):
     def main(self, root):
         database = root.db("example", implementation="postgres", conninfo=os.environ["ASQUEEL_DSN"])
-        tables = database.schemas().schema("sales", sqlname=schema_name).tables()
+        tables = database.packages().package("sales", sqlschema=schema_name, sqlprefix=False).tables()
         columns = tables.table("customer", pkey="id").columns()
         columns.column("id", dtype="L")
         columns.column("name", dtype="T", notnull=True,

@@ -7,9 +7,9 @@ from tests.option_tables_support import IMPLEMENTATIONS, migrated_db, row
 
 def ranked_category(package):
     table = package.table('category', name_long='Category', name_plural='Categories')
-    table.options().sys_fields()
+    table.options().sysFields()
     table.options().hierarchical('code')
-    table.options().auto_counter()
+    table.options().counter()
     table.column('code')
 
 

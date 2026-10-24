@@ -4,7 +4,7 @@ import inspect
 import pytest
 
 from asqueel import AsqueelDb
-from asqueel.configuration import connection_settings
+from asqueel.runtime import connection_settings
 from examples.test_invoice_pg import source
 from tests.native_formulas import test_tree_count_legacy, test_legacy_options, legacy_sql_formulas
 from tests.native_formulas.conftest import (db_pg as execution_pg, db_sqlite as execution_sqlite,  # noqa: F401

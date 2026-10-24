@@ -1,18 +1,17 @@
 """Error ownership across named connections and preservation during DB cleanup."""
 import pytest
 
-from asqueel import CompiledQuery, SqlTable, TransactionStateError
+from asqueel import CompiledQuery, TransactionStateError
 from tests.application_connections.test_deferred import database
 
 
 @pytest.mark.parametrize('hook', ['trigger_onInserting', 'trigger_onInserted'])
-def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(hook):
-    def fail(self, record):
-        with self.db.tempEnv(connectionName='B'):
-            self.db.execute(CompiledQuery('fail'))
-
-    item_class = type('Item', (SqlTable,), {hook: fail})
-    db = database(item_class)
+def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(hook, tmp_path):
+    db = database(tmp_path / 'app', f'''
+        def {hook}(self, record):
+            with self.db.tempEnv(connectionName='B'):
+                self.db.execute(CompiledQuery('fail'))
+    ''')
     try:
         events = []
         db.execute(CompiledQuery('earlier A'))
@@ -40,17 +39,19 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
         db.closeConnection()
 
 
-def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure():
+def test_reused_exception_from_an_earlier_sql_attempt_is_a_new_hook_failure(tmp_path):
     original = LookupError('same exception instance')
-
-    class Item(SqlTable):
-        def trigger_onInserting(self, record):
-            raise original
 
     def sql_failure():
         raise original
 
-    db = database(Item)
+    db = database(tmp_path / 'app', '''
+        original = None
+
+        def trigger_onInserting(self, record):
+            raise self.original
+    ''')
+    db.table('app.item').original = original
     try:
         db.adapter.callback = sql_failure
         with pytest.raises(LookupError) as caught:
