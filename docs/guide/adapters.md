@@ -1,7 +1,7 @@
 # Adapters
 
 The SELECT compiler follows the [single hierarchical pipeline](compiler.md).
-`db.adapter` adapts the database to its implementation, as in GenroPy: SQL
+`db.adapter` adapts the database to its implementation: SQL
 syntax, quoting, capabilities, connection, cursor and value conversion. There is
 one adapter class per implementation; each module exposes `SqlDbAdapter`.
 
@@ -43,7 +43,7 @@ The adapter does not implement schema migration.
 
 ## SQL functions of the adapter
 
-Table code can build formulas with the adapter functions of GenroPy:
+Table code can build formulas with these adapter functions:
 
 | Function | PostgreSQL | SQLite |
 | --- | --- | --- |

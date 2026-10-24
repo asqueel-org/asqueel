@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 project = "Asqueel"
 copyright = "2025-2026, Softwell S.r.l."
-author = "Genropy Team"
+author = "Softwell S.r.l."
 try:
     release = _pkg_version("asqueel")
 except PackageNotFoundError:
@@ -45,7 +45,7 @@ extensions = [
 templates_path = []
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # Publish application-developer documentation only. Internal notes stay in Git.
-include_patterns = ["index.rst", "api.rst", "grammar.md", "adattamenti-legacy.md", "guide/**"]
+include_patterns = ["index.rst", "api.rst", "grammar.md", "guide/**"]
 
 # MyST: the guides and narrative pages are Markdown; the toctree skeleton is rst.
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
@@ -68,7 +68,7 @@ html_context = {
 html_logo = "../assets/asqueel/svg/asqueel-wordmark-inverse.svg"
 html_favicon = "../assets/asqueel/icons/favicon.ico"
 html_static_path = ["_static"]
-html_css_files = ["readability.css", "brand.css", "differences.css"]
+html_css_files = ["readability.css", "brand.css"]
 language = "en"
 
 intersphinx_mapping = {

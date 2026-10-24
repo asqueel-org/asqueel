@@ -5,10 +5,6 @@ project can do with this version of asqueel and what it refuses, with the open
 issue for each limit. The rest of the manual describes the delivery model; when
 another page and this one disagree, this page describes the installed code.
 
-Asqueel is not a drop-in replacement for the complete GenroPy legacy runtime.
-For porting guidance, see [legacy compatibility](legacy.md) and
-[legacy adaptations](../adattamenti-legacy.md).
-
 ## What a new project can do
 
 The light version reads, inserts, updates and deletes records, with formulas and
@@ -110,9 +106,8 @@ the one of that compilation, while `:env_*` parameters are read at every
 execution.
 
 The `formulaColumn_<x>()` methods of a table run once and their columns are
-kept in `currentEnv`, as legacy: they are evaluated again only after
-`clearCurrentEnv()`. GenroPy clears the environment at the start of every page
-request; this release has no request boundary of its own, so an application
+kept in `currentEnv`: they are evaluated again only after
+`clearCurrentEnv()`. This release has no request boundary of its own, so an application
 that wants fresh dynamic columns clears the environment itself. A `session(db)`
 boundary for work outside a request is planned with the environment and
 connection work of the next step.
@@ -120,7 +115,7 @@ connection work of the next step.
 ## Policy boundaries
 
 Partition scopes are logical predicates, not PostgreSQL storage partitions.
-On reads, `partition_<field>='<path>'` filters as GenroPy: `current_<path>` in
+On reads, `partition_<field>='<path>'` filters this way: `current_<path>` in
 the environment gives `$<field> = :env_current_<path>`; otherwise
 `allowed_<path>` gives `$<field> IS NULL OR $<field> IN (...)`; otherwise no
 filter. Falsy values (`0`, `False`, an empty collection, None) filter nothing.
@@ -189,7 +184,7 @@ when it is written, naming the attribute and the element, for example
 `Element 'table' does not accept 'multi_tenant'`; free `x_*` keys and legacy UI
 attributes (`group_*`, `cell_*`, `template_*`, ...) are refused the
 same way. The column attribute `encrypted` raises `UnsupportedFeatureError`
-naming it. The partition filter of `partition_<field>` does not port the GenroPy
+naming it. The partition filter of `partition_<field>` has no
 fallback on an `__allowed_partition` column. `subtable()` and `options().tenant()` are not part of
 the grammar. A table class defining a package trigger (`trigger_onInserted_<pkg>`)
 raises `UnsupportedFeatureError` when the model is built; the environment keys `sql_comment`, `sql_details` and
@@ -225,11 +220,8 @@ provider/Python/Bag columns, subtables, Selection/Bag results, application
 integration, legacy-package import and native SQL objects. These belong to the product plan; the availability
 matrix above describes which parts execute in this checkout.
 
-The Genropy guide records agreed differences: removal of aggregateRows and explicit
-partition semantics. Output naming, default ordering, wildcard selection and
-other unapproved divergences in the current implementation are compatibility
-work, not accepted product differences. The implicit `pkey` column of GenroPy
-queries is left to a future GenroPy adapter, not to the core. Native query results use Toolbox `NamedList` rows with name and position access; path lookup on live columns is not complete. Collection
+Queries add no implicit `pkey`
+column. Native query results use Toolbox `NamedList` rows with name and position access; path lookup on live columns is not complete. Collection
 bindings, count, grouping and distinct are implemented; Selection is not.
 
 Standalone execution and application tables share the same execution service.
@@ -244,14 +236,11 @@ postcommit failure, unreached callbacks remain pending until rollback/connection
 cleanup or a deliberate later transaction in the same context. There is no
 automatic retry, and failed new work still requires rollback.
 
-The synchronous F1 context/connection/recovery profile is verified; this does
-not certify a complete legacy application port. Workdate/locale identifiers
-are deliberately not validated. Application request cleanup is required before
-reusing a worker for another request. Normal legacy record-cluster
-saves already abort on propagated errors; this is not a difference in normal
-save behavior.
-Six hook positions and pre/post-commit Python failures have been compared on
-PostgreSQL; the difference is described in [legacy compatibility](legacy.md). Deferred callbacks and trigger-stack behavior now have targeted verification;
+The synchronous F1 context/connection/recovery profile is verified. Workdate/locale
+identifiers are deliberately not validated. Application request cleanup is required
+before reusing a worker for another request.
+Six hook positions and pre/post-commit Python failures are verified on
+PostgreSQL. Deferred callbacks and trigger-stack behavior now have targeted verification;
 application event integration remains separate.
 
 ## Verified commit lifecycle

@@ -68,7 +68,7 @@ SQL exception is preserved and the connection stays rollback-only until
 - `db.deferAfterCommit(callback, *args, **kwargs)` runs after a successful commit.
 - `db.deferredRaise(exception)` prevents the next commit from succeeding.
 
-Callbacks belong to the selected thread/name. As in GenroPy, the queues live in
+Callbacks belong to the selected thread/name. The queues live in
 `db.currentEnv`, under `to_commit_defer_calls__main_db_<connectionName>` and
 `after_commit_defer_calls__main_db_<connectionName>`; `clearCurrentEnv()` drops
 them. `deferredRaise` appends to
@@ -100,8 +100,7 @@ requires application reconciliation, not blind replay.
 
 ## Sessions
 
-`session(db, **env)` is the unit of work outside a request, as a GenroPy page
-request is inside one.
+`session(db, **env)` is the unit of work outside a request.
 
 ```python
 from asqueel import session
@@ -138,7 +137,7 @@ def worker(db, user):
         return rows
 ```
 
-`closeConnection()` is the GenroPy release: it rolls back what was not
+`closeConnection()` releases the connections: it rolls back what was not
 committed and closes all named connections of the calling thread. The database
 stays usable: the next statement opens a new connection. It does not close
 another thread's connections: every worker must perform its own cleanup,
@@ -146,8 +145,8 @@ directly or through `session(db)`. Cleanup attempts all local connections, even
 if one fails.
 
 An `AsqueelDb` whose recipe declares no package executes statements with the
-same explicit completion rules. There is no second transaction API. See [direct execution](low-level-runtime.md),
-[write hooks](hooks.md), and [legacy adaptations](../adattamenti-legacy.md).
+same explicit completion rules. There is no second transaction API. See [direct execution](low-level-runtime.md)
+and [write hooks](hooks.md).
 
 ### Recovery after a callback exception
 

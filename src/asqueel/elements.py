@@ -171,14 +171,14 @@ class TableElements:
                 single textual primary key; not SQL primary-key members.
             pkey_columns_joiner: semantic; legacy separator for that textual key.
                 Absent or empty, the legacy uses underscore. Declaration only.
-            deletable: False refuses every delete of the table's records, as in GenroPy.
+            deletable: False refuses every delete of the table's records.
             lastTS: the column holding the last modification timestamp.
             logicalDeletionField: the column marking a row as logically deleted;
                 queries exclude those rows.
             draftField: the boolean column marking a draft row; queries exclude drafts.
             protectionColumn: the column whose value protects a row.
-            partition_<field>: ``'<path>'`` partitions the table on ``<field>``, as in
-                GenroPy: env ``current_<path>`` filters on it, else env
+            partition_<field>: ``'<path>'`` partitions the table on ``<field>``:
+                env ``current_<path>`` filters on it, else env
                 ``allowed_<path>`` filters on its values or NULL. The first counts.
         """
         ...
@@ -269,7 +269,7 @@ class TableElements:
                 membership, not from this flag.
             unique: single-column UNIQUE. A redundant one on a
                 single-column pkey is dropped by the renderer. A string is
-                read as in GenroPy: ``n``, ``no``, ``f``, ``false``, ``0`` are false.
+                read as a boolean: ``n``, ``no``, ``f``, ``false``, ``0`` are false.
             indexed: sugar — the renderer materializes a real index item
                 (``structure-1.0`` has no ``indexed`` column attribute).
                 A column carrying a relation is always indexed. A string
@@ -296,7 +296,7 @@ class TableElements:
             print_width: semantic; print width.
             group: semantic; field-group key.
             onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted:
-                field triggers, as in GenroPy: a method name, called as
+                field triggers: a method name, called as
                 ``trigger_<name>(record, fldname=, tblname=)`` on the table or
                 on ``trigger_table``, or a callable ``f(record, fldname)``.
                 They run at every write, in column declaration order.
@@ -399,8 +399,7 @@ class TableElements:
         composite UNIQUE is ``unique=True`` here.
 
         Args:
-            name: the composite name (GenroPy ``composed_of`` carried the
-                members instead).
+            name: the composite name.
             columns: comma-joined member names, all physical columns of
                 the same table.
             unique: projects a multi-column UNIQUE constraint.
@@ -435,7 +434,7 @@ class TableElements:
             columns: comma-joined names, a list or tuple of names, or a
                 ``{name: None | 'DESC'}`` dict when per-column ordering matters.
             name: the index name; ``<table>_<columns joined by _>_key``
-                when absent, as in GenroPy.
+                when absent.
             unique: a UNIQUE index.
             method: access method (``btree``, ``gin``, …).
             where: partial-index predicate.
@@ -476,8 +475,8 @@ class ColumnElements:
             foreign_key: emit a physical FK. Only these relations project
                 a foreign key into the migration JSON; every relation on a
                 physical column indexes it.
-            onDelete: semantic; Python action on delete of the target row,
-                as in GenroPy: ``raise``, ``cascade``, ``setnull``, ``ignore``,
+            onDelete: semantic; Python action on delete of the target row:
+                ``raise``, ``cascade``, ``setnull``, ``ignore``,
                 optionally followed by ``:message``.
             onUpdate: semantic; Python action on update, same values.
             onDelete_sql: SQL action of the foreign key on delete:
@@ -485,9 +484,9 @@ class ColumnElements:
                 ``setdefault`` (any case; ``set null``/``set default`` too),
                 or the legacy abbreviations ``C``, ``R``, ``N``, ``SN``, ``SD``.
             onUpdate_sql: SQL action of the foreign key on update, same
-                values; ``cascade`` when absent, as in GenroPy.
+                values; ``cascade`` when absent.
             deferred: DEFERRABLE INITIALLY DEFERRED. True by default when
-                ``onDelete`` or ``onDelete_sql`` is ``setnull``, as in GenroPy.
+                ``onDelete`` or ``onDelete_sql`` is ``setnull``.
             deferrable: make the foreign key DEFERRABLE. Without
                 ``initially_deferred`` it is initially immediate.
             initially_deferred: start a deferrable foreign key deferred.
@@ -495,17 +494,17 @@ class ColumnElements:
                 foreign key. On by default, as legacy; ``False`` states that
                 the columns are deliberately left unindexed.
             relation_name: semantic; name of the inverse relation on the target
-                (``@<relation_name>``), as in GenroPy.
+                (``@<relation_name>``).
             one_name: semantic; human label of the one side.
             many_name: semantic; human label of the many side.
             one_one: semantic; the relation is 1:1. ``'*'`` without
                 ``relation_name`` names the inverse after the many table and
-                makes it public, as in GenroPy.
+                makes it public.
             insensitive: semantic; join case-insensitively.
             join_on: semantic; the ON condition in place of the key
                 equality. Wins over ``cnd``.
             cnd: semantic; the ON condition in place of the key equality.
-                The relation projects no foreign key (GenroPy ``mode='custom'``).
+                The relation projects no foreign key.
             between: semantic; ``'value;low;high'``, a range condition in
                 place of the key equality.
         """

@@ -1,8 +1,8 @@
 # Insert, update and delete records
 
-`insert`, `update` and `delete` run the GenroPy write cycle: table triggers,
-column triggers, `protect_*` checks and the actions on related records, in the
-legacy order. `insert` and `update` modify the caller's record in place and
+`insert`, `update` and `delete` run the write cycle: table triggers,
+column triggers, `protect_*` checks and the actions on related records, in a
+fixed order. `insert` and `update` modify the caller's record in place and
 return it. Every command joins the pending transaction of the selected
 connection; none commits. Use `db.commit()` / `db.rollback()` for each unit of
 work. Examples below use the [tutorial model](tutorial.md) and are independent

@@ -12,7 +12,7 @@ create PostgreSQL partitions or route queries to other databases.
 ## Table attributes
 
 `draftField`, `logicalDeletionField` and `partition_<field>` are table
-attributes, as in GenroPy. `sysFields(draft=True)` supplies `draftField`;
+attributes. `sysFields(draft=True)` supplies `draftField`;
 enabled logical deletion supplies `logicalDeletionField`. SELECT uses these
 declarations, never guesses policy from a column name. Read flags override
 these filters as shown below.
@@ -57,8 +57,7 @@ record is deleted; the value does not have to be boolean.
 
 `partition_<field>='<path>'` partitions the table on the column `<field>`. The
 value `<path>` names two [environment keys](environment.md): `current_<path>`
-and `allowed_<path>`. Only the first `partition_*` attribute of a table counts,
-as in GenroPy.
+and `allowed_<path>`. Only the first `partition_*` attribute of a table counts.
 
 ## Query within an environment scope
 
@@ -86,8 +85,7 @@ partition restriction through operator precedence.
 
 ## Partition semantics
 
-The partition filter follows GenroPy `getPartitionCondition`. Values are read
-by their truth value, as in GenroPy.
+Values are read by their truth value.
 
 | Environment | Resulting restriction |
 |---|---|
@@ -102,7 +100,7 @@ with db.tempEnv(allowed_organization=[10, 20]):
     print(query.sqltext)
 ```
 
-The GenroPy fallback on an `__allowed_partition` column of the related table is
+A fallback on an `__allowed_partition` column of the related table is
 not available in this release.
 
 `ignore_partition=True` explicitly bypasses partition predicates:
@@ -159,7 +157,7 @@ physical-column list. For an aggregate that should include deleted rows, use
 
 ## Writes and policies
 
-Partition, draft and logical-deletion policies filter reads only. As in GenroPy,
+Partition, draft and logical-deletion policies filter reads only.
 `insert` does not fill the partition column from the environment, and `update`
 and `delete` do not check that the row belongs to the current or allowed
 partition ([#15](https://github.com/asqueel-org/asqueel/issues/15) proposes it).
