@@ -102,7 +102,7 @@ A table.
 | sqlschema | `str \| None` | `None` | physical |  |
 | pkey_columns | `str \| None` | `None` | semantic | legacy comma-separated source fields for a single textual primary key; not SQL primary-key members. |
 | pkey_columns_joiner | `str \| None` | `None` | semantic | legacy separator for that textual key. Absent or empty, the legacy uses underscore. Declaration only. |
-| deletable | `bool` | `True` | physical | False refuses every delete of the table's records, as in GenroPy. |
+| deletable | `bool` | `True` | physical | False refuses every delete of the table's records. |
 | lastTS | `str \| None` | `None` | physical | the column holding the last modification timestamp. |
 | logicalDeletionField | `str \| None` | `None` | physical | the column marking a row as logically deleted; queries exclude those rows. |
 | draftField | `str \| None` | `None` | physical | the boolean column marking a draft row; queries exclude drafts. |
@@ -183,7 +183,7 @@ A physical column — the only element that projects as a column.
 | dtype | `DTYPE \| str \| None` | `None` | physical | asqueel normalized type code. Absent, the renderer defaults to `'A'` when `size` is given, else `'T'`. |
 | size | `str \| None` | `None` | physical | `'n'` or `'min:max'` character size. |
 | notnull | `bool` | `False` | physical | NOT NULL. Pkey members get it from their pkey membership, not from this flag. |
-| unique | `bool \| str` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. A string is read as in GenroPy: `n`, `no`, `f`, `false`, `0` are false. |
+| unique | `bool \| str` | `False` | physical | single-column UNIQUE. A redundant one on a single-column pkey is dropped by the renderer. A string is read as a boolean: `n`, `no`, `f`, `false`, `0` are false. |
 | indexed | `bool \| str \| dict` | `False` | physical | sugar — the renderer materializes a real index item (`structure-1.0` has no `indexed` column attribute). A column carrying a relation is always indexed. A string is read as `unique`. A dict carries the index options, as legacy `fill_json_column_index`: `method`, `where`, `tablespace`, `sorting` (comma-separated, one direction per column), `with_<name>` (a `WITH` storage option) and `unique` (without `where` it makes the column unique and creates no index; with `where` a partial unique index). |
 | sql_default | `str \| None` | `None` | physical | SQL DEFAULT expression. |
 | sql_extra | `str \| None` | `None` | physical | verbatim tail of the column definition. |
@@ -200,7 +200,7 @@ A physical column — the only element that projects as a column.
 | name_full | `str \| None` | `None` | semantic | human label, full form. |
 | format | `str \| None` | `None` | semantic | display format. |
 | print_width | `int \| None` | `None` | semantic | print width. |
-| group | `str \| None` | `None` | semantic | field-group key. onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted: field triggers, as in GenroPy: a method name, called as `trigger_<name>(record, fldname=, tblname=)` on the table or on `trigger_table`, or a callable `f(record, fldname)`. They run at every write, in column declaration order. |
+| group | `str \| None` | `None` | semantic | field-group key. onInserting, onUpdating, onDeleting, onInserted, onUpdated, onDeleted: field triggers: a method name, called as `trigger_<name>(record, fldname=, tblname=)` on the table or on `trigger_table`, or a callable `f(record, fldname)`. They run at every write, in column declaration order. |
 | sqlname | `str \| None` | `None` | physical |  |
 | default | `object` | `None` | physical |  |
 | default_from | `str \| None` | `None` | physical |  |
@@ -319,7 +319,7 @@ composite UNIQUE is `unique=True` here.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
-| name | `str` | *required* | physical | the composite name (GenroPy `composed_of` carried the members instead). |
+| name | `str` | *required* | physical | the composite name. |
 | columns | `str` | *required* | physical | comma-joined member names, all physical columns of the same table. |
 | unique | `bool` | `False` | physical | projects a multi-column UNIQUE constraint. |
 | name_long | `str \| None` | `None` | semantic | human label. |
@@ -355,7 +355,7 @@ A table index.
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
 | columns | `object \| None` | `None` | physical | comma-joined names, a list or tuple of names, or a `{name: None \| 'DESC'}` dict when per-column ordering matters. |
-| name | `str \| None` | `None` | physical | the index name; `<table>_<columns joined by _>_key` when absent, as in GenroPy. |
+| name | `str \| None` | `None` | physical | the index name; `<table>_<columns joined by _>_key` when absent. |
 | unique | `bool \| None` | `None` | physical | a UNIQUE index. |
 | method | `str \| None` | `None` | physical | access method (`btree`, `gin`, …). |
 | where | `str \| None` | `None` | physical | partial-index predicate. |
@@ -379,20 +379,20 @@ reports every conflicting relation together.
 | --- | --- | --- | --- | --- |
 | related_column | `str` | *required* | physical | the target, `package.table.column` or `package.table` (target columns default to the target pkey). |
 | foreign_key | `bool` | `False` | physical | emit a physical FK. Only these relations project a foreign key into the migration JSON; every relation on a physical column indexes it. |
-| onDelete | `str \| None` | `None` | semantic | Python action on delete of the target row, as in GenroPy: `raise`, `cascade`, `setnull`, `ignore`, optionally followed by `:message`. |
+| onDelete | `str \| None` | `None` | semantic | Python action on delete of the target row: `raise`, `cascade`, `setnull`, `ignore`, optionally followed by `:message`. |
 | onUpdate | `str \| None` | `None` | semantic | Python action on update, same values. |
 | onDelete_sql | `str \| None` | `None` | physical | SQL action of the foreign key on delete: `cascade`, `restrict`, `no action`, `setnull`, `setdefault` (any case; `set null`/`set default` too), or the legacy abbreviations `C`, `R`, `N`, `SN`, `SD`. |
-| onUpdate_sql | `str \| None` | `None` | physical | SQL action of the foreign key on update, same values; `cascade` when absent, as in GenroPy. |
-| deferred | `bool` | `False` | physical | DEFERRABLE INITIALLY DEFERRED. True by default when `onDelete` or `onDelete_sql` is `setnull`, as in GenroPy. |
+| onUpdate_sql | `str \| None` | `None` | physical | SQL action of the foreign key on update, same values; `cascade` when absent. |
+| deferred | `bool` | `False` | physical | DEFERRABLE INITIALLY DEFERRED. True by default when `onDelete` or `onDelete_sql` is `setnull`. |
 | deferrable | `bool` | `False` | physical | make the foreign key DEFERRABLE. Without `initially_deferred` it is initially immediate. |
 | initially_deferred | `bool` | `False` | physical | start a deferrable foreign key deferred. |
 | indexed | `bool` | `True` | physical | the index of the relation columns, with or without a foreign key. On by default, as legacy; `False` states that the columns are deliberately left unindexed. |
 | one_name | `str \| None` | `None` | semantic | human label of the one side. |
 | many_name | `str \| None` | `None` | semantic | human label of the many side. |
-| one_one | `bool \| Literal['*']` | `False` | semantic | the relation is 1:1. `'*'` without `relation_name` names the inverse after the many table and makes it public, as in GenroPy. |
+| one_one | `bool \| Literal['*']` | `False` | semantic | the relation is 1:1. `'*'` without `relation_name` names the inverse after the many table and makes it public. |
 | insensitive | `bool` | `False` | semantic | join case-insensitively. |
 | name | `str \| None` | `None` | physical |  |
-| relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`), as in GenroPy. |
+| relation_name | `str \| None` | `None` | semantic | name of the inverse relation on the target (`@<relation_name>`). |
 | onDuplicate | `str \| bool \| None` | `None` | physical |  |
 | constraint_name | `str \| None` | `None` | physical |  |
 | one_group | `str \| None` | `None` | physical |  |
@@ -403,7 +403,7 @@ reports every conflicting relation together.
 | external_relation | `bool \| None` | `None` | physical |  |
 | resolver_kwargs | `dict \| None` | `None` | physical |  |
 | join_on | `str \| None` | `None` | semantic | the ON condition in place of the key equality. Wins over `cnd`. |
-| cnd | `str \| None` | `None` | semantic | the ON condition in place of the key equality. The relation projects no foreign key (GenroPy `mode='custom'`). |
+| cnd | `str \| None` | `None` | semantic | the ON condition in place of the key equality. The relation projects no foreign key. |
 | between | `str \| None` | `None` | semantic | `'value;low;high'`, a range condition in place of the key equality. |
 
 ### `colgroup`
