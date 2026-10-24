@@ -7,6 +7,7 @@ import pytest
 
 from asqueel.application_table import SqlTable
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db, row
+from tests.package_layout_support import write_layout
 
 
 @pytest.fixture(params=IMPLEMENTATIONS)
@@ -16,8 +17,8 @@ def implementation(request):
 
 def ranked(package):
     table = package.table('item', name_long='Item')
-    table.options().sys_fields()
-    table.options().auto_counter(scope=['scope', 'group_id'])
+    table.options().sysFields()
+    table.options().counter(scope=['scope', 'group_id'])
     table.column('scope')
     table.column('group_id', dtype='L')
     table.column('value', dtype='L', default=5)
@@ -25,17 +26,29 @@ def ranked(package):
     table.column('system', default='internal', readOnly=True)
 
 
-def hierarchy(package, linked=False, table_class=SqlTable):
+def hierarchy(package, linked=False):
     if linked:
         master = package.table('master', name_long='Master')
-        master.options().sys_fields()
+        master.options().sysFields()
         master.column('code')
-    table = package.table('item', name_long='Item', x_table_class=table_class)
-    table.options().sys_fields()
+    table = package.table('item', name_long='Item')
+    table.options().sysFields()
     table.options().hierarchical('code', parent='owner_id', root_id=True,
                                  virtual_roots=True, linked_to='app.master' if linked else None)
-    table.options().auto_counter(field='position')
+    table.options().counter(field='position')
     table.column('code')
+
+
+#: ``hierarchy`` without ``linked``, declared by a package folder whose ``Table`` adds methods.
+HIERARCHY = '''
+class Table:
+    def config_db(self, pkg):
+        table = pkg.table('item', name_long='Item')
+        table.options().sysFields()
+        table.options().hierarchical('code', parent='owner_id', root_id=True, virtual_roots=True)
+        table.options().counter(field='position')
+        table.column('code')
+'''
 
 
 def test_counter_scopes_defaults_column_rules_and_rollback(implementation, tmp_path):
@@ -107,14 +120,14 @@ def test_hierarchy_rejects_invalid_keys_and_parents(implementation, tmp_path):
 
 
 def test_hierarchy_refreshes_paths_after_before_hooks(implementation, tmp_path):
-    class Normalize(SqlTable):
-        def trigger_onInserting(self, record):
-            record['code'] = record['code'].upper()
+    path = write_layout(tmp_path / 'app', item=HIERARCHY + '''
+    def trigger_onInserting(self, record):
+        record['code'] = record['code'].upper()
 
-        def trigger_onUpdating(self, record, old_record=None):
-            record['code'] = record.get('code', old_record['code']).upper()
-
-    with migrated_db(implementation, tmp_path, lambda p: hierarchy(p, table_class=Normalize)) as db:
+    def trigger_onUpdating(self, record, old_record=None):
+        record['code'] = record.get('code', old_record['code']).upper()
+''')
+    with migrated_db(implementation, tmp_path, path=path) as db:
         table = db.table('app.item')
         root = table.insert({'code': 'root'})
         leaf = table.insert({'code': 'leaf', 'owner_id': root['id']})
@@ -142,13 +155,13 @@ def test_linked_roots_follow_master_and_rollback(implementation, tmp_path):
 
 def relative(package):
     master = package.table('master', name_long='Master')
-    master.options().sys_fields()
+    master.options().sysFields()
     extension = package.table('master_xtd', pkey='id', name_long='Extension')
     extension.column('id', size='22')
     extension.column('main_id', size='22').relation('app.master.id', deferred=True)
     detail = package.table('item', name_long='Detail')
-    detail.options().sys_fields()
-    detail.options().relative_index('master_id')
+    detail.options().sysFields()
+    detail.options().relidx('master_id')
     detail.column('master_id', size='22').relation('app.master.id', deferred=True)
 
 
@@ -168,7 +181,7 @@ def test_relative_index_survives_deletion_and_rolls_back(implementation, tmp_pat
 
 def generated(package, expression='value * 2'):
     table = package.table('item', name_long='Item')
-    table.options().sys_fields()
+    table.options().sysFields()
     table.column('value', dtype='L')
     table.column('computed', dtype='L', sql_generatedExpression=expression)
 
@@ -234,7 +247,7 @@ def test_concurrent_opposing_moves_cannot_create_cycle(implementation, tmp_path)
 
 def partitioned(package):
     table = package.table('item', name_long='Item', partition_organization='organization')
-    table.options().sys_fields()
+    table.options().sysFields()
     table.column('organization', dtype='L')
     table.column('value', dtype='L')
 
@@ -328,11 +341,12 @@ def test_partition_refuses_cross_scope_before_hooks(implementation, tmp_path):
 
 
 def test_after_hook_failure_rolls_back_descendant_paths(implementation, tmp_path):
-    class Fail(SqlTable):
-        def trigger_onUpdated(self, record, old_record=None):
-            if record.get('code') == 'fail':
-                raise RuntimeError('deliberate hook failure')
-    with migrated_db(implementation, tmp_path, lambda p: hierarchy(p, table_class=Fail)) as db:
+    path = write_layout(tmp_path / 'app', item=HIERARCHY + '''
+    def trigger_onUpdated(self, record, old_record=None):
+        if record.get('code') == 'fail':
+            raise RuntimeError('deliberate hook failure')
+''')
+    with migrated_db(implementation, tmp_path, path=path) as db:
         table = db.table('app.item')
         root = table.insert({'code': 'root'})
         leaf = table.insert({'code': 'leaf', 'owner_id': root['id']})
@@ -378,10 +392,10 @@ def test_linked_root_with_database_generated_master_key(implementation, tmp_path
         if serial:
             master.column('id', dtype='serial')
         else:
-            master.options().sys_fields()
+            master.options().sysFields()
         master.column('code', sql_default="'from database'")
         tree = package.table('item')
-        tree.options().sys_fields()
+        tree.options().sysFields()
         tree.options().hierarchical('code', linked_to='app.master')
         tree.column('code')
     with migrated_db(implementation, tmp_path, declare) as db:

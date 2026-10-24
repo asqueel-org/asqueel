@@ -26,7 +26,7 @@ flowchart LR
 ```
 
 1. **Declare configuration.** A `SqlDatabaseConfig` recipe describes the connection,
-   schemas, tables and columns. Builders grammars define which declarations and
+   packages, tables and columns. Builders grammars define which declarations and
    attributes are allowed. Parent recipes and an application or deployment recipe
    can contribute to the same configuration.
 2. **Render live objects.** `AsqueelDb(Recipe)` resolves the configuration,

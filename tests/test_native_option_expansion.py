@@ -47,30 +47,26 @@ def assert_legacy_columns(table, names, key):
                 assert column.attributes.get(field) == expected, (key, name, field)
         for field in ('onInserting', 'onUpdating'):
             assert column.attributes.get(field) == attrs.get(field), (key, name, field)
-        for field in ('_sysfield', '_sendback', 'counter', '_counter_fkey'):
-            assert column.attributes.get('x_legacy_' + field) == attrs.get(field), (key, name, field)
 
 
-@pytest.mark.parametrize('key,fields,counter,dynamic,audit', [
-    ('invc.product_type', ['description'], True, True, False),
-    ('invc.product_group', ['code', '_row_count'], True, False, False),
-    ('sys.widget', ['name'], False, True, True),
-    ('adm.htag', ['code', 'description'], True, False, False),
-    ('adm.menu', ['label'], True, False, False),
+@pytest.mark.parametrize('key,fields,counter,dynamic', [
+    ('invc.product_type', ['description'], True, True),
+    ('invc.product_group', ['code', '_row_count'], True, False),
+    ('sys.widget', ['name'], False, True),
+    ('adm.htag', ['code', 'description'], True, False),
+    ('adm.menu', ['label'], True, False),
 ])
-def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynamic, audit):
+def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynamic):
     builder, packages = source()
     pkg, name = key.split('.')
     table = packages.package(pkg).table(name)
     opts = table.options()
-    opts.sys_fields(user_upd=False, group_name='!![en]System', syscode=name == 'htag')
+    opts.sysFields(user_upd=False, group_name='!![en]System', syscode=name == 'htag')
     opts.hierarchical(fields)
     if counter:
-        opts.auto_counter()
+        opts.counter()
     if dynamic:
-        opts.dynamic_fields()
-    if audit:
-        opts.audit('lazy')
+        opts.df()
     for field in fields:
         if field != '_row_count':
             table.column(field, name_long='!!' + field.title())
@@ -86,8 +82,6 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
         names |= {'_row_count', '_h_count', '_parent_h_count', '_h_sortcol'}
     if dynamic:
         names |= {'df_fields', 'df_fbcolumns', 'df_custom_templates', 'df_colswidth'}
-    if audit:
-        names |= {'__version'}
     if name == 'htag':
         names |= {'__syscode'}
         assert '__protected_by_syscode' not in resolved.columns
@@ -103,82 +97,26 @@ def test_hierarchy_families_match_independent_legacy(key, fields, counter, dynam
     assert physical(AsqueelDb(builder).model) == physical(model)
 
 
-@pytest.mark.parametrize('reverse', [False, True])
-def test_attachments_expand_base_options_before_cross_table_link(reverse):
-    builder, packages = source()
-    pkg = packages.package('adm')
-    for name in (['htmltemplate_atc', 'htmltemplate'] if reverse else ['htmltemplate', 'htmltemplate_atc']):
-        table = pkg.table(name)
-        if name == 'htmltemplate':
-            table.attr['name_long'] = '!!Letterhead'
-            table.options().sys_fields(user_upd=False)
-        else:
-            table.options().sys_fields(user_upd=False, group_name='!![en]System')
-            table.options().attachments(master='adm.htmltemplate')
-    db = AsqueelDb(builder)
-    try:
-        attachment = db.table('adm.htmltemplate_atc')
-        expected = legacy_table('adm.htmltemplate_atc')
-        names = {node.label for collection in ('columns', 'virtual_columns') for node in expected.value.get_item(collection)}
-        assert set(attachment.columns) | set(attachment.virtual_columns) == names
-        # Structural defaults are still present despite earlier signature defaults.
-        assert_legacy_columns(attachment.model, names - {'maintable_id', 'fileurl', 'full_external_url'}, 'adm.htmltemplate_atc')
-        assert attachment.model['options']['auto_counter'].attributes['scope'] == 'maintable_id'
-        assert attachment.column('@maintable_id.id') is db.table('adm.htmltemplate').column('id')
-        assert attachment.relations.get_node('@maintable_id').attr['joiner']['onDuplicate'] is False
-        assert db.table('adm.htmltemplate').attributes['atc_attachmenttable'] == 'adm.htmltemplate_atc'
-        assert attachment.column('fileurl').attributes['method'] == 'filepath_endpoint_url'
-        assert attachment.column('__ins_ts').attributes['indexed'] is True
-    finally:
-        db.closeConnection()
-
-
-def test_attachment_implicit_options_are_owned_and_default_user_upd_is_preserved():
-    builder, packages = source()
-    pkg = packages.package('adm')
-    pkg.table('master').options().sys_fields()
-    attachment = pkg.table('master_atc')
-    attachment.options().attachments(master='adm.master')
-    before = builder.source.to_json()
-    model = AsqueelDb(builder).model
-    assert '__mod_user' in model.table('adm.master_atc').columns  # approved Asqueel default
-    assert model.table('adm.master_atc')['options']['sys_fields'].attributes['enabled']
-    assert builder.source.to_json() == before
-
-
-def test_counter_audit_hash_full_update_and_dynamic_column_are_structure_only():
+def test_counter_full_update_and_dynamic_column_are_structure_only():
     builder, packages = source()
     pkg = packages.package('app')
     table = pkg.table('item', pkey='code')
     table.column('code', dtype='L')
     table.column('parent_id', dtype='L')
-    table.column('details', dtype='X').dynamic_fields(source='parent_id')
+    table.column('details', dtype='X').df(source='parent_id')
     opts = table.options()
-    opts.sys_fields(id=False)
-    opts.auto_counter('parent_id')
-    opts.audit('lazy')
-    opts.full_update()
-    opts.record_hash()
-    opts.dynamic_fields(templates='compact')
+    opts.sysFields(id=False)
+    opts.counter('parent_id')
+    opts.fullUpd()
+    opts.df(templates='compact')
     model = AsqueelDb(builder).model.table('app.item')
-    assert model.columns['__version'].dtype == 'L'
     assert model.columns['__full_mod_ts'].dtype == 'DHZ'
     assert model.columns['__full_mod_ts'].attributes['indexed'] is True
-    assert model.columns['__rec_md5'].dtype == 'T'
-    assert model.columns['_row_count'].attributes['x_legacy__counter_fkey'] == 'parent_id'
-    assert model.columns['details'].attributes['x_legacy_subfields'] == 'parent_id'
-    assert model.columns['details']['dynamic_fields'].attributes['source'] == 'parent_id'
-    assert model.columns['df_custom_templates'].attributes['x_legacy_templates'] == 'compact'
+    assert model.columns['_row_count'].dtype == 'L'
+    assert model.columns['details']['df'].attributes['source'] == 'parent_id'
+    assert model.columns['df_custom_templates'].dtype == 'X'
     assert model.virtual_columns['__record_pointer'].attributes['sql_formula'] == " 'app.item.' || $code "
     assert 'id' not in model.columns
-
-
-def test_record_hash_matches_user_legacy_declaration():
-    builder, packages = source()
-    table = packages.package('adm').table('user')
-    table.options().sys_fields(user_upd=False, group_name='!![en]System')
-    table.options().record_hash()
-    assert_legacy_columns(AsqueelDb(builder).model.table('adm.user'), {'__rec_md5'}, 'adm.user')
 
 
 def test_declarative_options_are_preserved_without_new_columns_or_runtime_effects(monkeypatch):
@@ -192,13 +130,11 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
     opts.archive()
     opts.enabled_when(preference='adm.dev.connection_log_enabled')
     opts.numbering('id', parameters={'format': '$YYYY$NNNNN', 'starting_value': 1})
-    opts.protection(rules=['protect_validate'])
     db = AsqueelDb(builder)
     try:
         item = db.table('invc.customer')
         assert set(item.columns) == {'id', 'state'}
-        assert set(item.model.options) == {'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id', 'protection'}
-        assert item.model.options['protection'].attributes['rules'] == ['protect_validate']
+        assert set(item.model.options) == {'retention', 'broadcast', 'archive', 'enabled_when', 'numbering_id'}
         assert item.model.options['numbering_id'].attributes['parameters']['format'] == '$YYYY$NNNNN'
         assert item.model.options['retention'].attributes['days'] == 60
         with pytest.raises(UnsupportedFeatureError):
@@ -208,9 +144,8 @@ def test_declarative_options_are_preserved_without_new_columns_or_runtime_effect
 
 
 @pytest.mark.parametrize('name,kwargs', [
-    ('hierarchical', {}), ('auto_counter', {}), ('relative_index', {}),
-    ('dynamic_fields', {}), ('record_hash', {}), ('full_update', {}), ('audit', {}),
-    ('attachments', {}), ('protection', {}), ('release', {}), ('system_records', {}),
+    ('hierarchical', {}), ('counter', {}), ('relidx', {}),
+    ('df', {}), ('fullUpd', {}), ('release', {}), ('sysrecords', {}),
 ])
 def test_disabled_options_remain_data_and_generate_nothing(name, kwargs):
     builder, packages = source()
@@ -232,11 +167,10 @@ def test_relative_index_contributes_to_existing_master_extension(reverse, qualif
         tbl.column('id', dtype='L')
         if name == 'detail':
             tbl.column('master_id', dtype='L').relation('app.master.id' if qualified else 'master.id')
-            tbl.options().relative_index('master_id')
+            tbl.options().relidx('master_id')
     model = AsqueelDb(builder).model
     assert model.table('app.detail').columns['_relidx'].dtype == 'L'
     assert model.table('app.master_xtd').columns['app_detail_relidx'].dtype == 'L'
-    assert model.table('app.detail').columns['_relidx'].attributes['x_legacy_format'] == '0000'
 
 
 def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch):
@@ -248,7 +182,7 @@ def test_native_invoice_example_builds_live_objects_with_its_targets(monkeypatch
     invc = config.source.get_node('db.packages.invc')
     invc.table('state', pkey='code').column('code', size=':5')
     product = invc.table('product', pkey='id')
-    product.options().sys_fields(user_upd=False)
+    product.options().sysFields(user_upd=False)
     product.column('description', size=':80')
     before = config.source.to_json()
     db = AsqueelDb(config)
@@ -266,7 +200,7 @@ def test_hierarchy_root_id_and_virtual_roots():
     builder, packages = source()
     pkg = packages.package('app')
     tree = pkg.table('tree', name_long='Tree')
-    tree.options().sys_fields()
+    tree.options().sysFields()
     tree.options().hierarchical([{'name': 'code', 'unique': True}], root_id=True, virtual_roots=True,
                                 caption_field='hierarchical_code')
     tree.column('code')
@@ -282,11 +216,11 @@ def test_linked_hierarchy_and_legacy_variants(option, value):
     builder, packages = source()
     pkg = packages.package('app')
     tree = pkg.table('tree', name_long='Tree')
-    tree.options().sys_fields()
+    tree.options().sysFields()
     tree.options().hierarchical('code', **{option: value})
     tree.column('code')
     master = pkg.table('master', name_long='Master')
-    master.options().sys_fields()
+    master.options().sysFields()
     if option == 'linked_to':
         model = AsqueelDb(builder).model
         assert model.table('app.tree').column('@master_id.id').table.fullname == 'app.master'
@@ -296,22 +230,11 @@ def test_linked_hierarchy_and_legacy_variants(option, value):
             AsqueelDb(builder).model
 
 
-def test_protection_tag_preserves_the_legacy_formula_without_execution():
-    builder, packages = source()
-    table = packages.package('app').table('item')
-    table.options().protection(tag='staff')
-    resolved = AsqueelDb(builder).model.table('app.item')
-    assert set(resolved.columns) | set(resolved.virtual_columns) == {'__protection_tag', '__protected_by_tag'}
-    assert resolved.virtual_columns['__protected_by_tag'].dtype == 'B'
-    assert ':env_userTags' in resolved.virtual_columns['__protected_by_tag'].attributes['sql_formula']
-    assert resolved['options']['protection'].attributes['tag'] == 'staff'
-
-
 @pytest.mark.parametrize('kind', ['column', 'virtual', 'unknown', 'counter_scope'])
 def test_structural_conflicts_fail_without_modifying_source(kind):
     builder, packages = source()
     table = packages.package('app').table('item')
-    table.options().sys_fields()
+    table.options().sysFields()
     if kind == 'column':
         table.column('__mod_ts', dtype='I')
     elif kind == 'virtual':
@@ -320,7 +243,7 @@ def test_structural_conflicts_fail_without_modifying_source(kind):
         table.options().hierarchical('missing')
     else:
         table.options().hierarchical()
-        table.options().auto_counter('another_id')
+        table.options().counter('another_id')
     before = builder.source.to_json()
     with pytest.raises(ValueError):
         AsqueelDb(builder)
@@ -332,7 +255,7 @@ def test_sysfield_generation_does_not_treat_signature_defaults_as_explicit_overr
     table = packages.package('app').table('item')
     table.column('__syscode', name_long='Code')
     table.column('__ins_ts', name_long='Created')
-    table.options().sys_fields(syscode=True)
+    table.options().sysFields(syscode=True)
     db = AsqueelDb(builder)
     try:
         assert db.table('app.item').column('__syscode').attributes['unique'] is True
@@ -348,7 +271,7 @@ def test_sysfield_generation_does_not_treat_signature_defaults_as_explicit_overr
 def test_sysfield_index_override_survives_other_columns(field, indexed, extra_position):
     builder = SqlBuilder()
     table = builder.source.db('demo', implementation='postgres').packages().package('app').table('item')
-    table.options().sys_fields()
+    table.options().sysFields()
     if extra_position == 'before':
         table.column('name')
     declared = table.column(field, **({} if indexed is None else {'indexed': indexed}))
@@ -370,7 +293,7 @@ def test_sysfield_index_override_survives_other_columns(field, indexed, extra_po
     check()
 
 
-@pytest.mark.parametrize('name,kwargs', [('system_records', {'records': {'x': {}}}), ('release', {'handlers': {'1': 'upgrade'}})])
+@pytest.mark.parametrize('name,kwargs', [('sysrecords', {'records': {'x': {}}}), ('release', {'handlers': {'1': 'upgrade'}})])
 def test_deferred_families_stay_out_of_object_creation(name, kwargs):
     builder, packages = source()
     getattr(packages.package('app').table('item').options(), name)(**kwargs)
@@ -381,14 +304,18 @@ def test_deferred_families_stay_out_of_object_creation(name, kwargs):
 def test_option_columns_indexes_and_foreign_keys_reach_physical_projection():
     builder, packages = source()
     pkg = packages.package('app')
-    pkg.table('master').options().sys_fields()
-    pkg.table('master_atc').options().attachments(master='app.master')
-    table = builder.render(mode='migration')['root']['schemas']['public']['tables']['app_master_atc']
+    tree = pkg.table('tree')
+    tree.options().sysFields()
+    tree.options().hierarchical('code')
+    tree.options().counter()
+    tree.column('code')
+    table = builder.render(mode='migration')['root']['schemas']['public']['tables']['app_tree']
     assert '_row_count' in table['columns']
-    assert 'info' in table['columns']
-    assert 'adapted_url' not in table['columns']
+    assert 'hierarchical_pkey' in table['columns']
+    assert 'child_count' not in table['columns']
     assert '__protecting_reasons' not in table['columns']
-    assert any(r['attributes'].get('on_delete') == 'CASCADE' for r in table['relations'].values())
+    assert any(r['attributes']['columns'] == ['parent_id'] and r['attributes']['constraint_type'] == 'FOREIGN KEY'
+               for r in table['relations'].values())
     assert table['indexes']
 
 
@@ -418,7 +345,7 @@ def test_package_types_precede_expansion_and_legacy_setnull_defaults(objects):
     pkg.options().type('uuid', dtype='A', size='22')
     master = pkg.table('master')
     master.column('id', dtype='uuid')
-    master.options().sys_fields()
+    master.options().sysFields()
     detail = pkg.table('detail', pkey='id')
     detail.column('id', dtype='L')
     detail.column('master_id').relation('app.master.id', onDelete='setnull', onDuplicate='recursive')
@@ -443,13 +370,12 @@ def test_expanding_options_does_not_connect_or_run_declared_hooks(monkeypatch):
     monkeypatch.setattr(psycopg, 'connect', forbidden)
     builder, packages = source()
     table = packages.package('app').table('item')
-    table.options().sys_fields()
-    table.options().audit('full')
-    table.options().record_hash()
+    table.options().sysFields()
+    table.options().counter()
     db = AsqueelDb(builder)
     try:
-        assert db.table('app.item').column('__rec_md5').attributes['onInserting'] == 'setRecordMd5'
-        assert db.table('app.item').model['options']['audit'].attributes['mode'] == 'full'
+        assert db.table('app.item').column('_row_count').attributes['onInserting'] == 'setRowCounter'
+        assert db.table('app.item').model['options']['counter'] is not None
     finally:
         db.closeConnection()
 

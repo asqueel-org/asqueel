@@ -1,7 +1,8 @@
 """The composed example resolves cross-schema paths without database I/O."""
+from pathlib import Path
+
 from asqueel import AsqueelDb
-from examples.two_schemas.configure import DatabaseConfiguration
-from examples.two_schemas.schemas.sales.invoice_logic import InvoiceLogic
+from examples.two_schemas.configure import PACKAGES, DatabaseConfiguration
 
 
 def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
@@ -20,7 +21,7 @@ def test_explicit_schema_example_builds_and_compiles_offline(monkeypatch):
             assert db.table(name).model.pkey == 'id'
         assert db.config('connection.name') == 'example_test'
         invoice = db.table('sales.invoice')
-        assert isinstance(invoice, InvoiceLogic)
+        assert Path(type(invoice).rows_query.__code__.co_filename) == PACKAGES / 'sales' / 'model' / 'invoice.py'
         query = invoice.query(
             columns='$number, @customer_id.name AS customer, @created_by.username AS author',
             where='$customer_id = :customer_id', sqlparams={'customer_id': 42},

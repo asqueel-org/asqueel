@@ -8,7 +8,7 @@ No GenroPy imports or expanded legacy fixtures are needed.
 # SHA256: b43c0a8faa957b3ccf64ae0e311b9c1c76d0e9f079bdc88b84ba928d7438ea16
 def batch_log(pkg):
     tbl = pkg.table('batch_log', pkey='id', name_long='!!Batch log', name_plural='!!Batch logs', caption_field='log_caption')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('batch_title', name_long='!!Batch title')
     tbl.column('page_id', size='22', group='_', name_long='!!Page').relation('adm.served_page.page_id', foreign_key=False, relation_name='batches', onDelete='raise')
     tbl.column('start_ts', dtype='DH', name_long='!!Start ts')
@@ -36,7 +36,7 @@ def calendar(pkg):
 # SHA256: 6b9d8a9b05916c5f044ebf173490411ba71316e0cccb28c2b2a66bdbc5334c6d
 def dataretention(pkg):
     tbl = pkg.table('dataretention', rowcaption='$table_fullname', caption_field='task_fullname', pkey='id', name_long='!!Data Retention Policy', name_plural='!!Data Retention Policies')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('table_fullname', name_long='!!Table', unique=True)
     tbl.column('filter_column', name_long='!!Filter Column')
     tbl.column('retention_period', dtype='L', name_long='!!Retention (days)')
@@ -46,7 +46,7 @@ def dataretention(pkg):
 # SHA256: 50f5672d7a29b924bf12ccfc1543f1241cbf4db65d8d72e04f81483fc9735677
 def dbchange(pkg):
     tbl = pkg.table('dbchange', pkey='ref', name_long='!!Dbchange', name_plural='!!Db change')
-    tbl.options().sys_fields(id=False, ins=True, upd=False, ldel=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, ins=True, upd=False, ldel=False, user_upd=False, group_name='!![en]System')
     tbl.column('ref', dtype='serial', name_long='!!Reference')
     tbl.column('tbl', size=':80', name_long='!!Table')
     tbl.column('record_pkey', name_long='!!Record pkey')
@@ -60,7 +60,7 @@ def dbchange(pkg):
 def error(pkg):
     tbl = pkg.table('error', pkey='id', name_long='Debug Error', name_plural='!!Errors', caption_field='description', rowcaption='$error_type,$description')
     tbl.options().retention(field='__ins_ts', days=60)
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('description', name_long='!!Description')
     tbl.column('error_data', dtype='X', name_long='!!Traceback')
     tbl.column('username', name_long='User')
@@ -113,7 +113,7 @@ def external_token_use(pkg):
 # SHA256: 9155945c68e4a2ecdc77a451aeab360a8b799928f3fb86cb52bf3656de98e6e2
 def externalcall_log(pkg):
     tbl = pkg.table('externalcall_log', pkey='id', name_long='External call log', name_plural='External call log', caption_field='methodname')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('endpoint', name_long='Endpoint')
     tbl.column('methodname', name_long='Method')
     tbl.column('parameters', dtype='X', name_long='Parameters')
@@ -125,7 +125,7 @@ def externalcall_log(pkg):
 # SHA256: da87c01ca4c9e83d93d3e326e47849208b09f10c2d52a481ae90150673e9a853
 def service(pkg):
     tbl = pkg.table('service', name_long='!!Service', name_plural='!!Services', caption_field='service_identifier', pkey='service_identifier', pkey_columns='service_type,service_name')
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('service_identifier', size=':60', name_long='!!Identifier')
     tbl.column('service_type', size=':30', name_long='!!Service type')
     tbl.column('service_name', size=':30', name_long='!!Service name')
@@ -139,7 +139,7 @@ def service(pkg):
 # SHA256: c496cdb230492554ac815160eb5a07a007c045e5cced3322131a111c4025d156
 def shared_object(pkg):
     tbl = pkg.table('shared_object', pkey='id', name_long='!!Shared Object', name_plural='Shared objects')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('data', 'X', name_long='!!Data')
     tbl.column('backup', 'X', name_long='!!Backup')
     tbl.column('description', size=':50', name_long='Code', indexed=True)
@@ -150,7 +150,7 @@ def shared_object(pkg):
 # SHA256: 1f2a2e134e3f1d353753afb1c019c16ae0bf63ef93941f0d8b6a4d0e2d2b83f9
 def shorturl(pkg):
     tbl = pkg.table('shorturl', pkey='codekey', pkey_columns='$domain,$key', name_long='Shorturl', name_plural='Shorturl', caption_field='shorturl')
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('codekey', size=':100', name_long='Codekey')
     tbl.column('service_identifier', size=':60', group='_', name_long='Service').relation('service.service_identifier', relation_name='urls', onDelete='raise', foreign_key=True)
     tbl.column('longurl', name_long='Long url')
@@ -165,7 +165,7 @@ def shorturl(pkg):
 # SHA256: 2ed0868a185ab0a77f5d37773326638dcd4a471e190b32c44c709cf9216ab137
 def task(pkg):
     tbl = pkg.table('task', rowcaption='$task_name', caption_field='task_name', pkey='id', name_long='!!Task', name_plural='!!Tasks')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('table_name', name_long='!!Table')
     tbl.column('task_name', name_long='!!Task name', name_short='!!Name')
     tbl.column('command', name_long='!!Command')
@@ -200,7 +200,7 @@ def task(pkg):
 def task_execution(pkg):
     tbl = pkg.table('task_execution', pkey='id', name_long='!!Task execution', name_plural='!!Task executions')
     tbl.options().retention(field='__ins_ts', days=180)
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('task_id', size='22', name_long='!!Task ID').relation('sys.task.id', relation_name='executions', onDelete='cascade', foreign_key=True)
     tbl.column('result', 'X', name_long='!!result')
     tbl.column('logbag', 'X', name_long='!!Logbag')
@@ -227,7 +227,7 @@ def task_execution(pkg):
 # SHA256: fbc99a46858ca9f82cba2dfef8044b33f0fbc2893f220f656fc6fac51439ab60
 def task_result(pkg):
     tbl = pkg.table('task_result', pkey='id', name_long='!!Task log')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.column('task_id', size='22', name_long='!!Task ID').relation('sys.task.id', relation_name='logs', foreign_key=True)
     tbl.column('result', 'X', name_long='!!result')
     tbl.column('result_time', dtype='DH', name_long='!!Result Time')
@@ -240,7 +240,7 @@ def task_result(pkg):
 # SHA256: b256d035a05d580eeeb2575c52eb81ab0d15bfc13edde54f23ff663c3e2f9440
 def upgrade(pkg):
     tbl = pkg.table('upgrade', pkey='codekey', pkey_columns='pkg,filename', pkey_columns_joiner='|', name_long='!!Upgrade ', name_plural='!!Upgrades', caption_field='codekey')
-    tbl.options().sys_fields(id=False, user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(id=False, user_upd=False, group_name='!![en]System')
     tbl.column('codekey', size=':306', name_long='Identifier')
     tbl.column('pkg', size=':50', name_long='Package')
     tbl.column('filename', size=':255', name_long='!!Filename')
@@ -251,10 +251,10 @@ def upgrade(pkg):
 # SHA256: f0fa9b6419021899fadc943dbf25d65d974b4290df8f55d453f0d7d79b2e883c
 def widget(pkg):
     tbl = pkg.table('widget', pkey='id', name_long='!!Widget', name_plural='!!Widgets', caption_field='name')
-    tbl.options().audit('lazy')
-    tbl.options().sys_fields(user_upd=False, group_name='!![en]System')
+    tbl.options().sysFields(user_upd=False, group_name='!![en]System')
     tbl.options().hierarchical('name')
-    tbl.options().dynamic_fields()
+    tbl.options().df()
+    tbl.column('__version', dtype='L', group='zzz', name_long='Audit version')
     tbl.column('name', name_long='!!Name')
     tbl.column('summary', name_long='!!Summary')
     tbl.column('server', dtype='B', name_long='!!Server')

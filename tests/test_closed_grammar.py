@@ -1,8 +1,9 @@
 """Closed grammar: what lies outside it raises, naming what the user wrote."""
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable
+from asqueel import AsqueelDb, SqlDatabaseConfig
 from asqueel.contracts import UnsupportedFeatureError
+from tests.package_layout_support import write_layout
 
 
 def package():
@@ -46,16 +47,6 @@ def test_subtable_and_tenant_are_not_in_the_grammar(call):
         getattr(target, call)()
 
 
-def test_a_key_the_expansion_generates_still_raises_when_written_by_hand():
-    config, pkg = package()
-    table = pkg.table('customer', pkey='id')
-    table.options().sys_fields()
-    table.column('code', dtype='T')
-    table.attr['group_zzz'] = 'System'
-    with pytest.raises(ValueError, match="unknown attribute 'group_zzz' on <table>"):
-        AsqueelDb(config).model
-
-
 def test_option_declared_by_a_mixed_in_grammar_is_accepted():
     from genro_builders.builder import element
     from asqueel.option_elements import BehaviorOptionElements
@@ -77,22 +68,33 @@ def test_option_declared_by_a_mixed_in_grammar_is_accepted():
         table.options().foobar(colour='red')
 
 
-def database(tmp_path, table_class=None):
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        table = pkg.tables().table('item', pkey='id')
+        table.columns().column('id', dtype='I')
+'''
+
+
+def database(tmp_path, method=None):
+    item = ITEM if method is None else ITEM + f'''
+    def {method}(self, *args, **kwargs):
+        pass
+'''
+    path = write_layout(tmp_path / 'main', item=item)
+
     class Config(SqlDatabaseConfig):
         def main(self, root):
             db = root.db(implementation='sqlite')
             db.connection(name=str(tmp_path / 'closed.db'))
-            table = db.schemas().schema('main').tables().table(
-                'item', pkey='id', **({'x_table_class': table_class} if table_class else {}))
-            table.columns().column('id', dtype='I')
+            db.packages().package('main', sqlschema='main', sqlprefix=False, path=path)
     return AsqueelDb(Config)
 
 
 @pytest.mark.parametrize('method', ['trigger_onInserted_mypkg'])
 def test_table_class_with_a_legacy_method_names_it(tmp_path, method):
-    table_class = type('Item', (SqlTable,), {method: lambda self, *args, **kwargs: None})
     with pytest.raises(UnsupportedFeatureError, match=f"table method '{method}' is not available"):
-        database(tmp_path, table_class)
+        database(tmp_path, method)
 
 
 @pytest.mark.parametrize('key', ['sql_comment', 'sql_details', 'env_main_item_condition_active'])
@@ -114,3 +116,45 @@ def test_subtable_query_option_names_the_option(tmp_path):
             db.table('main.item').query(subtable='*')
     finally:
         db.closeConnection()
+
+
+def test_an_attribute_set_on_a_declared_column_still_raises():
+    config, pkg = package()
+    pkg.table('customer', pkey='id').column('id', dtype='L').set_attr(foo=1)
+    with pytest.raises(ValueError, match="Element 'column' does not accept 'foo'"):
+        AsqueelDb(config).model
+
+
+LAYOUT_TABLE = '''
+class Table:
+    def config_db(self, pkg):
+        tbl = pkg.table('item', pkey='id')
+        tbl.column('id', dtype='L')
+        tbl.column('price', dtype='money')
+'''
+
+
+def layout_database(tmp_path, main):
+    folder = write_layout(tmp_path / 'shop', item=LAYOUT_TABLE)
+    (tmp_path / 'shop' / 'main.py').write_text(main)
+    config = SqlDatabaseConfig()
+    config.source.db('closed').packages().package('shop', path=folder)
+    return AsqueelDb(config)
+
+
+def test_a_package_attribute_from_the_layout_outside_the_grammar_raises(tmp_path):
+    main = ("class Package:\n"
+            "    def config_attributes(self):\n"
+            "        return dict(foo=1)\n"
+            "    def custom_type_money(self):\n"
+            "        return dict(dtype='N', size='14,2')\n")
+    with pytest.raises(ValueError, match="Element 'package' does not accept 'foo'"):
+        layout_database(tmp_path, main).model
+
+
+def test_a_custom_type_attribute_outside_the_grammar_raises(tmp_path):
+    main = ("class Package:\n"
+            "    def custom_type_money(self):\n"
+            "        return dict(dtype='N', size='14,2', foo=1)\n")
+    with pytest.raises(ValueError, match="foo"):
+        layout_database(tmp_path, main).model

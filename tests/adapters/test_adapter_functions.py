@@ -6,11 +6,12 @@ from datetime import date
 
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, UnsupportedFeatureError, AsqueelDb
+from asqueel import SqlDatabaseConfig, UnsupportedFeatureError, AsqueelDb
 from asqueel.adapters.postgres import SqlDbAdapter as PostgresAdapter
 from asqueel.adapters.sqlite import SqlDbAdapter as SqliteAdapter
 from tests.unit_of_work import empty_database
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
 
 BACKENDS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)]
@@ -100,18 +101,24 @@ def test_mask_field_sql_rejects_an_invalid_mode(adapter, mode):
         adapter.mask_field_sql('$code', mode=mode)
 
 
-def test_table_formula_reaches_the_adapter(tmp_path):
-    class Customer(SqlTable):
-        def sql_formula_masked_email(self, attr):
-            return self.db.adapter.mask_field_sql('$email', mode='email')
+CUSTOMER = '''
+class Table:
+    def config_db(self, pkg):
+        customer = pkg.table('customer', pkey='id')
+        customer.column('id', dtype='L')
+        customer.column('email')
+        customer.formulaColumn('masked_email', sql_formula=True)
 
+    def sql_formula_masked_email(self, attr):
+        return self.db.adapter.mask_field_sql('$email', mode='email')
+'''
+
+
+def test_table_formula_reaches_the_adapter(tmp_path):
     config = SqlDatabaseConfig()
     db = config.source.db('shop')
     db.connection(name=str(tmp_path / 'shop.db'), implementation='sqlite')
-    customer = db.packages().package('app').table('customer', pkey='id', x_table_class=Customer)
-    customer.column('id', dtype='L')
-    customer.column('email')
-    customer.formulaColumn('masked_email', sql_formula=True)
+    db.packages().package('app', path=write_layout(tmp_path / 'app', customer=CUSTOMER))
     database = AsqueelDb(config)
     try:
         database.execute('CREATE TABLE "app_customer" ("id" BIGINT, "email" TEXT)')

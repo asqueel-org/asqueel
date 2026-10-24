@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DOC_PATH = REPO_ROOT / "docs" / "grammar.md"
 
 ELEMENTS = (
-    "db", "schema", "table",
+    "db", "package", "table",
     "column", "aliasColumn", "formulaColumn", "subQueryColumn",
     "pyColumn", "compositeColumn",
     "relation", "constraint", "index", "extension",

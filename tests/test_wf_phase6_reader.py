@@ -14,6 +14,7 @@ from asqueel_migration import JsonStructureProducer
 from asqueel_migration.structures import DTYPE_CODES, json_equal
 
 from asqueel import SqlModelReader
+from asqueel.reader import SqlModelReadError
 
 
 def _roundtrip(human_json):
@@ -39,7 +40,8 @@ def test_all_dtypes_roundtrip():
     columns = [{"name": "id", "dtype": "serial"}] + [
         {"name": f"col_{dtype.lower()}", "dtype": dtype,
          **({"size": sized[dtype]} if dtype in sized else {})}
-        for dtype in DTYPE_CODES if dtype != "serial"
+        # P, X and Z are logical types a package stores as T (legacy convert_colattr).
+        for dtype in DTYPE_CODES if dtype not in ("serial", "P", "X", "Z")
     ]
     _roundtrip({
         "db": "types",
@@ -47,6 +49,15 @@ def test_all_dtypes_roundtrip():
             {"name": "t", "pkey": "id", "columns": columns},
         ]}],
     })
+
+
+@pytest.mark.parametrize("dtype", ["P", "X", "Z"])
+def test_a_logical_dtype_in_a_physical_structure_raises(dtype):
+    normalized = JsonStructureProducer({"db": "types", "schemas": [{"name": "s", "tables": [
+        {"name": "t", "pkey": "id", "columns": [{"name": "id", "dtype": "L"},
+                                                {"name": "c", "dtype": dtype}]}]}]}).get_json_struct()
+    with pytest.raises(SqlModelReadError, match="not a physical type"):
+        SqlModelReader(normalized).to_builder()
 
 
 def test_composite_pkey_and_composite_unique():
@@ -123,7 +134,7 @@ def test_multicolumn_fk_synthesizes_deterministic_composites():
     })
     # D4: composite named "_".join(columns)
     assert builder.source[
-        "db.schemas.geo.tables.address.composites.c1_c2"
+        "db.packages.geo.tables.address.composites.c1_c2"
     ] is not None
 
 
@@ -149,7 +160,7 @@ def test_composite_name_collision_gets_stable_suffix():
     }
     normalized = JsonStructureProducer(human).get_json_struct()
     builder = SqlModelReader(normalized).to_builder()
-    assert builder.source["db.schemas.geo.tables.t.composites.x_y_2"] is not None
+    assert builder.source["db.packages.geo.tables.t.composites.x_y_2"] is not None
     assert json_equal(normalized, builder.render(mode='migration'))
 
 

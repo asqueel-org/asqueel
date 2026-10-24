@@ -22,7 +22,7 @@ class _Model(SqlBuilder):
 def _table(*, pkey: str = "id"):
     model = _Model()
     model.create()
-    tables = model.source.db("d").schemas().schema("s").tables()
+    tables = model.source.db("d").packages().package("s", sqlschema="s", sqlprefix=False).tables()
     table = tables.table("t", pkey=pkey)
     columns = table.columns()
     columns.column("id", dtype="serial")
@@ -32,7 +32,7 @@ def _table(*, pkey: str = "id"):
 def _relation_model(**attributes):
     model = _Model()
     model.create()
-    tables = model.source.db("d").schemas().schema("s").tables()
+    tables = model.source.db("d").packages().package("s", sqlschema="s", sqlprefix=False).tables()
     target = tables.table("target", pkey="id")
     target.columns().column("id", dtype="serial")
     source = tables.table("source", pkey="id")
@@ -73,13 +73,13 @@ def test_schema_comment_is_explicitly_source_only():
     # wf:contract: structure-1.0 schema entity has no physical attribute slot.
     model = _Model()
     model.create()
-    model.source.db("d").schemas().schema("s", comment="source description")
+    model.source.db("d").packages().package("s", comment="source description", sqlschema="s", sqlprefix=False)
     model.validate_model()
 
-    assert model.source["db.schemas.s"].get_attr("comment") == "source description"
+    assert model.source["db.packages.s"].get_attr("comment") == "source description"
     assert "comment" not in model.render(mode='migration')["root"]["schemas"]["s"]
     grammar = generate_grammar_md()
-    assert "source-only free description" in grammar
+    assert "package description" in grammar
     assert "| comment |" in grammar and "| semantic |" in grammar
 
 
@@ -89,7 +89,7 @@ def test_emitter_handles_empty_tuples_and_rejects_invalid_class_names():
     # wf:contract: ValueError before any source is returned.
     model = _Model()
     model.create()
-    table = model.source.db("d").schemas().schema("s").tables().table("t", pkey="id")
+    table = model.source.db("d").packages().package("s", sqlschema="s", sqlprefix=False).tables().table("t", pkey="id")
     table.columns().column("id", dtype="L")
     table.virtual_columns().pyColumn("p", method="compute", required_columns=())
     model.validate_model()
@@ -100,7 +100,7 @@ def test_emitter_handles_empty_tuples_and_rejects_invalid_class_names():
     exec(compile(emitted, "<phase20>", "exec"), namespace)  # noqa: S102
     rebuilt = namespace["TupleRecipe"]()
     rebuilt.create()
-    assert rebuilt.source["db.schemas.s.tables.t.virtual_columns.p"].get_attr("required_columns") == ()
+    assert rebuilt.source["db.packages.s.tables.t.virtual_columns.p"].get_attr("required_columns") == ()
 
     for invalid in ("123Bad", "bad-name", "class"):
         with pytest.raises(ValueError, match="class name"):
@@ -132,7 +132,7 @@ def test_reader_falls_back_for_unnamed_normalized_indexes():
 
     builder = SqlModelReader(normalized).to_builder()
     recovered = builder.source[
-        f"db.schemas.s.tables.t.indexes.{structural_name}"
+        f"db.packages.s.tables.t.indexes.{structural_name}"
     ]
     assert recovered is not None
     rendered = builder.render(mode='migration')
@@ -147,7 +147,7 @@ def test_nonphysical_relations_reject_physical_fk_options():
     # wf:contract: of accepting configuration that the projection drops.
     semantic = _relation_model(
         relation_name="sources", one_name="Target", many_name="Sources",
-        one_one=True, case_insensitive=True,
+        one_one=True, insensitive=True,
     )
     semantic.validate_model()
     table = semantic.render(mode='migration')["root"]["schemas"]["s"][

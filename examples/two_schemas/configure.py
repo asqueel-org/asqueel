@@ -1,16 +1,17 @@
-"""Database settings and explicit schema composition; no database I/O."""
+"""Database settings and the two package folders; no database I/O."""
+from pathlib import Path
+
 from genro_bag.resolvers import EnvResolver
 
 from asqueel import SqlDatabaseConfig
 
-from examples.two_schemas.schemas.identity.schema import IdentitySchema
-from examples.two_schemas.schemas.sales.schema import SalesSchema
+PACKAGES = Path(__file__).resolve().parent / "packages"
 
 
 class DatabaseConfiguration(SqlDatabaseConfig):
     def main(self, root):
         database = self.database_section(root)
-        self.schemas_section(database)
+        self.packages_section(database)
 
     def database_section(self, root):
         database = root.db()
@@ -24,7 +25,7 @@ class DatabaseConfiguration(SqlDatabaseConfig):
         )
         return database
 
-    def schemas_section(self, database):
-        schemas = database.schemas()
-        IdentitySchema().configure(schemas)
-        SalesSchema().configure(schemas)
+    def packages_section(self, database):
+        packages = database.packages()
+        for name in ("identity", "sales"):
+            packages.package(name, path=str(PACKAGES / name), sqlschema=name, sqlprefix=False)

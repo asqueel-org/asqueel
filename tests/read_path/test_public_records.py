@@ -6,6 +6,7 @@ from genro_toolbox import NamedList
 
 from asqueel import AsqueelDb, SqlDatabaseConfig, RecordNotFoundError, RecordMultipleRowsError
 from asqueel.object_tree import DbModel
+from tests.package_layout_support import write_layout
 
 
 def recipe(filename):
@@ -132,18 +133,27 @@ def test_fetch_record_reads_hidden_rows_with_the_visibility_filters_off(tmp_path
         db.closeConnection()
 
 
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        table = pkg.table('item', pkey='id')
+        table.column('id', dtype='L')
+        table.column('name', dtype='T')
+
+    def describe(self):
+        return self.model.fullname
+'''
+
+
 def test_custom_table_class_survives_finalization(tmp_path):
-    from asqueel import SqlTable
-
-    class Item(SqlTable):
-        def describe(self):
-            return self.model.fullname
-
-    source = recipe(tmp_path / 'custom.sqlite')
-    source.source['db.packages.app.tables.item'].attr['x_table_class'] = Item
+    source = SqlDatabaseConfig()
+    root = source.source.db('records', implementation='sqlite')
+    root.connection('main', database=str(tmp_path / 'custom.sqlite'))
+    root.packages().package('app', sqlschema='main', sqlprefix=False,
+                            path=write_layout(tmp_path / 'app', item=ITEM))
     db = AsqueelDb(source)
     try:
-        assert isinstance(db.table('app.item'), Item)
+        assert [cls.__name__ for cls in type(db.table('app.item')).__mro__[:3]] == ['item', 'Table', 'SqlTable']
         assert db.table('app.item').describe() == 'app.item'
         assert db.table('app.item') is db.model.table('app.item').dbtable
     finally:

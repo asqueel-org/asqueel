@@ -13,7 +13,7 @@ class Recipe(SqlDatabaseConfig):
     def main(self, root):
         db = root.db()
         db.connection(name='/absolute/path/example.db', implementation='sqlite')
-        columns = db.schemas().schema('app').tables().table('item', pkey='id').columns()
+        columns = db.packages().package('app', sqlschema='app', sqlprefix=False).tables().table('item', pkey='id').columns()
         columns.column('id', dtype='I')
         columns.column('name', dtype='T')
 ```

@@ -54,7 +54,7 @@ def main():
         else:
             raise RuntimeError('Core-only verification requires an environment without migration')
         model = package.SqlBuilder()
-        table = model.source.db('demo').schemas().schema('public').tables().table('customer', pkey='id')
+        table = model.source.db('demo').packages().package('public', sqlschema='public', sqlprefix=False).tables().table('customer', pkey='id')
         table.columns().column('id', dtype='L')
         model.validate_model()
         source = model.render(mode='python')

@@ -48,14 +48,14 @@ class TriggersMixin:
         """Release counter values after the DELETE."""
 
     def trigger_setTSNow(self, record, fldname, **kwargs):
-        """sys_fields timestamp: aware UTC for a ``DHZ`` column, naive local otherwise."""
+        """sysFields timestamp: aware UTC for a ``DHZ`` column, naive local otherwise."""
         if self.model.columns[fldname].dtype == 'DHZ':
             record[fldname] = datetime.now(timezone.utc)
         else:
             record[fldname] = datetime.now()
 
     def trigger_setCurrentUser(self, record, fldname, **kwargs):
-        """sys_fields user: the ``user`` of the current environment."""
+        """sysFields user: the ``user`` of the current environment."""
         record[fldname] = self.db.currentUser
 
     def trigger_hierarchical_before(self, record, fldname, old_record=None, **kwargs):

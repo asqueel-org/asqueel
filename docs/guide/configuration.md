@@ -23,7 +23,7 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 class Shop(SqlDatabaseConfig):
     def main(self, root):
         database = root.db("shop", implementation="postgres", conninfo="dbname=shop")
-        table = database.schemas().schema("sales").tables().table(
+        table = database.packages().package("sales", sqlschema="sales", sqlprefix=False).tables().table(
             "customer", pkey="id", name_long="Customers",
         )
         columns = table.columns()
@@ -99,7 +99,7 @@ finally:
 
 `db.config` is the single global handler. Table and column views delegate to it
 using their declaration paths. For example, `customer.config('pkey')` reads
-`schemas.sales.tables.customer.pkey`. These views do not maintain independent
+`packages.sales.tables.customer.pkey`. These views do not maintain independent
 copies of configuration attributes.
 
 Alias columns retain their own identity and declaration in
@@ -154,9 +154,11 @@ Insert and update return the record. Read the
 
 ## Add business behavior
 
-Configure `x_table_class=YourTableSubclass` to attach before/after insert, update
-and deletion hooks. See [table hooks](hooks.md) for the complete example, locking
-semantics and transaction rules.
+Write the table in a package folder (next section): the `Table` class of its
+`model/<table>.py` holds the before/after insert, update and deletion hooks and
+any custom method. A table without a `Table` class is a plain `SqlTable`. See
+[table hooks](hooks.md) for the complete example, locking semantics and
+transaction rules.
 
 ## Load a package folder in the legacy layout
 
@@ -164,8 +166,10 @@ semantics and transaction rules.
 `Package`) and `model/<table>.py` (class `Table`). Each `Table.config_db(self, pkg)`
 declares its table on `pkg` with the normal grammar; `Package.config_attributes()`
 and `Package.custom_type_<dtype>()` give package attributes and column types.
-The `Table` class is the runtime table, so its triggers run like those of an
-`x_table_class`. Layout and recipe packages coexist in one database. The layout
+The `Table` class, combined with `SqlTable`, is the runtime class of
+`db.table('<pkg>.<table>')`: its triggers and methods run on that handle. This
+is the only way to give a table its own class. Layout and recipe packages
+coexist in one database. The layout
 is provisional; see [legacy features](legacy-features.md).
 
 ```python

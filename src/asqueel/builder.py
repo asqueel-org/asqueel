@@ -64,21 +64,21 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
     _source_class = SqlSourceBag
     _default_render_mode = "objects"
     _name_label_tags = frozenset({
-        "schema", "package", "table", "column", "aliasColumn", "formulaColumn",
+        "package", "table", "column", "aliasColumn", "formulaColumn",
         "subQueryColumn", "pyColumn", "compositeColumn", "extension",
         "constraint", "index", "bagItemColumn",
     })
     _positional_arguments = {
         **dict.fromkeys(_name_label_tags | {"db"}, "name"),
-        "relation": "to",
+        "relation": "related_column",
         'type': 'name',
         'requires': 'packages', 'reset': 'name', 'colgroup': 'name',
         'connection': 'name', 'virtualRelation': 'name',
         'hierarchical': 'columns', 'index': 'columns',
-        'auto_counter': 'scope', 'relative_index': 'relation', 'audit': 'mode',
+        'counter': 'scope', 'relidx': 'relation',
         'numbering': 'field', 'broadcast': 'columns',
     }
-    _singletons = frozenset({'schemas', 'packages', 'extensions', 'tables',
+    _singletons = frozenset({'packages', 'extensions', 'tables',
                             'columns', 'virtual_columns', 'composites',
                             'constraints', 'indexes', 'options'})
     _table_routes = {
@@ -221,7 +221,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 meta['inherited_attributes'] = sorted(inherited)
             else:
                 meta.pop('inherited_attributes', None)
-        disabled = meta.setdefault('disabled_fields', {}) if node.node_tag == 'sys_fields' else {}
+        disabled = meta.setdefault('disabled_fields', {}) if node.node_tag == 'sysFields' else {}
 
         def origin(parts):
             for length in range(len(parts), 0, -1):
@@ -249,7 +249,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         for key, value in attributes.items():
             if key == '_meta':
                 continue
-            if node.node_tag == 'sys_fields' and key in SYS_FIELDS:
+            if node.node_tag == 'sysFields' and key in SYS_FIELDS:
                 old = result.get(key)
                 if old is False and (value is True or isinstance(value, dict)) and key in disabled:
                     # Check the activation itself before recovering customization.
@@ -261,7 +261,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 if value is False and isinstance(old, dict):
                     disabled[key] = deepcopy(old)
             depth = (1 if key in ('records', 'handlers', 'parameters', 'templates') or
-                     (node.node_tag == 'sys_fields' and key in SYS_FIELDS) else 0)
+                     (node.node_tag == 'sysFields' and key in SYS_FIELDS) else 0)
             assign(result, key, value, (key,), depth)
         if not disabled:
             meta.pop('disabled_fields', None)
@@ -283,7 +283,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         return None
 
     def _validate_option(self, tag, parent, attributes):
-        if tag == 'dynamic_fields' and parent is not None and parent.node_tag == 'column':
+        if tag == 'df' and parent is not None and parent.node_tag == 'column':
             from .option_validation import validate_option
             validate_option(tag, parent, attributes)
             return
@@ -305,30 +305,24 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             unknown = attributes.keys() - allowed - {'_meta'}
             if unknown:
                 raise ValueError(f'driver: unsupported {dialect} options {sorted(unknown)}')
-            for key in ('connect_timeout', 'timeout', 'cached_statements'):
-                if key in attributes and (isinstance(attributes[key], bool)
-                                          or attributes[key] is not None and attributes[key] < 0):
-                    raise ValueError(f'driver.{key}: expected a nonnegative number')
-        if tag == 'sys_fields':
-            if 'timestamp_type' in attributes:
-                raise ValueError('sys_fields.timestamp_type removed: system timestamps use DHZ')
+        if tag == 'sysFields':
             for field in SYS_FIELDS:
                 value = attributes.get(field, True)
                 if field == 'syscode' and not isinstance(value, bool):
-                    raise ValueError('sys_fields.syscode: expected bool')
+                    raise ValueError('sysFields.syscode: expected bool')
                 if not isinstance(value, (dict, bool)):
-                    raise ValueError(f'sys_fields.{field}: expected bool or dict')
+                    raise ValueError(f'sysFields.{field}: expected bool or dict')
                 if isinstance(value, dict):
                     allowed = SYS_FIELD_KEYS | ({'type'} if field == 'id' else set())
                     unknown = value.keys() - allowed
                     if unknown:
-                        raise ValueError(f'sys_fields.{field}: unknown fields {sorted(unknown)}')
+                        raise ValueError(f'sysFields.{field}: unknown fields {sorted(unknown)}')
                     if field == 'id' and value.get('type', 'uuid') != 'uuid':
-                        raise ValueError('sys_fields.id.type must be uuid')
+                        raise ValueError('sysFields.id.type must be uuid')
                     for key, item in value.items():
                         expected = bool if key == 'indexed' else str
                         if not isinstance(item, expected):
-                            raise ValueError(f'sys_fields.{field}.{key}: expected {expected.__name__}')
+                            raise ValueError(f'sysFields.{field}.{key}: expected {expected.__name__}')
 
     def _validate_call_args(self, info, node_value, attr, node_tag=""):
         if info.get('accepts_var_keyword'):
@@ -368,7 +362,7 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         node = getattr(destination, 'parent_node', None)
         labels = []
         while node is not None:
-            if node.node_tag in ('table', 'package', 'schema'):
+            if node.node_tag in ('table', 'package'):
                 labels.insert(0, node.label)
             node = node.parent_node
         return '.'.join([*labels, str(attr.get('name'))])
@@ -389,11 +383,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
         for key in ('indexed', 'unique'):
             if isinstance(attr.get(key), str):
                 attr[key] = attr[key].lower() not in ('', 'n', 'no', 'f', 'false', '0')
-        from .common import SQL_COLUMN_KEYS, SQL_DIALECTS
-        for key in attr:
-            dialect = next((f'sql_{d}_' for d in SQL_DIALECTS if key.startswith(f'sql_{d}_')), None)
-            if dialect and f'sql_{key[len(dialect):]}' not in SQL_COLUMN_KEYS:
-                raise ValueError(f"Element 'column' does not accept '{key}'")
 
     def set_child(self, build_where, node_tag, node_value=None, node_label=None,
                   node_position=None, **attr):
@@ -412,13 +401,9 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
                 raise ValueError('foreign_key is not allowed on virtual columns')
         if node_tag == 'relation' and self._package_ancestor(parent) is not None:
             if attr.get('cnd') and attr.get('foreign_key'):
-                raise ValueError(f"relation {attr.get('to')!r}: a relation with cnd= has no foreign key; "
+                raise ValueError(f"relation {attr.get('related_column')!r}: a relation with cnd= has no foreign key; "
                                  "remove foreign_key=True")
             attr.setdefault('foreign_key', not attr.get('cnd'))
-            attr['x_canonical'] = True
-        if node_tag == 'relation' and 'foreign_key' in attr and not attr['foreign_key']:
-            # DbModel.checkRelationIndex: a relation without foreign key indexes its column.
-            attr['x_weak'] = True
         if node_tag == 'virtualRelation':
             node_label = f'{node_tag}_{attr["name"]}'
             existing = build_where.node(node_label)
@@ -474,8 +459,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             return child
         if node_tag == 'colgroup':
             name = attr.get('name')
-            if not isinstance(name, str) or not name or '.' in name:
-                raise ValueError('colgroup: name must be a nonempty identifier')
             if node_label is not None:
                 raise ValueError('colgroup: node_label is fixed by the group name')
             declared = self._get_schema_info('column').get('declared_names') or set()
@@ -543,12 +526,6 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             existing = build_where.node(node_label) if node_label is not None else None
             if existing is not None:
                 return self._compose_attributes(existing, attr)
-        if node_tag == 'package':
-            prefix = attr.get('sqlprefix', True)
-            if isinstance(prefix, str) and (not prefix or prefix.endswith('_')):
-                raise ValueError('sqlprefix must be nonempty and must not end in an underscore')
-            if not isinstance(prefix, (bool, str)):
-                raise ValueError('sqlprefix must be a boolean or string')
         positional = self._positional_arguments.get(node_tag)
         if positional is not None and attr.get(positional) == node_value:
             node_value = None
@@ -556,15 +533,11 @@ class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, Mode
             raise ValueError("a database is already present in this SQL model")
         name = attr.get("name")
         if node_tag in self._name_label_tags:
-            if isinstance(name, str) and "." in name:
-                raise ValueError(
-                    f"'{node_tag}' name {name!r} contains the Bag path separator '.'",
-                )
             if node_label is not None:
                 raise ValueError(
                     f"'{node_tag}': node_label is fixed by its SQL name",
                 )
-            if (node_tag in ('schema', 'package') or self._package_ancestor(parent) is not None) and name:
+            if (node_tag == 'package' or self._package_ancestor(parent) is not None) and name:
                 existing = build_where.node(name)
                 if existing is not None:
                     return self._compose_attributes(existing, attr, node_tag=node_tag)

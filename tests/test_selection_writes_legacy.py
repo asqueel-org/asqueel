@@ -3,13 +3,12 @@ from datetime import datetime
 
 import pytest
 
-from asqueel import SqlTable
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
+from tests.package_layout_support import write_layout
 
 TS = datetime(2026, 1, 1, 12, 0)
 
-
-class Logged(SqlTable):
+LOGGED = '''
     def log(self, *event):
         self.db.currentEnv.setdefault('events', []).append(event)
 
@@ -18,30 +17,49 @@ class Logged(SqlTable):
 
     def trigger_onDeleting(self, record):
         self.log('onDeleting', self.fullname, record['id'])
+'''
 
+INVOICE = '''
+class Table:
+    def config_db(self, pkg):
+        invoice = pkg.table('invoice', pkey='id', logicalDeletionField='__del_ts')
+        invoice.column('id', size=':22')
+        invoice.column('text')
+        invoice.column('__del_ts', dtype='DH')
+''' + LOGGED
 
-def declare(pkg):
-    invoice = pkg.table('invoice', pkey='id', logicalDeletionField='__del_ts', x_table_class=Logged)
-    invoice.column('id', size=':22')
-    invoice.column('text')
-    invoice.column('__del_ts', dtype='DH')
-    line = pkg.table('line', pkey='id', logicalDeletionField='__del_ts', x_table_class=Logged)
-    line.column('id', size=':22')
-    line.column('text')
-    line.column('__del_ts', dtype='DH')
-    line.column('invoice_id', size=':22').relation('app.invoice.id', onDelete='cascade')
-    note = pkg.table('note', pkey='id', logicalDeletionField='__del_ts', x_table_class=Logged)
-    note.column('id', size=':22')
-    note.column('__del_ts', dtype='DH')
-    note.column('invoice_id', size=':22').relation('app.invoice.id', onDelete='setnull')
-    tag = pkg.table('tag', pkey='id', x_table_class=Logged)
-    tag.column('id', size=':22')
-    tag.column('invoice_id', size=':22').relation('app.invoice.id', onDelete='cascade')
+LINE = '''
+class Table:
+    def config_db(self, pkg):
+        line = pkg.table('line', pkey='id', logicalDeletionField='__del_ts')
+        line.column('id', size=':22')
+        line.column('text')
+        line.column('__del_ts', dtype='DH')
+        line.column('invoice_id', size=':22').relation('app.invoice.id', onDelete='cascade')
+''' + LOGGED
+
+NOTE = '''
+class Table:
+    def config_db(self, pkg):
+        note = pkg.table('note', pkey='id', logicalDeletionField='__del_ts')
+        note.column('id', size=':22')
+        note.column('__del_ts', dtype='DH')
+        note.column('invoice_id', size=':22').relation('app.invoice.id', onDelete='setnull')
+''' + LOGGED
+
+TAG = '''
+class Table:
+    def config_db(self, pkg):
+        tag = pkg.table('tag', pkey='id')
+        tag.column('id', size=':22')
+        tag.column('invoice_id', size=':22').relation('app.invoice.id', onDelete='cascade')
+''' + LOGGED
 
 
 @pytest.fixture(params=IMPLEMENTATIONS)
 def db(request, tmp_path):
-    with migrated_db(request.param, tmp_path, declare) as db:
+    path = write_layout(tmp_path / 'app', invoice=INVOICE, line=LINE, note=NOTE, tag=TAG)
+    with migrated_db(request.param, tmp_path, path=path) as db:
         db.table('app.invoice').insert({'id': 'o1', 'text': 'a'})
         db.table('app.invoice').insert({'id': 'o2', 'text': 'b'})
         db.table('app.invoice').insert({'id': 'o3', 'text': 'c'})

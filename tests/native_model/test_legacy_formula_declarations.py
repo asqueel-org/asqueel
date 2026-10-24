@@ -40,7 +40,7 @@ def test_legacy_task_formula_select_dictionaries_compile_unchanged():
 
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
-            tables = root.db('legacy_probe').schemas().schema('sys').tables()
+            tables = root.db('legacy_probe').packages().package('sys', sqlschema='sys', sqlprefix=False).tables()
             task = tables.table('task', pkey='id')
             task.columns().column('id', dtype='I')
             for table_name in ('task_execution', 'task_result'):

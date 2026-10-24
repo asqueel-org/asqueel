@@ -15,7 +15,7 @@ def _model():
 
 def test_invoice_schema_is_explicit_and_complete():
     model = _model()
-    prefix = "db.schemas.invc.tables"
+    prefix = "db.packages.invc.tables"
     assert model.source[f"{prefix}.customer.columns.name"] is not None
     assert model.source[f"{prefix}.invoice.columns.customer_id.relation_0"] is not None
     assert model.source[f"{prefix}.invoice_row.columns.invoice_id.relation_0"] is not None

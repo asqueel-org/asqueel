@@ -47,7 +47,7 @@ from asqueel_migration.structures import (
 )
 from genro_builders.renderer import RendererBase
 
-from .configuration import connection_settings
+from .runtime import connection_settings
 from .contracts import UnsupportedFeatureError
 from .errors import MigrationError
 from .common import INDEX_OPTIONS as _INDEX_OPTIONS
@@ -60,7 +60,7 @@ from .object_tree_renderer import prepare_render_source
 _RELATION_ACTIONS = {"onDelete_sql": "on_delete", "onUpdate_sql": "on_update"}
 
 #: Containers whose children render in their place.
-_COLLECTIONS = frozenset({"schemas", "packages", "extensions", "tables", "columns",
+_COLLECTIONS = frozenset({"packages", "extensions", "tables", "columns",
                           "composites", "constraints", "indexes"})
 
 
@@ -118,10 +118,10 @@ class SqlMigrationRenderer(RendererBase):
             return {"tag": tag, "name": name, "children": item}
         if tag == "extension":
             return {"tag": tag, "name": name}
-        if tag in ("schema", "package"):
+        if tag == "package":
             implementation = _ancestor(node, "db").attr.get("implementation")
-            return {"tag": "schema", "name": name, "package": tag == "package", "tables": item,
-                    "sqlschema": package_sqlschema(tag, name, attributes, implementation)}
+            return {"tag": "package", "name": name, "tables": item,
+                    "sqlschema": package_sqlschema(attributes, implementation)}
         if tag == "table":
             return self._table(node, name, attributes, item)
         if tag == "relation":
@@ -139,9 +139,8 @@ class SqlMigrationRenderer(RendererBase):
         package = _ancestor(node, "tables").parent_node
         package_name = package.attr.get("name", package.label)
         implementation = _ancestor(node, "db").attr.get("implementation")
-        schema_name = attributes.get("sqlschema") or package_sqlschema(
-            package.node_tag, package_name, package.attr, implementation)
-        sqlname = table_sqlname(package.node_tag, package_name, package.attr, table_name, attributes)
+        schema_name = attributes.get("sqlschema") or package_sqlschema(package.attr, implementation)
+        sqlname = table_sqlname(package_name, package.attr, table_name, attributes)
         columns = [child for child in children if child["tag"] == "column"]
         composites = {child["name"]: child for child in children if child["tag"] == "compositeColumn"}
         names = {column["name"]: column["attributes"].get("sqlname") or column["name"] for column in columns}
@@ -160,7 +159,7 @@ class SqlMigrationRenderer(RendererBase):
         for column in columns:
             item["columns"][names[column["name"]]] = self._column_item(
                 schema_name, sqlname, names[column["name"]], column["attributes"], pkey_columns,
-                packaged=package.node_tag == "package", implementation=implementation)
+                implementation=implementation)
         relations = []
         auto_indexes: dict[tuple[str, ...], dict | None] = {}
         for owner in (*columns, *composites.values()):
@@ -169,7 +168,7 @@ class SqlMigrationRenderer(RendererBase):
             owner_columns = (physical(owner["attributes"]["columns"]) if owner["tag"] == "compositeColumn"
                              else [names[owner["name"]]])
             for relation in owner["relations"]:
-                if relation["attributes"].get("x_weak") and not relation["attributes"].get("foreign_key"):
+                if not relation["attributes"].get("foreign_key"):
                     continue
                 if relation["attributes"].get("indexed", True):
                     auto_indexes.setdefault(tuple(owner_columns))
@@ -225,21 +224,20 @@ class SqlMigrationRenderer(RendererBase):
             else:
                 auto_indexes[(column_name,)] = index_attributes
         _fill_auto_indexes(schema_name, sqlname, item, auto_indexes, pkey_columns)
-        return {"tag": "table", "key": (package_name, table_name), "package": package.node_tag == "package",
+        return {"tag": "table", "key": (package_name, table_name),
                 "schema": schema_name, "name": sqlname, "item": item, "pkey": pkey_columns,
                 "names": names, "composites": {key: physical(composite["attributes"]["columns"])
                                                for key, composite in composites.items()},
                 "relations": relations}
 
     @staticmethod
-    def _column_item(schema_name, table_name, column_name, source, pkey_columns, *, packaged,
+    def _column_item(schema_name, table_name, column_name, source, pkey_columns, *,
                      implementation) -> dict:
         attributes = {key: source[key] for key in COL_JSON_KEYS if source.get(key) is not None}
         attributes.update({SQL_COLUMN_KEYS[key]: value for key, value
                            in sql_column_attributes(source, implementation).items()})
         attributes["dtype"] = attributes.get("dtype") or ("A" if attributes.get("size") else "T")
-        if packaged:
-            attributes["dtype"] = _package_storage(attributes["dtype"], attributes)
+        attributes["dtype"] = _package_storage(attributes["dtype"], attributes)
         if column_name in pkey_columns:
             attributes["notnull"] = "_auto_"
             if len(pkey_columns) == 1:
@@ -254,22 +252,19 @@ class SqlMigrationRenderer(RendererBase):
         database = fragments[0]
         structure = new_structure_root(database["name"])
         root = structure["root"]
-        schemas = [child for child in database["children"] if child["tag"] == "schema"]
-        for schema in schemas:
-            root["schemas"].setdefault(schema["sqlschema"], new_schema_item(schema["sqlschema"]))
+        packages = [child for child in database["children"] if child["tag"] == "package"]
+        for package in packages:
+            root["schemas"].setdefault(package["sqlschema"], new_schema_item(package["sqlschema"]))
         tables = {}
-        for schema in schemas:
-            for table in schema["tables"]:
-                if table["schema"] not in root["schemas"] and table["package"]:
-                    raise ValueError(f"{'.'.join(table['key'])}: sqlschema {table['schema']!r} "
-                                     "is not derived from a package")
+        for package in packages:
+            for table in package["tables"]:
                 root["schemas"].setdefault(table["schema"], new_schema_item(table["schema"]))
                 root["schemas"][table["schema"]]["tables"][table["name"]] = table["item"]
                 tables[table["key"]] = table
         target_indexes = []
         for table in tables.values():
             for columns, attributes in table["relations"]:
-                parts = [part.strip() for part in str(attributes["to"]).split(".")]
+                parts = [part.strip() for part in str(attributes["related_column"]).split(".")]
                 remote = tables[(parts[0], parts[1])]
                 if len(parts) == 3:
                     remote_columns = remote["composites"].get(parts[2]) or [remote["names"][parts[2]]]

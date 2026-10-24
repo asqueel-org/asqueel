@@ -70,13 +70,12 @@ products.sql_insert(source, adapt=False)  # values as they are in the file
 A key that is not a column, or a text that does not convert, raises
 `ValueError` naming the record, the column and the value.
 
-A table class can override `adaptRecord` for its own rules:
+The `Table` class of the table's module in a package folder can override
+`adaptRecord` for its own rules:
 
 ```python
-from asqueel import SqlTable
-
-
-class Product(SqlTable):
+# <folder>/model/product.py
+class Table:
     def adaptRecord(self, record):
         record = super().adaptRecord(record)
         record["code"] = record["code"].upper()

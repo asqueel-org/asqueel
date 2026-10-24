@@ -12,7 +12,7 @@ create PostgreSQL partitions or route queries to other databases.
 ## Table attributes
 
 `draftField`, `logicalDeletionField` and `partition_<field>` are table
-attributes. `sys_fields(draft=True)` supplies `draftField`;
+attributes. `sysFields(draft=True)` supplies `draftField`;
 enabled logical deletion supplies `logicalDeletionField`. SELECT uses these
 declarations, never guesses policy from a column name. Read flags override
 these filters as shown below.
@@ -29,8 +29,8 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 
 class Documents(SqlDatabaseConfig):
     def main(self, root):
-        table = root.db("documents", implementation="postgres", conninfo="dbname=example").schemas().schema(
-            "app",
+        table = root.db("documents", implementation="postgres", conninfo="dbname=example").packages().package(
+            "app", sqlschema="app", sqlprefix=False
         ).tables().table(
             "document", pkey="id",
             partition_organization_id="organization",

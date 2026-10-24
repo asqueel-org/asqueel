@@ -1,10 +1,8 @@
 """Composition contracts against the independent legacy model, ignoring order."""
-from collections import defaultdict
 
 import pytest
 
 from asqueel import AsqueelDb
-from asqueel.model_expansion import _TableExpansion
 from asqueel.object_tree import DbVirtualColumnObj
 from examples.test_invoice_pg import source
 from tests.object_tree.test_invoice import LEGACY, RELATIONS
@@ -22,6 +20,11 @@ SHARED = {
     'invc.product_type': ('description', 'id'),
     'sys.widget': ('id', 'name'),
 }
+
+# Legacy attributes written by options that asqueel has no reader for: the live
+# column does not carry them.
+NO_READER = {'_sysfield', '_sendback', 'counter', '_counter_fkey', 'templates', 'subfields', 'broadcast',
+             'relidx', '_relidx_fkey', 'format', 'fkeyToMaster', 'audit'}
 
 
 @pytest.fixture(scope='module')
@@ -43,6 +46,8 @@ def assert_legacy_attributes(column, expected):
         if key in ('tag', '_owner_package'):
             # tag is the object class; _owner_package is legacy build provenance.
             continue
+        if key in NO_READER and key not in column.attributes:
+            continue
         if key == 'dtype':
             actual = column.dtype
         elif key == 'virtual_column':
@@ -55,7 +60,7 @@ def assert_legacy_attributes(column, expected):
         elif key.startswith('validate_'):
             actual = column.validations.get(key.removeprefix('validate_'))
         else:
-            actual = column.attributes.get(key, column.attributes.get('x_legacy_' + key))
+            actual = column.attributes.get(key)
         assert actual == value, (column.fullname, key, actual, value)
 
 
@@ -77,20 +82,16 @@ def test_hierarchical_counter_keeps_numeric_base_and_text_derivatives(model):
     table = model.table('invc.product_group')
     counter = table.column('_row_count')
     assert counter.dtype == 'L'
-    assert counter.attributes['x_legacy_counter'] is True
-    assert counter.attributes['x_legacy__sysfield'] is True
     assert counter.attributes['name_long'] == '!![en]Counter'
     assert counter.attributes['group'] == 'zzz'
     # The hierarchical branch does not install the ordinary setRowCounter hook.
     assert 'onInserting' not in counter.attributes
-    assert 'x_legacy__counter_fkey' not in counter.attributes
     for name in ('hierarchical__row_count', '_parent_h__row_count', '_h_count', '_parent_h_count'):
         column = table.column(name)
         assert column.dtype == 'T'
         assert_legacy_attributes(column, legacy_table(table.fullname)['children']['columns']['children'][name]['attributes'])
     assert table.column('hierarchical__row_count').attributes['hierarchical_field_of'] == '_row_count'
-    assert table.attributes['x_legacy_hierarchical'] == 'code,_row_count,pkey'
-    assert table.attributes['x_legacy_counter'] is True
+    assert table.dbtable.hierarchicalHandler.fields == ['code', '_row_count', 'pkey']
     assert table.attributes['order_by'] == '$_h_sortcol'
     formula = legacy_table(table.fullname)['children']['virtual_columns']['children']['_h_sortcol']['attributes']
     assert_legacy_attributes(table.column('_h_sortcol'), formula)
@@ -110,27 +111,3 @@ def test_relations_survive_composition_without_duplicates(model, key, field, tar
     assert sum(node.node_tag == 'relation' for node in declarations) == 1
     assert table.relations.keys().count('@' + field) == 1
     assert dict(model.relations.get_node(key + '.@' + field).attr) == expected
-
-
-def test_attachment_base_and_sys_fields_compose_the_same_source_node(monkeypatch):
-    emissions = defaultdict(list)
-    original = _TableExpansion.add
-
-    def add(self, name, *args, **kwargs):
-        node = original(self, name, *args, **kwargs)
-        emissions[self.key, name].append(node)
-        return node
-
-    monkeypatch.setattr(_TableExpansion, 'add', add)
-    model = AsqueelDb(source()).model
-    nodes = emissions['adm.htmltemplate_atc', 'id']
-    assert len(nodes) == 2  # sys_fields, then AttachmentTable's id declaration
-    assert nodes[0] is nodes[1]
-    column = model.table('adm.htmltemplate_atc').column('id')
-    assert column.dtype == 'A'
-    assert column.attributes['size'] == '22'
-    assert column.attributes['name_long'] == 'Id'
-    assert column.attributes['group'] == '_'
-    assert column.attributes['readOnly'] is True
-    assert column.attributes['x_legacy__sendback'] is True
-    assert column.attributes['x_generation']['algorithm'] == 'legacy22'

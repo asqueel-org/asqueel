@@ -7,7 +7,7 @@ from asqueel import AsqueelDb, SqlDatabaseConfig
 def source(**fields):
     config = SqlDatabaseConfig()
     table = config.source.db('test').packages().package('adm', sqlschema='adm').table('htag')
-    table.options().sys_fields(**fields)
+    table.options().sysFields(**fields)
     return config, table
 
 
@@ -27,9 +27,9 @@ def test_syscode_is_opt_in_and_does_not_expand_the_source():
     assert {key: code.attributes[key] for key in ('size', 'indexed', 'unique')} == {
         'size': ':20', 'indexed': True, 'unique': True}
     assert resolved.pkey == 'id'
-    assert resolved.get('options') is None or 'system_records' not in resolved['options']
+    assert resolved.get('options') is None or 'sysrecords' not in resolved['options']
     assert not {'__protected_by_syscode', '__invalid_by_duplicate_sysrecord'} & resolved.columns.keys()
-    assert not {'default', 'sql_default', 'x_generation', 'onInserting'} & code.attributes.keys()
+    assert not {'default', 'sql_default', 'onInserting'} & code.attributes.keys()
     physical = first.db.config.builder.render(mode='migration')
     attrs = physical['root']['schemas']['adm']['tables']['adm_htag']['columns']['__syscode']['attributes']
     assert attrs['unique'] is True
@@ -40,7 +40,7 @@ def test_syscode_is_opt_in_and_does_not_expand_the_source():
 def test_syscode_can_be_disabled_by_a_later_contribution_without_removing_explicit_columns():
     config, table = source(syscode=True)
     with config.contribution('disable'):
-        table.options().sys_fields(syscode=False)
+        table.options().sysFields(syscode=False)
     assert '__syscode' not in AsqueelDb(config).model.table('adm.htag').columns
     table.column('__syscode', size=':20', unique=True, indexed=True)
     assert '__syscode' in AsqueelDb(config).model.table('adm.htag').columns
@@ -62,7 +62,7 @@ def test_syscode_preserves_an_explicit_primary_key_and_column_labels():
 def test_syscode_does_not_silently_override_an_incompatible_explicit_column(attributes):
     config, table = source(syscode=True)
     table.column('__syscode', **attributes)
-    with pytest.raises(ValueError, match='conflicts with sys_fields'):
+    with pytest.raises(ValueError, match='conflicts with sysFields'):
         AsqueelDb(config).model
 
 

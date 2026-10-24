@@ -24,13 +24,13 @@ class TableBehaviors:
 
     def _related_target(self, field):
         relation = next(child for child in self.model.columns[field].values() if child.tag == 'relation')
-        return self.db.table('.'.join(relation.attributes['to'].split('.')[:2]))
+        return self.db.table('.'.join(relation.attributes['related_column'].split('.')[:2]))
 
     def _lock_behaviors(self):
         tables = {}
-        if self._behavior('hierarchical') is not None or self._behavior('auto_counter') is not None:
+        if self._behavior('hierarchical') is not None or self._behavior('counter') is not None:
             tables[self.fullname] = self
-        relative = self._behavior('relative_index')
+        relative = self._behavior('relidx')
         if relative is not None:
             master = self._related_target(relative['relation'].lstrip('@'))
             extension = self.db.table(master.fullname + '_xtd')
@@ -48,13 +48,15 @@ class TableBehaviors:
                 record[name] = deepcopy(column.attributes['default'])
 
     def _check_column_changes(self, record, old_record=None):
+        # checkPkey generates the sysFields key.
+        sys_fields = self._behavior('sysFields')
         for name, column in self.model.columns.items():
             if name not in record:
                 continue
             attrs = column.attributes
             if old_record is None:
-                if attrs.get('readOnly') and not (name == self.model.pkey and self._behavior('sys_fields') is not None
-                                                 and attrs.get('x_generation') == {'type': 'uuid', 'algorithm': 'legacy22'}):
+                if attrs.get('readOnly') and not (name == self.model.pkey == 'id' and sys_fields is not None
+                                                 and sys_fields['id'] is not False):
                     raise ValueError(f'{self.fullname}.{name} is read-only')
             elif attrs.get('readOnly') or attrs.get('unmodifiable') or sql_attribute_declared(attrs, 'generatedExpression'):
                 value, previous = record[name], old_record.get(name)
@@ -84,12 +86,12 @@ class TableBehaviors:
 
     def trigger_setRowCounter(self, record, fldname, **kwargs):
         if record.get(fldname) is None:
-            record[fldname] = self._next_counter(fldname, self._behavior('auto_counter').get('scope'), record)
+            record[fldname] = self._next_counter(fldname, self._behavior('counter').get('scope'), record)
 
     def trigger_setRelidx(self, record, fldname, **kwargs):
         if record.get(fldname) is not None:
             return
-        name = self._behavior('relative_index')['relation'].lstrip('@')
+        name = self._behavior('relidx')['relation'].lstrip('@')
         extension = self.db.table(self._related_target(name).fullname + '_xtd')
         master = record.get(name)
         if master is None:
@@ -114,8 +116,8 @@ class TableBehaviors:
         if spec is not None and record != prepared:
             parent = spec.get('parent', 'parent_id')
             moved = record.get(parent) != prepared.get(parent)
-            if moved and old_record is None and self._behavior('auto_counter') is not None:
-                record[self._behavior('auto_counter').get('field', '_row_count')] = None
+            if moved and old_record is None and self._behavior('counter') is not None:
+                record[self._behavior('counter').get('field', '_row_count')] = None
             self.hierarchicalHandler.trigger_before(record, old_record=old_record, allocate=moved)
         for name, column in self.model.columns.items():
             if column.attributes.get('onUpdating') == 'updateLinkedHierarchicalRoot':
@@ -129,7 +131,7 @@ class TableBehaviors:
             return  # The INSERT must return the database-generated master key first.
         values = {f'{self.model.name}_{self.model.pkey}': key,
                   'id': str(key).rstrip().ljust(22, '_')}
-        values.update({name: record[name] for name in target.model.attributes['x_legacy_hierarchical'].split(',')
+        values.update({name: record[name] for name in target.hierarchicalHandler.fields
                        if name != 'pkey' and name in record})
         target.insert(values)
         record[fldname] = values['id']
@@ -151,7 +153,7 @@ class TableBehaviors:
         target = self._related_target(fldname)
         if fldname in record and record[fldname] != old_record.get(fldname):
             raise ValueError('Linked hierarchy roots are unmodifiable')
-        values = {name: record[name] for name in target.model.attributes['x_legacy_hierarchical'].split(',')
+        values = {name: record[name] for name in target.hierarchicalHandler.fields
                   if name != 'pkey' and name in record and record[name] != old_record.get(name)}
         root = record.get(fldname, old_record.get(fldname))
         if values and root is not None:

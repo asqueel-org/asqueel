@@ -6,14 +6,20 @@ import psycopg
 from psycopg import sql
 import pytest
 
-from asqueel import SqlDatabaseConfig, SqlTable, TransactionStateError, AsqueelDb
+from asqueel import SqlDatabaseConfig, TransactionStateError, AsqueelDb
 from asqueel.application_table import RecordMultipleRowsError, RecordNotFoundError
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
 pytestmark = pytest.mark.postgresql
 
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        item = pkg.table('item', pkey='id').columns()
+        item.column('id', dtype='I')
+        item.column('name', dtype='T', notnull=True)
 
-class AuditedItem(SqlTable):
     def trigger_onInserting(self, record):
         record['name'] = record['name'].strip()
 
@@ -21,11 +27,13 @@ class AuditedItem(SqlTable):
         self.db.table('app.audit').insert({'id': record['id'], 'item_id': record['id']})
         if record['name'] == 'fail':
             raise ValueError('post-insert hook rejected record')
+'''
 
 
 @pytest.fixture
-def application():
+def application(tmp_path):
     dsn = postgres_dsn()
+    path = write_layout(tmp_path / 'app', item=ITEM)
     schema = 'application_' + uuid4().hex
     with psycopg.connect(dsn, autocommit=True) as observer:
         observer.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
@@ -37,11 +45,8 @@ def application():
 
         class Recipe(SqlDatabaseConfig):
             def main(self, root):
-                tables = root.db('acceptance', implementation='postgres', conninfo=dsn).schemas().schema(
-                    'app', sqlname=schema).tables()
-                item = tables.table('item', pkey='id', x_table_class=AuditedItem).columns()
-                item.column('id', dtype='I')
-                item.column('name', dtype='T', notnull=True)
+                tables = root.db('acceptance', implementation='postgres', conninfo=dsn).packages().package(
+                    'app', sqlschema=schema, sqlprefix=False, path=path).tables()
                 audit = tables.table('audit', pkey='id').columns()
                 audit.column('id', dtype='I')
                 audit.column('item_id', dtype='I').relation('app.item.id', foreign_key=True)

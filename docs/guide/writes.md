@@ -9,7 +9,7 @@ work. Examples below use the [tutorial model](tutorial.md) and are independent
 operations, not another seed script.
 
 A table that declares something the cycle does not execute yet (for example
-`sys_fields`, or a column `default`) is refused with `UnsupportedFeatureError`
+`sysFields`, or a column `default`) is refused with `UnsupportedFeatureError`
 before any trigger or SQL. The list, with its issues, is in
 [current status](limitations.md#what-the-write-cycle-refuses).
 

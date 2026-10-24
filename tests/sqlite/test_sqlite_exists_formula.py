@@ -7,7 +7,7 @@ def recipe(path):
         def main(self, root):
             db = root.db()
             db.connection(name=str(path), implementation='sqlite')
-            tables = db.schemas().schema('app').tables()
+            tables = db.packages().package('app', sqlschema='app', sqlprefix=False).tables()
             invoice = tables.table('invoice', pkey='id')
             invoice.columns().column('id', dtype='L')
             invoice.virtual_columns().formulaColumn('has_lines', dtype='B', exists=dict(

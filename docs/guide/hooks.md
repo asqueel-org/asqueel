@@ -1,13 +1,27 @@
 # Add business behavior to a table
 
-A table can select a `SqlTable` subclass with `x_table_class`. The native hook
-profile supports insertion, update and deletion:
+A table gets its own behavior from the `Table` class of its module in a package
+folder: `package(name, path=<folder>)` loads `<folder>/main.py` (class `Package`)
+and `<folder>/model/<table>.py` (class `Table`), as described in
+[configuration](configuration.md#load-a-package-folder-in-the-legacy-layout).
+`Table.config_db(self, pkg)` declares the table; the other methods of `Table`,
+combined with `SqlTable`, are the runtime table. The native hook profile
+supports insertion, update and deletion:
 
 ```python
-from asqueel import SqlDatabaseConfig, SqlTable
+# sales/main.py
+class Package:
+    pass
+```
 
+```python
+# sales/model/customer.py
+class Table:
+    def config_db(self, pkg):
+        customer = pkg.table("customer", pkey="id")
+        customer.column("id", dtype="L")
+        customer.column("name", dtype="T")
 
-class CustomerTable(SqlTable):
     def trigger_onInserting(self, record):
         record["name"] = record["name"].strip()
         if not record["name"]:
@@ -16,16 +30,20 @@ class CustomerTable(SqlTable):
     def trigger_onInserted(self, record):
         # On PostgreSQL, values the database decided are already in the record.
         pass
+```
+
+```python
+# configure.py, beside the sales folder
+from pathlib import Path
+
+from asqueel import SqlDatabaseConfig
 
 
 class ShopWithBehavior(SqlDatabaseConfig):
     def main(self, root):
-        customer = root.db("shop", implementation="postgres", conninfo="dbname=shop").schemas().schema(
-            "sales",
-        ).tables().table("customer", pkey="id", x_table_class=CustomerTable)
-        columns = customer.columns()
-        columns.column("id", dtype="L")
-        columns.column("name", dtype="T")
+        root.db("shop", implementation="postgres", conninfo="dbname=shop").packages().package(
+            "sales", path=str(Path(__file__).parent / "sales"), sqlschema="sales", sqlprefix=False
+        )
 ```
 
 The hooks receive the caller's record itself, not a copy: a change made by
@@ -132,10 +150,10 @@ are not executed; their mapping is tracked in
 
 ## Standalone table behaviors
 
-`auto_counter` assigns MAX + 1 when its field is omitted or None. Its scope
+`counter` assigns MAX + 1 when its field is omitted or None. Its scope
 can contain one or several physical columns, including NULL values. Explicit
 positions are preserved. Deleted maximum positions may be reused.
-`relative_index` instead increments a persistent counter in the master's
+`relidx` instead increments a persistent counter in the master's
 `_xtd` table: deletion does not rewind it, but transaction rollback does.
 The extension needs `main_id` and an `id` or `main_id` primary key.
 
@@ -152,7 +170,7 @@ until commit/rollback. Use short transactions; callers own deadlock retries.
 Concurrency tests use PostgreSQL's default READ COMMITTED isolation.
 
 A column's `default` fills omitted values, leaving explicit None unchanged.
-`readOnly` rejects caller assignments on insert (except a `sys_fields` ID)
+`readOnly` rejects caller assignments on insert (except a `sysFields` ID)
 and changes on update. `unmodifiable` allows insert and rejects later changes.
 Database-generated columns are omitted from ordinary UPDATE assignments;
 changing their value or explicitly assigning them through SQL APIs raises.

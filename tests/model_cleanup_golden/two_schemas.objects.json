@@ -173,8 +173,7 @@
         "deletable": true,
         "lookup": false,
         "name": "access",
-        "pkey": "id",
-        "x_table_class": "<class 'examples.two_schemas.schemas.identity.access.AccessLogic'>"
+        "pkey": "id"
       },
       "columns": {
         "id": {
@@ -261,8 +260,7 @@
         "deletable": true,
         "lookup": false,
         "name": "user",
-        "pkey": "id",
-        "x_table_class": "<class 'examples.two_schemas.schemas.identity.user.UserLogic'>"
+        "pkey": "id"
       },
       "columns": {
         "active": {
@@ -336,8 +334,7 @@
         "deletable": true,
         "lookup": false,
         "name": "customer",
-        "pkey": "id",
-        "x_table_class": "<class 'examples.two_schemas.schemas.sales.customer.CustomerLogic'>"
+        "pkey": "id"
       },
       "columns": {
         "email": {
@@ -396,8 +393,7 @@
         "deletable": true,
         "lookup": false,
         "name": "invoice",
-        "pkey": "id",
-        "x_table_class": "<class 'examples.two_schemas.schemas.sales.invoice_logic.InvoiceLogic'>"
+        "pkey": "id"
       },
       "columns": {
         "created_by": {
@@ -485,8 +481,7 @@
         "deletable": true,
         "lookup": false,
         "name": "invoice_row",
-        "pkey": "id",
-        "x_table_class": "<class 'examples.two_schemas.schemas.sales.invoice_row.InvoiceRowLogic'>"
+        "pkey": "id"
       },
       "columns": {
         "description": {
@@ -597,8 +592,7 @@
         "deletable": true,
         "lookup": false,
         "name": "product",
-        "pkey": "id",
-        "x_table_class": "<class 'examples.two_schemas.schemas.sales.product.ProductLogic'>"
+        "pkey": "id"
       },
       "columns": {
         "code": {

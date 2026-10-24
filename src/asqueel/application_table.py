@@ -17,7 +17,6 @@ from genro_bag import Bag
 from genro_toolbox.uid import get_uuid
 
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
-from .hierarchical import HierarchicalHandler
 from .table_behaviors import TableBehaviors
 from .table_crud import _INTEGER_DTYPES, CrudMixin
 from .table_io import read_records, write_rows
@@ -377,8 +376,6 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
     def __init__(self, tblobj):
         self.model = tblobj
         self.fullname = tblobj.fullname
-        if tblobj.attributes.get('x_legacy_hierarchical'):
-            self.hierarchicalHandler = HierarchicalHandler(self)
 
     @property
     def db(self):
@@ -391,7 +388,10 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
         """Read missing members from the model, preserving their original binding."""
         # Bypass this fallback if model is not yet installed (e.g. during construction).
         model = object.__getattribute__(self, 'model')
-        return getattr(model, name)
+        try:
+            return getattr(model, name)
+        except AttributeError:
+            raise AttributeError(f'{model.fullname}: no attribute {name!r}') from None
 
     def column(self, name):
         return self.model.column(name)

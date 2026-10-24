@@ -13,7 +13,7 @@ def recipe(path, name_dtype='T'):
         def main(self, root):
             db = root.db()
             db.connection(name=str(path), implementation='sqlite')
-            columns = db.schemas().schema('app').tables().table('item', pkey='id').columns()
+            columns = db.packages().package('app', sqlschema='app', sqlprefix=False).tables().table('item', pkey='id').columns()
             columns.column('id', dtype='L')
             columns.column('name', dtype=name_dtype)
     return Recipe
@@ -106,7 +106,7 @@ def test_a_model_without_tables_cannot_be_migrated(tmp_path):
         def main(self, root):
             db = root.db()
             db.connection(name=str(tmp_path / 'empty.db'), implementation='sqlite')
-            db.schemas().schema('app')
+            db.packages().package('app', sqlschema='app', sqlprefix=False)
     db = AsqueelDb(Empty)
     try:
         with pytest.raises(MigrationError, match='nonempty managed schema'):
@@ -118,7 +118,7 @@ def test_a_model_without_tables_cannot_be_migrated(tmp_path):
 def test_a_legacy_connection_without_a_database_name_cannot_be_migrated():
     class Unnamed(SqlDatabaseConfig):
         def main(self, root):
-            root.db(implementation='sqlite').schemas().schema('app').tables().table(
+            root.db(implementation='sqlite').packages().package('app', sqlschema='app', sqlprefix=False).tables().table(
                 'item', pkey='id').columns().column('id', dtype='L')
     db = AsqueelDb(Unnamed)
     try:
@@ -136,7 +136,7 @@ class Recipe(SqlDatabaseConfig):
     def main(self, root):
         db = root.db()
         db.connection(name={path!r}, implementation='sqlite')
-        columns = db.schemas().schema('app').tables().table('item', pkey='id').columns()
+        columns = db.packages().package('app', sqlschema='app', sqlprefix=False).tables().table('item', pkey='id').columns()
         columns.column('id', dtype='L')
         columns.column('name', dtype={dtype!r})
 '''

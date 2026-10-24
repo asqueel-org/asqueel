@@ -19,7 +19,7 @@ def source(backend='postgres'):
     item.column('owner_id', dtype='L').relation('app.owner.id')
     item.column('amount', dtype='N')
     item.column('label')
-    item.options().sys_fields(id=False, draft=True)
+    item.options().sysFields(id=False, draft=True)
     scalar = dict(table='app.item', columns='MAX($amount)', where='$owner_id=#THIS.id')
     owner.subQueryColumn('maximum', query=scalar, dtype='N')
     owner.subQueryColumn('aggr_max', query=scalar, aggr='max($amount)', dtype='N')

@@ -33,13 +33,13 @@ from asqueel import SqlDatabaseConfig, AsqueelDb
 
 class Accounting(SqlDatabaseConfig):
     def main(self, root):
-        tables = root.db('accounting').schemas().schema('app').tables()
+        tables = root.db('accounting').packages().package('app', sqlschema='app', sqlprefix=False).tables()
         invoice = tables.table('invoice', pkey='id')
         invoice.columns().column('id', dtype='I')
         columns = tables.table('line', pkey='id', draftField='draft').columns()
         columns.column('id', dtype='I')
         columns.column('invoice_id', dtype='I').relation(
-            'app.invoice.id', foreign_key=True, x_name='invoice')
+            'app.invoice.id', foreign_key=True)
         columns.column('amount', dtype='N')
         columns.column('draft', dtype='B')
         virtuals = invoice.virtual_columns()
@@ -119,22 +119,22 @@ String references to subquery methods are resolved at compilation as described b
 ## Formulas supplied by table methods
 
 The legacy declaration `sql_formula=True` calls `sql_formula_<name>(attr)` on
-the owning application table. Attach that table class with the existing
-`x_table_class` option:
+the owning application table. The method belongs to the `Table` class of the
+table's module in a package folder, loaded with `package(name, path=<folder>)`
+(see [configuration](configuration.md#load-a-package-folder-in-the-legacy-layout)):
 
 ```python
-from asqueel import SqlTable
+# <folder>/model/invoice.py
+class Table:
+    def config_db(self, pkg):
+        invoice = pkg.table('invoice', pkey='id')
+        invoice.column('id', dtype='L')
+        invoice.column('amount', dtype='N')
+        invoice.formulaColumn('adjusted', sql_formula=True, dtype='N')
 
-class Invoice(SqlTable):
     def sql_formula_adjusted(self, attr):
         attr['var_factor'] = self.db.currentEnv.get('factor', 2)
         return '$amount * :factor'
-
-# pkg is the package declared in your configuration.
-invoice = pkg.table('invoice', pkey='id', x_table_class=Invoice)
-invoice.column('id', dtype='L')
-invoice.column('amount', dtype='N')
-invoice.formulaColumn('adjusted', sql_formula=True, dtype='N')
 ```
 
 The method runs during compilation, never during model rendering. It receives
@@ -147,7 +147,7 @@ when the query is compiled again. Methods are trusted application code and
 must construct SQL without performing database I/O.
 
 `SqlTable` supplies the legacy `__protecting_reasons` and `__invalid_reasons`
-methods required by `sys_fields`, including NULL when no rules are declared
+methods required by `sysFields`, including NULL when no rules are declared
 and empty text when none of the declared rules applies. These are result
 formulas; they do not enforce write protections or implement diagnostics.
 Standalone compilers without application tables cannot evaluate table methods.
@@ -160,7 +160,8 @@ called without arguments and returns a dict, or a list of dicts, with `name`
 and the attributes of a formulaColumn:
 
 ```python
-class Customer(SqlTable):
+# <folder>/model/customer.py
+class Table:
     def formulaColumn_labels(self):
         factor = self.db.currentEnv.get('factor', 1)
         return [dict(name='code_twice', sql_formula='$code || $code', dtype='T'),
@@ -317,7 +318,8 @@ use `:env_name` for a value read at every execution. `#ENV` anywhere else
 raises `ValueError`.
 
 ```python
-class Customer(SqlTable):
+# <folder>/model/customer.py
+class Table:
     def env_region(self):
         return "'north'"
 
@@ -331,15 +333,16 @@ Existing declarations accept a method suffix instead of a query dictionary:
 `select='total'`, `exists='matching'`, `select_total='total'`, or
 `subQueryColumn(query='rows')` (plain or JSON mode). The compiler calls
 `subquery_total()`, `subquery_matching()` or `subquery_rows()` with no arguments.
-For example, using the existing application table class mechanism:
+For example, in the `Table` class of the table's module in a package folder:
 
 ```python
-class Invoice(SqlTable):
+# <folder>/model/invoice.py
+class Table:
     def subquery_rows(self):
         return dict(table='invc.invoice_row', columns='MAX($unit_price)',
                     where='$invoice_id=#THIS.id')
 
-# invoice is declared with x_table_class=Invoice.
+# in Table.config_db, invoice is the declared table.
 invoice.formulaColumn('max_price', select='rows', dtype='N')
 ```
 

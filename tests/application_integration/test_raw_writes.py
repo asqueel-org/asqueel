@@ -6,18 +6,27 @@ import pytest
 
 from asqueel import (
     AsqueelDb, RecordMultipleRowsError, RecordNotFoundError,
-    SqlDatabaseConfig, SqlTable, TransactionStateError,
+    SqlDatabaseConfig, TransactionStateError,
 )
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        columns = pkg.tables().table('item', pkey='id').columns()
+        columns.column('id', dtype='I')
+        columns.column('name', dtype='T')
+'''
 
-class TableHooks(SqlTable):
+TABLE_HOOKS = '''
     def trigger_onInserting(self, record):
         self.db.currentEnv['table_events'].append('I')
     def trigger_onUpdating(self, record, old_record=None):
         self.db.currentEnv['table_events'].append('U')
     def trigger_onDeleting(self, record):
         self.db.currentEnv['table_events'].append('D')
+'''
 
 
 class SharedHooks(AsqueelDb):
@@ -33,6 +42,7 @@ def make_db(request, tmp_path):
     databases = []
     def make(*, table_hooks=False, db_hooks=False):
         schema = 'raw_' + uuid4().hex[:12]
+        path = write_layout(tmp_path / schema, item=ITEM + (TABLE_HOOKS if table_hooks else ''))
         class Config(SqlDatabaseConfig):
             def main(self, root):
                 if request.param == 'sqlite':
@@ -40,11 +50,7 @@ def make_db(request, tmp_path):
                     db.connection(name=str(tmp_path / f'{schema}.db'))
                 else:
                     db = root.db(implementation='postgres', conninfo=postgres_dsn())
-                table = db.schemas().schema(schema).tables().table(
-                    'item', pkey='id', **({'x_table_class': TableHooks} if table_hooks else {}))
-                columns = table.columns()
-                columns.column('id', dtype='I')
-                columns.column('name', dtype='T')
+                db.packages().package(schema, sqlschema=schema, sqlprefix=False, path=path)
         db = (SharedHooks if db_hooks else AsqueelDb)(Config)
         db.item = f'{schema}.item'
         databases.append((db, schema))

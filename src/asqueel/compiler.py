@@ -24,14 +24,9 @@ from .sql_compiled_query import SqlCompiledQuery
 
 
 # New, explicitly agreed call boundary. It does not replace legacy field parsing.
-def column_ui(path: str, identity: str,
-              ui: Mapping[str, Mapping[str, Any]] | None) -> dict[str, Any]:
-    """Apply the path overlay, then the stable identity overlay."""
-    result: dict[str, Any] = {}
-    overlays = ui or {}
-    result.update(overlays.get(path, {}))
-    if identity != path:
-        result.update(overlays.get(identity, {}))
+def column_ui(path: str, ui: Mapping[str, Mapping[str, Any]] | None) -> dict[str, Any]:
+    """Apply the path overlay."""
+    result: dict[str, Any] = dict((ui or {}).get(path, {}))
     forbidden = {'dtype', 'formula', 'sql_name', 'notnull', 'unique', 'pkey'} & result.keys()
     if forbidden:
         raise ValueError(f'UI metadata cannot override column semantics: {sorted(forbidden)}')
@@ -747,9 +742,7 @@ class _TreeContext:
             return ResultColumn(name)
         path = self.references.paths[field]
         column = self.table.column(path)
-        identity = column.attributes.get('x_identity') or column.fullname
-        return ResultColumn(name, column.dtype, identity,
-                            column_ui(column.fullname, identity, None))
+        return ResultColumn(name, column.dtype, column.fullname, column_ui(column.fullname, None))
 
     def projection(self, columns):
         result, metadata = [], []
@@ -950,7 +943,7 @@ class _TreeContext:
     def _known_table(self, name):
         table = self.model.table(name)
         if table is None:
-            raise ValueError(f'Unknown package/schema {name.split(".")[0]!r}')
+            raise ValueError(f'Unknown package {name.split(".")[0]!r}')
         return table
 
     def policy_field(self, field, *, allow_alias=False, dtype=None):
@@ -1020,7 +1013,7 @@ class QueryCompiler:
     def _context(self, table, params=None) -> _TreeContext:
         found = self.model.table(table)
         if found is None:
-            raise ValueError(f'Unknown package/schema {table.split(".")[0]!r}')
+            raise ValueError(f'Unknown package {table.split(".")[0]!r}')
         return _TreeContext(self.model, found, params, self.adapter,
                             self._environment_snapshot())
 

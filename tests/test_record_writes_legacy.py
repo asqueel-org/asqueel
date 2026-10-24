@@ -5,24 +5,27 @@ from datetime import date
 import pytest
 from genro_bag import Bag
 
-from asqueel import SqlTable
 from asqueel.contracts import UnsupportedFeatureError
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
+from tests.package_layout_support import write_layout
 
+NOTE = '''
+class Table:
+    def config_db(self, pkg):
+        note = pkg.table('note', pkey='id')
+        note.column('id', size=':22')
+        note.column('text')
+        note.column('data', dtype='X')
 
-class Note(SqlTable):
     def trigger_onUpdating(self, record, old_record=None):
         self.db.currentEnv.setdefault('events', []).append(('onUpdating', dict(old_record or {}).get('text')))
 
     def trigger_onDeleting(self, record):
         self.db.currentEnv.setdefault('events', []).append(('onDeleting', dict(record)))
+'''
 
 
 def declare(pkg):
-    note = pkg.table('note', pkey='id', x_table_class=Note)
-    note.column('id', size=':22')
-    note.column('text')
-    note.column('data', dtype='X')
     counter = pkg.table('counter', pkey='id')
     counter.column('id', dtype='L')
     counter.column('text')
@@ -39,7 +42,7 @@ def declare(pkg):
 
 @pytest.fixture(params=IMPLEMENTATIONS)
 def db(request, tmp_path):
-    with migrated_db(request.param, tmp_path, declare) as db:
+    with migrated_db(request.param, tmp_path, declare, path=write_layout(tmp_path / 'app', note=NOTE)) as db:
         yield db
 
 

@@ -24,7 +24,7 @@ from asqueel.validators import SqlModelValidationError
 class GoldenRecipe(SqlBuilder):
     def main(self, root):
         db = root.db(name="recipes")
-        public = db.schemas().schema(name="public")
+        public = db.packages().package(name="public", sqlschema="public", sqlprefix=False)
         tables = public.tables()
 
         author = tables.table(name="author", pkey="id", comment="Authors")
@@ -44,7 +44,7 @@ class GoldenRecipe(SqlBuilder):
         author_id = recipe_columns.column(
             name="author_id", dtype="L", notnull=True,
         )
-        author_id.relation(to="public.author.id", foreign_key=True,
+        author_id.relation(related_column="public.author.id", foreign_key=True,
                            onDelete_sql="cascade", relation_name="recipes",
                            one_name="Author", many_name="Recipes")
         constraints = recipe.constraints()
@@ -150,7 +150,7 @@ def test_render_returns_a_fresh_structure_each_call():
 def test_virtual_columns_do_not_project():
     class WithVirtuals(SqlBuilder):
         def main(self, root):
-            tables = root.db(name="d").schemas().schema(name="s").tables()
+            tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
             t = tables.table(name="t", pkey="id")
             t.columns().column(name="id", dtype="serial")
             virtual_columns = t.virtual_columns()
@@ -169,11 +169,12 @@ def test_virtual_columns_do_not_project():
 def test_composite_relation_projects_multicolumn_fk():
     class CompositeFk(SqlBuilder):
         def main(self, root):
-            s = root.db(name="geo").schemas().schema(name="geo")
+            s = root.db(name="geo").packages().package(name="geo", sqlschema="geo", sqlprefix=False)
             tables = s.tables()
             country = tables.table(name="country", pkey="code")
             country.columns().column(name="code", dtype="C", size="2")
-            city = tables.table(name="city", pkey="country_code,code")
+            city = tables.table(name="city", pkey="city_key")
+            city.composites().compositeColumn(name="city_key", columns="country_code,code")
             city_columns = city.columns()
             city_columns.column(name="country_code", dtype="C", size="2")
             city_columns.column(name="code", dtype="C", size="4")
@@ -185,7 +186,7 @@ def test_composite_relation_projects_multicolumn_fk():
             cc = addr.composites().compositeColumn(
                 name="city_key", columns="c1,c2",
             )
-            cc.relation(to="geo.city", foreign_key=True)
+            cc.relation(related_column="geo.city", foreign_key=True)
 
     model = CompositeFk()
     model.create()
@@ -199,7 +200,7 @@ def test_composite_relation_projects_multicolumn_fk():
 def test_composite_unique_projects_unique_constraint():
     class CompositeUq(SqlBuilder):
         def main(self, root):
-            tables = root.db(name="d").schemas().schema(name="s").tables()
+            tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
             t = tables.table(name="t", pkey="id")
             columns = t.columns()
             columns.column(name="id", dtype="serial")
@@ -221,7 +222,7 @@ def test_composite_unique_projects_unique_constraint():
 def test_indexed_true_materializes_an_index_item():
     class Indexed(SqlBuilder):
         def main(self, root):
-            tables = root.db(name="d").schemas().schema(name="s").tables()
+            tables = root.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
             t = tables.table(name="t", pkey="id")
             columns = t.columns()
             columns.column(name="id", dtype="serial")
@@ -253,7 +254,7 @@ def test_dtype_and_fk_action_literals_match_the_installed_contract():
 def test_duplicate_unique_structural_keys_are_loud():
     model = _EmptyRecipe()
     model.create()
-    tables = model.source.db(name="d").schemas().schema(name="s").tables()
+    tables = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
     table = tables.table(
         name="t", pkey="id",
     )
@@ -274,7 +275,7 @@ def test_duplicate_unique_structural_keys_are_loud():
 def test_duplicate_index_structural_keys_are_loud():
     model = _EmptyRecipe()
     model.create()
-    tables = model.source.db(name="d").schemas().schema(name="s").tables()
+    tables = model.source.db(name="d").packages().package(name="s", sqlschema="s", sqlprefix=False).tables()
     table = tables.table(
         name="t", pkey="id",
     )

@@ -18,7 +18,7 @@ def db():
     owner = pkg.table('owner', pkey='id')
     owner.column('id', dtype='L')
     owner.column('threshold', dtype='N')
-    owner.formulaColumn('total', select=spec(), dtype='N', x_identity='stable-total')
+    owner.formulaColumn('total', select=spec(), dtype='N')
     owner.formulaColumn('present', exists=spec(columns='1'), dtype='B')
     owner.formulaColumn('named', 'COALESCE(#low,0)+COALESCE(#high,0)', dtype='N',
                         select_low=spec(where='$owner_id=#THIS.id AND $amount>:threshold',

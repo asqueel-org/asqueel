@@ -55,8 +55,7 @@ def declare_tables(schema_node):
     invoice = tables.table('invoice', pkey='id', logicalDeletionField='__del_ts')
     columns = invoice.columns()
     columns.column('id', dtype='L')
-    columns.column('customer_id', dtype='L').relation(
-        'sales.customer.id', foreign_key=True, x_name='customer')
+    columns.column('customer_id', dtype='L').relation('sales.customer.id', foreign_key=True)
     columns.column('total', dtype='N', size='12,2', notnull=True)
     columns.column('note', dtype='T')
     columns.column('__del_ts', dtype='DH')
@@ -107,7 +106,7 @@ def shop(request, tmp_path):
             def main(self, root):
                 db = root.db('shop')
                 db.connection(name=str(path), implementation='sqlite')
-                declare_tables(db.schemas().schema('sales'))
+                declare_tables(db.packages().package('sales', sqlschema='sales', sqlprefix=False))
 
         db = AsqueelDb(SqliteRecipe)
         try:
@@ -125,8 +124,8 @@ def shop(request, tmp_path):
 
     class PostgresRecipe(SqlDatabaseConfig):
         def main(self, root):
-            declare_tables(root.db('shop', implementation='postgres', conninfo=dsn).schemas().schema(
-                'sales', sqlname=schema))
+            declare_tables(root.db('shop', implementation='postgres', conninfo=dsn).packages().package(
+                'sales', sqlschema=schema, sqlprefix=False))
 
     db = AsqueelDb(PostgresRecipe)
     try:

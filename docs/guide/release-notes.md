@@ -13,6 +13,45 @@
 - Remove the internal copies of those features: the modules
   `asqueel.sqlite_migration`, `asqueel.generated_migration` and
   `asqueel._memory_migration`.
+- Table options take the legacy names: `sys_fields` becomes `sysFields`,
+  `auto_counter` becomes `counter`, `relative_index` becomes `relidx`,
+  `dynamic_fields` becomes `df` (table option and column element),
+  `full_update` becomes `fullUpd`, `system_records` becomes `sysrecords`.
+  The old names are no longer in the grammar.
+- The table options `record_hash`, `audit`, `protection` and `attachments`
+  leave the grammar with their expansions; declaring them raises
+  `AttributeError`. A model that used them declares the columns it needs.
+- `schemas` and `schema` leave the grammar: a model starts only from
+  `packages().package(...)`. A former `schemas().schema('x', sqlname='p')`
+  becomes `packages().package('x', sqlschema='p', sqlprefix=False)`.
+  `SqlModelReader` mounts one such package per schema of the structure; a
+  multi-column primary key becomes a `compositeColumn` named as the pkey.
+- `relation` takes the legacy parameter names: `to` becomes `related_column`,
+  `case_insensitive` becomes `insensitive`.
+- The `x_*` parameters leave the grammar: `table` loses `x_table_class`,
+  `x_expanded_legacy` and `x_logical_pkey`; the columns lose `x_identity` and
+  `x_generation`; `relation` loses `x_weak`, `x_canonical` and `x_name`. The
+  source and the live model carry no `x_*` attribute.
+- A table gets its own class only from the package layout:
+  `package(name, path=<folder>)` loads `<folder>/model/<table>.py`, whose
+  `Table` class, combined with `SqlTable`, is the runtime table.
+- The module `asqueel.legacy_source` (the expanded legacy XML loader) is removed.
+- Without `x_identity`, `ResultColumn.source` is the column fullname.
+- The grammar checks `retention.days >= 0`, `hierarchical.depth >= 1`,
+  `driver.connect_timeout`, `driver.timeout` and `driver.cached_statements >= 0`
+  and a string `package.sqlprefix` (nonempty, no trailing `_`) at declaration;
+  a violation raises the genro_builders `ValueError("Validation failed: ...")`.
+- `column` declares the six `sql_pg_*` and `sql_sqlite_*` parameters
+  explicitly; `validate_*` stays the only open attribute family.
+- `SqlModelValidator` keeps only the referential checks. The composed
+  source is re-validated node by node against the grammar, so an attribute
+  outside it raises even when written after the call: by `set_attr`, by
+  `Package.config_attributes()` or by `custom_type_<dtype>()` of a package layout.
+- A package layout module runs once per model build and is registered in
+  `sys.modules`; `hierarchicalHandler` exists only on hierarchical tables.
+- `SqlModelReader` refuses the logical dtypes `P`, `X` and `Z` in a physical
+  structure.
+- `connection_settings` moves from `asqueel.configuration` to `asqueel.runtime`.
 
 ## 0.7.0 — Consolidation and unified model candidate
 

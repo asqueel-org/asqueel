@@ -14,9 +14,9 @@ class TwoSchemas(SqlBuilder):
     def main(self, root):
         db = root.db(name="db")
 
-        schemas = db.schemas()
+        packages = db.packages()
 
-        identity = schemas.schema(name="identity")
+        identity = packages.package(name="identity", sqlschema="identity", sqlprefix=False)
         tables = identity.tables()
 
         access = tables.table(name="access", pkey="id")
@@ -26,7 +26,9 @@ class TwoSchemas(SqlBuilder):
         columns.column(name="occurred_at", dtype="DHZ")
         columns.column(name="successful", dtype="B")
         user_id = columns.column(name="user_id", dtype="L", notnull=True)
-        user_id.relation(to="identity.user.id", foreign_key=True, onUpdate_sql="cascade")
+        user_id.relation(
+            related_column="identity.user.id", foreign_key=True, onUpdate_sql="cascade",
+        )
         indexes = access.indexes()
         indexes.index(columns={"user_id": None}, name="idx_dd4fe550")
 
@@ -37,7 +39,7 @@ class TwoSchemas(SqlBuilder):
         columns_2.column(name="id", dtype="L")
         columns_2.column(name="username", dtype="T", notnull=True, unique=True)
 
-        sales = schemas.schema(name="sales")
+        sales = packages.package(name="sales", sqlschema="sales", sqlprefix=False)
         tables_2 = sales.tables()
 
         customer = tables_2.table(name="customer", pkey="id")
@@ -49,9 +51,13 @@ class TwoSchemas(SqlBuilder):
         invoice = tables_2.table(name="invoice", pkey="id")
         columns_4 = invoice.columns()
         created_by = columns_4.column(name="created_by", dtype="L", notnull=True)
-        created_by.relation(to="identity.user.id", foreign_key=True, onUpdate_sql="cascade")
+        created_by.relation(
+            related_column="identity.user.id", foreign_key=True, onUpdate_sql="cascade",
+        )
         customer_id = columns_4.column(name="customer_id", dtype="L", notnull=True)
-        customer_id.relation(to="sales.customer.id", foreign_key=True, onUpdate_sql="cascade")
+        customer_id.relation(
+            related_column="sales.customer.id", foreign_key=True, onUpdate_sql="cascade",
+        )
         columns_4.column(name="id", dtype="L")
         columns_4.column(name="issued_on", dtype="D")
         columns_4.column(name="number", dtype="T", notnull=True)
@@ -64,9 +70,13 @@ class TwoSchemas(SqlBuilder):
         columns_5.column(name="description", dtype="T", notnull=True)
         columns_5.column(name="id", dtype="L")
         invoice_id = columns_5.column(name="invoice_id", dtype="L", notnull=True)
-        invoice_id.relation(to="sales.invoice.id", foreign_key=True, onUpdate_sql="cascade")
+        invoice_id.relation(
+            related_column="sales.invoice.id", foreign_key=True, onUpdate_sql="cascade",
+        )
         product_id = columns_5.column(name="product_id", dtype="L", notnull=True)
-        product_id.relation(to="sales.product.id", foreign_key=True, onUpdate_sql="cascade")
+        product_id.relation(
+            related_column="sales.product.id", foreign_key=True, onUpdate_sql="cascade",
+        )
         columns_5.column(name="quantity", dtype="N")
         columns_5.column(name="unit_price", dtype="N")
         indexes_3 = invoice_row.indexes()

@@ -4,11 +4,18 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from asqueel import AsqueelDb, SqlDatabaseConfig, SqlTable, TransactionStateError
+from asqueel import AsqueelDb, SqlDatabaseConfig, TransactionStateError
 from asqueel.cli import run_migration
+from tests.package_layout_support import write_layout
 
 
-class Item(SqlTable):
+ITEM = '''
+class Table:
+    def config_db(self, pkg):
+        columns = pkg.tables().table('item', pkey='id').columns()
+        columns.column('id', dtype='I')
+        columns.column('name', dtype='T')
+
     def trigger_onInserting(self, record):
         record['name'] = record['name'].strip()
     def trigger_onInserted(self, record):
@@ -16,17 +23,17 @@ class Item(SqlTable):
             raise ValueError('hook failure')
     def trigger_onUpdating(self, record, old_record=None):
         record['name'] += '!'
+'''
 
 
 def recipe(path):
+    layout = write_layout(path.parent / 'app', item=ITEM)
+
     class Recipe(SqlDatabaseConfig):
         def main(self, root):
             db = root.db()
             db.connection(name=str(path), implementation='sqlite').options().driver(timeout=0.1)
-            tables = db.schemas().schema('app').tables()
-            columns = tables.table('item', pkey='id', x_table_class=Item).columns()
-            columns.column('id', dtype='I')
-            columns.column('name', dtype='T')
+            db.packages().package('app', sqlschema='app', sqlprefix=False, path=layout)
     return Recipe
 
 
@@ -164,7 +171,7 @@ def partitioned(path):
         def main(self, root):
             db = root.db()
             db.connection(name=str(path), implementation='sqlite')
-            table = db.schemas().schema('app').tables().table(
+            table = db.packages().package('app', sqlschema='app', sqlprefix=False).tables().table(
                 'item', pkey='id', partition_organization='organization')
             columns = table.columns()
             for name in ('id', 'organization', 'quantity'):

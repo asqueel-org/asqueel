@@ -57,15 +57,14 @@ Table code can build formulas with these adapter functions:
 `ValueError`.
 
 ```python
-from asqueel import SqlTable
+# <folder>/model/customer.py, in a package loaded with package(name, path=<folder>)
+class Table:
+    def config_db(self, pkg):
+        customer = pkg.table('customer', pkey='id')
+        customer.column('id', dtype='L')
+        customer.column('email')
+        customer.formulaColumn('masked_email', sql_formula=True)
 
-class Customer(SqlTable):
     def sql_formula_masked_email(self, attr):
         return self.db.adapter.mask_field_sql('$email', mode='email')
-
-# pkg is the package declared in your configuration.
-customer = pkg.table('customer', pkey='id', x_table_class=Customer)
-customer.column('id', dtype='L')
-customer.column('email')
-customer.formulaColumn('masked_email', sql_formula=True)
 ```

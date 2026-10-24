@@ -1,6 +1,5 @@
 """Real locking and atomic update/delete lifecycle through application handles."""
 from tests.unit_of_work import completed
-from copy import deepcopy
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -9,15 +8,31 @@ from psycopg import sql
 import pytest
 
 from asqueel import (
-    RecordMultipleRowsError, RecordNotFoundError, SqlDatabaseConfig, SqlTable,
+    RecordMultipleRowsError, RecordNotFoundError, SqlDatabaseConfig,
     AsqueelDb,
 )
 from tests.native_support import postgres_dsn
+from tests.package_layout_support import write_layout
 
 pytestmark = pytest.mark.postgresql
 
 
-class HookedItem(SqlTable):
+ITEM = '''
+from copy import deepcopy
+
+
+class Table:
+    def config_db(self, pkg):
+        item = pkg.table(
+            'item', pkey='pk',
+            partition_org='org',
+            draftField='draft', logicalDeletionField='deleted_at')
+        columns = item.columns()
+        for name, dtype in [('org', 'I'), ('id', 'I'), ('name', 'T'),
+                            ('draft', 'B'), ('deleted_at', 'DHZ')]:
+            columns.column(name, dtype=dtype)
+        item.composites().compositeColumn('pk', columns='org,id')
+
     def trigger_onUpdating(self, record, old_record=None):
         self.events.append(('updating', deepcopy(record), deepcopy(old_record)))
         old_record['name'] = 'damaged hook argument'
@@ -44,11 +59,13 @@ class HookedItem(SqlTable):
         self.db.table('app.audit').insert({'event': 'deleted'})
         if getattr(self, 'fail', False):
             raise ValueError('delete hook failure')
+'''
 
 
 @pytest.fixture
-def hooked_database():
+def hooked_database(tmp_path):
     dsn = postgres_dsn()
+    path = write_layout(tmp_path / 'app', item=ITEM)
     schema = 'write_hooks_' + uuid4().hex
     with psycopg.connect(dsn, autocommit=True) as observer:
         observer.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
@@ -64,17 +81,8 @@ def hooked_database():
 
             class Recipe(SqlDatabaseConfig):
                 def main(self, root):
-                    tables = root.db('hooks', implementation='postgres', conninfo=dsn).schemas().schema(
-                        'app', sqlname=schema).tables()
-                    item = tables.table(
-                        'item', pkey='pk', x_table_class=HookedItem,
-                        partition_org='org',
-                        draftField='draft', logicalDeletionField='deleted_at')
-                    columns = item.columns()
-                    for name, dtype in [('org', 'I'), ('id', 'I'), ('name', 'T'),
-                                        ('draft', 'B'), ('deleted_at', 'DHZ')]:
-                        columns.column(name, dtype=dtype)
-                    item.composites().compositeColumn('pk', columns='org,id')
+                    tables = root.db('hooks', implementation='postgres', conninfo=dsn).packages().package(
+                        'app', sqlschema=schema, sqlprefix=False, path=path).tables()
                     audit = tables.table('audit', pkey='id').columns()
                     audit.column('id', dtype='serial')
                     audit.column('event', dtype='T')

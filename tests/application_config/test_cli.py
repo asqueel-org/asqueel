@@ -6,7 +6,7 @@ from genro_bag.resolvers import EnvResolver
 
 from asqueel import SqlDatabaseConfig, AsqueelDb
 from asqueel.cli import main
-from asqueel.configuration import connection_settings
+from asqueel.runtime import connection_settings
 from asqueel.registry import DatabaseRegistry
 
 EXAMPLE = Path(__file__).resolve().parents[2] / 'examples' / 'two_schemas'

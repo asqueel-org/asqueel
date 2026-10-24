@@ -41,13 +41,20 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Objective: Sphinx chapter (English) and new team page (Italian) in the agreed form: Differences → Model / Query / Read-Write → missing (temporary, removed, replaced) / different / new / same, plus "to implement" as its own branch; cards "in GenroPy you wrote / got" above, asqueel below; one label; low-level vs high-level API; proposals (sqlglot, .sql(), capability catalogue, async).
 - Starts from: Macros 2-7 landed.
 
-## Macro 9 (current): model cleanup — detailed in active/model-cleanup/plan.md
+## Macro 9 (done): model cleanup — done/model-cleanup/plan.md
 - Objective: one construction path and one database class in the legacy order (`AsqueelDb` first, its model rendered into it through `builder.render(target=db)`); the migration structure and the Python recipe rendered from the source by `RendererBase` renderers; `sqlname` always applied.
 - Starts from: Macro 8 and the first cleanup commits on `release/consolidation` (catalog import and model codec removed, dead code removed, one spelling per declaration and for the environment API), head f8b68f4.
 - Ends at: `AsqueelDb(source)` is the one constructor; modes `objects`, `migration`, `python` on `SqlBuilder`; `Database`, `SqlDatabase`, `SqlEnvironment`, `projection.py`, `object_tree_projection.py`, `to_physical_builder`, `emit()` gone.
 - Delivers: the `structure-1.0` renderer from the source, consumed by the move of the database-reading code to asqueel-migration (next cleanup step).
 - Open decisions: the construction form (`AsqueelDb(source)`, `main` on an `AsqueelDb` subclass) is a provisional user decision of 2026-10-22, to be reviewed.
 
+## Macro 10 (done): grammar — done/grammar-cleanup/plan.md
+- Objective: Fase 5 of the model cleanup. Legacy option names (`sysFields`, `counter`, `relidx`, `df`, `fullUpd`, `sysrecords`); md5, audit, useProtectionTag and attachments out; the model starts only from `packages`; `relation(related_column, ..., insensitive=)`; no `x_*` in grammar, source or live model, `Table` loaded from `package(path=)`; expressible checks in the grammar, `SqlModelValidator` referential only; `connection_settings` in the runtime layer.
+- Starts from: Macro 9 and asqueel-org/asqueel#52 on `main` (asqueel-migration 0.3.5 service), head f3582a3.
+- Ends at: the grammar declares every accepted parameter and no `x_*`; the source of every example holds no Python class; migration structures of the examples unchanged.
+- Delivers: a source free of Python objects, consumed by Fase 6 (source saved in TYTX, after genro-tytx#67); option names consumed by the future legacy adapter.
+- Open decisions: none; the custom type mechanism is deferred (Debts).
+
 ## Debts
 - `text_pattern_ops` on the `hierarchical_pkey` index and column collation (2026-10-19). Legacy has neither. Measured on PostgreSQL 17: with a non-C database collation a prefix `LIKE` on `hierarchical_pkey` scans the table; with collation `C` it uses the UNIQUE index. Proposed in the legacy first: genropy/genropy#1708 (collation, `unaccent='full'`), measurement on genropy/genropy#1526. asqueel follows the legacy outcome.
-- Alias relations and composite columns (2026-10-22, Macro 9 decisions D6 and D6-bis). Legacy resolves `@alias.x` at query time (`gnrsqlmodel/table.py:541-542,614-645`) and keeps a composite column as a virtual column with `composed_of` (`gnrsqlmodel/model.py:1050`); asqueel registers alias relations at build time (`_inherit_alias_relations`) and keeps composites in their own `composites` container. Moving either changes the query and write compilers and the source container; it goes with the grammar step.
+- Custom column types (2026-10-23, deferred by the user during Macro 10 planning). Two mechanisms exist: `options().type()` declared in the source (resolved by `model_source.resolve_source_types`) and `custom_type_<dtype>()` methods of the package layout's `Package` (`package_layout.py`, the only legacy mechanism, `gnrsqlmodel/columns.py:127`). One must remain; the user leans to `options().type()`. The column `dtype` `Literal` waits for this decision.

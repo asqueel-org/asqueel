@@ -178,7 +178,7 @@ def test_storename_in_the_environment(tmp_path):
         def main(self, root):
             db = root.db(implementation='sqlite')
             db.connection(name=str(tmp_path / 'specific.db'))
-            db.schemas().schema('main').tables().table('item', pkey='id').columns().column('id', dtype='I')
+            db.packages().package('main', sqlschema='main', sqlprefix=False).tables().table('item', pkey='id').columns().column('id', dtype='I')
     db = AsqueelDb(Config)
     try:
         db.updateEnv(storename='branch')

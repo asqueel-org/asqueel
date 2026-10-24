@@ -2,27 +2,44 @@
 
 The layout is provisional (user decision 2026-10-18). A ``package`` element
 with ``path`` loads its folder into the composed source, so the model is built
-from the same declarations a recipe writes.
+from the same declarations a recipe writes. ``path`` stays in the source: the
+objects renderer loads each table's ``Table`` class from it.
 """
 from __future__ import annotations
 
+from hashlib import sha1
 import importlib.util
 from pathlib import Path
+import sys
 
 from genro_bag import Bag
 
+from .application_table import SqlTable
 from .contracts import not_available
 
 
+def _module_name(path, package_name):
+    """One module name per file, so two folders with the same package name never share a module."""
+    path = Path(path).resolve()
+    return f'asqueel_layout_{package_name}_{path.stem}_{sha1(str(path).encode()).hexdigest()[:12]}'
+
+
 def _module(path, name):
+    """Execute ``path`` as module ``name``, registered in ``sys.modules`` as legacy imports do."""
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        # As importlib: a module that failed to execute is not left importable.
+        del sys.modules[name]
+        raise
     return module
 
 
 def load_package_layouts(builder):
-    """Load every package folder of the source, replacing ``path`` with its declarations."""
+    """Load every package folder of the source into its declarations."""
     packages = [node for _, node in builder.source.query('#p,#n', deep=True)
                 if node.node_tag == 'package' and node.get_attr('path')]
     for node in packages:
@@ -38,20 +55,30 @@ def _columns(node):
             yield from _columns(child)
 
 
+def table_class(folder, package_name, table_name):
+    """The runtime class of ``table_name``: the ``Table`` of ``model/<table_name>.py`` over ``SqlTable``.
+
+    Legacy binds the mixin by module name. A table without a module is a plain ``SqlTable``.
+    """
+    path = Path(folder) / 'model' / f'{table_name}.py'
+    if not path.exists():
+        return SqlTable
+    name = _module_name(path, package_name)
+    module = sys.modules.get(name) or _module(path, name)
+    return type(table_name, (module.Table, SqlTable), {'__module__': name})
+
+
 def load_package_layout(pkg):
     """Package attributes and custom types from ``main.py``, tables from ``model/``.
 
     Attributes written on the element win over ``config_attributes()``. Tables
-    run their ``config_db`` in alphabetical order of their module names; the
-    ``Table`` class of ``model/<name>.py`` is the runtime class of table
-    ``<name>``, as legacy binds the mixin by module name. Each
+    run their ``config_db`` in alphabetical order of their module names. Each
     ``custom_type_<dtype>()`` gives the column attributes of ``dtype='<dtype>'``,
     explicit column attributes winning, as legacy ``columns.py``.
     """
-    from .application_table import SqlTable
-    folder = Path(pkg.attr.pop('path'))
+    folder = Path(pkg.get_attr('path'))
     name = pkg.get_attr('name') or pkg.label
-    main = _module(folder / 'main.py', f'asqueel_layout_{name}')
+    main = _module(folder / 'main.py', _module_name(folder / 'main.py', name))
     if hasattr(main, 'Table'):
         raise not_available(f'{name}: main.py Table, the mixin of every table of the package,')
     package = main.Package()
@@ -62,7 +89,7 @@ def load_package_layout(pkg):
     for key, value in config_attributes().items():
         pkg.attr.setdefault(key, value)
     for path in sorted((folder / 'model').glob('*.py')):
-        table_class = _module(path, f'asqueel_layout_{name}_{path.stem}').Table
+        table_class = _module(path, _module_name(path, name)).Table
         for method in dir(table_class):
             if method.startswith('config_db_'):
                 raise not_available(f'{name}.{path.stem}: {method}')
@@ -72,7 +99,6 @@ def load_package_layout(pkg):
         if table is None:
             raise ValueError(f'{name}: model/{path.name} declares no table {path.stem!r}; '
                              'a model module declares the table named after it')
-        table.attr['x_table_class'] = type(path.stem, (table_class, SqlTable), {})
     custom_types = {method.removeprefix('custom_type_'): getattr(package, method)()
                     for method in dir(package) if method.startswith('custom_type_')}
     for dtype, defaults in custom_types.items():

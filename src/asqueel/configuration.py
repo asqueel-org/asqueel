@@ -19,7 +19,7 @@ _MISSING = object()
 class SqlDatabaseElements:
     """Keep root grammar in a mixin so recipe subclasses retain its defaults."""
 
-    @element(sub_tags='connection, schemas[:1], packages[:1], extensions[:1], options[:1]', node_label='db')
+    @element(sub_tags='connection, packages[:1], extensions[:1], options[:1]', node_label='db')
     def db(self, name: str = 'db', implementation: str = 'sqlite', conninfo: str = '',
            connect_kwargs: dict | None = None, name_long: str | None = None,
            name_short: str | None = None, comment: str | None = None):
@@ -71,29 +71,25 @@ def compose_recipe(source, parents=None):
 
 def _validate_source_shape(builder):
     """Validate composition without resolving defaults, references or secrets."""
-    tags = {node.node_tag for _, node in builder.source.query('#p,#n', deep=True)}
-    if 'packages' in tags and 'schemas' in tags:
-        raise ValueError('Package configuration derives schemas from package.sqlschema; '
-                         'remove the explicit schemas section')
     for _, node in builder.source.query('#p,#n', deep=True):
-        if node.node_tag in ('context', 'generation', 'behavior', 'pkey_from', 'macro',
-                             'normalize', 'aliasTable', 'table_alias', 'metadata', 'diagnostics'):
-            raise ValueError(f'{node.node_tag}: removed from the source grammar')
+        # Attributes written after the call (layout hooks, set_attr) meet the same signature.
+        owner = node._resolve_builder()
+        try:
+            info = owner._get_schema_info(node.node_tag)
+        except KeyError:
+            owner, info = builder, builder._get_schema_info(node.node_tag)
+        # Attributes kept from a redefined virtual column's previous kind stay valid.
+        inherited = set((node.attr.get('_meta') or {}).get('inherited_attributes', ()))
+        owner._validate_call_args(info, None,
+                                 {key: value for key, value in node.attr.items()
+                                  if key != '_meta' and key not in inherited},
+                                 node.node_tag)
         if node.node_tag == 'virtualRelation':
-            owner = node._resolve_builder()
-            owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
-                                     dict(node.attr), node.node_tag)
             condition = node.attr.get('condition')
             if node.attr.get('table') and (condition is None or
                     isinstance(condition, str) and not condition.strip()):
                 raise ValueError('virtualRelation: table requires a nonempty condition')
-        if node.node_tag in builder.table_options and 'provider' in node.attr:
-            raise ValueError(f'{node.node_tag}: provider removed from the source grammar')
         if builder.option_levels(node.node_tag) is not None:
-            if node.node_tag in builder.table_options:
-                owner = node._resolve_builder()
-                owner._validate_call_args(owner._get_schema_info(node.node_tag), None,
-                    {key: value for key, value in node.attr.items() if key != '_meta'}, node.node_tag)
             builder._validate_option(node.node_tag, node.parent_node, dict(node.attr))
         if node.node_tag == 'table' and isinstance(node.value, Bag):
             names = {}
@@ -242,96 +238,3 @@ def _recipe_imports(sources):
     finally:
         for root in added:
             sys.path.remove(root)
-
-
-def connection_settings(config, connection_name='main'):
-    """Read standard config attributes, resolving EnvResolver via ConfigHandler."""
-    prefix = 'connection'
-    if connection_name not in ('main', '_main_connection') and isinstance(config, ConfigHandler):
-        candidate = f'connection_{connection_name}'
-        node = config.builder.source.get_node(f'{config.root_label}.{candidate}')
-        if node is not None:
-            prefix = candidate
-        else:
-            root = config.builder.source.get_node(config.root_label)
-            if root is not None and isinstance(root.value, Bag) and any(
-                    child.node_tag == 'connection' and {'database', 'dsn'}.intersection(child.attr)
-                    for child in root.value):
-                raise ValueError(f'Unknown named connection: {connection_name!r}')
-    return _connection_settings(config, prefix)
-
-
-def _connection_settings(config, prefix):
-    def read(path, default=None):
-        # ConfigHandler's generic None-as-missing semantics must not replace a
-        # failed explicit resolver with the signature's default connection name.
-        if isinstance(config, ConfigHandler):
-            head, _, attribute = path.rpartition('.')
-            node_path = '.'.join(filter(None, (config.root_label, prefix, head)))
-            node = config.builder.source.get_node(node_path)
-            if node is not None and attribute in node.attr:
-                return node.get_value(_query_string=attribute)
-        return config(f'{prefix}.{path}', default=default)
-
-    name = read('name')
-    has_connection = (isinstance(config, ConfigHandler)
-                      and config.builder.source.get_node(f'{config.root_label}.{prefix}') is not None)
-    if not has_connection and name is None:
-        if isinstance(config, ConfigHandler):
-            root = config.builder.source.get_node(config.root_label)
-            if root is not None and isinstance(root.value, Bag) and any(
-                    child.node_tag == 'connection' for child in root.value):
-                raise ValueError('Named connections require an explicit main connection')
-        return (config('implementation', default='sqlite'),
-                config('conninfo', default=''), config('connect_kwargs', default=None))
-    implementation = read('implementation')
-    if implementation is None:
-        implementation = config('implementation', default='sqlite')
-    if config('conninfo', default='') or config('connect_kwargs', default=None):
-        raise ValueError('Use connection or legacy conninfo/connect_kwargs, not both')
-    fields = ('connect_timeout', 'application_name', 'sslmode', 'sslrootcert',
-              'options', 'timeout', 'cached_statements', 'foreignKeys')
-    options = {field: value for field in fields
-               if (value := read(f'options.driver.{field}')) is not None}
-    database = read('database')
-    dsn = read('dsn')
-    connection_node = (config.builder.source.get_node(f'{config.root_label}.{prefix}')
-                       if isinstance(config, ConfigHandler) else None)
-    explicit_database = connection_node is not None and 'database' in connection_node.attr
-    explicit_dsn = connection_node is not None and 'dsn' in connection_node.attr
-    if explicit_database and database is None:
-        raise ValueError('connection.database must resolve to a nonempty database name')
-    if explicit_dsn and dsn is None:
-        raise ValueError('connection.dsn must resolve to a nonempty string')
-    if (database is not None or dsn is not None) and implementation != config('implementation', default='sqlite'):
-        raise ValueError('Named connections must use the database dialect')
-    if dsn is not None:
-        if database is not None or any(read(field) is not None
-                                       for field in ('host', 'port', 'user', 'password')):
-            raise ValueError('dsn and individual connection fields cannot be combined')
-        if not isinstance(dsn, str) or not dsn.strip():
-            raise ValueError('connection.dsn must resolve to a nonempty string')
-        if implementation.partition(':')[0] not in ('postgres', 'postgres3'):
-            raise ValueError('dsn requires a PostgreSQL connection')
-        return implementation, dsn, options
-    name = database if database is not None else name
-    if not isinstance(name, str) or not name.strip():
-        raise ValueError('connection.name must resolve to a nonempty database name')
-    options['dbname'] = name
-    if implementation.partition(':')[0] == 'sqlite':
-        if any(read(key) is not None
-               for key in ('host', 'port', 'user', 'password')):
-            raise ValueError('SQLite uses a filename, not host/user/password/port')
-        if set(options) - {'dbname', 'timeout', 'cached_statements', 'foreignKeys'}:
-            raise ValueError('Unsupported SQLite connection options')
-        return implementation, '', options
-    for name in ('host', 'port', 'user', 'password'):
-        value = read(name)
-        if value is not None:
-            expected = int if name == 'port' else str
-            if not isinstance(value, expected) or isinstance(value, bool):
-                raise ValueError(f'connection.{name} resolved to an invalid type')
-            options[name] = value
-    if options.get('autocommit'):
-        raise ValueError('Asqueel requires transactional connections, not autocommit')
-    return implementation, '', options
