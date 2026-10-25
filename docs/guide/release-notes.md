@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A recipe source is saved with `recipe.source.to_tytx()` and loaded with
+  `AsqueelDb('<file>.tytx')`: the `db` node is replayed into a new recipe, so the
+  grammar validates it. `SqlSourceBag` is registered as a TYTX subtype;
+  environment resolvers stay resolvers. Requires `genro-tytx>=0.16.4`.
 - Require `asqueel-migration>=0.3.5`. Its reader introspects generated columns
   on SQLite and PostgreSQL and borrows a SQLite `:memory:` connection; its
   service plans and applies the migration with `force`, `backup` and the backup

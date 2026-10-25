@@ -52,8 +52,9 @@ implementations are `sqlite` (see [SQLite](sqlite.md)), `postgres` and
 `postgres3`; `<name>:<module>` loads the adapter of another
 module (see [Adapters](adapters.md)). `connect_kwargs={'autocommit': True}` is rejected.
 
-`AsqueelDb(source, *, parents=None, environment=None)` accepts a recipe class, an existing builder instance, or a
-configuration recipe file as supported by Builders' `ConfigHandler`. Recipe
+`AsqueelDb(source, *, parents=None, environment=None)` accepts a recipe class, an existing builder instance, a
+configuration recipe file as supported by Builders' `ConfigHandler`, or a recipe source saved as a `.tytx` file
+(see [Save a recipe source](#save-a-recipe-source)). Recipe
 classes and paths are instantiated by the handler. Existing instances are copied
 before layers are merged; previously rendered live objects are not copied into
 the new application.
@@ -177,6 +178,29 @@ packages = root.packages()
 packages.package('sales', path='/path/to/sales')
 crm = packages.package('crm')
 ```
+
+## Save a recipe source
+
+A recipe source is a Bag, so it is saved and shipped as TYTX. The file holds the
+declarations, not a rendered model: whoever loads it renders it again.
+
+```python
+from pathlib import Path
+
+recipe = Shop()
+recipe.create()
+Path("shop.tytx").write_text(recipe.source.to_tytx(), encoding="utf-8")
+
+db = AsqueelDb("shop.tytx")
+```
+
+`AsqueelDb` replays the saved `db` node element by element into a new recipe, so
+the grammar validates it as if it were written in Python; an attribute outside
+the grammar raises. Environment resolvers (`EnvResolver`) are saved as resolvers:
+the file carries their names and defaults, never the resolved values. Save the
+recipe source, not the composed source of a built database: a package with
+`path=` stores only its folder, and the folder is loaded again where the file is
+read, so the layout files must be there too.
 
 ## Ownership and advanced integration
 

@@ -17,6 +17,7 @@ from genro_bag import BagNode
 
 from genro_builders.builder import BuilderBase, SourceBag, container
 from genro_builders.builder.base import SOURCE_ROOT
+from genro_tytx import register_subtype
 
 from .elements import ColumnElements, DbElements, SchemaElements, TableElements
 from .catalog import _VIRTUAL_COLUMN_TAGS
@@ -48,6 +49,10 @@ class SqlSourceBag(SourceBag):
 
     def __getitem__(self, path: str) -> BagNode | None:
         return cast(BagNode | None, self.get_node(path))
+
+
+# A saved recipe source decodes back to SqlSourceBag, as genro-builders does for SourceBag.
+register_subtype(SqlSourceBag.__tytx_suffix__, SqlSourceBag)
 
 
 class SqlBuilder(DbElements, SchemaElements, TableElements, ColumnElements, ModelElements, SemanticElements, BehaviorOptionElements,

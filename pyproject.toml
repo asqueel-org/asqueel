@@ -39,6 +39,7 @@ dependencies = [
     "genro-builders>=0.29.0",
     "genro-bag>=0.28.0",
     "genro-toolbox>=0.18.0",
+    "genro-tytx>=0.16.4",
 ]
 
 [project.optional-dependencies]
