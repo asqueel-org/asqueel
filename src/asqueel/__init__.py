@@ -33,7 +33,7 @@ from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 __all__ = [
     "AsqueelDb", "AsqueelDbMixin", "SqlDatabaseConfig",

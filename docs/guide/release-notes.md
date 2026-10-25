@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased
+## 0.8.0 — Legacy grammar names and TYTX sources
 
 - A recipe source is saved with `recipe.source.to_tytx()` and loaded with
   `AsqueelDb('<file>.tytx')`: the `db` node is replayed into a new recipe, so the
