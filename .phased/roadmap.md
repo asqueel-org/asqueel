@@ -55,6 +55,11 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Delivers: a source free of Python objects, consumed by Fase 6 (source saved in TYTX, after genro-tytx#67); option names consumed by the future legacy adapter.
 - Open decisions: none; the custom type mechanism is deferred (Debts).
 
+## Macro 11 (done): source in TYTX — done directly, without a workflow (2026-10-25)
+- Objective: a recipe source is saved with `to_tytx()` and loaded with `AsqueelDb('<file>.tytx')`; `SqlSourceBag` registered with genro-tytx `register_subtype` (genro-tytx#67, released in 0.16.4).
+- Starts from: Macro 10 (no class or `x_*` attribute in the source), main bb53e5b.
+- Ends at: the three examples round-trip through TYTX with identical migration structure and live model; environment resolvers stay resolvers; the saved artifact is the recipe source, not the composed one.
+
 ## Debts
 - `text_pattern_ops` on the `hierarchical_pkey` index and column collation (2026-10-19). Legacy has neither. Measured on PostgreSQL 17: with a non-C database collation a prefix `LIKE` on `hierarchical_pkey` scans the table; with collation `C` it uses the UNIQUE index. Proposed in the legacy first: genropy/genropy#1708 (collation, `unaccent='full'`), measurement on genropy/genropy#1526. asqueel follows the legacy outcome.
 - Custom column types (2026-10-23, deferred by the user during Macro 10 planning). Two mechanisms exist: `options().type()` declared in the source (resolved by `model_source.resolve_source_types`) and `custom_type_<dtype>()` methods of the package layout's `Package` (`package_layout.py`, the only legacy mechanism, `gnrsqlmodel/columns.py:127`). One must remain; the user leans to `options().type()`. The column `dtype` `Literal` waits for this decision.

@@ -182,6 +182,8 @@ def configuration_source(source):
         return DatabaseRegistry().resolve(source)
     if isinstance(source, (str, Path)):
         path = Path(source).expanduser().resolve()
+        if path.suffix == '.tytx':
+            return _recipe_from_tytx(path)
         return path / 'configure.py' if path.is_dir() else path
     return source
 
@@ -199,6 +201,15 @@ def _recipe_from_node(node):
     recipe = SqlDatabaseConfig()
     _replay_node(node, recipe.source)
     return recipe
+
+
+def _recipe_from_tytx(path):
+    """Recipe that rebuilds a source saved with ``to_tytx()``: its ``db`` node is replayed, so the grammar validates it."""
+    source = Bag.from_tytx(path.read_text(encoding='utf-8'))
+    nodes = [node for node in source if node.node_tag == 'db']
+    if len(nodes) != 1:
+        raise ValueError(f'{path}: a saved source holds exactly one db node, found {len(nodes)}')
+    return _recipe_from_node(nodes[0])
 
 
 def _replay_node(node, target):
