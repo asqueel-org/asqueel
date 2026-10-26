@@ -23,7 +23,8 @@ def recipe(filename):
 
 @pytest.fixture
 def db(tmp_path):
-    db = AsqueelDb(recipe(tmp_path / 'records.sqlite'))
+    shared = AsqueelDb(recipe(tmp_path / 'records.sqlite'))
+    db = shared.session()
     db.execute('CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, payload TEXT)')
     db.execute('INSERT INTO item VALUES (:id,:name,:payload)',
                {'id': 0, 'name': 'first', 'payload': '<GenRoBag><value>hello</value></GenRoBag>'})
@@ -33,6 +34,7 @@ def db(tmp_path):
         yield db
     finally:
         db.closeConnection()
+        shared.close()
 
 
 @pytest.mark.parametrize('entry', [AsqueelDb])
@@ -120,7 +122,7 @@ def test_fetch_record_reads_hidden_rows_with_the_visibility_filters_off(tmp_path
     table.attr.update(draftField='draft', logicalDeletionField='deleted')
     table.column('draft', dtype='B')
     table.column('deleted', dtype='T')
-    db = AsqueelDb(source)
+    db = AsqueelDb(source).session()
     try:
         db.execute('CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, payload TEXT, draft BOOL, deleted TEXT)')
         db.execute("INSERT INTO item VALUES (1,'hidden',NULL,TRUE,'deleted')")

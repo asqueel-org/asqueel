@@ -28,7 +28,7 @@ def db(request, tmp_path_factory):
             else {'database': str(tmp_path_factory.mktemp('sq_columns') / 'test.db')}
         ),
     )
-    db = AsqueelDb(config, environment={'current_owner': 99})
+    db = AsqueelDb(config, environment={'current_owner': 99}).session()
     try:
         quote = db.adapter.adaptSqlName
         try:
@@ -72,7 +72,7 @@ def db(request, tmp_path_factory):
                 db.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
                 db.commit()
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 def read(db, columns, id=1, **kwargs):

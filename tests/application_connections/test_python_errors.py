@@ -9,15 +9,14 @@ from tests.application_connections.test_deferred import database
 def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(hook, tmp_path):
     db = database(tmp_path / 'app', f'''
         def {hook}(self, record):
-            with self.db.tempEnv(connectionName='B'):
-                self.db.execute(CompiledQuery('fail'))
+            self.db.session('B').execute(CompiledQuery('fail'))
     ''')
     try:
         events = []
         db.execute(CompiledQuery('earlier A'))
         db.deferAfterCommit(lambda: events.append('A committed'))
-        with db.tempEnv(connectionName='C'):
-            db.execute(CompiledQuery('independent C'))
+        c = db.session('C')
+        c.execute(CompiledQuery('independent C'))
         with pytest.raises(LookupError, match='statement failed'):
             db.table('app.item').insert({'id': 1})
         assert db.currentTrigger is None
@@ -27,13 +26,14 @@ def test_sql_error_on_another_connection_cannot_commit_incomplete_outer_write(ho
         assert events == []
         # A failed domain operation on A must not poison independent C or the
         # already rolled-back B. Both can still complete their own work.
-        with db.tempEnv(connectionName='C'):
-            db.commit()
-        with db.tempEnv(connectionName='B'):
-            db.execute(CompiledQuery('recovered B'))
-            db.commit()
+        c.commit()
+        b = db.session('B')
+        b.execute(CompiledQuery('recovered B'))
+        b.commit()
         db.rollback()
-        assert db.adapter.persisted == ['independent C', 'recovered B']
+        assert db.adapter.persisted == []
+        assert c.adapter.persisted == ['independent C']
+        assert b.adapter.persisted == ['recovered B']
         assert events == []
     finally:
         db.closeConnection()

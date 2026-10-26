@@ -80,11 +80,12 @@ def formula_database(request):
                     columns.column('invoice_id', dtype='I').relation('app.invoice.id', foreign_key=True)
                     receipt.virtual_columns().aliasColumn('invoice_total', relation_path='@invoice_id.total')
 
-            db = AsqueelDb(Recipe)
+            db = AsqueelDb(Recipe).session()
             try:
                 yield db
             finally:
                 db.closeConnection()
+                db.shared.close()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

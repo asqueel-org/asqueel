@@ -67,11 +67,12 @@ def alias_database(tmp_path):
                     virtual.formulaColumn('loud_name', sql_formula='upper($name)', dtype='T')
                     virtual.aliasColumn('country_name', relation_path='@country_id.name')
 
-            db = AsqueelDb(Recipe)
+            db = AsqueelDb(Recipe).session()
             try:
                 yield db
             finally:
                 db.closeConnection()
+                db.shared.close()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

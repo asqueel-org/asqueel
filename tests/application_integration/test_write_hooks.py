@@ -87,13 +87,14 @@ def hooked_database(tmp_path):
                     audit.column('id', dtype='serial')
                     audit.column('event', dtype='T')
 
-            db = AsqueelDb(Recipe)
+            db = AsqueelDb(Recipe).session()
             try:
                 with db.tempEnv(current_org=0):
                     db.table('app.item').events = []
                     yield db, observer, schema
             finally:
                 db.closeConnection()
+                db.shared.close()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

@@ -37,7 +37,7 @@ def sqlite_db(path):
     root.connection('main', database=str(path))
     table = root.packages().package('app', sqlschema='main', sqlprefix=False).table('item', pkey='id')
     table.column('id', dtype='L')
-    db = AsqueelDb(source)
+    db = AsqueelDb(source).session()
     db.execute('CREATE TABLE item (id INTEGER PRIMARY KEY)')
     for key in (1, 2, 3):
         db.execute('INSERT INTO item VALUES (:id)', {'id': key})
@@ -54,6 +54,7 @@ def test_falsy_limit_and_offset_emit_no_clause_on_sqlite(tmp_path, value):
         assert [row['id'] for row in query.fetch()] == [1, 2, 3]
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 @pytest.mark.postgresql

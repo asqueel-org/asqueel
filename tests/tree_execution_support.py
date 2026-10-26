@@ -26,9 +26,9 @@ def shop(execution_shop):  # noqa: F811
     invoice.column('__del_ts', dtype='DH')
     invoice.formulaColumn('double_total', dtype='N', sql_formula='$total * 2')
     invoice.aliasColumn('client_name', relation_path='@customer_id.name')
-    tree = AsqueelDb(config)
+    tree = AsqueelDb(config).session()
     try:
         tree.currentEnv.update(dict(execution.db.currentEnv))
         yield Shop(execution.backend, tree, execution.invoice_sql)
     finally:
-        tree.closeConnection()
+        tree.shared.close()

@@ -39,7 +39,11 @@ def policy_database():
             for name, dtype in [('id', 'I'), ('organization', 'I'), ('draft', 'B'),
                                 ('deleted_at', 'DHZ'), ('label', 'T')]:
                 columns.column(name, dtype=dtype)
-            yield AsqueelDb(builder)
+            shared = AsqueelDb(builder)
+            try:
+                yield shared.session()
+            finally:
+                shared.close()
         finally:
             connection.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

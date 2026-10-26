@@ -26,7 +26,7 @@ def layout_recipe(folder, item):
 
 
 def test_database_owns_graph_environment_and_lazy_lifetime():
-    db = AsqueelDb(Recipe)
+    db = AsqueelDb(Recipe).session()
     driver = db.adapter
     assert db.tables['app.item'] is db.table('app.item')
     with pytest.raises(TypeError):
@@ -45,7 +45,7 @@ def test_database_owns_graph_environment_and_lazy_lifetime():
 
 
 def test_database_and_handles_can_be_used_by_another_thread():
-    db = AsqueelDb(Recipe)
+    db = AsqueelDb(Recipe).session()
     driver = db.adapter
     table = db.table('app.item')
     query = table.query()
@@ -105,7 +105,7 @@ def test_rollback_only_session_rejects_write_before_calling_hooks(tmp_path):
                 self.calls.append(record['id'])
                 raise ValueError('domain validation failed')
     ''')
-    db = AsqueelDb(recipe)
+    db = AsqueelDb(recipe).session()
     calls = db.table('app.item').calls
     driver = db.adapter
     with pytest.raises(ValueError, match='domain validation'):

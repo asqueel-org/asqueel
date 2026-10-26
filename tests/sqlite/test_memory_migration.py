@@ -23,12 +23,13 @@ def source(filename=':memory:', schema='shop'):
 def session(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     model, table = source()
-    db = AsqueelDb(model)
+    db = AsqueelDb(model).session()
     try:
         db.migrate()
         yield db, model, table
     finally:
         db.closeConnection()
+        db.shared.close()
     assert list(tmp_path.iterdir()) == [], 'An in-memory session wrote a database file'
 
 
@@ -184,14 +185,15 @@ def test_unsupported_change_does_not_close_or_modify_memory_database(session):
 
 def test_secondary_connections_cannot_be_migrated_or_reloaded(session):
     db, model, _ = session
+    # A :memory: database lends its connection to one session: a secondary one cannot open.
     with db.tempEnv(connectionName='secondary'):
-        with pytest.raises(MigrationError, match='main SQLite connection'):
+        with pytest.raises(TransactionStateError, match='one session at a time'):
             db.migrate()
-        cursor = db.execute('SELECT 1')
-        cursor.close()
-        db.commit()
-    with pytest.raises(MigrationError, match='single main connection'):
-        db.reloadModel(model)
+        with pytest.raises(TransactionStateError, match='one session at a time'):
+            db.execute('SELECT 1')
+    with pytest.raises(TransactionStateError, match='one session at a time'):
+        db.session('secondary')
+    db.reloadModel(model)
     assert db.migration_plan()['empty']
 
 
@@ -206,28 +208,29 @@ def test_reload_does_not_accept_file_backed_databases(tmp_path):
         db.closeConnection()
 
 
-def test_two_memory_handles_are_independent_and_close_discards_data(session):
+def test_two_memory_handles_are_independent_and_keep_data_until_the_database_closes(session):
     db, model, _ = session
     db.table('shop.product').insert({'code': 'TEA', 'name': 'Tea'})
     db.commit()
-    other = AsqueelDb(model)
+    other = AsqueelDb(model).session()
     try:
         assert not other.migration_plan()['empty']
         other.migrate()
         assert rows(other.table('shop.product')) == []
     finally:
         other.closeConnection()
+        other.shared.close()
     assert rows(db.table('shop.product')) == [{'code': 'TEA', 'name': 'Tea'}]
+    # The :memory: connection belongs to the shared database: closeConnection keeps it.
     db.closeConnection()
-    assert not db.migration_plan()['empty']
-    db.migrate()
-    assert rows(db.table('shop.product')) == []
+    assert db.migration_plan()['empty']
+    assert rows(db.table('shop.product')) == [{'code': 'TEA', 'name': 'Tea'}]
 
 
 def test_main_schema_uses_memory_too(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     model, _ = source(schema='main')
-    db = AsqueelDb(model)
+    db = AsqueelDb(model).session()
     try:
         db.migrate()
         db.table('shop.product').insert({'code': 'TEA', 'name': 'Tea'})
@@ -237,6 +240,7 @@ def test_main_schema_uses_memory_too(tmp_path, monkeypatch):
         assert not list(tmp_path.iterdir())
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 

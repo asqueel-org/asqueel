@@ -102,12 +102,12 @@ Operations start a transaction implicitly. Finish the unit of work with
 when needed, a named connection. An environment scope does not conclude a
 transaction.
 
-`db = AsqueelDb(Recipe)` creates a persistent database object. Call
-`db.closeConnection()` when finished, or run the work inside `with session(db):`,
-which calls it at exit; it rolls back pending work and never commits. The
-database stays usable. The API is synchronous. The database can be shared
-between threads; each thread must close its own connections, including when
-work raises an exception.
+`shared = AsqueelDb(Recipe)` creates the database object shared by every call:
+model and configuration. `shared.session()` returns the `SessionDb` of one
+call: connection, environment and transaction. Run the work inside
+`with shared.session() as db:`, which closes the session at exit; closing
+rolls back pending work and never commits. The API is synchronous. Each
+thread and each `contextvars` context is a separate call with its own sessions.
 
 ## A model is not a migration
 

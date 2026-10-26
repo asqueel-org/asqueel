@@ -60,8 +60,8 @@ logical names without `$`. `delete` must remove exactly one row. See
 ## Lifecycle and context
 
 ```python
-db = AsqueelDb(Recipe)
-try:
+shared = AsqueelDb(Recipe)
+with shared.session() as db:
     with db.tempEnv(organization=10):     # Context only; does not open a connection.
         try:
             db.table("app.document").insert({"id": 100, "title": "Example"})
@@ -69,18 +69,16 @@ try:
         except Exception:
             db.rollback()
             raise
-
-finally:
-    db.closeConnection()
+shared.close()
 
 ```
 
 Use `db.commit()` / `db.rollback()` for explicit completion.
-`db.closeConnection()` rolls back what was not committed; the database stays
-usable. Outside a request, `with session(db, **env):` clears the context at
-entry and calls `closeConnection()` at exit.
-Even reads open transactions. Nested tempEnv scopes are supported; savepoints are not. A database can be shared
-between threads; each worker must release its own connections.
+`AsqueelDb` is shared by every call; `shared.session(**env)` returns the
+`SessionDb` of the current call, with its own connection and environment.
+Closing a session rolls back what was not committed.
+Even reads open transactions. Nested tempEnv scopes are supported; savepoints are not.
+See [sessions](transactions.md#sessions).
 
 ## Defaults that matter
 

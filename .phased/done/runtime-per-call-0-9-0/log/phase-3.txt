@@ -1,0 +1,12 @@
+✓ La Phase 3 è completata: lo split tra `AsqueelDb` e `SessionDb` è nel commit `c71064b` e la fase è segnata `[x]` nel piano.
+
+- **Done verificato:**
+  - `tests/application_connections`: 108 passed. Comprende i 20 contract test di `test_session_db.py` e gli 8 file riscritti.
+  - La grep su `threading|current_thread|_ThreadState|_env_local|_check_connection_owner` in `src/asqueel` non trova nulla, con `hosting.py` escluso.
+  - `ruff check src tests` è pulito.
+- **Da guardare:**
+  - Per scrivere la cache delle colonne `formulaColumn_*`, `virtual_columns` sceglie la sessione corrente della call tramite la `ContextVar`. Una sessione che compila fuori da `with`, mentre un'altra della stessa call è corrente, usa l'ambiente di quell'altra. È annotato come `> Review:`.
+  - Ho toccato `docs/design/evidence/deferred_queue_oracle.py`, che non era tra i file del piano. Il suo backend ora usa `.session()`, perché il test dell'oracolo dipende da quel file.
+  - Le asserzioni per-thread e quelle con `tempEnv(connectionName=...)` sono diventate equivalenti per sessione e per call. La mappatura test per test è in `notes.md`.
+
+Fuori da `tests/application_connections` e `tests/application_config` la suite è rossa, come il piano prevede fino alla Phase 5. `hosting.py` e la funzione `session` di modulo restano rotti fino alla Phase 4, che è la prossima.

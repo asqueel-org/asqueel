@@ -29,7 +29,7 @@ def item_columns(path):
 
 def test_plan_changes_nothing_and_migrate_creates_the_tables(tmp_path):
     path = tmp_path / 'sample.db'
-    db = AsqueelDb(recipe(path))
+    db = AsqueelDb(recipe(path)).session()
     try:
         plan = db.migration_plan()
         assert 'CREATE TABLE' in plan['sql']
@@ -43,6 +43,7 @@ def test_plan_changes_nothing_and_migrate_creates_the_tables(tmp_path):
         assert [dict(row) for row in db.table('app.item').query(columns='$id, $name').fetch()] == [{'id': 1, 'name': 'first'}]
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_migrate_on_an_up_to_date_database_returns_an_empty_plan(tmp_path):
@@ -56,7 +57,7 @@ def test_migrate_on_an_up_to_date_database_returns_an_empty_plan(tmp_path):
 
 def test_a_database_declared_in_a_host_configuration_migrates(tmp_path):
     path = tmp_path / 'chat.db'
-    db = AsqueelDb(mounted_node(path))
+    db = AsqueelDb(mounted_node(path)).session()
     try:
         db.migrate()
         db.table('chat.message').insert({'id': 1, 'text': 'ciao'})
@@ -64,6 +65,7 @@ def test_a_database_declared_in_a_host_configuration_migrates(tmp_path):
         assert [dict(row) for row in db.table('chat.message').query(columns='$text').fetch()] == [{'text': 'ciao'}]
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
@@ -87,7 +89,7 @@ def test_a_change_sqlite_cannot_apply_is_refused_before_any_ddl(tmp_path):
 
 def test_an_in_memory_sqlite_database_can_be_migrated_without_files(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    db = AsqueelDb(recipe(':memory:'))
+    db = AsqueelDb(recipe(':memory:')).session()
     try:
         plan = db.migration_plan()
         assert 'CREATE TABLE' in plan['sql']
@@ -99,6 +101,7 @@ def test_an_in_memory_sqlite_database_can_be_migrated_without_files(tmp_path, mo
         assert list(tmp_path.iterdir()) == []
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_a_model_without_tables_cannot_be_migrated(tmp_path):

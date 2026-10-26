@@ -76,7 +76,7 @@ Localization services belong to the application-linked layer; business-date
 and locale context are available to queries without requiring a web page.
 
 Defaults do not populate `currentEnv`. `tempEnv` restores overridden values,
-including after exceptions, using the scope rules above. Each thread owns its
+including after exceptions, using the scope rules above. Each `SessionDb` owns its
 values. Compiled environment bindings capture the effective date/locale and
 reject execution when those values change, including a default date crossing
 midnight. Explicit query parameters take precedence over environment values.
@@ -113,8 +113,8 @@ mapping. The snapshot also resolves the workdate/locale defaults for
 compilation. Snapshot nested values are copied.
 
 Custom values used in snapshots must support `deepcopy`. The mutable application
-mapping and its temporary scopes belong to the calling thread. Each thread gets
-its own mapping; do not pass that mutable mapping to another thread or async task.
+mapping and its temporary scopes belong to one `SessionDb`. Each session gets
+its own mapping; do not pass that mutable mapping to another session.
 
 ## Reuse a query in another environment
 
@@ -164,19 +164,19 @@ except Exception:
 Both operations share one transaction. Their partition columns are filled using
 their respective current organization. Switching context does not switch databases.
 The model graph is shared; mutable application environments and named connections
-are isolated per thread. Concurrent async tasks within one thread are unsupported.
+belong to each `SessionDb`.
 
 ## Compile without a database
 
 `QueryCompiler(model, adapter, environment={...})` compiles against a plain
-mapping of defaults. Execution needs an `AsqueelDb`: its compiler reads the
-database's own `currentEnv`.
+mapping of defaults. Execution needs a `SessionDb`: its compiler reads the
+session's own `currentEnv`.
 
 ## Application-owned request boundary
 
 A web request, network handler or job instance can expose a `db` property which
-returns a shared AsqueelDb and initializes the current worker’s context only on
-first access. For example, this application class uses existing DB methods:
+returns the main `SessionDb` of the call, opened on first access with the
+request's values:
 
 ```python
 class Request:
@@ -188,30 +188,22 @@ class Request:
     @property
     def db(self):
         if self._db is None:
-            self._db = self.shared_db
-            self._db.clearCurrentEnv()
-            self._db.updateEnv(**self.values)
+            self._db = self.shared_db.session(**self.values)
         return self._db
 
     def cleanup(self):
-        try:
-            self.shared_db.closeConnection()
-        finally:
-            self.shared_db.clearCurrentEnv()
+        if self._db is not None:
+            self._db.close()
 ```
 
-The request dispatcher must call cleanup on success and failure, before reusing
-that worker for another request. Business code commits explicitly; cleanup rolls
-back pending work and releases all named connections in that thread. It does not
-undo a successful commit. Preserve the original application exception if cleanup
-also fails. Repeated `request.db` access does not reset context during the request.
+The request dispatcher must call cleanup on success and failure. Business code
+commits explicitly; cleanup rolls back pending work and closes the session's
+connection. It does not undo a successful commit. Preserve the original
+application exception if cleanup also fails. Repeated `request.db` access
+returns the same session. A session opened by
+`tempEnv(connectionName=...)` closes with the session that opened it.
 
-This is an application pattern. Outside a request,
-[`session(db, **env)`](transactions.md#sessions) gives the same boundary: entry
-clears the context and applies the values, exit calls `closeConnection()`. A
-nested helper belonging to the same request should reuse its initialized
-context, not clear it again. A request instance is owned by one synchronous
-worker; async task isolation is not supplied by this pattern.
-`closeConnection()` permits subsequent requests to reuse the DB.
+This is an application pattern; `AsqueelDbMixin` implements it for hosts. See
+[sessions](transactions.md#sessions).
 `clearCurrentEnv()` alone does not roll back work; it drops the pending
 deferred callbacks, which live in `currentEnv`.

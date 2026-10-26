@@ -31,7 +31,7 @@ def test_composite_fk_is_applied_and_enforced_by_postgres_migration():
             child.composites().compositeColumn('pair', columns='ax,ay').relation(
                 's.parent', foreign_key=True, onDelete_sql='cascade')
 
-    db = AsqueelDb(Config)
+    db = AsqueelDb(Config).session()
     try:
         assert not db.migrate()['empty']
         db.table('s.parent').insert({'x': 1, 'y': 2})

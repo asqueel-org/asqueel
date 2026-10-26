@@ -160,7 +160,7 @@ class DbTableObj(DbModelObj):
         path = self.pkg.attributes.get('path')
         table_class = layout_table_class(path, self.pkg.name, self.name) if path else SqlTable
         self._check_table_methods(table_class)
-        self.dbtable = table_class(self)
+        self.dbtable = table_class(self, self.db)
         self._relation_tree = None
 
     def _check_table_methods(self, table_class):
@@ -219,11 +219,15 @@ class DbTableObj(DbModelObj):
         if not methods:
             return container
         key = '_virtual_columns_' + self.fullname.replace('.', '_')
-        env = self.db.currentEnv
+        # The session compiling or writing in this call (set by its compiler and
+        # its write cycle), else the shared database: its table and environment.
+        session = self.db._current_session.get()
+        db = self.db if session is None or session._closed else session
+        env = db.currentEnv
         if key in env:
             return env[key]
         for method in methods:
-            declared = getattr(self.dbtable, method)()
+            declared = getattr(db.table(self.fullname), method)()
             for attributes in declared if isinstance(declared, list) else [declared]:
                 attributes = dict(attributes)
                 name = attributes.pop('name')

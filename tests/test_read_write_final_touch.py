@@ -130,25 +130,22 @@ def test_insert_leaves_a_pkey_with_sql_default_to_the_database(db):
     assert count(db, 'app.numbered', where='$id = 100') == 1
 
 
-def failing_close():
+def failing_close(connection):
+    connection.close()
     raise RuntimeError('cleanup')
 
 
 def test_session_keeps_the_body_error_when_cleanup_also_fails(db):
-    try:
-        with pytest.raises(ValueError, match='body') as caught:
-            with session(db):
-                db.closeConnection = failing_close
-                raise ValueError('body')
-    finally:
-        del db.closeConnection
+    with pytest.raises(ValueError, match='body') as caught:
+        with session(db) as opened:
+            opened.execute('SELECT 1').close()
+            opened.adapter.close = failing_close
+            raise ValueError('body')
     assert caught.value.__notes__ == ['Connection cleanup failed: RuntimeError']
 
 
 def test_session_propagates_a_cleanup_failure_after_a_successful_body(db):
-    try:
-        with pytest.raises(RuntimeError, match='cleanup'):
-            with session(db):
-                db.closeConnection = failing_close
-    finally:
-        del db.closeConnection
+    with pytest.raises(RuntimeError, match='cleanup'):
+        with session(db) as opened:
+            opened.execute('SELECT 1').close()
+            opened.adapter.close = failing_close

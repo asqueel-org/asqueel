@@ -116,7 +116,7 @@ def layout_database(tmp_path):
     root = config.source.db('layout', implementation='sqlite')
     root.connection('main', database=str(tmp_path / 'layout.sqlite'))
     root.packages().package('sales', path=str(folder))
-    return folder, AsqueelDb(config)
+    return folder, AsqueelDb(config).session()
 
 
 def test_the_package_keeps_its_path_in_the_source(tmp_path):
@@ -127,6 +127,7 @@ def test_the_package_keeps_its_path_in_the_source(tmp_path):
         assert [node.attr.get('path') for node in packages] == [str(folder)]
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_the_table_class_comes_from_the_layout_module(tmp_path):
@@ -139,6 +140,7 @@ def test_the_table_class_comes_from_the_layout_module(tmp_path):
         assert type(customer).__name__ == 'customer'
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_a_composite_pkey_stays_logical_on_the_live_table():

@@ -19,11 +19,12 @@ def database(tmp_path):
     table.column('id', dtype='L')
     table.column('name', dtype='T')
     table.column('ilike_label', dtype='T')
-    db = AsqueelDb(config)
+    db = AsqueelDb(config).session()
     try:
         yield db
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 @pytest.mark.parametrize('operator', ['ILIKE', 'ilike', 'IlIkE', 'NOT ILIKE'])
