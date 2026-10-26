@@ -53,7 +53,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             os.makedirs(os.path.dirname(os.path.abspath(name)), exist_ok=True)
         # The driver's own legacy transaction control, as gnrsqlite: a deferred
         # BEGIN before the first INSERT/UPDATE/DELETE; reads open no transaction.
-        connection = sqlite3.connect(name, isolation_level='DEFERRED',
+        connection = sqlite3.connect(name, isolation_level='DEFERRED', check_same_thread=False,
                                      detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES, **kwargs)
         try:
             # gnrsqlite registers this function for its ~* -> REGEXP translation.

@@ -170,7 +170,8 @@ def live(request, tmp_path):
     else:
         schema = 'wc_' + uuid4().hex[:8]
         source, prefix = recipe('postgres', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
-    database = bind(source)
+    shared = bind(source)
+    database = shared.session()
     try:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')
@@ -186,6 +187,7 @@ def live(request, tmp_path):
                 database.commit()
     finally:
         database.closeConnection()
+        shared.close()
 
 
 def rows(db, sql):

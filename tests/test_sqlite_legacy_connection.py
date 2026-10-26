@@ -48,7 +48,7 @@ def _rows(db, statement):
 
 
 def _migrated(path, options=None):
-    db = AsqueelDb(_recipe(path, options))
+    db = AsqueelDb(_recipe(path, options)).session()
     db.migrate()
     return db
 
@@ -60,6 +60,7 @@ def test_each_schema_is_a_schema_named_file_in_the_database_folder(tmp_path):
         db.commit()
     finally:
         db.closeConnection()
+        db.shared.close()
     assert (tmp_path / 'sample.db').exists()
     assert (tmp_path / 'app.db').exists()
     assert not (tmp_path / 'sample_app.db').exists()
@@ -78,6 +79,7 @@ def test_a_missing_database_folder_is_created(tmp_path):
         db.commit()
     finally:
         db.closeConnection()
+        db.shared.close()
     assert (path.parent / 'app.db').exists()
 
 
@@ -90,12 +92,13 @@ def test_foreign_keys_are_on_by_default(tmp_path):
             db.commit()
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_the_foreign_keys_connection_option_switches_them_off(tmp_path):
     path = tmp_path / 'sample.db'
-    _migrated(path).closeConnection()
-    db = AsqueelDb(_recipe(path, options={'foreignKeys': False}))
+    _migrated(path).shared.close()
+    db = AsqueelDb(_recipe(path, options={'foreignKeys': False})).session()
     try:
         assert _rows(db, 'PRAGMA foreign_keys') == [(0,)]
         db.table('app.invoice').insert({'id': 1, 'customer_id': 99})
@@ -103,6 +106,7 @@ def test_the_foreign_keys_connection_option_switches_them_off(tmp_path):
         assert _rows(db, 'SELECT customer_id FROM app.invoice') == [(99,)]
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_the_foreign_keys_option_is_refused_on_postgresql_before_connecting():
@@ -115,11 +119,11 @@ def test_the_foreign_keys_option_is_refused_on_postgresql_before_connecting():
     db = None
     try:
         with pytest.raises(ValueError, match='foreignKeys'):
-            db = AsqueelDb(WithOption)
+            db = AsqueelDb(WithOption).session()
             db.execute('SELECT 1').close()
     finally:
         if db is not None:
-            db.closeConnection()
+            db.shared.close()
 
 
 def test_vacuum_rebuilds_every_attached_schema(tmp_path):
@@ -136,6 +140,7 @@ def test_vacuum_rebuilds_every_attached_schema(tmp_path):
         assert _rows(db, 'PRAGMA app.freelist_count') == [(0,)]
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_declared_sql_types_are_the_legacy_ones(tmp_path):
@@ -144,6 +149,7 @@ def test_declared_sql_types_are_the_legacy_ones(tmp_path):
         types = {row[1]: row[2].lower() for row in _rows(db, "PRAGMA app.table_info('item')")}
     finally:
         db.closeConnection()
+        db.shared.close()
     assert types['name'].startswith('character varying')
     assert types['code'].startswith('character') and not types['code'].startswith('character varying')
     assert types['stamp'] == 'timestamp'

@@ -8,7 +8,7 @@ from tests.unit_of_work import empty_database
 
 
 def test_adapter_is_loaded_into_the_same_runtime():
-    db = empty_database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite').session()
     try:
         db.execute('CREATE TABLE item (id INTEGER PRIMARY KEY, value TEXT)')
         db.commit()
@@ -20,22 +20,24 @@ def test_adapter_is_loaded_into_the_same_runtime():
         db.commit()
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 @pytest.mark.parametrize('sql', ["SELECT '50% :fake' AS label, :value AS value",
                                'SELECT :value AS `:identifier`',
                                'SELECT :value AS [:identifier]'])
 def test_binding_protects_sqlite_literals_and_identifiers(sql):
-    db = empty_database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite').session()
     try:
         result = db.execute(sql, {'value': "O'Reilly"})
         assert "O'Reilly" in result.fetchall()[0].values()
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
-    db = empty_database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite').session()
     driver = db.adapter
     with pytest.raises(ValueError, match='profile'):
         db.execute(CompiledQuery('SELECT 1'))
@@ -48,6 +50,7 @@ def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
     assert len(rows) == 1
     assert rows[0][0] is None
     db.closeConnection()
+    db.shared.close()
 
 
 @pytest.mark.parametrize('sql,columns,message', [
@@ -56,17 +59,18 @@ def test_invalid_profile_does_not_connect_and_missing_binding_becomes_null():
     ('CREATE TABLE item (id integer)', (ResultColumn('id'),), 'without a result set'),
 ])
 def test_result_metadata_failures_roll_back(sql, columns, message):
-    db = empty_database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite').session()
     try:
         with pytest.raises(ValueError, match=message):
             db.execute(CompiledQuery(sql, columns=columns, dialect='sqlite', binding='sqlite_named'))
         assert not db._connection_state['pending']
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_native_foreign_key_failure_rolls_back_prior_work():
-    db = empty_database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite').session()
     try:
         db.execute('CREATE TABLE parent (id integer primary key)')
         db.execute('CREATE TABLE child (id integer primary key, parent_id integer references parent(id))')
@@ -77,10 +81,11 @@ def test_native_foreign_key_failure_rolls_back_prior_work():
         assert db.execute('SELECT * FROM parent').fetchall() == []
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_direct_prepared_query_preserves_parameters_and_checks_metadata():
-    db = empty_database(':memory:', implementation='sqlite')
+    db = empty_database(':memory:', implementation='sqlite').session()
     driver = db.adapter
     metadata = (ResultColumn('value', 'T', 'app.item.value'),)
     from dataclasses import replace
@@ -90,3 +95,4 @@ def test_direct_prepared_query_preserves_parameters_and_checks_metadata():
         assert [dict(row) for row in db.execute(query).fetchall()] == [{'value': 'data'}]
     finally:
         db.closeConnection()
+        db.shared.close()

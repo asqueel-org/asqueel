@@ -1,0 +1,11 @@
+✓ Phase 2 completata: asqueel#19 — `%` fuori dai binding su PostgreSQL. Commit `f6e7cc6`.
+
+- **Modifica:** su PostgreSQL `prepareSqlText` raddoppia ogni `%` fuori da un binding, anche quando lo statement non ha parametri. psycopg legge quindi `'a%'` come `a%`.
+- **Test:**
+  - i 6 contract test della fase passano;
+  - i due test che erano xfail ora passano senza marker;
+  - full suite: 5470 passed, 0 failed;
+  - parte non-postgresql: 4063 passed, 12 xfailed;
+  - ruff pulito.
+- **Test esistenti cambiati:** 7 test fallivano dopo la modifica. Ognuno verificava la vecchia regola: su PostgreSQL l'autore dell'SQL scriveva `%%` a mano. Il piano ribalta questa regola senza nominare quei test. Ho riscritto le loro assertion sulla nuova regola, senza rimuovere nessun test. L'elenco è in `notes.md` sotto `## Phase 2`, segnalato anche come `> Review:` nel piano.
+- **Effetto sulle applicazioni:** l'SQL che scrive ancora `%%` su PostgreSQL ora restituisce `%%`. Questa voce va nelle release notes della Phase 6.

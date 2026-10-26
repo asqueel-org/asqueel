@@ -51,7 +51,7 @@ def application(tmp_path):
                 audit.column('id', dtype='I')
                 audit.column('item_id', dtype='I').relation('app.item.id', foreign_key=True)
 
-        db = AsqueelDb(Recipe)
+        db = AsqueelDb(Recipe).session()
 
         def rows(table):
             return observer.execute(sql.SQL('SELECT * FROM {}.{} ORDER BY id').format(
@@ -61,6 +61,7 @@ def application(tmp_path):
             yield db, rows
         finally:
             db.closeConnection()
+            db.shared.close()
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 
 
@@ -212,19 +213,20 @@ def test_shared_database_threads_have_independent_postgres_connections(applicati
     barrier = Barrier(2)
 
     def worker(key, commit):
+        session = db.shared.session()
         try:
-            db.updateEnv(worker=key)
-            with db.tempEnv(connectionName='worker'):
-                db.table('app.item').insert({'id': key, 'name': f'worker {key}'})
+            session.updateEnv(worker=key)
+            with session.tempEnv(connectionName='worker'):
+                session.table('app.item').insert({'id': key, 'name': f'worker {key}'})
                 barrier.wait(timeout=10)
-                assert db.currentEnv['worker'] == key
+                assert session.currentEnv['worker'] == key
                 if commit:
-                    with completed(db):
+                    with completed(session):
                         pass  # Includes the insert and its audit hook already pending.
                 else:
-                    db.rollback()
+                    session.rollback()
         finally:
-            db.closeConnection()
+            session.closeConnection()
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         futures = [pool.submit(worker, 301, True), pool.submit(worker, 302, False)]

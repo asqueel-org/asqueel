@@ -1,0 +1,5 @@
+✓ Phase 6 completata: guide, release notes, versione (commit `b132dd5`).
+
+- **Verifiche eseguite:** `sphinx -E -W` pulito. `asqueel.__version__` vale `0.9.0`. Full suite: 5497 passed / 45 skipped / 18 xfailed, 0 failed. ruff pulito. Nessun tag, nessun rilascio su PyPI.
+- **Bug segnalato nel `> Review:` del piano:** con SQLite `:memory:`, le tabelle create da `migrate()` si perdono a `closeConnection()` o alla chiusura della session. La causa è che `migration.py` apre una connessione propria invece di usare quella prestata dall'`AsqueelDb`. Questo comportamento è documentato così com'è, perché `migration.py` è bloccato dal `Must not break:`.
+- **Fuori dai Files della fase:** i documenti di design in italiano sotto `docs/*.md` descrivono ancora lo stato per-thread.

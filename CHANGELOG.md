@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.9.0 — Runtime per call
+
+- `AsqueelDb` holds the model and the configuration shared by every call.
+  `SessionDb`, exported from `asqueel`, holds the connection, `currentEnv`,
+  trigger stack and transaction state of one call (#56).
+- `db.session(name=None, *, target='main', **env)` returns the `SessionDb` of
+  the current call: the main one (`'_main_connection'`) or the one called
+  `name`, connected to the configured connection `target`. `SessionDb.close()`
+  rolls back and closes it; a `SessionDb` is a context manager closing at exit.
+  `AsqueelDb.close()` closes every open session of the database.
+- The shared `AsqueelDb` holds no connection: `execute`, `commit`, `rollback`
+  and table writes on it raise `TransactionStateError`. A closed `SessionDb`
+  refuses any use; concurrent use of one `SessionDb` raises.
+- Per-thread state is removed: the current session of a call lives in a
+  `ContextVar` of the `AsqueelDb`, so each thread and each `contextvars`
+  context is a separate call. A `SessionDb` may move between threads of its
+  call.
+- A clean close of a session with uncommitted work rolls back and logs a
+  warning on the `asqueel.application` logger; a close by exception rolls back
+  without it.
+- `closeConnection()` keeps its meaning on a `SessionDb`: roll back, close the
+  connection, the next statement opens a new one.
+- `tempEnv(connectionName='x')` runs the block's statements on the connection
+  of the call's session `x`, opened on first use with `target='main'`; a
+  configured connection is opened with `db.session('x', target='x')`.
+- SQLite `:memory:`: one session at a time; a second open session raises
+  `TransactionStateError`. SQLite connects with `check_same_thread=False`.
+- `AsqueelDbMixin`: `owner.db` and `owner.get_db(name)` return the main
+  `SessionDb` of the call; `release_databases()` closes the sessions the owner
+  opened in that call. `taken_databases` lists `SessionDb` instances.
+- pgbouncer is supported in `session` pool mode only.
+- Deprecated: the module-level `asqueel.session(db, **env)`, now an alias of
+  `db.session(**env)`, kept for this release only.
+- PostgreSQL: every `%` outside a binding is doubled before execution, also
+  when the statement has no parameters (#19). Application SQL that wrote `%%`
+  to obtain a literal `%` must now write `%`.
+- An update whose record has a key named `__pkey__N` raises `ValueError`
+  instead of binding it over the primary key (#24).
+
 ## 0.8.0 — Legacy grammar names and TYTX sources
 
 - A recipe source is saved with `recipe.source.to_tytx()` and loaded with

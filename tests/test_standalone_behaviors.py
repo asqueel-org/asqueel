@@ -1,5 +1,6 @@
 """Standalone behaviors through the current public APIs, on both databases."""
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import Context
 from copy import deepcopy
 from threading import Barrier
 
@@ -209,15 +210,13 @@ def test_concurrent_allocations_serialize(implementation, tmp_path, declare):
         db.commit()
         barrier = Barrier(2)
         def insert_one():
-            try:
+            with db.shared.session() as own:
                 barrier.wait(timeout=10)
-                item = db.table('app.item').insert(dict(values))
-                db.commit()
+                item = own.table('app.item').insert(dict(values))
+                own.commit()
                 return item['_row_count' if declare is ranked else '_relidx']
-            finally:
-                db.closeConnection()
         with ThreadPoolExecutor(2) as pool:
-            results = list(pool.map(lambda _: insert_one(), range(2)))
+            results = list(pool.map(lambda _: Context().run(insert_one), range(2)))
         assert sorted(results) == [1, 2]
 
 
@@ -229,19 +228,18 @@ def test_concurrent_opposing_moves_cannot_create_cycle(implementation, tmp_path)
         barrier = Barrier(2)
         def move(pair):
             child, parent = pair
-            try:
-                barrier.wait(timeout=10)
-                db.table('app.item').update(dict(child, owner_id=parent['id']), old_record=deepcopy(child))
-                db.commit()
-                return True
-            except Exception as error:
-                db.rollback()
-                assert 'cannot be moved under itself' in str(error)
-                return False
-            finally:
-                db.closeConnection()
+            with db.shared.session() as own:
+                try:
+                    barrier.wait(timeout=10)
+                    own.table('app.item').update(dict(child, owner_id=parent['id']), old_record=deepcopy(child))
+                    own.commit()
+                    return True
+                except Exception as error:
+                    own.rollback()
+                    assert 'cannot be moved under itself' in str(error)
+                    return False
         with ThreadPoolExecutor(2) as pool:
-            results = list(pool.map(move, [(a, b), (b, a)]))
+            results = list(pool.map(lambda pair: Context().run(move, pair), [(a, b), (b, a)]))
         assert sorted(results) == [False, True]
 
 
@@ -307,7 +305,7 @@ def test_generated_columns_on_sqlite_memory():
     root = source.source.db('memory', implementation='sqlite')
     root.connection('main', database=':memory:')
     generated(root.packages().package('app', sqlschema='main', sqlprefix=False))
-    db = AsqueelDb(source)
+    db = AsqueelDb(source).session()
     try:
         db.migrate()
         assert db.table('app.item').insert({'value': 3})['computed'] == 6
@@ -315,6 +313,7 @@ def test_generated_columns_on_sqlite_memory():
         assert db.migration_plan()['empty']
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_partition_refuses_cross_scope_before_hooks(implementation, tmp_path):

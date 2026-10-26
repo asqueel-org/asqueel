@@ -22,8 +22,8 @@ def test_failed_callback_retry_and_fresh_work(tmp_path, backend, stage, callback
                 database = root.db(implementation='postgres', conninfo=postgres_dsn())
             database.packages().package(schema, sqlschema=schema, sqlprefix=False).tables().table('event', pkey='id').columns().column('id', dtype='I')
 
-    db = AsqueelDb(Configuration)
-    observer = AsqueelDb(Configuration)
+    db = AsqueelDb(Configuration).session()
+    observer = AsqueelDb(Configuration).session()
     trace = []
     error = ValueError('callback failed')
 

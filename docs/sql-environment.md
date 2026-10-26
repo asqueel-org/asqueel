@@ -57,9 +57,10 @@ propagano agli altri task. Eccezioni e cancellazione async attraversano il
 
 ## Esecuzione sincrona
 
-Il runtime opera sul thread chiamante. Non copia né propaga il contesto a
-worker. ContextVar resta utile per scope annidati e isolamento del contesto,
-ma non rende le Bag thread-safe e non introduce operazioni async.
+Il runtime opera sulla `SessionDb` della chiamata. Un worker che usa la stessa
+chiamata riceve il contesto copiato (`contextvars.copy_context()`). ContextVar
+resta utile per scope annidati e isolamento del contesto, ma non rende le Bag
+thread-safe e non introduce operazioni async.
 
 ## Integrazione con database e query compilate
 

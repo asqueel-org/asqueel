@@ -25,7 +25,7 @@ def db(request, tmp_path_factory):
             else {'database': str(tmp_path_factory.mktemp('sq_methods') / 'test.db')}
         ),
     )
-    db = AsqueelDb(config)
+    db = AsqueelDb(config).session()
     try:
         install(db)
         quote = db.adapter.adaptSqlName
@@ -51,7 +51,7 @@ def db(request, tmp_path_factory):
                 db.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
                 db.commit()
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 def test_values_nested_scope_and_query_reuse(db):

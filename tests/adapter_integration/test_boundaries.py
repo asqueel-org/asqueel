@@ -42,7 +42,7 @@ def test_data_and_structure_share_sql_quoting_but_not_driver_escaping(name):
     quoted = PostgresAdapter(None).adaptSqlName(name)
     assert quoted == PgWriter.quote_identifier(name)
     prepared = PostgresAdapter(None).prepare_sql('SELECT ' + quoted, {}, {})
-    assert prepared.sql == 'SELECT ' + quoted
+    assert prepared.sql == 'SELECT ' + quoted.replace('%', '%%')
 
 
 def test_no_db_connection_for_binding():
@@ -59,13 +59,13 @@ def test_incompatible_statement_is_rejected_before_connection(field, value, monk
     monkeypatch.setattr(PostgresAdapter, 'connect', connect)
 
     def scenario():
-        db = empty_database(implementation='postgres')
+        db = empty_database(implementation='postgres').session()
         try:
             query = CompiledQuery('SELECT 1', **{field: value})
             with pytest.raises(ValueError):
                 db.execute(query)
         finally:
-            db.closeConnection()
+            db.shared.close()
     scenario()
 
 
@@ -90,7 +90,7 @@ def test_postgres_compiler_keeps_existing_compiled_query_binding_contract():
     table.column('name')
     query = QueryCompiler(AsqueelDb(source).model, PostgresAdapter(None)).select(
         'app.sample', '$name', where='$name = :value', sqlparams={'value': '50%'})
-    assert '"50%"' in query.sql
+    assert '"50%%"' in query.sql
     assert '%(value)s' in query.sql
     assert query.binding == 'psycopg_named'
     assert query.dialect == 'postgres'

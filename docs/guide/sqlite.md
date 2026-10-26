@@ -35,8 +35,8 @@ its folder is created. Two databases in the same folder share the files of the
 schemas with the same name: give each database its own folder,
 and do not name a main file after one of its schemas. Physical
 schema overrides are honored. Attached schema names currently require simple
-identifiers; `temp` is reserved. `:memory:` is supported for isolated tests, but
-each named/thread connection has a separate in-memory database.
+identifiers; `temp` is reserved. `:memory:` is supported for isolated tests, used by one session at a
+time; see [SQLite `:memory:`](transactions.md#sqlite-memory).
 
 ```console
 asqueel check --config /path/to/configure.py

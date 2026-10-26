@@ -55,7 +55,7 @@ def database(request, tmp_path):
             t = tables.table('audit', pkey='id').columns()
             t.column('id', dtype='I')
             t.column('name', dtype='T')
-    db = IntegrationDb(Recipe)
+    db = IntegrationDb(Recipe).session()
     if dsn:
         db.execute(f'CREATE SCHEMA "{physical_schema}"')
     for table in ('item', 'audit'):
@@ -70,6 +70,7 @@ def database(request, tmp_path):
             db.execute(f'DROP SCHEMA "{physical_schema}" CASCADE')
             db.commit()
         db.closeConnection()
+        db.shared.close()
 
 
 def test_normal_and_raw_insertion_share_tracking_and_nested_execution(database):
@@ -125,7 +126,6 @@ def test_integration_hook_error_blocks_commit_for_normal_and_raw(database):
 def test_direct_sql_uses_driver_binding_and_same_environment(database):
     db = database
     with db.tempEnv(user="O'Reilly 50%"):
-        literal = r"\:fake 50%%" if db.adapter.dialect == 'postgres' else r"\:fake 50%"
-        result = db.execute(f"SELECT :env_user AS username, '{literal}' AS literal")
+        result = db.execute(r"SELECT :env_user AS username, '\:fake 50%' AS literal")
         assert [dict(row) for row in result.fetchall()] == [{'username': "O'Reilly 50%", 'literal': ':fake 50%'}]
         db.commit()

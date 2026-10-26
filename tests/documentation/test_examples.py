@@ -44,7 +44,7 @@ def test_downloadable_tutorial(dialect):
 def test_application_query_guide_against_tutorial_data():
     tutorial = runpy.run_path(str(GUIDE / '_examples' / 'shop_tutorial.py'))
     schema = 'genro_doc_queries_' + uuid4().hex
-    db = tutorial['open_shop'](postgres_dsn(), schema)
+    db = tutorial['open_shop'](postgres_dsn(), schema).session()
     try:
         tutorial['create_tables'](db)
         try:
@@ -63,7 +63,7 @@ def test_application_query_guide_against_tutorial_data():
             with completed(db):
                 db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 @pytest.mark.postgresql
@@ -76,7 +76,7 @@ def test_quickstart_as_published(monkeypatch):
 def test_application_environment_examples():
     tutorial = runpy.run_path(str(GUIDE / '_examples' / 'shop_tutorial.py'))
     schema = 'genro_doc_env_' + uuid4().hex
-    db = tutorial['open_shop'](postgres_dsn(), schema)
+    db = tutorial['open_shop'](postgres_dsn(), schema).session()
     try:
         tutorial['create_tables'](db)
         try:
@@ -91,4 +91,4 @@ def test_application_environment_examples():
             with completed(db):
                 db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
     finally:
-        db.closeConnection()
+        db.shared.close()

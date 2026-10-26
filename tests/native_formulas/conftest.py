@@ -35,7 +35,8 @@ def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
         else {'database': str(tmp_path / 'formulas.db')}))
     # Preserve physical schema names too: authored SQL in the legacy model
     # refers directly to invc.invc_invoice_note. Isolation is per database.
-    db = AsqueelDb(config, environment={'current_invc_state': state} if state else None)
+    shared = AsqueelDb(config, environment={'current_invc_state': state} if state else None)
+    db = shared.session()
     schemas = sorted({t.sqlschema for t in db.model.tables.values()})
     try:
         if backend == 'postgres':
@@ -64,7 +65,7 @@ def database(backend, tmp_path, monkeypatch, *, dsn=None, state=None):
             yield db
     finally:
         db.rollback()
-        db.closeConnection()
+        shared.close()
 
 
 def pg_database(tmp_path_factory, *, state=None):

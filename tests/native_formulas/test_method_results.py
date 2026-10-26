@@ -67,7 +67,7 @@ def rule_db(request, tmp_path):
     try:
         if admin is not None:
             admin.execute(sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(schema)))
-        db = AsqueelDb(config)
+        db = AsqueelDb(config).session()
         try:
             target = f'"{schema}"."item"'
             db.execute(f'CREATE TABLE {target} (id BIGINT, amount NUMERIC, gate TEXT, flag BOOLEAN)')
@@ -80,7 +80,7 @@ def rule_db(request, tmp_path):
             finally:
                 db.rollback()
         finally:
-            db.closeConnection()
+            db.shared.close()
     finally:
         if admin is not None:
             try:

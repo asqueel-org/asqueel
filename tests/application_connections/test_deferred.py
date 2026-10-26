@@ -24,7 +24,7 @@ class Table:
 def database(folder, item_methods):
     """``Recipe`` whose ``app.item`` has the methods ``item_methods``."""
     item = ITEM + textwrap.indent(textwrap.dedent(item_methods), '    ')
-    return AsqueelDb(layout_recipe(folder, item))
+    return AsqueelDb(layout_recipe(folder, item)).session()
 
 
 def test_hooks_can_register_both_queues_and_deferred_errors(tmp_path):
@@ -55,7 +55,7 @@ def test_hooks_can_register_both_queues_and_deferred_errors(tmp_path):
 
 
 def test_precommit_failure_rolls_back_atomic_scope_and_clears_callbacks():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     events = []
 
@@ -78,7 +78,7 @@ def test_precommit_failure_rolls_back_atomic_scope_and_clears_callbacks():
 
 @pytest.mark.parametrize('queue', ['before', 'after'])
 def test_caught_sql_error_cannot_continue_commit_or_callbacks(queue):
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     events = []
     db.execute(CompiledQuery('write'))
@@ -107,7 +107,7 @@ def test_caught_sql_error_cannot_continue_commit_or_callbacks(queue):
 
 
 def test_caught_domain_failure_in_callback_cannot_be_committed():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     db.execute(CompiledQuery('write'))
     db.deferToCommit(lambda: db._mark_connection_failed(db._connection_state))
@@ -119,56 +119,61 @@ def test_caught_domain_failure_in_callback_cannot_be_committed():
 
 
 def test_commit_selects_current_name_and_callbacks_restore_environment():
-    db = AsqueelDb(Recipe)
+    db = AsqueelDb(Recipe).session()
+    a = db.session('A')
+    b = db.session('B')
     try:
         events = []
-        with db.tempEnv(connectionName='A', onCommittingStep=False):
-            db.execute(CompiledQuery('A'))
-            db.deferToCommit(lambda: events.append((db.currentConnectionName, db.currentEnv['onCommittingStep'])))
-            db.deferAfterCommit(lambda: events.append((db.currentConnectionName, db.currentEnv['onCommittingStep'])))
-            with db.tempEnv(connectionName='B'):
-                db.commit()
-                assert events == []
+        with a.tempEnv(onCommittingStep=False):
+            a.execute(CompiledQuery('A'))
+            a.deferToCommit(lambda: events.append((a.currentConnectionName, a.currentEnv['onCommittingStep'])))
+            a.deferAfterCommit(lambda: events.append((a.currentConnectionName, a.currentEnv['onCommittingStep'])))
+            b.commit()
             db.commit()
-            assert db.currentConnectionName == 'A'
-            assert db.currentEnv['onCommittingStep'] is False
+            assert events == []
+            a.commit()
+            assert a.currentConnectionName == 'A'
+            assert a.currentEnv['onCommittingStep'] is False
         assert events == [('A', True), ('A', True)]
     finally:
+        a.close()
+        b.close()
         db.closeConnection()
 
 
 def test_named_queues_and_pending_exceptions_are_independent():
-    db = AsqueelDb(Recipe)
+    db = AsqueelDb(Recipe).session()
+    other = db.session('other')
     try:
         events = []
         db.execute(CompiledQuery('main'))
         db.deferToCommit(lambda: events.append('main'))
-        with db.tempEnv(connectionName='other'):
-            db.execute(CompiledQuery('other'))
-            db.deferToCommit(lambda: events.append('other'))
-            db.deferAfterCommit(lambda: events.append('other after'))
-            db.commit()
+        other.execute(CompiledQuery('other'))
+        other.deferToCommit(lambda: events.append('other'))
+        other.deferAfterCommit(lambda: events.append('other after'))
+        other.commit()
         assert events == ['other', 'other after']
-        assert db.adapter.persisted == ['other']
+        assert other.adapter.persisted == ['other']
         # Legacy keeps one global _pendingExceptions; here, as the deferred
-        # queues, they belong to their named connection.
+        # queues, they belong to their session.
         db.deferredRaise(ValueError('main error'))
-        with db.tempEnv(connectionName='other'):
-            db.execute(CompiledQuery('other again'))
-            db.commit()
-        assert db.adapter.persisted == ['other', 'other again']
+        other.execute(CompiledQuery('other again'))
+        other.commit()
+        assert other.adapter.persisted == ['other', 'other again']
         with pytest.raises(DeferredCommitError, match='main error'):
             db.commit()
         db.rollback()
         assert events == ['other', 'other after', 'main']
-        assert db.adapter.persisted == ['other', 'other again']
+        assert db.adapter.persisted == []
+        assert other.adapter.persisted == ['other', 'other again']
     finally:
+        other.close()
         db.closeConnection()
 
 
 @pytest.mark.parametrize('completion', ['rollback', 'closeConnection'])
 def test_discard_clears_queues_even_without_sql(completion):
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     events = []
     db.deferToCommit(lambda: events.append('before'))
     db.deferAfterCommit(lambda: events.append('after'))
@@ -181,7 +186,7 @@ def test_discard_clears_queues_even_without_sql(completion):
 
 
 def test_unknown_commit_never_dispatches_after_and_discards_queue():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     events = []
     db.execute(CompiledQuery('write'))
@@ -199,7 +204,7 @@ def test_unknown_commit_never_dispatches_after_and_discards_queue():
 
 
 def test_after_callback_can_start_next_transaction_as_in_legacy():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     db.execute(CompiledQuery('first'))
     db.deferAfterCommit(lambda: db.execute(CompiledQuery('second')))
@@ -211,7 +216,7 @@ def test_after_callback_can_start_next_transaction_as_in_legacy():
 
 @pytest.mark.parametrize('action', ['commit', 'rollback', 'closeConnection'])
 def test_callback_cannot_reenter_transaction_completion(action):
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     db.execute(CompiledQuery('write'))
     db.deferToCommit(getattr(db, action))
@@ -263,7 +268,7 @@ def test_queue_contracts_match_recorded_original_legacy_oracle():
 
 
 def test_postcommit_python_failure_keeps_commit_and_rolls_back_only_new_work():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
 
     def fail():
@@ -283,7 +288,7 @@ def test_postcommit_python_failure_keeps_commit_and_rolls_back_only_new_work():
 
 
 def test_precommit_error_retains_original_exception_if_cleanup_fails():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     original = ValueError('original')
 
@@ -304,7 +309,7 @@ def test_precommit_error_retains_original_exception_if_cleanup_fails():
 
 @pytest.mark.parametrize('queue', ['before', 'after'])
 def test_callback_can_handle_external_failure_and_continue_queue(queue):
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     driver = db.adapter
     events = []
 
@@ -329,7 +334,7 @@ def test_callback_can_handle_external_failure_and_continue_queue(queue):
 
 
 def test_postcommit_error_leaves_unreached_callbacks_until_application_cleanup():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     events = []
     original = ValueError('notification failed')
 
@@ -364,14 +369,15 @@ def test_trigger_finishes_another_named_connection_but_not_its_own(action, tmp_p
         def trigger_onInserting(self, record):
             with pytest.raises(TransactionStateError, match='in progress'):
                 getattr(self.db, self.action)()
-            with self.db.tempEnv(connectionName='system'):
-                self.db.execute(CompiledQuery('log'))
-                getattr(self.db, self.action)()
+            system = self.db.session('system')
+            system.execute(CompiledQuery('log'))
+            getattr(system, self.action)()
     ''')
     db.table('app.item').action = action
     try:
         db.table('app.item').insert({'id': 1})
-        assert db.adapter.persisted == (['log'] if action == 'commit' else [])
+        assert db.session('system').adapter.persisted == (['log'] if action == 'commit' else [])
+        assert db.adapter.persisted == []
         with pytest.raises(TransactionStateError, match='inside a table write'):
             with db._write_operation():
                 db.closeConnection()
@@ -381,7 +387,7 @@ def test_trigger_finishes_another_named_connection_but_not_its_own(action, tmp_p
 
 
 def test_deferred_blocks_run_in_lowercase_label_order():
-    db = empty_database(implementation=FAKE)
+    db = empty_database(implementation=FAKE).session()
     events = []
     for block in ('b', 'C', 'A', 'a'):
         db.deferToCommit(events.append, block, _deferredBlock=block)

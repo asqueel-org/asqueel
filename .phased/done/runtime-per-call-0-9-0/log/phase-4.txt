@@ -1,0 +1,5 @@
+✓ Phase 4 completata: hosts — `AsqueelDbMixin`, alias `session`, `tempEnv(connectionName=...)` (commit `b4ce429`).
+
+- **Test:** i 7 contract test passano. `tests/application_config` e `tests/application_connections` danno 171 passed. I due grep del `Done:` non restituiscono nulla e ruff è pulito.
+- **Fuori dai `Files:` del piano:** il comando del `Done:` copre tutta `tests/application_config`, quindi ho spostato su `SessionDb` anche 4 test di quella cartella. Ho modificato anche `src/asqueel/cli.py`, perché `test_cli.py` falliva sul db condiviso.
+- **Test di Phase 3 modificato:** `test_request_lifecycle.py` ora chiude anche la sessione `auxiliary` a fine richiesta. Prima `tempEnv(connectionName=...)` non instradava nulla, quindi il test non la apriva. Le motivazioni sono registrate in `> Review:` del piano e in `notes.md` sotto `## Phase 4`.

@@ -110,7 +110,8 @@ def db(request, tmp_path):
     else:
         schema = 'wcy_' + uuid4().hex[:8]
         source, prefix = recipe('postgres', tmp_path / 'sales', conninfo=postgres_dsn(), schema=schema), f'"{schema}".'
-    database = AsqueelDb(source)
+    shared = AsqueelDb(source)
+    database = shared.session()
     try:
         if prefix:
             database.execute(f'CREATE SCHEMA {prefix[:-1]}')
@@ -127,6 +128,7 @@ def db(request, tmp_path):
                 database.commit()
     finally:
         database.closeConnection()
+        shared.close()
 
 
 def events(db):

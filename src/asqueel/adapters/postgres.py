@@ -9,7 +9,7 @@ from typing import Any
 
 from ..contracts import UnsupportedFeatureError
 from ._bag_xml import bag_xml_subquery
-from .._sql_parameters import parameter_matches, substitute_parameters
+from .._sql_parameters import parameter_matches, substitute_parameters_and_text
 from .base import SqlDbAdapter as SqlDbBaseAdapter, mask_bounds
 
 
@@ -50,9 +50,14 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             connection.execute(sql)
 
     def prepareSqlText(self, sql, kwargs):
-        """Named arguments as psycopg ``%(name)s``; ``REGEXP`` as ``~*``."""
+        """Named arguments as psycopg ``%(name)s``, every other ``%`` doubled; ``REGEXP`` as ``~*``.
+
+        Execution always passes a mapping, so psycopg reads ``%%`` as ``%`` even without parameters.
+        """
         sql = self.adaptTupleListSet(sql, kwargs)
-        return substitute_parameters(sql, lambda m: '%(' + m['parameter'] + ')s', self.dialect).replace('REGEXP', '~*'), kwargs
+        sql = substitute_parameters_and_text(
+            sql, lambda m: '%(' + m['parameter'] + ')s', lambda text: text.replace('%', '%%'), self.dialect)
+        return sql.replace('REGEXP', '~*'), kwargs
 
     def adaptTupleListSet(self, sql, sqlargs):
         """gnrpostgres3.adaptTupleListSet: unroll IN values for psycopg 3.

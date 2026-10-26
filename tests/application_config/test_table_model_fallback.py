@@ -28,7 +28,7 @@ class StructuralTable:
 
 @pytest.fixture
 def table():
-    return SqlTable(StructuralTable())
+    return SqlTable(StructuralTable(), None)
 
 
 def test_database_table_exposes_model_members_without_connecting():

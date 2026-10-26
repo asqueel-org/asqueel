@@ -3,7 +3,7 @@
 The host here is minimal and local to the test: a server with applications by
 code, shaped like a kajenn server.
 """
-from concurrent.futures import ThreadPoolExecutor
+import contextvars
 
 import pytest
 
@@ -55,16 +55,16 @@ def host(tmp_path):
     chat = App(server, 'chat')
     plain = App(server, 'plain')
     for owner, name in ((server, 'default'), (server, 'alfadb'), (chat, 'default'), (chat, 'alfadb')):
-        db = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}' / 'main.db'))
-        db.migrate()
-        db.execute('INSERT INTO app.item (id, owner) VALUES (:id, :owner)',
-                   {'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
-        db.commit()
-        db.closeConnection()
+        shared = owner.set_asqueel_db(name, recipe(tmp_path / f'{owner.asqueel_owner_name or "server"}_{name}' / 'main.db'))
+        with shared.session() as db:
+            db.migrate()
+            db.execute('INSERT INTO app.item (id, owner) VALUES (:id, :owner)',
+                       {'id': 1, 'owner': f'{owner.asqueel_owner_name}:{name}'})
+            db.commit()
     yield server, chat, plain
     for owner in (server, chat, plain):
-        for db in owner.asqueel_dbs.values():
-            db.closeConnection()
+        for shared in owner.asqueel_dbs.values():
+            shared.close()
 
 
 def owner_of(db):
@@ -108,22 +108,22 @@ def test_release_closes_every_database_taken_through_the_owner(host):
     assert chat.taken_databases == []
 
 
-def test_each_thread_releases_only_its_own_takes(host):
+def test_each_call_releases_only_its_own_takes(host):
     _, chat, _ = host
     db = chat.db
-    db.updateEnv(user='main thread')
+    db.updateEnv(user='first call')
 
-    def worker():
+    def other_call():
         try:
+            assert chat.db is not db
             assert chat.db.currentEnv == {}
             owner_of(chat.db)
             return len(chat.taken_databases)
         finally:
             chat.release_databases()
 
-    with ThreadPoolExecutor(max_workers=1) as pool:
-        assert pool.submit(worker).result() == 1
-    assert chat.db.currentEnv == {'user': 'main thread'}
+    assert contextvars.Context().run(other_call) == 1
+    assert chat.db.currentEnv == {'user': 'first call'}
     assert chat.taken_databases == [db]
     chat.release_databases()
 
@@ -164,12 +164,15 @@ def test_release_closes_the_others_and_then_reports_a_failure(host, tmp_path):
 
     # Set on the instance and removed here: the host fixture closes every
     # database at teardown, after the monkeypatch fixture of conftest.
-    extra.closeConnection = failing_close
+    first.close = failing_close
     try:
         with pytest.raises(RuntimeError, match='closed'):
             chat.release_databases()
     finally:
-        del extra.closeConnection
+        del first.close
     assert not second._connections
+    # The session that refused stays tracked: the next release closes it.
+    assert chat.taken_databases == [first]
+    chat.release_databases()
     assert chat.taken_databases == []
-    assert first is extra
+    assert first.shared is extra
