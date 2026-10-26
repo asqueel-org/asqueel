@@ -1,7 +1,7 @@
 """Microsoft SQL Server adapter on pymssql.
 
 pymssql is the driver asqueel-migration uses for SQL Server. Its ``pyformat``
-paramstyle takes ``%(name)s`` bindings, as psycopg. Identifiers are ANSI
+paramstyle takes ``%(name)s`` bindings, as psycopg, without the ``%%`` escape. Identifiers are ANSI
 ``"…"``: pymssql opens every connection with ``QUOTED_IDENTIFIER ON``.
 
 SQL that the shared compilers write in a form T-SQL lacks raises
@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 
 from ..contracts import UnsupportedFeatureError
-from .._sql_parameters import parameter_matches, substitute_parameters
+from .._sql_parameters import parameter_matches
 from .base import SqlDbAdapter as SqlDbBaseAdapter, _TIME_UNITS
 
 
@@ -27,6 +27,8 @@ _OPERATOR = re.compile(
 #: A row-value IN: ``("a","b") IN (``.
 _ROW_IN = re.compile(r'\(\s*"(?:""|[^"])*"(?:\s*,\s*"(?:""|[^"])*")+\s*\)\s*IN\s*\(', re.I)
 _LOCK = re.compile(r'\s*LOCK\s', re.I)
+#: What pymssql substitutes with a mapping, anywhere in the statement: it has no escape for it.
+_PYFORMAT = re.compile(r'%\(([^\)]+)\)[sd]')
 _CONNECT_OPTIONS = frozenset({
     'host', 'server', 'port', 'user', 'password', 'dbname', 'timeout',
     'login_timeout', 'charset', 'appname', 'tds_version',
@@ -92,7 +94,26 @@ class SqlDbAdapter(SqlDbBaseAdapter):
         sql = _OPERATOR.sub(self._operator, sql)
         sql = re.sub(r'(\(*)(["\w]["\w.]*) +IS +(NOT +)?(TRUE|FALSE)',
                      self._booleanSubCb, sql, flags=re.I)
-        return substitute_parameters(sql, lambda m: '%(' + m['parameter'] + ')s', self.dialect), kwargs
+        return self._pyformat(sql), kwargs
+
+    def _pyformat(self, sql):
+        """Named arguments as ``%(name)s``; any other text pymssql would read as a binding raises.
+
+        pymssql takes ``%%`` as two characters, so every other ``%`` stays as written.
+        """
+        result = ''
+        bindings = set()
+        position = 0
+        for match in parameter_matches(sql, self.dialect):
+            result += sql[position:match.start()]
+            placeholder = '%(' + match['parameter'] + ')s'
+            bindings.add((len(result), len(result) + len(placeholder)))
+            result += placeholder
+            position = match.end()
+        result += sql[position:]
+        if any(found.span() not in bindings for found in _PYFORMAT.finditer(result)):
+            raise UnsupportedFeatureError('pymssql reads %(name)s or %(name)d outside a binding as a binding')
+        return result
 
     @staticmethod
     def _operator(match):

@@ -39,12 +39,13 @@ def recipe(params):
 
 @pytest.fixture
 def database(mssql_database):
-    db = AsqueelDb(recipe(mssql_database))
-    db.migrate()
+    db = AsqueelDb(recipe(mssql_database)).session()
     try:
+        db.migrate()
+        db.commit()
         yield db
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 def rows(query):
@@ -58,12 +59,12 @@ def test_migration_creates_the_model_and_converges(database):
 @pytest.mark.xfail(strict=True, reason='asqueel-org/asqueel-migration#34: a numeric column without size never converges')
 def test_numeric_without_size_converges(mssql_database):
     config = recipe(mssql_database)
-    config.source.get_node('db.packages.crm.invoice').value.column('rate', dtype='N')
+    config.source.get_node('db.packages.crm.tables.invoice').value.column('rate', dtype='N')
     db = AsqueelDb(config)
     try:
         db.migrate()
     finally:
-        db.closeConnection()
+        db.close()
 
 
 def test_queries_and_writes(database):
@@ -149,6 +150,13 @@ def test_formula_functions_execute(database):
     database.rollback()
 
 
+def test_percent_in_literals_and_comments_runs(database):
+    row = database.execute("SELECT 'a%' AS text, :v AS v /* 50% */ WHERE 'abc' LIKE 'a%' -- 1%\n",
+                           {'v': 1}).fetchall()[0]
+    assert (row['text'], row['v']) == ('a%', 1)
+    database.rollback()
+
+
 def test_unsupported_maintenance_raises(database):
     with pytest.raises(UnsupportedFeatureError):
         database.setConstraintsDeferred()
@@ -165,4 +173,4 @@ def test_migration_needs_a_database_name(mssql_params):
         with pytest.raises(MigrationError, match='connection.name'):
             db.migration_plan()
     finally:
-        db.closeConnection()
+        db.close()

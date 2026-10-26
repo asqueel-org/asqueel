@@ -28,7 +28,7 @@ def db():
     try:
         yield database
     finally:
-        database.closeConnection()
+        database.close()
 
 
 def model(db, name):
@@ -40,13 +40,13 @@ def prepare(sql, params=None):
 
 
 def test_implementation_name_loads_the_adapter():
-    db = empty_database(implementation='mssql')
+    db = empty_database(implementation='mssql').session()
     try:
         assert db.implementation == 'mssql'
         assert type(db.adapter) is MssqlAdapter
         assert db.adapter.dbroot is db
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 def test_capabilities_declare_no_returning():
@@ -117,6 +117,17 @@ def test_parameters_outside_literals_identifiers_and_comments():
     assert query.sql == ("SELECT %(a)s, ':b', [x:c], \"y:d\" /* :e /* :f */ :g */ -- :h\n"
                          " FROM t WHERE v = %(i)s")
     assert query.input_parameters == ('a', 'i')
+
+
+def test_percent_outside_bindings_stays_as_written():
+    query = prepare("SELECT 'a%%', '50%' /* 10% */ -- 1%\n WHERE v LIKE 'a%' AND w = :w", {'w': 1})
+    assert query.sql == "SELECT 'a%%', '50%' /* 10% */ -- 1%\n WHERE v LIKE 'a%' AND w = %(w)s"
+
+
+@pytest.mark.parametrize('sql', ["SELECT '%(w)s', :w", "SELECT 1 /* %(other)d */", "SELECT '%(' + :w"])
+def test_text_pymssql_would_read_as_a_binding_raises(sql):
+    with pytest.raises(UnsupportedFeatureError, match='outside a binding'):
+        prepare(sql, {'w': 1})
 
 
 def test_legacy_operators_are_adapted():
@@ -214,4 +225,4 @@ def test_migration_refuses_a_conninfo_string():
         with pytest.raises(MigrationError, match='not a conninfo string'):
             database.migration_plan()
     finally:
-        database.closeConnection()
+        database.close()
