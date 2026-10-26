@@ -430,6 +430,11 @@ def _migration_target(db, foreignKeys):
         # psycopg is the PostgreSQL extra: a SQLite-only install does not have it.
         from psycopg.conninfo import conninfo_to_dict
         params = conninfo_to_dict(conninfo or '', **(kwargs or {}))
+    elif implementation == 'mssql':
+        if conninfo:
+            raise MigrationError('SQL Server takes connection fields, not a conninfo string')
+        # The adapter's pymssql connection fields; asqueel-migration maps dbname to database.
+        params = dict(kwargs or {})
     else:
         raise MigrationError(f'Unsupported migration backend: {implementation}')
     if not params.get('dbname'):

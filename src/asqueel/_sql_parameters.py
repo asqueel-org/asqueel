@@ -2,6 +2,7 @@
 
 This is only the binding boundary, not a SQL parser. PostgreSQL ordinary
 strings follow standard_conforming_strings=on; backslash escapes use E'…'.
+SQL Server quotes identifiers in [...] too and nests block comments.
 """
 import re
 
@@ -16,13 +17,15 @@ _POSTGRES = re.compile(
     r'|(?P<dollar>(?<![\w$])\$(?:[^\W\d]\w*)?\$)|' + _COMMON + _PARAMETER)
 _SQLITE = re.compile(
     r'`(?:``|[^`])*(?:`|$)|\[[^\]]*(?:\]|$)|' + _COMMON + _PARAMETER)
+_MSSQL = re.compile(
+    r'\[(?:\]\]|[^\]])*(?:\]|$)|' + _COMMON + _PARAMETER)
 _COMMENT_EDGE = re.compile(r'/\*|\*/')
 
 
 def parameter_matches(sql, dialect='postgresql'):
     """Yield only real :name matches, preserving offsets in the original SQL."""
-    postgres = dialect != 'sqlite'
-    pattern = _POSTGRES if postgres else _SQLITE
+    nested = dialect != 'sqlite'
+    pattern = {'sqlite': _SQLITE, 'mssql': _MSSQL}.get(dialect, _POSTGRES)
     position = 0
     while match := pattern.search(sql, position):
         position = match.end()
@@ -32,7 +35,7 @@ def parameter_matches(sql, dialect='postgresql'):
             end = sql.find(match[0], position)
             position = len(sql) if end < 0 else end + len(match[0])
         elif match.lastgroup == 'block':
-            # PostgreSQL nests block comments; SQLite closes at the first */.
+            # PostgreSQL and SQL Server nest block comments; SQLite closes at the first */.
             depth = 1
             while depth:
                 edge = _COMMENT_EDGE.search(sql, position)
@@ -42,7 +45,7 @@ def parameter_matches(sql, dialect='postgresql'):
                 position = edge.end()
                 if edge[0] == '*/':
                     depth -= 1
-                elif postgres:
+                elif nested:
                     depth += 1
 
 

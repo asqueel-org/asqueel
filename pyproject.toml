@@ -53,6 +53,9 @@ docs = [
 postgresql = [
     "psycopg[binary]>=3.3.6",
 ]
+mssql = [
+    "pymssql>=2.4.4",
+]
 migration = [
     "asqueel-migration>=0.3.5",
 ]
@@ -95,6 +98,7 @@ testpaths = ["tests"]
 addopts = "-v --cov=asqueel --cov-report=term-missing"
 markers = [
     "postgresql: integration test requiring a reachable PostgreSQL server",
+    "mssql: integration test requiring a reachable SQL Server, skipped without one",
 ]
 
 [tool.ruff]
