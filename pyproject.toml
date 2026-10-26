@@ -53,12 +53,16 @@ docs = [
 postgresql = [
     "psycopg[binary]>=3.3.6",
 ]
+mysql = [
+    "pymysql>=1.1",
+]
 migration = [
     "asqueel-migration>=0.3.5",
 ]
 dev = [
     "asqueel-migration[postgresql,validation]>=0.3.5",
     "psycopg[binary]>=3.3.6",
+    "pymysql>=1.1",
     "pytest>=8.4",
     "pytest-cov>=4.0",
     "pytest-xdist>=3.8",
@@ -95,6 +99,7 @@ testpaths = ["tests"]
 addopts = "-v --cov=asqueel --cov-report=term-missing"
 markers = [
     "postgresql: integration test requiring a reachable PostgreSQL server",
+    "mysql: integration test requiring a reachable MySQL server; skipped when none answers",
 ]
 
 [tool.ruff]
