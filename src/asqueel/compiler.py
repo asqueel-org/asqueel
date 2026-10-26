@@ -5,6 +5,7 @@ _getRelationAlias. The agreed exception is many-side traversal: no exploding
 rows or implicit DISTINCT. Many aggregates use correlated scalar SELECTs.
 """
 from collections.abc import Mapping
+from contextlib import nullcontext
 from copy import deepcopy
 from dataclasses import replace
 from types import MappingProxyType
@@ -187,8 +188,9 @@ def expand_templates(text, adapter):
 
 class _TreeContext:
     def __init__(self, model, table, params, adapter, snapshot, *, parent=None,
-                 alias_prefix='t', bindings=None):
+                 alias_prefix='t', bindings=None, db=None):
         self.model, self.table = model, table
+        self.db = parent.db if parent is not None else db
         self.adapter, self.snapshot = adapter, snapshot
         self.bindings = bindings if bindings is not None else SqlBindings(params, dialect=adapter.dialect)
         self.params = self.bindings.params
@@ -285,7 +287,7 @@ class _TreeContext:
             elif column.tag == 'formulaColumn':
                 if attrs.get('sql_formula') is True:
                     name = 'sql_formula_' + column.name
-                    method = getattr(table.dbtable, name, None)
+                    method = getattr(self.dbtable(table), name, None)
                     if not callable(method):
                         raise UnsupportedFeatureError(f'{column.fullname}: missing table method {name}(attr)')
                     attrs['sql_formula'] = method(attrs)
@@ -345,6 +347,10 @@ class _TreeContext:
         refs.resolve(lambda path: self.get_field_alias(path, curr, alias))
         return f'( {refs.substitute(formula, safe=True)} )'
 
+    def dbtable(self, table):
+        """The table of the compiling database: a session's own table, whose methods run on it."""
+        return self.db.table(table.fullname) if self.db is not None else table.dbtable
+
     def expand_env(self, match, table, column):
         """Legacy expandEnv: environment key, fallback key, then the env_<name>() table method."""
         name, fallback = match[1], match[2][1:] if match[2] else None
@@ -352,7 +358,7 @@ class _TreeContext:
             if key and key in self.snapshot:
                 return "'" + _to_text(self.snapshot[key]).replace("'", "''") + "'"
         owner = self._known_table(fallback) if fallback else table
-        handler = getattr(owner.dbtable, 'env_' + name, None)
+        handler = getattr(self.dbtable(owner), 'env_' + name, None)
         if handler is None:
             raise ValueError(f"{column.fullname}: #ENV({name}) finds no environment key '{name}' "
                              f"and no method env_{name}")
@@ -372,7 +378,7 @@ class _TreeContext:
         """getFieldAlias select_* branch: correlated child, same SELECT compiler."""
         if isinstance(definition, str):
             name = 'subquery_' + definition
-            method = getattr(self.table.dbtable, name, None)
+            method = getattr(self.dbtable(self.table), name, None)
             if not callable(method):
                 raise UnsupportedFeatureError(f'{self.table.fullname}: missing table method {name}()')
             definition = method()
@@ -1010,12 +1016,16 @@ class QueryCompiler:
     def _environment_snapshot(self):
         return self._db.environment_snapshot() if self._db is not None else MappingProxyType(dict(self.environment))
 
+    def _as_current(self):
+        """The compiling session is the current one while a plan resolves its formulaColumn_<x>() columns."""
+        return self._db._as_current() if self._db is not None else nullcontext()
+
     def _context(self, table, params=None) -> _TreeContext:
         found = self.model.table(table)
         if found is None:
             raise ValueError(f'Unknown package {table.split(".")[0]!r}')
         return _TreeContext(self.model, found, params, self.adapter,
-                            self._environment_snapshot())
+                            self._environment_snapshot(), db=self._db)
 
     @staticmethod
     def _check_options(options):
@@ -1044,11 +1054,12 @@ class QueryCompiler:
                     **options) -> SqlCompiledQuery:
         """Resolve clauses; SQL assembly and preparation happen in compile_plan."""
         self._check_options(options)
-        return self._context(table, sqlparams).select_plan(
-            columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
-            exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
-            for_update=for_update, distinct=distinct, group_by=group_by, having=having,
-            bagFields=bagFields, addPkeyColumn=addPkeyColumn)
+        with self._as_current():
+            return self._context(table, sqlparams).select_plan(
+                columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
+                exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
+                for_update=for_update, distinct=distinct, group_by=group_by, having=having,
+                bagFields=bagFields, addPkeyColumn=addPkeyColumn)
 
     def plan_count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
                    limit=None, offset=None, *, exclude_draft=True,
@@ -1057,11 +1068,12 @@ class QueryCompiler:
                    bagFields=False, addPkeyColumn=False, **options) -> SqlCompiledQuery:
         """Legacy count branch; grouped/distinct SQL still returns result rows."""
         self._check_options(options)
-        return self._context(table, sqlparams).select_plan(
-            columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
-            exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
-            for_update=for_update, distinct=distinct, group_by=group_by, having=having,
-            bagFields=bagFields, addPkeyColumn=addPkeyColumn, count=True)
+        with self._as_current():
+            return self._context(table, sqlparams).select_plan(
+                columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
+                exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
+                for_update=for_update, distinct=distinct, group_by=group_by, having=having,
+                bagFields=bagFields, addPkeyColumn=addPkeyColumn, count=True)
 
     def count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
               limit=None, offset=None, **options):

@@ -78,7 +78,7 @@ def test_native_model_compiler_and_runtime(native_database):
     write = writer()
 
     def scenario():
-        db = empty_database(implementation='postgres', connect_kwargs=params)
+        db = empty_database(implementation='postgres', connect_kwargs=params).session()
         try:
             with completed(db) as tx:
                 tx.execute(write.insert(model.table('crm.customer'), {
@@ -126,7 +126,7 @@ def test_python_error_rolls_back_transaction_and_database_remains_usable(native_
     params, schema, connection = native_database
     model = AsqueelDb(recipe(schema)).model
     compiler, customer = QueryCompiler(model, PostgresAdapter(None)), model.table('crm.customer')
-    db = empty_database(implementation='postgres', connect_kwargs=params)
+    db = empty_database(implementation='postgres', connect_kwargs=params).session()
     try:
         with pytest.raises(RuntimeError, match='abort transaction'):
             with completed(db) as tx:
@@ -146,7 +146,7 @@ def test_separate_database_transactions_keep_independent_commit_and_rollback(nat
     params, schema, _ = native_database
     model = AsqueelDb(recipe(schema)).model
     compiler, customer = QueryCompiler(model, PostgresAdapter(None)), model.table('crm.customer')
-    first, second = empty_database(implementation='postgres', connect_kwargs=params), empty_database(implementation='postgres', connect_kwargs=params)
+    first, second = empty_database(implementation='postgres', connect_kwargs=params).session(), empty_database(implementation='postgres', connect_kwargs=params).session()
     try:
         with pytest.raises(RuntimeError, match='abort first'):
             with completed(first) as tx:

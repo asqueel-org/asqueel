@@ -23,7 +23,8 @@ def db():
     schema = 'bag_items_' + uuid4().hex
     root.packages().package('app', sqlschema=schema)
     root.connection('main', dsn=postgres_dsn())
-    database = AsqueelDb(config)
+    shared = AsqueelDb(config)
+    database = shared.session()
     try:
         quote = database.adapter.adaptSqlName
         target = quote(schema) + '.app_item'
@@ -42,7 +43,7 @@ def db():
             database.execute('DROP SCHEMA ' + quote(schema) + ' CASCADE')
             database.commit()
     finally:
-        database.closeConnection()
+        shared.close()
 
 
 def read(db, columns, id=1):

@@ -8,6 +8,7 @@ the adapter into the common CompiledQuery and executed by ``db.execute``.
 """
 from __future__ import annotations
 
+from contextlib import nullcontext
 import datetime
 import json
 import re
@@ -109,7 +110,11 @@ class WriteCompiler:
         Every ``sql_value`` column absent from the record is added with None,
         so its expression is always emitted.
         """
-        virtual = set(table.virtual_columns) | set(table.composites)
+        # The formulaColumn_<x>() columns are those of the session whose adapter compiles;
+        # a standalone adapter has no database.
+        dbroot = self.adapter.dbroot
+        with dbroot._as_current() if dbroot is not None else nullcontext():
+            virtual = set(table.virtual_columns) | set(table.composites)
         data = {}
         for key, value in record.items():
             if key in table.columns and sql_attribute_declared(table.columns[key].attributes, 'generatedExpression'):
@@ -343,6 +348,9 @@ class WriteCompiler:
                 for name, value in zip(keys, values)]
 
     def _key_where(self, table, keys, values, params):
+        shared = {f'__pkey__{index}' for index in range(len(keys))} & set(params)
+        if shared:
+            raise ValueError(f'{table.fullname}: record keys named as key parameters: {sorted(shared)}')
         quote = self.adapter.adaptSqlName
         conditions = []
         for index, (name, value) in enumerate(zip(keys, values)):

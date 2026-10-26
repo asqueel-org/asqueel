@@ -20,12 +20,12 @@ BACKENDS = ['sqlite', pytest.param('postgres', marks=pytest.mark.postgresql)]
 @pytest.fixture(params=BACKENDS)
 def db(request):
     database = (empty_database(postgres_dsn(), implementation='postgres') if request.param == 'postgres'
-                else empty_database(':memory:', implementation='sqlite'))
+                else empty_database(':memory:', implementation='sqlite')).session()
     try:
         yield database
     finally:
         database.rollback()
-        database.closeConnection()
+        database.shared.close()
 
 
 def value(db, expression, params=None):
@@ -69,7 +69,7 @@ def test_age_at_date_raises_on_sqlite():
 
 @pytest.mark.postgresql
 def test_age_at_date_runs_on_postgres():
-    db = empty_database(postgres_dsn(), implementation='postgres')
+    db = empty_database(postgres_dsn(), implementation='postgres').session()
     try:
         age = db.adapter.ageAtDate("DATE '2026-01-01'", 'refdate')
         assert value(db, age, {'refdate': date(2026, 1, 11)}) == 10
@@ -77,7 +77,7 @@ def test_age_at_date_runs_on_postgres():
             assert value(db, db.adapter.ageAtDate("DATE '2026-01-01'", timeUnit='year')) == 1
     finally:
         db.rollback()
-        db.closeConnection()
+        db.shared.close()
 
 
 @pytest.mark.parametrize(('field', 'mode', 'placeholder', 'expected'), [
@@ -119,7 +119,7 @@ def test_table_formula_reaches_the_adapter(tmp_path):
     db = config.source.db('shop')
     db.connection(name=str(tmp_path / 'shop.db'), implementation='sqlite')
     db.packages().package('app', path=write_layout(tmp_path / 'app', customer=CUSTOMER))
-    database = AsqueelDb(config)
+    database = AsqueelDb(config).session()
     try:
         database.execute('CREATE TABLE "app_customer" ("id" BIGINT, "email" TEXT)')
         database.execute("INSERT INTO \"app_customer\" VALUES (1, 'ada@example.com')")
@@ -127,4 +127,4 @@ def test_table_formula_reaches_the_adapter(tmp_path):
         assert [row['masked_email'] for row in rows] == ['ad*@example.com']
         database.rollback()
     finally:
-        database.closeConnection()
+        database.shared.close()

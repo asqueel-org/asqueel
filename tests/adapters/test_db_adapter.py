@@ -51,7 +51,7 @@ def test_external_module_supplies_the_adapter():
 
 
 def test_current_implementation_selects_the_adapter_on_demand():
-    db = empty_database(implementation='sqlite')
+    db = empty_database(implementation='sqlite').session()
     try:
         main = db.adapter
         assert list(db.adapters) == ['sqlite']
@@ -62,7 +62,7 @@ def test_current_implementation_selects_the_adapter_on_demand():
         with db.tempEnv(currentImplementation='postgres'):
             assert db.adapter is db.adapters['postgres']
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 # The 'name:module' form below loads this class: SQLite, from an external module.

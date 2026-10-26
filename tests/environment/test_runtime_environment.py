@@ -56,18 +56,19 @@ def test_driver_preparation_collects_environment_keys():
 def test_reused_query_reads_the_environment_of_every_execution():
     env = {'company': 1}
     query = CompiledQuery('select', {'env_company': 1}, environment_keys=('company',))
-    db = empty_database(implementation=FAKE, environment=env)
+    db = empty_database(implementation=FAKE, environment=env).session()
     try:
         with db.tempEnv(company=2):
             assert db.execute(query).fetchone()['env_company'] == 2
         assert db.execute(query).fetchone()['env_company'] == 1
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_runtime_aliases_use_current_context_on_the_calling_thread():
     env = {'company': 1}
-    db = empty_database(implementation=FAKE, environment=env)
+    db = empty_database(implementation=FAKE, environment=env).session()
     try:
         driver = db.adapter
         with db.tempEnv(company=2):
@@ -83,6 +84,7 @@ def test_runtime_aliases_use_current_context_on_the_calling_thread():
         ('execute', 1), ('rollback', 1), ('close', 1)]
     assert {thread for _, _, thread in driver.calls} == {threading.get_ident()}
     assert db.currentEnv == {'company': 1}
+    db.shared.close()
 
 
 def test_runtime_default_environments_are_independent():

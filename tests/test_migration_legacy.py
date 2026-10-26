@@ -186,7 +186,7 @@ def _rows(db, statement):
 
 
 def test_foreign_keys_false_migrates_without_constraints_and_keeps_the_relation_index(tmp_path):
-    db = AsqueelDb(_sqlite_recipe(tmp_path / 'sample.db'))
+    db = AsqueelDb(_sqlite_recipe(tmp_path / 'sample.db')).session()
     try:
         plan = db.migration_plan(foreignKeys=False)
         assert 'REFERENCES' not in plan['sql']
@@ -201,15 +201,17 @@ def test_foreign_keys_false_migrates_without_constraints_and_keeps_the_relation_
         assert db.migration_plan(foreignKeys=False)['empty']
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_foreign_keys_default_creates_the_constraint(tmp_path):
-    db = AsqueelDb(_sqlite_recipe(tmp_path / 'sample.db'))
+    db = AsqueelDb(_sqlite_recipe(tmp_path / 'sample.db')).session()
     try:
         db.migrate()
         assert [row[2] for row in _rows(db, "PRAGMA app.foreign_key_list('invoice')")] == ['customer']
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_cli_no_foreign_keys_option(tmp_path, capsys):
@@ -257,7 +259,7 @@ def pg_schema():
 
 
 def _filled(dsn, schema, values):
-    runtime = AsqueelDb(_pg_recipe(dsn, schema, 'T'))
+    runtime = AsqueelDb(_pg_recipe(dsn, schema, 'T')).session()
     try:
         runtime.migrate()
         for index, value in enumerate(values, 1):
@@ -265,6 +267,7 @@ def _filled(dsn, schema, values):
         runtime.commit()
     finally:
         runtime.closeConnection()
+        runtime.shared.close()
 
 
 def _columns(connection, schema):

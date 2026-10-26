@@ -19,7 +19,7 @@ and PostgreSQL, with two methods:
 ```python
 from asqueel import AsqueelDb, MigrationError
 
-db = AsqueelDb(ChatArchive)
+db = AsqueelDb(ChatArchive).session()
 
 plan = db.migration_plan()       # compares the model with the live database; changes nothing
 print(plan['sql'])               # the DDL that migrate() would run
@@ -104,7 +104,7 @@ product = root.packages().package("shop", sqlschema="shop").table("product", pke
 product.column("code", size=":10")
 product.column("name", size=":60")
 
-db = AsqueelDb(model)
+db = AsqueelDb(model).session()
 print(db.migrate()['sql'])
 products = db.table("shop.product")
 products.insert({"code": "TEA", "name": "Tea"})
@@ -148,18 +148,18 @@ products.query(
 ).fetch()
 # [[name=Coffee,stock=24], [name=Green tea,stock=8]]
 
-db.closeConnection()  # Discards this in-memory database.
+db.close()  # Discards this in-memory database.
 ```
 
-The in-memory path borrows the main SQLite connection. It never closes it
-during planning, applying or verifying a migration. Attached SQL schemas are
-also in memory. There are no database files to persist between processes:
-exiting Python, closing the connection, or constructing a different `AsqueelDb`
-creates a different database.
+The in-memory path opens the session's connection and never closes it during
+planning, applying or verifying a migration. Attached SQL schemas are also in
+memory. There are no database files to persist between processes: exiting
+Python, closing the session or its connection, or constructing a different
+`AsqueelDb` creates a different database. See
+[SQLite `:memory:`](transactions.md#sqlite-memory).
 
-`reloadModel(source, parents=None)` is for an exclusively
-used, single-threaded SQLite `:memory:` session with only the main connection
-open. It validates the replacement
+`reloadModel(source, parents=None)` is for a SQLite `:memory:` database used by its
+only open session. It validates the replacement
 before swapping models, keeps the connection, and refuses changes to connection
 settings or SQL schemas. It changes the model only; `migrate()` applies the DDL.
 Obtain fresh table and query handles after reloading: old handles are invalid.

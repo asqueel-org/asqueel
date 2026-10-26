@@ -55,9 +55,13 @@ def test_a_layer_extending_a_layout_table_keeps_its_table_class(tmp_path):
     base = config(tmp_path, write_package(tmp_path / 'sales', customer=CUSTOMER))
     overlay = SqlDatabaseConfig()
     overlay.source.db('layout').packages().package('sales').table('customer').column('extra')
-    db = AsqueelDb(overlay, parents=[base])
-    db.migrate()
-    assert db.table('sales.customer').insert({'name': 'ada'})['name'] == 'ADA'
+    db = AsqueelDb(overlay, parents=[base]).session()
+    try:
+        db.migrate()
+        assert db.table('sales.customer').insert({'name': 'ada'})['name'] == 'ADA'
+    finally:
+        db.closeConnection()
+        db.shared.close()
 
 
 def test_a_model_module_declares_the_table_named_after_it(tmp_path):

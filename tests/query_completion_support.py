@@ -108,7 +108,7 @@ def shop(request, tmp_path):
                 db.connection(name=str(path), implementation='sqlite')
                 declare_tables(db.packages().package('sales', sqlschema='sales', sqlprefix=False))
 
-        db = AsqueelDb(SqliteRecipe)
+        db = AsqueelDb(SqliteRecipe).session()
         try:
             for statement in SQLITE_DDL:
                 db.execute(statement)
@@ -116,8 +116,7 @@ def shop(request, tmp_path):
             seed(db, 'sales.invoice')
             yield Shop('sqlite', db, 'sales.invoice')
         finally:
-            db.rollback()
-            db.closeConnection()
+            db.shared.close()
         return
     schema = 'query_completion_' + uuid4().hex
     dsn = postgres_dsn()
@@ -127,7 +126,7 @@ def shop(request, tmp_path):
             declare_tables(root.db('shop', implementation='postgres', conninfo=dsn).packages().package(
                 'sales', sqlschema=schema, sqlprefix=False))
 
-    db = AsqueelDb(PostgresRecipe)
+    db = AsqueelDb(PostgresRecipe).session()
     try:
         for statement in PG_DDL:
             db.execute(CompiledQuery(statement.format(schema=schema)))
@@ -139,7 +138,7 @@ def shop(request, tmp_path):
         db.rollback()
         db.execute(CompiledQuery(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         db.commit()
-        db.closeConnection()
+        db.shared.close()
 
 
 def amount(value):

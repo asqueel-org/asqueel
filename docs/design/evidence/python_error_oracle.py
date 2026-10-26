@@ -139,7 +139,7 @@ def native_factory(dsn):
                 def main(self, root):
                     root.db('oracle', implementation='postgres', conninfo=dsn).packages().package(
                         'app', sqlschema=schema, sqlprefix=False, path=str(folder))
-            self.db = AsqueelDb(Recipe)
+            self.db = AsqueelDb(Recipe).session()
             self.item = self.db.table('app.item')
 
         def __getattr__(self, name):

@@ -58,3 +58,14 @@ def substitute_parameters(sql, replace, dialect='postgresql'):
         position = match.end()
     parts.append(sql[position:])
     return ''.join(parts)
+
+
+def substitute_parameters_and_text(sql, replace, replace_text, dialect='postgresql'):
+    """As substitute_parameters, also passing every non-binding span through replace_text."""
+    parts = []
+    position = 0
+    for match in parameter_matches(sql, dialect):
+        parts.extend((replace_text(sql[position:match.start()]), replace(match)))
+        position = match.end()
+    parts.append(replace_text(sql[position:]))
+    return ''.join(parts)

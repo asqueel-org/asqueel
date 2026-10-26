@@ -40,13 +40,14 @@ def recipe(path):
 @pytest.fixture
 def database(tmp_path):
     path = tmp_path / 'sample.db'
-    db = AsqueelDb(recipe(path))
+    db = AsqueelDb(recipe(path)).session()
     db.execute('CREATE TABLE app.item (id INTEGER PRIMARY KEY, name TEXT NOT NULL)')
     db.commit()
     try:
         yield db, path
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def observed(path):
@@ -103,13 +104,12 @@ def test_parameters_environment_percent_literals_and_sql_error(database):
 def test_threads_and_named_connections_use_same_files_with_independent_state(database):
     db, path = database
     def worker():
-        try:
-            assert db.currentEnv == {}
-            with db.tempEnv(connectionName='worker', user='worker'):
-                db.table('app.item').sql_insert({'id': 1, 'name': 'worker'})
-                db.commit()
-        finally:
-            db.closeConnection()
+        # A thread starts a call of its own: it takes its session from the shared database.
+        with db.shared.session() as session:
+            assert session.currentEnv == {}
+            with session.tempEnv(connectionName='worker', user='worker'):
+                session.table('app.item').sql_insert({'id': 1, 'name': 'worker'})
+                session.commit()
     with ThreadPoolExecutor(max_workers=1) as pool:
         pool.submit(worker).result()
     assert observed(path) == [(1, 'worker')]
@@ -122,7 +122,7 @@ def test_threads_and_named_connections_use_same_files_with_independent_state(dat
 
 def test_sqlite_cli_reuses_existing_migrator_and_file_layout(tmp_path):
     path = tmp_path / 'sample.db'
-    db = AsqueelDb(recipe(path))
+    db = AsqueelDb(recipe(path)).session()
     try:
         assert run_migration(db, 'apply') == 0
         db.table('app.item').insert({'id': 1, 'name': 'migrated'})
@@ -131,12 +131,13 @@ def test_sqlite_cli_reuses_existing_migrator_and_file_layout(tmp_path):
         assert db.migration_plan()['empty']
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypatch):
     from pathlib import Path
     monkeypatch.setenv('ASQUEEL_SQLITE_FILE', str(tmp_path / 'example.db'))
-    db = AsqueelDb(Path(__file__).parents[2] / 'examples/sqlite/configure.py')
+    db = AsqueelDb(Path(__file__).parents[2] / 'examples/sqlite/configure.py').session()
     try:
         assert run_migration(db, 'apply') == 0
         db.table('contacts.customer').insert({'id': 1, 'name': 'Ada'})
@@ -151,6 +152,7 @@ def test_two_schema_example_migration_and_relationship_query(tmp_path, monkeypat
         assert (tmp_path / 'sales.db').exists()
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_another_named_connection_reads_committed_state_without_losing_first_transaction(database):
@@ -177,7 +179,7 @@ def partitioned(path):
             for name in ('id', 'organization', 'quantity'):
                 columns.column(name, dtype='I')
             table.virtual_columns().formulaColumn('doubled', sql_formula='$quantity * 2', dtype='I')
-    db = AsqueelDb(Recipe)
+    db = AsqueelDb(Recipe).session()
     db.execute('CREATE TABLE app.item (id INTEGER PRIMARY KEY, organization INTEGER, quantity INTEGER)')
     db.commit()
     return db
@@ -200,6 +202,7 @@ def test_raw_commands_keep_partition_checks_and_formula_results(tmp_path):
             db.commit()
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 @pytest.mark.xfail(strict=True, reason='asqueel#15: sql_insert neither refuses nor fills the partition field')
@@ -216,3 +219,4 @@ def test_raw_insert_refuses_and_fills_the_partition(tmp_path):
             db.commit()
     finally:
         db.closeConnection()
+        db.shared.close()

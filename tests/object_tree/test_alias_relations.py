@@ -86,7 +86,8 @@ def database(request):
     schema = 'main' if backend == 'sqlite' else 'alias_rel_' + uuid4().hex
     config, _ = source(implementation=backend, schema=schema,
                        conninfo=':memory:' if backend == 'sqlite' else postgres_dsn(), explicit=explicit)
-    db = AsqueelDb(config)
+    shared = AsqueelDb(config)
+    db = shared.session()
     prefix = f'"{schema}".'
     created = False
     try:
@@ -110,6 +111,7 @@ def database(request):
             db.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
             db.commit()
         db.closeConnection()
+        shared.close()
 
 
 def test_inherited_relation_fetch_and_reuse_on_both_dialects(database):

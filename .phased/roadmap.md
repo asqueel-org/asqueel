@@ -60,6 +60,12 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Starts from: Macro 10 (no class or `x_*` attribute in the source), main bb53e5b.
 - Ends at: the three examples round-trip through TYTX with identical migration structure and live model; environment resolvers stay resolvers; the saved artifact is the recipe source, not the composed one.
 
+## Macro 12 (done): 0.9.0 runtime per call — done/runtime-per-call-0-9-0/plan.md
+- Objective: `AsqueelDb` shared by every call, `SessionDb` per call (asqueel#56); asqueel#19 and asqueel#24 closed; guides and release notes on the new runtime. Guide: `temp/xmldocs/plan/release-0-9.xml`.
+- Starts from: Macro 11, main ad66132 (0.8.0).
+- Ends at: asqueel 0.9.0 ready to release, every acceptance criterion of asqueel#56 green; no tag, no PyPI before the PR is merged.
+- Delivers: `SessionDb`, consumed by 0.9.5 cached fetch (runs inside a `SessionDb`) and by the kajenn adapter and genropy-asqueel (main `SessionDb` per call).
+
 ## Debts
 - `text_pattern_ops` on the `hierarchical_pkey` index and column collation (2026-10-19). Legacy has neither. Measured on PostgreSQL 17: with a non-C database collation a prefix `LIKE` on `hierarchical_pkey` scans the table; with collation `C` it uses the UNIQUE index. Proposed in the legacy first: genropy/genropy#1708 (collation, `unaccent='full'`), measurement on genropy/genropy#1526. asqueel follows the legacy outcome.
 - Custom column types (2026-10-23, deferred by the user during Macro 10 planning). Two mechanisms exist: `options().type()` declared in the source (resolved by `model_source.resolve_source_types`) and `custom_type_<dtype>()` methods of the package layout's `Package` (`package_layout.py`, the only legacy mechanism, `gnrsqlmodel/columns.py:127`). One must remain; the user leans to `options().type()`. The column `dtype` `Literal` waits for this decision.

@@ -12,7 +12,10 @@ Application configuration and objects
    :members: SqlDatabaseConfig
 
 .. automodule:: asqueel.application
-   :members: AsqueelDb
+   :members: AsqueelDb, SessionDb
+
+.. automodule:: asqueel.hosting
+   :members: AsqueelDbMixin
 
 .. automodule:: asqueel.application_table
    :members: SqlTable, SqlQuery, RecordNotFoundError, RecordMultipleRowsError

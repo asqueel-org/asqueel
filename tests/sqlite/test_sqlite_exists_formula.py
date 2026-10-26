@@ -20,7 +20,7 @@ def recipe(path):
 
 
 def test_an_exists_formula_runs_on_sqlite(tmp_path):
-    db = AsqueelDb(recipe(tmp_path / 'sample.db'))
+    db = AsqueelDb(recipe(tmp_path / 'sample.db')).session()
     try:
         db.migrate()
         db.table('app.invoice').insert({'id': 1})
@@ -31,4 +31,4 @@ def test_an_exists_formula_runs_on_sqlite(tmp_path):
         assert [(row['id'], bool(row['has_lines'])) for row in rows] == [(1, True), (2, False)]
         db.rollback()
     finally:
-        db.closeConnection()
+        db.shared.close()

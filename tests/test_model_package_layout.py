@@ -71,10 +71,14 @@ def test_custom_type_method_supplies_the_column_attributes(tmp_path):
 
 
 def test_the_table_class_is_the_runtime_table(tmp_path):
-    db = database(tmp_path, customer=CUSTOMER)
-    db.migrate()
-    record = db.table('sales.customer').insert({'name': 'ada'})
-    assert record['name'] == 'ADA'
+    db = database(tmp_path, customer=CUSTOMER).session()
+    try:
+        db.migrate()
+        record = db.table('sales.customer').insert({'name': 'ada'})
+        assert record['name'] == 'ADA'
+    finally:
+        db.closeConnection()
+        db.shared.close()
 
 
 def test_config_db_custom_names_the_missing_feature(tmp_path):

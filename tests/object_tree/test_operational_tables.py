@@ -27,12 +27,12 @@ def bind(source, **kwargs):
 def test_creation_precedes_children_and_does_not_load_relations(monkeypatch):
     original = SqlTable.__init__
     seen = []
-    def init(self, tblobj):
+    def init(self, tblobj, db):
         if isinstance(tblobj, DbTableObj):
             assert tblobj.children == {}
             assert tblobj._model.relations.keys() == []
             seen.append(tblobj.fullname)
-        original(self, tblobj)
+        original(self, tblobj, db)
     monkeypatch.setattr(SqlTable, '__init__', init)
     source, _, _ = recipe()
     model = AsqueelDb(source).model

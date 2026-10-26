@@ -74,7 +74,7 @@ def test_concurrent_inserts_under_one_parent_get_distinct_positions():
         source = SqlDatabaseConfig()
         root = source.source.db('options', implementation='postgres', conninfo=postgres_dsn())
         ranked_category(root.packages().package('app', sqlschema=schema, sqlprefix=False))
-        return AsqueelDb(source)
+        return AsqueelDb(source).session()
 
     first, second = open_db(), open_db()
     try:
@@ -102,7 +102,7 @@ def test_concurrent_inserts_under_one_parent_get_distinct_positions():
                      for record in table.query(columns='$code,$_row_count').fetch()}
         assert positions == {'parent': 1, 'child_1': 1, 'child_2': 2, 'root_1': 2, 'root_2': 3}
     finally:
-        first.closeConnection()
-        second.closeConnection()
+        first.shared.close()
+        second.shared.close()
         with psycopg.connect(postgres_dsn(), autocommit=True) as conn:
             conn.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))

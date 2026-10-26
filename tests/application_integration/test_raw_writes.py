@@ -51,7 +51,7 @@ def make_db(request, tmp_path):
                 else:
                     db = root.db(implementation='postgres', conninfo=postgres_dsn())
                 db.packages().package(schema, sqlschema=schema, sqlprefix=False, path=path)
-        db = (SharedHooks if db_hooks else AsqueelDb)(Config)
+        db = (SharedHooks if db_hooks else AsqueelDb)(Config).session()
         db.item = f'{schema}.item'
         databases.append((db, schema))
         if request.param == 'postgres':
@@ -71,6 +71,7 @@ def make_db(request, tmp_path):
                     db.commit()
             finally:
                 db.closeConnection()
+                db.shared.close()
 
 
 def rows(table):

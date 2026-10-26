@@ -21,12 +21,12 @@ def live_database(executor, state=None):
         implementation, conninfo, connect_kwargs = connection_settings(executor.config)
         config.source['db'].attr.update(implementation=implementation, conninfo=conninfo,
                                         connect_kwargs=connect_kwargs)
-        tree = AsqueelDb(config)
+        tree = AsqueelDb(config).session()
         try:
             tree.currentEnv.update(dict(executor.currentEnv))
             yield tree
         finally:
-            tree.closeConnection()
+            tree.shared.close()
 
 
 @pytest.fixture(scope='module')

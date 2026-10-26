@@ -78,8 +78,9 @@ main.options().driver(connect_timeout=5)
 db.connection("reporting", database="gestionale_replica", host="replica")
 ```
 
-The application selects a declared connection with
-`db.tempEnv(connectionName="reporting")`. When declaring connections by logical
+Inside a call, `db.tempEnv(connectionName="reporting")` runs a block on the
+declared connection; `db.session("reporting", target="reporting")` opens that
+session explicitly. When declaring connections by logical
 name, include `main`, which is also used by CLI migration commands. All named
 connections use the database's dialect; they can target different physical
 databases. See [transactions](transactions.md) for connection lifecycle and
@@ -158,8 +159,9 @@ db.commit()
 ```
 
 Use `db.rollback()` to discard pending changes or recover after a failed domain
-operation. Leaving the console, including `exit()`/EOF, calls `db.closeConnection()`:
-it rolls back uncommitted work and closes the connections. It never commits implicitly on exit. Console code
+operation. `db` is the session of the console. Leaving the console, including
+`exit()`/EOF, closes the database: it rolls back uncommitted work and closes
+the connections. It never commits implicitly on exit. Console code
 has normal Python access to the database object and its configuration; no
 persistent console history file is installed by this command.
 
@@ -168,13 +170,15 @@ The same symbolic name works in an ordinary Python terminal:
 ```python
 from asqueel import AsqueelDb
 
-db = AsqueelDb("gestionale")
-rows = db.table("sales.customer").query().fetch()
-db.closeConnection()
+shared = AsqueelDb("gestionale")
+with shared.session() as db:
+    rows = db.table("sales.customer").query().fetch()
+    db.commit()
+shared.close()
 ```
 
-Call `db.closeConnection()` when finished; it rolls back pending work and
-closes the connections. This constructor
+Close the session when finished; closing rolls back pending work and closes
+the connection. This constructor
 loads the SQL configuration directly; it does not instantiate an
 application or load GUI/services.
 

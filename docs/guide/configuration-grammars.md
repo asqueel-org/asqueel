@@ -135,15 +135,14 @@ then takes them:
 | `app.get_db("betadb")` | the server's `betadb` |
 | `app.get_db("chat:alfadb")` | the `alfadb` of application `chat` |
 
-The first take of a database during a call enters
-[`session(db)`](transactions.md#sessions) on it. The session clears
-`currentEnv`, so a call never sees the context left by the previous call on
-that thread. A database already in a session on the thread, taken through
-another owner, is used as it is. At the end of the call, on the same thread,
-the host calls `release_databases()` on the owner the call used: it leaves the
-sessions opened through that owner, which rolls back what was not committed
-and closes the connections, and the next take starts a new call. One call runs
-on one thread; each thread releases only its own takes.
+Each take returns the main [`SessionDb`](transactions.md#sessions) of the
+call: `shared.session()` on the shared `AsqueelDb`. A new session starts from
+the environment defaults, so a call never sees the context left by a previous
+call. A session already open in the call, taken through another owner, is used
+as it is. At the end of the call the host calls `release_databases()` on the
+owner the call used: it closes the sessions opened through that owner, which
+rolls back what was not committed and closes the connections. Each call,
+whether a thread or a `contextvars` context, releases only its own takes.
 
 ## Boundaries of customization
 

@@ -88,7 +88,7 @@ def database(tmp_path, method=None):
             db = root.db(implementation='sqlite')
             db.connection(name=str(tmp_path / 'closed.db'))
             db.packages().package('main', sqlschema='main', sqlprefix=False, path=path)
-    return AsqueelDb(Config)
+    return AsqueelDb(Config).session()
 
 
 @pytest.mark.parametrize('method', ['trigger_onInserted_mypkg'])
@@ -107,6 +107,7 @@ def test_legacy_environment_keys_raise_at_execution(tmp_path, key):
             db.table('main.item').query().fetch()
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_subtable_query_option_names_the_option(tmp_path):
@@ -116,6 +117,7 @@ def test_subtable_query_option_names_the_option(tmp_path):
             db.table('main.item').query(subtable='*')
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_an_attribute_set_on_a_declared_column_still_raises():

@@ -48,7 +48,7 @@ def make_db(tmp_path):
 
     def make(customer_methods=''):
         source = recipe(tmp_path / f'handles{len(opened)}.db', tmp_path / f'app{len(opened)}', customer_methods)
-        database = AsqueelDb(source)
+        database = AsqueelDb(source).session()
         opened.append(database)
         for statement in DDL:
             database.execute(statement)
@@ -59,6 +59,7 @@ def make_db(tmp_path):
     for database in opened:
         database.rollback()
         database.closeConnection()
+        database.shared.close()
 
 
 @pytest.fixture
