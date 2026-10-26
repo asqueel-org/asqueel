@@ -14,22 +14,39 @@
   and table writes on it raise `TransactionStateError`. A closed `SessionDb`
   refuses any use; concurrent use of one `SessionDb` raises.
 - Per-thread state is removed: the current session of a call lives in a
-  `ContextVar` of the `AsqueelDb`, so each thread and each `contextvars`
-  context is a separate call. A `SessionDb` may move between threads of its
-  call.
-- A clean close of a session with uncommitted work rolls back and logs a
-  warning on the `asqueel.application` logger; a close by exception rolls back
-  without it.
+  `ContextVar` of the `AsqueelDb`. Each `contextvars` context is a separate
+  call; on a reused worker thread, a call whose sessions are closed is followed
+  by a new call with new sessions. A `SessionDb` may move between threads of
+  its call; concurrent use of one session (a statement, a fetch, a commit, a
+  close) raises `TransactionStateError`. Each asyncio task needs a session of
+  its own.
+- A clean close of a session after a write, or with deferred callbacks still
+  queued, rolls back and logs a warning on the `asqueel.application` logger;
+  a session that only read closes without it, and a close by exception rolls
+  back without it. A close refused while a statement or a commit is in
+  progress changes nothing.
+- A session of an `AsqueelDb` subclass has the subclass's methods, but the
+  subclass's `__init__` does not run for it: instance state lives on the
+  shared database, reached as `session.shared`.
 - `closeConnection()` keeps its meaning on a `SessionDb`: roll back, close the
   connection, the next statement opens a new one.
 - `tempEnv(connectionName='x')` runs the block's statements on the connection
-  of the call's session `x`, opened on first use with `target='main'`; a
-  configured connection is opened with `db.session('x', target='x')`.
-- SQLite `:memory:`: one session at a time; a second open session raises
-  `TransactionStateError`. SQLite connects with `check_same_thread=False`.
+  of the call's session `x`, opened on first use on the configured connection
+  `x` (`main` when the recipe declares no named connection), as before; it
+  closes with the session that opened it. `db.session('x', target='x')` opens
+  the same session explicitly.
+- SQLite `:memory:`: the `AsqueelDb` keeps one connection and lends it to one
+  session at a time; a second open session raises `TransactionStateError`.
+  `closeConnection()`, the close of a session and `migrate()` keep its data,
+  `AsqueelDb.close()` discards it; work a session left uncommitted is rolled
+  back when the connection is lent again. SQLite connects with
+  `check_same_thread=False`.
 - `AsqueelDbMixin`: `owner.db` and `owner.get_db(name)` return the main
-  `SessionDb` of the call; `release_databases()` closes the sessions the owner
-  opened in that call. `taken_databases` lists `SessionDb` instances.
+  `SessionDb` of the call; `release_databases()` closes the sessions of the
+  calls the owner opened, the named ones included, also when the application
+  already closed the main one. A session that refuses to close stays tracked
+  and the next release closes it. `taken_databases` lists `SessionDb`
+  instances.
 - pgbouncer is supported in `session` pool mode only.
 - Deprecated: the module-level `asqueel.session(db, **env)`, now an alias of
   `db.session(**env)`, kept for this release only.
