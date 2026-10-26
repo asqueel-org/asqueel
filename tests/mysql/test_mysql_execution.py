@@ -16,9 +16,9 @@ def db(mysql_server):
     params, _ = mysql_server
     database = empty_database(implementation='mysql', connect_kwargs=params)
     try:
-        yield database
+        yield database.session()
     finally:
-        database.closeConnection()
+        database.close()
 
 
 def test_session_sql_mode(db):
@@ -40,6 +40,20 @@ def test_crud_and_rollback(db):
         {'value': "l'apostrofo \\ 100%"}]
     with pytest.raises(UnsupportedFeatureError, match='RETURNING'):
         db.execute(f'DELETE FROM "{table}" RETURNING id')
+    db.rollback()
+
+
+def test_percent_outside_bindings(db):
+    table = 'v1_percent_' + uuid4().hex
+    db.execute(f'CREATE TABLE "{table}" (id int PRIMARY KEY, value text)')
+    db.execute(f'INSERT INTO "{table}" VALUES (1, :a), (2, :b), (3, :c)', {'a': 'abc', 'b': 'xa%', 'c': 'b'})
+    # No parameters: execution still passes a mapping, so PyMySQL reads %% as %.
+    rows = db.execute(f'SELECT id, 7 % 3 AS r FROM "{table}" /* 50% */ WHERE value LIKE \'a%\' -- 100%\n'
+                      '# 5%\nORDER BY id').fetchall()
+    assert [dict(row) for row in rows] == [{'id': 1, 'r': 1}]
+    rows = db.execute(f'SELECT id FROM "{table}" WHERE value LIKE :p AND value LIKE \'%a%\' -- :q 1%',
+                      {'p': 'x%'}).fetchall()
+    assert [dict(row) for row in rows] == [{'id': 2}]
     db.rollback()
 
 

@@ -16,7 +16,7 @@ import re
 from typing import Any
 
 from ..contracts import UnsupportedFeatureError
-from .._sql_parameters import substitute_parameters
+from .._sql_parameters import substitute_parameters_and_text
 from .base import SqlDbAdapter as SqlDbBaseAdapter, mask_bounds, sql_literal
 from .postgres import SqlDbAdapter as PostgresAdapter
 
@@ -136,13 +136,14 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def prepareSqlText(self, sql, kwargs):
         """ILIKE as LIKE, ``~*`` as REGEXP, DEFAULT VALUES as ``() VALUES ()``; ``%(name)s`` bindings.
 
-        RETURNING and LOCK raise: MySQL has neither. PyMySQL formats every
-        statement with ``%``, so a literal ``%`` is doubled.
+        RETURNING and LOCK raise: MySQL has neither. Execution always passes a
+        mapping, so PyMySQL formats every statement with ``%`` and reads ``%%``
+        as ``%``: every ``%`` outside a binding is doubled.
         """
         sql = self.adaptTupleListSet(sql, kwargs)
         sql = _TOKENS.sub(self._token, sql)
-        sql = sql.replace('%', '%%')
-        return substitute_parameters(sql, lambda m: '%(' + m['parameter'] + ')s', self.dialect), kwargs
+        return substitute_parameters_and_text(
+            sql, lambda m: '%(' + m['parameter'] + ')s', lambda text: text.replace('%', '%%'), self.dialect), kwargs
 
     @staticmethod
     def _token(match):

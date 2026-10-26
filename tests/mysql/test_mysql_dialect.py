@@ -21,9 +21,9 @@ def db():
     ticket.column('id', dtype='serial')
     database = AsqueelDb(source)
     try:
-        yield database
+        yield database.session()
     finally:
-        database.closeConnection()
+        database.close()
 
 
 def model(db, name):

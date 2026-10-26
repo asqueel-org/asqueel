@@ -29,12 +29,13 @@ def application(mysql_server):
             ticket.column('id', dtype='serial')
             ticket.column('note', dtype='T')
 
-    db = AsqueelDb(Recipe)
+    db = AsqueelDb(Recipe).session()
     try:
         db.migrate()
+        db.commit()
         yield db
     finally:
-        db.closeConnection()
+        db.shared.close()
 
 
 def test_migration_is_complete(application):
@@ -73,6 +74,14 @@ def test_for_update_query(application):
     application.commit()
     assert [dict(row) for row in customer.query('$name', for_update=True).fetch()] == [{'name': 'Rossi'}]
     application.rollback()
+
+
+def test_vacuum_runs_on_a_separate_connection(application):
+    application.table('app.customer').insert({'id': 1, 'name': 'Rossi'})
+    application.commit()
+    application.vacuum()
+    application.vacuum('"' + application.table('app.customer').model.sqlschema + '"."customer"')
+    assert [dict(row) for row in application.table('app.customer').query('$name').fetch()] == [{'name': 'Rossi'}]
 
 
 def test_table_lock_is_refused(application):
