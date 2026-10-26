@@ -93,7 +93,7 @@ def test_mounted_database_writes_and_reads_on_sqlite(tmp_path):
     connection.execute('create table message(id integer primary key, text text)')
     connection.commit()
     connection.close()
-    db = AsqueelDb(mounted_node(path))
+    db = AsqueelDb(mounted_node(path)).session()
     try:
         db.table('chat.message').insert({'text': 'ciao'})
         db.commit()

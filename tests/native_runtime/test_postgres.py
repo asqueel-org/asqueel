@@ -14,7 +14,7 @@ pytestmark = pytest.mark.postgresql
 
 def test_real_postgres_crud_rollback_and_returning():
     table = 'v1_runtime_' + uuid4().hex
-    db = empty_database(postgres_dsn(), implementation='postgres')
+    db = empty_database(postgres_dsn(), implementation='postgres').session()
     try:
         db.execute(CompiledQuery(f'CREATE TABLE "{table}" (id int PRIMARY KEY, value text)'))
         db.commit()
@@ -40,7 +40,7 @@ def test_real_postgres_crud_rollback_and_returning():
 
 def test_real_postgres_metadata_mismatch_rolls_back_prior_write():
     table = 'v1_runtime_' + uuid4().hex
-    db = empty_database(postgres_dsn(), implementation='postgres')
+    db = empty_database(postgres_dsn(), implementation='postgres').session()
     try:
         db.execute(CompiledQuery(f'CREATE TABLE "{table}" (id int PRIMARY KEY)'))
         db.commit()

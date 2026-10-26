@@ -34,6 +34,8 @@ class Request:
 
     def cleanup(self):
         try:
+            # tempEnv(connectionName='auxiliary') runs on the call's session of that name.
+            self.shared_db.session('auxiliary').closeConnection()
             self.shared_db.closeConnection()
         finally:
             self.shared_db.clearCurrentEnv()
@@ -54,7 +56,7 @@ def test_next_request_inherits_no_pending_work_or_context(tmp_path, backend, fai
                 database = root.db(implementation='postgres', conninfo=postgres_dsn())
             database.packages().package(schema, sqlschema=schema, sqlprefix=False, path=path)
 
-    db = AsqueelDb(Configuration)
+    db = AsqueelDb(Configuration).session()
     trace = []
 
     def fail():

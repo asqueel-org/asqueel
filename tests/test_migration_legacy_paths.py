@@ -135,7 +135,7 @@ def _pg_recipe(dsn, schema, dtype, notnull=False):
 
 
 def _filled(dsn, schema, values):
-    runtime = AsqueelDb(_pg_recipe(dsn, schema, 'T'))
+    runtime = AsqueelDb(_pg_recipe(dsn, schema, 'T')).session()
     try:
         runtime.migrate()
         for index, value in enumerate(values, 1):
@@ -143,6 +143,7 @@ def _filled(dsn, schema, values):
         runtime.commit()
     finally:
         runtime.closeConnection()
+        runtime.shared.close()
 
 
 @pytest.mark.postgresql

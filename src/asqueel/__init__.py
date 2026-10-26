@@ -12,7 +12,7 @@ from __future__ import annotations
 from importlib import import_module
 
 from .builder import SqlBuilder
-from .application import AsqueelDb
+from .application import AsqueelDb, SessionDb
 from .application_table import (
     SqlTable, SqlQuery,
     RecordNotFoundError, RecordMultipleRowsError,
@@ -33,10 +33,10 @@ from .errors import DeferredCommitError, MigrationError
 from .hosting import AsqueelDbMixin
 from .triggers import TriggerStack, TriggerStackItem
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 __all__ = [
-    "AsqueelDb", "AsqueelDbMixin", "SqlDatabaseConfig",
+    "AsqueelDb", "SessionDb", "AsqueelDbMixin", "SqlDatabaseConfig",
     "SqlTable", "SqlQuery",
     "RecordNotFoundError", "RecordMultipleRowsError",
     "SqlBuilder", "SqlPythonEmitter",

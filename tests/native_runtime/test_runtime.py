@@ -61,7 +61,7 @@ def fake(monkeypatch):
 
 
 def test_shared_execute_retains_connection_until_explicit_completion(fake):
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     assert not hasattr(db, 'transaction')
     assert not hasattr(db, 'connection')
     result = db.execute(CompiledQuery('select'))
@@ -79,7 +79,7 @@ def test_shared_execute_retains_connection_until_explicit_completion(fake):
 
 
 def test_sql_error_rolls_back_and_explicit_retry_reuses_connection(fake):
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         db.execute(CompiledQuery('first'))
         with pytest.raises(ValueError, match='statement failed'):
@@ -93,14 +93,15 @@ def test_sql_error_rolls_back_and_explicit_retry_reuses_connection(fake):
 
 
 def test_close_connection_discards_pending_work_and_closes_only_current_thread(fake):
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     db.execute(CompiledQuery('select'))
     def worker():
+        session = db.shared.session()
         try:
-            db.execute(CompiledQuery('worker'))
-            db.commit()
+            session.execute(CompiledQuery('worker'))
+            session.commit()
         finally:
-            db.closeConnection()
+            session.closeConnection()
     with ThreadPoolExecutor(max_workers=1) as pool:
         pool.submit(worker).result()
     db.execute(CompiledQuery('still open'))
@@ -115,7 +116,7 @@ def test_close_connection_discards_pending_work_and_closes_only_current_thread(f
 def test_failed_open_allows_another_attempt(fake, monkeypatch):
     import psycopg
     original = psycopg.connect
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         monkeypatch.setattr(psycopg, 'connect', lambda *a, **kw: (_ for _ in ()).throw(OSError('open failed')))
         with pytest.raises(OSError, match='open failed'):
@@ -133,7 +134,7 @@ def test_completion_failure_discards_connection(fake, monkeypatch, operation):
     def fail(self):
         raise failure
     monkeypatch.setattr(FakeConnection, operation, fail)
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         db.execute(CompiledQuery('select'))
         with pytest.raises(OSError) as caught:
@@ -152,7 +153,7 @@ def test_commit_error_is_not_masked_by_cleanup_failure(fake, monkeypatch):
         raise RuntimeError('close failed')
     monkeypatch.setattr(FakeConnection, 'commit', fail_commit)
     monkeypatch.setattr(FakeConnection, 'close', fail_close)
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         db.execute(CompiledQuery('select'))
         with pytest.raises(OSError) as caught:
@@ -166,7 +167,7 @@ def test_commit_error_is_not_masked_by_cleanup_failure(fake, monkeypatch):
 def test_close_error_after_successful_commit_keeps_the_commit(fake, monkeypatch):
     def fail(self):
         raise OSError('close failed')
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     db.execute(CompiledQuery('select'))
     db.commit()
     monkeypatch.setattr(FakeConnection, 'close', fail)
@@ -179,7 +180,7 @@ def test_close_error_after_successful_commit_keeps_the_commit(fake, monkeypatch)
 
 @pytest.mark.parametrize('columns', [(ResultColumn('wrong'),), (ResultColumn('value'), ResultColumn('extra'))])
 def test_mismatched_metadata_rolls_back_before_fetch(fake, columns):
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         with pytest.raises(ValueError, match='Compiled result columns'):
             db.execute(CompiledQuery('select', columns=columns))
@@ -191,7 +192,7 @@ def test_mismatched_metadata_rolls_back_before_fetch(fake, columns):
 
 def test_matching_metadata_reads_the_rows_by_name(fake):
     column = ResultColumn('value', 'I', 'sample.value', {'label': 'The value'})
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         rows = db.execute(CompiledQuery('select', columns=(column,))).fetchall()
     finally:
@@ -205,7 +206,7 @@ def test_metadata_without_result_set_fails(fake, monkeypatch):
         original(self, sql, params)
         self.description = None
     monkeypatch.setattr(FakeConnection, 'execute', no_result)
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         with pytest.raises(ValueError, match='without a result set'):
             db.execute(CompiledQuery('update', columns=(ResultColumn('value'),)))
@@ -221,7 +222,7 @@ def test_autocommit_rejected():
 
 def test_driver_cannot_reenter_execute_or_finish_active_statement(fake, monkeypatch):
     original = FakeConnection.execute
-    db = empty_database(implementation='postgres')
+    db = empty_database(implementation='postgres').session()
     try:
         def callback(self, sql, params):
             original(self, sql, params)

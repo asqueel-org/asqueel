@@ -57,7 +57,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
 
 def test_generic_runtime_injected_driver_affinity_and_original_errors():
     def scenario():
-        db = empty_database(implementation=FAKE)
+        db = empty_database(implementation=FAKE).session()
         try:
             driver = db.adapter
             result = db.execute(CompiledQuery('ok', dialect='fake', binding='fake'))
@@ -65,7 +65,7 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
             with pytest.raises(LookupError, match='original driver error'):
                 db.execute(CompiledQuery('fail', dialect='fake', binding='fake'))
         finally:
-            db.closeConnection()
+            db.shared.close()
         assert [name for name, _ in driver.calls] == [
             'connect', 'execute', 'execute', 'rollback', 'close']
         assert len({thread for _, thread in driver.calls}) == 1
@@ -75,7 +75,7 @@ def test_generic_runtime_injected_driver_affinity_and_original_errors():
 
 def test_runtime_rejects_profile_before_connect_or_execute():
     def scenario():
-        db = empty_database(implementation=FAKE)
+        db = empty_database(implementation=FAKE).session()
         try:
             driver = db.adapter
             with pytest.raises(ValueError, match='profile'):
@@ -86,7 +86,7 @@ def test_runtime_rejects_profile_before_connect_or_execute():
                     tx.execute(CompiledQuery('SELECT 1'))
                 assert not driver.calls
         finally:
-            db.closeConnection()
+            db.shared.close()
         assert not driver.calls
     scenario()
 
@@ -123,12 +123,12 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     def rollback(self, conn): pass
     def close(self, conn): pass
 def main():
-    db = empty_database(implementation='fake:__main__')
+    db = empty_database(implementation='fake:__main__').session()
     try:
         db.execute(CompiledQuery('x', dialect='fake', binding='fake'))
     finally:
-        db.closeConnection()
-    empty_database(implementation='postgres').closeConnection()
+        db.shared.close()
+    empty_database(implementation='postgres').close()
 main()
 '''
     result = subprocess.run([sys.executable, '-c', script], cwd=Path(__file__).parents[2],

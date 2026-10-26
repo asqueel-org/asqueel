@@ -23,13 +23,13 @@ def test_explicit_pipeline(native_database):
     writer = WriteCompiler(adapter)
 
     def scenario():
-        db = empty_database(implementation='postgres', connect_kwargs=params)
+        db = empty_database(implementation='postgres', connect_kwargs=params).session()
         try:
             db.execute(writer.insert(model.table('crm.customer'), {'id': 1, 'name': "L'impresa 50%"},
                                      db.environment_snapshot()))
-            # Literal SQL reaches psycopg as written: the author doubles its %.
+            # The adapter doubles every % outside a binding for psycopg.
             plan = compiler.plan_select(
-                'crm.customer', columns="$name, '50%%' AS percent",
+                'crm.customer', columns="$name, '50%' AS percent",
                 where='$id = :id', sqlparams={'id': 1},
             )
             prepared = compiler.compile_plan(plan)
@@ -40,4 +40,5 @@ def test_explicit_pipeline(native_database):
             assert db.execute(CompiledQuery('SELECT 1 AS ok'))
         finally:
             db.closeConnection()
+            db.shared.close()
     scenario()

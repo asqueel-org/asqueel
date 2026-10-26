@@ -60,6 +60,10 @@ def test_original_preparation_oracle(record):
     if (record['kind'], record.get('dialect'), record['name']) == ('prepared', 'postgres', 'literal_binding'):
         # Issue #35 deliberately differs from the historical interpolation bug.
         expected['sql'] = record['sql']
+    if (record['kind'], record.get('dialect'), record['name']) in (
+            ('prepared', 'postgres', 'percent'), ('prepared', 'postgres', 'percent_bound')):
+        # asqueel#19 doubles every % outside a binding, the legacy %% of the input included.
+        expected['sql'] = expected['sql'].replace('%%', '%%%%')
     assert actual == expected
     assert params == before
 

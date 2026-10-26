@@ -10,9 +10,9 @@ The [CLI and named configurations](cli.md) guide covers named
 migration commands and a Python console with `db` available. The older root
 connection attributes shown below remain supported.
 
-`AsqueelDb("gestionale")` loads a registered configuration and returns a
-persistent database object. Use `db.commit()`, `db.rollback()` and
-`db.closeConnection()` explicitly.
+`AsqueelDb("gestionale")` loads a registered configuration and returns the
+database shared by every call. `db.session()` returns the `SessionDb` of one
+call; use its `commit()`, `rollback()` and `close()` explicitly.
 
 ## Construct a database or render a recipe
 
@@ -123,8 +123,8 @@ and grammar selection are separate choices.
 Against an existing database with the example table:
 
 ```python
-db = AsqueelDb(Shop)
-try:
+shared = AsqueelDb(Shop)
+with shared.session() as db:
     customer = db.table("sales.customer")
     try:
         customer.insert({"id": 1, "name": "Ada"})
@@ -134,9 +134,7 @@ try:
     except Exception:
         db.rollback()
         raise
-
-finally:
-    db.closeConnection()
+shared.close()
 
 ```
 
@@ -204,9 +202,9 @@ read, so the layout files must be there too.
 
 ## Ownership and advanced integration
 
-A database shares its model and table handles between threads. Connections and
-mutable execution state are isolated per thread. Repeated table lookup within one
-instance preserves identity; custom table classes must not store per-request state
+An `AsqueelDb` shares its model and configuration with every call. Connections,
+environment and mutable execution state belong to each `SessionDb`. Repeated
+table lookup within one session preserves identity; custom table classes must not store per-request state
 on shared attributes. Table and column nodes expose the completed model through `.attributes`;
 editing the source or `db.config.builder` does not alter their structural values.
 `db.config` retains administrative connection configuration. Editing it does not
@@ -227,8 +225,9 @@ root.db("demo", implementation="sqlite").connection("main", database="app.db")
 ```
 
 Use `database` for the physical database and `name` for the logical connection.
-Additional connections may target other databases of the same dialect. Select
-one through `db.tempEnv(connectionName="reporting")`; `main` must be declared.
+Additional connections may target other databases of the same dialect. Reach
+one with `db.tempEnv(connectionName="reporting")` or open it with
+`db.session("reporting", target="reporting")`; `main` must be declared.
 For PostgreSQL, `dsn` is an alternative to the individual connection fields.
 Driver options belong to `connection.options().driver(...)`. On SQLite they are
 `timeout`, `cached_statements` and `foreignKeys` (default `True`; `False` runs

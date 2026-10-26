@@ -71,22 +71,24 @@ class Shop(SqlDatabaseConfig):
         columns.column("name", dtype="T", name_long="Customer name")
 
 
-db = AsqueelDb(Shop)
+db = AsqueelDb(Shop).session()
 customer = db.table("sales.customer")
 query = customer.query(
     columns="$id, $name", where="$id >= :minimum_id",
     minimum_id=1, order_by="$id",
 )
 print(query.sqltext)  # Compiles without opening a connection.
-db.closeConnection()
+db.close()
 
 ```
 
 Against an existing `sales.customer` table, call `query.fetch()` to get a list
-of mutable Toolbox `NamedList` rows (name and position access). Table writes and reads share the selected thread-local connection, opened lazily. Use `db.commit()`
-and `db.rollback()`. Select a named connection with `db.tempEnv(connectionName=...)`.
-`db.closeConnection()` rolls back pending work and keeps the database usable;
-`with session(db):` calls it at exit.
+of mutable Toolbox `NamedList` rows (name and position access). `AsqueelDb` holds the model and configuration shared by every call;
+`db.session()` returns the `SessionDb` of one call, which holds its connection,
+environment and transaction. Table writes and reads share the session's
+connection, opened lazily. Use `db.commit()` and `db.rollback()`.
+`db.close()` rolls back pending work and closes the session;
+`with shared.session() as db:` calls it at exit.
 
 Construction does not connect or create tables. The
 [runnable quickstart](docs/guide/quickstart.md) includes explicit disposable

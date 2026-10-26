@@ -23,7 +23,7 @@ def recipe(path):
 @pytest.fixture
 def database(tmp_path):
     path = tmp_path / 'values.db'
-    db = AsqueelDb(recipe(path))
+    db = AsqueelDb(recipe(path)).session()
     # Declared types as asqueel-migration's SQLite writer emits them (legacy revTypesDict).
     db.execute('CREATE TABLE app.item (id integer PRIMARY KEY, day date, '
                'moment timestamp, stamp timestamp with time zone, '
@@ -33,6 +33,7 @@ def database(tmp_path):
         yield db, path.with_name('app.db')
     finally:
         db.closeConnection()
+        db.shared.close()
 
 
 def test_values_come_back_converted_to_the_dtype(database):

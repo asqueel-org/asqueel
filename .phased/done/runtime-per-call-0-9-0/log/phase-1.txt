@@ -1,0 +1,5 @@
+✓ Phase 1 completata: asqueel#24, controllo delle collisioni in `_key_where`.
+
+- **Comportamento:** `_key_where` ora controlla i parametri `__pkey__N` prima del binding. Se una chiave del record ha lo stesso nome, solleva `ValueError` e nomina la chiave.
+- **Verifica:** i 4 contract test passano. La suite completa dà 5462 passed / 42 skipped / 20 xfailed, 0 failed. `ruff` è pulito.
+- **Commit:** `622157a`, senza riga di attribuzione AI, come chiede la tua regola. `mypy` del pre-commit hook ha dato 7 errori in `builder.py`, `migration.py` e `reader.py`, file che questa fase non tocca. Sono solo segnalazioni e non hanno bloccato il commit.

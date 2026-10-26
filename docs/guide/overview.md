@@ -117,8 +117,8 @@ except Exception:
     raise
 ```
 
-You can select an independent connection through `db.tempEnv(connectionName=...)`.
-Each connection has its own transaction. Environment values also provide context
+Each call works on its own `SessionDb` (`db.session()`), and a named session of
+the call has its own connection and transaction. Environment values also provide context
 for queries and policies, such as the current business date or organization.
 Partition scope, draft visibility and logical deletion are model concerns;
 database constraints and application authorization retain their own roles.

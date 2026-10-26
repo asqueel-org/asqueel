@@ -43,11 +43,12 @@ def policy_database():
                                         ('deleted_at', 'DHZ'), ('label', 'T')]:
                         columns.column(name, dtype=dtype)
 
-            db = AsqueelDb(Recipe)
+            db = AsqueelDb(Recipe).session()
             try:
                 yield db, observer, schema
             finally:
                 db.closeConnection()
+                db.shared.close()
         finally:
             observer.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(schema)))
 

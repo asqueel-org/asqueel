@@ -373,16 +373,16 @@ class SqlQuery:
 class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
     """Database-bound application table with stable column/relation handles."""
 
-    def __init__(self, tblobj):
+    def __init__(self, tblobj, db):
         self.model = tblobj
         self.fullname = tblobj.fullname
+        self._db = db
 
     @property
     def db(self):
-        db = self.model.db
-        if db is None:
+        if self.model.db is None:
             raise UnsupportedFeatureError('Table is not bound to a database: reloadModel replaced its model')
-        return db
+        return self._db
 
     def __getattr__(self, name):
         """Read missing members from the model, preserving their original binding."""

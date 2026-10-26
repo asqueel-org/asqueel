@@ -1,8 +1,8 @@
-"""Connection lifecycle as legacy: session(db), no close/with/acquire/outcome, deferred calls in currentEnv (Macro 6, Phase 1)."""
+"""Connection lifecycle: session(db) as alias of db.session(), close/with only on a SessionDb, no acquire/outcome, deferred calls in currentEnv (Macro 6, Phase 1)."""
 import pytest
 
 import asqueel
-from asqueel import AsqueelDb, TransactionStateError, session
+from asqueel import AsqueelDb, SessionDb, TransactionStateError, session
 from tests.option_tables_support import IMPLEMENTATIONS, migrated_db
 
 DEFER_KEY = 'to_commit_defer_calls__main_db__main_connection'
@@ -25,49 +25,55 @@ def count(db):
     return db.table('app.note').query(columns='$id').count()
 
 
-def test_the_connection_api_has_no_close_with_acquire_or_outcome():
-    for name in ('close', 'acquire', 'outcome', '__enter__', '__exit__'):
+def test_the_connection_api_has_no_acquire_or_outcome_and_only_a_session_is_a_context_manager():
+    for name in ('acquire', 'outcome', '__enter__', '__exit__'):
         assert not hasattr(AsqueelDb, name), name
+    for name in ('close', '__enter__', '__exit__'):
+        assert hasattr(SessionDb, name), name
     assert not hasattr(asqueel, 'DatabaseClosedError')
 
 
 def test_session_clears_the_environment_and_applies_the_initial_values(db):
     db.updateEnv(user='old', tenant='t1')
-    with session(db, user='ada') as opened:
-        assert opened is db
-        assert db.currentEnv == {'user': 'ada'}
-    with session(db):
-        assert db.currentEnv == {}
+    db.close()
+    with session(db.shared, user='ada') as opened:
+        assert opened is not db and opened.shared is db.shared
+        assert opened.currentEnv == {'user': 'ada'}
+    with session(db.shared) as opened:
+        assert opened.currentEnv == {}
 
 
 def test_session_exit_closes_the_connection_and_drops_uncommitted_work(db):
-    with session(db):
-        db.table('app.note').insert({'id': 'kept', 'text': 'a'})
-        db.commit()
-        db.table('app.note').insert({'id': 'lost', 'text': 'b'})
-    assert db.table('app.note').query(columns='$id').fetchPkeys() == ['kept']
+    db.close()
+    with session(db.shared) as opened:
+        opened.table('app.note').insert({'id': 'kept', 'text': 'a'})
+        opened.commit()
+        opened.table('app.note').insert({'id': 'lost', 'text': 'b'})
+    with session(db.shared) as opened:
+        assert opened.table('app.note').query(columns='$id').fetchPkeys() == ['kept']
 
 
 def test_session_exit_closes_the_connection_when_the_body_raises(db):
+    db.close()
     with pytest.raises(RuntimeError, match='boom'):
-        with session(db):
-            db.table('app.note').insert({'id': 'lost', 'text': 'b'})
+        with session(db.shared) as opened:
+            opened.table('app.note').insert({'id': 'lost', 'text': 'b'})
             raise RuntimeError('boom')
-    assert count(db) == 0
-    with session(db):
-        assert count(db) == 0
+    with session(db.shared) as opened:
+        assert count(opened) == 0
 
 
-def test_a_nested_session_on_the_same_thread_raises(db):
-    with session(db):
-        db.table('app.note').insert({'id': 'n1', 'text': 'a'})
+def test_a_nested_session_of_the_same_call_is_the_open_one_and_refuses_new_values(db):
+    db.close()
+    with session(db.shared) as opened:
+        opened.table('app.note').insert({'id': 'n1', 'text': 'a'})
         with pytest.raises(TransactionStateError, match='session'):
-            with session(db):
-                pass
-        assert count(db) == 1
-        db.commit()
-    with session(db):
-        assert count(db) == 1
+            session(db.shared, user='nested')
+        assert session(db.shared) is opened
+        assert count(opened) == 1
+        opened.commit()
+    with session(db.shared) as opened:
+        assert count(opened) == 1
 
 
 def test_close_connection_rolls_back_and_the_database_stays_usable(db):

@@ -46,7 +46,6 @@ def test_insert_values_mapping_and_default_values(db):
     assert 'DEFAULT VALUES' in writer(db).insert(model(db, 'app.customer'), {}, {}).sql
 
 
-@pytest.mark.xfail(strict=True, reason="asqueel#19: a '%' in a physical column name is not escaped for psycopg")
 def test_insert_escapes_percent_in_physical_names(db):
     query = writer(db).insert(model(db, 'app.customer'), {'id': 1, 'name': 'x'}, {})
     assert '"full%%name"' in query.sql

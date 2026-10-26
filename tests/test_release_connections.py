@@ -147,7 +147,7 @@ def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
         connection.commit()
         connection.close()
         db.connection(name, database=str(path)).options().driver(timeout=1)
-    database = AsqueelDb(builder)
+    database = AsqueelDb(builder).session()
     try:
         assert [dict(row) for row in database.execute('SELECT value FROM marker').fetchall()] == [{'value': 'main'}]
         database.commit()
@@ -157,3 +157,4 @@ def test_named_runtime_connections_reach_distinct_sqlite_databases(tmp_path):
         assert [dict(row) for row in database.execute('SELECT value FROM marker').fetchall()] == [{'value': 'main'}]
     finally:
         database.closeConnection()
+        database.shared.close()

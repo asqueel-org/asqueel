@@ -113,7 +113,7 @@ After applying the structure, run this once on the fresh example database:
 from decimal import Decimal
 from asqueel import AsqueelDb
 
-db = AsqueelDb("gestionale")
+db = AsqueelDb("gestionale").session()
 db.table("identity.user").insert({"id": 1, "username": "ada"})
 db.table("identity.access").insert({"id": 1, "user_id": 1, "successful": True})
 db.table("sales.customer").insert({"id": 1, "name": "Ada"})

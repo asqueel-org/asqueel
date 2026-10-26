@@ -21,7 +21,7 @@ step below on both databases.
 | Alias columns | `aliasColumn` through to-one paths, with inherited metadata, `originalColumn` and the declared `relation_path`. | Read-only: an alias key in a write mapping is skipped. |
 | Writes | `insert`, `update`, `delete` with the legacy write cycle: table triggers, column triggers, `protect_*`, `onDelete`/`onUpdate` of the related records. `insertOrUpdate`, `lock`. `query(...).update()` / `.delete()` write the selected rows record by record; an update changing the logical-deletion field cascades to the children. `sql_insert`, `sql_update`, `sql_delete` write without triggers; `query(...).sql_update()` / `.sql_delete()` write the rows a query selects. | See the refusals below. |
 | Keys | A key left empty is generated: `max(key)+1` for integer keys, a 22-character UUID for text keys with size 22 or no size, or `newPkeyValue()` overridden by the table. | `max(key)+1` is not safe under concurrent inserts; use a `serial` column or your own generator. |
-| Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, named connections per thread, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
+| Transactions | Implicit start, explicit `db.commit()` / `db.rollback()`, one `SessionDb` per call with named sessions, `deferToCommit`, `deferAfterCommit`, `deferredRaise`. | No async API, no savepoints, no automatic retry. |
 | Row policies | Partition, draft and logical-deletion filters on reads; physical partition guards on writes. | Draft/logical-deletion exclusions remain read filters. |
 
 ## What the write cycle refuses
@@ -107,10 +107,9 @@ execution.
 
 The `formulaColumn_<x>()` methods of a table run once and their columns are
 kept in `currentEnv`: they are evaluated again only after
-`clearCurrentEnv()`. This release has no request boundary of its own, so an application
-that wants fresh dynamic columns clears the environment itself. A `session(db)`
-boundary for work outside a request is planned with the environment and
-connection work of the next step.
+`clearCurrentEnv()`. A new `SessionDb` starts from a fresh environment, so each call evaluates
+them again; within one session, an application that wants fresh dynamic
+columns clears the environment itself.
 
 ## Policy boundaries
 
@@ -138,14 +137,14 @@ authorization.
 
 ## Transaction and value boundaries
 
-`AsqueelDb` is the only database class and has one execution
-implementation. Table operations and `db.execute()` use the current thread's
-selected named connection until explicit commit or rollback. Connections open
-lazily and are retained for reuse. `execute()` never commits automatically;
-there is no public transaction object. `db.closeConnection()` rolls back
-pending work and closes the current thread's connections; the database stays
-usable. `session(db)` is the unit of work outside a request and calls
-`closeConnection()` at exit. Each worker must close its own connections.
+`AsqueelDb` holds the shared model and configuration; `SessionDb` is the one
+call, with one execution implementation. Table operations and `db.execute()`
+of a session use its selected connection until explicit commit or rollback.
+Connections open lazily and are retained for reuse. `execute()` never commits
+automatically; there is no public transaction object. `close()` rolls back
+pending work and closes the session; `closeConnection()` rolls back and closes
+the connection, and the session stays usable. pgbouncer `transaction` pool
+mode is not supported; see [sessions](transactions.md#pgbouncer).
 
 An SQL execution error automatically rolls back the selected named connection.
 A Python error in the write lifecycle marks the affected connection rollback-only:

@@ -88,8 +88,7 @@ def test_sqlite_boolean_adapter(database):
 
 def test_driver_percent_protocol(database):
     driver, _ = database
-    sql = "SELECT '10%%' AS value, 8 %% 3 AS remainder" if driver.dialect == 'postgres' else "SELECT '10%' AS value, 8 % 3 AS remainder"
-    row = run(database, sql)[0]
+    row = run(database, "SELECT '10%' AS value, 8 % 3 AS remainder")[0]
     assert dict(row) == {'value': '10%', 'remainder': 2}
     if driver.dialect == 'postgres':
         assert run(database, 'SELECT :value::numeric AS value', {'value': 2})[0]['value'] == 2

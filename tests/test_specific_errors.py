@@ -179,7 +179,7 @@ def test_storename_in_the_environment(tmp_path):
             db = root.db(implementation='sqlite')
             db.connection(name=str(tmp_path / 'specific.db'))
             db.packages().package('main', sqlschema='main', sqlprefix=False).tables().table('item', pkey='id').columns().column('id', dtype='I')
-    db = AsqueelDb(Config)
+    db = AsqueelDb(Config).session()
     try:
         db.updateEnv(storename='branch')
         with pytest.raises(UnsupportedFeatureError,
@@ -187,3 +187,4 @@ def test_storename_in_the_environment(tmp_path):
             db.table('main.item').query().fetch()
     finally:
         db.closeConnection()
+        db.shared.close()

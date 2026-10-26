@@ -2,7 +2,7 @@
 
 `Database(driver=...)` possiede il lifecycle delle connessioni.
 `PostgresDatabase` seleziona `PsycopgDriver`; `AsqueelDb` usa la configurazione
-applicativa. Tutte le operazioni eseguono sul thread chiamante.
+applicativa. Le operazioni eseguono su una `SessionDb`, una per chiamata.
 
 ```python
 from asqueel import PostgresDatabase, CompiledQuery
@@ -37,17 +37,20 @@ fallita ha aperto nuovo lavoro SQL, quel lavoro richiede rollback.
 
 Un errore del driver durante commit/rollback può lasciare un esito incerto:
 non ripetere automaticamente le scritture. La connessione viene scartata.
-`closeConnection()` fa rollback e chiude tutte le connessioni del thread
-corrente; il DB resta utilizzabile nella richiesta successiva. Fuori da una
-richiesta, `session(db)` svuota il contesto all'ingresso e chiama
-`closeConnection()` all'uscita. La conclusione durante hook o callback
+`closeConnection()` fa rollback e chiude la connessione della sessione; la
+sessione resta utilizzabile e l'istruzione successiva apre una nuova
+connessione. `with db.session() as s:` apre la sessione principale della
+chiamata con un `currentEnv` nuovo e la chiude all'uscita. La conclusione durante hook o callback
 è protetta dai controlli di rientranza.
 
 ## Thread, ambiente e driver
 
-Modello e handle del DB possono essere condivisi tra thread. Connessioni,
-callback e `ApplicationEnvironment` sono isolati per thread; ogni worker deve
-ripulire le proprie risorse. Non condividere i record interni delle connessioni.
+Modello e configurazione stanno nell'`AsqueelDb` condiviso da tutte le
+chiamate. Connessioni, callback, ambiente e trigger stack stanno nella
+`SessionDb` della chiamata; la sessione corrente sta in un `ContextVar`
+dell'`AsqueelDb`, quindi ogni contesto `contextvars` è una chiamata separata.
+Una sessione può passare tra thread della sua chiamata; l'uso concorrente
+solleva `TransactionStateError`. Ogni chiamata deve chiudere le proprie sessioni. Non condividere i record interni delle connessioni.
 Le classi applicative condivise non devono conservare stato di richiesta negli
 attributi. Questo contratto non rende thread-safe oggetti Bag condivisi e mutati
 manualmente, né rende il runtime async-safe.
@@ -69,7 +72,7 @@ async è analizzata nel [documento 26](design/26-async-portability.md).
 
 ## Verifiche
 
-Le suite runtime verificano isolamento per thread, connessioni nominate,
+Le suite runtime verificano isolamento per chiamata, sessioni nominate,
 CRUD, callback, rollback, cleanup ed errori di completamento. PostgreSQL e SQLite
 sono esercitati su connessioni reali. `scripts/demo_native.py` verifica il
 percorso PostgreSQL con commit/rollback espliciti e uno schema temporaneo.

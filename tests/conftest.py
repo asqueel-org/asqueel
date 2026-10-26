@@ -54,6 +54,8 @@ POSTGRES_ONLY_FILES = {"test_bag_item_results.py", "test_tree_phase4_bag_values.
 
 def pytest_collection_modifyitems(items):
     for item in items:
+        if item.get_closest_marker("pgbouncer") and not os.environ.get("GNR_TEST_PGBOUNCER_DSN"):
+            item.add_marker(pytest.mark.skip(reason="GNR_TEST_PGBOUNCER_DSN is not set"))
         callspec = getattr(item, "callspec", None)
         params = {value for value in callspec.params.values() if isinstance(value, str)} if callspec else set()
         if POSTGRES_FIXTURES & (params | set(item.fixturenames)) or item.path.name in POSTGRES_ONLY_FILES:

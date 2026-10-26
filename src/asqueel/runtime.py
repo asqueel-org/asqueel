@@ -1,8 +1,6 @@
-"""Shared execution path, thread-local named connections and explicit completion."""
+"""Shared execution path, per-session named connections and explicit completion."""
 from __future__ import annotations
 
-from contextlib import contextmanager
-from threading import Thread, local
 from typing import Any, Iterator, TypedDict
 from weakref import WeakSet
 
@@ -10,15 +8,15 @@ from genro_bag import Bag
 from genro_builders.contrib.config import ConfigHandler
 from genro_toolbox import NamedList
 
-from .errors import TransactionStateError
-from .triggers import TriggerStack
+from .errors import TransactionStateError as TransactionStateError
 
 
 class _ConnectionState(TypedDict):
     """Private data in the DB's named-connection dictionary; no independent API."""
-    owner: Thread
     connection: Any
     pending: bool
+    wrote: bool
+    lock: Any
     committing: bool
     completion_failed: bool
     connection_name: str
@@ -28,13 +26,7 @@ class _ConnectionState(TypedDict):
     execution_count: int
     write_depth: int
     cursors: WeakSet[SqlCursor]
-
-
-class _ThreadState(local):
-    def __init__(self) -> None:
-        self.connections: dict[str, _ConnectionState] = {}
-        self.trigger_stack = TriggerStack()
-        self.session_open = False
+    session: Any
 
 
 class SqlCursor:
@@ -83,15 +75,22 @@ class SqlCursor:
         self._state['cursors'].discard(self)
 
     def _fetch(self, method, *args):
+        state = self._state
+        # A fetch uses the connection as a statement does: one at a time per session.
+        with state['lock']:
+            if state['executing']:
+                raise TransactionStateError('Connection is already executing an operation')
+            state['executing'] = True
         try:
             return method(*args)
         except BaseException as error:
             # Roll back only the transaction this cursor belongs to, not one opened after it.
-            state = self._state
-            if (self._db._connections.get(state['connection_name']) is state
+            if (state['session']._connections.get(state['connection_name']) is state
                     and state['connection'] is self._connection):
                 self._db._execution_failed(state, error)
             raise
+        finally:
+            state['executing'] = False
 
     def fetchone(self) -> NamedList | None:
         row = self._fetch(self._cursor.fetchone)
@@ -109,30 +108,9 @@ class SqlCursor:
             yield row
 
 
-@contextmanager
 def session(db, **env: Any):
-    """The unit of work outside a request, as a legacy page request.
-
-    Entry clears ``currentEnv`` and applies ``env``; exit, also when the body
-    raises, calls ``closeConnection()``, which rolls back what was not
-    committed. One session at a time per database and thread.
-    """
-    if db._thread_state.session_open:
-        raise TransactionStateError('a session is already open on this thread for this database')
-    db.clearCurrentEnv()
-    db.updateEnv(**env)
-    db._thread_state.session_open = True
-    try:
-        yield db
-    except BaseException as error:
-        db._thread_state.session_open = False
-        try:
-            db.closeConnection()
-        except BaseException as cleanup:
-            error.add_note(f'Connection cleanup failed: {type(cleanup).__name__}')
-        raise
-    db._thread_state.session_open = False
-    db.closeConnection()
+    """Deprecated alias of ``db.session(**env)``, kept for one release."""
+    return db.session(**env)
 
 
 def connection_settings(config, connection_name='main'):

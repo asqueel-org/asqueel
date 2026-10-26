@@ -45,7 +45,7 @@ def test_one_database_class():
 
 def test_model_and_table_take_their_owner_only():
     assert list(inspect.signature(DbModel.__init__).parameters) == ['self', 'db']
-    assert list(inspect.signature(SqlTable.__init__).parameters) == ['self', 'tblobj']
+    assert list(inspect.signature(SqlTable.__init__).parameters) == ['self', 'tblobj', 'db']
 
 
 def test_the_database_exists_before_its_model_is_built(tmp_path, monkeypatch):

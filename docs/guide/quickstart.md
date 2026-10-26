@@ -33,7 +33,7 @@ class Shop(SqlDatabaseConfig):
                        name_long='Customer name')
 
 
-db = AsqueelDb(Shop)
+db = AsqueelDb(Shop).session()
 try:
     customer = db.table("sales.customer")
     assert customer is db.table("sales.customer")
@@ -64,7 +64,7 @@ try:
         db.execute(CompiledQuery(f'DROP SCHEMA "{schema_name}" CASCADE'))
         db.commit()
 finally:
-    db.closeConnection()
+    db.shared.close()
 
 ```
 
@@ -84,8 +84,9 @@ Run it with `python quickstart.py`.
 - `query(...).fetchRecord()` returns exactly one visible row. Missing and
   multiple matches raise explicit errors.
 - `db.commit()` saves pending work; `db.rollback()` discards it. Both are explicit.
-  `db.closeConnection()` rolls back pending work and closes the connections;
-  the database stays usable. `with session(db):` calls it at exit.
+  `db.closeConnection()` rolls back pending work and closes the connection;
+  the session stays usable. `db.close()` closes the session; `with
+  shared.session() as db:` calls it at exit.
 
 Pass external values through `params` or write value mappings. SQL fragments,
 including formulas and WHERE expressions, are trusted application code.

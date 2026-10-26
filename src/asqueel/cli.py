@@ -87,7 +87,8 @@ def run(options):
     if options.target and options.config:
         raise CliError('Choose either a target or --config')
     source = options.config or options.target or '.'
-    db = AsqueelDb(source)
+    shared = AsqueelDb(source)
+    db = shared.session()
     try:
         if options.command == 'check':
             # Read through the handler to validate resolvers without database I/O.
@@ -105,7 +106,7 @@ def run(options):
                              foreignKeys=not options.no_foreign_keys, force=options.force,
                              backup=options.backup)
     finally:
-        db.closeConnection()
+        shared.close()
 
 
 def main(argv=None):

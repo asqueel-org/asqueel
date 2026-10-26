@@ -56,13 +56,16 @@ or its physical-name mapping differs from the existing database.
 
 | Symptom | Explanation and recovery |
 |---|---|
-| Writes disappear after leaving `session(db)` or after `closeConnection()` | Both roll back pending work. Call `db.commit()` before the end of the session. |
+| Writes disappear after closing a session or after `closeConnection()` | Both roll back pending work. Call `db.commit()` before the end of the session. |
 | Connection is rollback-only | A table/shared write hook failed or rollback failed. Roll back explicitly; ordinary SQL execution errors already trigger automatic rollback. |
 | `UnusedQueryParameterWarning` | A query keyword is not used by the query (often a misspelled parameter name). The query still runs; the warning names the keyword and the parameters the query uses. |
 | `RecordNotFoundError` | No visible record matched, or a hooked write failed to identify its row. Review the selector and scope. |
 | `RecordMultipleRowsError` | A record read or hooked update/delete matched more than one row. Fix the selector; do not hide matches with a limit. |
-| Thread ownership error | Share the DB, not its internal connection records or driver connections. Each worker must release its own connections. |
-| `TransactionStateError` mentioning a session | `session(db)` was entered while another session on the same database is open on this thread. Leave the first session before opening the next. |
+| `TransactionStateError`: the shared AsqueelDb holds no connection | Statements run on a `SessionDb`: call `db.session()` and work on the session it returns. |
+| `TransactionStateError`: session closed | A closed `SessionDb` refuses any use. Open a new one with `shared.session()`. |
+| `TransactionStateError`: already executing | One `SessionDb` was used by two threads at once. Give each concurrent worker its own call and session. |
+| `TransactionStateError` on a `:memory:` database | A `:memory:` database lends its connection to one session at a time. Close the open session first. |
+| Warning `closed with uncommitted work, rolled back` | A session closed cleanly with uncommitted work. Commit or roll back before closing; see [sessions](transactions.md#close-with-uncommitted-work). |
 | Commit raised a driver error | The server outcome was not confirmed. Reconcile using application identifiers before retrying. |
 
 Driver exceptions such as `psycopg.errors.UniqueViolation` propagate unchanged.

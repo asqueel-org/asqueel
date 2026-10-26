@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
+from contextvars import ContextVar
 from dataclasses import replace
 import datetime
 from importlib import import_module
 import locale
+import logging
 import os
 import re
-from threading import current_thread, local
+from threading import Lock
 from types import MappingProxyType
 from typing import Any, cast
 from uuid import uuid4
@@ -23,19 +25,33 @@ from .configuration import SqlConfigHandler, SqlDatabaseConfig, compose_recipe
 from .contracts import CompiledQuery, UnsupportedFeatureError, not_available, refused_property
 from .environment import _TRANSACTION_KEYS, _copy_values, environment_arguments
 from .errors import DeferredCommitError, MigrationError, TransactionStateError
+from .hierarchical import HierarchicalHandler
 from .runtime import SqlCursor, _ConnectionState, connection_settings
-from .runtime import _ThreadState
+from .triggers import TriggerStack
 from .write_compiler import WriteCompiler
 from .db_write import WriteMixin
+
+# Statements that read: closing a session after them alone is not closing with pending work.
+# A WITH that modifies data and a PRAGMA that assigns are writes.
+_READ_STATEMENT = re.compile(r'\s*(SELECT|SHOW|EXPLAIN|VALUES)\b', re.IGNORECASE)
+_READ_WITH = re.compile(r'\s*WITH\b', re.IGNORECASE)
+_DATA_CHANGE = re.compile(r'\b(INSERT|UPDATE|DELETE|MERGE)\b', re.IGNORECASE)
+_READ_PRAGMA = re.compile(r'\s*PRAGMA\b[^=]*$', re.IGNORECASE)
+
+
+def _reads_only(sql: str) -> bool:
+    if _READ_STATEMENT.match(sql) or _READ_PRAGMA.match(sql):
+        return True
+    return bool(_READ_WITH.match(sql)) and not _DATA_CHANGE.search(sql)
 
 
 class AsqueelDb(WriteMixin):
     """Load a configured database by registered name, recipe, folder, file or mounted node.
 
-    Construction validates the model without connecting. Use table(), commit(),
-    rollback() and closeConnection() directly on this long-lived database object.
-    Statements remain pending until commit/rollback; each thread owns its named
-    connections and its ``currentEnv``.
+    Construction validates the model without connecting. The database holds the
+    model and the configuration shared by every call; it executes nothing.
+    ``session()`` returns the :class:`SessionDb` of the current call, which holds
+    the connection, ``currentEnv`` and the transaction state.
 
     A subclass may declare ``main(self, root)``: it writes the source as the
     ``main`` of a recipe, and the subclass is then called without a source.
@@ -96,7 +112,17 @@ class AsqueelDb(WriteMixin):
         self.config = config = SqlConfigHandler(recipe)
         implementation, conninfo, kwargs = connection_settings(config)
         self._ready = False
-        self._thread_state = _ThreadState()
+        self._connections: dict[str, _ConnectionState] = {}
+        self._trigger_stack = TriggerStack()
+        # Guards the session registry and the :memory: lend across threads.
+        self._lock = Lock()
+        self._current_session: ContextVar[SessionDb | None] = ContextVar(f'asqueel_session_{id(self)}', default=None)
+        self._open_sessions: WeakSet[SessionDb] = WeakSet()
+        # A subclass's methods (execute, write hooks, helpers) reach its sessions.
+        self._session_class = SessionDb if type(self) is AsqueelDb else type(
+            type(self).__name__, (SessionDb, type(self)), {})
+        self._memory_connection = None
+        self._in_memory = implementation == 'sqlite' and ((kwargs or {}).get('dbname') or conninfo) == ':memory:'
         # Legacy adapter loading: 'name' or 'name:module'; the module exposes SqlDbAdapter.
         if ':' in implementation:
             implementation, module = implementation.split(':')
@@ -109,12 +135,15 @@ class AsqueelDb(WriteMixin):
         if self.connect_kwargs.get('autocommit'):
             raise ValueError('autocommit is incompatible with explicit transactions')
         self._env_defaults = _copy_values(environment if environment is not None else {}, 'initialization')
-        self._env_local = local()
+        # The environment of the shared database's own compiler; a session starts from the defaults.
+        self._env = _copy_values(self._env_defaults, 'initialization')
         self.name_long = config('name_long', default=None)
         self.name_short = config('name_short', default=None)
         self.comment = config('comment', default=None)
         self._compilers: dict[Any, QueryCompiler] = {}
         self._write_compilers: dict[Any, WriteCompiler] = {}
+        self._tables: dict[str, SqlTable] = {}
+        self._target = 'main'
         recipe.render(target=self)
         self._ready = True
 
@@ -126,9 +155,14 @@ class AsqueelDb(WriteMixin):
         invalidated. Requires exclusive use of this database (no concurrent
         threads), the same connection settings and the same SQL schemas.
         """
-        self._check_idle()
-        if len(self._connections) > 1:
-            raise MigrationError('reloadModel requires a single main connection')
+        shared = self.shared
+        with shared._lock:
+            sessions = list(shared._open_sessions)
+        for session in sessions:
+            session._check_idle()
+        shared._reload_model(source, parents, sessions)
+
+    def _reload_model(self, source, parents, sessions):
         old_settings = connection_settings(self.config)
         implementation, conninfo, kwargs = old_settings
         if implementation != 'sqlite' or ((kwargs or {}).get('dbname') or conninfo) != ':memory:':
@@ -149,16 +183,19 @@ class AsqueelDb(WriteMixin):
                 self.model = old_model
             raise
         self.config = config
-        self._compilers.clear()
-        self._write_compilers.clear()
-        env = self.currentEnv
-        for key in [key for key in env if key.startswith('_virtual_columns_')]:
-            del env[key]
+        for db in (self, *sessions):
+            db._compilers.clear()
+            db._write_compilers.clear()
+            db._tables.clear()
+            for key in [key for key in db._env if key.startswith('_virtual_columns_')]:
+                del db._env[key]
         old_model.db = None
 
     def _check_idle(self):
         """Refuse to commit, roll back or bypass the unfinished work of a connection."""
         self._check_open()
+        if len(self._connections) > 1:
+            raise MigrationError('reloadModel requires a single main connection')
         if not self.usingMainConnection() or self.adapter.dialect != 'sqlite':
             raise MigrationError('In-memory migration requires the main SQLite connection')
         for state in self._connections.values():
@@ -174,25 +211,71 @@ class AsqueelDb(WriteMixin):
 
 
     @property
+    def shared(self):
+        """The AsqueelDb shared by every call: this database itself."""
+        return self
+
+    def _as_current(self):
+        """The shared database is never the current session."""
+        return nullcontext()
+
+    @property
     def adapter(self):
-        """The adapter of the current implementation; ``currentImplementation`` overrides it."""
-        implementation = self._env_values.get('currentImplementation') or self.implementation
-        if implementation not in self.adapters:
-            self.adapters[implementation] = import_module(f'asqueel.adapters.{implementation}').SqlDbAdapter(self)
-        return self.adapters[implementation]
+        """The adapter of the database implementation."""
+        return self.adapters[self.implementation]
+
+    def session(self, name=None, *, target='main', **env):
+        """The SessionDb of the current call: the main one, or the one called ``name``.
+
+        A call reuses its sessions by name until they are closed; once its
+        current session is closed, the next ``session()`` starts a new call.
+        ``target`` is the configured connection the session connects to;
+        ``env`` is applied to the ``currentEnv`` of a new session.
+        """
+        self._check_open()
+        name = name or '_main_connection'
+        current = self._current_session.get()
+        calls = {} if current is None or current._closed else current._call_sessions
+        found = calls.get(name)
+        if found is not None and not found._closed:
+            if env:
+                raise TransactionStateError(f'session {name!r} of this call is already open')
+            return found
+        with self._lock:
+            if self._in_memory and any(not session._closed for session in self._open_sessions):
+                raise TransactionStateError('a :memory: database lends its connection to one session at a time')
+            found = calls[name] = self._session_class(self, name, target, env, calls)
+            self._open_sessions.add(found)
+        # The main session anchors the call; a named one only when it opens the call.
+        if current is None or current._closed or name == '_main_connection':
+            self._current_session.set(found)
+        return found
+
+    def close(self) -> None:
+        """Close every open session of this database, then the :memory: connection.
+
+        When a session refuses to close, the :memory: connection stays open and the error is raised.
+        """
+        with self._lock:
+            sessions = list(self._open_sessions)
+        error = None
+        for session in sessions:
+            try:
+                session.close()
+            except BaseException as failure:
+                if error is None:
+                    error = failure
+                else:
+                    error.add_note(f'Another session cleanup failed: {type(failure).__name__}')
+        if error is not None:
+            raise error
+        connection, self._memory_connection = self._memory_connection, None
+        if connection is not None:
+            self.adapter.close(connection)
 
     def _check_open(self) -> None:
         if not self._ready:
             raise TransactionStateError('Database object graph is not ready')
-
-    @property
-    def _connections(self) -> dict[str, _ConnectionState]:
-        connections: dict[str, _ConnectionState] = self._thread_state.connections
-        return connections
-
-    @property
-    def _trigger_stack(self):
-        return self._thread_state.trigger_stack
 
     @property
     def _write_depth(self):
@@ -220,28 +303,28 @@ class AsqueelDb(WriteMixin):
 
     @property
     def _connection_state(self) -> _ConnectionState:
+        raise TransactionStateError('The shared AsqueelDb holds no connection; use db.session()')
+
+    def _new_connection_state(self) -> _ConnectionState:
         self._check_open()
         self._check_store()
         name = self.currentConnectionName
         if name not in self._connections:
             self._connections[name] = dict(
-                owner=current_thread(), connection=None, pending=False,
+                connection=None, pending=False, wrote=False, lock=Lock(),
                 committing=False, completion_failed=False, connection_name=name,
                 failed=False, executing=False, execution_error=None,
-                execution_count=0, write_depth=0, cursors=WeakSet(),
+                execution_count=0, write_depth=0, cursors=WeakSet(), session=self,
             )
         return self._connections[name]
 
     @property
     def _env_values(self) -> dict[str, Any]:
-        # Each thread owns a live mapping, initialized from the construction defaults.
-        if not hasattr(self._env_local, 'values'):
-            self._env_local.values = _copy_values(self._env_defaults, 'thread initialization')
-        return cast(dict[str, Any], self._env_local.values)
+        return cast(dict[str, Any], self._env)
 
     @property
     def currentEnv(self) -> dict[str, Any]:
-        """The live mapping of the current thread; never pass it to another thread or task."""
+        """The live mapping of this database; a session owns its own."""
         self._check_open()
         return self._env_values
 
@@ -250,7 +333,7 @@ class AsqueelDb(WriteMixin):
         self._check_open()
         if not isinstance(values, dict):
             raise TypeError('currentEnv must be a dictionary')
-        self._env_local.values = values
+        self._env = values
 
     def environment_snapshot(self) -> Mapping[str, Any]:
         """A detached read-only copy of currentEnv, with the workdate/locale defaults resolved."""
@@ -408,11 +491,11 @@ class AsqueelDb(WriteMixin):
     def vacuum(self, table: str = '', full: bool = False) -> None:
         """Reclaim storage of the database or of ``table`` (its SQL name), on a separate connection.
 
-        The work pending on this thread would hold the locks the separate connection waits for.
+        The work pending on this session would hold the locks the separate connection waits for.
         """
         self._check_open()
-        if any(state['pending'] for state in self._connections.values()):
-            raise TransactionStateError('vacuum requires no pending work on this thread; commit or rollback first')
+        if self._connection_state['pending']:
+            raise TransactionStateError('vacuum requires no pending work on this session; commit or rollback first')
         self.adapter.vacuum(table=table, full=full)
 
     def rollback(self) -> None:
@@ -440,7 +523,7 @@ class AsqueelDb(WriteMixin):
             state['write_depth'] -= 1
 
     def closeConnection(self) -> None:
-        """Roll back and close every named connection of the current thread, as legacy.
+        """Roll back and close the connection of this session, as legacy.
 
         The database stays usable: the next statement opens a new connection.
         """
@@ -454,11 +537,11 @@ class AsqueelDb(WriteMixin):
         finally:
             self._connections.clear()
 
-    def _close_connections(self) -> None:
+    def _close_connections(self, claimed: bool = False) -> None:
         error = None
         for state in self._connections.values():
             try:
-                self._close_connection(state)
+                self._close_connection(state, claimed)
             except BaseException as failure:
                 if error is None:
                     error = failure
@@ -482,7 +565,7 @@ class AsqueelDb(WriteMixin):
         deferred_id = kwargs.pop('_deferredId', None)
         if not deferred_id:
             deferred_id = uuid4().hex
-        blocks = self._env_values.setdefault(self._deferred_key(state, queue), Bag())
+        blocks = state['session']._env_values.setdefault(self._deferred_key(state, queue), Bag())
         if block not in blocks:
             blocks[block] = Bag()
         entries = blocks[block]
@@ -496,7 +579,7 @@ class AsqueelDb(WriteMixin):
         self._check_connection_usable(state)
         if not isinstance(exception, BaseException):
             raise TypeError('deferred_raise requires an exception instance')
-        self._env_values.setdefault(self._deferred_key(state, '_pendingExceptions'), []).append(exception)
+        state['session']._env_values.setdefault(self._deferred_key(state, '_pendingExceptions'), []).append(exception)
 
     def _invoke_deferred(self, state: _ConnectionState, queue: str) -> None:
         context: dict[str, Any] = {'onCommittingStep': True}
@@ -506,7 +589,7 @@ class AsqueelDb(WriteMixin):
             self._drain_deferred(state, queue)
 
     def _drain_deferred(self, state: _ConnectionState, queue: str) -> None:
-        blocks = self._env_values.get(self._deferred_key(state, queue))
+        blocks = state['session']._env_values.get(self._deferred_key(state, queue))
         while blocks:
             # GenroPy Bag.sort('#k:a'): labels in lowercase, stable on ties.
             block_name = min(blocks.keys(), key=str.lower)
@@ -520,23 +603,30 @@ class AsqueelDb(WriteMixin):
                     entries.pop(key, None)
             blocks.pop(block_name, None)
 
-    def _pop_transaction_key(self, key: str) -> Any:
-        """Pop a deferred queue or the pending exceptions from currentEnv.
-
-        """
-        return self._env_values.pop(key, None)
+    def _pop_transaction_key(self, state: _ConnectionState, queue: str) -> Any:
+        """Pop a deferred queue or the pending exceptions of ``state`` from the currentEnv of its session."""
+        return state['session']._env_values.pop(self._deferred_key(state, queue), None)
 
     def _clear_deferred(self, state: _ConnectionState) -> None:
-        self._pop_transaction_key(self._deferred_key(state, 'to_commit_defer_calls'))
-        self._pop_transaction_key(self._deferred_key(state, 'after_commit_defer_calls'))
-        self._pop_transaction_key(self._deferred_key(state, '_pendingExceptions'))
+        self._pop_transaction_key(state, 'to_commit_defer_calls')
+        self._pop_transaction_key(state, 'after_commit_defer_calls')
+        self._pop_transaction_key(state, '_pendingExceptions')
 
-    def _check_connection_owner(self, state: _ConnectionState) -> None:
-        if current_thread() is not state['owner']:
-            raise TransactionStateError('Connection operations must run on the constructing thread')
+    def _claim(self, states) -> None:
+        """Check every state and mark it executing, atomically per state; on a refusal none stays claimed."""
+        claimed = []
+        try:
+            for state in states:
+                with state['lock']:
+                    self._check_connection_completion(state)
+                    state['executing'] = True
+                claimed.append(state)
+        except BaseException:
+            for state in claimed:
+                state['executing'] = False
+            raise
 
     def _check_connection_available(self, state: _ConnectionState) -> None:
-        self._check_connection_owner(state)
         if state['executing']:
             raise TransactionStateError('Connection is already executing an operation')
 
@@ -565,16 +655,18 @@ class AsqueelDb(WriteMixin):
         if query.environment_keys:
             query = replace(query, params={**query.params, **environment_arguments(
                 query.environment_keys, self.environment_snapshot())})
+        # Check and claim at once: a second thread of the call is refused, never interleaved.
+        with state['lock']:
+            self._check_connection_usable(state)
+            state['executing'] = True
         state['execution_count'] += 1
-        state['executing'] = True
         state['execution_error'] = None
         try:
             if state['connection'] is None:
-                conninfo, connect_kwargs = self._connection_settings()
-                if connect_kwargs.get('autocommit'):
-                    raise ValueError('autocommit is incompatible with explicit transactions')
-                state['connection'] = adapter.connect(conninfo, **connect_kwargs)
+                state['connection'] = state['session']._open_connection(adapter)
             state['pending'] = True
+            if not _reads_only(query.sql):
+                state['wrote'] = True
             cursor = (adapter.executemany(state['connection'], query, many) if many is not None
                       else adapter.execute(state['connection'], query, cursorname))
             result = SqlCursor(self, state, cursor, query.columns)
@@ -591,7 +683,8 @@ class AsqueelDb(WriteMixin):
         state['execution_error'] = error
         state['completion_failed'] = state['committing']
         try:
-            self._finish(state, False)
+            # The failed statement still holds the connection.
+            self._finish(state, False, claim=False)
         except BaseException as cleanup_error:
             # The original execution error must remain catchable by callers.
             error.add_note(f'Automatic rollback failed: {type(cleanup_error).__name__}')
@@ -599,7 +692,6 @@ class AsqueelDb(WriteMixin):
 
     def _mark_connection_failed(self, state: _ConnectionState) -> None:
         """Mark a failed domain operation even when no SQL has run yet."""
-        self._check_connection_owner(state)
         state['failed'] = True
 
     def _discard_connection(self, state: _ConnectionState) -> None:
@@ -608,16 +700,22 @@ class AsqueelDb(WriteMixin):
         for cursor in tuple(state['cursors']):
             cursor.close()
         connection, state['connection'] = state['connection'], None
-        if connection is not None:
+        # The :memory: connection belongs to the shared AsqueelDb, which lends it.
+        if connection is not None and connection is not self.shared._memory_connection:
             self.adapter.close(connection)
 
-    def _finish(self, state: _ConnectionState, commit: bool) -> None:
+    def _finish(self, state: _ConnectionState, commit: bool, claim: bool = True) -> None:
         if not state['pending']:
             state['failed'] = False
             if not commit:
                 self._clear_deferred(state)
             return
-        state['executing'] = True
+        if claim:
+            with state['lock']:
+                self._check_connection_available(state)
+                state['executing'] = True
+        else:
+            state['executing'] = True
         uncertain = False
         try:
             operation = self.adapter.commit if commit else self.adapter.rollback
@@ -633,6 +731,7 @@ class AsqueelDb(WriteMixin):
             raise
         finally:
             state['pending'] = False
+            state['wrote'] = False
             state['executing'] = False
             if not commit or uncertain:
                 self._clear_deferred(state)
@@ -647,7 +746,7 @@ class AsqueelDb(WriteMixin):
                 try:
                     self._invoke_deferred(state, 'to_commit_defer_calls')
                     self._check_connection_usable(state)
-                    pending_exceptions = self._pop_transaction_key(self._deferred_key(state, '_pendingExceptions'))
+                    pending_exceptions = self._pop_transaction_key(state, '_pendingExceptions')
                     if pending_exceptions:
                         messages = '\n'.join(str(error) for error in pending_exceptions)
                         raise DeferredCommitError(messages)
@@ -681,13 +780,13 @@ class AsqueelDb(WriteMixin):
         self._finish(state, False)
         state['failed'] = False
 
-    def _close_connection(self, state: _ConnectionState) -> None:
-        self._check_connection_completion(state)
+    def _close_connection(self, state: _ConnectionState, claimed: bool = False) -> None:
+        if not claimed:
+            self._claim([state])
         error: BaseException | None = None
-        state['executing'] = True
         try:
             try:
-                self._finish(state, False)
+                self._finish(state, False, claim=False)
             except BaseException as failure:
                 error = failure
             state['executing'] = True
@@ -741,11 +840,248 @@ class AsqueelDb(WriteMixin):
         self._check_open()
         raise UnsupportedFeatureError('SQL schemas are derived from packages')
 
-    def _connection_settings(self):
-        implementation, conninfo, kwargs = connection_settings(self.config, self.currentConnectionName)
+    def _open_connection(self, adapter):
+        conninfo, connect_kwargs = self._connection_settings()
+        if connect_kwargs.get('autocommit'):
+            raise ValueError('autocommit is incompatible with explicit transactions')
+        shared = self.shared
+        if not shared._in_memory:
+            return adapter.connect(conninfo, **connect_kwargs)
+        if shared._memory_connection is None:
+            shared._memory_connection = adapter.connect(conninfo, **connect_kwargs)
+        else:
+            # A session dropped without close() may have left its transaction open.
+            adapter.rollback(shared._memory_connection)
+        return shared._memory_connection
+
+    def _connection_settings(self, target=None):
+        implementation, conninfo, kwargs = connection_settings(self.config, target or self._target)
         if implementation != self.model.implementation:
             raise ValueError('Configured implementation changed after database construction')
         kwargs = dict(kwargs or {})
         if self.implementation == 'sqlite':
             kwargs['schemas'] = sorted({table.sqlschema for table in self.model.tables.values()})
         return conninfo, kwargs
+
+
+class SessionDb(AsqueelDb):
+    """One call on a shared :class:`AsqueelDb`: its connection, ``currentEnv`` and transaction.
+
+    Built by :meth:`AsqueelDb.session`. The model and the configuration are
+    those of the shared database. As a context manager it is the current
+    session of the body and closes at exit: a clean exit with uncommitted
+    work rolls back and logs a warning, an exit by exception rolls back.
+    """
+
+    def __init__(self, shared, name, target, env, call_sessions):
+        self._shared = shared
+        self.implementation = shared.implementation
+        self.conninfo = shared.conninfo
+        self.connect_kwargs = shared.connect_kwargs
+        self.name_long, self.name_short, self.comment = shared.name_long, shared.name_short, shared.comment
+        self._ready = True
+        self._closed = False
+        self._connection_name = name
+        self._target = target
+        self._call_sessions = call_sessions
+        # Sessions of the call opened by tempEnv(connectionName=...) on this one; they close with it.
+        self._routed_sessions: list[SessionDb] = []
+        self._tokens: list[Any] = []
+        self._connections = {}
+        self._trigger_stack = TriggerStack()
+        self._env_defaults = shared._env_defaults
+        self._env = _copy_values(shared._env_defaults, 'session initialization')
+        self._env.update(env)
+        self.adapters = {}
+        self._compilers = {}
+        self._write_compilers = {}
+        self._tables = {}
+
+    @property
+    def shared(self):
+        return self._shared
+
+    @property
+    def model(self):
+        return self.shared.model
+
+    @property
+    def config(self):
+        return self.shared.config
+
+    def session(self, name=None, *, target='main', **env):
+        return self.shared.session(name, target=target, **env)
+
+    def _check_open(self) -> None:
+        if self._closed:
+            raise TransactionStateError(f'Session {self._connection_name!r} is closed')
+
+    @contextmanager
+    def _as_current(self):
+        """This session is the current one of the call for the block."""
+        token = self.shared._current_session.set(self)
+        try:
+            yield self
+        finally:
+            self.shared._current_session.reset(token)
+
+    def migration_plan(self, **options):
+        self._lend_memory_connection()
+        return super().migration_plan(**options)
+
+    def migrate(self, **options):
+        self._lend_memory_connection()
+        return super().migrate(**options)
+
+    def _lend_memory_connection(self):
+        """Give the migration of a :memory: database the connection the shared database lends."""
+        if self.shared._in_memory:
+            state = self._connection_state
+            if state['connection'] is None:
+                state['connection'] = state['session']._open_connection(self.adapter)
+
+    @property
+    def adapter(self):
+        """The adapter of the current implementation; ``currentImplementation`` overrides it."""
+        implementation = self._env_values.get('currentImplementation') or self.implementation
+        if implementation not in self.adapters:
+            if implementation == self.implementation:
+                adapter_class = type(self.shared.adapter)
+            else:
+                adapter_class = import_module(f'asqueel.adapters.{implementation}').SqlDbAdapter
+            self.adapters[implementation] = adapter_class(self)
+        return self.adapters[implementation]
+
+    @property
+    def currentConnectionName(self) -> str:
+        self._check_open()
+        return self._routed._connection_name
+
+    @property
+    def _routed(self):
+        """The session of this call whose connection runs this one's statements.
+
+        ``tempEnv(connectionName=...)`` names another session of the same call,
+        opened on first use on the configured connection of that name (main
+        when none is declared), as legacy; the environment stays this session's.
+        """
+        name = self._routed_name
+        if name == self._connection_name:
+            return self
+        found = self._call_sessions.get(name)
+        if found is None or found._closed:
+            with self._as_current():
+                found = self.shared.session(name, target=name)
+            self._routed_sessions.append(found)
+        return found
+
+    @property
+    def _routed_name(self) -> str:
+        name = self._env_values.get('connectionName') or self._connection_name
+        if not isinstance(name, str):
+            raise TypeError('connectionName must be a string')
+        return name
+
+    def _routed_open(self):
+        """The routed session if it is already open, without opening it."""
+        name = self._routed_name
+        if name == self._connection_name:
+            return self
+        found = self._call_sessions.get(name)
+        return None if found is None or found._closed else found
+
+    def _connection_settings(self, target=None):
+        if target is None and self._routed_name != self._connection_name:
+            routed = self._routed_open()
+            # A routed session not opened yet would open on the connection of its name.
+            target = routed._target if routed is not None else self._routed_name
+        return super()._connection_settings(target)
+
+    def vacuum(self, table: str = '', full: bool = False) -> None:
+        """Reclaim storage on a separate connection; refused while this session or its routed one has pending work."""
+        self._check_open()
+        routed = self._routed_open()
+        sessions = (self,) if routed in (None, self) else (self, routed)
+        if any(state['pending'] for session in sessions for state in session._connections.values()):
+            raise TransactionStateError('vacuum requires no pending work on this session; commit or rollback first')
+        self.adapter.vacuum(table=table, full=full)
+
+    @property
+    def _connection_state(self) -> _ConnectionState:
+        return self._routed._new_connection_state()
+
+    @contextmanager
+    def _write_operation(self):
+        with self._as_current(), super()._write_operation():
+            yield
+
+    @property
+    def tables(self):
+        self._check_open()
+        return MappingProxyType({name: self.table(name) for name in self.model.tables})
+
+    def table(self, name: str) -> SqlTable:
+        """The table of this session, built on first request and then reused."""
+        self._check_open()
+        found = self.model.table(name)
+        if found is None:
+            raise ValueError(f'Unknown package {name.split(".")[0]!r}')
+        table = self._tables.get(found.fullname)
+        if table is None:
+            table = self._tables[found.fullname] = type(found.dbtable)(found, self)
+            # The handler executes: the one of the shared table cannot serve a session.
+            if 'hierarchicalHandler' in vars(found.dbtable):
+                table.hierarchicalHandler = HierarchicalHandler(table)
+        return table
+
+    def __enter__(self):
+        self._check_open()
+        self._tokens.append(self.shared._current_session.set(self))
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        self.shared._current_session.reset(self._tokens.pop())
+        if exc is None:
+            self._close(warn=True)
+            return
+        try:
+            self._close(warn=False)
+        except BaseException as cleanup:
+            exc.add_note(f'Connection cleanup failed: {type(cleanup).__name__}')
+
+    def close(self) -> None:
+        """Roll back what is not committed, close the connection; the session refuses any later use."""
+        self._close(warn=True)
+
+    def _close(self, warn):
+        if self._closed:
+            return
+        sessions = [self, *(routed for routed in self._routed_sessions if not routed._closed)]
+        # Claim every connection of this session and of the ones it routed to before
+        # changing anything: a close refused (a statement or a commit in progress) changes nothing.
+        self._claim([state for session in sessions for state in session._connections.values()])
+        error = None
+        for session in reversed(sessions):
+            try:
+                session._release(warn)
+            except BaseException as failure:
+                error = error or failure
+        if error is not None:
+            raise error
+
+    def _release(self, warn):
+        """Roll back and close the connections this close has already claimed."""
+        queues = ('to_commit_defer_calls', 'after_commit_defer_calls', '_pendingExceptions')
+        pending = any(state['wrote'] or any(self._env.get(self._deferred_key(state, queue)) for queue in queues)
+                      for state in self._connections.values())
+        try:
+            self._close_connections(claimed=True)
+        finally:
+            self._connections.clear()
+            self._closed = True
+            with self.shared._lock:
+                self.shared._open_sessions.discard(self)
+        if pending and warn:
+            logging.getLogger(__name__).warning(
+                'database %s, session %s: closed with uncommitted work, rolled back',
+                self.model.name, self._connection_name)
