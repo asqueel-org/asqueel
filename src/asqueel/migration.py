@@ -434,6 +434,11 @@ def _migration_target(db, foreignKeys):
         if conninfo:
             raise MigrationError('MySQL takes connection fields, not a conninfo string')
         params = dict(kwargs or {})
+    elif implementation == 'mssql':
+        if conninfo:
+            raise MigrationError('SQL Server takes connection fields, not a conninfo string')
+        # The adapter's pymssql connection fields; asqueel-migration maps dbname to database.
+        params = dict(kwargs or {})
     else:
         raise MigrationError(f'Unsupported migration backend: {implementation}')
     if not params.get('dbname'):

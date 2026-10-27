@@ -87,6 +87,7 @@ Choose your starting point
    guide/adapters
    guide/sqlite
    guide/mysql
+   guide/mssql
 
 .. toctree::
    :maxdepth: 1
