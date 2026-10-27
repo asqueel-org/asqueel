@@ -86,6 +86,8 @@ Choose your starting point
    guide/low-level-runtime
    guide/adapters
    guide/sqlite
+   guide/mysql
+   guide/mssql
 
 .. toctree::
    :maxdepth: 1

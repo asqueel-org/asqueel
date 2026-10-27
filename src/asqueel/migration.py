@@ -430,6 +430,10 @@ def _migration_target(db, foreignKeys):
         # psycopg is the PostgreSQL extra: a SQLite-only install does not have it.
         from psycopg.conninfo import conninfo_to_dict
         params = conninfo_to_dict(conninfo or '', **(kwargs or {}))
+    elif implementation == 'mysql':
+        if conninfo:
+            raise MigrationError('MySQL takes connection fields, not a conninfo string')
+        params = dict(kwargs or {})
     elif implementation == 'mssql':
         if conninfo:
             raise MigrationError('SQL Server takes connection fields, not a conninfo string')
