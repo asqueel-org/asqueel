@@ -98,8 +98,6 @@ def test_selection_update_and_delete(application):
         customer.query(where='$id=1').sql_update({'name': 'Verdi'})
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#21: without RETURNING the serial key the database decides '
-                                       'is not written back, and nothing refuses the write')
 def test_serial_insert_is_refused(application):
     with pytest.raises(UnsupportedFeatureError):
         application.table('app.ticket').insert({'note': 'x'})

@@ -9,6 +9,7 @@ one adapter class per implementation; each module exposes `SqlDbAdapter`.
 | --- | --- |
 | `'sqlite'` (default) | `asqueel.adapters.sqlite` |
 | `'postgres'`, `'postgres3'` | `asqueel.adapters.postgres` (psycopg 3) |
+| `'mysql'` | `asqueel.adapters.mysql` (PyMySQL, experimental, see [MySQL](mysql.md)) |
 | `'<name>:<module>'` | `SqlDbAdapter` of `<module>` |
 
 Any other name raises `ModuleNotFoundError`. With

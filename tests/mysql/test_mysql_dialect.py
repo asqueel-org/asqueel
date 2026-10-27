@@ -37,7 +37,6 @@ def test_adapter_profile(db):
 
 
 @pytest.mark.parametrize(('operation', 'record', 'expected'), [
-    ('insert', {'id': 1, 'amount': 3}, 'INSERT INTO "s"."t"("id","amount","first") VALUES (%(id)s,%(amount)s,1 -- value\n)'),
     ('delete', {'id': 4}, 'DELETE FROM "s"."t" WHERE "id"=%(__pkey__0)s'),
 ])
 def test_dml_rendering_has_no_returning(db, operation, record, expected):
@@ -50,8 +49,6 @@ def test_default_values_is_an_empty_column_list(db):
     assert sql == 'INSERT INTO "s"."ticket" () VALUES ()'
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#21: without RETURNING the values the database decides '
-                                       'are not written back, and nothing refuses the write')
 def test_insert_needing_database_values_is_refused(db):
     with pytest.raises(UnsupportedFeatureError):
         db.write_compiler.insert(model(db, 'ticket'), {}, {})

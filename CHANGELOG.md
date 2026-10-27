@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Experimental MySQL adapter (`implementation='mysql'`, extra `asqueel[mysql]`,
+  MySQL 8.0.19 or later). The [MySQL guide](docs/guide/mysql.md) lists what it
+  refuses. Its tests in `tests/mysql` run on demand, not in CI.
 - The write compiler enforces the dialect capabilities (#21). An insert without
   columns raises `UnsupportedFeatureError` on a dialect without
   `default_values`. An insert or update whose values the database decides
