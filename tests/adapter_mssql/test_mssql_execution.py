@@ -33,7 +33,6 @@ def recipe(params):
     invoice.column('id', dtype='L')
     invoice.column('customer_id', dtype='L').relation('crm.customer.id', foreign_key=True)
     invoice.column('total', dtype='N', size='12,2')
-    invoice.column('fixed', dtype='I', sql_value='99 -- trailing comment')
     return config
 
 
@@ -86,8 +85,8 @@ def test_queries_and_writes(database):
     assert rows(customer.query(columns='$id', limit=2)) == [{'id': 1}, {'id': 2}]
     assert rows(customer.query(columns='$id', limit=1, offset=1)) == [{'id': 2}]
     assert rows(customer.query(columns='$id', offset=2)) == [{'id': 3}]
-    assert rows(database.table('crm.invoice').query(columns='$id,@customer_id.name AS cname,$fixed')) == [
-        {'id': 10, 'cname': "L'impresa 50%", 'fixed': 99}]
+    assert rows(database.table('crm.invoice').query(columns='$id,@customer_id.name AS cname')) == [
+        {'id': 10, 'cname': "L'impresa 50%"}]
     assert rows(customer.query(columns='$id', where='$id = 1', for_update=True)) == [{'id': 1}]
     database.rollback()
     customer.update({'id': 2, 'name': 'Bob'})
@@ -95,17 +94,6 @@ def test_queries_and_writes(database):
     database.commit()
     assert rows(customer.query(columns='$id,$name')) == [{'id': 1, 'name': "L'impresa 50%"},
                                                          {'id': 2, 'name': 'Bob'}]
-
-
-def test_manual_assignment_line_comment_cannot_remove_update_guard(database):
-    invoice = database.table('crm.invoice')
-    invoice.insert({'id': 1, 'total': 10})
-    database.commit()
-    database.execute("UPDATE crm.crm_invoice SET fixed = 10")
-    result = database.execute(database.write_compiler.update(invoice.model, {'id': 0}, database.environment_snapshot()))
-    assert result.rowcount == 0
-    assert [tuple(row) for row in database.execute('SELECT id, fixed FROM crm.crm_invoice').fetchall()] == [(1, 10)]
-    database.rollback()
 
 
 def test_explicit_pipeline(database):

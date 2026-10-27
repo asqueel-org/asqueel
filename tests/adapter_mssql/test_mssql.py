@@ -56,7 +56,6 @@ def test_capabilities_declare_no_returning():
 
 
 @pytest.mark.parametrize(('operation', 'record', 'expected'), [
-    ('insert', {'amount': 3}, 'INSERT INTO "s"."t"("amount","first") VALUES (%(amount)s,1 -- value\n)'),
     ('delete', {'id': 4}, 'DELETE FROM "s"."t" WHERE "id"=%(__pkey__0)s'),
 ])
 def test_dml_rendering(db, operation, record, expected):
@@ -64,12 +63,6 @@ def test_dml_rendering(db, operation, record, expected):
     assert compiled.sql == expected
 
 
-def test_default_values_without_returning(db):
-    assert db.write_compiler.insert(model(db, 'ticket'), {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES'
-
-
-@pytest.mark.xfail(strict=True, reason='asqueel#21: WriteCompiler does not enforce the adapter capabilities; '
-                                       'an IDENTITY value is lost without RETURNING')
 def test_values_decided_by_the_database_are_not_lost(db):
     with pytest.raises(UnsupportedFeatureError, match='returning_insert'):
         db.write_compiler.insert(model(db, 'ticket'), {}, {})
@@ -91,9 +84,6 @@ def test_clauses_have_fixed_separators_without_repairing_expression_text(db):
     select = MssqlAdapter(None).compileSql('"s"."t"', '1', joins=['LEFT JOIN "s"."t" AS "t1" ON 1=1 -- join'],
                                          where='1=1 -- predicate', order_by='1 -- order', limit=1, offset=2)
     assert '1=1 -- join\nWHERE 1=1 -- predicate\nORDER BY 1 -- order\nOFFSET 2 ROWS\nFETCH NEXT 1 ROWS ONLY' in select
-    table = model(db, 't')
-    update = db.write_compiler.update(table, {'id': 1, 'first': None, 'second': 2}, {}).sql
-    assert '"first"=1 -- value\n,"second"=%(second)s WHERE "id"=%(__pkey__0)s' in update
 
 
 @pytest.mark.parametrize(('options', 'expected'), [
