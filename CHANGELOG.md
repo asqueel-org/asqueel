@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- The write compiler enforces the dialect capabilities (#21). An insert without
+  columns raises `UnsupportedFeatureError` on a dialect without
+  `default_values`. An insert or update whose values the database decides
+  (serial key, default, `sql_value`, generated column) raises on a dialect
+  without `returning_insert` / `returning_update`, instead of losing those
+  values silently.
+
 ## 0.9.0 — Runtime per call
 
 - `AsqueelDb` holds the model and the configuration shared by every call.

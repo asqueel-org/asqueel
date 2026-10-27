@@ -39,14 +39,11 @@ def test_dml_rendering(db, operation, record, expected):
     assert compiled.sql == expected
 
 
-def test_default_values_and_returning_are_independent_capabilities(db):
+def test_default_values_insert_returns_the_generated_key(db):
     ticket = model(db, 'ticket')
     assert db.write_compiler.insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES RETURNING "id" AS "id"'
-    adapter = PostgresAdapter(db, capabilities=PostgresAdapter.capabilities - {'returning_insert'})
-    assert WriteCompiler(adapter).insert(ticket, {}, {}).sql == 'INSERT INTO "s"."ticket" DEFAULT VALUES'
 
 
-@pytest.mark.xfail(strict=True, reason='asqueel#21: WriteCompiler does not enforce the adapter capabilities')
 def test_missing_write_capabilities_are_rejected(db):
     ticket = model(db, 'ticket')
     adapter = PostgresAdapter(db, capabilities=PostgresAdapter.capabilities - {'returning_insert'})

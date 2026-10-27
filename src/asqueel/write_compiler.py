@@ -17,6 +17,7 @@ from decimal import Decimal
 from genro_bag import Bag
 
 from .common import split_names, sql_attribute_declared
+from .contracts import UnsupportedFeatureError
 
 #: Physical types whose value the database assigns on insert.
 _GENERATED_KEY_DTYPES = frozenset({'serial', 'serial4'})
@@ -242,6 +243,7 @@ class WriteCompiler:
         target = self.sql_fullname(table)
         if names:
             return f'INSERT INTO {target}({",".join(names)}) VALUES ({",".join(values)})'
+        self._require('default_values')
         return f'INSERT INTO {target} DEFAULT VALUES'
 
     def update(self, table, record, snapshot, *, pkey=None, old_record=None, ignore_partition=False):
@@ -388,9 +390,15 @@ class WriteCompiler:
                 if column.attributes.get('sql_value') is not None
                 or sql_attribute_declared(column.attributes, 'generatedExpression')]
 
+    def _require(self, capability):
+        if capability not in self.adapter.capabilities:
+            raise UnsupportedFeatureError(f'{self.adapter.dialect}: unsupported capability {capability}')
+
     def _returning(self, table, names, capability):
-        if not names or capability not in self.adapter.capabilities:
+        """RETURNING of the columns the database decides; refused where the dialect cannot return them."""
+        if not names:
             return ''
+        self._require(capability)
         quote = self.adapter.adaptSqlName
         projections = ','.join(f'{quote(table.columns[name].sqlname)} AS {quote(name)}' for name in names)
         return f' RETURNING {projections}'
