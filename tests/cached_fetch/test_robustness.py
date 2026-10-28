@@ -81,14 +81,14 @@ def test_a_page_of_a_fetch_cleaned_up_meanwhile_raises_a_clear_error(db):
     cached = db.table('app.item').cached('u:s')
     cached.sort('value desc')
     page = cached.query(start=0, count=5)
-    db.cleanupCachedTable(owner='u')
+    db.cleanup_cached_tables(owner='u')
     with pytest.raises(ValueError, match='removed or replaced'):
         page.fetch()
 
 
 def test_cleanup_drops_only_the_rows_it_read(db):
     db.table('app.item').query(columns='$id').fetch(destination_name='v:s')
-    db.cleanupCachedTable(owner='u')
+    db.cleanup_cached_tables(owner='u')
     catalog = db.table('_asql_._asql_cached_fetch').query(columns='$id').fetch()
     assert [row['id'] for row in catalog] == ['v:s']
 
@@ -97,7 +97,7 @@ def test_the_shared_database_refuses_the_cached_fetch(db):
     with pytest.raises(TransactionStateError):
         db.shared.table('app.item').query(columns='$id').fetch(destination_name='u:x')
     with pytest.raises(TransactionStateError):
-        db.shared.cleanupCachedTable(owner='u')
+        db.shared.cleanup_cached_tables(owner='u')
 
 
 def test_an_open_session_of_the_reserved_name_raises(db):

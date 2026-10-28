@@ -118,13 +118,13 @@ total = cached.search(None)  # every row again
 
 ## Clean up
 
-`cleanupCachedTable(owner=...)` drops result tables, sort tables and catalog
+`cleanup_cached_tables(owner=...)` drops result tables, sort tables and catalog
 rows together:
 
 ```python
-db.cleanupCachedTable(owner="page42")
-db.cleanupCachedTable(owner="page42,page43")
-db.cleanupCachedTable(owner="!(page42,page43)")  # every owner except these
+db.cleanup_cached_tables(owner="page42")
+db.cleanup_cached_tables(owner="page42,page43")
+db.cleanup_cached_tables(owner="!(page42,page43)")  # every owner except these
 ```
 
 A missing or empty owner, `'!()'`, and `!` or parentheses outside the

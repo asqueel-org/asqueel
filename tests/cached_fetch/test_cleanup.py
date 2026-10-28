@@ -1,4 +1,4 @@
-"""cleanupCachedTable(owner=...): drop the cached fetches of some owners."""
+"""cleanup_cached_tables(owner=...): drop the cached fetches of some owners."""
 import pytest
 
 from asqueel.contracts import UnsupportedFeatureError
@@ -43,32 +43,32 @@ def test_every_owner_has_result_and_sort_tables(db):
 
 
 def test_named_owners_are_dropped(db):
-    db.cleanupCachedTable(owner='foo,bar')
+    db.cleanup_cached_tables(owner='foo,bar')
     assert catalog_owners(db) == ['baz', 'qux']
     assert stored_tables(db) == owner_tables(['baz', 'qux'])
 
 
 def test_a_single_owner_is_dropped(db):
-    db.cleanupCachedTable(owner='qux')
+    db.cleanup_cached_tables(owner='qux')
     assert catalog_owners(db) == ['bar', 'baz', 'foo']
     assert stored_tables(db) == owner_tables(['bar', 'baz', 'foo'])
 
 
 def test_negated_owners_drop_every_other_owner(db):
-    db.cleanupCachedTable(owner=' ! ( foo , baz ) ')
+    db.cleanup_cached_tables(owner=' ! ( foo , baz ) ')
     assert catalog_owners(db) == ['baz', 'foo']
     assert stored_tables(db) == owner_tables(['baz', 'foo'])
     assert db.table('app.item').cached('foo:second').query(columns='id', start=0, count=3).fetch()
 
 
 def test_an_unknown_owner_drops_nothing(db):
-    db.cleanupCachedTable(owner='nobody')
+    db.cleanup_cached_tables(owner='nobody')
     assert catalog_owners(db) == sorted(OWNERS)
     assert stored_tables(db) == owner_tables(OWNERS)
 
 
 def test_a_dropped_fetch_can_be_created_again(db):
-    db.cleanupCachedTable(owner='foo')
+    db.cleanup_cached_tables(owner='foo')
     assert db.table('app.item').query(columns='$id').fetch(destination_name='foo:first') == 20
     assert catalog_owners(db) == sorted(OWNERS)
 
@@ -77,19 +77,19 @@ def test_a_dropped_fetch_can_be_created_again(db):
                                    '!(foo,(bar))', 7])
 def test_a_malformed_owner_raises(db, owner):
     with pytest.raises(ValueError, match='owner must be'):
-        db.cleanupCachedTable(owner=owner)
+        db.cleanup_cached_tables(owner=owner)
     assert catalog_owners(db) == sorted(OWNERS)
 
 
 def test_a_missing_owner_argument_raises(db):
     with pytest.raises(ValueError, match='owner must be'):
-        db.cleanupCachedTable()
+        db.cleanup_cached_tables()
 
 
 def test_a_model_without_cached_fetch_raises(tmp_path):
     with migrated_db('sqlite', tmp_path, declare) as db:
         with pytest.raises(UnsupportedFeatureError, match='cachedFetch'):
-            db.cleanupCachedTable(owner='foo')
+            db.cleanup_cached_tables(owner='foo')
 
 
 @pytest.mark.parametrize('implementation', ['mysql', 'mssql'])
@@ -97,6 +97,6 @@ def test_mysql_and_sql_server_raise(implementation):
     db = memory_model(implementation)
     try:
         with pytest.raises(UnsupportedFeatureError, match='cached fetch is not available'):
-            db.cleanupCachedTable(owner='foo')
+            db.cleanup_cached_tables(owner='foo')
     finally:
         db.shared.close()

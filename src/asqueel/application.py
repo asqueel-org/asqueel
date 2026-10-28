@@ -489,7 +489,7 @@ class AsqueelDb(WriteMixin):
         """Update the planner statistics, in the current transaction."""
         self.adapter.analyze()
 
-    def cleanupCachedTable(self, owner=None):
+    def cleanup_cached_tables(self, owner=None):
         """Drop the cached fetches of ``owner`` (``'foo'``, ``'foo,bar'``), or of every owner but those (``'!(foo,bar)'``)."""
         cached_fetch.cleanup(self, owner)
 
