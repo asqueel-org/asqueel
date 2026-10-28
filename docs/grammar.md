@@ -555,6 +555,18 @@ It adds no system-record behavior, virtual columns or generated values.
 | enabled | `bool` | `True` | physical |  |
 | syscode | `bool` | `False` | physical |  |
 
+### `cachedFetch`
+
+Enable cached fetch: expansion adds schema `_asql_` with table `_asql_cached_fetch`.
+
+- Contains: *nothing*
+- Child addressing: no children
+- Projection flags: none declared
+- Extra keys: not accepted
+
+| parameter | type | default | plane | description |
+| --- | --- | --- | --- | --- |
+
 ### `bagItemColumn`
 
 

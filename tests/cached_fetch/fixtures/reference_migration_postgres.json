@@ -1,0 +1,232 @@
+{
+ "root": {
+  "entity": "db",
+  "entity_name": "reference",
+  "event_triggers": {},
+  "extensions": {},
+  "schemas": {
+   "app": {
+    "entity": "schema",
+    "entity_name": "app",
+    "schema_name": "app",
+    "tables": {
+     "customer": {
+      "attributes": {
+       "pkeys": "id"
+      },
+      "columns": {
+       "__del_ts": {
+        "attributes": {
+         "dtype": "DHZ"
+        },
+        "column_name": "__del_ts",
+        "entity": "column",
+        "entity_name": "__del_ts",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "__ins_ts": {
+        "attributes": {
+         "dtype": "DHZ"
+        },
+        "column_name": "__ins_ts",
+        "entity": "column",
+        "entity_name": "__ins_ts",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "__ins_user": {
+        "attributes": {
+         "dtype": "T"
+        },
+        "column_name": "__ins_user",
+        "entity": "column",
+        "entity_name": "__ins_user",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "__mod_ts": {
+        "attributes": {
+         "dtype": "DHZ"
+        },
+        "column_name": "__mod_ts",
+        "entity": "column",
+        "entity_name": "__mod_ts",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "__mod_user": {
+        "attributes": {
+         "dtype": "T"
+        },
+        "column_name": "__mod_user",
+        "entity": "column",
+        "entity_name": "__mod_user",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "id": {
+        "attributes": {
+         "dtype": "C",
+         "notnull": "_auto_",
+         "size": "22"
+        },
+        "column_name": "id",
+        "entity": "column",
+        "entity_name": "id",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "name": {
+        "attributes": {
+         "dtype": "T"
+        },
+        "column_name": "name",
+        "entity": "column",
+        "entity_name": "name",
+        "schema_name": "app",
+        "table_name": "customer"
+       }
+      },
+      "constraints": {},
+      "entity": "table",
+      "entity_name": "customer",
+      "indexes": {
+       "idx_3fe87ed2": {
+        "attributes": {
+         "columns": {
+          "__del_ts": null
+         },
+         "index_name": "idx_3fe87ed2"
+        },
+        "entity": "index",
+        "entity_name": "idx_3fe87ed2",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "idx_b7f0f184": {
+        "attributes": {
+         "columns": {
+          "__mod_ts": null
+         },
+         "index_name": "idx_b7f0f184"
+        },
+        "entity": "index",
+        "entity_name": "idx_b7f0f184",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "idx_f5c05dee": {
+        "attributes": {
+         "columns": {
+          "name": null
+         },
+         "index_name": "idx_f5c05dee"
+        },
+        "entity": "index",
+        "entity_name": "idx_f5c05dee",
+        "schema_name": "app",
+        "table_name": "customer"
+       },
+       "idx_fa580d36": {
+        "attributes": {
+         "columns": {
+          "__ins_ts": null
+         },
+         "index_name": "idx_fa580d36"
+        },
+        "entity": "index",
+        "entity_name": "idx_fa580d36",
+        "schema_name": "app",
+        "table_name": "customer"
+       }
+      },
+      "relations": {},
+      "schema_name": "app",
+      "table_name": "customer"
+     },
+     "invoice": {
+      "attributes": {
+       "pkeys": "id"
+      },
+      "columns": {
+       "customer_id": {
+        "attributes": {
+         "dtype": "C",
+         "size": "22"
+        },
+        "column_name": "customer_id",
+        "entity": "column",
+        "entity_name": "customer_id",
+        "schema_name": "app",
+        "table_name": "invoice"
+       },
+       "id": {
+        "attributes": {
+         "dtype": "L",
+         "notnull": "_auto_"
+        },
+        "column_name": "id",
+        "entity": "column",
+        "entity_name": "id",
+        "schema_name": "app",
+        "table_name": "invoice"
+       },
+       "total": {
+        "attributes": {
+         "dtype": "N",
+         "size": "10,2"
+        },
+        "column_name": "total",
+        "entity": "column",
+        "entity_name": "total",
+        "schema_name": "app",
+        "table_name": "invoice"
+       }
+      },
+      "constraints": {},
+      "entity": "table",
+      "entity_name": "invoice",
+      "indexes": {
+       "idx_92c59ebf": {
+        "attributes": {
+         "columns": {
+          "customer_id": null
+         },
+         "index_name": "idx_92c59ebf"
+        },
+        "entity": "index",
+        "entity_name": "idx_92c59ebf",
+        "schema_name": "app",
+        "table_name": "invoice"
+       }
+      },
+      "relations": {
+       "fk_53ba2cc3": {
+        "attributes": {
+         "columns": [
+          "customer_id"
+         ],
+         "constraint_name": "fk_53ba2cc3",
+         "constraint_type": "FOREIGN KEY",
+         "on_update": "CASCADE",
+         "related_columns": [
+          "id"
+         ],
+         "related_schema": "app",
+         "related_table": "customer"
+        },
+        "entity": "relation",
+        "entity_name": "fk_53ba2cc3",
+        "schema_name": "app",
+        "table_name": "invoice"
+       }
+      },
+      "schema_name": "app",
+      "table_name": "invoice"
+     }
+    }
+   }
+  }
+ }
+}

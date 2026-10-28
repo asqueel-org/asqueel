@@ -21,7 +21,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     capabilities = frozenset({
         'select', 'insert', 'update', 'delete', 'returning_insert',
         'returning_update', 'returning_delete', 'left_join', 'limit', 'offset',
-        'default_values', 'for_update',
+        'default_values', 'for_update', 'cached_fetch',
     })
 
     def connect(self, conninfo: str, **kwargs: Any) -> Any:
@@ -90,6 +90,24 @@ class SqlDbAdapter(SqlDbBaseAdapter):
                              lambda m: unroll(m) if m.start(2) - 1 in positions else m[0],
                              sql, flags=re.I)
         return sql
+
+    def create_table_as(self, schema, table, sql):
+        """An UNLOGGED table: a cached fetch is rebuilt from its query, never recovered."""
+        return f'CREATE UNLOGGED TABLE {self.adaptSqlName(schema)}.{self.adaptSqlName(table)} AS {sql}'
+
+    def create_unique_index(self, schema, table, column):
+        """The index name is left to PostgreSQL: the table name may already take 63 bytes."""
+        return f'CREATE UNIQUE INDEX ON {self.adaptSqlName(schema)}.{self.adaptSqlName(table)} ({self.adaptSqlName(column)})'
+
+    def table_columns_sql(self):
+        """``(name, is_text)`` of the columns of table ``:table`` in schema ``:schema``, in order."""
+        return ("SELECT column_name, data_type IN ('text', 'character varying', 'character') "
+                "FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table "
+                "ORDER BY ordinal_position")
+
+    def cached_fetch_lock(self):
+        """A transaction advisory lock on the key: a new key has no catalog row to lock yet."""
+        return 'SELECT pg_advisory_xact_lock(hashtext(:key))'
 
     def adaptSqlName(self, name: str) -> str:
         quoted = super().adaptSqlName(name)

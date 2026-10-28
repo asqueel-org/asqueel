@@ -290,7 +290,25 @@ def _relative_index(owner, spec, expansions):
             name_long=f"{owner.table.get_attr('name_long')} relidx count")
 
 
+def _cached_fetch_catalog(database):
+    if 'cachedFetch' not in options(database):
+        return
+    packages = database.value.get_node('packages') if database.value is not None else None
+    packages = database.packages() if packages is None else packages
+    table = packages.package('_asql_', sqlschema='_asql_', sqlprefix=False).table(
+        '_asql_cached_fetch', pkey='id')
+    for name, dtype in (('id', 'A'), ('owner', 'A'), ('name', 'A'), ('tablename', 'A'),
+                        ('sqlschema', 'A'), ('sqltable', 'A'), ('rowcount', 'L'), ('created', 'DHZ'),
+                        ('user', 'A'), ('sort_sqltable', 'A'), ('sort_order_by', 'T'),
+                        ('search_seed', 'T')):
+        table.column(name, dtype=dtype, indexed=name == 'owner' or None)
+
+
 def expand_options(builder, *, options_first=False):
+    database = SqlModelCatalog(builder).database
+    if database is not None:
+        with builder.contribution('@options'):
+            _cached_fetch_catalog(database)
     catalog = SqlModelCatalog(builder)
     for path, node in catalog.nodes:
         if node.node_tag in ('sysrecords', 'release') and node.get_attr('enabled', True):

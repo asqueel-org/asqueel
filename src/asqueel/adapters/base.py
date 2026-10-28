@@ -99,6 +99,17 @@ class SqlDbAdapter:
         return (f"(SELECT COALESCE(string_agg({row}.value, {row}.separator), '') "
                 f'FROM ({sql}) AS {row})')
 
+    def create_table_as(self, schema, table, sql):
+        """The statement that materializes ``sql`` as the table of a cached fetch."""
+        return f'CREATE TABLE {self.adaptSqlName(schema)}.{self.adaptSqlName(table)} AS {sql}'
+
+    def cached_fetch_lock(self):
+        """SQL that serializes the writers of one cached fetch ``:key``, or None.
+
+        None where the locked catalog read that follows already serializes them.
+        """
+        return None
+
     def compileSql(self, maintable, columns, distinct='', joins=None, where=None,
                    group_by=None, having=None, order_by=None, limit=None, offset=None,
                    for_update=False, maintable_as='t0'):

@@ -66,6 +66,13 @@ Cleanup of the unauthorized differences from GenroPy legacy, decided with the us
 - Ends at: asqueel 0.9.0 ready to release, every acceptance criterion of asqueel#56 green; no tag, no PyPI before the PR is merged.
 - Delivers: `SessionDb`, consumed by 0.9.5 cached fetch (runs inside a `SessionDb`) and by the kajenn adapter and genropy-asqueel (main `SessionDb` per call).
 
+## Macro 13 (done): 0.9.5 cached fetch — done/cached-fetch-0-9-5/plan.md
+- Objective: a query materialized server side into a table by `owner:name`, read by pages, sorted and searched in the database, cleaned up by owner, on PostgreSQL and SQLite. Guide: `temp/xmldocs/plan/release-0-9.xml` (phases `p-ctas` … `p-095`).
+- Starts from: Macro 12, main 3d75440 (0.9.0 plus #60, #61, #62).
+- Ends at: asqueel 0.9.5 ready to release; no tag, no PyPI before the PR is merged.
+- Delivers: `fetch(destination_name=)`, `cached().query()`, `sort`, `search`, `cleanupCachedTable`; consumed by the kajenn adapter and genropy-asqueel (not yet measured).
+
 ## Debts
 - `text_pattern_ops` on the `hierarchical_pkey` index and column collation (2026-10-19). Legacy has neither. Measured on PostgreSQL 17: with a non-C database collation a prefix `LIKE` on `hierarchical_pkey` scans the table; with collation `C` it uses the UNIQUE index. Proposed in the legacy first: genropy/genropy#1708 (collation, `unaccent='full'`), measurement on genropy/genropy#1526. asqueel follows the legacy outcome.
 - Custom column types (2026-10-23, deferred by the user during Macro 10 planning). Two mechanisms exist: `options().type()` declared in the source (resolved by `model_source.resolve_source_types`) and `custom_type_<dtype>()` methods of the package layout's `Package` (`package_layout.py`, the only legacy mechanism, `gnrsqlmodel/columns.py:127`). One must remain; the user leans to `options().type()`. The column `dtype` `Literal` waits for this decision.
+- Cached fetch search columns (2026-10-28, accepted at Macro 13). `search()` picks the text columns from the result table's SQL types, not from the source dtypes, because the catalog keeps no dtypes; `X` columns and text-typed computed columns are searched too. Consolidate at the next cached-fetch round (e.g. a dtype column in `_asql_cached_fetch`).

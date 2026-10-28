@@ -20,6 +20,9 @@ Application configuration and objects
 .. automodule:: asqueel.application_table
    :members: SqlTable, SqlQuery, RecordNotFoundError, RecordMultipleRowsError
 
+.. automodule:: asqueel.cached_fetch
+   :members: CachedFetch, CachedQuery
+
 Compiler
 --------
 

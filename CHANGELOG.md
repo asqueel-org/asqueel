@@ -1,6 +1,19 @@
 # Changelog
 
-## Unreleased
+## 0.9.5 — Cached fetch
+
+- Cached fetch on PostgreSQL and SQLite, enabled by the db-level option
+  `cachedFetch()`, which adds schema `_asql_` with the catalog table
+  `_asql_cached_fetch`. See the [cached fetch guide](docs/guide/cached-fetch.md).
+- `fetch(destination_name='owner:name')` materializes the rows of a query in
+  the database and returns their count; it runs and commits on the separate
+  session `'_asql_cached_fetch'`, never on the caller's session.
+- `table.cached('owner:name')` reads pages with `query(..., start=, count=)`,
+  sorts them in the database with `sort()` and filters them with `search()`.
+- `db.cleanupCachedTable(owner=...)` drops the cached fetches of some owners,
+  or of every owner but some (`'!(foo,bar)'`).
+- MySQL and SQL Server raise `UnsupportedFeatureError` on every cached-fetch
+  call.
 
 - Experimental MySQL adapter (`implementation='mysql'`, extra `asqueel[mysql]`,
   MySQL 8.0.19 or later). The [MySQL guide](docs/guide/mysql.md) lists what it

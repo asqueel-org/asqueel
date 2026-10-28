@@ -114,6 +114,7 @@ _PERIOD = re.compile(r"#PERIOD\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*,\s*:?(\w+)\)")
 _BAG = re.compile(r"#BAG\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*\)(\s*AS\s*(\w*))?")
 _BAGCOLS = re.compile(r"#BAGCOLS\s*\(\s*((?:\$|@)?[\w\.\@]+)\s*\)(\s*AS\s*(\w*))?")
 _ENV = re.compile(r"#ENV\(([^,)]+)(,[^),]+)?\)")
+_ORDER_TERM = re.compile(r'^\s*"?(?P<name>\w+)"?(?P<direction>\s+.*)?$', re.DOTALL)
 _COLREL = re.compile(r'([@$]\w+(?:\.\w+)*)')
 _TEMPLATE = re.compile(r'#TEMPLATE\s*\(')
 _TEMPLATE_LITERAL = re.compile(r"\s*'((?:[^']|'')*)'\s*", re.S)
@@ -776,7 +777,7 @@ class _TreeContext:
                     *, exclude_draft=True, exclude_logical_deleted=True,
                     ignore_partition=False, for_update=False, distinct=False,
                     group_by=None, having=None, bagFields=False, addPkeyColumn=False,
-                    count=False) -> SqlCompiledQuery:
+                    count=False, rowidx=False) -> SqlCompiledQuery:
         if for_update not in (False, True, 'NOWAIT', 'SKIP LOCKED') or type(for_update) is int:
             raise ValueError('for_update must be True, NOWAIT or SKIP LOCKED')
         for name, value in [('bagFields', bagFields), ('addPkeyColumn', addPkeyColumn)]:
@@ -813,6 +814,8 @@ class _TreeContext:
                            for column in selected)
         # Legacy SqlQuery includes X fields whenever the read requests a lock.
         columns = self.expand_columns(columns, bagFields=bagFields or for_update)
+        if rowidx:
+            columns, group_by, distinct, order_by = self.rowidx_column(columns, group_by, distinct, order_by, offset)
         if count:
             # Legacy compiledQuery: groups return their keys, DISTINCT retains
             # its projection; only an ordinary query becomes COUNT(*).
@@ -890,6 +893,45 @@ class _TreeContext:
         self.cpl.input_parameters = tuple(sorted(self.consumed_inputs))
         self.cpl.local_parameters = tuple(sorted(self.bindings.state['generated']))
         return self.cpl
+
+    def rowidx_column(self, columns, group_by, distinct, order_by, offset):
+        """Add the zero-based ``_rowidx`` numbering column; the rows are ordered by it.
+
+        Plain: order_by, then the pkey. group_by: order_by, the group_by
+        columns, the output columns. distinct becomes a GROUP BY of the
+        output columns, so the numbering is computed after the grouping.
+        A window cannot see output aliases, so an order_by term naming one
+        is replaced by its expression.
+        """
+        outputs, aliases = [], {}
+        for column in split_sql(columns):
+            parts = split_sql(column, ' AS ')
+            outputs.append(parts[0].strip())
+            if len(parts) > 1:
+                aliases[parts[-1].strip().strip('"')] = parts[0].strip()
+        if order_by:
+            terms = []
+            for term in split_sql(order_by):
+                match = _ORDER_TERM.match(term)
+                if match and match['name'] in aliases:
+                    term = aliases[match['name']] + (match['direction'] or '')
+                terms.append(term.strip())
+            order_by = ', '.join(terms)
+        if distinct:
+            if group_by:
+                raise UnsupportedFeatureError('distinct with group_by cannot be numbered')
+            group_by, distinct = ','.join(outputs), False
+        if group_by:
+            keys = [order_by, group_by, *outputs]
+        else:
+            pkey = self.table.physical_columns(self.table.pkey) if self.table.pkey else ()
+            keys = [order_by, *('$' + name for name in pkey)]
+        numbering = ', '.join(key for key in keys if key)
+        if not numbering:
+            raise ValueError(f'{self.table.fullname}: the numbering needs an order_by or a primary key')
+        shift = f' - {offset}' if offset else ''
+        columns += f',(row_number() OVER (ORDER BY {numbering}) - 1{shift}) AS "_rowidx"'
+        return columns, group_by, distinct, '"_rowidx"'
 
     def star_columns(self, *, bagFields):
         """Legacy starColumns: physical fields, then static virtual columns."""
@@ -1051,7 +1093,7 @@ class QueryCompiler:
                     limit=None, offset=None, *, exclude_draft=True,
                     exclude_logical_deleted=True, ignore_partition=False,
                     for_update=False, distinct=False, group_by=None, having=None, bagFields=False, addPkeyColumn=False,
-                    **options) -> SqlCompiledQuery:
+                    rowidx=False, **options) -> SqlCompiledQuery:
         """Resolve clauses; SQL assembly and preparation happen in compile_plan."""
         self._check_options(options)
         with self._as_current():
@@ -1059,7 +1101,7 @@ class QueryCompiler:
                 columns, where, order_by, limit, offset, exclude_draft=exclude_draft,
                 exclude_logical_deleted=exclude_logical_deleted, ignore_partition=ignore_partition,
                 for_update=for_update, distinct=distinct, group_by=group_by, having=having,
-                bagFields=bagFields, addPkeyColumn=addPkeyColumn)
+                bagFields=bagFields, addPkeyColumn=addPkeyColumn, rowidx=rowidx)
 
     def plan_count(self, table, columns='*', where=None, sqlparams=None, order_by=None,
                    limit=None, offset=None, *, exclude_draft=True,

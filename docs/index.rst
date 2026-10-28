@@ -57,6 +57,7 @@ Choose your starting point
    guide/queries
    guide/writes
    guide/data-files
+   guide/cached-fetch
    guide/transactions
    guide/hooks
    guide/formulas
