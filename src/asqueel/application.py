@@ -19,6 +19,7 @@ from weakref import WeakSet
 
 from genro_bag import Bag
 
+from . import cached_fetch
 from .application_table import SqlTable
 from .compiler import QueryCompiler
 from .configuration import SqlConfigHandler, SqlDatabaseConfig, compose_recipe
@@ -487,6 +488,10 @@ class AsqueelDb(WriteMixin):
     def analyze(self) -> None:
         """Update the planner statistics, in the current transaction."""
         self.adapter.analyze()
+
+    def cleanup_cached_tables(self, owner=None):
+        """Drop the cached fetches of ``owner`` (``'foo'``, ``'foo,bar'``), or of every owner but those (``'!(foo,bar)'``)."""
+        cached_fetch.cleanup(self, owner)
 
     def vacuum(self, table: str = '', full: bool = False) -> None:
         """Reclaim storage of the database or of ``table`` (its SQL name), on a separate connection.

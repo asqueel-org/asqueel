@@ -15,6 +15,7 @@ OPTION_LEVELS = {
     'type': {'package'},
     'sysFields': {'table'},
     'driver': {'connection'},
+    'cachedFetch': {'db'},
 }
 
 SYS_FIELD_KEYS = {'name_long', 'name_short', 'comment', 'group', 'indexed'}
@@ -98,4 +99,9 @@ class ModelElements:
         syscode opts into __syscode, A size :20, indexed and unique.
         It adds no system-record behavior, virtual columns or generated values.
         """
+        ...
+
+    @element(parent_tags='options', sub_tags='', node_label='cachedFetch')
+    def cachedFetch(self):
+        """Enable cached fetch: expansion adds schema ``_asql_`` with table ``_asql_cached_fetch``."""
         ...

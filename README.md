@@ -139,6 +139,7 @@ transaction examples and disposable-schema cleanup.
 | Configure an application and render live objects | [Configuration](docs/guide/configuration.md) |
 | Declare names, relations, aliases and UI metadata | [Models](docs/guide/models.md) |
 | Read data or load exactly one record | [Queries](docs/guide/queries.md) |
+| Materialize a query in the database and read it by pages | [Cached fetch](docs/guide/cached-fetch.md) |
 | Insert, update or delete | [Writes](docs/guide/writes.md) and [transactions](docs/guide/transactions.md) |
 | Add business behavior | [Table hooks](docs/guide/hooks.md) |
 | Define computed values and correlated subqueries | [Formulas](docs/guide/formulas.md) |

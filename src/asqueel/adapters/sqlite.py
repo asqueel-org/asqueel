@@ -32,7 +32,7 @@ class SqlDbAdapter(SqlDbBaseAdapter):
     capabilities = frozenset({
         'select', 'insert', 'update', 'delete', 'returning_insert',
         'returning_update', 'returning_delete', 'left_join', 'limit', 'offset',
-        'default_values', 'for_update',
+        'default_values', 'for_update', 'cached_fetch',
     })
 
     def connect(self, conninfo='', *, dbname=None, schemas=(), foreignKeys=True, **kwargs):
@@ -216,6 +216,15 @@ class SqlDbAdapter(SqlDbBaseAdapter):
             limit = 9223372036854775807
         return super().compileSql(maintable, columns, distinct, joins, where, group_by,
                                   having, order_by, limit, offset, False, maintable_as)
+
+    def create_unique_index(self, schema, table, column):
+        """SQLite names the index in the table's schema and leaves the table unqualified."""
+        return (f'CREATE UNIQUE INDEX {self.adaptSqlName(schema)}.{self.adaptSqlName(table + "_" + column)} '
+                f'ON {self.adaptSqlName(table)} ({self.adaptSqlName(column)})')
+
+    def table_columns_sql(self):
+        """``(name, is_text)`` of the columns of table ``:table`` in schema ``:schema``; CTAS declares text as TEXT."""
+        return "SELECT name, type = 'TEXT' FROM pragma_table_info(:table, :schema) ORDER BY cid"
 
     def string_agg(self, fieldpath, separator):
         return f"group_concat({fieldpath},{sql_literal(separator)})"

@@ -1,5 +1,33 @@
 # Release notes
 
+## 0.9.5 — Cached fetch
+
+- Cached fetch on PostgreSQL and SQLite, enabled by the db-level option
+  `cachedFetch()`, which adds schema `_asql_` with the catalog table
+  `_asql_cached_fetch`. See the [cached fetch guide](cached-fetch.md).
+- `fetch(destinationName='owner:name')` materializes the rows of a query in
+  the database and returns their count; it runs and commits on the separate
+  session `'_asql_cached_fetch'`, never on the caller's session.
+- `table.cached('owner:name')` reads pages with `query(..., start=, count=)`,
+  sorts them in the database with `sort()` and filters them with `search()`.
+- `db.cleanup_cached_tables(owner=...)` drops the cached fetches of some owners,
+  or of every owner but some (`'!(foo,bar)'`).
+- MySQL and SQL Server raise `UnsupportedFeatureError` on every cached-fetch
+  call.
+- Experimental MySQL adapter (`implementation='mysql'`, extra `asqueel[mysql]`,
+  MySQL 8.0.19 or later). The [MySQL guide](mysql.md) lists what it
+  refuses. Its tests in `tests/mysql` run on demand, not in CI.
+- Experimental SQL Server adapter (`implementation='mssql'`, extra
+  `asqueel[mssql]`, SQL Server 2017 or later). The
+  [SQL Server guide](mssql.md) lists what it refuses. Its tests in
+  `tests/adapter_mssql` run on demand, not in CI.
+- The write compiler enforces the dialect capabilities (#21). An insert without
+  columns raises `UnsupportedFeatureError` on a dialect without
+  `default_values`. An insert or update whose values the database decides
+  (serial key, default, `sql_value`, generated column) raises on a dialect
+  without `returning_insert` / `returning_update`, instead of losing those
+  values silently.
+
 ## 0.9.0 — Runtime per call
 
 - `AsqueelDb` holds the model and the configuration shared by every call.

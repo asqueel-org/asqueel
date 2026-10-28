@@ -16,6 +16,7 @@ from datetime import datetime
 from genro_bag import Bag
 from genro_toolbox.uid import get_uuid
 
+from . import cached_fetch
 from .contracts import UnsupportedFeatureError, UnusedQueryParameterWarning, not_available, refused_property
 from .table_behaviors import TableBehaviors
 from .table_crud import _INTEGER_DTYPES, CrudMixin
@@ -162,14 +163,27 @@ class SqlQuery:
     def execute(self):
         return self.db.execute(self.compiled)
 
-    def fetch(self, destination=None, format=None):
+    def fetch(self, destination=None, format=None, destinationName=None):
         """Execute again and return mutable Toolbox NamedList rows, without caching.
 
         With ``destination`` (a path or an open text stream) the rows are
         written there in blocks from a server-side cursor, as CSV, JSON or
         TYTX by ``format`` or by the file extension, and the row count is
         returned instead of the rows.
+
+        With ``destinationName='owner:name'`` the rows are materialized in
+        the database as a cached fetch, read back by ``table.cached()``; the
+        row count is returned.
         """
+        if destinationName is not None:
+            if destination is not None:
+                raise ValueError('destination= and destinationName= are exclusive')
+            if format is not None:
+                raise ValueError('format= is for destination=, not destinationName=')
+            owner, name = cached_fetch.split_destination(destinationName)
+            cached_fetch.check_enabled(self.db)
+            compiled = self._compile(self.db.compiler.select, {**_copy(self._options), 'rowidx': True})
+            return cached_fetch.create(self.db, self.table.fullname, compiled, owner, name)
         if destination is None:
             if format is not None:
                 raise ValueError('format= needs destination=')
@@ -452,6 +466,10 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
             raise UnsupportedFeatureError('for_update is incompatible with distinct or group_by')
         bindings = _bindings(sqlparams, incoming)
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
+
+    def cached(self, destinationName):
+        """The cached fetch ``'owner:name'`` created from this table, to read by pages."""
+        return cached_fetch.CachedFetch(self, destinationName)
 
     def _key_selector(self, pkey):
         names = self.model.physical_columns(self.model.pkey) if self.model.pkey else ()
