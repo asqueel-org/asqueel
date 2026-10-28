@@ -40,11 +40,11 @@ The default renderer is unchanged; to-many operations still have no handlers.
 
 ## Install
 
-Version **0.6.0** completes native package configuration → live model objects →
-migration JSON, verified on 74 `test_invoice_pg` tables across sys, adm and invc.
-See the [native source example](examples/test_invoice_pg/README.md) and
-[release notes](docs/guide/release-notes.md) for the delivered scope and deferred
-compiler/runtime behavior.
+The [release notes](docs/guide/release-notes.md) list what each version delivers
+and the compiler/runtime behaviour still deferred. The
+[native source example](examples/test_invoice_pg/README.md) shows native package
+configuration → live model objects → migration JSON on 74 `test_invoice_pg`
+tables across sys, adm and invc.
 
 ```sh
 python -m pip install "asqueel[postgresql]"
