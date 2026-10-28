@@ -163,7 +163,7 @@ class SqlQuery:
     def execute(self):
         return self.db.execute(self.compiled)
 
-    def fetch(self, destination=None, format=None, destination_name=None):
+    def fetch(self, destination=None, format=None, destinationName=None):
         """Execute again and return mutable Toolbox NamedList rows, without caching.
 
         With ``destination`` (a path or an open text stream) the rows are
@@ -171,16 +171,16 @@ class SqlQuery:
         TYTX by ``format`` or by the file extension, and the row count is
         returned instead of the rows.
 
-        With ``destination_name='owner:name'`` the rows are materialized in
+        With ``destinationName='owner:name'`` the rows are materialized in
         the database as a cached fetch, read back by ``table.cached()``; the
         row count is returned.
         """
-        if destination_name is not None:
+        if destinationName is not None:
             if destination is not None:
-                raise ValueError('destination= and destination_name= are exclusive')
+                raise ValueError('destination= and destinationName= are exclusive')
             if format is not None:
-                raise ValueError('format= is for destination=, not destination_name=')
-            owner, name = cached_fetch.split_destination(destination_name)
+                raise ValueError('format= is for destination=, not destinationName=')
+            owner, name = cached_fetch.split_destination(destinationName)
             cached_fetch.check_enabled(self.db)
             compiled = self._compile(self.db.compiler.select, {**_copy(self._options), 'rowidx': True})
             return cached_fetch.create(self.db, self.table.fullname, compiled, owner, name)
@@ -467,9 +467,9 @@ class SqlTable(CrudMixin, TriggersMixin, TableBehaviors):
         bindings = _bindings(sqlparams, incoming)
         return SqlQuery(self, options, bindings, keyword_bindings=incoming)
 
-    def cached(self, destination_name):
+    def cached(self, destinationName):
         """The cached fetch ``'owner:name'`` created from this table, to read by pages."""
-        return cached_fetch.CachedFetch(self, destination_name)
+        return cached_fetch.CachedFetch(self, destinationName)
 
     def _key_selector(self, pkey):
         names = self.model.physical_columns(self.model.pkey) if self.model.pkey else ()

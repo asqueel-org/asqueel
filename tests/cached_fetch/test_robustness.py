@@ -15,7 +15,7 @@ ROWS = 40
 def db(request, tmp_path):
     with migrated_db(request.param, tmp_path, declare, declare_db=enable) as db:
         fill(db, ROWS)
-        db.table('app.item').query(columns='$id, $grp, $value').fetch(destination_name='u:s')
+        db.table('app.item').query(columns='$id, $grp, $value').fetch(destinationName='u:s')
         yield db
 
 
@@ -23,15 +23,15 @@ def test_an_order_by_on_an_output_alias_numbers_as_fetch_orders(db):
     query = db.table('app.item').query(columns='$grp, count(*) AS tot, max($id) AS top', group_by='$grp',
                                        order_by='tot desc, top')
     expected = [row['grp'] for row in query.fetch()]
-    assert query.fetch(destination_name='u:alias') == len(expected)
+    assert query.fetch(destinationName='u:alias') == len(expected)
     rows = db.table('app.item').cached('u:alias').query(columns='grp').fetch()
     assert [row['grp'] for row in rows] == expected
 
 
-@pytest.mark.parametrize('destination_name', [' u:x', 'u :x', '\tu:x'])
-def test_an_owner_with_surrounding_spaces_raises(db, destination_name):
+@pytest.mark.parametrize('destinationName', [' u:x', 'u :x', '\tu:x'])
+def test_an_owner_with_surrounding_spaces_raises(db, destinationName):
     with pytest.raises(ValueError, match='space'):
-        db.table('app.item').query(columns='$id').fetch(destination_name=destination_name)
+        db.table('app.item').query(columns='$id').fetch(destinationName=destinationName)
 
 
 def test_a_long_owner_keeps_the_digest_within_63_bytes():
@@ -56,7 +56,7 @@ def test_count_zero_raises(db):
 def test_a_table_left_without_its_catalog_row_is_replaced(db):
     db.table('_asql_._asql_cached_fetch').query(where="$id = 'u:s'").sql_delete()
     db.commit()
-    assert db.table('app.item').query(columns='$id').fetch(destination_name='u:s') == ROWS
+    assert db.table('app.item').query(columns='$id').fetch(destinationName='u:s') == ROWS
 
 
 def test_two_handles_sort_and_search_the_same_fetch(db):
@@ -87,7 +87,7 @@ def test_a_page_of_a_fetch_cleaned_up_meanwhile_raises_a_clear_error(db):
 
 
 def test_cleanup_drops_only_the_rows_it_read(db):
-    db.table('app.item').query(columns='$id').fetch(destination_name='v:s')
+    db.table('app.item').query(columns='$id').fetch(destinationName='v:s')
     db.cleanup_cached_tables(owner='u')
     catalog = db.table('_asql_._asql_cached_fetch').query(columns='$id').fetch()
     assert [row['id'] for row in catalog] == ['v:s']
@@ -95,7 +95,7 @@ def test_cleanup_drops_only_the_rows_it_read(db):
 
 def test_the_shared_database_refuses_the_cached_fetch(db):
     with pytest.raises(TransactionStateError):
-        db.shared.table('app.item').query(columns='$id').fetch(destination_name='u:x')
+        db.shared.table('app.item').query(columns='$id').fetch(destinationName='u:x')
     with pytest.raises(TransactionStateError):
         db.shared.cleanup_cached_tables(owner='u')
 
@@ -104,7 +104,7 @@ def test_an_open_session_of_the_reserved_name_raises(db):
     reserved = db.session('_asql_cached_fetch')
     try:
         with pytest.raises(TransactionStateError, match='reserved'):
-            db.table('app.item').query(columns='$id').fetch(destination_name='u:x')
+            db.table('app.item').query(columns='$id').fetch(destinationName='u:x')
     finally:
         reserved.close()
 
@@ -118,7 +118,7 @@ def test_two_concurrent_creates_of_one_key_both_succeed(db):
     def create():
         try:
             with shared.session() as session:
-                session.table('app.item').query(columns='$id').fetch(destination_name='w:same')
+                session.table('app.item').query(columns='$id').fetch(destinationName='w:same')
         except Exception as error:
             errors.append(error)
 

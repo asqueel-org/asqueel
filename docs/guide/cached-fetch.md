@@ -22,7 +22,7 @@ other level raises.
 
 ## Create a cached fetch
 
-`fetch(destination_name='owner:name')` runs the query as
+`fetch(destinationName='owner:name')` runs the query as
 `CREATE TABLE ... AS SELECT` (an unlogged table on PostgreSQL) and returns the
 number of rows:
 
@@ -30,14 +30,14 @@ number of rows:
 customers = db.table("sales.customer")
 count = customers.query(
     columns="$id, $name, $city", where="$active IS TRUE", order_by="$name",
-).fetch(destination_name="page42:customers")
+).fetch(destinationName="page42:customers")
 ```
 
 - The name splits at the first `:`. An owner and a name are both required. An
   owner may not contain `,`, `(`, `)`, start with `!` nor start or end with a space.
 - A fetch on an existing `owner:name` replaces it.
-- `destination=` and `destination_name=` together raise; `format=` with
-  `destination_name=` raises.
+- `destination=` and `destinationName=` together raise; `format=` with
+  `destinationName=` raises.
 - The result lives in schema `_asql_` as table `p<owner>_<name>`. Characters
   other than letters, digits and `_` become `_`; beyond 63 bytes the name part
   becomes the first 12 hex characters of its SHA-256. Two names that give the

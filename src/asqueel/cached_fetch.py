@@ -25,15 +25,15 @@ _MAX_NAME_BYTES = 63
 _NEGATED_OWNERS = re.compile(r'^\s*!\s*\((?P<owners>.*)\)\s*$')
 
 
-def split_destination(destination_name):
+def split_destination(destinationName):
     """``(owner, name)`` of ``'owner:name'``, split at the first ``:``."""
-    if not isinstance(destination_name, str) or ':' not in destination_name:
-        raise ValueError(f"destination_name must be 'owner:name', not {destination_name!r}")
-    owner, name = destination_name.split(':', 1)
+    if not isinstance(destinationName, str) or ':' not in destinationName:
+        raise ValueError(f"destinationName must be 'owner:name', not {destinationName!r}")
+    owner, name = destinationName.split(':', 1)
     if not owner or not name:
-        raise ValueError(f"destination_name {destination_name!r} needs an owner and a name")
+        raise ValueError(f"destinationName {destinationName!r} needs an owner and a name")
     if any(char in owner for char in ',()') or owner.startswith('!') or owner != owner.strip():
-        raise ValueError(f"destination_name {destination_name!r}: an owner may not contain ',', '(', ')', "
+        raise ValueError(f"destinationName {destinationName!r}: an owner may not contain ',', '(', ')', "
                          "start with '!' nor start or end with a space")
     return owner, name
 
@@ -184,8 +184,8 @@ def cleanup(db, owner):
 class CachedFetch:
     """A cached fetch of a table, read by ``owner:name``; ``table.cached(...)`` builds it."""
 
-    def __init__(self, table, destination_name):
-        owner, name = split_destination(destination_name)
+    def __init__(self, table, destinationName):
+        owner, name = split_destination(destinationName)
         self.table = table
         self.db = table.db
         check_enabled(self.db)

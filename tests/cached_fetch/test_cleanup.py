@@ -13,8 +13,8 @@ def db(request, tmp_path):
     with migrated_db(request.param, tmp_path, declare, declare_db=enable) as db:
         fill(db, 20)
         for owner in OWNERS:
-            db.table('app.item').query(columns='$id, $grp').fetch(destination_name=f'{owner}:first')
-            db.table('app.item').query(columns='$id, $grp').fetch(destination_name=f'{owner}:second')
+            db.table('app.item').query(columns='$id, $grp').fetch(destinationName=f'{owner}:first')
+            db.table('app.item').query(columns='$id, $grp').fetch(destinationName=f'{owner}:second')
             db.table('app.item').cached(f'{owner}:second').sort('grp desc')
         yield db
 
@@ -69,7 +69,7 @@ def test_an_unknown_owner_drops_nothing(db):
 
 def test_a_dropped_fetch_can_be_created_again(db):
     db.cleanup_cached_tables(owner='foo')
-    assert db.table('app.item').query(columns='$id').fetch(destination_name='foo:first') == 20
+    assert db.table('app.item').query(columns='$id').fetch(destinationName='foo:first') == 20
     assert catalog_owners(db) == sorted(OWNERS)
 
 

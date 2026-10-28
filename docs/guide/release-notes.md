@@ -5,7 +5,7 @@
 - Cached fetch on PostgreSQL and SQLite, enabled by the db-level option
   `cachedFetch()`, which adds schema `_asql_` with the catalog table
   `_asql_cached_fetch`. See the [cached fetch guide](cached-fetch.md).
-- `fetch(destination_name='owner:name')` materializes the rows of a query in
+- `fetch(destinationName='owner:name')` materializes the rows of a query in
   the database and returns their count; it runs and commits on the separate
   session `'_asql_cached_fetch'`, never on the caller's session.
 - `table.cached('owner:name')` reads pages with `query(..., start=, count=)`,

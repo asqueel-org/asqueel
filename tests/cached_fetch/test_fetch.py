@@ -1,4 +1,4 @@
-"""fetch(destination_name='owner:name') and cached(...).query(...) by start/count."""
+"""fetch(destinationName='owner:name') and cached(...).query(...) by start/count."""
 import hashlib
 
 import pytest
@@ -56,7 +56,7 @@ def test_a_large_fetch_materializes_without_reading_its_rows(db, monkeypatch):
             fetched.append(len(result) if isinstance(result, list) else 1)
             return result
         monkeypatch.setattr(SqlCursor, method, spy)
-    count = db.table('app.item').query(columns='$id, $grp').fetch(destination_name='page1:all')
+    count = db.table('app.item').query(columns='$id, $grp').fetch(destinationName='page1:all')
     monkeypatch.undo()
     assert count == 500_000
     assert max(fetched) <= 1
@@ -67,7 +67,7 @@ def test_a_large_fetch_materializes_without_reading_its_rows(db, monkeypatch):
 def test_pages_from_start_middle_and_last_partial_page(db):
     fill(db, 95)
     table = db.table('app.item')
-    assert table.query(columns='$id, $value', order_by='$value desc').fetch(destination_name='u:v') == 95
+    assert table.query(columns='$id, $value', order_by='$value desc').fetch(destinationName='u:v') == 95
     expected = [dict(row) for row in table.query(columns='$id, $value', order_by='$value desc, $id').fetch()]
     cached = table.cached('u:v')
     for start in (0, 40, 90):
@@ -80,7 +80,7 @@ def test_pages_from_start_middle_and_last_partial_page(db):
 def test_page_with_where_and_order_by(db):
     fill(db, 50)
     table = db.table('app.item')
-    table.query(columns='$id, $grp').fetch(destination_name='u:w')
+    table.query(columns='$id, $grp').fetch(destinationName='u:w')
     rows = table.cached('u:w').query(columns='id', where="grp = :grp", order_by='id desc',
                                      start=2, count=3, grp='north').fetch()
     assert [row['id'] for row in rows] == [35, 30, 25]
@@ -91,9 +91,9 @@ def test_group_by_and_distinct_numberings_are_equal_across_fetches(db):
     table = db.table('app.item')
     for options in ({'columns': '$grp, count(*) AS n', 'group_by': '$grp'},
                     {'columns': '$grp, $value', 'distinct': True}):
-        table.query(**options).fetch(destination_name='u:a')
+        table.query(**options).fetch(destinationName='u:a')
         first = [dict(row) for row in table.cached('u:a').query(order_by='_rowidx').fetch()]
-        table.query(**options).fetch(destination_name='u:b')
+        table.query(**options).fetch(destinationName='u:b')
         second = [dict(row) for row in table.cached('u:b').query(order_by='_rowidx').fetch()]
         assert first == second
         assert [row['_rowidx'] for row in first] == list(range(len(first)))
@@ -103,15 +103,15 @@ def test_group_by_and_distinct_numberings_are_equal_across_fetches(db):
 def test_a_fetch_on_an_existing_name_replaces_it(db):
     fill(db, 20)
     table = db.table('app.item')
-    table.query(columns='$id').fetch(destination_name='u:r')
-    assert table.query(columns='$id', where='$id < 5').fetch(destination_name='u:r') == 5
+    table.query(columns='$id').fetch(destinationName='u:r')
+    assert table.query(columns='$id', where='$id < 5').fetch(destinationName='u:r') == 5
     assert [row['id'] for row in table.cached('u:r').query().fetch()] == [0, 1, 2, 3, 4]
     assert db.execute("SELECT count(*) FROM _asql_._asql_cached_fetch").fetchall()[0][0] == 1
 
 
 def test_cached_raises_for_another_table_or_a_missing_name(db):
     fill(db, 3)
-    db.table('app.item').query(columns='$id').fetch(destination_name='u:x')
+    db.table('app.item').query(columns='$id').fetch(destinationName='u:x')
     with pytest.raises(ValueError, match='was created from app.item'):
         db.table('app.other').cached('u:x')
     with pytest.raises(ValueError, match='does not exist'):
@@ -120,22 +120,22 @@ def test_cached_raises_for_another_table_or_a_missing_name(db):
 
 def test_the_callers_session_has_no_pending_work_after_the_fetch(db):
     fill(db, 3)
-    db.table('app.item').query(columns='$id').fetch(destination_name='u:p')
+    db.table('app.item').query(columns='$id').fetch(destinationName='u:p')
     assert all(not state['pending'] and not state['wrote'] for state in db._connections.values())
     assert db.table('_asql_._asql_cached_fetch').query(where='$id = :k', k='u:p').fetch()[0]['rowcount'] == 3
 
 
-@pytest.mark.parametrize('destination_name', [
+@pytest.mark.parametrize('destinationName', [
     'noseparator', ':name', 'owner:', '', 'a,b:n', 'a(b:n', 'a)b:n', '!a:n', None,
 ])
-def test_a_malformed_destination_name_raises(db, destination_name):
-    with pytest.raises(ValueError, match='destination_name'):
-        db.table('app.item').query(columns='$id').fetch(destination_name=destination_name or 0)
+def test_a_malformed_destinationName_raises(db, destinationName):
+    with pytest.raises(ValueError, match='destinationName'):
+        db.table('app.item').query(columns='$id').fetch(destinationName=destinationName or 0)
 
 
 def test_the_name_splits_at_the_first_colon(db):
     fill(db, 2)
-    db.table('app.item').query(columns='$id').fetch(destination_name='u:a:b')
+    db.table('app.item').query(columns='$id').fetch(destinationName='u:a:b')
     row = db.table('_asql_._asql_cached_fetch').query(where='$id = :k', k='u:a:b').fetch()[0]
     assert (row['owner'], row['name'], row['sqltable']) == ('u', 'a:b', 'pu_a_b')
 
@@ -143,7 +143,7 @@ def test_the_name_splits_at_the_first_colon(db):
 def test_a_long_physical_name_uses_the_sha256_form(db):
     fill(db, 2)
     name = 'n' * 80
-    db.table('app.item').query(columns='$id').fetch(destination_name=f'own-er:{name}')
+    db.table('app.item').query(columns='$id').fetch(destinationName=f'own-er:{name}')
     row = db.table('_asql_._asql_cached_fetch').query(where='$owner = :o', o='own-er').fetch()[0]
     assert row['sqltable'] == 'pown_er_' + hashlib.sha256(name.encode()).hexdigest()[:12]
     assert len(db.table('app.item').cached(f'own-er:{name}').query().fetch()) == 2
@@ -151,26 +151,26 @@ def test_a_long_physical_name_uses_the_sha256_form(db):
 
 def test_a_physical_name_collision_raises(db):
     fill(db, 2)
-    db.table('app.item').query(columns='$id').fetch(destination_name='u:a-b')
+    db.table('app.item').query(columns='$id').fetch(destinationName='u:a-b')
     with pytest.raises(ValueError, match="already belongs to 'u:a-b'"):
-        db.table('app.item').query(columns='$id').fetch(destination_name='u:a.b')
+        db.table('app.item').query(columns='$id').fetch(destinationName='u:a.b')
 
 
 def test_limit_and_offset_on_a_cached_query_raise(db):
     fill(db, 2)
-    db.table('app.item').query(columns='$id').fetch(destination_name='u:l')
+    db.table('app.item').query(columns='$id').fetch(destinationName='u:l')
     cached = db.table('app.item').cached('u:l')
     for option in ('limit', 'offset'):
         with pytest.raises(UnsupportedFeatureError, match=f'{option}='):
             cached.query(**{option: 1})
 
 
-def test_destination_with_destination_name_raises(db, tmp_path):
+def test_destination_with_destinationName_raises(db, tmp_path):
     query = db.table('app.item').query(columns='$id')
     with pytest.raises(ValueError, match='exclusive'):
-        query.fetch(destination=tmp_path / 'rows.csv', destination_name='u:d')
+        query.fetch(destination=tmp_path / 'rows.csv', destinationName='u:d')
     with pytest.raises(ValueError, match='format='):
-        query.fetch(format='csv', destination_name='u:d')
+        query.fetch(format='csv', destinationName='u:d')
 
 
 def memory_model(implementation, enabled=True, **connection):
@@ -186,7 +186,7 @@ def test_sqlite_memory_raises_at_the_separate_session():
     db = memory_model('sqlite', conninfo=':memory:')
     try:
         with pytest.raises(Exception, match='one session at a time'):
-            db.table('app.item').query(columns='$id').fetch(destination_name='u:m')
+            db.table('app.item').query(columns='$id').fetch(destinationName='u:m')
     finally:
         db.shared.close()
 
@@ -194,7 +194,7 @@ def test_sqlite_memory_raises_at_the_separate_session():
 def test_a_model_without_cached_fetch_raises(tmp_path):
     with migrated_db('sqlite', tmp_path, declare) as db:
         with pytest.raises(UnsupportedFeatureError, match='cachedFetch'):
-            db.table('app.item').query(columns='$id').fetch(destination_name='u:n')
+            db.table('app.item').query(columns='$id').fetch(destinationName='u:n')
         with pytest.raises(UnsupportedFeatureError, match='cachedFetch'):
             db.table('app.item').cached('u:n')
 
@@ -204,7 +204,7 @@ def test_mysql_and_sql_server_raise_before_any_sql(implementation):
     db = memory_model(implementation)
     try:
         with pytest.raises(UnsupportedFeatureError, match='cached fetch is not available'):
-            db.table('app.item').query(columns='$id').fetch(destination_name='u:m')
+            db.table('app.item').query(columns='$id').fetch(destinationName='u:m')
         with pytest.raises(UnsupportedFeatureError, match='cached fetch is not available'):
             db.table('app.item').cached('u:m')
         assert db._connections == {} or all(state['connection'] is None for state in db._connections.values())

@@ -12,7 +12,7 @@ ROWS = 95
 def db(request, tmp_path):
     with migrated_db(request.param, tmp_path, declare, declare_db=enable) as db:
         fill(db, ROWS)
-        db.table('app.item').query(columns='$id, $grp, $value').fetch(destination_name='u:s')
+        db.table('app.item').query(columns='$id, $grp, $value').fetch(destinationName='u:s')
         yield db
 
 
@@ -90,6 +90,6 @@ def test_a_sort_is_seen_by_another_process(db):
 def test_a_new_fetch_on_the_name_drops_its_sort(db):
     cached = db.table('app.item').cached('u:s')
     cached.sort('value desc')
-    db.table('app.item').query(columns='$id, $grp, $value').fetch(destination_name='u:s')
+    db.table('app.item').query(columns='$id, $grp, $value').fetch(destinationName='u:s')
     assert not table_exists(db, cached.row['sort_sqltable'])
     assert page_ids(db.table('app.item').cached('u:s'), 0, ROWS) == list(range(ROWS))

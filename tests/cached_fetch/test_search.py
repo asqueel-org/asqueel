@@ -35,7 +35,7 @@ def db(request, tmp_path):
         for row in ROWS:
             table.insert(dict(zip(('id', 'name', 'note', 'code', 'value', 'day'), row)))
         db.commit()
-        table.query(columns='$id, $name, $note, $code, $value, $day').fetch(destination_name='u:q')
+        table.query(columns='$id, $name, $note, $code, $value, $day').fetch(destinationName='u:q')
         yield db
 
 
