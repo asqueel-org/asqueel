@@ -433,6 +433,7 @@ Logical packages; distinct from physical schemas.
 
 | parameter | type | default | plane | description |
 | --- | --- | --- | --- | --- |
+| path | `str \| None` | `None` | physical | folder whose subfolders are packages in the legacy layout; each subfolder declares the package named after it, with that subfolder as its `path`. |
 
 ### `package`
 

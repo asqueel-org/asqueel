@@ -31,8 +31,14 @@ class ModelElements:
         ...
 
     @element(parent_tags='db', sub_tags='package', collection_key='name', node_label='packages')
-    def packages(self):
-        """Logical packages; distinct from physical schemas."""
+    def packages(self, path: str | None = None):
+        """Logical packages; distinct from physical schemas.
+
+        Args:
+            path: folder whose subfolders are packages in the legacy layout;
+                each subfolder declares the package named after it, with that
+                subfolder as its ``path``.
+        """
         ...
 
     @element(parent_tags='packages', sub_tags='tables[:1], options[:1]')
