@@ -1,21 +1,21 @@
 # Database configuration with two package folders
 
-A runnable example using the current Asqueel API. `configure.py` declares two
-packages, each with the path of its folder in the package layout: `main.py`
-holds class `Package`, `model/<table>.py` holds class `Table`.
+A runnable example using the current Asqueel API. `configure.py` passes the
+`packages` folder; each of its subfolders is a package in the package layout:
+`main.py` holds class `Package`, `model/<table>.py` holds class `Table`.
 
 ```text
 two_schemas/
-├── configure.py                 # DB settings and the two package declarations
+├── configure.py                 # DB settings and the packages folder
 ├── __main__.py                  # Offline query compilation demo
 └── packages/
     ├── identity/
-    │   ├── main.py              # Package
+    │   ├── main.py              # Package: sqlschema identity, no prefix
     │   └── model/
     │       ├── access.py        # Table: identity.access
     │       └── user.py          # Table: identity.user
     └── sales/
-        ├── main.py              # Package
+        ├── main.py              # Package: sqlschema sales, no prefix
         └── model/
             ├── customer.py      # Table: sales.customer
             ├── invoice.py       # Table: sales.invoice, with rows_query()
@@ -24,9 +24,9 @@ two_schemas/
 ```
 
 `DatabaseConfiguration.main()` calls `database_section()` then
-`packages_section()`, which declares
-`package(name, path=..., sqlschema=name, sqlprefix=False)` for `identity` and
-`sales`. Each `Table.config_db(self, pkg)` declares its table on the package;
+`packages_section()`, which declares `packages(path=...)`: each subfolder
+declares the package named after it, and `Package.config_attributes()` gives
+its `sqlschema` and `sqlprefix`. Each `Table.config_db(self, pkg)` declares its table on the package;
 the package runs the modules in alphabetical order. The `Table` class, combined
 with `SqlTable`, is the runtime class of the table: the sales `invoice` module
 adds `rows_query(invoice_id)` to illustrate a custom table method. The other
