@@ -39,11 +39,39 @@ def _module(path, name):
 
 
 def load_package_layouts(builder):
-    """Load every package folder of the source into its declarations."""
+    """Load every package folder of the source into its declarations.
+
+    A ``packages`` element with ``path`` first declares one package per
+    subfolder, so a package also written in the recipe composes with it.
+    """
+    for _, node in builder.source.query('#p,#n', deep=True):
+        if node.node_tag == 'packages' and node.get_attr('path'):
+            declare_package_folders(builder, node)
     packages = [node for _, node in builder.source.query('#p,#n', deep=True)
                 if node.node_tag == 'package' and node.get_attr('path')]
     for node in packages:
         load_package_layout(node)
+
+
+def declare_package_folders(builder, packages):
+    """Declare a package for each subfolder of ``packages.path``, in alphabetical order.
+
+    ``__pycache__`` and dot folders are not packages; any other subfolder
+    without ``main.py`` is an error. A recipe package of the same name with
+    another ``path`` is an error: the folder would silently replace it.
+    """
+    folder = Path(packages.get_attr('path'))
+    with builder.contribution(str(folder)):
+        for path in sorted(folder.iterdir()):
+            if not path.is_dir() or path.name == '__pycache__' or path.name.startswith('.'):
+                continue
+            if not (path / 'main.py').is_file():
+                raise ValueError(f'{folder}: package folder {path.name!r} has no main.py')
+            declared = packages.value.get_node(path.name) if packages.value is not None else None
+            other = declared.get_attr('path') if declared is not None else None
+            if other is not None and Path(other).resolve() != path.resolve():
+                raise ValueError(f'{folder}: package {path.name!r} is declared with path {other!r}')
+            packages.package(path.name, path=str(path))
 
 
 def _columns(node):
