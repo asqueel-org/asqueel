@@ -1,4 +1,4 @@
-"""Database settings and the two package folders; no database I/O."""
+"""Database settings and the packages folder; no database I/O."""
 from pathlib import Path
 
 from genro_bag.resolvers import EnvResolver
@@ -26,6 +26,4 @@ class DatabaseConfiguration(SqlDatabaseConfig):
         return database
 
     def packages_section(self, database):
-        packages = database.packages()
-        for name in ("identity", "sales"):
-            packages.package(name, path=str(PACKAGES / name), sqlschema=name, sqlprefix=False)
+        database.packages(path=str(PACKAGES))

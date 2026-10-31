@@ -2,7 +2,7 @@
 
 The repository's `examples/two_schemas` folder is a complete configuration
 example. It uses the current grammar and runtime: each package is a folder in
-the package layout, loaded with `package(name, path=<folder>)`. It includes six
+the package layout, found by `packages(path=<folder>)`. It includes six
 tables:
 
 | Schema | Tables | Purpose |
@@ -37,7 +37,8 @@ examples/two_schemas/
 ```
 
 The configuration calls its sections in order: declare the DB connection, then
-declare the packages, one per SQL schema, each with the path of its folder.
+pass the `packages` folder. Each subfolder declares the package named after it,
+with that subfolder as its path; one package per SQL schema.
 This is the actual example source:
 
 ```{literalinclude} ../../examples/two_schemas/configure.py
@@ -47,7 +48,8 @@ This is the actual example source:
 `EnvResolver` is read through the standard configuration handler. The symbolic
 registration name below is independent of `connection.name`, which names the
 physical PostgreSQL database. Each package folder holds `main.py` with class
-`Package`, and one module per table in `model/`; the package loads the modules
+`Package`, whose `config_attributes()` gives `sqlschema` and `sqlprefix`, and
+one module per table in `model/`; the package loads the modules
 in alphabetical order. The `Table` class of a module declares its table in
 `config_db(self, pkg)`; its other methods are the table's behavior:
 
