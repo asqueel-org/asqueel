@@ -51,6 +51,39 @@ def load_package_layouts(builder):
                 if node.node_tag == 'package' and node.get_attr('path')]
     for node in packages:
         load_package_layout(node)
+    for node in packages:
+        load_package_contributions(builder, node)
+
+
+def load_package_contributions(builder, pkg):
+    """Run ``model/_packages/<target>/<table>.py`` of ``pkg`` on the tables of package ``target``.
+
+    As legacy ``config_db_<package>``, a contribution runs after every package
+    declared its own tables; it completes an existing table and is recorded as
+    contribution ``<package>:<target>.<table>``. A contribution's ``Table``
+    holds only ``config_db``.
+    """
+    folder = Path(pkg.get_attr('path')) / 'model' / '_packages'
+    if not folder.is_dir():
+        return
+    name = pkg.get_attr('name') or pkg.label
+    packages = pkg.parent_bag
+    for target_folder in sorted(path for path in folder.iterdir()
+                                if path.is_dir() and path.name != '__pycache__'):
+        target = packages.get_node(target_folder.name)
+        if target is None or target.node_tag != 'package':
+            raise ValueError(f'{name}: model/_packages/{target_folder.name} names no declared package')
+        for path in sorted(target_folder.glob('*.py')):
+            table_class = _module(path, _module_name(path, f'{name}_{target.label}')).Table
+            for method in dir(table_class):
+                if method != 'config_db' and not method.startswith('__'):
+                    raise not_available(f'{name}: model/_packages/{target.label}/{path.name} Table.{method}')
+            tables = target.value.get_node('tables') if target.value is not None else None
+            if tables is None or tables.value.get_node(path.stem) is None:
+                raise ValueError(f'{name}: model/_packages/{target.label}/{path.name} '
+                                 f'contributes to {target.label}.{path.stem}, which is not declared')
+            with builder.contribution(f'{name}:{target.label}.{path.stem}'):
+                table_class().config_db(target)
 
 
 def declare_package_folders(builder, packages):

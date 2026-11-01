@@ -1,8 +1,31 @@
 # test_invoice_pg: source nativa
 
-74 modelli: sys 16, adm 40, invc 18. Le dichiarazioni derivano dai config_db
-originali indicati nei commenti; non servono GenroPy o la source legacy espansa.
-Le options sono ancora presenti e vengono espanse soltanto dal render.
+74 modelli: sys 16, adm 40, invc 18. Ogni package è una cartella nel layout
+dei package, dichiarata con `package(name, path=...)`:
+
+```text
+test_invoice_pg/
+├── __init__.py          # source(): i tre package, requires, tipi
+└── packages/
+    ├── sys/
+    │   ├── main.py      # Package.config_attributes()
+    │   └── model/       # 16 moduli, uno per tabella
+    ├── adm/
+    │   ├── main.py
+    │   └── model/       # 40 moduli
+    │       └── _packages/sys/task.py   # contributo di adm a sys.task
+    └── invc/
+        ├── main.py
+        └── model/       # 18 moduli
+```
+
+Ogni `model/<table>.py` contiene `Table.config_db(self, pkg)`, derivato dal
+config_db originale indicato nel commento; non servono GenroPy o la source
+legacy espansa. Il contributo di adm alla tabella `sys.task` sta in
+`adm/model/_packages/sys/task.py` e gira dopo le tabelle di tutti i package.
+Restano nella ricetta `requires('sys')` di adm e i tipi `money` e `perc` di invc:
+`custom_type_<dtype>` di `main.py` vale solo per le `column`. Le options sono
+ancora presenti e vengono espanse soltanto dal render.
 
 ```python
 from examples.test_invoice_pg import source

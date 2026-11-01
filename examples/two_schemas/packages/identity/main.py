@@ -2,4 +2,5 @@
 
 
 class Package:
-    """No attribute beyond those configure.py writes on the package element."""
+    def config_attributes(self):
+        return dict(sqlschema='identity', sqlprefix=False)

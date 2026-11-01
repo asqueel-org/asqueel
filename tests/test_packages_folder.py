@@ -4,6 +4,7 @@ import textwrap
 import pytest
 
 from asqueel import AsqueelDb, SqlDatabaseConfig
+from asqueel.contracts import UnsupportedFeatureError
 
 MAIN = '''
 class Package:
@@ -87,4 +88,48 @@ def test_a_subfolder_without_main_is_an_error(tmp_path):
     folder = write_packages(tmp_path)
     (folder / 'billing' / 'model').mkdir(parents=True)
     with pytest.raises(ValueError, match="'billing' has no main.py"):
+        AsqueelDb(config(tmp_path, folder)[0])
+
+
+SALES_CUSTOMER_CONTRIBUTION = '''
+class Table:
+    def config_db(self, pkg):
+        pkg.table('customer').column('crm_rank', dtype='L')
+'''
+
+
+def write_contribution(folder, target, table, source):
+    contributions = folder / 'crm' / 'model' / '_packages' / target
+    contributions.mkdir(parents=True)
+    (contributions / f'{table}.py').write_text(textwrap.dedent(source))
+
+
+def test_a_contribution_runs_after_the_target_table(tmp_path):
+    folder = write_packages(tmp_path)
+    write_contribution(folder, 'sales', 'customer', SALES_CUSTOMER_CONTRIBUTION)
+    model = AsqueelDb(config(tmp_path, folder)[0]).model
+    assert list(model.table('sales.customer').columns) == ['id', 'name', 'crm_rank']
+
+
+def test_a_contribution_to_an_undeclared_package_is_an_error(tmp_path):
+    folder = write_packages(tmp_path)
+    write_contribution(folder, 'billing', 'customer', SALES_CUSTOMER_CONTRIBUTION)
+    with pytest.raises(ValueError, match='_packages/billing names no declared package'):
+        AsqueelDb(config(tmp_path, folder)[0])
+
+
+def test_a_contribution_to_an_undeclared_table_is_an_error(tmp_path):
+    folder = write_packages(tmp_path)
+    write_contribution(folder, 'sales', 'supplier', SALES_CUSTOMER_CONTRIBUTION)
+    with pytest.raises(ValueError, match='contributes to sales.supplier, which is not declared'):
+        AsqueelDb(config(tmp_path, folder)[0])
+
+
+def test_a_contribution_with_other_methods_is_refused(tmp_path):
+    folder = write_packages(tmp_path)
+    write_contribution(folder, 'sales', 'customer', SALES_CUSTOMER_CONTRIBUTION + '''
+    def trigger_onInserting(self, record):
+        pass
+''')
+    with pytest.raises(UnsupportedFeatureError, match='Table.trigger_onInserting'):
         AsqueelDb(config(tmp_path, folder)[0])

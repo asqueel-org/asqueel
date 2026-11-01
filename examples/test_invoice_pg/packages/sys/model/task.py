@@ -1,0 +1,35 @@
+# projects/gnrcore/packages/sys/model/task.py
+# SHA256: 2ed0868a185ab0a77f5d37773326638dcd4a471e190b32c44c709cf9216ab137
+
+
+class Table:
+    def config_db(self, pkg):
+        tbl = pkg.table('task', rowcaption='$task_name', caption_field='task_name', pkey='id', name_long='!!Task', name_plural='!!Tasks')
+        tbl.options().sysFields(user_upd=False, group_name='!![en]System')
+        tbl.column('table_name', name_long='!!Table')
+        tbl.column('task_name', name_long='!!Task name', name_short='!!Name')
+        tbl.column('command', name_long='!!Command')
+        tbl.column('month', name_long='!!Month', validate_values='1:[!!Jan],2:[!!Feb],3:[!!Mar],4:[!!Apr],5:[!!May],6:[!!Jun],7:[!!Jul],8:[!!Aug],9:[!!Sep],10:[!!Oct],11:[!!Nov],12:[!!Dec]')
+        tbl.column('day', name_long='!!Day', validate_values=','.join([str(x + 1) for x in range(31)]))
+        tbl.column('weekday', name_long='!!Weekday', validate_values='0:[!!Sun],1:[!!Mon],2:[!!Tue],3:[!!Wed],4:[!!Thu],5:[!!Fri],6:[!!Sat]')
+        tbl.column('hour', name_long='!!Hour', validate_values=','.join([str(x) for x in range(24)]))
+        tbl.column('minute', name_long='!!Minute', validate_values=','.join([str(x) for x in range(60)]))
+        tbl.column('frequency', dtype='L', name_long='!!Freq.(min)')
+        tbl.column('parameters', dtype='X', name_long='!!Parameters')
+        tbl.column('last_scheduled_ts', 'DHZ', name_long='!!Last scheduled', indexed=True)
+        tbl.column('last_execution_ts', 'DHZ', name_long='!!Last Execution')
+        tbl.column('last_error_ts', 'DHZ', name_long='!!Last Error')
+        tbl.column('last_error_info', 'X', name_long='!!Last Error Info')
+        tbl.column('run_asap', 'B', name_long='!!Run ASAP')
+        tbl.column('max_workers', 'L', name_long='!!Max workers')
+        tbl.column('log_result', 'B', name_long='!!Log Task')
+        tbl.column('user_id', size='22', group='_', name_long='User id')
+        tbl.column('date_start', 'D', name_long='!!Start Date')
+        tbl.column('date_end', 'D', name_long='!!End Date')
+        tbl.column('stopped', 'B', name_long='!!Stopped')
+        tbl.column('worker_code', size=':10', name_long='Worker code', indexed=True)
+        tbl.column('saved_query_code', size=':40', name_long='!![en]Query')
+        tbl.formulaColumn('active_workers', select=dict(table='sys.task_execution', where='$task_id=#THIS.id AND $start_ts IS NOT NULL AND $end_ts IS NULL', columns='COUNT(*)'), dtype='N', name_long='N.Active workers')
+        tbl.formulaColumn('last_result_ts', select=dict(table='sys.task_result', columns='MAX($start_time)', where='$task_id = #THIS.id'), name_long='!!Last Execution', dtype='A')
+        tbl.formulaColumn('last_completed', dtype='DH', name_long='!![en]Last completed', select=dict(table='sys.task_execution', where='$task_id=#THIS.id AND $end_ts IS NOT NULL', order_by='$end_ts DESC', limit=1, columns='$end_ts'))
+        tbl.formulaColumn('last_error', dtype='DH', name_long='!![en]Last error', select=dict(table='sys.task_execution', where='$task_id=#THIS.id AND $is_error IS TRUE', order_by='$start_ts DESC', limit=1, columns='$start_ts'))

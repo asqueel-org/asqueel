@@ -177,6 +177,24 @@ packages.package('sales', path='/path/to/sales')
 crm = packages.package('crm')
 ```
 
+`packages(path=<folder>)` loads every package of a folder: each subfolder
+declares the package named after it, with that subfolder as its `path`.
+`__pycache__` and folders starting with `.` are skipped; a subfolder without
+`main.py` raises. A package also declared in the recipe composes with its
+folder, so the recipe can add options such as `requires`; a different `path`
+raises.
+
+A package contributes to a table of another package with
+`model/_packages/<package>/<table>.py`, whose `Table.config_db(self, pkg)`
+receives the other package. Contributions run after every package declared its
+own tables, as legacy `config_db_<package>`. The table must already be
+declared, and the contribution's `Table` holds only `config_db`.
+
+```python
+packages = root.packages(path='/path/to/packages')
+packages.package('adm').options().requires('sys')
+```
+
 ## Save a recipe source
 
 A recipe source is a Bag, so it is saved and shipped as TYTX. The file holds the

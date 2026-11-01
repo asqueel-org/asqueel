@@ -1,5 +1,14 @@
 # Release notes
 
+## Unreleased
+
+- `packages(path=<folder>)` declares one package per subfolder of `<folder>`,
+  each loaded from the package layout (`main.py`, `model/<table>.py`). See
+  [configuration](configuration.md#load-a-package-folder-in-the-legacy-layout).
+- `model/_packages/<package>/<table>.py` contributes to a table of another
+  package, after every package declared its own tables.
+- The `two_schemas` and `test_invoice_pg` examples are package folders.
+
 ## 0.9.5 — Cached fetch
 
 - Cached fetch on PostgreSQL and SQLite, enabled by the db-level option

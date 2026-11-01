@@ -96,7 +96,8 @@ def test_projection_uses_only_objects_and_does_not_mutate_them(monkeypatch):
     assert attrs == {key: t.attributes for key, t in model.tables.items()}
     assert cols == {c.fullname: c.attributes for t in model.tables.values() for c in t.columns.values()}
     assert model.relations.to_json() == joiners
-    recipe.source.get_node('db.packages.invc.tables.customer.columns.account_name').attr['size'] = ':999'
+    # The tables come from the package folders: the recipe holds the packages only.
+    recipe.source.get_node('db.packages.invc').attr['sqlschema'] = 'other'
     model.src = None
     assert physical(model) == baseline
     try:
@@ -155,7 +156,7 @@ def test_hierarchical_json_apply_introspect_rediff_and_evolution(pg_database, st
     assert sum(len(t['columns']) for s in actual.values() for t in s['tables'].values()) == 789
     recipe = source()
     with recipe.contribution('hierarchical-migration-check'):
-        customer = recipe.source.get_node('db.packages.invc.tables.customer')
+        customer = recipe.source.get_node('db.packages.invc').table('customer')
         customer.options().fullUpd()
         customer.column('probe_product', size='22').relation('invc.product.id', onDelete_sql='setnull')
         customer.column('probe_code', size=':20', unique=True)

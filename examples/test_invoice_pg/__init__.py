@@ -1,22 +1,23 @@
-"""Native test_invoice_pg source: 74 models, with the agreed exclusions."""
+"""Native test_invoice_pg source: 74 models, with the agreed exclusions.
+
+Each package is a folder in the package layout, declared with its path.
+"""
+from pathlib import Path
+
 from asqueel import SqlDatabaseConfig
-from . import sys, adm, invc
+
+PACKAGES = Path(__file__).resolve().parent / 'packages'
 
 
 def source():
     config = SqlDatabaseConfig()
     db = config.source.db('test_invoice_pg', implementation='postgres')
     packages = db.packages()
-    sys_pkg = packages.package('sys', sqlschema='sys', comment='sys', name_short='System', name_long='System')
-    adm_pkg = packages.package('adm', sqlschema='adm', comment='Admin', name_short='Adm', name_long='!!Administration')
-    invc_pkg = packages.package('invc', sqlschema='invc', sqlprefix=True, comment='invc package', name_short='Invc', name_long='Invoicer')
+    packages.package('sys', path=str(PACKAGES / 'sys'))
+    adm_pkg = packages.package('adm', path=str(PACKAGES / 'adm'))
+    invc_pkg = packages.package('invc', path=str(PACKAGES / 'invc'))
     adm_pkg.options().requires('sys')
     invc_pkg.options().type('money', dtype='N', size='14,2')
     invc_pkg.options().type('perc', dtype='N', size='5,2')
-    sys.configure(sys_pkg)
-    adm.configure(adm_pkg)
-    invc.configure(invc_pkg)
-    with config.contribution('adm:sys.task'):
-        adm.sys_task_contribution(sys_pkg)
     config.validate_source()
     return config

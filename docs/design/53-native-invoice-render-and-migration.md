@@ -9,9 +9,10 @@ una seconda diff vuota. Nessuna operazione sul database applicativo test_invoice
 ## Consegna e riproduzione
 
 - [Source nativa](../../examples/test_invoice_pg/__init__.py), con dichiarazioni
-  separate per [sys](../../examples/test_invoice_pg/sys.py),
-  [adm](../../examples/test_invoice_pg/adm.py) e
-  [invc](../../examples/test_invoice_pg/invc.py).
+  separate per [sys](../../examples/test_invoice_pg/packages/sys),
+  [adm](../../examples/test_invoice_pg/packages/adm) e
+  [invc](../../examples/test_invoice_pg/packages/invc), un modulo
+  `model/<table>.py` per tabella.
 - [JSON migrations nativo](../../artifacts/test_invoice_pg/native/migration.json).
 - [Modello risolto serializzato](../../artifacts/test_invoice_pg/native/model.json),
   generato dal producer e non versionato, secondo il .gitignore degli artefatti.
